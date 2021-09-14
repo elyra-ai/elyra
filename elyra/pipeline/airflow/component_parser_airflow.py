@@ -135,14 +135,14 @@ class AirflowComponentParser(ComponentParser):
             # Amend description to include type information
             description = self._format_description(description=description, data_type=data_type)
 
-            data_type, control_id, default_value = self.determine_type_information(data_type)
+            data_type_info = self.determine_type_information(data_type)
 
             properties.append(ComponentParameter(id=arg,
                                                  name=arg,
-                                                 data_type=data_type,
-                                                 value=(value or default_value),
+                                                 data_type=data_type_info.data_type,
+                                                 value=(value or data_type_info.default_value),
                                                  description=description,
-                                                 control_id=control_id))
+                                                 control_id=data_type_info.control_id))
         return properties
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:

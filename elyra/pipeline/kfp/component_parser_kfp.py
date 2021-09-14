@@ -13,17 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import re
 from types import SimpleNamespace
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Tuple
 
 import yaml
 
 from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentDataTypeInfo
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
 
@@ -92,9 +91,9 @@ class KfpComponentParser(ComponentParser):
                 if self._is_pathbased_parameter(param.get('name'), component_yaml):
                     data_type = f"{param_type[:-1]}Path"
 
-                type, control, control_id, required_param, default_value = self.determine_type_information(data_type)
-                if not required_param:
-                    required = required_param
+                data_type_info = self.determine_type_information(data_type)
+                if not data_type_info.required:
+                    required = data_type_info.required
 
                 # Get value if provided
                 value = param.get('default', '')
@@ -103,11 +102,11 @@ class KfpComponentParser(ComponentParser):
 
                 properties.append(ComponentParameter(id=ref_name,
                                                      name=param.get('name'),
-                                                     data_type=type,
-                                                     value=(value or default_value),
+                                                     data_type=data_type_info.data_type,
+                                                     value=(value or data_type_info.default_value),
                                                      description=description,
-                                                     control=control,
-                                                     control_id=control_id,
+                                                     control=data_type_info.control,
+                                                     control_id=data_type_info.control_id,
                                                      required=required))
         return properties
 
@@ -167,58 +166,28 @@ class KfpComponentParser(ComponentParser):
 
         return False
 
-    def determine_type_information(self, parsed_type: str) -> Tuple[str, str, str, bool, Any]:
+    def determine_type_information(self, parsed_type: str) -> ComponentDataTypeInfo:
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.
 
         """
-        type_lowered = parsed_type.lower()
-        type_options = ['dictionary', 'dict', 'set', 'list', 'array', 'arr', 'inputpath', 'inputvalue', 'outputpath']
+        data_type_info = super().determine_type_information(parsed_type)
+        if data_type_info.undetermined:
+            if 'inputpath' in data_type_info.parsed_data:
+                data_type_info.data_type = 'inputpath'
+                data_type_info.control_id = "TBDControl"
+                data_type_info.undetermined = False
+            elif 'inputvalue' in data_type_info.parsed_data:
+                data_type_info.data_type = 'inputvalue'
+                data_type_info.undetermined = False
+            elif 'outputpath' in data_type_info.parsed_data:
+                data_type_info.data_type = 'outputpath'
+                data_type_info.required = False
+                data_type_info.control = "readonly"
+                data_type_info.undetermined = False
+            else:  # Type was not determined, but continuing.  Log a warning...
+                self.log.warn(f"Data type from parsed data ('{parsed_type}' could not be determined. "
+                              f"Proceeding as if 'string' was detected.")
 
-        # Prefer types that occur in a clause of the form "[type] of ..."
-        # E.g. "a dictionary of key/value pairs" will produce the type "dictionary"
-        for option in type_options:
-            if any(word + " of " in type_lowered for word in type_options):
-                reg = re.compile(f"({option}) of ")
-                match = reg.search(type_lowered)
-                if match:
-                    type_lowered = option
-                    break
-            elif option in type_lowered:
-                type_lowered = option
-                break
-
-        # Set control id and default value for UI rendering purposes
-        # Standardize type names
-        control = "custom"
-        control_id = "StringControl"
-        default_value = ''
-        required_param = True
-        if any(word in type_lowered for word in ["str", "string"]):
-            type_lowered = "string"
-        elif any(word in type_lowered for word in ['int', 'integer', 'number']):
-            type_lowered = "number"
-            control_id = "NumberControl"
-            default_value = 0
-        elif any(word in type_lowered for word in ['bool', 'boolean']):
-            type_lowered = "boolean"
-            control_id = "BooleanControl"
-            default_value = False
-        elif type_lowered in ['dict', 'dictionary']:
-            type_lowered = "dictionary"
-        elif type_lowered in ['list', 'set', 'array', 'arr']:
-            type_lowered = "list"
-        elif type_lowered in ['inputpath']:
-            type_lowered = "inputpath"
-            control_id = "FoobarControl"
-        elif type_lowered in ['inputvalue']:
-            type_lowered = "inputvalue"
-        elif type_lowered in ['outputpath']:
-            control = "readonly"
-            type_lowered = "outputpath"
-            required_param = False
-        else:
-            type_lowered = "string"
-
-        return type_lowered, control, control_id, required_param, default_value
+        return data_type_info
