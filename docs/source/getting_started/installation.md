@@ -40,7 +40,7 @@ The instructions below are installing the latest release.
 If you use `pip`, install Elyra with:
 
 ```bash
-pip3 install --upgrade elyra && jupyter lab build
+pip3 install --upgrade elyra[all] && jupyter lab build
 ```
 
 If desired, you can install these Elyra extensions independently:
@@ -74,7 +74,7 @@ If desired, you can install these Elyra extensions independently:
 If you use `conda`, install Elyra with:
 
 ```bash
-conda install -c conda-forge elyra && jupyter lab build
+conda install -c conda-forge elyra[all] && jupyter lab build
 ```
 
 or install the Pipeline editor, Code Snippet, or Script editor extensions individually:
