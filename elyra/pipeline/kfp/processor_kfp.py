@@ -532,14 +532,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     property_value = operation.component_params.get(component_property.ref)
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
-                                   f"of type '{component_property.type}'")
+                                   f"of type '{component_property.data_type}'")
 
-                    if component_property.type == "inputpath":
+                    if component_property.data_type == "inputPath":
                         output_node_id = property_value['node_id']
-                        output_node_parameter_key = property_value['output_key']
+                        output_node_parameter_key = property_value['output_key'].replace("elyra_", "")
                         operation.component_params[component_property.ref] = \
                             component_task_factories[output_node_id].outputs[output_node_parameter_key]
-                    if component_property.type == 'dictionary':
+                    elif component_property.data_type == 'dictionary':
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
                     elif component_property.data_type == 'list':
@@ -563,9 +563,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
-                    # Remove inputs and outputs from params dict until support for data exchange is provided
-                    operation.component_params_as_dict.pop("inputs")
-                    operation.component_params_as_dict.pop("outputs")
+                    comp_spec_inputs = [inputs.name.lower().replace(" ", "_") for
+                                        inputs in factory_function.component_spec.inputs]
+
+                    # Remove inputs and outputs from params dict
+                    # TODO: need to have way to retrieve only required params
+                    parameter_removal_list = ["inputs", "outputs"]
+                    for component_param in operation.component_params_as_dict.keys():
+                        if component_param not in comp_spec_inputs:
+                            parameter_removal_list.append(component_param)
+
+                    for parameter in parameter_removal_list:
+                        operation.component_params_as_dict.pop(parameter, None)
 
                     # Create ContainerOp instance and assign appropriate user-provided name
                     container_op = factory_function(**operation.component_params_as_dict)

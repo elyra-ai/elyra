@@ -51,7 +51,7 @@ class ComponentParameter(object):
         """
         :param id: Unique identifier for a property
         :param name: The name of the property for display
-        :param type: The type that the property value takes on
+        :param data_type: The type that the property value takes on
         :param value: The default value of the property
         :param description: A description of the property for display
         :param control: The control of the property on the display, e.g. custom or readonly
