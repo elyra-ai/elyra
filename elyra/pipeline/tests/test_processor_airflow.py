@@ -149,9 +149,9 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
     assert "/" + sample_metadata['cos_bucket'] + "/" + "untitled" in response.object_storage_path
 
 
-@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
+@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_COMPLEX], indirect=True)
 def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
-    pipeline_json = _read_pipeline_resource(PIPELINE_FILE_CUSTOM_COMPONENTS)
+    pipeline_json = _read_pipeline_resource(PIPELINE_FILE_COMPLEX)
 
     export_pipeline_name = "some-name"
     export_file_type = "py"
@@ -178,6 +178,8 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
         assert os.path.isfile(export_pipeline_output_path)
 
         file_as_lines = open(response).read().splitlines()
+
+        assert "from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator" in file_as_lines
 
         # Check DAG project name
         for i in range(len(file_as_lines)):
@@ -231,10 +233,52 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                         elif line == ')':  # End of this Notebook Op
                             break
                         sub_list_line_counter += 1
+
+
+@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
+def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
+    pipeline_json = _read_pipeline_resource(PIPELINE_FILE_CUSTOM_COMPONENTS)
+
+    export_pipeline_name = "some-name"
+    export_file_type = "py"
+
+    mocked_runtime = Metadata(name="test-metadata",
+                              display_name="test",
+                              schema_name="airflow",
+                              metadata=sample_metadata
+                              )
+
+    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, namespace=None: mocked_runtime)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
+    monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y: parsed_ordered_dict)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        export_pipeline_output_path = os.path.join(temp_dir, f'{export_pipeline_name}.py')
+
+        response = processor.create_pipeline_file(parsed_pipeline,
+                                                  pipeline_export_format=export_file_type,
+                                                  pipeline_export_path=export_pipeline_output_path,
+                                                  pipeline_name=export_pipeline_name)
+
+        assert export_pipeline_output_path == response
+        assert os.path.isfile(export_pipeline_output_path)
+
+        file_as_lines = open(response).read().splitlines()
+
+        # Check DAG project name
+        for i in range(len(file_as_lines)):
+            if "args = {" == file_as_lines[i]:
+                assert "project_id" == read_key_pair(file_as_lines[i + 1], sep=':')['key']
+                assert export_pipeline_name == read_key_pair(file_as_lines[i + 1], sep=':')['value']
+
+        # For every node in the original pipeline json
+        for node in pipeline_json['pipelines'][0]['nodes']:
+            component_parameters = node['app_data']['component_parameters']
+            for i in range(len(file_as_lines)):
                 # Matches custom component operators
-                elif f"op_{node['id'].replace('-', '_')} = " in file_as_lines[i]:
+                if f"op_{node['id'].replace('-', '_')} = " in file_as_lines[i]:
                     for parameter in component_parameters:
-                        # Find 'parameter=' clause in lines
+                        # Find 'parameter=' clause in file_as_lines list
                         r = re.compile(rf"\s*{parameter}=.*")
                         assert len(list(filter(r.match, file_as_lines[i + 1:]))) > 0
 
