@@ -71,9 +71,9 @@ import {
   IRuntime,
   ISchema,
   PipelineService,
-  RUNTIMES_NAMESPACE,
-  RUNTIME_IMAGES_NAMESPACE,
-  PIPELINE_COMPONENTS_NAMESPACE
+  RUNTIMES_SCHEMASPACE,
+  RUNTIME_IMAGES_SCHEMASPACE,
+  PIPELINE_COMPONENTS_SCHEMASPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
@@ -520,8 +520,8 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     if (Utils.isDialogResult(runtimes)) {
       // Open the runtimes widget
-      runtimes.button.label.includes(RUNTIMES_NAMESPACE) &&
-        shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+      runtimes.button.label.includes(RUNTIMES_SCHEMASPACE) &&
+        shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
       return;
     }
 
@@ -546,9 +546,9 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipelineRuntimeDisplayName
         );
         if (Utils.isDialogResult(runtimes)) {
-          if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+          if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
             // Open the runtimes widget
-            shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+            shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
           }
           return;
         }
@@ -708,9 +708,9 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipelineRuntimeDisplayName
         );
         if (Utils.isDialogResult(runtimes)) {
-          if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+          if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
             // Open the runtimes widget
-            shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+            shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
           }
           return;
         }
@@ -826,13 +826,15 @@ const PipelineWrapper: React.FC<IProps> = ({
           setPanelOpen(true);
           break;
         case 'openRuntimes':
-          shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+          shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
           break;
         case 'openRuntimeImages':
-          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
+          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_SCHEMASPACE}`);
           break;
         case 'openPipelineComponents':
-          shell.activateById(`elyra-metadata:${PIPELINE_COMPONENTS_NAMESPACE}`);
+          shell.activateById(
+            `elyra-metadata:${PIPELINE_COMPONENTS_SCHEMASPACE}`
+          );
           break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, {

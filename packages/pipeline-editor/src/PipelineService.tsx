@@ -23,10 +23,9 @@ import { PathExt } from '@jupyterlab/coreutils';
 import * as React from 'react';
 
 export const KFP_SCHEMA = 'kfp';
-export const RUNTIMES_NAMESPACE = 'runtimes';
-export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
-export const PIPELINE_COMPONENTS_NAMESPACE = 'component-registries';
-export const COMPONENTS_NAMESPACE = 'components';
+export const RUNTIMES_SCHEMASPACE = 'runtimes';
+export const RUNTIME_IMAGES_SCHEMASPACE = 'runtime-images';
+export const PIPELINE_COMPONENTS_SCHEMASPACE = 'component-registries';
 
 export interface IRuntime {
   name: string;
@@ -59,7 +58,7 @@ export class PipelineService {
    * executed on these runtimes.
    */
   static async getRuntimes(showError = true, action?: string): Promise<any> {
-    return MetadataService.getMetadata(RUNTIMES_NAMESPACE).then(runtimes => {
+    return MetadataService.getMetadata(RUNTIMES_SCHEMASPACE).then(runtimes => {
       if (showError && Object.keys(runtimes).length === 0) {
         return RequestErrors.noMetadataError('runtime', action);
       }
@@ -99,7 +98,7 @@ export class PipelineService {
    * Returns a list of runtime schema
    */
   static async getRuntimesSchema(showError = true): Promise<any> {
-    return MetadataService.getSchema(RUNTIMES_NAMESPACE).then(schema => {
+    return MetadataService.getSchema(RUNTIMES_SCHEMASPACE).then(schema => {
       if (showError && Object.keys(schema).length === 0) {
         return RequestErrors.noMetadataError('schema');
       }

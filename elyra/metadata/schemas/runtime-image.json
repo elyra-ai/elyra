@@ -3,7 +3,6 @@
   "title": "Runtime Image",
   "name": "runtime-image",
   "display_name": "Runtime Image",
-  "namespace": "runtime-images",
   "schemaspace": "runtime-images",
   "schemaspace_id": "119c9740-d73f-48c6-a97a-599d3acaf41d",
   "uihints": {

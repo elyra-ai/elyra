@@ -73,7 +73,7 @@ export interface IMetadataDisplayProps {
   metadata: IMetadata[];
   openMetadataEditor: (args: any) => void;
   updateMetadata: () => void;
-  namespace: string;
+  schemaspace: string;
   sortMetadata: boolean;
   className: string;
   // Optional string to append to a schema display name
@@ -121,7 +121,7 @@ export class MetadataDisplay<
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
         MetadataService.deleteMetadata(
-          this.props.namespace,
+          this.props.schemaspace,
           metadata.name
         ).catch(error => RequestErrors.serverError(error));
       }
@@ -136,7 +136,7 @@ export class MetadataDisplay<
         onClick: (): void => {
           this.props.openMetadataEditor({
             onSave: this.props.updateMetadata,
-            namespace: this.props.namespace,
+            schemaspace: this.props.schemaspace,
             schema: metadata.schema_name,
             name: metadata.name
           });
@@ -309,7 +309,7 @@ export class MetadataDisplay<
           onFilter={this.filteredMetadata}
           tags={this.getActiveTags()}
           omitTags={this.props.omitTags}
-          namespaceId={`${this.props.namespace}`}
+          schemaspace={`${this.props.schemaspace}`}
         />
         <div>{this.props.metadata.map(this.renderMetadata)}</div>
       </div>
@@ -324,7 +324,7 @@ export interface IMetadataWidgetProps {
   app: JupyterFrontEnd;
   themeManager?: IThemeManager;
   display_name: string;
-  namespace: string;
+  schemaspace: string;
   icon: LabIcon;
   // Optional string to append after schema display name
   schemaType?: string;
@@ -358,7 +358,7 @@ export class MetadataWidget extends ReactWidget {
 
   async getSchemas(): Promise<void> {
     try {
-      this.schemas = await MetadataService.getSchema(this.props.namespace);
+      this.schemas = await MetadataService.getSchema(this.props.schemaspace);
       this.update();
     } catch (error) {
       RequestErrors.serverError(error);
@@ -368,7 +368,7 @@ export class MetadataWidget extends ReactWidget {
   addMetadata(schema: string): void {
     this.openMetadataEditor({
       onSave: this.updateMetadata,
-      namespace: this.props.namespace,
+      schemaspace: this.props.schemaspace,
       schema: schema
     });
   }
@@ -383,7 +383,7 @@ export class MetadataWidget extends ReactWidget {
    */
   async fetchMetadata(): Promise<any> {
     try {
-      return await MetadataService.getMetadata(this.props.namespace);
+      return await MetadataService.getMetadata(this.props.schemaspace);
     } catch (error) {
       return RequestErrors.serverError(error);
     }
@@ -424,9 +424,9 @@ export class MetadataWidget extends ReactWidget {
         metadata={metadata}
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
-        namespace={this.props.namespace}
+        schemaspace={this.props.schemaspace}
         sortMetadata={true}
-        className={`${METADATA_CLASS}-${this.props.namespace}`}
+        className={`${METADATA_CLASS}-${this.props.schemaspace}`}
         omitTags={this.omitTags()}
       />
     );
