@@ -16,6 +16,8 @@
 from abc import ABC
 from abc import abstractmethod
 import copy
+import io
+import json
 import os
 import re
 from typing import Dict
@@ -23,6 +25,9 @@ from typing import List
 from typing import Optional
 
 import entrypoints
+from jsonschema import draft7_format_checker
+from jsonschema import validate
+from jsonschema import ValidationError
 from traitlets.config import LoggingConfigurable
 from traitlets.config import SingletonConfigurable
 from traitlets import Type  # noqa H306
@@ -42,13 +47,23 @@ class SchemaManager(SingletonConfigurable):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        # The following exposes the metadata-test schemaspace if true or 1.
+        # Metadata testing will enable this env.  Note: this cannot be globally
+        # defined, else the file could be loaded before the tests have enable the env.
+        self.metadata_testing_enabled = bool(os.getenv("METADATA_TESTING", 0))
+
+        self._meta_schema: dict
+        schema_file = os.path.join(os.path.dirname(__file__), 'schemas', 'meta-schema.json')
+        with io.open(schema_file, 'r', encoding='utf-8') as f:
+            self._meta_schema = json.load(f)
         self._load_schemaspace_schemas()
 
     def _validate_schemaspace(self, schemaspace_name_or_id: str) -> None:
         """Ensures the schemaspace is valid and raises ValueError if it is not."""
-        if schemaspace_name_or_id not in list(self.schemaspaces.keys()) + list(self.schemaspace_name_to_id.keys()):
-            raise ValueError("schemaspace '{}' is not in the list of valid schemaspaces: '{}'".
-                             format(schemaspace_name_or_id, self.get_schemaspace_names()))
+        if schemaspace_name_or_id not in self.schemaspaces:
+            raise ValueError(f"The schemaspace name or id '{schemaspace_name_or_id}' is not "
+                             f"in the list of valid schemaspaces: '{self.get_schemaspace_names()}'!")
 
     def get_schemaspace_names(self) -> list:
         """Retuns list of registered schemaspace names."""
@@ -74,20 +89,8 @@ class SchemaManager(SingletonConfigurable):
 
     def get_schemaspace(self, schemaspace_name_or_id: str) -> 'Schemaspace':
         """Returns the Schemaspace instance associated with the given name or id."""
-
-        # Need to determine if this is an id or name.  We'll be optimistic and assume Id,
-        # then try name and if both fail, raise ValueError
         self._validate_schemaspace(schemaspace_name_or_id)
-        if schemaspace_name_or_id in self.schemaspaces.keys():
-            schemaspace_id = schemaspace_name_or_id  # we have an id
-        else:
-            schemaspace_id = self.schemaspace_name_to_id.get(schemaspace_name_or_id)
-
-        if not schemaspace_id:
-            raise ValueError(f"The provided schemaspace name or id '{schemaspace_name_or_id}' "
-                             f"is not associated with a registered Schemaspace!")
-
-        return self.schemaspaces.get(schemaspace_id)
+        return self.schemaspaces.get(schemaspace_name_or_id)
 
     def clear_all(self) -> None:
         """Primarily used for testing, this method reloads schemas from initial values. """
@@ -96,19 +99,18 @@ class SchemaManager(SingletonConfigurable):
 
     def _load_schemaspace_schemas(self):
         """Gets Schemaspaces and SchemasProviders via entrypoints and validates/loads their schemas."""
-
-        # The following exposes the metadata-test schemaspace if true or 1.
-        # Metadata testing will enable this env.  Note: this cannot be globally
-        # defined, else the file could be loaded before the tests have enable the env.
-        metadata_testing_enabled = bool(os.getenv("METADATA_TESTING", 0))
-
         self.schemaspaces = {}
         self.schemaspace_name_to_id = {}
+        self._load_schemaspaces()
+        self._load_schemas_providers()
+
+    def _load_schemaspaces(self):
+        """Loads the Schemaspace instances from entrypoint group 'metadata.schemaspaces'."""
         for schemaspace in entrypoints.get_group_all('metadata.schemaspaces'):
             # Record the Schemaspace instance and create the name-to-id map
             try:
                 # If we're not testing, skip our test schemaspace
-                if not metadata_testing_enabled and schemaspace.name == METADATA_TEST_SCHEMASPACE:
+                if not self.metadata_testing_enabled and schemaspace.name == METADATA_TEST_SCHEMASPACE:
                     continue
                 # instantiate an actual instance of the Schemaspace
                 self.log.info(f"Loading schemaspace '{schemaspace.name}'...")
@@ -116,49 +118,71 @@ class SchemaManager(SingletonConfigurable):
                 if not isinstance(schemaspace_instance, Schemaspace):
                     raise ValueError(f"Schemaspace instance '{schemaspace.name}' is not an "
                                      f"instance of '{Schemaspace.__name__}'!")
+                # To prevent a name-to-id lookup, just store the same instance in two locations
                 self.schemaspaces[schemaspace_instance.id] = schemaspace_instance
+                self.schemaspaces[schemaspace_instance.name] = schemaspace_instance
+                # We'll retain a map of name-to-id, but this will be primarily used to
+                # return the set of schemaspace names
                 self.schemaspace_name_to_id[schemaspace_instance.name] = schemaspace_instance.id
             except Exception as err:
                 # log and ignore initialization errors
                 self.log.error(f"Error loading schemaspace '{schemaspace.name}' - {err}")
 
-        for schemas_provider in entrypoints.get_group_all('metadata.schemas'):
+    def _load_schemas_providers(self):
+        """Loads the SchemasProviders instances from entrypoint group 'metadata.schemas'."""
+        for schemas_provider_ep in entrypoints.get_group_all('metadata.schemas'):
             try:
                 # If we're not testing, skip our test schemas
-                if not metadata_testing_enabled and schemas_provider.name == METADATA_TEST_SCHEMASPACE:
+                if not self.metadata_testing_enabled and schemas_provider_ep.name == METADATA_TEST_SCHEMASPACE:
                     continue
                 # instantiate an actual instance of the processor
-                self.log.info(f"Loading SchemasProvider '{schemas_provider.name}'...")
-                schemas_provider_instance = schemas_provider.load()()  # Load an instance
-                if not isinstance(schemas_provider_instance, SchemasProvider):
-                    raise ValueError(f"SchemasProvider instance '{schemas_provider.name}' is not an "
+                self.log.info(f"Loading SchemasProvider '{schemas_provider_ep.name}'...")
+                schemas_provider = schemas_provider_ep.load()()  # Load an instance
+                if not isinstance(schemas_provider, SchemasProvider):
+                    raise ValueError(f"SchemasProvider instance '{schemas_provider_ep.name}' is not an "
                                      f"instance of '{SchemasProvider.__name__}'!")
-                self._load_schemas(schemas_provider_instance)
+                schemas = schemas_provider.get_schemas()
+                for schema in schemas:
+                    schemaspace_id = schema.get("schemaspace_id")
+                    schemaspace_name = schema.get("schemaspace")
+                    schema_name = schema.get("name")
+                    # Ensure that both schemaspace id and name are registered and both point to same instance
+                    if schemaspace_id not in self.schemaspaces:
+                        raise ValueError(f"Schema '{schema_name}' references a schemaspace "
+                                         f"'{schemaspace_id}' that is not loaded!")
+                    if schemaspace_name not in self.schemaspaces:
+                        raise ValueError(f"Schema '{schema_name}' references a schemaspace "
+                                         f"'{schemaspace_name}' that is not loaded!")
+                    if self.schemaspaces[schemaspace_id] != self.schemaspaces[schemaspace_name]:
+                        raise ValueError(f"Schema '{schema_name}' references a schemaspace name "
+                                         f"'{schemaspace_name}' and a schemaspace id '{schemaspace_id}' "
+                                         f"that are associated with different Schemaspace instances!")
+
+                    self._validate_schema(schemaspace_name, schema_name, schema)
+                    # Only add the schema once since schemaspace_name is pointing to the same Schemaspace instance.
+                    self.schemaspaces[schemaspace_id].add_schema(schema)
             except Exception as err:
                 # log and ignore initialization errors
-                self.log.error(f"Error loading schemas for SchemasProvider '{schemas_provider.name}' - {err}")
+                self.log.error(f"Error loading schemas for SchemasProvider '{schemas_provider_ep.name}' - {err}")
 
-    def _load_schemas(self, provider: 'SchemasProvider'):
-        """Calls get_schemas() on the provider, validates the referenced schemaspace id, and adds
-
-        to schemaspace instance.
-        """
-        schemas = provider.get_schemas()
-        for schema in schemas:
-            # TODO - validate schema against meta-schema
-
-            schemaspace_id = schema.get("schemaspace_id")
-            schema_name = schema.get("name")
-            if schemaspace_id not in self.schemaspaces:
-                raise ValueError(f"Schema '{schema_name}' references a schemaspace "
-                                 f"'{schemaspace_id}' that is not loaded!")
-
-            self.schemaspaces[schemaspace_id].add_schema(schema)
+    def _validate_schema(self, schemaspace_name: str, schema_name: str, schema: dict):
+        """Validates the given schema against the meta-schema."""
+        try:
+            self.log.debug(f"Validating schema '{schema_name}' of schemaspace {schemaspace_name}...")
+            validate(instance=schema, schema=self._meta_schema, format_checker=draft7_format_checker)
+        except ValidationError as ve:
+            # Because validation errors are so verbose, only provide the first line.
+            first_line = str(ve).partition('\n')[0]
+            msg = f"Validation failed for schema '{schema_name}' of " \
+                  f"schemaspace '{schemaspace_name}' with error: {first_line}."
+            self.log.error(msg)
+            raise ValidationError(msg) from ve
 
 
 class Schemaspace(LoggingConfigurable):
     _id: str
     _name: str
+    _display_name: str
     _description: str
     _storage_class: MetadataStore
     _schemas: Dict[str, Dict]  # use a dict to prevent duplicate entries

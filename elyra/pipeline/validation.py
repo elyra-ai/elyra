@@ -193,13 +193,12 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         Checks that the pipeline payload is compatible with this version of elyra (ISSUE #938)
         as well as verifying all nodes in the pipeline are supported by the runtime
-        :param pipeline: the pipeline definition to be validated
         :param pipeline_type: name of the pipeline runtime being used e.g. kfp, airflow, generic
         :param pipeline_runtime: name of the pipeline runtime for execution  e.g. kfp, airflow, local
         :param response: ValidationResponse containing the issue list to be updated
         """
 
-        pipeline_id = pipeline_definition.primary_pipeline.id
+        primary_pipeline_id = pipeline_definition.primary_pipeline.id
         supported_ops = []
 
         if pipeline_runtime:
@@ -208,7 +207,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                      message_type="invalidRuntime",
                                      message="Pipeline runtime platform is not compatible "
                                              "with selected runtime configuration.",
-                                     data={"pipelineID": pipeline_id,
+                                     data={"pipelineID": primary_pipeline_id,
                                            "pipelineType": pipeline_type,
                                            "pipelineRuntime": pipeline_runtime})
             elif PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime):
@@ -217,8 +216,8 @@ class PipelineValidationManager(SingletonConfigurable):
                     supported_ops.append(component.op)
 
                 # Checks pipeline node types are compatible with the runtime selected
-                for pipeline in pipeline_definition.pipelines:
-                    for node in pipeline.nodes:
+                for sub_pipeline in pipeline_definition.pipelines:
+                    for node in sub_pipeline.nodes:
                         if node.type == "execution_node" and node.op not in supported_ops:
                             response.add_message(severity=ValidationSeverity.Error,
                                                  message_type="invalidNodeType",
@@ -226,13 +225,14 @@ class PipelineValidationManager(SingletonConfigurable):
                                                  data={"nodeID": node.id,
                                                        "nodeOpName": node.op,
                                                        "nodeName": node.label,
-                                                       "pipelineID": pipeline.id})
+                                                       "pipelineId": sub_pipeline.id})
             else:
                 response.add_message(severity=ValidationSeverity.Error,
                                      message_type="invalidRuntime",
                                      message="Unsupported pipeline runtime",
                                      data={"pipelineRuntime": pipeline_runtime,
-                                           "pipelineId": pipeline_type.id})
+                                           "pipelineType": pipeline_type,
+                                           "pipelineId": primary_pipeline_id})
 
     async def _validate_node_properties(self, pipeline_definition: PipelineDefinition,
                                         pipeline_type: str,
@@ -276,8 +276,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                   resource_value=resource_value,
                                                                   response=response)
 
-                        self._validate_label(node_id=node.id, filename=filename,
-                                             node_label=node_label, response=response)
+                        self._validate_label(node_id=node.id, node_label=node_label, response=response)
                         if dependencies:
                             notebook_root_relative_path = os.path.dirname(filename)
                             for dependency in dependencies:
@@ -432,7 +431,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "propertyName": 'env_vars',
                                        "value": env_var})
 
-    def _validate_label(self, node_id: str, filename: str, node_label: str, response: ValidationResponse) -> None:
+    def _validate_label(self, node_id: str, node_label: str, response: ValidationResponse) -> None:
         """
         KFP specific check for the label name when constructing the node operation using dsl
         :param node_id: the unique ID of the node
@@ -646,7 +645,7 @@ class PipelineValidationManager(SingletonConfigurable):
         the specified link_ids.
 
         :param pipeline: the pipeline dict
-        :param link_id: link id
+        :param link_ids: list of link ids from pipeline
         :return a tuple containing two node labels that are connected
         """
         if link_ids is None:
@@ -669,9 +668,8 @@ class PipelineValidationManager(SingletonConfigurable):
         Returns the label for the provided node or None if the information
         cannot be derived from the inpuit dictionary.
 
-        :param node_dict: a dict representing a pipeline node
-        :return: node label
-        :rtype: str
+        :param node: a dict representing a pipeline node
+        :return: the label of the node
         """
 
         if node is None or node.get('app_data') is None:

@@ -416,8 +416,14 @@ class RuntimePipelineProcessor(PipelineProcessor):
         JSON should be converted to the appropriate Dict format, if possible. If a Dict cannot be formed,
         log and return stripped string value.
         """
-        converted_dict = None
+        if not value:
+            return {}
+
         value = value.strip()
+        if value == "None":
+            return {}
+
+        converted_dict = None
         if value.startswith('{') and value.endswith('}'):
             try:
                 converted_dict = ast.literal_eval(value)
@@ -437,7 +443,13 @@ class RuntimePipelineProcessor(PipelineProcessor):
         should be converted to the appropriate List format, if possible. If a List cannot be formed,
         log and return stripped string value.
         """
+        if not value:
+            return []
+
         value = value.strip()
+        if value == "None":
+            return []
+
         converted_list = None
         if value.startswith('[') and value.endswith(']'):
             try:

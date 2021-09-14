@@ -253,15 +253,15 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                     property_value = operation.component_params.get(component_property.ref)
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
-                                   f"of type '{component_property.type}'")
-                    if component_property.type == "string":
+                                   f"of type '{component_property.data_type}'")
+                    if component_property.data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
                         operation.component_params[component_property.ref] = json.dumps(property_value)
-                    elif component_property.type == 'dictionary':
+                    elif component_property.data_type == 'dictionary':
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.type == 'list':
+                    elif component_property.data_type == 'list':
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
 
@@ -273,7 +273,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
                 target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
-                             'module_name': component.source.rsplit('/', 1)[-1].split('.')[0],
+                             'module_name': component.location.rsplit('/', 1)[-1].split('.')[0],
                              'class_name': component_class,
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,

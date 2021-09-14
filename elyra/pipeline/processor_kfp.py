@@ -531,7 +531,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     property_value = operation.component_params.get(component_property.ref)
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
-                                   f"of type '{component_property.type}'")
+                                   f"of type '{component_property.data_type}'")
                     if component_property.data_type == "file":
                         filename = get_absolute_path(get_expanded_path(self.root_dir), property_value)
                         try:
