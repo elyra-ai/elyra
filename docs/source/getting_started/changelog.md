@@ -1,5 +1,34 @@
 # Changelog
 
+## Release 3.1.0 - 09/09/2021
+
+- Update elyra docker image to install all extra pkgs
+- Migrate component registry to the metadata service - [#2083](https://github.com/elyra-ai/elyra/pull/2083)
+- Refactor: Improve Kubeflow docker image - [#2114](https://github.com/elyra-ai/elyra/pull/2114)
+- Add support for validating pipelines via CLI - [#2112](https://github.com/elyra-ai/elyra/pull/2112)
+- Pipeline definition abstraction - [#2082](https://github.com/elyra-ai/elyra/pull/2082)
+- Fix path and capture problem determination data during execution - [#2077](https://github.com/elyra-ai/elyra/pull/2077)
+- Add support for private container image registries - [#2092](https://github.com/elyra-ai/elyra/pull/2092)
+- Add DAG repo to airflow submission response messages
+- Treat doc build warnings as errors - [#2099](https://github.com/elyra-ai/elyra/pull/2099)
+- Fix mismatched runtime handling for run command - [#2068](https://github.com/elyra-ai/elyra/pull/2068)
+- Fix broken link in CLI documentation topic - [#2098](https://github.com/elyra-ai/elyra/pull/2098)
+- Expose pipeline description to runtime environments - [#2086](https://github.com/elyra-ai/elyra/pull/2086)
+- Move kfp-tekton dependency to extras - [#2043](https://github.com/elyra-ai/elyra/pull/2043)
+- Update pipeline-editor version to 1.1.0 - [#2093](https://github.com/elyra-ai/elyra/pull/2093)
+- Defer import of black to postpone logging noise - [#2090](https://github.com/elyra-ai/elyra/pull/2090)
+- Remove kfserving component file from config folder - [#2078](https://github.com/elyra-ai/elyra/pull/2078)
+- Add mention to pipeline 'describe' command to cli docs - [#2074](https://github.com/elyra-ai/elyra/pull/2074)
+- Add pipeline version validation rules and tests - [#2071](https://github.com/elyra-ai/elyra/pull/2071)
+- Minor refactoring based on Sourcery code analyses tool - [#2027](https://github.com/elyra-ai/elyra/pull/2027)
+- Add support for Schema Filters - [#2062](https://github.com/elyra-ai/elyra/pull/2062)
+- Improve validation output in elyra-pipeline CLI - [#2070](https://github.com/elyra-ai/elyra/pull/2070)
+- Add Describe Command to pipeline CLI - [#1995](https://github.com/elyra-ai/elyra/pull/1995)
+- Update release docs with environment setup requirements - [#2063](https://github.com/elyra-ai/elyra/pull/2063)
+- Add documentation note to GitHub PR template - [#2064](https://github.com/elyra-ai/elyra/pull/2064)
+- Block pipeline-editor from showing multiple error dialogs - [#2045](https://github.com/elyra-ai/elyra/pull/2045)
+- Fix typo on individual runtime extensions location
+
 ## Release 3.0.1 - 08/18/2021
 
 - Update release to publish individual runtime extensions

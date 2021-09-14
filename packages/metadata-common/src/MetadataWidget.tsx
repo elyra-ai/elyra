@@ -79,6 +79,7 @@ export interface IMetadataDisplayProps {
   // Optional string to append to a schema display name
   schemaType?: string;
   labelName?: (args: any) => string;
+  omitTags?: boolean;
 }
 
 /**
@@ -307,6 +308,7 @@ export class MetadataDisplay<
         <FilterTools
           onFilter={this.filteredMetadata}
           tags={this.getActiveTags()}
+          omitTags={this.props.omitTags}
           namespaceId={`${this.props.namespace}`}
         />
         <div>{this.props.metadata.map(this.renderMetadata)}</div>
@@ -402,6 +404,15 @@ export class MetadataWidget extends ReactWidget {
     this.props.app.commands.execute(commands.OPEN_METADATA_EDITOR, args);
   };
 
+  omitTags(): boolean {
+    for (const schema of this.schemas ?? []) {
+      if (schema.properties?.metadata?.properties?.tags) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Classes that extend MetadataWidget should override this
    *
@@ -416,6 +427,7 @@ export class MetadataWidget extends ReactWidget {
         namespace={this.props.namespace}
         sortMetadata={true}
         className={`${METADATA_CLASS}-${this.props.namespace}`}
+        omitTags={this.omitTags()}
       />
     );
   }

@@ -1,0 +1,17 @@
+{
+  "display_name": "Airflow Preloaded Components - URL",
+  "metadata": {
+    "description": "Preloaded URL-based components that are supported by Apache Airflow",
+    "runtime": "airflow",
+    "location_type": "URL",
+    "categories": ["Preloaded Airflow"],
+    "paths": [
+      "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py",
+      "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/email_operator.py",
+      "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/http_operator.py",
+      "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_sql_operator.py",
+      "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/contrib/operators/spark_submit_operator.py"
+    ]
+  },
+  "schema_name": "component-registry"
+}

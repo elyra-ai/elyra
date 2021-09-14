@@ -111,6 +111,36 @@
   justify-content: flex-start;
 }
 
+.elyra-metadataEditor .elyra-metadataEditor-arrayInput li {
+  padding-left: 0;
+  padding-bottom: 0;
+}
+
+.elyra-metadataEditor
+  .elyra-metadataEditor-arrayInput
+  li:not(.elyra-metadataEditor-arrayItemEditor)
+  .elyra-MuiInputBase-formControl {
+  background-color: var(--jp-border-color3);
+}
+
+.elyra-metadataEditor
+  .elyra-metadataEditor-arrayInput
+  .elyra-metadataEditor-editButtons
+  button {
+  padding: 3px;
+}
+
+.elyra-metadataEditor
+  .elyra-metadataEditor-arrayInput
+  .elyra-metadataEditor-addItemButton {
+  background-color: var(--jp-border-color1);
+}
+
+.elyra-metadataEditor .elyra-metadataEditor-arrayItemEditor {
+  display: flex;
+  padding: 6px 0 3px 0;
+}
+
 .elyra-metadataEditor h3 {
   flex-basis: 100%;
   margin-bottom: 15px;

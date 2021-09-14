@@ -16,8 +16,6 @@
 
 import json
 
-import pytest
-
 from elyra.pipeline.tests import resources
 
 # from jupyter_server.tests.utils import expected_http_error
@@ -28,25 +26,6 @@ try:
 except ImportError:
     # Try backported to PY<37 `importlib_resources`.
     import importlib_resources as pkg_resources
-
-
-# Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)
-@pytest.fixture
-def jp_server_config():
-    return {
-        "ServerApp": {
-            "jpserver_extensions": {
-                "elyra": True
-            }
-        }
-    }
-
-
-# async def test_invalid_config_resource(jp_fetch):
-#     with pytest.raises(HTTPClientError) as e:
-#         await jp_fetch('elyra', 'pipeline', 'config', 'invalid', method='GET')
-#
-#     assert expected_http_error(e, 400)
 
 
 async def test_get_components(jp_fetch):

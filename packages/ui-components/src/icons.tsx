@@ -27,6 +27,7 @@ import exportPipelineSvg from '../style/icons/export-pipeline.svg';
 import helpIconSvg from '../style/icons/help.svg';
 import importSvg from '../style/icons/import.svg';
 import kubeflowSvg from '../style/icons/kubeflow.svg';
+import pipelineComponentSvg from '../style/icons/pipeline-components.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
 import pyIconSvg from '../style/icons/py-logo.svg';
 import rIconSvg from '../style/icons/r-logo.svg';
@@ -59,6 +60,10 @@ export const elyraIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elyraSvg });
 export const pipelineIcon = new LabIcon({
   name: 'elyra:pipeline',
   svgstr: pipelineSvg
+});
+export const pipelineComponentsIcon = new LabIcon({
+  name: 'elyra:pipeline-components',
+  svgstr: pipelineComponentSvg
 });
 export const errorIcon = new LabIcon({
   name: 'elyra:errorIcon',

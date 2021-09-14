@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2020 Elyra Authors
+# Copyright 2018-2021 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -235,6 +235,29 @@ def pipeline():
 
 
 @click.command()
+@click.option('--runtime-config',
+              required=False,
+              help='Runtime config where the pipeline should be processed')
+@click.argument('pipeline_path')
+def validate(pipeline_path, runtime_config='local'):
+    """
+    Validate pipeline
+    """
+    click.echo()
+
+    print_banner("Elyra Pipeline Validation")
+
+    runtime = _get_runtime_type(runtime_config)
+
+    _validate_pipeline_file_extension(pipeline_path)
+
+    pipeline_definition = \
+        _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
+
+    _validate_pipeline_definition(pipeline_definition)
+
+
+@click.command()
 @click.argument('pipeline_path')
 @click.option('--runtime-config',
               required=True,
@@ -385,6 +408,7 @@ def describe(json_option, pipeline_path):
             click.echo(json.dumps(describe_dict, indent=indent_length))
 
 
+pipeline.add_command(describe)
+pipeline.add_command(validate)
 pipeline.add_command(submit)
 pipeline.add_command(run)
-pipeline.add_command(describe)

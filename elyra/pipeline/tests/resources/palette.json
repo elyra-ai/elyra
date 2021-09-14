@@ -2,10 +2,8 @@
   "version": "3.0",
   "categories": [
     {
-      "label": "Generic",
-      "image": "",
-      "id": "generic",
-      "description": "Components that are supported by all runtimes",
+      "label": "Elyra",
+      "id": "Elyra",
       "node_types": [
         {
           "op": "execute-notebook-node",

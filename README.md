@@ -52,7 +52,7 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v3.0.1?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v3.1.0?urlpath=lab/tree/binder-demo) (Latest stable version - see [changelog](/docs/source/getting_started/changelog.md) for recent updates)
 - [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
 #### Using Docker
@@ -102,12 +102,24 @@ Elyra can be installed from PyPI:
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
 
-  Install from PyPI:
+  Install Elyra from PyPI ( Elyra >= 3.1.0 ):
+
+  ```bash
+  pip3 install --upgrade "elyra[all]>=3.1.0" && jupyter lab build
+  ```
+
+  Install fom Conda ( Elyra >= 3.1.0 ):
+  ```bash
+  conda install -c conda-forge "elyra[all]>=3.1.0" && jupyter lab build
+  ```
+
+  Install Elyra from PyPI ( Elyra < 3.1.0 ):
+
   ```bash
   pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
   ```
 
-  Install fom Conda:
+  Install fom Conda ( Elyra < 3.1.0 ):
   ```bash
   conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
   ```

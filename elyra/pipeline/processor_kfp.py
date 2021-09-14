@@ -532,8 +532,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     property_value = operation.component_params.get(component_property.ref)
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
-                                   f"of type '{component_property.type}'")
-                    if component_property.type == "file":
+                                   f"of type '{component_property.data_type}'")
+                    if component_property.data_type == "file":
                         filename = get_absolute_path(get_expanded_path(self.root_dir), property_value)
                         try:
                             with open(filename) as f:
@@ -542,19 +542,19 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             # If file can't be found locally, assume a remote file location was entered.
                             # This may cause the pipeline run to fail; the user must debug in this case.
                             pass
-                    elif component_property.type == 'dictionary':
+                    elif component_property.data_type == 'dictionary':
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.type == 'list':
+                    elif component_property.data_type == 'list':
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
 
-                # Get absolute path of component source
-                component_path = component.source
-                if component.source_type == "filename":
+                # Get absolute path to the location of the component definition
+                component_path = component.location
+                if component.location_type == "filename":
                     component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', component_path)
 
-                component_source = {component.source_type: component_path}
+                component_source = {component.location_type: component_path}
 
                 # Build component task factory
                 try:

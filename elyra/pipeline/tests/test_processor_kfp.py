@@ -33,7 +33,7 @@ from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 
 
 @pytest.fixture
-def processor():
+def processor(setup_factory_data):
     processor = KfpPipelineProcessor(os.getcwd())
     return processor
 
@@ -195,7 +195,10 @@ def test_collect_envs(processor):
 
 def test_process_list_value_function(processor):
     # Test values that will be successfully converted to list
+    assert processor._process_list_value("") == []
+    assert processor._process_list_value(None) == []
     assert processor._process_list_value("[]") == []
+    assert processor._process_list_value("None") == []
     assert processor._process_list_value("['elem1']") == ["elem1"]
     assert processor._process_list_value("['elem1', 'elem2', 'elem3']") == ["elem1", "elem2", "elem3"]
     assert processor._process_list_value("  ['elem1',   'elem2' , 'elem3']  ") == ["elem1", "elem2", "elem3"]
@@ -204,7 +207,6 @@ def test_process_list_value_function(processor):
     assert processor._process_list_value("[{'obj': 'val', 'obj2': 'val2'}, {}]") == [{'obj': 'val', 'obj2': 'val2'}, {}]
 
     # Test values that will not be successfully converted to list
-    assert processor._process_list_value("") == ""
     assert processor._process_list_value("[[]") == "[[]"
     assert processor._process_list_value("[elem1, elem2]") == "[elem1, elem2]"
     assert processor._process_list_value("elem1, elem2") == "elem1, elem2"
@@ -214,7 +216,10 @@ def test_process_list_value_function(processor):
 
 def test_process_dictionary_value_function(processor):
     # Test values that will be successfully converted to dictionary
+    assert processor._process_dictionary_value("") == {}
+    assert processor._process_dictionary_value(None) == {}
     assert processor._process_dictionary_value("{}") == {}
+    assert processor._process_dictionary_value("None") == {}
     assert processor._process_dictionary_value("{'key': 'value'}") == {"key": "value"}
 
     dict_as_str = "{'key1': 'value', 'key2': 'value'}"
@@ -248,7 +253,6 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == expected_value
 
     # Test values that will not be successfully converted to dictionary
-    assert processor._process_dictionary_value("") == ""
     assert processor._process_dictionary_value("{{}") == "{{}"
     assert processor._process_dictionary_value("{key1: value, key2: value}") == "{key1: value, key2: value}"
     assert processor._process_dictionary_value("  { key1: value, key2: value }  ") == "{ key1: value, key2: value }"
@@ -272,17 +276,18 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
           'elyra/pipeline/tests/resources/components/filter_text.yaml'
 
     # Instantiate a url-based component
-    component = Component(id="filter-text",
+    component_id = 'filter-text'
+    component = Component(id=component_id,
                           name="Filter text",
                           description="",
                           op="filter-text",
-                          source_type="url",
-                          source=url,
+                          location_type="url",
+                          location=url,
                           properties=[],
-                          catalog_entry_id="")
+                          categories=[])
 
     # Replace cached component registry with single url-based component for testing
-    processor._component_registry._cached_components = [component]
+    processor._component_registry._cached_components = {component_id: component}
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
@@ -292,7 +297,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     }
     operation = Operation(id='filter-text-id',
                           type='execution_node',
-                          classifier='filter-text',
+                          classifier=component_id,
                           name=operation_name,
                           parent_operation_ids=[],
                           component_params=operation_params)
@@ -341,17 +346,18 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     relative_path = "kfp/filter_text_using_shell_and_grep.yaml"
 
     # Instantiate a file-based component
-    component = Component(id="filter-text",
+    component_id = "filter-text"
+    component = Component(id=component_id,
                           name="Filter text",
                           description="",
                           op="filter-text",
-                          source_type="filename",
-                          source=relative_path,
+                          location_type="filename",
+                          location=relative_path,
                           properties=[],
-                          catalog_entry_id="")
+                          categories=[])
 
     # Replace cached component registry with single filename-based component for testing
-    processor._component_registry._cached_components = [component]
+    processor._component_registry._cached_components = {component_id: component}
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
@@ -361,7 +367,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     }
     operation = Operation(id='filter-text-id',
                           type='execution_node',
-                          classifier='filter-text',
+                          classifier=component_id,
                           name=operation_name,
                           parent_operation_ids=[],
                           component_params=operation_params)

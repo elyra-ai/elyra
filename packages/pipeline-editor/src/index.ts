@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+import { MetadataWidget } from '@elyra/metadata-common';
 import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
 import {
   containerIcon,
   pipelineIcon,
   RequestErrors,
-  runtimesIcon
+  runtimesIcon,
+  pipelineComponentsIcon
 } from '@elyra/ui-components';
 
 import {
@@ -54,6 +56,7 @@ import '../style/index.css';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
+const COMPONENT_REGISTRY_NAMESPACE = 'component-registries';
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -321,8 +324,21 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
 
+    const componentRegistryWidget = new MetadataWidget({
+      app,
+      themeManager,
+      display_name: 'Pipeline Components',
+      namespace: COMPONENT_REGISTRY_NAMESPACE,
+      icon: pipelineComponentsIcon
+    });
+    const componentRegistryWidgetID = `elyra-metadata:${COMPONENT_REGISTRY_NAMESPACE}`;
+    componentRegistryWidget.id = componentRegistryWidgetID;
+    componentRegistryWidget.title.icon = pipelineComponentsIcon;
+    componentRegistryWidget.title.caption = 'Pipeline Components';
+
     restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
     app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
+    app.shell.add(componentRegistryWidget, 'left', { rank: 961 });
   }
 };
 export default extension;
