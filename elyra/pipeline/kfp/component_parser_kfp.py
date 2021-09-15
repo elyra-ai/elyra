@@ -87,7 +87,7 @@ class KfpComponentParser(ComponentParser):
                                                        data_type=data_type)
 
                 # Change type to reflect the parameter type (inputValue vs inputPath vs outputPath)
-                if self._is_pathbased_parameter(param.get('name'), component_yaml):
+                if self._is_path_based_parameter(param.get('name'), component_yaml):
                     data_type = f"{param_type[:-1]}Path"
 
                 data_type_info = self.determine_type_information(data_type)
@@ -140,7 +140,7 @@ class KfpComponentParser(ComponentParser):
                            f"location: '{registry_entry.location}' -> {str(e)}")
             return None
 
-    def _is_pathbased_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:
+    def _is_path_based_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:
         """
         Check whether parameter is a KFP path parameter (as opposed to a value parameter)
 
@@ -179,7 +179,7 @@ class KfpComponentParser(ComponentParser):
         if data_type_info.undetermined:
             if 'inputpath' in data_type_info.parsed_data:
                 data_type_info.data_type = 'inputpath'
-                data_type_info.control_id = "TBDControl"
+                data_type_info.control_id = "FooBarControl"
                 data_type_info.undetermined = False
             elif 'inputvalue' in data_type_info.parsed_data:
                 data_type_info.data_type = 'inputvalue'

@@ -534,7 +534,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
 
-                    if component_property.data_type == "inputPath":
+                    if component_property.data_type == "inputpath":
                         output_node_id = property_value['node_id']
                         output_node_parameter_key = property_value['output_key'].replace("elyra_", "")
                         operation.component_params[component_property.ref] = \
