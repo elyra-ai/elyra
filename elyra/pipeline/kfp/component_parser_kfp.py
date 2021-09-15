@@ -92,6 +92,10 @@ class KfpComponentParser(ComponentParser):
                     data_type = f"{param_type[:-1]}Path"
 
                 data_type_info = self.determine_type_information(data_type)
+                if data_type_info.undetermined:
+                    self.log.warn(f"Data type from parsed data ('{data_type}') could not be determined. "
+                                  f"Proceeding as if 'string' was detected.")
+
                 if not data_type_info.required:
                     required = data_type_info.required
 
@@ -186,8 +190,5 @@ class KfpComponentParser(ComponentParser):
                 data_type_info.required = False
                 data_type_info.control = "readonly"
                 data_type_info.undetermined = False
-            else:  # Type was not determined, but continuing.  Log a warning...
-                self.log.warn(f"Data type from parsed data ('{parsed_type}' could not be determined. "
-                              f"Proceeding as if 'string' was detected.")
 
         return data_type_info
