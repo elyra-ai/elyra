@@ -521,9 +521,6 @@ class ComponentParser(LoggingConfigurable):  # ABC
                                                                        data_type="boolean",
                                                                        control_id="BooleanControl",
                                                                        default_value=False)
-            elif parsed_type_lowered == 'file':
-                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type="file")
             else:  # Let this be undetermined.  Callers should check for this status and adjust
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
                                                                        data_type="string",
