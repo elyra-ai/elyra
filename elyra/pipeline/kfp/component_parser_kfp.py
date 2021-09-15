@@ -88,11 +88,9 @@ class KfpComponentParser(ComponentParser):
                 description = self._format_description(description=param.get('description', ''),
                                                        data_type=data_type)
 
-                # Change type to reflect the type of input (inputValue vs inputPath)
-                data_type = self._get_adjusted_parameter_fields(component_body=component_yaml,
-                                                                io_object_name=param.get('name'),
-                                                                io_object_type=param_type[:-1],
-                                                                parameter_type=data_type)
+                # Change type to reflect the parameter type (inputValue vs inputPath vs outputPath)
+                if self._is_pathbased_parameter(param.get('name'), component_yaml):
+                    data_type = f"{param_type[:-1]}Path"
 
                 type, control, control_id, required_param, default_value = self.determine_type_information(data_type)
                 if not required_param:
@@ -105,7 +103,7 @@ class KfpComponentParser(ComponentParser):
 
                 properties.append(ComponentParameter(id=ref_name,
                                                      name=param.get('name'),
-                                                     data_type=data_type,
+                                                     data_type=type,
                                                      value=(value or default_value),
                                                      description=description,
                                                      control=control,
@@ -140,28 +138,34 @@ class KfpComponentParser(ComponentParser):
                            f"location: '{registry_entry.location}' -> {str(e)}")
             return None
 
-    def _get_adjusted_parameter_fields(self,
-                                       component_body: Dict[str, Any],
-                                       io_object_name: str,
-                                       io_object_type: str,
-                                       parameter_type: str) -> str:
+    def _is_pathbased_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:
         """
-        Change the parameter ref according if it is a KFP path parameter (as opposed to a value parameter)
-        """
-        adjusted_type = parameter_type
-        if "implementation" in component_body and "container" in component_body['implementation']:
-            if "command" in component_body['implementation']['container']:
-                for command in component_body['implementation']['container']['command']:
-                    if isinstance(command, dict) and list(command.values())[0] == io_object_name and \
-                            list(command.keys())[0] == f"{io_object_type}Path":
-                        adjusted_type = f"{io_object_type}Path"
-            if "args" in component_body['implementation']['container']:
-                for arg in component_body['implementation']['container']['args']:
-                    if isinstance(arg, dict) and list(arg.values())[0] == io_object_name and \
-                            list(arg.keys())[0] == f"{io_object_type}Path":
-                        adjusted_type = f"{io_object_type}Path"
+        Check whether parameter is a KFP path parameter (as opposed to a value parameter)
 
-        return adjusted_type
+        :param parameter_name: the name of the parameter that will be checked
+        :param component_body: the component YAML contents
+        """
+        # Get component_body['implementation']['container'] sub-dictionary if it exists
+        component_impl = component_body.get('implementation', {}).get('container', {})
+
+        # Get list of component commands/arguments
+        commands_and_args = component_impl.get("command", []) + component_impl.get("args", [])
+
+        # Loop through dictionary-types only; parameter-based fields will
+        # always be of the format {'inputPath': 'parameter name'}
+        for param_dict in [c for c in commands_and_args if isinstance(c, dict)]:
+            # Check the (single-element) list of values for a
+            # match on the full parameter name given
+            if parameter_name in list(param_dict.values()):
+                # Check whether the first (and only) key contains the
+                # phrase "Path", e.g. inputPath or outputPath
+                if "Path" in list(param_dict.keys())[0]:
+                    return True
+                # Otherwise, assume inputValue for this parameter name
+                # and do not proceed to check other parameter dicts
+                break
+
+        return False
 
     def determine_type_information(self, parsed_type: str) -> Tuple[str, str, str, bool, Any]:
         """
