@@ -142,7 +142,7 @@
           },
           "comments": []
         },
-        "version": 4,
+        "version": 5,
         "runtime": "kfp",
         "properties": {
           "name": "kf_invalid_node_property_in_component",
