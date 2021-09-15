@@ -7,7 +7,8 @@
     "categories": ["Preloaded KFP"],
     "paths": [
       "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
-      "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/sample/Shell_script/component.yaml"
+      "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/sample/Shell_script/component.yaml",
+      "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml"
     ]
   },
   "schema_name": "component-registry"

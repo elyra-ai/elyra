@@ -310,14 +310,14 @@ class PipelineValidationManager(SingletonConfigurable):
                                                          data={"nodeID": node.id,
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
-                            elif not isinstance(node.get_component_parameter(node_property),
-                                                type(property_dict['current_parameters']['elyra_' + node_property])):
-                                response.add_message(severity=ValidationSeverity.Error,
-                                                     message_type="invalidNodeProperty",
-                                                     message="Node property is incorrect type.",
-                                                     data={"nodeID": node.id,
-                                                           "nodeName": node_label,
-                                                           "propertyName": node_property})
+                            # elif not isinstance(node.get_component_parameter(node_property),
+                            #                     type(property_dict['current_parameters']['elyra_' + node_property])):
+                            #     response.add_message(severity=ValidationSeverity.Error,
+                            #                          message_type="invalidNodeProperty",
+                            #                          message="Node property is incorrect type.",
+                            #                          data={"nodeID": node.id,
+                            #                                "nodeName": node_label,
+                            #                                "propertyName": node_property})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:
