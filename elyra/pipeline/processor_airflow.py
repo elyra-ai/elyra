@@ -223,7 +223,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                              'cpu_request': operation.cpu,
                              'mem_request': operation.memory,
                              'gpu_request': operation.gpu,
-                             'source': operation.component_params['filename'],
+                             'operator_source': operation.component_params['filename'],
                              'is_generic_operator': True
                              }
 
@@ -282,7 +282,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                              'class_name': component_class,
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,
-                             'source': component.location,
+                             'operator_source': component.location,
                              'is_generic_operator': False
                              }
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',

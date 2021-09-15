@@ -30,7 +30,7 @@ from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 from elyra.util import git
 
 PIPELINE_FILE_COMPLEX = 'resources/sample_pipelines/pipeline_dependency_complex.json'
-PIPELINE_FILE_CUSTOM_COMPONENTS = 'resources/sample_pipelines/pipeline_with_custom_components.json'
+PIPELINE_FILE_CUSTOM_COMPONENTS = 'resources/sample_pipelines/pipeline_with_airflow_components.json'
 
 
 @pytest.fixture
