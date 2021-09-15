@@ -103,10 +103,7 @@ class KfpComponentParser(ComponentParser):
 
                 ref_name = param.get('name').lower().replace(' ', '_')
 
-                ref = self.get_unique_ref_name(ref_name=ref_name,
-                                               properties=properties)
-
-                properties.append(ComponentParameter(id=ref,
+                properties.append(ComponentParameter(id=ref_name,
                                                      name=param.get('name'),
                                                      data_type=data_type,
                                                      value=(value or default_value),
@@ -115,16 +112,6 @@ class KfpComponentParser(ComponentParser):
                                                      control_id=control_id,
                                                      required=required))
         return properties
-
-    def get_unique_ref_name(self, ref_name: str, properties: list) -> str:
-        unique_name_counter = 1
-        unique_ref_name = ref_name
-        names = [component_parameter.ref for component_parameter in properties]
-        while unique_ref_name in names:
-            unique_name_counter += 1
-            unique_ref_name = ''.join([ref_name, '_', str(unique_name_counter)])
-
-        return unique_ref_name
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
         """
