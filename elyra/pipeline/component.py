@@ -442,26 +442,6 @@ class GitHubComponentReader(UrlComponentReader):
         return super().location_type
 
 
-class ComponentDataTypeInfo(object):
-    """Simple data object that contains the current state of data-type parsing.
-
-    Instances of this class are returned from ComponentParser.determine_type_information()
-    and subclasses can choose to parse types specific to their platform if necessary.
-    The instance will indicate that the base ComponentParser could not determine the actual data_type
-    via a `True` value in its `undetermined` attribute, in which case subclass implementations
-    are advised to attempt further parsing. In such cases, the rest of the attributes of the instance
-    will reflect a 'string' data type as that is the most flexible data_type and, hence, the default.
-    """
-    def __init__(self, parsed_data: str, **kwargs):
-        self.parsed_data = parsed_data
-        self.data_type = kwargs.get('data_type', 'string')
-        self.default_value = kwargs.get('default_value', '')
-        self.required = kwargs.get('required', True)
-        self.control_id = kwargs.get('control_id', 'StringControl')
-        self.control = kwargs.get('control', 'custom')
-        self.undetermined = kwargs.get('undetermined', False)
-
-
 class ComponentParser(LoggingConfigurable):  # ABC
     _component_platform = None
 
@@ -500,7 +480,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
             return f"{description} (type: {data_type})"
         return f"(type: {data_type})"
 
-    def determine_type_information(self, parsed_type: str) -> ComponentDataTypeInfo:
+    def determine_type_information(self, parsed_type: str) -> SimpleNamespace:
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.
@@ -508,7 +488,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         """
         parsed_type_lowered = parsed_type.lower()
 
-        data_type_info: ComponentDataTypeInfo
+        data_type_info: SimpleNamespace
 
         # Determine if this is a "container type"
         # Prefer types that occur in a clause of the form "[type] of ..." (i.e., "container" types)
@@ -523,30 +503,57 @@ class ComponentParser(LoggingConfigurable):  # ABC
                     data_type = "list"
 
                 # Since we know the type, create our return value and bail
-                data_type_info = ComponentDataTypeInfo(parsed_data=parsed_type_lowered,
-                                                       data_type=data_type)
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type=data_type)
                 break
         else:  # None of the container types were found...
             # Standardize type names
             if any(word in parsed_type_lowered for word in ["str", "string"]):
-                data_type_info = ComponentDataTypeInfo(parsed_data=parsed_type_lowered,
-                                                       data_type="string")
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="string")
             elif any(word in parsed_type_lowered for word in ['int', 'integer', 'number']):
-                data_type_info = ComponentDataTypeInfo(parsed_data=parsed_type_lowered,
-                                                       data_type="number",
-                                                       control_id="NumberControl",
-                                                       default_value=0)
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="number",
+                                                                       control_id="NumberControl",
+                                                                       default_value=0)
             elif any(word in parsed_type_lowered for word in ['bool', 'boolean']):
-                data_type_info = ComponentDataTypeInfo(parsed_data=parsed_type_lowered,
-                                                       data_type="boolean",
-                                                       control_id="BooleanControl",
-                                                       default_value=False)
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="boolean",
+                                                                       control_id="BooleanControl",
+                                                                       default_value=False)
             elif parsed_type_lowered == 'file':
-                data_type_info = ComponentDataTypeInfo(parsed_data=parsed_type_lowered,
-                                                       data_type="file")
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="file")
             else:  # Let this be undetermined.  Callers should check for this status and adjust
-                data_type_info = ComponentDataTypeInfo(parsed_data=parsed_type_lowered,
-                                                       data_type="string",
-                                                       undetermined=True)
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="string",
+                                                                       undetermined=True)
 
         return data_type_info
+
+    @staticmethod
+    def create_data_type_info(parsed_data: str,
+                              data_type: str = 'string',
+                              default_value: Any = '',
+                              required: bool = True,
+                              control_id: str = 'StringControl',
+                              control: str = 'custom',
+                              undetermined: bool = False) -> SimpleNamespace:
+        """Returns a SimpleNamespace instance that contains the current state of data-type parsing.
+
+        This method is called by ComponentParser.determine_type_information() and used by subclass
+        implementations to determine the current state of parsing a data-type.
+
+        The instance will indicate that the base ComponentParser could not determine the actual data-type
+        via a `True` value in its `undetermined` attribute, in which case subclass implementations
+        are advised to attempt further parsing. In such cases, the rest of the attributes of the instance
+        will reflect a 'string' data type as that is the most flexible data_type and, hence, the default.
+        """
+        dti = SimpleNamespace(parsed_data=parsed_data,
+                              data_type=data_type,
+                              default_value=default_value,
+                              required=required,
+                              control_id=control_id,
+                              control=control,
+                              undetermined=undetermined)
+        return dti

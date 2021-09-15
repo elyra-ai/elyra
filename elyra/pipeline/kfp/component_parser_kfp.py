@@ -22,7 +22,6 @@ from typing import Optional
 import yaml
 
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentDataTypeInfo
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
 
@@ -170,7 +169,7 @@ class KfpComponentParser(ComponentParser):
 
         return False
 
-    def determine_type_information(self, parsed_type: str) -> ComponentDataTypeInfo:
+    def determine_type_information(self, parsed_type: str) -> SimpleNamespace:
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.
