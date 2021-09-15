@@ -13,7 +13,7 @@ Object {
         "ui_data": Object {
           "comments": Array [],
         },
-        "version": 4,
+        "version": 5,
       },
       "id": "primary",
       "nodes": Array [],

@@ -309,7 +309,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 4,
+        "version": 5,
         "properties": {
           "name": "producer-consumer",
           "runtime": "Generic"

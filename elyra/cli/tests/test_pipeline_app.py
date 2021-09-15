@@ -30,7 +30,7 @@ PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD = \
     '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","schemas":[]}'
 
 PIPELINE_SOURCE_WITH_ZERO_NODES = \
-    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[{"id":"1","nodes":[],"app_data":{"runtime":"","version": 4,"properties": {"name": "generic","runtime": "Generic"}}, "schemas":[]}]}'  # noqa
+    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[{"id":"1","nodes":[],"app_data":{"runtime":"","version": 5,"properties": {"name": "generic","runtime": "Generic"}}, "schemas":[]}]}'  # noqa
 
 
 def mock_get_runtime_type(runtime_config: str) -> str:
