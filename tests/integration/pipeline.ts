@@ -476,10 +476,14 @@ describe('Pipeline Editor tests', () => {
       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
       .should('have.value', 'test_runtime');
 
-    // Validate all export options are available
+    // overwrite existing helloworld.py file
     cy.findByLabelText(/export pipeline as/i)
       .select('KFP domain-specific language Python code')
       .should('have.value', 'py');
+
+    cy.findByLabelText(/replace if file already exists/i)
+      .check()
+      .should('be.checked');
 
     // actual export requires minio
     cy.findByRole('button', { name: /ok/i }).click();
