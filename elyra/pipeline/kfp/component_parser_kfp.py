@@ -102,9 +102,15 @@ class KfpComponentParser(ComponentParser):
                 value = param.get('default', '')
 
                 ref_name = param.get('name').lower().replace(' ', '_')
+                name = param.get('name')
+
+                if data_type_info.data_type == 'outputpath':
+                    ref_name = f"output_{ref_name}"
+                    description = f"(Output) {description}"
+                    name = f"(Output) {param.get('name')}"
 
                 properties.append(ComponentParameter(id=ref_name,
-                                                     name=param.get('name'),
+                                                     name=name,
                                                      data_type=data_type_info.data_type,
                                                      value=(value or data_type_info.default_value),
                                                      description=description,
@@ -179,7 +185,7 @@ class KfpComponentParser(ComponentParser):
         if data_type_info.undetermined:
             if 'inputpath' in data_type_info.parsed_data:
                 data_type_info.data_type = 'inputpath'
-                data_type_info.control_id = "FooBarControl"
+                data_type_info.control_id = "FoobarControl"
                 data_type_info.undetermined = False
             elif 'inputvalue' in data_type_info.parsed_data:
                 data_type_info.data_type = 'inputvalue'
