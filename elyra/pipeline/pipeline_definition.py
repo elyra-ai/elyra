@@ -114,10 +114,13 @@ class Pipeline(AppDataBase):
                                     'Apache Airflow': 'airflow',
                                     'Generic': 'generic'}
 
-        pipeline_type_description = self._node['app_data']['properties'].get('runtime')
-        if pipeline_type_description not in type_description_to_type.keys():
-            raise ValueError(f'Unsupported pipeline runtime: {pipeline_type_description}')
-        return type_description_to_type[pipeline_type_description]
+        if 'properties' in self._node['app_data']:
+            pipeline_type_description = self._node['app_data']['properties'].get('runtime')
+            if pipeline_type_description not in type_description_to_type.keys():
+                raise ValueError(f'Unsupported pipeline runtime: {pipeline_type_description}')
+            return type_description_to_type[pipeline_type_description]
+        else:
+            return type_description_to_type['Generic']
 
     @property
     def name(self) -> str:

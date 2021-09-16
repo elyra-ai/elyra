@@ -262,3 +262,16 @@ def test_submit_pipeline_with_no_nodes(monkeypatch):
                                           '--runtime-config', 'foo'])
         assert "At least one node must exist in the primary pipeline." in result.output
         assert result.exit_code != 0
+
+
+def test_describe_with_empty_pipeline():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_NODES)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        result = runner.invoke(pipeline, ['describe', pipeline_file_path])
+        assert "Description: None" in result.output
+        assert "Type: generic" in result.output
+        assert "Nodes: 0" in result.output
