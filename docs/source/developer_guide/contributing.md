@@ -151,7 +151,7 @@ elyra
 
 ## Elyra documentation
 
-The Elyra documentation's source is stored in the [Elyra repository](https://github.com/elyra-ai/elyra) and hosted at [Elyra's Read the Docs](https://elyra.readthedocs.io/). The documentation is written in [Markdown](https://www.sphinx-doc.org/en/master/usage/markdown.html) and built using [Sphinx](https://www.sphinx-doc.org/en/master/).
+The Elyra documentation's source is stored in the [Elyra repository](https://github.com/elyra-ai/elyra/tree/master/docs) and hosted at [Elyra's Read the Docs](https://elyra.readthedocs.io/). The documentation is written in [Markdown](https://www.sphinx-doc.org/en/master/usage/markdown.html) and built using [Sphinx](https://www.sphinx-doc.org/en/master/).
 
 
 ### Contributing to the Elyra documentation
