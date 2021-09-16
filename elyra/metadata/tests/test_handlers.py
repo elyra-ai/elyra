@@ -24,6 +24,7 @@ import pytest
 from tornado.httpclient import HTTPClientError
 
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
+from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
 from elyra.metadata.tests.test_utils import byo_metadata_json
 from elyra.metadata.tests.test_utils import create_json_file
 from elyra.metadata.tests.test_utils import get_instance
@@ -60,7 +61,7 @@ async def test_invalid_instance(jp_fetch, setup_data):
 
 async def test_valid_instance(jp_fetch, setup_data):
     # Ensure valid metadata can be found
-    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE, 'valid')
+    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE_ID, 'valid')
 
     assert r.code == 200
     metadata = json.loads(r.body.decode())
@@ -70,12 +71,12 @@ async def test_valid_instance(jp_fetch, setup_data):
 
 async def test_get_instances(jp_fetch, setup_data):
     # Ensure all valid metadata can be found
-    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE)
+    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE_ID)
     assert r.code == 200
     metadata = json.loads(r.body.decode())
     assert isinstance(metadata, dict)
     assert len(metadata) == 1
-    instances = metadata[METADATA_TEST_SCHEMASPACE]
+    instances = metadata[METADATA_TEST_SCHEMASPACE_ID]
     assert len(instances) == 2
     assert isinstance(instances, list)
     assert get_instance(instances, 'name', 'another')
@@ -95,12 +96,12 @@ async def test_get_empty_schemaspace_instances(jp_fetch, schemaspace_location, s
 
     # Now create empty schemaspace
     os.makedirs(schemaspace_location)
-    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE)
+    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE_ID)
     assert r.code == 200
     metadata = json.loads(r.body.decode())
     assert isinstance(metadata, dict)
     assert len(metadata) == 1
-    instances = metadata[METADATA_TEST_SCHEMASPACE]
+    instances = metadata[METADATA_TEST_SCHEMASPACE_ID]
     assert len(instances) == 0
 
 
@@ -128,10 +129,10 @@ async def test_create_instance(jp_base_url, jp_fetch):
     valid['name'] = 'valid'
     body = json.dumps(valid)
 
-    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE, body=body, method='POST')
+    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE_ID, body=body, method='POST')
     assert r.code == 201
     assert r.headers.get('Location') == url_path_join(jp_base_url, '/elyra', 'metadata',
-                                                      METADATA_TEST_SCHEMASPACE, 'valid')
+                                                      METADATA_TEST_SCHEMASPACE_ID, 'valid')
     metadata = json.loads(r.body.decode())
     # Add expected "extra" fields to 'valid' so whole-object comparison is satisfied.
     # These are added during the pre_save() hook on the MockMetadataTest class instance
@@ -228,7 +229,7 @@ async def test_update_instance(jp_fetch, schemaspace_location):
     body = json.dumps(valid)
 
     # Update instance
-    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE, 'valid', body=body, method='PUT')
+    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE_ID, 'valid', body=body, method='PUT')
     assert r.code == 200
     instance = json.loads(r.body.decode())
     assert instance['metadata']['number_range_test'] == 7
@@ -258,11 +259,11 @@ async def test_invalid_update(jp_fetch, schemaspace_location):
     body2 = json.dumps(valid2)
 
     with pytest.raises(HTTPClientError) as e:
-        await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE, 'update_bad_md', body=body2, method='PUT')
+        await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE_ID, 'update_bad_md', body=body2, method='PUT')
     assert expected_http_error(e, 400)
 
     # Fetch again and ensure it matches the previous instance
-    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE, 'update_bad_md')
+    r = await jp_fetch('elyra', 'metadata', METADATA_TEST_SCHEMASPACE_ID, 'update_bad_md')
     assert r.code == 200
     instance2 = json.loads(r.body.decode())
     assert instance2 == instance

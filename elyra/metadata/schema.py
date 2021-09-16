@@ -59,19 +59,22 @@ class SchemaManager(SingletonConfigurable):
             self._meta_schema = json.load(f)
         self._load_schemaspace_schemas()
 
-    def _validate_schemaspace(self, schemaspace_name_or_id: str) -> None:
-        """Ensures the schemaspace is valid and raises ValueError if it is not."""
-        if schemaspace_name_or_id not in self.schemaspaces:
-            raise ValueError(f"The schemaspace name or id '{schemaspace_name_or_id}' is not "
-                             f"in the list of valid schemaspaces: '{self.get_schemaspace_names()}'!")
-
     def get_schemaspace_names(self) -> list:
-        """Retuns list of registered schemaspace names."""
-        return list(self.schemaspace_name_to_id.keys())
+        """Returns list of registered schemaspace names."""
+        return list(self.schemaspace_id_to_name.values())
+
+    def get_schemaspace_name(self, schemaspace_name_or_id: str) -> str:
+        """Returns the human-readable name of the given schemaspace name or id.
+
+        Note that the value returned is the case-sensitive form as stored on
+        the Schemaspace instance itself.
+        """
+        self._validate_schemaspace(schemaspace_name_or_id)
+        return self.schemaspaces.get(schemaspace_name_or_id).name
 
     def get_schemaspace_schemas(self, schemaspace_name_or_id: str) -> dict:
         self._validate_schemaspace(schemaspace_name_or_id)
-        schemaspace = self.get_schemaspace(schemaspace_name_or_id)
+        schemaspace = self.schemaspaces.get(schemaspace_name_or_id)
         schemas = schemaspace.schemas
         return copy.deepcopy(schemas)
 
@@ -79,28 +82,33 @@ class SchemaManager(SingletonConfigurable):
         """Returns the specified schema for the specified schemaspace."""
         self._validate_schemaspace(schemaspace_name_or_id)
 
-        schemaspace = self.get_schemaspace(schemaspace_name_or_id)
+        schemaspace = self.schemaspaces.get(schemaspace_name_or_id)
         schemas = schemaspace.schemas
         if schema_name not in schemas.keys():
             raise SchemaNotFoundError(schemaspace_name_or_id, schema_name)
         schema_json = schemas.get(schema_name)
-
         return copy.deepcopy(schema_json)
 
     def get_schemaspace(self, schemaspace_name_or_id: str) -> 'Schemaspace':
         """Returns the Schemaspace instance associated with the given name or id."""
         self._validate_schemaspace(schemaspace_name_or_id)
-        return self.schemaspaces.get(schemaspace_name_or_id)
+        return copy.deepcopy(self.schemaspaces.get(schemaspace_name_or_id))
 
     def clear_all(self) -> None:
         """Primarily used for testing, this method reloads schemas from initial values. """
         self.log.debug("SchemaManager: Reloading all schemas for all schemaspaces.")
         self._load_schemaspace_schemas()
 
+    def _validate_schemaspace(self, schemaspace_name_or_id: str) -> None:
+        """Ensures the schemaspace is valid and raises ValueError if it is not."""
+        if schemaspace_name_or_id not in self.schemaspaces:
+            raise ValueError(f"The schemaspace name or id '{schemaspace_name_or_id}' is not "
+                             f"in the list of valid schemaspaces: '{self.get_schemaspace_names()}'!")
+
     def _load_schemaspace_schemas(self):
         """Gets Schemaspaces and SchemasProviders via entrypoints and validates/loads their schemas."""
-        self.schemaspaces = {}
-        self.schemaspace_name_to_id = {}
+        self.schemaspaces: Dict[str, Schemaspace] = {}
+        self.schemaspace_id_to_name: Dict[str, str] = {}
         self._load_schemaspaces()
         self._load_schemas_providers()
 
@@ -113,7 +121,7 @@ class SchemaManager(SingletonConfigurable):
                 if not self.metadata_testing_enabled and schemaspace.name == METADATA_TEST_SCHEMASPACE:
                     continue
                 # instantiate an actual instance of the Schemaspace
-                self.log.info(f"Loading schemaspace '{schemaspace.name}'...")
+                self.log.debug(f"Loading schemaspace '{schemaspace.name}'...")
                 schemaspace_instance = schemaspace.load()(parent=self.parent)  # Load an instance
                 if not isinstance(schemaspace_instance, Schemaspace):
                     raise ValueError(f"Schemaspace instance '{schemaspace.name}' is not an "
@@ -121,9 +129,10 @@ class SchemaManager(SingletonConfigurable):
                 # To prevent a name-to-id lookup, just store the same instance in two locations
                 self.schemaspaces[schemaspace_instance.id] = schemaspace_instance
                 self.schemaspaces[schemaspace_instance.name] = schemaspace_instance
-                # We'll retain a map of name-to-id, but this will be primarily used to
-                # return the set of schemaspace names
-                self.schemaspace_name_to_id[schemaspace_instance.name] = schemaspace_instance.id
+                # We'll keep a map of id-to-name, but this will be primarily used to
+                # return the set of schemaspace names (via values()) and lookup a name
+                # from its id.
+                self.schemaspace_id_to_name[schemaspace_instance.id] = schemaspace_instance.name
             except Exception as err:
                 # log and ignore initialization errors
                 self.log.error(f"Error loading schemaspace '{schemaspace.name}' - {err}")
@@ -136,7 +145,7 @@ class SchemaManager(SingletonConfigurable):
                 if not self.metadata_testing_enabled and schemas_provider_ep.name == METADATA_TEST_SCHEMASPACE:
                     continue
                 # instantiate an actual instance of the processor
-                self.log.info(f"Loading SchemasProvider '{schemas_provider_ep.name}'...")
+                self.log.debug(f"Loading SchemasProvider '{schemas_provider_ep.name}'...")
                 schemas_provider = schemas_provider_ep.load()()  # Load an instance
                 if not isinstance(schemas_provider, SchemasProvider):
                     raise ValueError(f"SchemasProvider instance '{schemas_provider_ep.name}' is not an "

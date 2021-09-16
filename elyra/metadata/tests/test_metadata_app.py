@@ -25,6 +25,7 @@ import pytest
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
+from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
 from elyra.metadata.tests.test_utils import another_metadata_json
 from elyra.metadata.tests.test_utils import create_json_file
 from elyra.metadata.tests.test_utils import invalid_metadata_json
@@ -122,7 +123,7 @@ def test_install_only_display_name(script_runner, mock_data_dir):
     assert ret.stdout.startswith(f"Metadata instance '{metadata_name}' for schema 'metadata-test' has been written to:")
 
     # Ensure it can be fetched by name...
-    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE_ID)
     resource = metadata_manager.get(metadata_name)
     assert resource.display_name == metadata_display_name
 

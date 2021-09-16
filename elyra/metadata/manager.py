@@ -56,6 +56,10 @@ class MetadataManager(LoggingConfigurable):
 
         self.schema_mgr = SchemaManager.instance()
         schemaspace_instance = self.schema_mgr.get_schemaspace(schemaspace)
+        # We should use the schemaspace name over its id for FileMetadataStore instances.
+        # Not sure this is always the correct thing to do.  However, we cannot reference the
+        # SchemaManager in the metadata store file w/o incuring a circular dependency - so heads up
+        # if we want to change this based on storage types.
         self.schemaspace = schemaspace_instance.name
         if self.metadata_store_class is None:  # If not an override, use storage class from Schemaspace
             self.metadata_store_class = schemaspace_instance.storage_class

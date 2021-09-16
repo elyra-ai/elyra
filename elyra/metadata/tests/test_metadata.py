@@ -15,14 +15,11 @@
 #
 from collections import OrderedDict
 import copy
-import io
 import json
 import os
 import shutil
 import time
 
-from jsonschema import draft7_format_checker
-from jsonschema import validate
 from jsonschema import ValidationError
 import pytest
 
@@ -30,9 +27,9 @@ from elyra.metadata.error import MetadataExistsError
 from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.error import SchemaNotFoundError
 from elyra.metadata.manager import MetadataManager
-from elyra.metadata.manager import SchemaManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
+from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
 from elyra.metadata.storage import FileMetadataCache
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
@@ -47,22 +44,6 @@ from elyra.metadata.tests.test_utils import valid_metadata_json
 
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
-
-# Test factory schemas.
-schema_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'schemas', 'meta-schema.json')
-with io.open(schema_file, 'r', encoding='utf-8') as f:
-    meta_schema = json.load(f)
-
-
-def test_validate_factory_schemas():
-    # Test that each of our factory schemas meet the minimum requirements.
-    schema_mgr = SchemaManager.instance()
-    schemaspace_names = SchemaManager.instance().get_schemaspace_names()
-    for schemaspace_name in schemaspace_names:
-        schemaspace = schema_mgr.get_schemaspace(schemaspace_name)
-        for name, schema in schemaspace.schemas.items():
-            print("Validating schema '{schemaspace}/{name}'...".format(schemaspace=schemaspace_name, name=name))
-            validate(instance=schema, schema=meta_schema, format_checker=draft7_format_checker)
 
 
 # ########################## MetadataManager Tests ###########################
@@ -86,7 +67,7 @@ def test_manager_add_invalid(tests_manager):
 def test_manager_add_no_name(tests_manager, schemaspace_location):
     metadata_name = 'valid_metadata_instance'
 
-    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, {**valid_metadata_json})
+    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE_ID, {**valid_metadata_json})
     instance = tests_manager.create(None, metadata)
 
     assert instance is not None
@@ -120,7 +101,7 @@ def test_manager_add_short_name(tests_manager, schemaspace_location):
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
     assert len(instance_list) == 1
-    instance = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, instance_list[0])
+    instance = Metadata.from_dict(METADATA_TEST_SCHEMASPACE_ID, instance_list[0])
     metadata_location = _compose_instance_location(tests_manager.metadata_store, schemaspace_location, metadata_name)
     assert instance.resource == metadata_location
 
@@ -454,7 +435,7 @@ def test_manager_update(tests_hierarchy_manager, schemaspace_location):
     # and ensure the previous copy still exists...
 
     # Create a user instance...
-    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, {**byo_metadata_json})
+    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE_ID, {**byo_metadata_json})
     metadata.display_name = 'user1'
     instance = tests_hierarchy_manager.create('update', metadata)
     assert instance is not None
