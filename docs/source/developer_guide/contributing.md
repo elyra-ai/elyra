@@ -137,7 +137,7 @@ The existing services are currently available as individual python modules insid
 ```
 elyra
  -- packages
-    -- airfloe
+    -- airflow
     -- api
     -- cli
     -- contents
