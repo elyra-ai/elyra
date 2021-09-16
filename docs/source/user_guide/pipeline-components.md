@@ -40,7 +40,7 @@ There are many example custom components available that you can utilize in pipel
 
 #### Example custom components
 
-For illustrative purposes the Elyra component registry includes a few custom components that you can use to get started. 
+For illustrative purposes the Elyra component registry includes a few custom components that you can use to get started. These example components and the generic components are pre-loaded into the pipeline editor palette by default.
 
 ![Example pipeline for the HTTP component](../images/user_guide/pipeline-components/example-components-pipeline.png)
 
@@ -50,21 +50,25 @@ Component details and demo pipelines can be found in the `https://github.com/ely
 
 Note that example components are provided as is. Unless indicated otherwise they are not maintained by the Elyra community.
 
+### Managing pipeline components
+
+Components are managed in Elyra using the [JupyterLab UI](#managing-custom-components-using-the-jupyterlab-ui) or the [Elyra command line interface](#managing-custom-components-using-the-elyra-cli).
+
 ### Managing custom components using the JupyterLab UI
 
-Custom components can be added, modified, and removed in the _Custom Components_ panel.
+Custom components can be added, modified, and removed in the _Pipeline Components_ panel.
 
-![Runtime components UI](../images/user_guide/pipeline-components/pipeline-components-ui.png)
+![Pipeline components UI](../images/user_guide/pipeline-components/pipeline-components-ui.png)
 
 To access the panel in JupyterLab:
 
-- Click the `Open Component Registry` button in the pipeline editor toolbar.
+- Click the `Open Pipeline Components` button in the pipeline editor toolbar.
 
   ![Open panel from pipeline editor toolbar](../images/user_guide/pipeline-components/toolbar-manage-button.png)     
 
   OR     
 
-- Select the `Component Registry` panel from the JupyterLab sidebar.
+- Select the `Pipeline Components` tab from the JupyterLab sidebar.
 
   ![Open panel from sidebar](../images/user_guide/pipeline-components/sidebar-button.png)     
 
@@ -74,14 +78,146 @@ To access the panel in JupyterLab:
 
   ![Open panel from command palette](../images/user_guide/pipeline-components/cmd-palette.png)
 
-#### Adding a component to the registry
+#### Adding components to the registry
 
-This feature is currently not available.
+To add a component registry entry: 
 
-#### Modifying a component
+1. Click `+` in the _Pipeline Components_ panel.
+1. Define the registry entry. Refer to section [Configuration properties](#configuration-properties) for a description of each property.
 
-This feature is currently not available.
+If the registry entry validates correctly, the associated pipeline components are added  to the pipeline editor's palette. 
 
-#### Deleting a component from the registry
+#### Modifying a component registry entry
 
-This feature is currently not available.
+1. Click the `edit` (pencil) icon next to the entry name.
+1. Modify the registry entry as desired.
+
+#### Deleting components from the registry
+
+To delete a component registry entry and its referenced component(s) from the Visual Pipeline Editor palette:
+
+1. Click the `delete` (trash) icon next to the entry name.
+1. Confirm deletion.
+
+Caution: Pipelines that utilize the referenced components are no longer valid after the component registry entry was deleted.
+
+### Managing custom components using the Elyra CLI
+
+Custom components can be added, modified, and removed using the [`elyra-metadata` command line interface](/user_guide/command-line-interface.md).
+
+To list component registry entries:
+
+```bash
+$ elyra-metadata list component-registries
+
+Available metadata instances for component-registries (includes invalid):
+
+Schema               Instance                          Resource                                                                                                        
+------               --------                          --------                                                                                                        
+component-registry   elyra-airflow-filename-preconfig  .../jupyter/metadata/component-registries/elyra-airflow-filename-preconfig.json   
+```
+
+#### Adding components to the registry
+
+To add a component registry entry run `elyra-metadata install component-registries`.
+
+```bash
+$ elyra-metadata install component-registries \
+       --display_name="filter components" \
+       --description="filter text in files" \
+       --runtime=kfp \
+       --location_type=URL \
+       --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
+       --categories='["filter file content"]'
+```
+
+Refer to section [Configuration properties](#configuration-properties) for a parameter description.
+
+#### Modifying a component registry entry
+
+To replace a component registry entry run `elyra-metadata install component-registries` and specify the `--replace` option:
+
+```bash
+$ elyra-metadata install component-registries \
+       --name="filter_components" \
+       --display_name="filter components" \
+       --description="filter text in files" \
+       --runtime=kfp \
+       --location_type=URL \
+       --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
+       --categories='["file operations"]' \
+       --replace
+```
+
+Note: You must specify all property values, not only the ones that you want to modify.
+
+Refer to section [Configuration properties](#configuration-properties) for a parameter description.
+
+#### Deleting components from the registry
+
+To delete a component registry entry and its component definitions:
+
+```bash
+$ elyra-metadata remove component-registries \
+       --name="filter_components"
+```
+
+Refer to section [Configuration properties](#configuration-properties) for a parameter description.
+
+### Configuration properties
+
+The component registry entry properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
+
+##### Name (display_name)
+
+A user-friendly name for the registry entry. Note that the registry entry name is not displayed in the palette. This property is required.
+
+Example: `data load components`
+
+##### N/A (name)
+
+A unique identifier for this registry entry. A value is generated from `Name` if no value is provided.
+
+Example: `data_load_components`
+
+##### Description (description)
+
+A description for the registry entry.
+
+Example: `Load data from external data sources`
+
+##### Category (categories)
+
+In the pipeline editor palette components are grouped into categories to make them more easily accessible. If no category is provided, the components defined by this registry entry are added to the palette under `no category`.  
+
+Examples (CLI):
+
+- `['load data from database']`
+- `['train model','pytorch']`
+
+
+##### Runtime (runtime)
+
+The runtime environment that supports the component(s). Valid values are `kfp` and `airflow`. This property is required.
+
+Example:
+
+- `airflow`
+
+##### Location Type (location_type)
+
+The location type identifies the format that the value(s) provided in `Paths` represent. Supported types are `URL`, `Filename`, or `Directory`. This property is required.
+
+##### Paths (paths)
+
+A path identifies the location from where Elyra can retrieve one or more component specifications. The provided value must be a valid representation of the selected _location type_. This property is required.
+
+Examples (GUI):
+ - URL: `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
+ - Filename: `load_data_from_public_source/http_operator.py`
+ - Directory path: `load_from_database`
+
+ Examples (CLI):
+ - URL: `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
+ - Filename: `['load_data_from_public_source/http_operator.py']`
+ - Directory path: `['load_from_database']` 
