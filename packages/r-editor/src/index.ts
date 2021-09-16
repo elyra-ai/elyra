@@ -31,6 +31,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
+import { Widget } from '@lumino/widgets';
 
 import { REditorFactory, REditor } from './REditor';
 
@@ -71,13 +72,18 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - r-editor extension is activated!');
 
+    const getCurrentWidget = (): Widget | null => {
+      return app.shell.currentWidget;
+    };
+
     const factory = new REditorFactory({
       editorServices,
       factoryOptions: {
         name: R_FACTORY,
         fileTypes: [R],
         defaultFor: [R]
-      }
+      },
+      getCurrentWidget
     });
 
     app.docRegistry.addFileType({

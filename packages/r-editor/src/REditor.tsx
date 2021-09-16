@@ -23,23 +23,20 @@ import {
 } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 
+import { Widget } from '@lumino/widgets';
+
 export class REditor extends ScriptEditor {
   /**
    * Construct a new R Editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
+    getCurrentWidget: () => Widget | null
   ) {
-    super(options);
-    this.editorLanguage = 'R';
+    super(options, 'R', getCurrentWidget);
 
     // Add icon to main tab
     this.title.icon = 'rIcon';
-
-    this.context.ready.then(() => {
-      this.initializeKernelSpecs();
-      this.initializeDebugger();
-    });
   }
 }
 
@@ -56,6 +53,7 @@ export class REditorFactory extends ABCWidgetFactory<
   constructor(options: REditorFactory.IOptions) {
     super(options.factoryOptions);
     this._services = options.editorServices;
+    this.getCurrentWidget = options.getCurrentWidget;
   }
 
   /**
@@ -71,10 +69,11 @@ export class REditorFactory extends ABCWidgetFactory<
       context,
       mimeTypeService: this._services.mimeTypeService
     });
-    return new REditor({ content, context });
+    return new REditor({ content, context }, this.getCurrentWidget);
   }
 
   private _services: IEditorServices;
+  private getCurrentWidget: () => Widget | null;
 }
 
 /**
@@ -94,5 +93,7 @@ export namespace REditorFactory {
      * The factory options associated with the factory.
      */
     factoryOptions: DocumentRegistry.IWidgetFactoryOptions<REditor>;
+
+    getCurrentWidget: () => Widget | null;
   }
 }

@@ -72,18 +72,23 @@ export class ScriptEditor extends DocumentWidget<
   private scrollingWidget?: ScrollingWidget<OutputArea>;
   private model: any;
   private emptyOutput: boolean;
-  private runDisabled: boolean;
-  private debugDisabled: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
   protected editorLanguage: string;
-  private debugger: ScriptDebugger;
+  protected debugger: ScriptDebugger;
+  protected getCurrentWidget?: () => Widget | null;
+  private runEnabled: boolean;
+  private debugEnabled: boolean;
+  protected runButton: ToolbarButton;
+  protected runAndDebugButton: ToolbarButton;
 
   /**
    * Construct a new editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
+    language: string,
+    getCurrentWidget?: () => Widget | null
   ) {
     super(options);
     this.addClass(SCRIPT_EDITOR_CLASS);
@@ -92,11 +97,12 @@ export class ScriptEditor extends DocumentWidget<
     this.kernelSelectorRef = null;
     this.kernelName = '';
     this.emptyOutput = true;
-    this.runDisabled = false;
-    this.debugDisabled = false;
     this.controller = new ScriptEditorController();
-    this.editorLanguage = '';
+    this.editorLanguage = language;
     this.debugger = new ScriptDebugger(this.disableButton);
+    this.getCurrentWidget = getCurrentWidget;
+    this.runEnabled = true;
+    this.debugEnabled = false;
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -109,14 +115,16 @@ export class ScriptEditor extends DocumentWidget<
       className: RUN_BUTTON_CLASS,
       icon: runIcon,
       onClick: this.runScript,
-      tooltip: 'Run'
+      tooltip: 'Run',
+      enabled: this.runEnabled
     });
 
     const runAndDebugButton = new ToolbarButton({
       className: RUN_AND_DEBUG_BUTTON_CLASS,
       icon: bugIcon,
       onClick: this.runAndDebugScript,
-      tooltip: 'Run and Debug'
+      tooltip: 'Run and Debug',
+      enabled: this.debugEnabled
     });
 
     const stopButton = new ToolbarButton({
@@ -129,19 +137,23 @@ export class ScriptEditor extends DocumentWidget<
     const toolbar = this.toolbar;
     toolbar.addItem('save', saveButton);
     toolbar.addItem('run', runButton);
-    toolbar.addItem('run and debug', runAndDebugButton);
+    toolbar.addItem('debug', runAndDebugButton);
     toolbar.addItem('stop', stopButton);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
 
+    this.runButton = runButton;
+    this.runAndDebugButton = runAndDebugButton;
+
     // Create output area widget
     this.createOutputAreaWidget();
+
+    this.initializeKernelSpecs().then(() => this.initializeDebugger());
   }
 
   /**
    * Function: Fetches kernel specs filtered by editor language
    * and populates toolbar kernel selector.
-   * This function must be called by the classes that extend ScriptEditor.
    */
   protected initializeKernelSpecs = async (): Promise<void> => {
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
@@ -159,25 +171,39 @@ export class ScriptEditor extends DocumentWidget<
       );
       this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
+
+    // TODO: set this.kernelName to kernel selection
+    // this.kernelName = this.kernelSelectorRef?.current?.getSelection();
+    return;
   };
 
   /**
    * Function: Initializes debug features.
-   * This function must be called by the classes that extend ScriptEditor.
    */
   protected initializeDebugger = async (): Promise<void> => {
     const debuggerIsAvailable = await this.controller.isDebuggerAvailable(
       this.kernelName || ''
     );
-    if (!debuggerIsAvailable) {
-      this.disableButton(true, 'debug');
-      return;
-    }
 
-    // Enable setting breakpoints
-    // this.setupEditor();
-    const EditorHandler = this.createEditorDebugHandler();
-    console.log(EditorHandler);
+    if (this.getCurrentWidget) {
+      const widget = this.getCurrentWidget();
+
+      if (!widget) {
+        return;
+      }
+
+      if (
+        debuggerIsAvailable &&
+        this.context.path === (widget as DocumentWidget).context.path
+      ) {
+        this.disableButton(false, 'debug');
+        this.debugEnabled = true;
+        // Enable setting breakpoints
+        // this.setupEditor();
+        const EditorHandler = this.createEditorDebugHandler();
+        console.log(EditorHandler);
+      }
+    }
   };
 
   private createEditorDebugHandler = (): EditorHandler => {
@@ -188,134 +214,9 @@ export class ScriptEditor extends DocumentWidget<
       editor: this.content.editor,
       path: this.context.path
     });
-    console.log('editorHandler created!');
 
     return editorHandler;
   };
-
-  /**
-   * Handle a click on the gutter.
-   * Addapted from jupyterlab-debugger
-   *
-   * @param editor The editor from where the click originated.
-   * @param lineNumber The line corresponding to the click event.
-   */
-  // private onGutterClick = (
-  //   editor: CodeMirrorEditor,
-  //   lineNumber: number
-  // ): void => {
-  //   const info = editor.editor.lineInfo(lineNumber); // Cannot read property 'lineInfo' of undefined
-
-  //   if (!info) {
-  //     return;
-  //   }
-
-  //   const remove = !!info.gutterMarkers;
-  //   let breakpoints: IDebugger.IBreakpoint[] = this.debugger.breakpoints;
-  //   if (remove) {
-  //     breakpoints = breakpoints.filter(ele => ele.line !== info.line + 1);
-  //   } else {
-  //     breakpoints.push(this.createBreakpoint(info.line + 1));
-  //   }
-
-  //   this.debugger.updateBreakpoints(breakpoints);
-  // };
-
-  /**
-   * Remove line numbers and all gutters from editor.
-   * Addapted from jupyterlab-debugger
-   *
-   */
-  // private clearGutter(): void {
-  //   const editor = this.content.editor as CodeMirrorEditor;
-  //   editor.doc.eachLine((line: ILineInfo) => {
-  //     if ((line as ILineInfo).gutterMarkers) {
-  //       editor.editor.setGutterMarker(line, 'breakpoints', null);
-  //     }
-  //   });
-  // }
-
-  /**
-   * Add the breakpoints to the editor.
-   * Addapted from jupyterlab-debugger
-   */
-  // private addBreakpointsToEditor(): void {
-  //   const editor = this.content.editor as CodeMirrorEditor;
-  //   const breakpoints = this.debugger.breakpoints;
-  //   this.clearGutter();
-  //   breakpoints.forEach(breakpoint => {
-  //     if (typeof breakpoint.line === 'number') {
-  //       editor.editor.setGutterMarker(
-  //         breakpoint.line - 1,
-  //         'breakpoints',
-  //         this.createMarkerNode()
-  //       );
-  //     }
-  //   });
-  // }
-
-  /**
-   * Create a marker DOM element for a breakpoint.
-   * Addapted from jupyterlab-debugger
-   */
-  // private createMarkerNode(): HTMLElement {
-  //   const marker = document.createElement('div');
-  //   marker.className = 'jp-DebuggerEditor-marker'; // add our class
-  //   marker.innerHTML = '●';
-  //   return marker;
-  // }
-
-  /**
-   * Create a new breakpoint.
-   * Addapted from jupyterlab-debugger
-   *
-   * @param session The name of the session.
-   * @param line The line number of the breakpoint.
-   */
-  // private createBreakpoint(
-  //   // session: string,
-  //   line: number
-  // ): IDebugger.IBreakpoint {
-  //   return {
-  //     line,
-  //     verified: true
-  //     // source: {
-  //     //   name: session
-  //     // }
-  //   };
-  // }
-
-  /**
-   * Retrieve the breakpoints from the editor.
-   * Addapted from jupyterlab-debugger
-   */
-  // private getBreakpointsFromEditor(): ILineInfo[] {
-  //   const editor = this.content.editor as CodeMirrorEditor;
-  //   const lines = [];
-  //   for (let i = 0; i < editor.doc.lineCount(); i++) {
-  //     const info = editor.editor.lineInfo(i);
-  //     if (info.gutterMarkers) {
-  //       lines.push(info);
-  //     }
-  //   }
-  //   return lines;
-  // }
-
-  /**
-   * Send the breakpoints from the editor UI.
-   * Addapted from jupyterlab-debugger
-   */
-  // private sendEditorBreakpoints(): void {
-  //   if (this.isDisposed) {
-  //     return;
-  //   }
-
-  //   const breakpoints = this.getBreakpointsFromEditor().map(lineInfo => {
-  //     return this.createBreakpoint(lineInfo.line + 1);
-  //   });
-
-  //   this.debugger.updateBreakpoints(breakpoints);
-  // }
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.
@@ -348,7 +249,7 @@ export class ScriptEditor extends DocumentWidget<
    * code from file editor in the selected kernel context.
    */
   private runScript = async (): Promise<void> => {
-    if (!this.runDisabled) {
+    if (this.runEnabled) {
       this.clearOutputArea();
       this.displayOutputArea();
       await this.runner.runScript(
@@ -376,25 +277,40 @@ export class ScriptEditor extends DocumentWidget<
   };
 
   private disableButton = (disabled: boolean, buttonType: string): void => {
-    let buttonClass = '';
-
     switch (buttonType) {
       case 'run':
-        this.runDisabled = disabled;
-        buttonClass = RUN_BUTTON_CLASS;
+        this.runButton.parent = null;
+        this.toolbar.insertAfter(
+          'save',
+          'run',
+          new ToolbarButton({
+            className: RUN_BUTTON_CLASS,
+            icon: runIcon,
+            onClick: this.runScript,
+            tooltip: 'Run',
+            enabled: !disabled
+          })
+        );
+        this.runEnabled = !disabled;
         break;
       case 'debug':
-        this.debugDisabled = disabled;
-        buttonClass = RUN_AND_DEBUG_BUTTON_CLASS;
+        this.runAndDebugButton.parent = null;
+        this.toolbar.insertAfter(
+          'run',
+          'debug',
+          new ToolbarButton({
+            className: RUN_AND_DEBUG_BUTTON_CLASS,
+            icon: bugIcon,
+            tooltip: 'Run and Debug',
+            onClick: this.runAndDebugScript,
+            enabled: !disabled
+          })
+        );
+        this.debugEnabled = !disabled;
         break;
       default:
         break;
     }
-
-    const buttonElement = document.querySelector(
-      '.' + buttonClass
-    ) as HTMLInputElement;
-    buttonElement.disabled = disabled;
   };
 
   /**

@@ -178,19 +178,22 @@ export class EditorHandler implements IDisposable {
     }
 
     const remove = !!info.gutterMarkers;
-    let breakpoints: IDebugger.IBreakpoint[] = this._getBreakpoints();
     if (remove) {
-      breakpoints = breakpoints.filter(ele => ele.line !== info.line + 1);
-    } else {
-      breakpoints.push(
-        Private.createBreakpoint(
-          this._path, //?? this._debuggerService.session.connection.name,
-          info.line + 1
-        )
-      );
+      editor.setGutterMarker(lineNumber, 'breakpoints', null);
     }
+    // let breakpoints: IDebugger.IBreakpoint[] = this._getBreakpoints();
+    // if (remove) {
+    //   breakpoints = breakpoints.filter(ele => ele.line !== info.line + 1);
+    // } else {
+    //   breakpoints.push(
+    //     Private.createBreakpoint(
+    //       this._path, //?? this._debuggerService.session.connection.name,
+    //       info.line + 1
+    //     )
+    //   );
+    // }
 
-    EditorHandler.clearGutter(this._editor as CodeMirrorEditor);
+    // EditorHandler.clearGutter(this._editor as CodeMirrorEditor);
     editor.setGutterMarker(
       lineNumber,
       'breakpoints',
@@ -347,6 +350,16 @@ namespace Private {
     const marker = document.createElement('div');
     marker.className = 'jp-DebuggerEditor-marker';
     marker.innerHTML = '●';
+    return marker;
+  };
+
+  /**
+   * Remove a breakpoint marker DOM element.
+   */
+  export const removeMarkerNode = (): HTMLElement => {
+    const marker = document.createElement('div');
+    marker.classList.remove('jp-DebuggerEditor-marker');
+    marker.innerHTML = '';
     return marker;
   };
 

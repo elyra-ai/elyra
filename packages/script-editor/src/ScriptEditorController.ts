@@ -60,8 +60,11 @@ export class ScriptEditorController {
     return specs;
   };
 
-  isDebuggerAvailable = async (kernelName: string): Promise<boolean> => {
+  isDebuggerAvailable = async (kernelName: string | ''): Promise<boolean> => {
     const specs = await this.getKernelSpecsByName(kernelName);
-    return !!(specs?.kernelspecs[kernelName]?.metadata?.['debugger'] ?? false);
+    const available = !!(
+      specs?.kernelspecs[kernelName]?.metadata?.['debugger'] ?? false
+    );
+    return available;
   };
 }

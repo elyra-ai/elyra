@@ -31,6 +31,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
+import { Widget } from '@lumino/widgets';
 
 import { PythonEditorFactory, PythonEditor } from './PythonEditor';
 
@@ -71,13 +72,18 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - python-editor extension is activated!');
 
+    const getCurrentWidget = (): Widget | null => {
+      return app.shell.currentWidget;
+    };
+
     const factory = new PythonEditorFactory({
       editorServices,
       factoryOptions: {
         name: PYTHON_FACTORY,
         fileTypes: [PYTHON],
         defaultFor: [PYTHON]
-      }
+      },
+      getCurrentWidget
     });
 
     app.docRegistry.addFileType({

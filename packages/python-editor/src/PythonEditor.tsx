@@ -25,23 +25,20 @@ import {
 } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 
+import { Widget } from '@lumino/widgets';
+
 export class PythonEditor extends ScriptEditor {
   /**
    * Construct a new Python Editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
+    getCurrentWidget: () => Widget | null
   ) {
-    super(options);
-    this.editorLanguage = 'python';
+    super(options, 'python', getCurrentWidget);
 
     // Add icon to main tab
     this.title.icon = pyIcon;
-
-    this.context.ready.then(() => {
-      this.initializeKernelSpecs();
-      this.initializeDebugger();
-    });
   }
 }
 
@@ -58,6 +55,7 @@ export class PythonEditorFactory extends ABCWidgetFactory<
   constructor(options: PythonEditorFactory.IOptions) {
     super(options.factoryOptions);
     this._services = options.editorServices;
+    this.getCurrentWidget = options.getCurrentWidget;
   }
 
   /**
@@ -75,10 +73,11 @@ export class PythonEditorFactory extends ABCWidgetFactory<
       context,
       mimeTypeService: this._services.mimeTypeService
     });
-    return new PythonEditor({ content, context });
+    return new PythonEditor({ content, context }, this.getCurrentWidget);
   }
 
   private _services: IEditorServices;
+  private getCurrentWidget: () => Widget | null;
 }
 
 /**
@@ -98,5 +97,7 @@ export namespace PythonEditorFactory {
      * The factory options associated with the factory.
      */
     factoryOptions: DocumentRegistry.IWidgetFactoryOptions<PythonEditor>;
+
+    getCurrentWidget: () => Widget | null;
   }
 }
