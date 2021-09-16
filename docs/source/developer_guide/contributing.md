@@ -170,7 +170,7 @@ To contribute content to the Elyra documentation follow these steps:
 
    - To add a new document create a new markdown file in the appropriate section subdirectory (e.g. `/docs/source/getting_started`) and add an entry to that section in `/docs/source/index.rst`.
    - To update an existing document edit the corresponding markdown file.
-   - Place new or updated images in the `/docs/source/images` directory. `PNG` is the recommended format.
+   - Place new or updated images in the `/docs/source/images` directory. For example, images for the _pipeline components_ topic in the _user guide_ are stored in `docs/source/images/user_guide/pipeline-components/`. `PNG` is the recommended format.
 
 3. Build the documentation assets locally.
 
