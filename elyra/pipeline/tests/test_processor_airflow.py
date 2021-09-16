@@ -15,6 +15,7 @@
 #
 import os
 from pathlib import Path
+import re
 import tempfile
 from unittest import mock
 
@@ -28,7 +29,8 @@ from elyra.pipeline.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 from elyra.util import git
 
-PIPELINE_FILE = 'resources/sample_pipelines/pipeline_dependency_complex.json'
+PIPELINE_FILE_COMPLEX = 'resources/sample_pipelines/pipeline_dependency_complex.json'
+PIPELINE_FILE_CUSTOM_COMPONENTS = 'resources/sample_pipelines/pipeline_with_airflow_components.json'
 
 
 @pytest.fixture
@@ -38,8 +40,8 @@ def processor(setup_factory_data):
 
 
 @pytest.fixture
-def parsed_pipeline():
-    pipeline_resource = _read_pipeline_resource(PIPELINE_FILE)
+def parsed_pipeline(request):
+    pipeline_resource = _read_pipeline_resource(request.param)
     return PipelineParser().parse(pipeline_json=pipeline_resource)
 
 
@@ -122,6 +124,7 @@ def test_fail_processor_type(processor):
         assert processor.type == "kfp"
 
 
+@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_COMPLEX], indirect=True)
 def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metadata):
 
     mocked_runtime = Metadata(name="test-metadata",
@@ -146,8 +149,9 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
     assert "/" + sample_metadata['cos_bucket'] + "/" + "untitled" in response.object_storage_path
 
 
+@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_COMPLEX], indirect=True)
 def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
-    pipeline_json = _read_pipeline_resource(PIPELINE_FILE)
+    pipeline_json = _read_pipeline_resource(PIPELINE_FILE_COMPLEX)
 
     export_pipeline_name = "some-name"
     export_file_type = "py"
@@ -175,6 +179,8 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
 
         file_as_lines = open(response).read().splitlines()
 
+        assert "from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator" in file_as_lines
+
         # Check DAG project name
         for i in range(len(file_as_lines)):
             if "args = {" == file_as_lines[i]:
@@ -185,8 +191,8 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
         for node in pipeline_json['pipelines'][0]['nodes']:
             component_parameters = node['app_data']['component_parameters']
             for i in range(len(file_as_lines)):
-                # Matches an op with a node ID
-                if "notebook_op_" + node['id'].replace("-", "_") + " = NotebookOp(" in file_as_lines[i]:
+                # Matches a generic op with a node ID
+                if f"op_{node['id'].replace('-', '_')} = KubernetesPodOperator(" in file_as_lines[i]:
                     sub_list_line_counter = 0
                     # Gets sub-list slice starting where the Notebook Op starts
                     for line in file_as_lines[i + 1:]:
@@ -229,6 +235,55 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                         sub_list_line_counter += 1
 
 
+@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
+def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
+    pipeline_json = _read_pipeline_resource(PIPELINE_FILE_CUSTOM_COMPONENTS)
+
+    export_pipeline_name = "some-name"
+    export_file_type = "py"
+
+    mocked_runtime = Metadata(name="test-metadata",
+                              display_name="test",
+                              schema_name="airflow",
+                              metadata=sample_metadata
+                              )
+
+    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, namespace=None: mocked_runtime)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
+    monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y: parsed_ordered_dict)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        export_pipeline_output_path = os.path.join(temp_dir, f'{export_pipeline_name}.py')
+
+        response = processor.create_pipeline_file(parsed_pipeline,
+                                                  pipeline_export_format=export_file_type,
+                                                  pipeline_export_path=export_pipeline_output_path,
+                                                  pipeline_name=export_pipeline_name)
+
+        assert export_pipeline_output_path == response
+        assert os.path.isfile(export_pipeline_output_path)
+
+        file_as_lines = open(response).read().splitlines()
+
+        # Check DAG project name
+        for i in range(len(file_as_lines)):
+            if "args = {" == file_as_lines[i]:
+                assert "project_id" == read_key_pair(file_as_lines[i + 1], sep=':')['key']
+                assert export_pipeline_name == read_key_pair(file_as_lines[i + 1], sep=':')['value']
+
+        # For every node in the original pipeline json
+        for node in pipeline_json['pipelines'][0]['nodes']:
+            component_parameters = node['app_data']['component_parameters']
+            for i in range(len(file_as_lines)):
+                # Matches custom component operators
+                if f"op_{node['id'].replace('-', '_')} = " in file_as_lines[i]:
+                    for parameter in component_parameters:
+                        # Find 'parameter=' clause in file_as_lines list
+                        r = re.compile(rf"\s*{parameter}=.*")
+                        assert len(list(filter(r.match, file_as_lines[i + 1:]))) > 0
+
+
+@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_COMPLEX], indirect=True)
 def test_export_overwrite(monkeypatch, processor, parsed_pipeline):
     with tempfile.TemporaryDirectory() as temp_dir:
         mocked_path = os.path.join(temp_dir, 'some-name.py')
@@ -242,6 +297,7 @@ def test_export_overwrite(monkeypatch, processor, parsed_pipeline):
         assert returned_path == mocked_path
 
 
+@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_COMPLEX], indirect=True)
 def test_fail_export_overwrite(processor, parsed_pipeline):
     with tempfile.TemporaryDirectory() as temp_dir:
         Path(f"{temp_dir}/test.py").touch()
@@ -252,8 +308,9 @@ def test_fail_export_overwrite(processor, parsed_pipeline):
             processor.export(parsed_pipeline, "py", export_pipeline_output_path, False)
 
 
+@pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_COMPLEX], indirect=True)
 def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_image_metadata):
-    pipeline_json = _read_pipeline_resource(PIPELINE_FILE)
+    pipeline_json = _read_pipeline_resource(PIPELINE_FILE_COMPLEX)
 
     ordered_dict = parsed_ordered_dict
 
