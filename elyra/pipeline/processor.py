@@ -80,6 +80,10 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     def is_valid_processor(self, processor_type: str) -> bool:
         return processor_type in self._processors.keys()
 
+    @property
+    def processor_instances(self):
+        return list(self._processors.values())
+
 
 class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
@@ -95,6 +99,11 @@ class PipelineProcessorManager(SingletonConfigurable):
 
     def is_supported_runtime(self, processor_type: str) -> bool:
         return self._registry.is_valid_processor(processor_type)
+
+    def update_component_cache(self):
+        for processor in self._registry.processor_instances:
+            if isinstance(processor.component_registry, CachedComponentRegistry):
+                processor.component_registry.update_cache()
 
     async def get_components(self, processor_type):
         processor = self._get_processor_for_runtime(processor_type)
@@ -304,6 +313,10 @@ class RuntimePipelineProcessor(PipelineProcessor):
     @property
     def component_parser(self) -> ComponentParser:
         return self._component_parser
+
+    @property
+    def component_registry(self) -> CachedComponentRegistry:
+        return self._component_registry
 
     def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
         super().__init__(root_dir, **kwargs)

@@ -249,14 +249,14 @@ class CachedComponentRegistry(ComponentRegistry):
         self.cache_ttl_in_seconds = cache_ttl_in_seconds
 
         # Initialize the cache
-        self._update_cache()
+        self.update_cache()
 
     def get_all_components(self) -> List[Component]:
         """
         Retrieve all components from the component registry cache
         """
         if self._is_cache_expired():
-            self._update_cache()
+            self.update_cache()
 
         return list(self._cached_components.values())
 
@@ -265,11 +265,11 @@ class CachedComponentRegistry(ComponentRegistry):
         Retrieve the component with a given component_id.
         """
         if self._is_cache_expired():
-            self._update_cache()
+            self.update_cache()
 
         return self._cached_components.get(component_id)
 
-    def _update_cache(self):
+    def update_cache(self):
         self._cached_components = super()._read_component_registries()
         self._last_updated = time.time()
 
