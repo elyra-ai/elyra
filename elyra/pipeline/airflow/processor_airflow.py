@@ -31,7 +31,7 @@ from jinja2 import PackageLoader
 from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.manager import MetadataManager
-from elyra.pipeline.component_parser_airflow import AirflowComponentParser
+from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
