@@ -130,7 +130,7 @@ setup_args = dict(
             'component-registries = elyra.metadata.schemaspaces:ComponentRegistries',
             'metadata-tests = elyra.metadata.tests.test_utils:MetadataTestSchemaspace'
         ],
-        'metadata.schemas': [
+        'metadata.schemas_providers': [
             'runtimes = elyra.metadata.schemasproviders:RuntimesSchemas',
             'runtimes-images = elyra.metadata.schemasproviders:RuntimeImagesSchemas',
             'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',

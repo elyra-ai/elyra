@@ -15,13 +15,51 @@
 #
 import copy
 import os
+from typing import List
+
+from entrypoints import EntryPoint
+import pytest
 
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
 from elyra.metadata.schema import SchemaManager
+from elyra.metadata.tests.test_utils import BYOSchemaspace
 
 """ This file contains tests for testing SchemaManager, Schemaspace and SchemasProvider classes """
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
+
+
+schemaspace_map = {
+    'metadata-tests': ('elyra.metadata.tests.test_utils', 'MetadataTestSchemaspace'),
+    'byo_schemaspace_bad_id': ('elyra.metadata.tests.test_utils', 'BYOSchemaspaceBadId'),
+    'byo.schemaspace-bad.name': ('elyra.metadata.tests.test_utils', 'BYOSchemaspaceBadName'),
+    'byo-schemaspace': ('elyra.metadata.tests.test_utils', 'BYOSchemaspace'),
+}
+schemas_provider_map = {
+    'metadata-tests': ('elyra.metadata.tests.test_utils', 'MetadataTestSchemasProvider'),
+    'byo-schemas-provider': ('elyra.metadata.tests.test_utils', 'BYOSchemasProvider'),
+}
+
+
+def mock_get_schemaspaces() -> List[EntryPoint]:
+    result = []
+    for name, epstr in schemaspace_map.items():
+        result.append(EntryPoint(name, epstr[0], epstr[1]))
+    return result
+
+
+def mock_get_schemas_providers() -> List[EntryPoint]:
+    result = []
+    for name, epstr in schemas_provider_map.items():
+        result.append(EntryPoint(name, epstr[0], epstr[1]))
+    return result
+
+
+@pytest.fixture
+def byo_schemaspaces(monkeypatch):
+    """Setup the BYO Schemaspaces and SchemasProviders, returning the SchemaManager instance."""
+    monkeypatch.setattr(SchemaManager, '_get_schemaspaces', mock_get_schemaspaces)
+    monkeypatch.setattr(SchemaManager, '_get_schemas_providers', mock_get_schemas_providers)
 
 
 def test_validate_factory_schemas():
@@ -80,3 +118,10 @@ def test_schema_durability():
 
             fresh_schema = schema_mgr.get_schema(METADATA_TEST_SCHEMASPACE_ID, name)
             assert fresh_schema == orig_schema
+
+
+def test_byo_schema(byo_schemaspaces):
+    SchemaManager.clear_instance()
+    schema_mgr = SchemaManager.instance()
+    byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
+    assert len(byo_ss.schemas) == 3  # FIXME Note, this should be 2 but one of the invalid scenarios is working

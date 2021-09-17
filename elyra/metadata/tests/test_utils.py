@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import copy
 import errno
 import io
 import json
@@ -21,6 +22,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from uuid import uuid4
 
 from elyra.metadata.error import MetadataExistsError
 from elyra.metadata.error import MetadataNotFoundError
@@ -339,11 +341,34 @@ class MockMetadataTestInvalid(object):
 
 
 class MetadataTestSchemaspace(Schemaspace):
-
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id=METADATA_TEST_SCHEMASPACE_ID,
                          name=METADATA_TEST_SCHEMASPACE,
                          description="Schemaspace for instances of metadata for testing",
+                         **kwargs)
+
+
+class BYOSchemaspaceBadId(Schemaspace):
+    def __init__(self, *args, **kwargs):
+        super().__init__(schemaspace_id="byo_schemaspace_bad_id",
+                         name="byo-schemaspace-bad-id",
+                         **kwargs)
+
+
+class BYOSchemaspaceBadName(Schemaspace):
+    def __init__(self, *args, **kwargs):
+        super().__init__(schemaspace_id="b5b391d7-24f5-4b62-93bb-5e5423e651b8",
+                         name="byo.schemaspace-bad.name",
+                         **kwargs)
+
+
+class BYOSchemaspace(Schemaspace):
+    BYO_SCHEMASPACE_ID = "20c98d38-36f6-4f05-a4dc-9b0a6c2cb733"
+    BYO_SCHEMASPACE_NAME = "byo-schemaspace"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(schemaspace_id=BYOSchemaspace.BYO_SCHEMASPACE_ID,
+                         name=BYOSchemaspace.BYO_SCHEMASPACE_NAME,
                          **kwargs)
 
 
@@ -376,4 +401,55 @@ class MetadataTestSchemasProvider(SchemasProvider):
 
                 schemas.append(schema_json)
 
+        return schemas
+
+
+def test_schema_factory(schemaspace_id: str,
+                        schemaspace_name: str,
+                        num_good: int,
+                        bad_reasons: List[str]) -> List[Dict]:
+    # get the metadata test schema as a primary copy
+    parent_dir = os.path.dirname(os.path.dirname(__file__))
+    schema_file = os.path.join(parent_dir, 'schemas', 'metadata-test.json')
+    with io.open(schema_file, 'r', encoding='utf-8') as f:
+        primary_schema = json.load(f)
+
+    def create_base_schema(primary: Dict, tag: str, ss_name: str, ss_id: str) -> Dict:
+        base_schema: Dict = copy.deepcopy(primary)
+        base_schema['title'] = f"BYO Test {tag}"
+        base_schema['name'] = f"byo-test-{tag}"
+        base_schema['display_name'] = base_schema['title']
+        base_schema['schemaspace'] = ss_name
+        base_schema['schemaspace_id'] = ss_id
+        base_schema['properties']['schema_name']['const'] = base_schema['name']
+        base_schema.pop('metadata_class_name')
+        return base_schema
+
+    schemas = []
+    # Gather good schemas
+    for i in range(num_good):
+        schemas.append(create_base_schema(primary_schema, str(i), schemaspace_name, schemaspace_id))
+
+    # Gather bad schemas
+    for reason in bad_reasons:
+        schema = create_base_schema(primary_schema, reason, schemaspace_name, schemaspace_id)
+        if reason == 'invalid':  # remove display_name #FIXME - this isn't causing an issue, need to fix meta-schema
+            schema['properties'].pop('display_name')  # This will trigger a validation error
+        elif reason == "unknown_schemaspace":  # update schemaspace_id to a non-existent schemaspace
+            schema['schemaspace_id'] = uuid4()
+        schemas.append(schema)
+
+    return schemas
+
+
+class BYOSchemasProvider(SchemasProvider):
+    """Test SchemasProvider that loads the metadata-test schema and adjusts its values to match BYOSchemaspace. """
+
+    def get_schemas(self) -> List[Dict]:
+        # We'll create 2 good schemas and 2 bad schemas for BYOSchemaspace
+        # TODO - look into a more flexible way to build providers of certain characteristics
+        schemas = test_schema_factory(BYOSchemaspace.BYO_SCHEMASPACE_ID,
+                                      BYOSchemaspace.BYO_SCHEMASPACE_NAME,
+                                      2,
+                                      ['invalid', 'unknown_schemaspace'])
         return schemas

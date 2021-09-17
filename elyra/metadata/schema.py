@@ -24,7 +24,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-import entrypoints
+from entrypoints import get_group_all
 from jsonschema import draft7_format_checker
 from jsonschema import validate
 from jsonschema import ValidationError
@@ -112,7 +112,7 @@ class SchemaManager(SingletonConfigurable):
 
     def _load_schemaspaces(self):
         """Loads the Schemaspace instances from entrypoint group 'metadata.schemaspaces'."""
-        for schemaspace in entrypoints.get_group_all('metadata.schemaspaces'):
+        for schemaspace in SchemaManager._get_schemaspaces():
             # Record the Schemaspace instance and create the name-to-id map
             try:
                 # If we're not testing, skip our test schemaspace
@@ -137,7 +137,7 @@ class SchemaManager(SingletonConfigurable):
 
     def _load_schemas_providers(self):
         """Loads the SchemasProviders instances from entrypoint group 'metadata.schemas'."""
-        for schemas_provider_ep in entrypoints.get_group_all('metadata.schemas'):
+        for schemas_provider_ep in SchemaManager._get_schemas_providers():
             try:
                 # If we're not testing, skip our test schemas
                 if not self.metadata_testing_enabled and schemas_provider_ep.name == METADATA_TEST_SCHEMASPACE:
@@ -184,6 +184,16 @@ class SchemaManager(SingletonConfigurable):
                   f"schemaspace '{schemaspace_name}' with error: {first_line}."
             self.log.error(msg)
             raise ValidationError(msg) from ve
+
+    @staticmethod
+    def _get_schemaspaces():
+        """Wrapper around entrypoints.get_group_all() - primarily to facilitate testing."""
+        return get_group_all('metadata.schemaspaces')
+
+    @staticmethod
+    def _get_schemas_providers():
+        """Wrapper around entrypoints.get_group_all() - primarily to facilitate testing."""
+        return get_group_all('metadata.schemas_providers')
 
 
 class Schemaspace(LoggingConfigurable):

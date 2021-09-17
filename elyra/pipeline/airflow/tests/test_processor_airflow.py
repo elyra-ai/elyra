@@ -248,7 +248,7 @@ def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, 
                               metadata=sample_metadata
                               )
 
-    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, namespace=None: mocked_runtime)
+    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y: parsed_ordered_dict)
 
