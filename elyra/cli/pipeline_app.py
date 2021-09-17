@@ -259,10 +259,15 @@ def validate(pipeline_path, runtime_config='local'):
 
 @click.command()
 @click.argument('pipeline_path')
+@click.option('--json',
+              'json_option',
+              is_flag=True,
+              required=False,
+              help='Display pipeline summary in JSON format')
 @click.option('--runtime-config',
               required=True,
               help='Runtime config where the pipeline should be processed')
-def submit(pipeline_path, runtime_config):
+def submit(json_option, pipeline_path, runtime_config):
     """
     Submit a pipeline to be executed on the server
     """
@@ -283,33 +288,40 @@ def submit(pipeline_path, runtime_config):
     with yaspin(text="Submitting pipeline..."):
         response: PipelineProcessorResponse = _execute_pipeline(pipeline_definition)
 
-    if response:
-        msg = []
-        # If there's a git_url attr, assume Apache Airflow DAG repo.
-        # TODO: this will need to be revisited once front-end is decoupled from runtime platforms.
-        if hasattr(response, 'git_url'):
-            msg.append(f"Apache Airflow DAG has been pushed to: {response.git_url}")
-        msg.extend(
-            [
-                f"Check the status of your job at: {response.run_url}",
-                f"The results and outputs are in the {response.object_storage_path} ",
-                f"working directory in {response.object_storage_url}"
-            ]
-        )
-        print_info("Job submission succeeded", msg)
-
-    click.echo()
-
-    print_banner("Elyra Pipeline Submission Complete")
+    if not json_option:
+        if response:
+            msg = []
+            # If there's a git_url attr, assume Apache Airflow DAG repo.
+            # TODO: this will need to be revisited once front-end is decoupled from runtime platforms.
+            if hasattr(response, 'git_url'):
+                msg.append(f"Apache Airflow DAG has been pushed to: {response.git_url}")
+            msg.extend(
+                [
+                    f"Check the status of your job at: {response.run_url}",
+                    f"The results and outputs are in the {response.object_storage_path} ",
+                    f"working directory in {response.object_storage_url}"
+                ]
+            )
+            print_info("Job submission succeeded", msg)
+        click.echo()
+        print_banner("Elyra Pipeline Submission Complete")
+    else:
+        if response:
+            click.echo()
+            print(json.dumps(response.to_json(), indent=4))
 
 
 @click.command()
+@click.option('--json',
+              'json_option',
+              is_flag=True,
+              required=False,
+              help='Display pipeline summary in JSON format')
 @click.argument('pipeline_path')
-def run(pipeline_path):
+def run(json_option, pipeline_path):
     """
     Run a pipeline in your local environment
     """
-
     click.echo()
 
     print_banner("Elyra Pipeline Local Run")
@@ -321,11 +333,15 @@ def run(pipeline_path):
 
     _validate_pipeline_definition(pipeline_definition)
 
-    _execute_pipeline(pipeline_definition)
+    response = _execute_pipeline(pipeline_definition)
 
-    click.echo()
-
-    print_banner("Elyra Pipeline Local Run Complete")
+    if not json_option:
+        click.echo()
+        print_banner("Elyra Pipeline Local Run Complete")
+    else:
+        click.echo()
+        if response:
+            print(json.dumps(response.to_json(), indent=4))
 
 
 @click.command()
