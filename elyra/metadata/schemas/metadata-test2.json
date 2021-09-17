@@ -3,7 +3,6 @@
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-scehma.json",
   "title": "Metadata Test2",
   "name": "metadata-test2",
-  "id": "a2865ba5-cd8c-4822-b45e-cc792d46944b",
   "display_name": "Metadata Test2",
   "schemaspace": "metadata-tests",
   "schemaspace_id": "8182fc28-899a-4521-8342-1a0e218c3a4d",

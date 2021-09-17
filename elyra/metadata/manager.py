@@ -27,6 +27,7 @@ from traitlets.config import LoggingConfigurable  # noqa H306
 from elyra.metadata.error import SchemaNotFoundError
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import SchemaManager
+from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
 
 
@@ -39,7 +40,7 @@ class MetadataManager(LoggingConfigurable):
     NAMESPACE_RUNTIME_IMAGES = "runtime-images"
     NAMESPACE_COMPONENT_REGISTRIES = "component-registries"
 
-    metadata_store_class = Type(allow_none=True, default_value=None, config=True,
+    metadata_store_class = Type(default_value=FileMetadataStore, config=True,
                                 klass=MetadataStore,
                                 help="""The metadata store class.  This is configurable to allow subclassing of
                                 the MetadataStore for customized behavior.""")
@@ -56,14 +57,7 @@ class MetadataManager(LoggingConfigurable):
 
         self.schema_mgr = SchemaManager.instance()
         schemaspace_instance = self.schema_mgr.get_schemaspace(schemaspace)
-        # We should use the schemaspace name over its id for FileMetadataStore instances.
-        # Not sure this is always the correct thing to do.  However, we cannot reference the
-        # SchemaManager in the metadata store file w/o incuring a circular dependency - so heads up
-        # if we want to change this based on storage types.
         self.schemaspace = schemaspace_instance.name
-        if self.metadata_store_class is None:  # If not an override, use storage class from Schemaspace
-            self.metadata_store_class = schemaspace_instance.storage_class
-
         self.metadata_store = self.metadata_store_class(self.schemaspace, **kwargs)
 
     def schemaspace_exists(self) -> bool:

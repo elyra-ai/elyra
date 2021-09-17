@@ -3,7 +3,6 @@
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-scehma.json",
   "title": "Component Registry",
   "name": "component-registry",
-  "id": "9ea42c4a-0fc4-491a-8b61-a9d6d38e778d",
   "display_name": "Pipeline Component",
   "schemaspace": "component-registries",
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",

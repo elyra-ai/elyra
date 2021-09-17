@@ -31,7 +31,7 @@ from jinja2 import PackageLoader
 from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.manager import MetadataManager
-from elyra.pipeline.component_parser_airflow import AirflowComponentParser
+from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
@@ -223,6 +223,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                              'cpu_request': operation.cpu,
                              'mem_request': operation.memory,
                              'gpu_request': operation.gpu,
+                             'operator_source': operation.component_params['filename'],
                              'is_generic_operator': True
                              }
 
@@ -265,6 +266,10 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
 
+                # Remove inputs and outputs from params dict until support for data exchange is provided
+                operation.component_params_as_dict.pop("inputs")
+                operation.component_params_as_dict.pop("outputs")
+
                 # Get component class from operation name
                 component_class = operation.classifier.split('_')[-1]
 
@@ -277,6 +282,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                              'class_name': component_class,
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,
+                             'operator_source': component.location,
                              'is_generic_operator': False
                              }
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',

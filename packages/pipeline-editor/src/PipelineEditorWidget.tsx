@@ -35,6 +35,7 @@ import {
   showFormDialog,
   kubeflowIcon,
   airflowIcon,
+  argoIcon,
   pipelineComponentsIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
@@ -937,6 +938,8 @@ const PipelineWrapper: React.FC<IProps> = ({
             ? kubeflowIcon
             : pipelineRuntimeName === 'airflow'
             ? airflowIcon
+            : pipelineRuntimeName === 'argo'
+            ? argoIcon
             : pipelineIcon
         )
       },

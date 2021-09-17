@@ -24,11 +24,11 @@ import yaml
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import Component
+from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.tests.test_pipeline_parser import _read_pipeline_resource
 
 
@@ -40,7 +40,8 @@ def processor(setup_factory_data):
 
 @pytest.fixture
 def pipeline():
-    pipeline_resource = _read_pipeline_resource('resources/sample_pipelines/pipeline_3_node_sample.json')
+    pipeline_resource = _read_pipeline_resource(
+        'resources/sample_pipelines/pipeline_3_node_sample.json')
     return PipelineParser.parse(pipeline_resource)
 
 

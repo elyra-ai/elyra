@@ -428,7 +428,7 @@ describe('Pipeline Editor tests', () => {
     cy.findByText(/failed export:/i).should('be.visible');
   });
 
-  it('should export pipeline', () => {
+  it('should export pipeline as yaml', () => {
     // Create runtime configuration
     cy.createRuntimeConfig({ type: 'kfp' });
 
@@ -446,8 +446,6 @@ describe('Pipeline Editor tests', () => {
 
     // Validate all export options are available
     cy.findByLabelText(/export pipeline as/i)
-      .select('KFP domain-specific language Python code')
-      .should('have.value', 'py')
       .select('KFP static configuration file (YAML formatted)')
       .should('have.value', 'yaml');
 
@@ -460,6 +458,42 @@ describe('Pipeline Editor tests', () => {
     );
 
     cy.readFile('build/cypress-tests/helloworld.yaml');
+  });
+
+  it('should export pipeline as python dsl', () => {
+    // Create runtime configuration
+    cy.createRuntimeConfig({ type: 'kfp' });
+
+    // go back to file browser
+    cy.findByRole('tab', { name: /file browser/i }).click();
+
+    cy.openFile('helloworld.pipeline');
+
+    // try to export valid pipeline
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    cy.findByLabelText(/runtime configuration/i)
+      .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
+      .should('have.value', 'test_runtime');
+
+    // overwrite existing helloworld.py file
+    cy.findByLabelText(/export pipeline as/i)
+      .select('KFP domain-specific language Python code')
+      .should('have.value', 'py');
+
+    cy.findByLabelText(/replace if file already exists/i)
+      .check()
+      .should('be.checked');
+
+    // actual export requires minio
+    cy.findByRole('button', { name: /ok/i }).click();
+
+    // validate job was executed successfully, this can take a while in ci
+    cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
+      'be.visible'
+    );
+
+    cy.readFile('build/cypress-tests/helloworld.py');
   });
 
   it('should not leak properties when switching between nodes', () => {

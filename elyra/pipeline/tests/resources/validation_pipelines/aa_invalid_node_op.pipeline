@@ -65,7 +65,7 @@
           },
           "comments": []
         },
-        "version": 4,
+        "version": 5,
         "runtime": "airflow",
         "properties": {
           "name": "aa_invalid_node_op",

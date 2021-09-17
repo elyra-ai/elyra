@@ -3,7 +3,6 @@
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-scehma.json",
   "title": "Kubeflow Pipelines runtime configuration",
   "name": "kfp",
-  "id": "e9b32510-b992-477e-8308-0aad0d1863e7",
   "display_name": "Kubeflow Pipelines",
   "schemaspace": "runtimes",
   "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",

@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import os
+from pathlib import Path
 from urllib.parse import urlparse
 
 from minio.api import Minio
@@ -97,7 +98,9 @@ class CosClient(LoggingConfigurable):
         :param file_path: Path on the local filesystem from which object data will be read.
         :return:
         """
-        self.upload_file(os.path.join(dir, file_name), file_path)
+        # elyra-320 -> always use posix path as this is targeting COS filesystem
+        location = Path(os.path.join(dir, file_name))
+        self.upload_file(location.as_posix(), file_path)
 
     def download_file(self, file_name, file_path):
         """

@@ -359,7 +359,7 @@
           "runtime": null,
           "comments": []
         },
-        "version": 4,
+        "version": 5,
         "properties": {
           "name": "generic_malformed_basic_pipeline_only_notebook",
           "runtime": "Generic"

@@ -138,9 +138,9 @@ setup_args = dict(
             'metadata-tests = elyra.metadata.tests.test_utils:MetadataTestSchemasProvider'
         ],
         'elyra.pipeline.processors': [
-            'local = elyra.pipeline.processor_local:LocalPipelineProcessor',
-            'airflow = elyra.pipeline.processor_airflow:AirflowPipelineProcessor',
-            'kfp = elyra.pipeline.processor_kfp:KfpPipelineProcessor'
+            'local = elyra.pipeline.local.processor_local:LocalPipelineProcessor',
+            'airflow = elyra.pipeline.airflow.processor_airflow:AirflowPipelineProcessor',
+            'kfp = elyra.pipeline.kfp.processor_kfp:KfpPipelineProcessor'
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',

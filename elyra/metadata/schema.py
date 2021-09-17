@@ -33,8 +33,6 @@ from traitlets.config import SingletonConfigurable
 from traitlets import Type  # noqa H306
 
 from elyra.metadata.error import SchemaNotFoundError
-from elyra.metadata.storage import FileMetadataStore
-from elyra.metadata.storage import MetadataStore
 
 METADATA_TEST_SCHEMASPACE_ID = "8182fc28-899a-4521-8342-1a0e218c3a4d"
 METADATA_TEST_SCHEMASPACE = "metadata-tests"  # exposed via METADATA_TESTING env
@@ -193,20 +191,13 @@ class Schemaspace(LoggingConfigurable):
     _name: str
     _display_name: str
     _description: str
-    _storage_class: MetadataStore
     _schemas: Dict[str, Dict]  # use a dict to prevent duplicate entries
-
-    metadata_store_class = Type(default_value=FileMetadataStore, config=True,
-                                klass=MetadataStore,
-                                help="""The metadata store class.  This is configurable to allow subclassing of
-                                the MetadataStore for customized behavior.""")
 
     def __init__(self,
                  schemaspace_id: str,
                  name: str,
                  display_name: Optional[str] = None,
                  description: Optional[str] = "",
-                 storage_class: Optional[MetadataStore] = FileMetadataStore,
                  **kwargs):
         super().__init__(**kwargs)
 
@@ -222,15 +213,10 @@ class Schemaspace(LoggingConfigurable):
         if not name:
             raise ValueError("Property 'name' requires a value!")
 
-        if not isinstance(storage_class, MetadataStore):
-            ValueError(f"The value of property 'storage_class' ({storage_class.__name__}) "
-                       f"must be an instance of '{MetadataStore.__name__}'!")
-
         self._id = schemaspace_id
         self._name = name
         self._display_name = display_name or name
         self._description = description
-        self._storage_class = storage_class
 
     @property
     def id(self) -> str:
@@ -251,11 +237,6 @@ class Schemaspace(LoggingConfigurable):
     def description(self) -> str:
         """The description of the schemaspace"""
         return self._description
-
-    @property
-    def storage_class(self) -> MetadataStore:
-        """The storage class used to store instances of the schemas associated with this schemaspace"""
-        return self._storage_class
 
     @property
     def schemas(self) -> Dict[str, Dict]:

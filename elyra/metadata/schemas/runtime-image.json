@@ -3,7 +3,6 @@
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-scehma.json",
   "title": "Runtime Image",
   "name": "runtime-image",
-  "id": "0f7f9f84-2a38-4d39-ab57-1d5d1074b5c2",
   "display_name": "Runtime Image",
   "schemaspace": "runtime-images",
   "schemaspace_id": "119c9740-d73f-48c6-a97a-599d3acaf41d",

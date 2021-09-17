@@ -14,11 +14,6 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$"
     },
-    "id": {
-      "description": "The ID of this schema.",
-      "type": "string",
-      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-    },
     "description": {
       "title": "Description",
       "description": "Description of this schema.",
@@ -33,10 +28,10 @@
     "properties": {
       "type": "object",
       "propertyNames": {
-        "enum": ["schema_id", "schema_name", "display_name", "metadata"]
+        "enum": ["schema_name", "display_name", "metadata"]
       },
       "additionalProperties": true
     }
   },
-  "required": ["schemaspace_id", "name", "id", "properties"]
+  "required": ["schemaspace_id", "name", "properties"]
 }

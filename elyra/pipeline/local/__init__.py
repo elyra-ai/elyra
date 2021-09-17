@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:experimental
 #
 # Copyright 2018-2021 Elyra Authors
 #
@@ -14,18 +13,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-# Ubuntu 20.04.2 LTS (Focal Fossa)
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.3.0
-
-# install - elyra
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated legacy-resolver \
-    elyra[all]==3.1.1
-
-# build jupyter plugins
-RUN jupyter lab build
-
-# install - requirements.txt
-COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt
-RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir --use-deprecated=legacy-resolver \
- && rm -f /tmp/requirements.txt
