@@ -315,7 +315,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         return self._component_parser
 
     @property
-    def component_registry(self) -> CachedComponentRegistry:
+    def component_registry(self) -> Union[CachedComponentRegistry, ComponentRegistry]:
         return self._component_registry
 
     def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
