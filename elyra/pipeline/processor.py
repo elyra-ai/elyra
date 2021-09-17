@@ -59,11 +59,13 @@ class PipelineProcessorRegistry(SingletonConfigurable):
             try:
                 # instantiate an actual instance of the processor
                 processor_instance = processor.load()(self.root_dir, parent=kwargs.get('parent'))  # Load an instance
-                self.log.info(f'Registering processor "{processor}" with type -> {processor_instance.type}')
+                self.log.info(f'Registering {processor.name} processor '
+                              f'"{processor.module_name}.{processor.object_name}"...')
                 self.add_processor(processor_instance)
             except Exception as err:
                 # log and ignore initialization errors
-                self.log.error('Error registering processor "{}" - {}'.format(processor, err))
+                self.log.error(f'Error registering {processor.name} processor '
+                               f'"{processor.module_name}.{processor.object_name}" - {err}')
 
     def add_processor(self, processor):
         self.log.debug(f'Registering processor {processor.type}')
