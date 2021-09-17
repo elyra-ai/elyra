@@ -50,7 +50,12 @@ class Option(object):
 
     def set_value(self, value):
         try:
-            if self.type in ['array', 'object']:
+            if self.type == 'array':
+                new_value = value
+                if value[0] != '[' and value[-1] != ']':  # attempt to coerce to list
+                    new_value = str(value.split(","))
+                self.value = ast.literal_eval(new_value)
+            elif self.type == 'object':
                 self.value = ast.literal_eval(value)
             elif self.type == 'integer':
                 self.value = int(value)
@@ -89,7 +94,7 @@ class Option(object):
         if self.one_of:
             msg = f"must be one of: {self.one_of}"
         elif self.type == 'array':
-            msg = "\"['item1', 'item2']\""
+            msg = "\"['item1', 'item2']\" or \"item1,item2\""
         elif self.type == 'object':
             msg = "\"{'key1': 'value1', 'key2': 'value2'}\""
         elif self.type == 'integer':
