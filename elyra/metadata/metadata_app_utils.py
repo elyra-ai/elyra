@@ -16,6 +16,7 @@
 import ast
 import logging
 import sys
+from typing import Any
 
 """Utility functions and classes used for metadata applications and classes."""
 
@@ -33,6 +34,7 @@ class Option(object):
     value = None
     type = None  # Only used by SchemaProperty instances for now
     processed = False
+    bad_value = None  # Contains error message string when bad value is encountered
 
     def __init__(self, cli_option, name=None, description=None, default_value=None, one_of=None,
                  required=False, type="string"):
@@ -44,43 +46,86 @@ class Option(object):
         self.one_of = one_of
         self.required = required
         self.type = type
+        self.bad_value = None  # All options start as 'good'.  set_value() can set this to an error message
 
     def set_value(self, value):
-        if self.type in ['array', 'object']:
-            self.value = ast.literal_eval(value)
-        elif self.type == 'integer':
-            self.value = int(value)
-        elif self.type == 'number':
-            if "." in value:
-                self.value = float(value)
-            else:
+        try:
+            if self.type in ['array', 'object']:
+                self.value = ast.literal_eval(value)
+            elif self.type == 'integer':
                 self.value = int(value)
+            elif self.type == 'number':
+                if "." in value:
+                    self.value = float(value)
+                else:
+                    self.value = int(value)
+            elif self.type == 'boolean':
+                if isinstance(value, bool):
+                    self.value = value
+                elif str(value).lower() in ("true", "1"):
+                    self.value = True
+                elif str(value).lower() in ("false", "0"):
+                    self.value = False
+                else:
+                    self.value = value  # let it take its course
+            elif self.type == 'null':
+                if str(value) in ("null", "None"):
+                    self.value = None
+                else:
+                    self.value = value
+            else:
+                self.value = value
+        except (ValueError, SyntaxError):
+            self.handle_value_error(value)
+
+    @staticmethod
+    def get_article(type: str) -> str:
+        vowels = ['a', 'e', 'i', 'o', 'u']   # we'll deal with 'y' as needed
+        if type[0] in vowels:
+            return "an"
+        return "a"
+
+    def get_format(self) -> str:
+        if self.one_of:
+            msg = f"must be one of: {self.one_of}"
+        elif self.type == 'array':
+            msg = "\"['item1', 'item2']\""
+        elif self.type == 'object':
+            msg = "\"{'key1': 'value1', 'key2': 'value2'}\""
+        elif self.type == 'integer':
+            msg = "'n' where 'n' is an integer"
+        elif self.type == 'number':
+            msg = "'n.m' where 'n' and 'm' are integers"
         elif self.type == 'boolean':
-            if isinstance(value, bool):
-                self.value = value
-            elif str(value).lower() in ("true", "1"):
-                self.value = True
-            elif str(value).lower() in ("false", "0"):
-                self.value = False
-            else:
-                self.value = value  # let it take its course
+            msg = "'true' or 'false'"
         elif self.type == 'null':
-            if str(value) in ("null", "None"):
-                self.value = None
-            else:
-                self.value = value
-        else:
-            self.value = value
+            msg = "'null' or 'None'"
+        else:  # string
+            msg = "sequence of characters"
+
+        return msg
+
+    def handle_value_error(self, value: Any) -> None:
+        pre_amble = f"Parameter '{self.cli_option}' requires {Option.get_article(self.type)} {self.type} with format:"
+        post_amble = f"and \"{value}\" was given.  Please try again with an appropriate value."
+        self.bad_value = f"{pre_amble} {self.get_format()} {post_amble}"
 
     def print_help(self):
-        if isinstance(self, CliOption):
-            print("{option}=<{type}>".format(option=self.cli_option, type=self.type))
-        else:
+
+        if isinstance(self, Flag):
             print(self.cli_option)
+        else:
+            option_entry = f"{self.cli_option}=<{self.type}>"
+            required_entry = ""
+            if self.required:
+                required_entry = 'Required. '
+            format_entry = f"Format: {self.get_format()}"
+            print(f"{option_entry} ({required_entry}{format_entry})")
+
         self.print_description()
 
     def print_description(self):
-        print("\t{}".format(self.description))
+        print(f"\t{self.description}")
 
 
 class CliOption(Option):
@@ -120,6 +165,7 @@ class SchemaProperty(CliOption):
                          name=name,
                          description=schema_property.get('description'),
                          default_value=schema_property.get('default'),
+                         one_of=schema_property.get('enum'),
                          type=type)
 
     def print_description(self):
@@ -268,6 +314,8 @@ class AppBase(object):
                 cli_option.value = not cli_option.default_value
             else:  # this is a regular option, just set value
                 cli_option.set_value(self.argv_mappings.get(option))
+                if cli_option.bad_value:
+                    self.log_and_exit(cli_option.bad_value, display_help=True)
                 if cli_option.required:
                     if not cli_option.value:
                         self.log_and_exit("Parameter '{}' requires a value.".
