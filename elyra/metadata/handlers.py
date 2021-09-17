@@ -175,7 +175,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
         self.finish()
 
     def on_finish(self):
-        if self.path_kwargs.get("namespace") == "component-registries":
+        if self.path_kwargs.get("namespace") == MetadataManager.NAMESPACE_COMPONENT_REGISTRIES:
             PipelineProcessorManager.instance().update_component_cache()
         super().on_finish()
 
