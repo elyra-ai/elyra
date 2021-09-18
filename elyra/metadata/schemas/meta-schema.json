@@ -27,9 +27,7 @@
     },
     "properties": {
       "type": "object",
-      "propertyNames": {
-        "enum": ["schema_name", "display_name", "metadata"]
-      },
+      "required": ["schema_name", "display_name", "metadata"],
       "additionalProperties": true
     }
   },

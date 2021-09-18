@@ -404,10 +404,10 @@ class MetadataTestSchemasProvider(SchemasProvider):
         return schemas
 
 
-def test_schema_factory(schemaspace_id: str,
-                        schemaspace_name: str,
-                        num_good: int,
-                        bad_reasons: List[str]) -> List[Dict]:
+def schema_factory(schemaspace_id: str,
+                  schemaspace_name: str,
+                  num_good: int,
+                  bad_reasons: List[str]) -> List[Dict]:
     # get the metadata test schema as a primary copy
     parent_dir = os.path.dirname(os.path.dirname(__file__))
     schema_file = os.path.join(parent_dir, 'schemas', 'metadata-test.json')
@@ -433,7 +433,7 @@ def test_schema_factory(schemaspace_id: str,
     # Gather bad schemas
     for reason in bad_reasons:
         schema = create_base_schema(primary_schema, reason, schemaspace_name, schemaspace_id)
-        if reason == 'invalid':  # remove display_name #FIXME - this isn't causing an issue, need to fix meta-schema
+        if reason == 'missing_required':  # remove display_name
             schema['properties'].pop('display_name')  # This will trigger a validation error
         elif reason == "unknown_schemaspace":  # update schemaspace_id to a non-existent schemaspace
             schema['schemaspace_id'] = uuid4()
@@ -448,8 +448,8 @@ class BYOSchemasProvider(SchemasProvider):
     def get_schemas(self) -> List[Dict]:
         # We'll create 2 good schemas and 2 bad schemas for BYOSchemaspace
         # TODO - look into a more flexible way to build providers of certain characteristics
-        schemas = test_schema_factory(BYOSchemaspace.BYO_SCHEMASPACE_ID,
-                                      BYOSchemaspace.BYO_SCHEMASPACE_NAME,
-                                      2,
-                                      ['invalid', 'unknown_schemaspace'])
+        schemas = schema_factory(BYOSchemaspace.BYO_SCHEMASPACE_ID,
+                                 BYOSchemaspace.BYO_SCHEMASPACE_NAME,
+                                 2,
+                                 ['missing_required', 'unknown_schemaspace'])
         return schemas

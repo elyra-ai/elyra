@@ -60,6 +60,8 @@ def byo_schemaspaces(monkeypatch):
     """Setup the BYO Schemaspaces and SchemasProviders, returning the SchemaManager instance."""
     monkeypatch.setattr(SchemaManager, '_get_schemaspaces', mock_get_schemaspaces)
     monkeypatch.setattr(SchemaManager, '_get_schemas_providers', mock_get_schemas_providers)
+    yield  # We must clear the SchemaManager instance else follow-on tests will be side-effected
+    SchemaManager.clear_instance()
 
 
 def test_validate_factory_schemas():
@@ -124,4 +126,4 @@ def test_byo_schema(byo_schemaspaces):
     SchemaManager.clear_instance()
     schema_mgr = SchemaManager.instance()
     byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
-    assert len(byo_ss.schemas) == 3  # FIXME Note, this should be 2 but one of the invalid scenarios is working
+    assert len(byo_ss.schemas) == 2
