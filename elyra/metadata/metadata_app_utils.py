@@ -51,10 +51,7 @@ class Option(object):
     def set_value(self, value):
         try:
             if self.type == 'array':
-                new_value = value
-                if value[0] != '[' and value[-1] != ']':  # attempt to coerce to list
-                    new_value = str(value.split(","))
-                self.value = ast.literal_eval(new_value)
+                self.value = Option.coerce_array_value(value)
             elif self.type == 'object':
                 self.value = ast.literal_eval(value)
             elif self.type == 'integer':
@@ -84,13 +81,25 @@ class Option(object):
             self.handle_value_error(value)
 
     @staticmethod
+    def coerce_array_value(value):
+        new_value = value
+        if value[0] != '[' and value[-1] != ']':  # attempt to coerce to list
+            new_value = str(value.split(","))
+        elif value[0] == '[' and value[-1] == ']':
+            # we have brackets.  If not internal quotes split within the brackets.
+            # This handles the common (but invalid) "[item1,item2]" format.
+            if value[1] not in ["'", '"'] and value[-2] not in ["'", '"']:
+                new_value = str(value[1:-1].split(","))
+        return ast.literal_eval(new_value)
+
+    @staticmethod
     def get_article(type: str) -> str:
         vowels = ['a', 'e', 'i', 'o', 'u']   # we'll deal with 'y' as needed
         if type[0] in vowels:
             return "an"
         return "a"
 
-    def get_format(self) -> str:
+    def get_format_hint(self) -> str:
         if self.one_of:
             msg = f"must be one of: {self.one_of}"
         elif self.type == 'array':
@@ -113,7 +122,7 @@ class Option(object):
     def handle_value_error(self, value: Any) -> None:
         pre_amble = f"Parameter '{self.cli_option}' requires {Option.get_article(self.type)} {self.type} with format:"
         post_amble = f"and \"{value}\" was given.  Please try again with an appropriate value."
-        self.bad_value = f"{pre_amble} {self.get_format()} {post_amble}"
+        self.bad_value = f"{pre_amble} {self.get_format_hint()} {post_amble}"
 
     def print_help(self):
 
@@ -124,7 +133,7 @@ class Option(object):
             required_entry = ""
             if self.required:
                 required_entry = 'Required. '
-            format_entry = f"Format: {self.get_format()}"
+            format_entry = f"Format: {self.get_format_hint()}"
             print(f"{option_entry} ({required_entry}{format_entry})")
 
         self.print_description()
