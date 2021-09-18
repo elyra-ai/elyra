@@ -36,11 +36,8 @@ def invalid_url(request):
 
 def _get_resource_path(filename):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    print(f'>>> root {root}')
     resource_path = os.path.join(root, '../../../tests/pipeline', 'resources', 'components', filename)
-    print(f'>>> resource_path {resource_path}')
     resource_path = os.path.normpath(resource_path)
-    print(f'>>> norm_resource_path {resource_path}')
 
     return resource_path
 
@@ -79,6 +76,12 @@ def test_modify_component_registries():
                                  name="new_registry",
                                  display_name="New Registry",
                                  metadata=instance_metadata)
+
+    try:
+        if metadata_manager.get("new_registry"):
+            metadata_manager.remove("new_registry")
+    except Exception:
+        pass
 
     metadata_manager.create("new_registry", registry_instance)
 
@@ -141,6 +144,12 @@ def test_directory_based_component_registry():
                                  name="new_registry",
                                  display_name="New Registry",
                                  metadata=instance_metadata)
+
+    try:
+        if metadata_manager.get("new_registry"):
+            metadata_manager.remove("new_registry")
+    except Exception:
+        pass
 
     metadata_manager.create("new_registry", registry_instance)
 
