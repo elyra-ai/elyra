@@ -405,9 +405,9 @@ class MetadataTestSchemasProvider(SchemasProvider):
 
 
 def schema_factory(schemaspace_id: str,
-                  schemaspace_name: str,
-                  num_good: int,
-                  bad_reasons: List[str]) -> List[Dict]:
+                   schemaspace_name: str,
+                   num_good: int,
+                   bad_reasons: List[str]) -> List[Dict]:
     # get the metadata test schema as a primary copy
     parent_dir = os.path.dirname(os.path.dirname(__file__))
     schema_file = os.path.join(parent_dir, 'schemas', 'metadata-test.json')
