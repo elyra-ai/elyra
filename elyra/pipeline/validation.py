@@ -311,6 +311,8 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
                             elif self._get_component_type(property_dict, node_property) == 'inputpath':
+                                print(node_property)
+                                print(node.get_component_parameter(node_property))
                                 if not len(node.get_component_parameter(node_property).keys()) == 3:
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
