@@ -53,17 +53,23 @@ class ComponentRegistryMetadata(Metadata):
     """
 
     def post_save(self, **kwargs: Any) -> None:
-        processor_type = self.to_dict()['metadata']['runtime']
+        processor_type = self.metadata.get('runtime')
 
         # Get processor instance and update its cache
-        processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
-        if processor.component_registry.caching_enabled:
-            processor.component_registry.update_cache()
+        try:
+            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
+            if processor.component_registry.caching_enabled:
+                processor.component_registry.update_cache()
+        except Exception:
+            pass
 
     def post_delete(self, **kwargs: Any) -> None:
-        processor_type = self.to_dict()['metadata']['runtime']
+        processor_type = self.metadata.get('runtime')
 
         # Get processor instance and update its cache
-        processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
-        if processor.component_registry.caching_enabled:
-            processor.component_registry.update_cache()
+        try:
+            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
+            if processor.component_registry.caching_enabled:
+                processor.component_registry.update_cache()
+        except Exception:
+            pass
