@@ -57,11 +57,13 @@ class ComponentRegistryMetadata(Metadata):
 
         # Get processor instance and update its cache
         processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
-        processor.component_registry.update_cache()
+        if processor.component_registry.caching_enabled:
+            processor.component_registry.update_cache()
 
     def post_delete(self, **kwargs: Any) -> None:
         processor_type = self.to_dict()['metadata']['runtime']
 
         # Get processor instance and update its cache
         processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
-        processor.component_registry.update_cache()
+        if processor.component_registry.caching_enabled:
+            processor.component_registry.update_cache()

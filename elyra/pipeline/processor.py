@@ -36,7 +36,6 @@ from urllib3.exceptions import MaxRetryError
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component_registry import CachedComponentRegistry
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
@@ -306,14 +305,14 @@ class RuntimePipelineProcessor(PipelineProcessor):
         return self._component_parser
 
     @property
-    def component_registry(self) -> Union[CachedComponentRegistry, ComponentRegistry]:
+    def component_registry(self) -> ComponentRegistry:
         return self._component_registry
 
     def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
         super().__init__(root_dir, **kwargs)
 
         self._component_parser = component_parser
-        self._component_registry = CachedComponentRegistry(component_parser)
+        self._component_registry = ComponentRegistry(component_parser)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)
