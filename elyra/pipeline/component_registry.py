@@ -20,7 +20,6 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jsonschema import ValidationError
@@ -28,7 +27,6 @@ from traitlets.config import LoggingConfigurable
 
 from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.manager import MetadataManager
-from elyra.metadata.schema import SchemaFilter
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ComponentReader
@@ -282,26 +280,3 @@ class CachedComponentRegistry(ComponentRegistry):
                 is_expired = False
 
         return is_expired
-
-
-class RegistrySchemaFilter(SchemaFilter):
-    """
-    This class exists to ensure that the component registry schema's runtime
-    metadata appropriately reflects the available runtimes.
-    """
-
-    def post_load(self, name: str, schema_json: Dict) -> Dict:
-        """Ensure available runtimes are present and add to schema as necessary."""
-
-        filtered_schema = super().post_load(name, schema_json)
-
-        # Get processor names
-        runtime_enum = []
-        for processor_name in entrypoints.get_group_named('elyra.pipeline.processors').keys():
-            if processor_name == "local":
-                continue
-            runtime_enum.append(processor_name)
-
-        # Add runtimes to schema
-        filtered_schema['properties']['metadata']['properties']['runtime']['enum'] = runtime_enum
-        return filtered_schema
