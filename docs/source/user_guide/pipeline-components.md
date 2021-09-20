@@ -208,16 +208,28 @@ Example:
 
 The location type identifies the format that the value(s) provided in `Paths` represent. Supported types are `URL`, `Filename`, or `Directory`. This property is required.
 
+- `URL`: The provided `Paths` identify web resources. The pipeline editor loads the specified URLs using anonymous HTTP `GET` requests.
+- `Filename`: The provided `Paths` identify files in the file system where JupyterLab/Elyra is running. `~` may be used to denote the user's home directory.
+
+The `Directory` location type is used to _add components during the Elyra build process_. The provided `Paths` must identify existing directories in [`etc/config/components`](https://github.com/elyra-ai/elyra/tree/master/etc/config/components).
+
+
 ##### Paths (paths)
 
-A path identifies the location from where Elyra can retrieve one or more component specifications. The provided value must be a valid representation of the selected _location type_. This property is required.
+A path defines the location from where the pipeline editor loads one or more component specifications. The provided value must be a valid representation of the selected _location type_. This property is required.
 
 Examples (GUI):
  - URL: `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
- - Filename: `load_data_from_public_source/http_operator.py`
+ - Filename: `/Users/patti/specs/load_data_from_public_source/http_operator.py`
+ - Filename: `~patti/specs/filter_files/row_filter.yaml`
  - Directory path: `load_from_database`
 
  Examples (CLI):
  - URL: `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
- - Filename: `['load_data_from_public_source/http_operator.py']`
- - Directory path: `['load_from_database']` 
+ - Filename: `['/Users/patti/specs/load_data_from_public_source/http_operator.py']`
+ - Filename: `['~patti/specs/filter_files/row_filter.yaml']`
+ - Directory path: `['load_from_database']`
+
+ Examples multiple components (CLI):
+ - URL: `['URL1', 'URL2']`
+ - Filename: `['/Users/patti/specs/comp1.yaml','/Users/patti/specs/comp2.yaml']`
