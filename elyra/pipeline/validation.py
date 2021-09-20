@@ -303,13 +303,30 @@ class PipelineValidationManager(SingletonConfigurable):
 
                         for node_property in cleaned_property_list:
                             if not node.get_component_parameter(node_property):
-                                if self._is_required_property(property_dict, f"elyra_{node_property}"):
+                                if self._is_required_property(property_dict, node_property):
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
                                                          message="Node is missing required property.",
                                                          data={"nodeID": node.id,
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
+                            elif self._get_component_type(property_dict, node_property) == 'inputpath':
+                                if not len(node.get_component_parameter(node_property).keys()) == 3:
+                                    response.add_message(severity=ValidationSeverity.Error,
+                                                         message_type="invalidNodeProperty",
+                                                         message="Node is missing required output property parameter",
+                                                         data={"nodeID": node.id,
+                                                               "nodeName": node_label})
+                                else:
+                                    for key in node.get_component_parameter(node_property).keys():
+                                        if key not in ['node_id', 'output_key', 'label']:
+                                            response.add_message(severity=ValidationSeverity.Error,
+                                                                 message_type="invalidNodeProperty",
+                                                                 message="Node property has invalid key.",
+                                                                 data={"nodeID": node.id,
+                                                                       "nodeName": node_label,
+                                                                       "propertyName": node_property,
+                                                                       "keyName": key})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:
@@ -689,6 +706,11 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         node_op_parameter_list = property_dict['uihints']['parameter_info']
         for parameter in node_op_parameter_list:
-            if parameter['parameter_ref'] == node_property:
+            if parameter['parameter_ref'] == f"elyra_{node_property}":
                 return parameter['data']['required']
         return False
+
+    def _get_component_type(self, property_dict, node_property):
+        for property in property_dict['uihints']['parameter_info']:
+            if property["parameter_ref"] == f"elyra_{node_property}":
+                return property['data']['format']

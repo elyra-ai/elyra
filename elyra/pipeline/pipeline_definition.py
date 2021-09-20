@@ -20,7 +20,7 @@ from typing import Dict
 from typing import Optional
 
 
-class AppDataBase():
+class AppDataBase:  # ABC
     """
     An abstraction for app_data based nodes
     """
