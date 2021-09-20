@@ -47,7 +47,7 @@ def test_component_registry_can_load_components_from_registries():
 def test_modify_component_registries():
     # Get initial set of components from the current active registries
     parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(parser)
+    component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
 
     metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
@@ -110,7 +110,7 @@ def test_modify_component_registries():
 def test_directory_based_component_registry():
     # Get initial set of components from the current active registries
     parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(parser)
+    component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
 
     metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
