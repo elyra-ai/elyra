@@ -60,8 +60,24 @@ class Metadata(object):
         """
         pass
 
+    def post_save(self, **kwargs: Any) -> None:
+        """Called by MetadataManager following the save of the instance.
+
+        :param kwargs: additional arguments
+        Keyword Args:
+            for_update (bool): indicates if this save operation if for update (True) or create (False)
+        """
+        pass
+
     def pre_delete(self, **kwargs: Any) -> None:
         """Called by MetadataManager prior to deleting the instance.
+
+        :param kwargs: additional arguments
+        """
+        pass
+
+    def post_delete(self, **kwargs: Any) -> None:
+        """Called by MetadataManager following the deletion of the instance.
 
         :param kwargs: additional arguments
         """
