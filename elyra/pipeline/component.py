@@ -14,11 +14,13 @@
 # limitations under the License.
 #
 from abc import abstractmethod
+from enum import Enum
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 from traitlets.config import LoggingConfigurable
 
@@ -38,6 +40,8 @@ class ComponentParameter(object):
                  required: bool = False,
                  control: str = "custom",
                  control_id: str = "StringControl",
+                 one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
+                 default_control_type: str = "StringControl",
                  items: Optional[List[str]] = None):
         """
         :param id: Unique identifier for a property
@@ -47,6 +51,8 @@ class ComponentParameter(object):
         :param description: A description of the property for display
         :param control: The control of the property on the display, e.g. custom or readonly
         :param control_id: The control type of the property, if the control is 'custom', e.g. StringControl, EnumControl
+        :param one_of_control_types: A list of control types to be used when 'OneOfControl' type is the primary control
+        :param default_control_type: The default control type to use when 'OneOfControl type is the primary control
         :param items: For properties with a control of 'EnumControl', the items making up the enum
         :param required: Whether the property is required
         """
@@ -64,6 +70,8 @@ class ComponentParameter(object):
         self._description = description
         self._control = control
         self._control_id = control_id
+        self._one_of_control_types = one_of_control_types
+        self._default_control_type = default_control_type
         self._items = items or []
 
         # Check description for information about 'required' parameter
@@ -104,6 +112,29 @@ class ComponentParameter(object):
         return self._control_id
 
     @property
+    def one_of_control_types(self) -> List[Tuple[str, str, str]]:
+        """
+        The `OneOfControl` controller is an encapsulating control ID that allows users to select
+        between multiple input types when configuring the component. For instance, in Airflow, a
+        component parameter can take in, as input, both a value as well as an output from a parent
+        node.
+        When using the `OneOfControl` as the primary control ID for the component parameter,
+        `one_of_control_types` provides canvas a list of control IDs that will be used by the
+        `OneOfControl` controller. These control IDs are what allow the user to select different
+        types of inputs.
+        :return: A list of 3-tuples containing the default_control_type, data_type, label associated with controller
+        """
+        return self._one_of_control_types
+
+    @property
+    def default_control_type(self) -> str:
+        """
+            The `default_control_type` is the control type that will be displayed by default when
+            first opening the component's parameters in the pipeline editor.
+        """
+        return self._default_control_type
+
+    @property
     def items(self) -> List[str]:
         return self._items
 
@@ -124,7 +155,7 @@ class Component(object):
                  catalog_type: str,
                  source_identifier: Any,
                  definition: Optional[str] = None,
-                 runtime_type: Optional[RuntimeProcessorType] = None,
+                 runtime_type: Optional[str] = None,
                  op: Optional[str] = None,
                  categories: Optional[List[str]] = None,
                  properties: Optional[List[ComponentParameter]] = None,
@@ -309,11 +340,13 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
                                                                        data_type="number",
                                                                        control_id="NumberControl",
+                                                                       default_control_type="NumberControl",
                                                                        default_value=0)
             elif any(word in parsed_type_lowered for word in ['bool', 'boolean']):
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
                                                                        data_type="boolean",
                                                                        control_id="BooleanControl",
+                                                                       default_control_type="BooleanControl",
                                                                        default_value=False)
             else:  # Let this be undetermined.  Callers should check for this status and adjust
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
@@ -325,9 +358,12 @@ class ComponentParser(LoggingConfigurable):  # ABC
     @staticmethod
     def create_data_type_info(parsed_data: str,
                               data_type: str = 'string',
+                              data_label: str = None,
                               default_value: Any = '',
                               required: bool = True,
+                              one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
                               control_id: str = 'StringControl',
+                              default_control_type: str = 'StringControl',
                               control: str = 'custom',
                               undetermined: bool = False) -> SimpleNamespace:
         """Returns a SimpleNamespace instance that contains the current state of data-type parsing.
@@ -342,9 +378,19 @@ class ComponentParser(LoggingConfigurable):  # ABC
         """
         dti = SimpleNamespace(parsed_data=parsed_data,
                               data_type=data_type,
+                              data_label=data_label or ControllerMap[control_id].value,
                               default_value=default_value,
                               required=required,
+                              default_control_type=default_control_type,
+                              one_of_control_types=one_of_control_types,
                               control_id=control_id,
                               control=control,
                               undetermined=undetermined)
         return dti
+
+
+class ControllerMap(Enum):
+    StringControl = "Please enter a string value :"
+    NumberControl = "Please enter a number value :"
+    BooleanControl = "Please select or deselect the checkbox :"
+    NestedEnumControl = "Please select an output from a parent :"

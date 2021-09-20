@@ -85,12 +85,13 @@ class KfpComponentParser(ComponentParser):
                 # Assign parsed data type (default to string)
                 data_type_parsed = param.get('type', 'string')
 
-                # Change type to reflect the parameter type (inputValue vs inputPath vs outputPath)
+                # # define adjusted type as either inputPath or outputPath
                 data_type_adjusted = data_type_parsed
                 if self._is_path_based_parameter(param.get('name'), component_yaml):
                     data_type_adjusted = f"{param_type[:-1]}Path"
 
                 data_type_info = self.determine_type_information(data_type_adjusted)
+
                 if data_type_info.undetermined:
                     self.log.debug(f"Data type from parsed data ('{data_type_parsed}') could not be determined. "
                                    f"Proceeding as if 'string' was detected.")
@@ -106,6 +107,7 @@ class KfpComponentParser(ComponentParser):
                 display_name = param.get('name')
 
                 description = param.get('description', '')
+
                 if data_type_info.data_type != 'inputpath':
                     # Add parsed data type hint to description in parenthesis
                     description = self._format_description(description=description,
@@ -113,21 +115,22 @@ class KfpComponentParser(ComponentParser):
 
                 if data_type_info.data_type == 'outputpath':
                     ref_name = f"output_{ref_name}"
-                    # Add sentence to description to clarify that paraeter is an output
+                    # Add sentence to description to clarify that parameter is an output
                     description = f"This is an output of this component. {description}"
 
-                properties.append(
-                    ComponentParameter(
-                        id=ref_name,
-                        name=display_name,
-                        data_type=data_type_info.data_type,
-                        value=(value or data_type_info.default_value),
-                        description=description,
-                        control=data_type_info.control,
-                        control_id=data_type_info.control_id,
-                        required=required
-                    )
-                )
+                component_params = ComponentParameter(id=ref_name,
+                                                      name=display_name,
+                                                      data_type=data_type_info.data_type,
+                                                      value=(value or data_type_info.default_value),
+                                                      description=description,
+                                                      control=data_type_info.control,
+                                                      control_id=data_type_info.control_id,
+                                                      one_of_control_types=data_type_info.one_of_control_types,
+                                                      default_control_type=data_type_info.control_id,
+                                                      required=required)
+
+                properties.append(component_params)
+
         return properties
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
