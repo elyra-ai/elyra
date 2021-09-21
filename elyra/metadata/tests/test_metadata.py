@@ -555,7 +555,6 @@ def test_manager_update(tests_hierarchy_manager, namespace_location):
     instance = tests_hierarchy_manager.create('update', metadata)
     assert instance is not None
     assert instance.resource.startswith(str(namespace_location))
-    assert instance.for_update is False
     assert instance.pre_property == instance.metadata['required_test']
     assert instance.post_property == instance.display_name
 
@@ -565,7 +564,6 @@ def test_manager_update(tests_hierarchy_manager, namespace_location):
     instance2.display_name = 'user2'
     instance2.metadata['number_range_test'] = 7
     instance = tests_hierarchy_manager.update('update', instance2)
-    assert instance.for_update is True
     assert instance.pre_property == instance.metadata['required_test']
     assert instance.post_property == instance2.display_name
 

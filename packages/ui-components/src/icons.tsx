@@ -17,6 +17,7 @@
 import { LabIcon } from '@jupyterlab/ui-components';
 
 import airflowSvg from '../style/icons/airflow.svg';
+import argoSvg from '../style/icons/argo.svg';
 import clearPipelineSvg from '../style/icons/clear-pipeline.svg';
 import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
 import codeSnippetSvg from '../style/icons/code-snippet.svg';
@@ -43,6 +44,10 @@ export const importIcon = new LabIcon({
 export const airflowIcon = new LabIcon({
   name: 'elyra:airflow',
   svgstr: airflowSvg
+});
+export const argoIcon = new LabIcon({
+  name: 'elyra:argo',
+  svgstr: argoSvg
 });
 export const codeSnippetIcon = new LabIcon({
   name: 'elyra:code-snippet',

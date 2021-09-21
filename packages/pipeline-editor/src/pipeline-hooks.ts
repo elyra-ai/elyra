@@ -19,6 +19,7 @@ import {
   pipelineIcon,
   kubeflowIcon,
   airflowIcon,
+  argoIcon,
   pyIcon,
   rIcon,
   IconUtil
@@ -152,6 +153,9 @@ const componentFetcher = async (runtime: string): Promise<any> => {
       case 'airflow':
         category.image = IconUtil.encode(airflowIcon);
         break;
+      case 'argo':
+        category.image = IconUtil.encode(argoIcon);
+        break;
       default:
         category.image = IconUtil.encode(
           IconUtil.colorize(pipelineIcon, '#808080')
@@ -185,7 +189,7 @@ const NodeIcons: Map<string, string> = new Map([
 ]);
 
 export const getRuntimeIcon = (runtime?: string): LabIcon => {
-  const runtimeIcons = [kubeflowIcon, airflowIcon];
+  const runtimeIcons = [kubeflowIcon, airflowIcon, argoIcon];
   for (const runtimeIcon of runtimeIcons) {
     if (`elyra:${runtime}` === runtimeIcon.name) {
       return runtimeIcon;

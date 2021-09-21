@@ -4,7 +4,8 @@
   "name": "component-registry",
   "display_name": "Pipeline Component",
   "namespace": "component-registries",
-  "schema_filter_class_name": "elyra.pipeline.component_registry.RegistrySchemaFilter",
+  "metadata_class_name": "elyra.pipeline.component_metadata.ComponentRegistryMetadata",
+  "schema_filter_class_name": "elyra.pipeline.component_metadata.RegistrySchemaFilter",
   "uihints": {
     "title": "Pipeline Components",
     "icon": "",

@@ -25,7 +25,6 @@ from elyra.metadata.error import SchemaNotFoundError
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import SchemaManager
-from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.util.http import HttpErrorMixin
 
 
@@ -173,11 +172,6 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
 
         self.set_status(204)
         self.finish()
-
-    def on_finish(self):
-        if self.path_kwargs.get("namespace") == MetadataManager.NAMESPACE_COMPONENT_REGISTRIES:
-            PipelineProcessorManager.instance().update_component_cache()
-        super().on_finish()
 
 
 class SchemaHandler(HttpErrorMixin, APIHandler):
