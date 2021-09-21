@@ -66,20 +66,23 @@ class Metadata(object):
         :param kwargs: additional arguments
         Keyword Args:
             for_update (bool): indicates if this save operation if for update (True) or create (False)
+
+        Note: Since exceptions thrown from this method can adversely affect the operation,
+        implementations are advised to trap all exceptions unless the operation's
+        rollback is warranted.
         """
         pass
 
     def pre_delete(self, **kwargs: Any) -> None:
-        """Called by MetadataManager prior to deleting the instance.
-
-        :param kwargs: additional arguments
-        """
+        """Called by MetadataManager prior to deleting the instance."""
         pass
 
     def post_delete(self, **kwargs: Any) -> None:
         """Called by MetadataManager following the deletion of the instance.
 
-        :param kwargs: additional arguments
+        Note: Since exceptions thrown from this method can adversely affect the operation,
+        implementations are advised to trap all exceptions unless the operation's
+        rollback is warranted.
         """
         pass
 
