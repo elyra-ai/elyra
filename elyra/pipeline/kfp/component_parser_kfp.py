@@ -92,7 +92,7 @@ class KfpComponentParser(ComponentParser):
 
                 data_type_info = self.determine_type_information(data_type)
                 if data_type_info.undetermined:
-                    self.log.warn(f"Data type from parsed data ('{data_type}') could not be determined. "
+                    self.log.warning(f"Data type from parsed data ('{data_type}') could not be determined. "
                                   f"Proceeding as if 'string' was detected.")
 
                 if not data_type_info.required:

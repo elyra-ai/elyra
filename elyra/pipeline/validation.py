@@ -157,6 +157,11 @@ class PipelineValidationManager(SingletonConfigurable):
 
     def _validate_pipeline_structure(self, pipeline_definition: PipelineDefinition,
                                      response: ValidationResponse) -> None:
+        """
+        Validates the pipeline structure based on version of schema
+        :param pipeline_definition: the pipeline definition to be validated
+        :param response: ValidationResponse containing the issue list to be updated
+        """
 
         # Validate pipeline schema version
         if float(pipeline_definition.schema_version) != PIPELINE_CURRENT_SCHEMA:
@@ -193,6 +198,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         Checks that the pipeline payload is compatible with this version of elyra (ISSUE #938)
         as well as verifying all nodes in the pipeline are supported by the runtime
+        :param pipeline_definition: the pipeline definition to be validated
         :param pipeline_type: name of the pipeline runtime being used e.g. kfp, airflow, generic
         :param pipeline_runtime: name of the pipeline runtime for execution  e.g. kfp, airflow, local
         :param response: ValidationResponse containing the issue list to be updated
@@ -241,7 +247,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         Validates each of the node's structure for required fields/properties as well as
         their values
-        :param pipeline: the pipeline definition to be validated
+        :param pipeline_definition: the pipeline definition to be validated
         :param pipeline_type: name of the pipeline runtime being used e.g. kfp, airflow, generic
         :param pipeline_runtime: name of the pipeline runtime for execution  e.g. kfp, airflow, local
         :param response: ValidationResponse containing the issue list to be updated
@@ -336,6 +342,7 @@ class PipelineValidationManager(SingletonConfigurable):
         Validates the image name exists and is proper in syntax
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
+        :param image_name: container image name to be evaluated
         :param response: ValidationResponse containing the issue list to be updated
         """
         if not image_name:
@@ -352,9 +359,9 @@ class PipelineValidationManager(SingletonConfigurable):
         Validates the value for hardware resources requested
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
-        :param response: ValidationResponse containing the issue list to be updated
         :param resource_name: the name of the resource e.g. cpu, gpu. memory
         :param resource_value: the value of the resource
+        :param response: ValidationResponse containing the issue list to be updated
         """
         try:
             if int(resource_value) <= 0:
@@ -382,9 +389,9 @@ class PipelineValidationManager(SingletonConfigurable):
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
         :param property_name: name of the node property being validated
-        :param file_dir: the dir path of the where the pipeline file resides in the elyra workspace
         :param filename: the name of the file or directory to verify
         :param response: ValidationResponse containing the issue list to be updated
+        :param file_dir: the dir path of the where the pipeline file resides in the elyra workspace
         """
         file_dir = file_dir or self.root_dir
 
@@ -446,7 +453,6 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         KFP specific check for the label name when constructing the node operation using dsl
         :param node_id: the unique ID of the node
-        :param filename: the name of the file with or without a relative path prefix
         :param node_label: the given node name or user customized name/label of the node
         :param response: ValidationResponse containing the issue list to be updated
         """
@@ -712,7 +718,13 @@ class PipelineValidationManager(SingletonConfigurable):
                 return parameter['data']['required']
         return False
 
-    def _get_component_type(self, property_dict, node_property):
-        for property in property_dict['uihints']['parameter_info']:
-            if property["parameter_ref"] == f"elyra_{node_property}":
-                return property['data']['format']
+    def _get_component_type(self, property_dict: dict, node_property: str) -> str:
+        """
+        Helper function to determine the type of a node property
+        :param property_dict: a dictioanry containing the full list of property parameters and descriptions
+        :param node_property: the property to look for
+        :return: the data type associated with node_property
+        """
+        for prop in property_dict['uihints']['parameter_info']:
+            if prop["parameter_ref"] == f"elyra_{node_property}":
+                return prop['data']['format']

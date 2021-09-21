@@ -463,3 +463,36 @@ def test_pipeline_graph_singleton(validation_manager, load_pipeline):
     assert issues[0]['severity'] == 2
     assert issues[0]['type'] == 'singletonReference'
     assert issues[0]['data']['nodeID'] == node_id
+
+
+async def test_pipeline_kfp_inputpath_parameter(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('kf_inputpath_parameter.pipeline')
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
+                                                       response=response,
+                                                       pipeline_type='kfp',
+                                                       pipeline_runtime='kfp')
+
+    issues = response.to_json().get('issues')
+    assert len(issues) == 0
+
+
+async def test_pipeline_invalid_kfp_inputpath_parameter(validation_manager, load_pipeline):
+    invalid_key_node_id = "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1"
+    missing_param_node_id = "e8820c55-dc79-46d1-b32e-924fa5d70d2a"
+    pipeline, response = load_pipeline('kf_invalid_inputpath_parameter.pipeline')
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
+                                                       response=response,
+                                                       pipeline_type='kfp',
+                                                       pipeline_runtime='kfp')
+
+    issues = response.to_json().get('issues')
+    assert len(issues) == 2
+    assert response.has_fatal
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidNodeProperty'
+    assert issues[0]['data']['nodeID'] == invalid_key_node_id
+    assert issues[1]['severity'] == 1
+    assert issues[1]['type'] == 'invalidNodeProperty'
+    assert issues[1]['data']['nodeID'] == missing_param_node_id
