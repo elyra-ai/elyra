@@ -185,7 +185,7 @@ class KfpComponentParser(ComponentParser):
         if data_type_info.undetermined:
             if 'inputpath' in data_type_info.parsed_data:
                 data_type_info.data_type = 'inputpath'
-                data_type_info.control_id = "FoobarControl"
+                data_type_info.control_id = "NestedEnumControl"
                 data_type_info.undetermined = False
             elif 'inputvalue' in data_type_info.parsed_data:
                 data_type_info.data_type = 'inputvalue'
