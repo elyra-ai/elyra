@@ -20,8 +20,7 @@ FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.3.0
 
 # install - elyra
 COPY elyra-*.whl ./
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated legacy-resolver \
-    elyra-*.whl
+RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra-*.whl
 
 # build jupyter plugins
 RUN jupyter lab build
