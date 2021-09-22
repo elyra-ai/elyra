@@ -18,8 +18,10 @@ from http import HTTPStatus
 from logging import Logger
 import os
 import re
+from threading import Thread
 from types import SimpleNamespace
 from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -252,12 +254,45 @@ class ComponentReader(LoggingConfigurable):
         return self.location_type
 
     @abstractmethod
-    def read_component_definition(self, location: str) -> Optional[str]:
+    def read_component_definition(self,
+                                  location: str,
+                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
         """
         Read an absolute location to get the contents of a component
         specification file
+
+        :param location: an absolute path to the specification file to read
+        :param location_to_def: a mapping of component locations to definitions
+
+        :returns: the given 'location_to_def' object, optionally including a new
+                  key-value pair if the given component location is successfully read
         """
         raise NotImplementedError()
+
+    def read_component_definitions(self, locations: List[str]) -> Dict[str, str]:
+        """
+        This function starts a thread for each of the given locations in order to read
+        component definitions in parallel.
+
+        The 'location_to_def' variable is a mapping of a component location to its content.
+        As a mutable object, this dictionary provides a means to retrieve a return value for
+        each thread. If a thread is able to successfully read the content of the given
+        component file location, a location-to-content mapping is added to 'location_to_def'.
+        """
+        location_to_def = {}
+
+        # Start a reader thread for each location
+        threads = []
+        for location in self.get_absolute_locations(locations):
+            t = Thread(target=self.read_component_definition, args=(location, location_to_def))
+            threads.append(t)
+            t.start()
+
+        # Wait for all threads to finish
+        for t in threads:
+            t.join()
+
+        return location_to_def
 
     @abstractmethod
     def get_absolute_locations(self, paths: List[str]) -> List[str]:
@@ -290,13 +325,16 @@ class FilesystemComponentReader(ComponentReader):
         path = os.path.join(ENV_JUPYTER_PATH[0], 'components', path)
         return path
 
-    def read_component_definition(self, location: str) -> Optional[str]:
+    def read_component_definition(self,
+                                  location: str,
+                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
         if not os.path.exists(location):
             self.log.warning(f"Invalid location for component: {location}")
-            return None
+        else:
+            with open(location, 'r') as f:
+                location_to_def[location] = f.read()
 
-        with open(location, 'r') as f:
-            return f.read()
+        return location_to_def
 
     def get_absolute_locations(self, paths: List[str]) -> List[str]:
         absolute_paths = []
@@ -344,18 +382,20 @@ class UrlComponentReader(ComponentReader):
     """
     location_type = 'url'
 
-    def read_component_definition(self, location: str) -> Optional[str]:
+    def read_component_definition(self,
+                                  location: str,
+                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
         try:
             res = requests.get(location)
         except Exception as e:
             self.log.warning(f"Failed to connect to URL for component: {location}: {str(e)}")
-            return None
+        else:
+            if res.status_code != HTTPStatus.OK:
+                self.log.warning(f"Invalid location for component: {location} (HTTP code {res.status_code})")
+            else:
+                location_to_def[location] = res.text
 
-        if res.status_code != HTTPStatus.OK:
-            self.log.warning(f"Invalid location for component: {location} (HTTP code {res.status_code})")
-            return None
-
-        return res.text
+        return location_to_def
 
     def get_absolute_locations(self, paths: List[str]) -> List[str]:
         return paths
