@@ -40,6 +40,7 @@ from elyra.metadata.tests.test_utils import invalid_metadata_json
 from elyra.metadata.tests.test_utils import invalid_no_display_name_json
 from elyra.metadata.tests.test_utils import MockMetadataStore
 from elyra.metadata.tests.test_utils import valid_display_name_json
+from elyra.metadata.tests.test_utils import valid_metadata2_json
 from elyra.metadata.tests.test_utils import valid_metadata_json
 
 
@@ -72,6 +73,8 @@ def test_manager_add_no_name(tests_manager, schemaspace_location):
 
     assert instance is not None
     assert instance.name == metadata_name
+    assert instance.pre_property == instance.metadata.get('required_test')
+    assert instance.post_property == instance.display_name
 
     # Ensure file was created using store_manager
     instance_list = tests_manager.metadata_store.fetch_instances(metadata_name)
@@ -79,7 +82,9 @@ def test_manager_add_no_name(tests_manager, schemaspace_location):
     instance = Metadata.from_dict(METADATA_TEST_SCHEMASPACE, instance_list[0])
     metadata_location = _compose_instance_location(tests_manager.metadata_store, schemaspace_location, metadata_name)
     assert instance.resource == metadata_location
-    assert instance.special_property == instance.metadata['required_test']
+    assert instance.pre_property == instance.metadata.get('required_test')
+    # This will be None because the hooks don't get called when fetched directly from the store
+    assert instance.post_property is None
 
     # And finally, remove it.
     tests_manager.remove(metadata_name)
@@ -257,6 +262,79 @@ def test_manager_read_invalid_by_name(tests_manager):
 
 def test_manager_read_missing_by_name(tests_manager):
     metadata_name = 'missing'
+    with pytest.raises(MetadataNotFoundError):
+        tests_manager.get(metadata_name)
+
+
+def test_manager_rollback_create(tests_manager):
+    metadata_name = 'rollback_create'
+
+    metadata = Metadata(**valid_metadata2_json)
+
+    os.environ['METADATA_TEST_HOOK_OP'] = "create"  # Tell test class which op to raise
+    # Create post-save hook will throw NotImplementedError
+    with pytest.raises(NotImplementedError):
+        tests_manager.create(metadata_name, metadata)
+
+    # Ensure nothing got created
+    with pytest.raises(MetadataNotFoundError):
+        tests_manager.get(metadata_name)
+
+    os.environ.pop('METADATA_TEST_HOOK_OP')  # Restore normal operation
+    instance = tests_manager.create(metadata_name, metadata)
+    instance2 = tests_manager.get(metadata_name)
+    assert instance.name == instance2.name
+    assert instance.schema_name == instance2.schema_name
+    assert instance.post_property == instance2.post_property
+
+
+def test_manager_rollback_update(tests_manager):
+    metadata_name = 'rollback_update'
+
+    metadata = Metadata(**valid_metadata2_json)
+
+    # Create the instance
+    instance = tests_manager.create(metadata_name, metadata)
+    original_display_name = instance.display_name
+    instance.display_name = "Updated_" + original_display_name
+
+    os.environ['METADATA_TEST_HOOK_OP'] = "update"  # Tell test class which op to raise
+    # Update post-save hook will throw ModuleNotFoundError
+    with pytest.raises(ModuleNotFoundError):
+        tests_manager.update(metadata_name, instance)
+
+    # Ensure the display_name is still the original value.
+    instance2 = tests_manager.get(metadata_name)
+    assert instance2.display_name == original_display_name
+
+    os.environ.pop('METADATA_TEST_HOOK_OP')  # Restore normal operation
+    # Ensure we can still update
+    instance = tests_manager.update(metadata_name, instance)
+    assert instance.display_name == "Updated_" + original_display_name
+
+
+def test_manager_rollback_delete(tests_manager):
+    metadata_name = 'rollback_delete'
+
+    metadata = Metadata(**valid_metadata2_json)
+
+    # Create the instance
+    instance = tests_manager.create(metadata_name, metadata)
+
+    os.environ['METADATA_TEST_HOOK_OP'] = "delete"  # Tell test class which op to raise
+    # Delete post-save hook will throw FileNotFoundError
+    with pytest.raises(FileNotFoundError):
+        tests_manager.remove(metadata_name)
+
+    # Ensure the instance still exists
+    instance2 = tests_manager.get(metadata_name)
+    assert instance2.display_name == instance.display_name
+
+    os.environ.pop('METADATA_TEST_HOOK_OP')  # Restore normal operation
+    # Ensure we can still delete
+    tests_manager.remove(metadata_name)
+
+    # Ensure the instance was deleted
     with pytest.raises(MetadataNotFoundError):
         tests_manager.get(metadata_name)
 
@@ -440,8 +518,8 @@ def test_manager_update(tests_hierarchy_manager, schemaspace_location):
     instance = tests_hierarchy_manager.create('update', metadata)
     assert instance is not None
     assert instance.resource.startswith(str(schemaspace_location))
-    assert instance.for_update is False
-    assert instance.special_property == instance.metadata['required_test']
+    assert instance.pre_property == instance.metadata['required_test']
+    assert instance.post_property == instance.display_name
 
     # Now update the user instance - add a field - and ensure that the original renamed file is not present.
 
@@ -449,8 +527,8 @@ def test_manager_update(tests_hierarchy_manager, schemaspace_location):
     instance2.display_name = 'user2'
     instance2.metadata['number_range_test'] = 7
     instance = tests_hierarchy_manager.update('update', instance2)
-    assert instance.for_update is True
-    assert instance.special_property == instance.metadata['required_test']
+    assert instance.pre_property == instance.metadata['required_test']
+    assert instance.post_property == instance2.display_name
 
     _ensure_single_instance(tests_hierarchy_manager, schemaspace_location, "update.json")
 

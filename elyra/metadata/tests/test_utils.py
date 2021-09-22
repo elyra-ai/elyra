@@ -45,6 +45,16 @@ valid_metadata_json = {
     }
 }
 
+valid_metadata2_json = {
+    'schema_name': 'metadata-test2',
+    'display_name': 'valid metadata2 instance',
+    'metadata': {
+        'uri_test': 'http://localhost:31823/v1/models?version=2017-02-13',
+        'number_range_test': 8,
+        'required_test': "required_value"
+    }
+}
+
 another_metadata_json = {
     'schema_name': 'metadata-test',
     'name': 'another_instance',
@@ -128,7 +138,7 @@ complete_metadata_json = {
 
 # Minimal json to be built upon for each property test.  Only
 # required values are specified.
-minmal_metadata_json = {
+minimal_metadata_json = {
     "schema_name": "metadata-test",
     "display_name": "complete metadata instance",
     "metadata": {
@@ -301,34 +311,59 @@ class MockMetadataTest(Metadata):
 
     This class name is referenced in the metadata-test schema.
     """
-    for_update = None
-    special_property = None
+    pre_property = None
+    post_property = None
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        self.for_update = kwargs.get('for_update')
-        self.special_property = kwargs.get('special_property')
+        self.pre_property = kwargs.get('pre_property')
+        self.post_property = kwargs.get('post_property')
 
     def to_dict(self, trim: bool = False) -> dict:
         d = super().to_dict(trim=trim)
-        if self.for_update is not None:
-            d['for_update'] = self.for_update
-        if self.special_property is not None:
-            d['special_property'] = self.special_property
+        if self.pre_property is not None:
+            d['pre_property'] = self.pre_property
+        if self.post_property is not None:
+            d['post_property'] = self.post_property
         return d
 
     def post_load(self, **kwargs: Any) -> None:
         super().post_load(**kwargs)
-        self.special_property = self.display_name
+        self.post_property = self.display_name
 
     def pre_save(self, **kwargs: Any) -> None:
         super().pre_save(**kwargs)
-        self.for_update = kwargs['for_update']
-        self.special_property = self.metadata['required_test']
+        self.pre_property = self.metadata['required_test']
+
+    def post_save(self, **kwargs: Any) -> None:
+        super().post_save(**kwargs)
+        self.post_property = self.display_name
 
     def pre_delete(self, **kwargs: Any) -> None:
         super().pre_delete(**kwargs)
-        self.special_property = self.display_name
+        self.pre_property = self.metadata['required_test']
+
+    def post_delete(self, **kwargs: Any) -> None:
+        super().post_delete(**kwargs)
+        self.post_property = self.display_name
+
+
+class MockMetadataTestRollback(MockMetadataTest):
+    """Used by metadata tests to validate rollback behaviors when post-save/delete hooks throw exceptions."""
+    def post_save(self, **kwargs: Any) -> None:
+        super().post_save(**kwargs)
+        for_update = kwargs['for_update']
+        if os.getenv("METADATA_TEST_HOOK_OP", "skipped") == "create" and not for_update:
+            raise NotImplementedError
+        if os.getenv("METADATA_TEST_HOOK_OP", "skipped") == "update" and for_update:
+            raise ModuleNotFoundError
+        self.post_property = self.display_name
+
+    def post_delete(self, **kwargs: Any) -> None:
+        super().post_delete(**kwargs)
+        if os.getenv("METADATA_TEST_HOOK_OP", "skipped") == "delete":
+            raise FileNotFoundError
+        self.post_property = self.display_name
 
 
 class MockMetadataTestInvalid(object):

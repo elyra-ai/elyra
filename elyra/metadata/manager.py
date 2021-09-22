@@ -130,6 +130,12 @@ class MetadataManager(LoggingConfigurable):
 
         self.metadata_store.delete_instance(metadata_dict)
 
+        try:
+            metadata.post_delete()  # Allow class instances to handle post-delete tasks (e.g., cache updates, etc.)
+        except Exception as ex:
+            self._rollback(name, metadata, "delete", ex)
+            raise ex
+
     def validate(self, name: str, metadata: Metadata) -> None:
         """Validate metadata against its schema.
 
@@ -201,7 +207,11 @@ class MetadataManager(LoggingConfigurable):
             raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
                              "embedded hyphens ('-') and underscores ('_').")
 
-        # Allow class instances to handle saves
+        orig_value = None
+        if for_update:
+            orig_value = self.get(name)
+
+        # Allow class instances to handle pre-save tasks
         metadata.pre_save(for_update=for_update)
 
         self._apply_defaults(metadata)
@@ -211,7 +221,37 @@ class MetadataManager(LoggingConfigurable):
 
         metadata_dict = self.metadata_store.store_instance(name, metadata.prepare_write(), for_update=for_update)
 
-        return Metadata.from_dict(self.schemaspace, metadata_dict)
+        metadata_post_op = Metadata.from_dict(self.schemaspace, metadata_dict)
+
+        # Allow class instances to handle post-save tasks (e.g., cache updates, etc.)
+        # Note that this is a _different_ instance from pre-save call
+        try:
+            metadata_post_op.post_save(for_update=for_update)
+        except Exception as ex:
+            if for_update:
+                self._rollback(name, orig_value, "update", ex)
+            else:  # Use the metadata instance prior to post op
+                self._rollback(name, Metadata.from_dict(self.namespace, metadata_dict), "create", ex)
+            raise ex
+
+        return metadata_post_op
+
+    def _rollback(self, name: str, orig_value: Metadata, operation: str, exception: Exception):
+        """Rolls back the original value depending on the operation.
+
+        For rolled back creation attempts, we must remove the created instance.  For rolled back
+        update or deletion attempts, we must restore the original value.  Note that these operations
+        must call the metadata store directly so that class hooks are not called.
+        """
+        self.log.debug(f"Rolling back metadata operation '{operation}' for instance '{name}' due to: {exception}")
+        if operation == "create":  # remove the instance, orig_value is the newly-created instance.
+            self.metadata_store.delete_instance(orig_value.to_dict())
+        elif operation == "update":  # restore original as an update
+            self.metadata_store.store_instance(name, orig_value.prepare_write(), for_update=True)
+        elif operation == "delete":  # restore original as a create
+            self.metadata_store.store_instance(name, orig_value.prepare_write(), for_update=False)
+        self.log.warning(f"Rolled back metadata operation '{operation}' for instance '{name}' due to "
+                         f"failure in post-processing method: {exception}")
 
     def _apply_defaults(self, metadata: Metadata) -> None:
         """If a given property has a default value defined, and that property is not currently represented,

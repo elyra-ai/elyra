@@ -359,7 +359,7 @@ def test_remove_missing(script_runner):
     # Create an instance so that the schemaspace exists.
     metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
     valid = Metadata(**valid_metadata_json)
-    metadata_manager.update('valid', valid)
+    metadata_manager.create('valid', valid)
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_SCHEMASPACE, '--name=missing')
     assert ret.success is False
