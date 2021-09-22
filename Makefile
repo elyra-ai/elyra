@@ -17,7 +17,7 @@
 .PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
 .PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
-.PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image elyra-dev-image
+.PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image elyra-dev-images
 .PHONY: publish-kf-notebook-image container-images publish-container-images
 
 SHELL:=/bin/bash
