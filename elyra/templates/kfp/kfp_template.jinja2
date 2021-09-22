@@ -65,43 +65,93 @@ def create_pipeline():
     {% endfor %}
 
 {% if kf_secured %}
-def get_user_auth_session_cookie(url, username=None, password=None) -> dict:
+def get_istio_auth_session(url: str, username: str, password: str) -> dict:
+    """
+    Determine if the specified URL is secured by Dex and try to obtain a session cookie.
+    WARNING: only Dex `staticPasswords` authentication is currently supported
 
-    # Return data structure
-    auth_info = {
-        'endpoint': url,                    # KF endpoint URL
-        'endpoint_response_url': None,      # KF redirect URL, if applicable
-        'endpoint_secured': False,          # True if KF is secured [by dex]
-        'authservice_session_cookie': None  # Set if KF secured & user auth'd
+    :param url: Kubeflow server URL, including protocol
+    :param username: Dex `staticPasswords` username
+    :param password: Dex `staticPasswords` password
+    :return: auth session information
+    """
+    # define the default return object
+    auth_session = {
+        "endpoint_url": url,    # KF endpoint URL
+        "redirect_url": None,   # KF redirect URL, if applicable
+        "dex_login_url": None,  # Dex login URL (for POST of credentials)
+        "is_secured": None,     # True if KF endpoint is secured
+        "session_cookie": None  # Resulting session cookies in the form "key1=value1; key2=value2"
     }
 
-    # Obtain redirect URL
-    get_response = requests.get(url)
+    # use a persistent session (for cookies)
+    with requests.Session() as s:
 
-    auth_info['endpoint_response_url'] = get_response.url
+        ################
+        # Determine if Endpoint is Secured
+        ################
+        resp = s.get(url, allow_redirects=True)
+        if resp.status_code != 200:
+            raise RuntimeError(
+                f"HTTP status code '{resp.status_code}' for GET against: {url}"
+            )
 
-    # If KF redirected to '/dex/auth/local?req=REQ_VALUE'
-    # try to authenticate using the provided credentials
-    if 'dex/auth' in get_response.url:
-        auth_info['endpoint_secured'] = True  # KF is secured
+        auth_session["redirect_url"] = resp.url
 
-        # Try to authenticate user by sending a request to the
-        # Dex redirect URL
-        session = requests.Session()
-        session.post(get_response.url,
-                     data={'login': username,
-                           'password': password})
-        # Capture authservice_session cookie, if one was returned
-        # in the response
-        cookie_auth_key = 'authservice_session'
-        cookie_auth_value = session.cookies.get(cookie_auth_key)
+        # if we were NOT redirected, then the endpoint is UNSECURED
+        if len(resp.history) == 0:
+            auth_session["is_secured"] = False
+            return auth_session
+        else:
+            auth_session["is_secured"] = True
 
-        if cookie_auth_value:
-            auth_info['authservice_session_cookie'] = \
-                f"{cookie_auth_key}={cookie_auth_value}"
+        ################
+        # Get Dex Login URL (that allows us to POST credentials)
+        ################
+        redirect_url_obj = urlsplit(auth_session["redirect_url"])
 
-    return auth_info
+        # we expect a "Dex Login" URL to have `/auth` in the HTTP path
+        if "/auth" not in redirect_url_obj.path:
+            raise RuntimeError(
+                f"Path of `redirect_url` must contain '/auth', but got: {auth_session['redirect_url']}"
+            )
 
+        # rewrite "Dex Login" URL to "/auth/local" (for dex `staticPasswords` login)
+        # (needed when dex is configured with multiple auth options)
+        if "/auth/local" not in redirect_url_obj.path:
+            redirect_url_obj = redirect_url_obj._replace(
+                path=redirect_url_obj.path.replace("/auth", "/auth/local")
+            )
+            auth_session["redirect_url"] = redirect_url_obj.geturl()
+
+        # Get redirected to page we can POST credentials to
+        # (needed when dex is configured with multiple auth options)
+        resp = s.get(auth_session["redirect_url"], allow_redirects=True)
+        if resp.status_code != 200:
+            raise RuntimeError(
+                f"HTTP status code '{resp.status_code}' for GET against: {auth_session['redirect_url']}"
+            )
+
+        auth_session["dex_login_url"] = resp.url
+
+        ################
+        # Attempt Dex `staticPasswords` Login
+        ################
+        resp = s.post(
+            auth_session["dex_login_url"],
+            data={"login": username, "password": password},
+            allow_redirects=True
+        )
+        if len(resp.history) == 0:
+            raise RuntimeError(
+                f"No redirect after POST to: {auth_session['dex_login_url']} - "
+                f"Login credentials were probably invalid."
+            )
+
+        # store the session cookies in a "key1=value1; key2=value2" string
+        auth_session["session_cookie"] = "; ".join([f"{c.name}={c.value}" for c in s.cookies])
+
+    return auth_session
 {% endif %}
 
 
@@ -115,20 +165,21 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print('Trying to authenticate with Kubeflow server ...')
+    api_endpoint = '{{ api_endpoint }}'.rstrip('/')
 
-    auth_endpoint = '{{ api_endpoint }}'.rstrip('/').replace('/pipeline','')
+    try:
+        # attempt to create a session cookies using the provided `api_username` and `api_password`
+        auth_session = get_istio_auth_session(
+            url=api_endpoint,
+            username=api_username,
+            password=api_password
+        )
+    except Exception as ex:
+        raise RuntimeError(
+            f"Failed to create istio auth session for Kubeflow endpoint: '{api_endpoint}'"
+        ) from ex
 
-    # authenticate
-    auth_info = get_user_auth_session_cookie(auth_endpoint,
-                                             sys.argv[1],
-                                             sys.argv[2])
-
-    if auth_info['endpoint_secured'] and \
-        auth_info['authservice_session_cookie'] is None:
-        print('Authentication failed. Check your credentials.')
-        sys.exit(1)
-
-    auth_cookie = auth_info['authservice_session_cookie']
+    auth_cookie = auth_session['session_cookie']
 {% else %}
     auth_cookie = None
 {% endif %}
