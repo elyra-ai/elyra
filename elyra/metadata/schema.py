@@ -68,11 +68,11 @@ class SchemaManager(SingletonConfigurable):
         the Schemaspace instance itself.
         """
         self._validate_schemaspace(schemaspace_name_or_id)
-        return self.schemaspaces.get(schemaspace_name_or_id).name
+        return self.schemaspaces.get(schemaspace_name_or_id.lower()).name
 
     def get_schemaspace_schemas(self, schemaspace_name_or_id: str) -> dict:
         self._validate_schemaspace(schemaspace_name_or_id)
-        schemaspace = self.schemaspaces.get(schemaspace_name_or_id)
+        schemaspace = self.schemaspaces.get(schemaspace_name_or_id.lower())
         schemas = schemaspace.schemas
         return copy.deepcopy(schemas)
 
@@ -80,7 +80,7 @@ class SchemaManager(SingletonConfigurable):
         """Returns the specified schema for the specified schemaspace."""
         self._validate_schemaspace(schemaspace_name_or_id)
 
-        schemaspace = self.schemaspaces.get(schemaspace_name_or_id)
+        schemaspace = self.schemaspaces.get(schemaspace_name_or_id.lower())
         schemas = schemaspace.schemas
         if schema_name not in schemas.keys():
             raise SchemaNotFoundError(schemaspace_name_or_id, schema_name)
@@ -90,7 +90,7 @@ class SchemaManager(SingletonConfigurable):
     def get_schemaspace(self, schemaspace_name_or_id: str) -> 'Schemaspace':
         """Returns the Schemaspace instance associated with the given name or id."""
         self._validate_schemaspace(schemaspace_name_or_id)
-        return copy.deepcopy(self.schemaspaces.get(schemaspace_name_or_id))
+        return copy.deepcopy(self.schemaspaces.get(schemaspace_name_or_id.lower()))
 
     def clear_all(self) -> None:
         """Primarily used for testing, this method reloads schemas from initial values. """
@@ -99,7 +99,7 @@ class SchemaManager(SingletonConfigurable):
 
     def _validate_schemaspace(self, schemaspace_name_or_id: str) -> None:
         """Ensures the schemaspace is valid and raises ValueError if it is not."""
-        if schemaspace_name_or_id not in self.schemaspaces:
+        if schemaspace_name_or_id.lower() not in self.schemaspaces:
             raise ValueError(f"The schemaspace name or id '{schemaspace_name_or_id}' is not "
                              f"in the list of valid schemaspaces: '{self.get_schemaspace_names()}'!")
 
@@ -125,12 +125,12 @@ class SchemaManager(SingletonConfigurable):
                     raise ValueError(f"Schemaspace instance '{schemaspace.name}' is not an "
                                      f"instance of '{Schemaspace.__name__}'!")
                 # To prevent a name-to-id lookup, just store the same instance in two locations
-                self.schemaspaces[schemaspace_instance.id] = schemaspace_instance
-                self.schemaspaces[schemaspace_instance.name] = schemaspace_instance
+                self.schemaspaces[schemaspace_instance.id.lower()] = schemaspace_instance
+                self.schemaspaces[schemaspace_instance.name.lower()] = schemaspace_instance
                 # We'll keep a map of id-to-name, but this will be primarily used to
                 # return the set of schemaspace names (via values()) and lookup a name
                 # from its id.
-                self.schemaspace_id_to_name[schemaspace_instance.id] = schemaspace_instance.name
+                self.schemaspace_id_to_name[schemaspace_instance.id.lower()] = schemaspace_instance.name.lower()
             except Exception as err:
                 # log and ignore initialization errors
                 self.log.error(f"Error loading schemaspace '{schemaspace.name}' - {err}")
@@ -154,20 +154,20 @@ class SchemaManager(SingletonConfigurable):
                     schemaspace_name = schema.get("schemaspace")
                     schema_name = schema.get("name")
                     # Ensure that both schemaspace id and name are registered and both point to same instance
-                    if schemaspace_id not in self.schemaspaces:
+                    if schemaspace_id.lower() not in self.schemaspaces:
                         raise ValueError(f"Schema '{schema_name}' references a schemaspace "
                                          f"'{schemaspace_id}' that is not loaded!")
-                    if schemaspace_name not in self.schemaspaces:
+                    if schemaspace_name.lower() not in self.schemaspaces:
                         raise ValueError(f"Schema '{schema_name}' references a schemaspace "
                                          f"'{schemaspace_name}' that is not loaded!")
-                    if self.schemaspaces[schemaspace_id] != self.schemaspaces[schemaspace_name]:
+                    if self.schemaspaces[schemaspace_id.lower()] != self.schemaspaces[schemaspace_name.lower()]:
                         raise ValueError(f"Schema '{schema_name}' references a schemaspace name "
                                          f"'{schemaspace_name}' and a schemaspace id '{schemaspace_id}' "
                                          f"that are associated with different Schemaspace instances!")
 
                     self._validate_schema(schemaspace_name, schema_name, schema)
                     # Only add the schema once since schemaspace_name is pointing to the same Schemaspace instance.
-                    self.schemaspaces[schemaspace_id].add_schema(schema)
+                    self.schemaspaces[schemaspace_id.lower()].add_schema(schema)
             except Exception as err:
                 # log and ignore initialization errors
                 self.log.error(f"Error loading schemas for SchemasProvider '{schemas_provider_ep.name}' - {err}")

@@ -176,7 +176,7 @@ class FileMetadataStore(MetadataStore):
     def __init__(self, schemaspace: str, **kwargs):
         super().__init__(schemaspace, **kwargs)
         self.cache = FileMetadataCache.instance()
-        self.metadata_paths = FileMetadataStore.metadata_path(self.schemaspace)
+        self.metadata_paths = FileMetadataStore.metadata_path(self.schemaspace.lower())
         self.preferred_metadata_dir = self.metadata_paths[0]
         self.log.debug(f"Schemaspace '{self.schemaspace}' is using metadata directory: "
                        f"{self.preferred_metadata_dir} from list: {self.metadata_paths}")

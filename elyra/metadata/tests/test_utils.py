@@ -362,6 +362,13 @@ class BYOSchemaspaceBadName(Schemaspace):
                          **kwargs)
 
 
+class BYOSchemaspaceCaseSensitiveName(Schemaspace):
+    def __init__(self, *args, **kwargs):
+        super().__init__(schemaspace_id="1b1e461a-c7fa-40f2-a3a3-bf1f2fd48eeA",
+                         name="byo-schemaspace_CaseSensitiveName",
+                         **kwargs)
+
+
 class BYOSchemaspace(Schemaspace):
     BYO_SCHEMASPACE_ID = "20c98d38-36f6-4f05-a4dc-9b0a6c2cb733"
     BYO_SCHEMASPACE_NAME = "byo-schemaspace"
