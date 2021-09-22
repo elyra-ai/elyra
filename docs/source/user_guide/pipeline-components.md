@@ -131,7 +131,7 @@ $ elyra-metadata install component-registries \
        --categories='["filter file content"]'
 ```
 
-Refer to section [Configuration properties](#configuration-properties) for a parameter description.
+Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
 #### Modifying a component registry entry
 
@@ -151,7 +151,7 @@ $ elyra-metadata install component-registries \
 
 Note: You must specify all property values, not only the ones that you want to modify.
 
-Refer to section [Configuration properties](#configuration-properties) for a parameter description.
+Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
 #### Deleting components from the registry
 
@@ -162,7 +162,7 @@ $ elyra-metadata remove component-registries \
        --name="filter_components"
 ```
 
-Refer to section [Configuration properties](#configuration-properties) for a parameter description.
+Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
 ### Configuration properties
 
@@ -176,7 +176,7 @@ Example: `data load components`
 
 ##### N/A (name)
 
-A unique identifier for this registry entry. A value is generated from `Name` if no value is provided.
+The canonical name for this registry entry. A value is generated from `Name` if no value is provided.
 
 Example: `data_load_components`
 
@@ -198,7 +198,7 @@ Examples (CLI):
 
 ##### Runtime (runtime)
 
-The runtime environment that supports the component(s). Valid values are `kfp` and `airflow`. This property is required.
+The runtime environment that supports the component(s). Valid values are the set of configured runtimes that appear in the dropdown (UI) or help-text (CLI). This property is required.
 
 Example:
 
@@ -209,10 +209,8 @@ Example:
 The location type identifies the format that the value(s) provided in `Paths` represent. Supported types are `URL`, `Filename`, or `Directory`. This property is required.
 
 - `URL`: The provided `Paths` identify web resources. The pipeline editor loads the specified URLs using anonymous HTTP `GET` requests.
-- `Filename`: The provided `Paths` identify files in the file system where JupyterLab/Elyra is running. `~` may be used to denote the user's home directory.
-
-The `Directory` location type is used to _add components during the Elyra build process_. The provided `Paths` must identify existing directories in [`etc/config/components`](https://github.com/elyra-ai/elyra/tree/master/etc/config/components).
-
+- `Filename`: The provided absolute `Paths` identify files in the file system where JupyterLab/Elyra is running. `~` may be used to denote the user's home directory.
+- `Directory`: The provided absolute `Paths` must identify existing directories in the file system where JupyterLab/Elyra is running. `~` may be used to denote the user's home directory. The pipeline editor scans the specified directories for component specifications. Scans are not performed recursively.
 
 ##### Paths (paths)
 
@@ -222,14 +220,15 @@ Examples (GUI):
  - URL: `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
  - Filename: `/Users/patti/specs/load_data_from_public_source/http_operator.py`
  - Filename: `~patti/specs/filter_files/row_filter.yaml`
- - Directory path: `load_from_database`
+ - Directory: `/Users/patti/specs/load_from_database`
 
  Examples (CLI):
  - URL: `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
  - Filename: `['/Users/patti/specs/load_data_from_public_source/http_operator.py']`
  - Filename: `['~patti/specs/filter_files/row_filter.yaml']`
- - Directory path: `['load_from_database']`
+ - Directory: `['/Users/patti/specs/load_from_database']`
 
  Examples multiple components (CLI):
  - URL: `['URL1', 'URL2']`
  - Filename: `['/Users/patti/specs/comp1.yaml','/Users/patti/specs/comp2.yaml']`
+ - Directory: `['/Users/patti/load_specs/','/Users/patti/cleanse_specs/']`
