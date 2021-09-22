@@ -17,14 +17,19 @@
 .PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
 .PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
-.PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
+.PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image elyra-dev-image
 .PHONY: publish-kf-notebook-image container-images publish-container-images
 
 SHELL:=/bin/bash
 
 TAG:=dev
-ELYRA_IMAGE=elyra/elyra:$(TAG)
-KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
+ELYRA_IMAGE_NAME=elyra/elyra
+KF_NOTEBOOK_IMAGE_NAME=elyra/kf-notebook
+ELYRA_IMAGE=$(ELYRA_IMAGE_NAME):$(TAG)
+KF_NOTEBOOK_IMAGE=$(KF_NOTEBOOK_IMAGE_NAME):$(TAG)
+ELYRA_IMAGE_LOCAL_DEV=$(ELYRA_IMAGE_NAME):local-dev
+KF_NOTEBOOK_IMAGE_LOCAL_DEV=$(ELYRA_IMAGE_NAME):local-dev
+
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
@@ -202,6 +207,17 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
+
+elyra-dev-images: build # build elyra and kf notebook images with local dev elyra repo
+	@mkdir -p build/docker-dev
+	cp etc/docker/dev/elyra/Dockerfile build/docker-dev/
+	cp etc/docker/elyra/start-elyra.sh build/docker-dev/
+	cp dist/elyra-*.whl build/docker-dev/
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE_LOCAL_DEV) -t quay.io/$(ELYRA_IMAGE_LOCAL_DEV) build/docker-dev/ --progress plain
+	cp etc/docker/dev/kubeflow/Dockerfile build/docker-dev/
+	cp etc/docker/kubeflow/requirements.txt build/docker-dev/
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE_LOCAL_DEV) -t quay.io/$(KF_NOTEBOOK_IMAGE_LOCAL_DEV) \
+	build/docker-dev/ --progress plain
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	docker images $(ELYRA_IMAGE)
