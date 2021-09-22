@@ -49,6 +49,7 @@ def test_modify_component_registries():
     parser = KfpComponentParser()
     component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
+    initial_components = sorted(initial_components, key=lambda component: component.id)
 
     metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
 
@@ -92,6 +93,7 @@ def test_modify_component_registries():
     # Delete the test registry
     metadata_manager.remove("new_registry")
     post_delete_components = component_registry.get_all_components()
+    post_delete_components = sorted(post_delete_components, key=lambda component: component.id)
     assert len(post_delete_components) == len(initial_components)
 
     # Check that the list of component ids is the same as before addition of the test registry
@@ -150,7 +152,7 @@ def test_parse_kfp_component_file():
 
     # Get path to component definition file and read contents
     path = _get_resource_path('kfp_test_operator.yaml')
-    component_definition = reader.read_component_definition(path)
+    component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing
     entry = {
@@ -235,7 +237,7 @@ def test_parse_kfp_component_url():
 
     # Get path to component definition file and read contents
     path = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml'  # noqa: E501
-    component_definition = reader.read_component_definition(path)
+    component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing
     entry = {
@@ -267,7 +269,7 @@ def test_parse_kfp_component_file_no_inputs():
 
     # Get path to component definition file and read contents
     path = _get_resource_path('kfp_test_operator_no_inputs.yaml')
-    component_definition = reader.read_component_definition(path)
+    component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing
     entry = {
@@ -303,8 +305,8 @@ async def test_parse_components_filesystem_invalid_location():
 
     # Get path to an invalid component definition file and read contents
     path = _get_resource_path('kfp_test_operator_invalid.yaml')
-    component_definition = reader.read_component_definition(path)
-    assert component_definition is None
+    component_definition = reader.read_component_definition(path, {})
+    assert component_definition == {}
 
     # Build entry for parsing
     entry = {
