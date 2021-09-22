@@ -33,6 +33,7 @@ schemaspace_map = {
     'metadata-tests': ('elyra.metadata.tests.test_utils', 'MetadataTestSchemaspace'),
     'byo_schemaspace_bad_id': ('elyra.metadata.tests.test_utils', 'BYOSchemaspaceBadId'),
     'byo.schemaspace-bad.name': ('elyra.metadata.tests.test_utils', 'BYOSchemaspaceBadName'),
+    'byo.schemaspace_CaseSensitiveName': ('elyra.metadata.tests.test_utils', 'BYOSchemaspaceCaseSensitiveName'),
     'byo-schemaspace': ('elyra.metadata.tests.test_utils', 'BYOSchemaspace'),
 }
 schemas_provider_map = {
@@ -109,7 +110,7 @@ def test_schemaspace_display_name():
 
 
 def test_schema_durability():
-    """Ensures that schemas retruned from get_schema_schemas can be altered and not side-effect the next access."""
+    """Ensures that schemas returned from get_schema_schemas can be altered and not side-effect the next access."""
     schema_mgr = SchemaManager.instance()
     schemas = schema_mgr.get_schemaspace_schemas(METADATA_TEST_SCHEMASPACE_ID)
     for name, schema in schemas.items():
@@ -127,3 +128,21 @@ def test_byo_schema(byo_schemaspaces):
     schema_mgr = SchemaManager.instance()
     byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
     assert len(byo_ss.schemas) == 2
+
+
+def test_schemaspace_case_sensitive_name_id(byo_schemaspaces):
+    """Ensures that a schemaspace with case sensitive name and id has its instance properties unaltered."""
+    SchemaManager.clear_instance()
+    schema_mgr = SchemaManager.instance()
+    byo_ss_name = "byo-schemaspace_CaseSensitiveName"
+    byo_ss_id = "1b1e461a-c7fa-40f2-a3a3-bf1f2fd48EEA"
+    schema_mgr_ss_names = schema_mgr.get_schemaspace_names()
+
+    # Check schemaspace name is normalized in schema manager reference list
+    assert byo_ss_name.lower() in schema_mgr_ss_names
+
+    byo_ss_instance_name = schema_mgr.get_schemaspace_name(byo_ss_name)
+    assert byo_ss_instance_name == byo_ss_name
+
+    byo_ss_instance_name = schema_mgr.get_schemaspace_name(byo_ss_id)
+    assert byo_ss_instance_name == byo_ss_name
