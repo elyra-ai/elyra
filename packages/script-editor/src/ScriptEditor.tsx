@@ -77,8 +77,8 @@ export class ScriptEditor extends DocumentWidget<
   protected editorLanguage: string;
   protected debugger: ScriptDebugger;
   protected getCurrentWidget?: () => Widget | null;
-  private runEnabled: boolean;
-  private debugEnabled: boolean;
+  private runDisabled: boolean;
+  private debugDisabled: boolean;
   protected runButton: ToolbarButton;
   protected runAndDebugButton: ToolbarButton;
 
@@ -101,8 +101,8 @@ export class ScriptEditor extends DocumentWidget<
     this.editorLanguage = language;
     this.debugger = new ScriptDebugger(this.disableButton);
     this.getCurrentWidget = getCurrentWidget;
-    this.runEnabled = true;
-    this.debugEnabled = false;
+    this.runDisabled = false;
+    this.debugDisabled = true;
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -116,7 +116,7 @@ export class ScriptEditor extends DocumentWidget<
       icon: runIcon,
       onClick: this.runScript,
       tooltip: 'Run',
-      enabled: this.runEnabled
+      enabled: !this.runDisabled
     });
 
     const runAndDebugButton = new ToolbarButton({
@@ -124,7 +124,7 @@ export class ScriptEditor extends DocumentWidget<
       icon: bugIcon,
       onClick: this.runAndDebugScript,
       tooltip: 'Run and Debug',
-      enabled: this.debugEnabled
+      enabled: !this.debugDisabled
     });
 
     const stopButton = new ToolbarButton({
@@ -160,7 +160,7 @@ export class ScriptEditor extends DocumentWidget<
       this.editorLanguage
     );
 
-    this.kernelName = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
+    // this.kernelName = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
 
     this.kernelSelectorRef = React.createRef<ISelect>();
 
@@ -172,8 +172,11 @@ export class ScriptEditor extends DocumentWidget<
       this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
 
-    // TODO: set this.kernelName to kernel selection
-    // this.kernelName = this.kernelSelectorRef?.current?.getSelection();
+    const kernelSelection = this.kernelSelectorRef?.current?.getSelection();
+    console.log('kernelSelection: ' + kernelSelection);
+
+    this.kernelName =
+      kernelSelection || Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
     return;
   };
 
@@ -197,7 +200,6 @@ export class ScriptEditor extends DocumentWidget<
         this.context.path === (widget as DocumentWidget).context.path
       ) {
         this.disableButton(false, 'debug');
-        this.debugEnabled = true;
         // Enable setting breakpoints
         // this.setupEditor();
         const EditorHandler = this.createEditorDebugHandler();
@@ -249,7 +251,7 @@ export class ScriptEditor extends DocumentWidget<
    * code from file editor in the selected kernel context.
    */
   private runScript = async (): Promise<void> => {
-    if (this.runEnabled) {
+    if (!this.runDisabled) {
       this.clearOutputArea();
       this.displayOutputArea();
       await this.runner.runScript(
@@ -277,36 +279,33 @@ export class ScriptEditor extends DocumentWidget<
   };
 
   private disableButton = (disabled: boolean, buttonType: string): void => {
+    let newButton = null;
     switch (buttonType) {
       case 'run':
         this.runButton.parent = null;
-        this.toolbar.insertAfter(
-          'save',
-          'run',
-          new ToolbarButton({
-            className: RUN_BUTTON_CLASS,
-            icon: runIcon,
-            onClick: this.runScript,
-            tooltip: 'Run',
-            enabled: !disabled
-          })
-        );
-        this.runEnabled = !disabled;
+        newButton = new ToolbarButton({
+          className: RUN_BUTTON_CLASS,
+          icon: runIcon,
+          onClick: this.runScript,
+          tooltip: 'Run',
+          enabled: !disabled
+        });
+        this.toolbar.insertAfter('save', 'run', newButton);
+        this.runDisabled = disabled;
+        this.runButton = newButton;
         break;
       case 'debug':
         this.runAndDebugButton.parent = null;
-        this.toolbar.insertAfter(
-          'run',
-          'debug',
-          new ToolbarButton({
-            className: RUN_AND_DEBUG_BUTTON_CLASS,
-            icon: bugIcon,
-            tooltip: 'Run and Debug',
-            onClick: this.runAndDebugScript,
-            enabled: !disabled
-          })
-        );
-        this.debugEnabled = !disabled;
+        newButton = new ToolbarButton({
+          className: RUN_AND_DEBUG_BUTTON_CLASS,
+          icon: bugIcon,
+          tooltip: 'Run and Debug',
+          onClick: this.runAndDebugScript,
+          enabled: !disabled
+        });
+        this.toolbar.insertAfter('run', 'debug', newButton);
+        this.debugDisabled = disabled;
+        this.runAndDebugButton = newButton;
         break;
       default:
         break;
