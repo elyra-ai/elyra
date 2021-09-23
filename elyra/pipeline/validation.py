@@ -327,7 +327,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                "nodeName": node_label})
                                 else:
                                     for key in node.get_component_parameter(node_property).keys():
-                                        if key not in ['node_id', 'output_key', 'label']:
+                                        if key not in ['value', 'option', 'label']:
                                             response.add_message(severity=ValidationSeverity.Error,
                                                                  message_type="invalidNodeProperty",
                                                                  message="Node property has invalid key.",

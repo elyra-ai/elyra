@@ -535,8 +535,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                    f"of type '{component_property.data_type}'")
 
                     if component_property.data_type == "inputpath":
-                        output_node_id = property_value['node_id']
-                        output_node_parameter_key = property_value['output_key'].replace("elyra_output_", "")
+                        output_node_id = property_value['value']
+                        output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
                         operation.component_params[component_property.ref] = \
                             component_task_factories[output_node_id].outputs[output_node_parameter_key]
                     elif component_property.data_type == 'dictionary':
