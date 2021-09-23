@@ -36,9 +36,7 @@ RUN conda remove --force -y terminado && \
     npm install -g yarn && \
     npm install -g npm
 
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra-*.whl
-
-RUN jupyter lab build
+RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra-*.whl && jupyter lab build
 
 CMD ["/usr/local/bin/start-elyra.sh"]
 
