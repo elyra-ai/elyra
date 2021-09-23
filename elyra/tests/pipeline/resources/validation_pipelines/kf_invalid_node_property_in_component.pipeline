@@ -85,8 +85,8 @@
               "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/lib/python3.8/site-packages/elyra/pipeline/resources/kfp/filter_text_using_shell_and_grep/component.yaml",
               "component_source_type": "filename",
               "text": {
-                "node_id": "fe08b42d-bd8c-4e97-8010-0503a3185427",
-                "output_key": "elyra_output_notebook",
+                "value": "fe08b42d-bd8c-4e97-8010-0503a3185427",
+                "option": "elyra_output_notebook",
                 "label": "Run notebook using papermill: (Output) Notebook"
               },
               "pattern": ".*",

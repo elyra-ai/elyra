@@ -63,8 +63,8 @@
           "app_data": {
             "component_parameters": {
               "notebook": {
-                "node_id": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
-                "output_key": "elyra_output_data",
+                "value": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
+                "option": "elyra_output_data",
                 "label": "Download data: (Output) Data"
               },
               "parameters": "{}",
@@ -126,8 +126,8 @@
           "app_data": {
             "component_parameters": {
               "data": {
-                "node_id": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1",
-                "output_key": "elyra_output_notebook",
+                "value": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1",
+                "option": "elyra_output_notebook",
                 "label": "Run notebook using papermill: (Output) Notebook"
               },
               "hash_algorithm": "SHA512",

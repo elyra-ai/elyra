@@ -126,8 +126,8 @@
           "app_data": {
             "component_parameters": {
               "data": {
-                "node_id": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1",
-                "output_key": "elyra_output_notebook"
+                "value": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1",
+                "option": "elyra_output_notebook"
               },
               "hash_algorithm": "SHA512",
               "output_hash": ""
