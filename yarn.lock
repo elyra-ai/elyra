@@ -1393,15 +1393,15 @@
     seedrandom "3.0.5"
     uuid "8.3.0"
 
-"@elyra/pipeline-editor@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.1.0.tgz#52c0e061f6bf6fe33b2315729315db5367933155"
-  integrity sha512-pmA5rUPtLjZTBHclo3E4K3UgJigUSwzchFzIkeMMDuYdFQQDsp1VPc4p0QaEhMui83VKnFW2v2cTno6U54Jlfg==
+"@elyra/pipeline-editor@~1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.2.0.tgz#e70784e6d41dfd5bbab809db07748363bfa41c39"
+  integrity sha512-3KhMomjQ2mNShKYgv4iVA+EEZBG46XSGSGjROAab8u2EukjYnIfPcd7z/lxhJYHNBIzXblXjdtHVFBi9I8IjIg==
   dependencies:
     "@elyra/canvas" "11.0.0"
-    "@elyra/pipeline-services" "^1.1.0"
+    "@elyra/pipeline-services" "^1.2.0"
     downshift "^6.1.2"
-    immer "^8.0.1"
+    immer "^9.0.6"
     nanoid "^3.1.20"
     react-dom "^17.0.1"
     react-intl "^5.0.0"
@@ -1414,12 +1414,12 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.42.tgz#d1e681022cd033234a8e0fe4febb0e58d8a7683e"
   integrity sha512-DF34KqUocckJWTJBUqS0diKgqgqAbCWljx3O5v1ZKHYoiz5UvSz5/67U/5oaJXIlPqwbmL47rWvIA/u6M7DCZw==
 
-"@elyra/pipeline-services@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.1.0.tgz#5060fff9733a71561f5a9987918218faef418500"
-  integrity sha512-GO4rs+jlzqR6BsEKe+dHT5CtnSOleT65UFKfZD86qOelR1Az0gGgMUPPQRmPTic4LNDYu96X2J30n2ftSLrkYg==
+"@elyra/pipeline-services@^1.2.0", "@elyra/pipeline-services@~1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.2.0.tgz#d89b0ec701fee5b172faea21712d1f47f228cb72"
+  integrity sha512-0U8fpNs/SOitpAPoHk05Y9JUsnVF14BFj4Qa8NHWNflky7X8xHEZt4Rlt0JZ3pGbJneoc/ObhbpvaZMh/5p9aw==
   dependencies:
-    immer "^8.0.1"
+    immer "^9.0.6"
     jsonc-parser "^3.0.0"
 
 "@emotion/hash@^0.8.0":
@@ -10584,10 +10584,10 @@ immer@1.10.0:
   resolved "https://registry.yarnpkg.com/immer/-/immer-1.10.0.tgz#bad67605ba9c810275d91e1c2a47d4582e98286d"
   integrity sha512-O3sR1/opvCDGLEVcvrGTMtLac8GJ5IwZC4puPrLuRj3l7ICKvkmA0vGuU9OW8mV9WIBRnaxp5GJh9IEAaNOoYg==
 
-immer@^8.0.1:
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-8.0.4.tgz#3a21605a4e2dded852fb2afd208ad50969737b7a"
-  integrity sha512-jMfL18P+/6P6epANRvRk6q8t+3gGhqsJ9EuJ25AXE+9bNTYtssvzeYbEd0mXRYWCmmXSIbnlpz6vd6iJlmGGGQ==
+immer@^9.0.6:
+  version "9.0.6"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.6.tgz#7a96bf2674d06c8143e327cbf73539388ddf1a73"
+  integrity sha512-G95ivKpy+EvVAnAab4fVa4YGYn24J1SpEktnJX7JJ45Bd7xqME/SCplFzYFmTbrkwZbQ4xJK1xMTUYBkN6pWsQ==
 
 immutable-undo@2.0.0:
   version "2.0.0"

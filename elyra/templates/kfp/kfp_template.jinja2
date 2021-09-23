@@ -10,7 +10,7 @@ import sys
 from kfp.aws import use_aws_secret
 {% endif %}
 from datetime import datetime
-from kfp_notebook.pipeline import ExecuteFileOp
+from elyra.kfp.operator import ExecuteFileOp
 
 
 @kfp.dsl.pipeline(

@@ -36,7 +36,6 @@ from urllib3.exceptions import MaxRetryError
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component_registry import CachedComponentRegistry
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
@@ -59,11 +58,13 @@ class PipelineProcessorRegistry(SingletonConfigurable):
             try:
                 # instantiate an actual instance of the processor
                 processor_instance = processor.load()(self.root_dir, parent=kwargs.get('parent'))  # Load an instance
-                self.log.info(f'Registering processor "{processor}" with type -> {processor_instance.type}')
+                self.log.info(f'Registering {processor.name} processor '
+                              f'"{processor.module_name}.{processor.object_name}"...')
                 self.add_processor(processor_instance)
             except Exception as err:
                 # log and ignore initialization errors
-                self.log.error('Error registering processor "{}" - {}'.format(processor, err))
+                self.log.error(f'Error registering {processor.name} processor '
+                               f'"{processor.module_name}.{processor.object_name}" - {err}')
 
     def add_processor(self, processor):
         self.log.debug(f'Registering processor {processor.type}')
@@ -303,11 +304,15 @@ class RuntimePipelineProcessor(PipelineProcessor):
     def component_parser(self) -> ComponentParser:
         return self._component_parser
 
+    @property
+    def component_registry(self) -> ComponentRegistry:
+        return self._component_registry
+
     def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
         super().__init__(root_dir, **kwargs)
 
         self._component_parser = component_parser
-        self._component_registry = CachedComponentRegistry(component_parser)
+        self._component_registry = ComponentRegistry(component_parser)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)

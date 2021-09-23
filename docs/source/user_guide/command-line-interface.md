@@ -75,6 +75,7 @@ Refer to the topics below for detailed information on how to use `elyra-metadata
  - [Manage code snippets](code-snippets.html#managing-code-snippets-using-the-elyra-cli)
  - [Manage runtime configurations](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli)
  - [Manage runtime images](runtime-image-conf.html#managing-runtime-images-with-the-command-line-interface)
+ - [Manage pipeline components](pipeline-components.html#managing-custom-components-using-the-elyra-cli)
 
 ### Working with pipelines
 

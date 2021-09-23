@@ -20,9 +20,9 @@ import jupyter_core.paths
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
+from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
 from elyra.pipeline.component import FilesystemComponentReader
 from elyra.pipeline.component import UrlComponentReader
-from elyra.pipeline.component_parser_airflow import AirflowComponentParser
 from elyra.pipeline.component_registry import ComponentRegistry
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
@@ -30,7 +30,8 @@ COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0
 
 def _get_resource_path(filename):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    resource_path = os.path.join(root, 'resources', 'components', filename)
+    resource_path = os.path.join(root, '../../tests', 'resources', 'components', filename)
+    resource_path = os.path.normpath(resource_path)
 
     return resource_path
 
@@ -46,14 +47,14 @@ def test_component_registry_can_load_components_from_registries():
 def test_modify_component_registries():
     # Get initial set of components from the current active registries
     parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(parser)
+    component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
 
     metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
 
     # Create new registry instance with a single URL-based component
-    paths = ["https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/pipeline/tests/resources/components"
-             "/airflow_test_operator.py"]
+    paths = ["https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/pipeline/tests/resources/components/"
+             "airflow_test_operator.py"]
 
     instance_metadata = {
         "description": "A test registry",
@@ -109,14 +110,13 @@ def test_modify_component_registries():
 def test_directory_based_component_registry():
     # Get initial set of components from the current active registries
     parser = AirflowComponentParser()
-    component_registry = ComponentRegistry(parser)
+    component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
 
     metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
 
-    # Create new directory-based registry instance
-    root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    registry_path = os.path.join(root, 'resources', 'components')
+    # Create new directory-based registry instance with components in ../../test/resources/components
+    registry_path = _get_resource_path('')
     instance_metadata = {
         "description": "A test registry",
         "runtime": "airflow",

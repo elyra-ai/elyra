@@ -71,6 +71,9 @@ export default class Utils {
     template.pipelines[0].app_data['runtime-config'] = runtime_config;
     template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
     template.pipelines[0].app_data.source = PathExt.basename(filename);
+    template.pipelines[0].app_data['properties'] = {};
+    template.pipelines[0].app_data['properties']['name'] = 'generic';
+    template.pipelines[0].app_data['properties']['runtime'] = 'Generic';
 
     return template;
   }

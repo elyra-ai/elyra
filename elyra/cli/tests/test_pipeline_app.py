@@ -30,7 +30,7 @@ PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD = \
     '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","schemas":[]}'
 
 PIPELINE_SOURCE_WITH_ZERO_NODES = \
-    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[{"id":"1","nodes":[],"app_data":{"runtime":"","version": 4,"properties": {"name": "generic","runtime": "Generic"}}, "schemas":[]}]}'  # noqa
+    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[{"id":"1","nodes":[],"app_data":{"runtime":"","version": 5,"properties": {"name": "generic","runtime": "Generic"}}, "schemas":[]}]}'  # noqa
 
 
 def mock_get_runtime_type(runtime_config: str) -> str:
@@ -262,3 +262,16 @@ def test_submit_pipeline_with_no_nodes(monkeypatch):
                                           '--runtime-config', 'foo'])
         assert "At least one node must exist in the primary pipeline." in result.output
         assert result.exit_code != 0
+
+
+def test_describe_with_empty_pipeline():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('foo.pipeline', 'w') as pipeline_file:
+            pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_NODES)
+            pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
+
+        result = runner.invoke(pipeline, ['describe', pipeline_file_path])
+        assert "Description: None" in result.output
+        assert "Type: generic" in result.output
+        assert "Nodes: 0" in result.output

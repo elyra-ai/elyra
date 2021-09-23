@@ -20,7 +20,6 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jsonschema import ValidationError
@@ -28,7 +27,6 @@ from traitlets.config import LoggingConfigurable
 
 from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.manager import MetadataManager
-from elyra.metadata.schema import SchemaFilter
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ComponentReader
@@ -43,6 +41,9 @@ class ComponentRegistry(LoggingConfigurable):
     for each runtime. The registry uses component parser to read and parse each
     component entry from the catalog and transform them into a component value object.
     """
+    _cached_components: Dict[str, Component] = {}
+    _cache_last_updated = None
+
     _generic_category_label = "Elyra"
     _generic_components: Dict[str, Component] = {
         "notebook": Component(id="notebook",
@@ -70,32 +71,59 @@ class ComponentRegistry(LoggingConfigurable):
                               extensions=[".r"],
                               categories=[_generic_category_label])}
 
-    def __init__(self, parser: ComponentParser, **kwargs):
+    def __init__(self, parser: ComponentParser, caching_enabled: bool = True, cache_ttl_in_seconds: int = 60, **kwargs):
         super().__init__(**kwargs)
         self._parser = parser
 
+        # Initialize the cache
+        self.caching_enabled = caching_enabled
+        if self.caching_enabled:
+            self.cache_ttl_in_seconds = cache_ttl_in_seconds
+            self.update_cache()
+
     def get_all_components(self) -> List[Component]:
         """
-        Retrieve all components from the component registry
+        Retrieve all components; use the component registry cache if enabled
         """
+        if self.caching_enabled:
+            if self._is_cache_expired():
+                self.update_cache()
+            return list(self._cached_components.values())
 
-        components = self._read_component_registries()
-        return list(components.values())
+        return list(self._read_component_registries().values())
 
-    def get_component(self, component_id: str) -> Component:
+    def get_component(self, component_id: str) -> Optional[Component]:
         """
-        Retrieve the component with a given component_id.
+        Retrieve the component with a given component_id; use component registry
+        cache if enabled
         """
+        component: Component
+        if self.caching_enabled:
+            if self._is_cache_expired():
+                self.update_cache()
+            component = self._cached_components.get(component_id)
+        else:
+            component = self._read_component_registries().get(component_id)
 
-        component_dict = self._read_component_registries()
-        component = component_dict.get(component_id)
         if component is None:
             self.log.error(f"Component with ID '{component_id}' could not be found in any "
                            f"{self._parser.component_platform} registries.")
-            raise ValueError(f"Component with ID '{component_id}' could not be found in any "
-                             f"{self._parser.component_platform} registries.")
 
         return component
+
+    def update_cache(self):
+        self._cached_components = self._read_component_registries()
+        self._cache_last_updated = time.time()
+
+    def _is_cache_expired(self) -> bool:
+        is_expired = True
+        if self._cache_last_updated:
+            now = time.time()
+            elapsed = int(now - self._cache_last_updated)
+            if elapsed < self.cache_ttl_in_seconds:
+                is_expired = False
+
+        return is_expired
 
     @staticmethod
     def get_generic_components() -> List[Component]:
@@ -233,75 +261,3 @@ class ComponentRegistry(LoggingConfigurable):
             raise ValueError(f"Unsupported registry type: '{registry_location_type}'")
 
         return reader
-
-
-class CachedComponentRegistry(ComponentRegistry):
-    """
-    Cached component_entry registry, builds on top of the vanilla component_entry registry
-    adding a cache layer to optimize registry reads.
-    """
-
-    _cached_components: Dict[str, Component] = {}
-    _last_updated = None
-
-    def __init__(self, parser: ComponentParser, cache_ttl_in_seconds: int = 60):
-        super().__init__(parser)
-        self.cache_ttl_in_seconds = cache_ttl_in_seconds
-
-        # Initialize the cache
-        self._update_cache()
-
-    def get_all_components(self) -> List[Component]:
-        """
-        Retrieve all components from the component registry cache
-        """
-        if self._is_cache_expired():
-            self._update_cache()
-
-        return list(self._cached_components.values())
-
-    def get_component(self, component_id: str) -> Optional[Component]:
-        """
-        Retrieve the component with a given component_id.
-        """
-        if self._is_cache_expired():
-            self._update_cache()
-
-        return self._cached_components.get(component_id)
-
-    def _update_cache(self):
-        self._cached_components = super()._read_component_registries()
-        self._last_updated = time.time()
-
-    def _is_cache_expired(self) -> bool:
-        is_expired = True
-        if self._last_updated:
-            now = time.time()
-            elapsed = int(now - self._last_updated)
-            if elapsed < self.cache_ttl_in_seconds:
-                is_expired = False
-
-        return is_expired
-
-
-class RegistrySchemaFilter(SchemaFilter):
-    """
-    This class exists to ensure that the component registry schema's runtime
-    metadata appropriately reflects the available runtimes.
-    """
-
-    def post_load(self, name: str, schema_json: Dict) -> Dict:
-        """Ensure available runtimes are present and add to schema as necessary."""
-
-        filtered_schema = super().post_load(name, schema_json)
-
-        # Get processor names
-        runtime_enum = []
-        for processor_name in entrypoints.get_group_named('elyra.pipeline.processors').keys():
-            if processor_name == "local":
-                continue
-            runtime_enum.append(processor_name)
-
-        # Add runtimes to schema
-        filtered_schema['properties']['metadata']['properties']['runtime']['enum'] = runtime_enum
-        return filtered_schema

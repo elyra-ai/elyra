@@ -43,6 +43,9 @@ If you use `pip`, install Elyra with:
 pip3 install --upgrade elyra[all] && jupyter lab build
 ```
 
+**NOTE:**
+The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton) dependency [is no longer installed by default](https://github.com/elyra-ai/elyra/pull/2043). To install this dependency, you must specify `elyra[all]` or `elyra[kfp-tekton]`.
+
 If desired, you can install these Elyra extensions independently:
 
 - [Pipeline Editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
@@ -77,7 +80,10 @@ If you use `conda`, install Elyra with:
 conda install -c conda-forge elyra[all] && jupyter lab build
 ```
 
-or install the Pipeline editor, Code Snippet, or Script editor extensions individually:
+**NOTE:**
+The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton) dependency [is no longer installed by default](https://github.com/elyra-ai/elyra/pull/2043). To install this dependency, you must specify `elyra[all]` or `elyra[kfp-tekton]`.
+
+You can also install the Pipeline editor, Code Snippet, or Script editor extensions individually:
 
 ```bash
 conda install -c conda-forge elyra-pipeline-editor-extension && jupyter lab build

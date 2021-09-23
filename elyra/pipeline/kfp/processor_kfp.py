@@ -48,7 +48,7 @@ from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaFilter
-from elyra.pipeline.component_parser_kfp import KfpComponentParser
+from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.processor import PipelineProcessor

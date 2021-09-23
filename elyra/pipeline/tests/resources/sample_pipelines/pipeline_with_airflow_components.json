@@ -1,0 +1,300 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "66338755-bce9-4541-b595-b0210c943b38",
+  "primary_pipeline": "27fd7b90-42de-469a-9bcc-08ba82f48d48",
+  "pipelines": [
+    {
+      "id": "27fd7b90-42de-469a-9bcc-08ba82f48d48",
+      "nodes": [
+        {
+          "id": "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3",
+          "type": "execution_node",
+          "op": "bash_operator_BashOperator",
+          "app_data": {
+            "label": "b",
+            "component_parameters": {
+              "bash_command": "echo hello",
+              "xcom_push": true,
+              "env": "",
+              "output_encoding": "utf-8"
+            },
+            "ui_data": {
+              "label": "b",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 352,
+              "y_pos": 137,
+              "description": "BashOperator"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": []
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "4ef63a48-a27c-4d1e-a0ee-2fbbdbe3be74",
+          "type": "execution_node",
+          "op": "email_operator_EmailOperator",
+          "app_data": {
+            "label": "d",
+            "component_parameters": {
+              "to": "example@gmail.com",
+              "subject": "Hello from Airflow",
+              "html_content": "<p>hi</p>",
+              "files": "[]",
+              "cc": "[]",
+              "bcc": "[]",
+              "mime_subtype": "mixed",
+              "mime_charset": "us_ascii"
+            },
+            "ui_data": {
+              "label": "d",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 354,
+              "y_pos": 359,
+              "description": "EmailOperator"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": []
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "f82c4699-b392-4a3e-92b0-45d9e11126fe",
+          "type": "execution_node",
+          "op": "http_operator_SimpleHttpOperator",
+          "app_data": {
+            "label": "f",
+            "component_parameters": {
+              "endpoint": "myendpoint/api",
+              "method": "POST",
+              "data": "{\"key\": \"myval\"}",
+              "headers": "{}",
+              "response_check": "",
+              "extra_options": "",
+              "xcom_push": false,
+              "http_conn_id": "http_default",
+              "log_response": false
+            },
+            "ui_data": {
+              "label": "f",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 680,
+              "y_pos": 230,
+              "description": "SimpleHttpOperator"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "75c0bbee-b257-4175-95b5-6fc92b41dcf0",
+                  "node_id_ref": "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "779c2630-64bf-47ca-8a98-9ac8a60e85f7",
+          "type": "execution_node",
+          "op": "slack_operator_SlackAPIPostOperator",
+          "app_data": {
+            "label": "x",
+            "component_parameters": {
+              "slack_conn_id": "connection_id",
+              "token": "mytoken",
+              "api_params": "{}",
+              "channel": "#general",
+              "username": "Airflow",
+              "text": "No message has been set. Here is a cat video instead https://www.youtube.com/watch?v=J---aiyznGQ",
+              "icon_url": "https://raw.githubusercontent.com/apache/airflow/master/airflow/www/static/pin_100.png",
+              "attachments": "[]",
+              "blocks": "[]"
+            },
+            "ui_data": {
+              "label": "x",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 115,
+              "y_pos": 538,
+              "description": "SlackAPIPostOperator"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "92a7a247-1131-489c-8c3e-1e2389d4c673",
+          "type": "execution_node",
+          "op": "bash_operator_BashOperator",
+          "app_data": {
+            "label": "h",
+            "component_parameters": {
+              "bash_command": "ls -l",
+              "xcom_push": false,
+              "env": "{\"key\": \"val\"}",
+              "output_encoding": "utf-8"
+            },
+            "ui_data": {
+              "label": "h",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "x_pos": 913,
+              "y_pos": 302,
+              "description": "BashOperator"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "aca56842-d6a3-46ec-b561-b5b85f38e81a",
+                  "node_id_ref": "f82c4699-b392-4a3e-92b0-45d9e11126fe",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 4,
+        "runtime": "airflow",
+        "runtime-config": "airflow-yukked1",
+        "source": "pipeline_with_custom_components.json"
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

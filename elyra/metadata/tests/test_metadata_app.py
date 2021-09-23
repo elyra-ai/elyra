@@ -358,7 +358,7 @@ def test_remove_missing(script_runner):
     # Create an instance so that the namespace exists.
     metadata_manager = MetadataManager(namespace=METADATA_TEST_NAMESPACE)
     valid = Metadata(**valid_metadata_json)
-    metadata_manager.update('valid', valid)
+    metadata_manager.create('valid', valid)
 
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_NAMESPACE, '--name=missing')
     assert ret.success is False
