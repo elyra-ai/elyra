@@ -115,7 +115,7 @@ class Pipeline(AppDataBase):
                                     'Generic': 'generic'}
 
         if 'properties' in self._node['app_data']:
-            pipeline_type_description = self._node['app_data']['properties'].get('runtime')
+            pipeline_type_description = self._node['app_data']['properties'].get('runtime', 'Generic')
             if pipeline_type_description not in type_description_to_type.keys():
                 raise ValueError(f'Unsupported pipeline runtime: {pipeline_type_description}')
             return type_description_to_type[pipeline_type_description]
@@ -210,7 +210,7 @@ class Node(AppDataBase):
         The node label
         :return:  node label
         """
-        return self._node['app_data']['ui_data'].get('label', self._node['app_data']['label'])
+        return self._node['app_data']['ui_data'].get('label', self._node['app_data'].get('label', None))
 
     @property
     def subflow_pipeline_id(self) -> Pipeline:
