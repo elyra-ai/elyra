@@ -17,6 +17,8 @@ from abc import abstractmethod
 from http import HTTPStatus
 from logging import Logger
 import os
+from queue import Empty
+from queue import Queue
 import re
 from threading import Thread
 from types import SimpleNamespace
@@ -29,6 +31,7 @@ from typing import Tuple
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
+from traitlets.traitlets import Integer
 
 
 class ComponentParameter(object):
@@ -240,6 +243,9 @@ class ComponentReader(LoggingConfigurable):
     """
     location_type: str = None
 
+    max_readers = Integer(3, config=True, allow_none=True,
+                          help="""Sets the number of reader threads""")
+
     def __init__(self, file_types: List[str]):
         super().__init__()
         self.file_types = file_types
@@ -271,8 +277,7 @@ class ComponentReader(LoggingConfigurable):
 
     def read_component_definitions(self, locations: List[str]) -> Dict[str, str]:
         """
-        This function starts a thread for each of the given locations in order to read
-        component definitions in parallel.
+        This function starts 3 or fewer threads that read component definitions in parallel.
 
         The 'location_to_def' variable is a mapping of a component location to its content.
         As a mutable object, this dictionary provides a means to retrieve a return value for
@@ -281,16 +286,28 @@ class ComponentReader(LoggingConfigurable):
         """
         location_to_def = {}
 
-        # Start a reader thread for each location
-        threads = []
+        loc_q = Queue()
         for location in self.get_absolute_locations(locations):
-            t = Thread(target=self.read_component_definition, args=(location, location_to_def))
-            threads.append(t)
-            t.start()
+            loc_q.put_nowait(location)
 
-        # Wait for all threads to finish
-        for t in threads:
-            t.join()
+        def read_with_thread():
+            """Read the contents of a given location from the queue"""
+            while not loc_q.empty():
+                try:
+                    loc = loc_q.get(timeout=.1)
+                except Empty:
+                    continue
+                self.read_component_definition(loc, location_to_def)
+                loc_q.task_done()
+
+        # Start 3 reader threads if registry includes 3+ locations
+        # Else, start one thread per location
+        num_threads = min(loc_q.qsize(), self.max_readers)
+        for i in range(num_threads):
+            Thread(target=read_with_thread).start()
+
+        # Wait for all queued locations to be processed
+        loc_q.join()
 
         return location_to_def
 
