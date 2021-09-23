@@ -231,7 +231,7 @@ class MetadataManager(LoggingConfigurable):
             if for_update:
                 self._rollback(name, orig_value, "update", ex)
             else:  # Use the metadata instance prior to post op
-                self._rollback(name, Metadata.from_dict(self.namespace, metadata_dict), "create", ex)
+                self._rollback(name, Metadata.from_dict(self.schemaspace, metadata_dict), "create", ex)
             raise ex
 
         return metadata_post_op
