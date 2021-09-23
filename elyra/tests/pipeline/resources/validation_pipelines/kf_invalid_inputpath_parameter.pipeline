@@ -63,7 +63,7 @@
           "app_data": {
             "component_parameters": {
               "notebook": {
-                "node_id": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
+                "value": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
                 "invalid_key": "elyra_output_data",
                 "label": "Download data: (Output) Data"
               },
