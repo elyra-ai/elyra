@@ -49,6 +49,8 @@ def test_modify_component_registries():
     parser = KfpComponentParser()
     component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
+
+    # Components must be sorted by id for the equality comparison with later component lists
     initial_components = sorted(initial_components, key=lambda component: component.id)
 
     metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
@@ -150,8 +152,10 @@ def test_parse_kfp_component_file():
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentReader(kfp_supported_file_types)
 
-    # Get path to component definition file and read contents
     path = _get_resource_path('kfp_test_operator.yaml')
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
     component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing
@@ -235,8 +239,10 @@ def test_parse_kfp_component_url():
     kfp_supported_file_types = [".yaml"]
     reader = UrlComponentReader(kfp_supported_file_types)
 
-    # Get path to component definition file and read contents
     path = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml'  # noqa: E501
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
     component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing
@@ -267,8 +273,10 @@ def test_parse_kfp_component_file_no_inputs():
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentReader(kfp_supported_file_types)
 
-    # Get path to component definition file and read contents
     path = _get_resource_path('kfp_test_operator_no_inputs.yaml')
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
     component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing

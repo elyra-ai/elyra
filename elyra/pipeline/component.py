@@ -264,11 +264,10 @@ class ComponentReader(LoggingConfigurable):
                                   location: str,
                                   location_to_def: Dict[str, str]) -> Dict[str, str]:
         """
-        Read an absolute location to get the contents of a component
-        specification file
+        Read an absolute location to get the contents of a component specification file
 
         :param location: an absolute path to the specification file to read
-        :param location_to_def: a mapping of component locations to definitions
+        :param location_to_def: a mapping of component locations to file contents
 
         :returns: the given 'location_to_def' object, optionally including a new
                   key-value pair if the given component location is successfully read
@@ -277,7 +276,8 @@ class ComponentReader(LoggingConfigurable):
 
     def read_component_definitions(self, locations: List[str]) -> Dict[str, str]:
         """
-        This function starts 3 or fewer threads that read component definitions in parallel.
+        This function starts a number of threads ('max_reader' or fewer) that read component
+        definitions in parallel.
 
         The 'location_to_def' variable is a mapping of a component location to its content.
         As a mutable object, this dictionary provides a means to retrieve a return value for
@@ -291,17 +291,24 @@ class ComponentReader(LoggingConfigurable):
             loc_q.put_nowait(location)
 
         def read_with_thread():
-            """Read the contents of a given location from the queue"""
+            """Get a location from the queue and read contents"""
             while not loc_q.empty():
                 try:
+                    self.log.debug("Retrieving component definition file location from queue...")
                     loc = loc_q.get(timeout=.1)
                 except Empty:
                     continue
-                self.read_component_definition(loc, location_to_def)
+
+                try:
+                    self.log.debug(f"Attempting read of component definition file at location '{loc}'...")
+                    self.read_component_definition(loc, location_to_def)
+                except Exception:
+                    self.log.warning(f"Could not read component definition file at location '{loc}'. Skipping...")
+
                 loc_q.task_done()
 
-        # Start 3 reader threads if registry includes 3+ locations
-        # Else, start one thread per location
+        # Start 'max_reader' reader threads if registry includes more than 'max_reader'
+        # number of locations, else start one thread per location
         num_threads = min(loc_q.qsize(), self.max_readers)
         for i in range(num_threads):
             Thread(target=read_with_thread).start()
