@@ -17,19 +17,15 @@
 .PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
 .PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
-.PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image elyra-dev-images
+.PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image container-images publish-container-images
 
 SHELL:=/bin/bash
 
-TAG:=dev
-ELYRA_IMAGE_NAME=elyra/elyra
-KF_NOTEBOOK_IMAGE_NAME=elyra/kf-notebook
-ELYRA_IMAGE=$(ELYRA_IMAGE_NAME):$(TAG)
-KF_NOTEBOOK_IMAGE=$(KF_NOTEBOOK_IMAGE_NAME):$(TAG)
-ELYRA_IMAGE_LOCAL_DEV=$(ELYRA_IMAGE_NAME):local-dev
-KF_NOTEBOOK_IMAGE_LOCAL_DEV=$(KF_NOTEBOOK_IMAGE_NAME):local-dev
-
+TAG:=local
+ORG:=elyra
+ELYRA_IMAGE=$(ORG)/elyra:$(TAG)
+KF_NOTEBOOK_IMAGE=$(ORG)/kf-notebook:$(TAG)
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
@@ -188,10 +184,11 @@ dist-ui: yarn-install build-ui
 
 release: dist-ui build-server ## Build wheel file for release
 
-elyra-image: # Build Elyra stand-alone container image
+elyra-image: build-server # Build Elyra stand-alone container image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
+	cp dist/elyra-*.whl build/docker/
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE) -t quay.io/$(ELYRA_IMAGE) build/docker/ --progress plain --build-arg TAG=$(TAG)
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
@@ -199,25 +196,18 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
 
-kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
+kf-notebook-image: build-server # Build elyra image for use with Kubeflow Notebook Server
+	@mkdir -p build/docker-kubeflow/
+	cp etc/docker/kubeflow/Dockerfile build/docker-kubeflow/
+	cp etc/docker/kubeflow/requirements.txt build/docker-kubeflow/
+	cp dist/elyra-*.whl build/docker-kubeflow/
 	DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE) -t quay.io/$(KF_NOTEBOOK_IMAGE) \
-	etc/docker/kubeflow/ --progress plain
+	build/docker-kubeflow/ --progress plain --build-arg TAG=$(TAG)
 
 publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
-
-elyra-dev-images: build # build elyra and kf notebook images with local dev elyra repo
-	@mkdir -p build/docker-dev
-	cp etc/docker/dev/elyra/Dockerfile build/docker-dev/
-	cp etc/docker/elyra/start-elyra.sh build/docker-dev/
-	cp dist/elyra-*.whl build/docker-dev/
-	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE_LOCAL_DEV) -t quay.io/$(ELYRA_IMAGE_LOCAL_DEV) build/docker-dev/ --progress plain
-	cp etc/docker/dev/kubeflow/Dockerfile build/docker-dev/
-	cp etc/docker/kubeflow/requirements.txt build/docker-dev/
-	DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE_LOCAL_DEV) -t quay.io/$(KF_NOTEBOOK_IMAGE_LOCAL_DEV) \
-	build/docker-dev/ --progress plain
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	docker images $(ELYRA_IMAGE)

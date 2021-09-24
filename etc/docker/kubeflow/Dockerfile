@@ -18,8 +18,19 @@
 # Ubuntu 20.04.2 LTS (Focal Fossa)
 FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.3.0
 
+ARG TAG
+
+RUN mkdir -p /tmp/elyra
+COPY elyra-*.whl /tmp/elyra/
+
 # install - elyra
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]==3.1.1 && jupyter lab build
+RUN if [ "$TAG" = "local" ]; then \
+        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver /tmp/elyra/elyra-*.whl && jupyter lab build; \
+    else \
+        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]==3.1.1 && \
+        jupyter lab build; \
+    fi && \
+    rm -rf /tmp/elyra
 
 # install - requirements.txt
 COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt
