@@ -23,7 +23,6 @@ from elyra.api.handlers import YamlSpecHandler
 from elyra.contents.handlers import ContentHandler
 from elyra.metadata.handlers import MetadataHandler
 from elyra.metadata.handlers import MetadataResourceHandler
-from elyra.metadata.handlers import NamespaceHandler
 from elyra.metadata.handlers import SchemaHandler
 from elyra.metadata.handlers import SchemaResourceHandler
 from elyra.metadata.handlers import SchemaspaceHandler
@@ -82,7 +81,6 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
             (f'/{self.name}/schema/{schemaspace_regex}', SchemaHandler),
             (f'/{self.name}/schema/{schemaspace_regex}/{resource_regex}', SchemaResourceHandler),
             (f'/{self.name}/schemaspace', SchemaspaceHandler),
-            (f'/{self.name}/namespace', NamespaceHandler),  # To be removed
             (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
             (f'/{self.name}/pipeline/export', PipelineExportHandler),
             (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),
