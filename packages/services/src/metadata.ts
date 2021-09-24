@@ -17,8 +17,9 @@
 import { IDictionary } from './parsing';
 import { RequestHandler } from './requests';
 
-const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
 const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
+const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
+const ELYRA_SCHEMASPACE_API_ENDPOINT = 'elyra/schemaspace';
 
 /**
  * A service class for accessing the elyra api.
@@ -73,7 +74,7 @@ export class MetadataService {
     requestBody: any
   ): Promise<any> {
     return RequestHandler.makePutRequest(
-      ELYRA_METADATA_API_ENDPOINT + schemaspace + '/' + name,
+      `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`,
       requestBody
     );
   }
@@ -88,7 +89,7 @@ export class MetadataService {
    */
   static async deleteMetadata(schemaspace: string, name: string): Promise<any> {
     return RequestHandler.makeDeleteRequest(
-      ELYRA_METADATA_API_ENDPOINT + schemaspace + '/' + name
+      `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`
     );
   }
 
@@ -128,9 +129,10 @@ export class MetadataService {
   static async getAllSchema(): Promise<any> {
     try {
       const schemaspaces = await RequestHandler.makeGetRequest(
-        'elyra/schemaspace'
+        ELYRA_SCHEMASPACE_API_ENDPOINT
       );
       const schemas = [];
+
       for (const schemaspace of schemaspaces['schemaspaces']) {
         const schema = await this.getSchema(schemaspace);
         schemas.push(...schema);
