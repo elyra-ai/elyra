@@ -32,13 +32,7 @@ from elyra.metadata.storage import MetadataStore
 
 
 class MetadataManager(LoggingConfigurable):
-    """Manages metadata instances"""
-
-    # System-owned schemaspaces
-    NAMESPACE_RUNTIMES = "runtimes"
-    NAMESPACE_CODE_SNIPPETS = "code-snippets"
-    NAMESPACE_RUNTIME_IMAGES = "runtime-images"
-    NAMESPACE_COMPONENT_REGISTRIES = "component-registries"
+    """Manages the persistence and retrieval of metadata instances"""
 
     metadata_store_class = Type(default_value=FileMetadataStore, config=True,
                                 klass=MetadataStore,

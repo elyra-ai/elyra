@@ -20,6 +20,7 @@ import jupyter_core.paths
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
+from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.component import FilesystemComponentReader
 from elyra.pipeline.component import UrlComponentReader
 from elyra.pipeline.component_registry import ComponentRegistry
@@ -50,7 +51,7 @@ def test_modify_component_registries():
     component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
 
-    metadata_manager = MetadataManager(schemaspace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
     paths = [_get_resource_path('kfp_test_operator.yaml')]
@@ -111,7 +112,7 @@ def test_directory_based_component_registry():
     component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
 
-    metadata_manager = MetadataManager(schemaspace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')

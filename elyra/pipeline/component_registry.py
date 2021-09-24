@@ -27,6 +27,7 @@ from traitlets.config import LoggingConfigurable
 
 from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ComponentReader
@@ -201,7 +202,7 @@ class ComponentRegistry(LoggingConfigurable):
         component_dict: Dict[str, Component] = {}
 
         try:
-            metadata_manager = MetadataManager(schemaspace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+            metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
             all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
 
             # Filter registries according to processor type
