@@ -241,7 +241,9 @@ If you are interested in helping make Elyra better, we encourage you to take a l
 documentation, and invite you to attend our weekly dev community meetings.
 
 ### Daily Dev Meetings
-**When**: Every Weekday except Thursdays at [8:30AM Pacific](https://www.thetimezoneconverter.com/?t=8%3A30%20am&tz=San%20Francisco&)
+Join us for our daily scrum (except Thursdays) to discuss development items you're working on or have questions about. Everyone is welcome and participation is optional.
+
+**When**: Every weekday except Thursdays at [8:30AM Pacific](https://www.thetimezoneconverter.com/?t=8%3A30%20am&tz=San%20Francisco&)
 
 **Where**: [Webex](https://ibm.webex.com/meet/akchin)
 
