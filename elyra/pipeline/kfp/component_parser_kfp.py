@@ -107,7 +107,7 @@ class KfpComponentParser(ComponentParser):
                 if data_type_info.data_type == 'outputpath':
                     ref_name = f"output_{ref_name}"
                     description = f"{description}. This is an output of this component."
-                    name = f"(Output) {param.get('name')}"
+                    name = f"{param.get('name')} (Output) "
 
                 properties.append(ComponentParameter(id=ref_name,
                                                      name=name,
