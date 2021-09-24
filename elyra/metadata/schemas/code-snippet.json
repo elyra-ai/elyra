@@ -1,6 +1,6 @@
 {
-  "$comment": "TODO: Update to be based on meta-schema $id value.",
-  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-scehma.json",
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/code-snippet.json",
   "title": "Code Snippet",
   "name": "code-snippet",
   "display_name": "Code Snippet",

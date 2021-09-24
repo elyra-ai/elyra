@@ -1,7 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$comment": "TODO: Update $id to appropriate value.  This should probably by based on the release/tag",
-  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-scehma.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
   "title": "Meta-schema for metadata service schemas",
   "properties": {
     "schemaspace_id": {

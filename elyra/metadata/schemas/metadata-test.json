@@ -1,6 +1,6 @@
 {
-  "$comment": "TODO: Update to be based on meta-schema $id value.",
-  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-scehma.json",
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/metadata-test.json",
   "title": "Metadata Test",
   "name": "metadata-test",
   "display_name": "Metadata Test",
