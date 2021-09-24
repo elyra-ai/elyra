@@ -299,7 +299,7 @@ def test_parse_airflow_component_file_no_inputs():
     'https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/\
      pipeline/tests/resources/components/invalid_file.py'  # test an invalid file
 ], indirect=True)
-async def test_parse_components_url_invalid_host(invalid_url):
+async def test_parse_components_invalid_url(invalid_url):
     # Define the appropriate reader for a Url-type component definition
     airflow_supported_file_types = [".py"]
     reader = UrlComponentReader(airflow_supported_file_types)

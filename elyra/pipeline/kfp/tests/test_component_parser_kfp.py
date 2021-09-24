@@ -306,7 +306,7 @@ def test_parse_kfp_component_file_no_inputs():
     assert properties_json['current_parameters']['component_source'] == component_entry.location
 
 
-async def test_parse_components_filesystem_invalid_location():
+async def test_parse_components_invalid_file():
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentReader(kfp_supported_file_types)
