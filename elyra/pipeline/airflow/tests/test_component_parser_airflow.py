@@ -17,6 +17,7 @@ import os
 from types import SimpleNamespace
 
 import jupyter_core.paths
+import pytest
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
@@ -26,6 +27,11 @@ from elyra.pipeline.component import UrlComponentReader
 from elyra.pipeline.component_registry import ComponentRegistry
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
+
+
+@pytest.fixture
+def invalid_url(request):
+    return request.param
 
 
 def _get_resource_path(filename):
@@ -49,6 +55,9 @@ def test_modify_component_registries():
     parser = AirflowComponentParser()
     component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
+
+    # Components must be sorted by id for the equality comparison with later component lists
+    initial_components = sorted(initial_components, key=lambda component: component.id)
 
     metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
 
@@ -94,6 +103,7 @@ def test_modify_component_registries():
     # Delete the test registry
     metadata_manager.remove("new_registry")
     post_delete_components = component_registry.get_all_components()
+    post_delete_components = sorted(post_delete_components, key=lambda component: component.id)
     assert len(post_delete_components) == len(initial_components)
 
     # Check that the list of component ids is the same as before addition of the test registry
@@ -149,9 +159,11 @@ def test_parse_airflow_component_file():
     airflow_supported_file_types = [".py"]
     reader = FilesystemComponentReader(airflow_supported_file_types)
 
-    # Get path to component definition file and read contents
     path = _get_resource_path('airflow_test_operator.py')
-    component_definition = reader.read_component_definition(path)
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing
     entry = {
@@ -215,9 +227,11 @@ def test_parse_airflow_component_url():
     airflow_supported_file_types = [".py"]
     reader = UrlComponentReader(airflow_supported_file_types)
 
-    # Get path to component definition file and read contents
     path = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
-    component_definition = reader.read_component_definition(path)
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing
     entry = {
@@ -247,9 +261,11 @@ def test_parse_airflow_component_file_no_inputs():
     airflow_supported_file_types = [".py"]
     reader = FilesystemComponentReader(airflow_supported_file_types)
 
-    # Get path to component definition file and read contents
     path = _get_resource_path('airflow_test_operator_no_inputs.py')
-    component_definition = reader.read_component_definition(path)
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    component_definition = reader.read_component_definition(path, {})[path]
 
     # Build entry for parsing
     entry = {
@@ -278,20 +294,24 @@ def test_parse_airflow_component_file_no_inputs():
     assert properties_json['current_parameters']['component_source'] == component_entry.location
 
 
-async def test_parse_components_url_invalid_location():
+@pytest.mark.parametrize('invalid_url', [
+    'https://nourl.py',  # test an invalid host
+    'https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/\
+     pipeline/tests/resources/components/invalid_file.py'  # test an invalid file
+], indirect=True)
+async def test_parse_components_invalid_url(invalid_url):
     # Define the appropriate reader for a Url-type component definition
     airflow_supported_file_types = [".py"]
     reader = UrlComponentReader(airflow_supported_file_types)
 
     # Get path to an invalid component definition file and read contents
-    invalid_path = 'https://nourl.py'
-    component_definition = reader.read_component_definition(invalid_path)
-    assert component_definition is None
+    component_definition = reader.read_component_definition(invalid_url, {})
+    assert component_definition == {}
 
     # Build entry for parsing
     entry = {
         "location_type": reader.resource_type,
-        "location": invalid_path,
+        "location": invalid_url,
         "categories": ["Test"],
         "component_definition": component_definition
     }
