@@ -22,7 +22,7 @@
 
 SHELL:=/bin/bash
 
-TAG:=local
+TAG:=dev
 ORG:=elyra
 ELYRA_IMAGE=$(ORG)/elyra:$(TAG)
 KF_NOTEBOOK_IMAGE=$(ORG)/kf-notebook:$(TAG)

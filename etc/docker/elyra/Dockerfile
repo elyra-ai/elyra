@@ -39,13 +39,8 @@ RUN conda remove --force -y terminado && \
     npm config set scripts-prepend-node-path auto && \
     npm config get prefix /home/jovyan/.npm-global && \
     mkdir -p /home/jovyan/.npm-global && \
-    if [ "$TAG" == "local" ] ; then \
+    if [ "$TAG" == "dev" ] ; then \
        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra-*.whl && jupyter lab build; \
-    elif [ "$TAG" == "dev" ] ; then \
-       npm install -g yarn && \
-       npm install -g npm && \
-       cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-       cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra; \
     else \
         python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
         jupyter lab build; \

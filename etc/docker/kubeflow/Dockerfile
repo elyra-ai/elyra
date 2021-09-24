@@ -24,10 +24,10 @@ RUN mkdir -p /tmp/elyra
 COPY elyra-*.whl /tmp/elyra/
 
 # install - elyra
-RUN if [ "$TAG" = "local" ]; then \
+RUN if [ "$TAG" = "dev" ]; then \
         python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver /tmp/elyra/elyra-*.whl && jupyter lab build; \
     else \
-        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]==3.1.1 && \
+        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
         jupyter lab build; \
     fi && \
     rm -rf /tmp/elyra
