@@ -109,6 +109,13 @@ class SchemaManager(SingletonConfigurable):
         self.schemaspace_id_to_name: Dict[str, str] = {}
         self._load_schemaspaces()
         self._load_schemas_providers()
+        # Issue a warning for any "empty" schemaspaces...
+        empty_schemaspaces = []
+        for schemaspace_name in self.schemaspace_id_to_name.values():
+            if len(self.schemaspaces[schemaspace_name].schemas) == 0:
+                empty_schemaspaces.append(self.schemaspaces[schemaspace_name].name)  # Preserve case
+        if len(empty_schemaspaces) > 0:
+            self.log.warning(f"The following schemaspaces have no schemas: {empty_schemaspaces}")
 
     def _load_schemaspaces(self):
         """Loads the Schemaspace instances from entrypoint group 'metadata.schemaspaces'."""
@@ -124,6 +131,7 @@ class SchemaManager(SingletonConfigurable):
                 if not isinstance(schemaspace_instance, Schemaspace):
                     raise ValueError(f"Schemaspace instance '{schemaspace.name}' is not an "
                                      f"instance of '{Schemaspace.__name__}'!")
+                # validate the name
                 # To prevent a name-to-id lookup, just store the same instance in two locations
                 self.schemaspaces[schemaspace_instance.id.lower()] = schemaspace_instance
                 self.schemaspaces[schemaspace_instance.name.lower()] = schemaspace_instance
@@ -150,27 +158,33 @@ class SchemaManager(SingletonConfigurable):
                                      f"instance of '{SchemasProvider.__name__}'!")
                 schemas = schemas_provider.get_schemas()
                 for schema in schemas:
-                    schemaspace_id = schema.get("schemaspace_id")
-                    schemaspace_name = schema.get("schemaspace")
-                    schema_name = schema.get("name")
-                    # Ensure that both schemaspace id and name are registered and both point to same instance
-                    if schemaspace_id.lower() not in self.schemaspaces:
-                        raise ValueError(f"Schema '{schema_name}' references a schemaspace "
-                                         f"'{schemaspace_id}' that is not loaded!")
-                    if schemaspace_name.lower() not in self.schemaspaces:
-                        raise ValueError(f"Schema '{schema_name}' references a schemaspace "
-                                         f"'{schemaspace_name}' that is not loaded!")
-                    if self.schemaspaces[schemaspace_id.lower()] != self.schemaspaces[schemaspace_name.lower()]:
-                        raise ValueError(f"Schema '{schema_name}' references a schemaspace name "
-                                         f"'{schemaspace_name}' and a schemaspace id '{schemaspace_id}' "
-                                         f"that are associated with different Schemaspace instances!")
+                    try:
+                        schemaspace_id = schema.get("schemaspace_id")
+                        schemaspace_name = schema.get("schemaspace")
+                        schema_name = schema.get("name")
+                        # Ensure that both schemaspace id and name are registered and both point to same instance
+                        if schemaspace_id.lower() not in self.schemaspaces:
+                            raise ValueError(f"Schema '{schema_name}' references a schemaspace "
+                                             f"'{schemaspace_id}' that is not loaded!")
+                        if schemaspace_name.lower() not in self.schemaspaces:
+                            raise ValueError(f"Schema '{schema_name}' references a schemaspace "
+                                             f"'{schemaspace_name}' that is not loaded!")
+                        if self.schemaspaces[schemaspace_id.lower()] != self.schemaspaces[schemaspace_name.lower()]:
+                            raise ValueError(f"Schema '{schema_name}' references a schemaspace name "
+                                             f"'{schemaspace_name}' and a schemaspace id '{schemaspace_id}' "
+                                             f"that are associated with different Schemaspace instances!")
 
-                    self._validate_schema(schemaspace_name, schema_name, schema)
-                    # Only add the schema once since schemaspace_name is pointing to the same Schemaspace instance.
-                    self.schemaspaces[schemaspace_id.lower()].add_schema(schema)
-            except Exception as err:
+                        self._validate_schema(schemaspace_name, schema_name, schema)
+                        # Only add the schema once since schemaspace_name is pointing to the same Schemaspace instance.
+                        self.schemaspaces[schemaspace_id.lower()].add_schema(schema)
+
+                    except Exception as schema_err:
+                        self.log.error(f"Error loading schema '{schema.get('name', '??')}' for SchemasProvider "
+                                       f"'{schemas_provider_ep.name}' - {schema_err}")
+            except Exception as provider_err:
                 # log and ignore initialization errors
-                self.log.error(f"Error loading schemas for SchemasProvider '{schemas_provider_ep.name}' - {err}")
+                self.log.error(f"Error loading schemas for SchemasProvider "
+                               f"'{schemas_provider_ep.name}' - {provider_err}")
 
     def _validate_schema(self, schemaspace_name: str, schema_name: str, schema: dict):
         """Validates the given schema against the meta-schema."""
@@ -218,10 +232,13 @@ class Schemaspace(LoggingConfigurable):
             raise ValueError("Property 'id' requires a value!")
 
         if not Schemaspace._validate_id(schemaspace_id):
-            raise ValueError(f"The value of property 'id' ({self._id}) does not conform to a UUID!")
+            raise ValueError(f"The value of property 'id' ({schemaspace_id}) does not conform to a UUID!")
 
         if not name:
             raise ValueError("Property 'name' requires a value!")
+
+        if not Schemaspace._validate_name(name):
+            raise ValueError(f"The 'name' property ({name}) must be alphanumeric with dash or underscore only!")
 
         self._id = schemaspace_id
         self._name = name
@@ -260,12 +277,20 @@ class Schemaspace(LoggingConfigurable):
 
     @staticmethod
     def _validate_id(id) -> bool:
-        """
-            Validate that id is uuidv4 compliant
-            """
+        """Validate that id is uuidv4 compliant """
         is_valid = False
         uuidv4_regex = re.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
         if uuidv4_regex.match(id):
+            is_valid = True
+
+        return is_valid
+
+    @staticmethod
+    def _validate_name(name) -> bool:
+        """Validate that the name adheres to the criteria (alphanumeric, dash, underscore only) """
+        is_valid = False
+        name_regex = re.compile("^[A-Za-z][0-9A-Za-z_-]*[0-9A-Za-z]$", re.I)
+        if name_regex.match(name):
             is_valid = True
 
         return is_valid

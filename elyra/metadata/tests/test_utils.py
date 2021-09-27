@@ -22,7 +22,8 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from uuid import uuid4
+
+from traitlets.config import LoggingConfigurable
 
 from elyra.metadata.error import MetadataExistsError
 from elyra.metadata.error import MetadataNotFoundError
@@ -34,6 +35,8 @@ from elyra.metadata.schema import SchemasProvider
 from elyra.metadata.storage import FileMetadataStore
 from elyra.metadata.storage import MetadataStore
 
+
+NON_EXISTENT_SCHEMASPACE_ID = "9ab68f6f-000c-470e-814d-2af59ea0956e"
 
 valid_metadata_json = {
     'schema_name': 'metadata-test',
@@ -397,11 +400,28 @@ class BYOSchemaspaceBadName(Schemaspace):
                          **kwargs)
 
 
+class BYOSchemaspaceBadClass(LoggingConfigurable):
+    """Class is not a subclass of Schemaspace"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class BYOSchemaspaceCaseSensitiveName(Schemaspace):
     def __init__(self, *args, **kwargs):
         super().__init__(schemaspace_id="1b1e461a-c7fa-40f2-a3a3-bf1f2fd48eeA",
                          name="byo-schemaspace_CaseSensitiveName",
                          **kwargs)
+
+
+class BYOSchemaspaceThrows(Schemaspace):
+    BYO_SCHEMASPACE_ID = "20c98d38-36f6-4f05-a4dc-9b0a6c2cb734"
+    BYO_SCHEMASPACE_NAME = "byo-schemaspace-throws"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(schemaspace_id=BYOSchemaspace.BYO_SCHEMASPACE_ID,
+                         name=BYOSchemaspace.BYO_SCHEMASPACE_NAME,
+                         **kwargs)
+        raise NotImplementedError("Test that throw from constructor is not harmful.")
 
 
 class BYOSchemaspace(Schemaspace):
@@ -468,18 +488,18 @@ def schema_factory(schemaspace_id: str,
         return base_schema
 
     schemas = []
-    # Gather good schemas
-    for i in range(num_good):
-        schemas.append(create_base_schema(primary_schema, str(i), schemaspace_name, schemaspace_id))
-
     # Gather bad schemas
     for reason in bad_reasons:
         schema = create_base_schema(primary_schema, reason, schemaspace_name, schemaspace_id)
         if reason == 'missing_required':  # remove display_name
             schema['properties'].pop('display_name')  # This will trigger a validation error
         elif reason == "unknown_schemaspace":  # update schemaspace_id to a non-existent schemaspace
-            schema['schemaspace_id'] = uuid4()
+            schema['schemaspace_id'] = NON_EXISTENT_SCHEMASPACE_ID
         schemas.append(schema)
+
+    # Gather good schemas
+    for i in range(num_good):
+        schemas.append(create_base_schema(primary_schema, str(i), schemaspace_name, schemaspace_id))
 
     return schemas
 
@@ -489,9 +509,26 @@ class BYOSchemasProvider(SchemasProvider):
 
     def get_schemas(self) -> List[Dict]:
         # We'll create 2 good schemas and 2 bad schemas for BYOSchemaspace
-        # TODO - look into a more flexible way to build providers of certain characteristics
         schemas = schema_factory(BYOSchemaspace.BYO_SCHEMASPACE_ID,
                                  BYOSchemaspace.BYO_SCHEMASPACE_NAME,
                                  2,
                                  ['missing_required', 'unknown_schemaspace'])
+        return schemas
+
+
+class BYOSchemasProviderThrows(SchemasProvider):
+    """Test SchemasProvider that raises an exception to ensure the exception doesn't mess things up. """
+
+    def get_schemas(self) -> List[Dict]:
+        raise ModuleNotFoundError("Exception to ensure bad providers are not side-effecting.")
+
+
+class BYOSchemasProviderBadClass(object):
+    """Test SchemasProvider that is of the wrong subclass. """
+
+    def get_schemas(self) -> List[Dict]:
+        schemas = schema_factory(BYOSchemaspace.BYO_SCHEMASPACE_ID,
+                                 BYOSchemaspace.BYO_SCHEMASPACE_NAME,
+                                 2,
+                                 [])
         return schemas
