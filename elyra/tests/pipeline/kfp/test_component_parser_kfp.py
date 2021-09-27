@@ -239,11 +239,12 @@ def test_parse_kfp_component_file():
     assert no_type_property['data']['format'] == "string"
 
     # Ensure descriptions are rendered properly with type hint in parentheses
-    assert unusual_dict_property['description']['default'] == "The test command description "\
+    assert unusual_dict_property['description']['default'] == "The test command description " \
                                                               "(type: Dictionary of arrays)"
     assert unusual_list_property['description']['default'] == "The test command description (type: An array)"
     assert unusual_string_property['description']['default'] == "The test command description (type: A string)"
-    assert file_property['description']['default'] == "The test command description (type: Notebook)"
+    assert file_property['description']['default'] == \
+           "The test command description"  # No data type info is included in parentheses for inputPath variables
     assert no_type_property['description']['default'] == "The test command description (type: string)"
 
 

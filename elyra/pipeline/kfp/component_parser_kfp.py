@@ -79,20 +79,17 @@ class KfpComponentParser(ComponentParser):
                 if param.get('optional') is True:
                     required = False
 
-                # Assign type, default to string
-                data_type = param.get('type', 'string')
-
-                # Set description and include parsed type information
-                description = self._format_description(description=param.get('description', ''),
-                                                       data_type=data_type)
+                # Assign parsed data type (default to string)
+                data_type_parsed = param.get('type', 'string')
 
                 # Change type to reflect the parameter type (inputValue vs inputPath vs outputPath)
+                data_type_adjusted = data_type_parsed
                 if self._is_path_based_parameter(param.get('name'), component_yaml):
-                    data_type = f"{param_type[:-1]}Path"
+                    data_type_adjusted = f"{param_type[:-1]}Path"
 
-                data_type_info = self.determine_type_information(data_type)
+                data_type_info = self.determine_type_information(data_type_adjusted)
                 if data_type_info.undetermined:
-                    self.log.warning(f"Data type from parsed data ('{data_type}') could not be determined. "
+                    self.log.warning(f"Data type from parsed data ('{data_type_parsed}') could not be determined. "
                                      f"Proceeding as if 'string' was detected.")
 
                 if not data_type_info.required:
@@ -101,16 +98,23 @@ class KfpComponentParser(ComponentParser):
                 # Get value if provided
                 value = param.get('default', '')
 
+                # Set parameter ref (id) and display name
                 ref_name = param.get('name').lower().replace(' ', '_')
-                name = param.get('name')
+                display_name = param.get('name')
+
+                description = param.get('description', '')
+                if data_type_info.data_type != 'inputpath':
+                    # Add parsed data type hint to description in parenthesis
+                    description = self._format_description(description=description,
+                                                           data_type=data_type_parsed)
 
                 if data_type_info.data_type == 'outputpath':
                     ref_name = f"output_{ref_name}"
-                    description = f"{description}. This is an output of this component."
-                    name = f"{param.get('name')} (Output) "
+                    # Add sentence to description to clarify that paraeter is an output
+                    description = f"This is an output of this component. {description}"
 
                 properties.append(ComponentParameter(id=ref_name,
-                                                     name=name,
+                                                     name=display_name,
                                                      data_type=data_type_info.data_type,
                                                      value=(value or data_type_info.default_value),
                                                      description=description,
