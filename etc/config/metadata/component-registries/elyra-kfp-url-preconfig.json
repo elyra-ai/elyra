@@ -1,7 +1,7 @@
 {
-  "display_name": "KFP Preloaded Components",
+  "display_name": "KFP Preloaded Components - URL",
   "metadata": {
-    "description": "Preloaded components that are supported by Kubeflow Pipelines",
+    "description": "Preloaded URL-based components that are supported by Kubeflow Pipelines",
     "runtime": "kfp",
     "location_type": "URL",
     "categories": ["Preloaded KFP"],
