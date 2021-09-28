@@ -22,17 +22,18 @@ global-exclude .git
 global-exclude .ipynb_checkpoints
 global-exclude .DS_Store
 global-exclude *.sh
+global-exclude docs
+global-exclude tests
 
 # explicit includes
+include CONTRIBUTING.md
 include README.md
 include LICENSE
 include dist/*.tgz
 
-recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 
-recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
 recursive-include elyra/metadata/schemas *
 recursive-include elyra/templates *
 recursive-include etc/config/components/ *.json

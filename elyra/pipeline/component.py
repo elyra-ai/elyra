@@ -17,9 +17,13 @@ from abc import abstractmethod
 from http import HTTPStatus
 from logging import Logger
 import os
+from queue import Empty
+from queue import Queue
 import re
+from threading import Thread
 from types import SimpleNamespace
 from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -27,6 +31,7 @@ from typing import Tuple
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
+from traitlets.traitlets import Integer
 
 
 class ComponentParameter(object):
@@ -238,6 +243,9 @@ class ComponentReader(LoggingConfigurable):
     """
     location_type: str = None
 
+    max_readers = Integer(3, config=True, allow_none=True,
+                          help="""Sets the number of reader threads""")
+
     def __init__(self, file_types: List[str]):
         super().__init__()
         self.file_types = file_types
@@ -252,12 +260,63 @@ class ComponentReader(LoggingConfigurable):
         return self.location_type
 
     @abstractmethod
-    def read_component_definition(self, location: str) -> Optional[str]:
+    def read_component_definition(self,
+                                  location: str,
+                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
         """
-        Read an absolute location to get the contents of a component
-        specification file
+        Read an absolute location to get the contents of a component specification file
+
+        :param location: an absolute path to the specification file to read
+        :param location_to_def: a mapping of component locations to file contents
+
+        :returns: the given 'location_to_def' object, optionally including a new
+                  key-value pair if the given component location is successfully read
         """
         raise NotImplementedError()
+
+    def read_component_definitions(self, locations: List[str]) -> Dict[str, str]:
+        """
+        This function starts a number of threads ('max_reader' or fewer) that read component
+        definitions in parallel.
+
+        The 'location_to_def' variable is a mapping of a component location to its content.
+        As a mutable object, this dictionary provides a means to retrieve a return value for
+        each thread. If a thread is able to successfully read the content of the given
+        component file location, a location-to-content mapping is added to 'location_to_def'.
+        """
+        location_to_def = {}
+
+        loc_q = Queue()
+        for location in self.get_absolute_locations(locations):
+            loc_q.put_nowait(location)
+
+        def read_with_thread():
+            """Get a location from the queue and read contents"""
+            while not loc_q.empty():
+                try:
+                    self.log.debug("Retrieving component definition file location from queue...")
+                    loc = loc_q.get(timeout=.1)
+                except Empty:
+                    continue
+
+                try:
+                    self.log.debug(f"Attempting read of component definition file at location '{loc}'...")
+                    self.read_component_definition(loc, location_to_def)
+                except Exception:
+                    self.log.warning(f"Could not read component definition file at location '{loc}'. Skipping...")
+
+                loc_q.task_done()
+
+        # Start 'max_reader' reader threads if registry includes more than 'max_reader'
+        # number of locations, else start one thread per location
+        num_threads = min(loc_q.qsize(), self.max_readers)
+        for i in range(num_threads):
+            Thread(target=read_with_thread).start()
+
+        # Wait for all queued locations to be processed
+        loc_q.join()
+
+        return location_to_def
 
     @abstractmethod
     def get_absolute_locations(self, paths: List[str]) -> List[str]:
@@ -290,13 +349,16 @@ class FilesystemComponentReader(ComponentReader):
         path = os.path.join(ENV_JUPYTER_PATH[0], 'components', path)
         return path
 
-    def read_component_definition(self, location: str) -> Optional[str]:
+    def read_component_definition(self,
+                                  location: str,
+                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
         if not os.path.exists(location):
             self.log.warning(f"Invalid location for component: {location}")
-            return None
+        else:
+            with open(location, 'r') as f:
+                location_to_def[location] = f.read()
 
-        with open(location, 'r') as f:
-            return f.read()
+        return location_to_def
 
     def get_absolute_locations(self, paths: List[str]) -> List[str]:
         absolute_paths = []
@@ -344,18 +406,20 @@ class UrlComponentReader(ComponentReader):
     """
     location_type = 'url'
 
-    def read_component_definition(self, location: str) -> Optional[str]:
+    def read_component_definition(self,
+                                  location: str,
+                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
         try:
             res = requests.get(location)
         except Exception as e:
             self.log.warning(f"Failed to connect to URL for component: {location}: {str(e)}")
-            return None
+        else:
+            if res.status_code != HTTPStatus.OK:
+                self.log.warning(f"Invalid location for component: {location} (HTTP code {res.status_code})")
+            else:
+                location_to_def[location] = res.text
 
-        if res.status_code != HTTPStatus.OK:
-            self.log.warning(f"Invalid location for component: {location} (HTTP code {res.status_code})")
-            return None
-
-        return res.text
+        return location_to_def
 
     def get_absolute_locations(self, paths: List[str]) -> List[str]:
         return paths

@@ -22,10 +22,8 @@ from typing import Optional
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
-from jsonschema import ValidationError
 from traitlets.config import LoggingConfigurable
 
-from elyra.metadata.error import MetadataNotFoundError
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.component import Component
@@ -201,42 +199,24 @@ class ComponentRegistry(LoggingConfigurable):
         """
         component_dict: Dict[str, Component] = {}
 
-        try:
-            metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
-            all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
-
-            # Filter registries according to processor type
-            runtime_registries = filter(lambda r: r['metadata']['runtime'] == self._parser.component_platform,
-                                        all_registries)
-        except (ValidationError, ValueError):
-            raise
-        except MetadataNotFoundError:
-            raise
-        except Exception:
-            raise
-
+        runtime_registries = self._get_registries_for_runtime()
         for registry in runtime_registries:
-            registry_name = registry['display_name']
-            self.log.debug(f"Component registry: processing components in registry '{registry_name}'")
+            self.log.debug(f"Component registry: processing components in registry '{registry['display_name']}'")
+
+            registry_categories = registry['metadata'].get("categories", [])
+            registry_location_type = registry['metadata']['location_type'].lower()
 
             # Assign reader based on the location type of the registry (file, directory, url)
-            registry_type = registry['metadata']['location_type'].lower()
-            reader = self._get_reader(registry_type, self._parser.file_types)
+            reader = self._get_reader(registry_location_type, self._parser.file_types)
 
-            # Read the path array to get the absolute paths of all components associated with this registry
-            component_paths = reader.get_absolute_locations(registry['metadata']['paths'])
-            for path in component_paths:
-                # TODO Figure out what would be the best path to display to the user
-                # TODO when accessing the node properties panel, since components can
-                # TODO now come from myriad locations
-
-                # Read in contents of the component
-                component_definition = reader.read_component_definition(path)
+            # Get content of component definition file for each component in this registry
+            component_definitions = reader.read_component_definitions(registry['metadata']['paths'])
+            for path, component_definition in component_definitions.items():
 
                 component_entry = {
                     "location_type": reader.resource_type,
                     "location": path,
-                    "categories": registry['metadata'].get("categories", []),
+                    "categories": registry_categories,
                     "component_definition": component_definition
                 }
 
@@ -246,6 +226,24 @@ class ComponentRegistry(LoggingConfigurable):
                     component_dict[component.id] = component
 
         return component_dict
+
+    def _get_registries_for_runtime(self) -> List[Dict]:
+        """
+        Retrieve the registries relevant to the calling processor instance
+        """
+        runtime_registries = []
+        try:
+            metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
+            all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
+
+            # Filter registries according to processor type
+            runtime_registries = list(
+                filter(lambda r: r['metadata']['runtime'] == self._parser.component_platform, all_registries)
+            )
+        except Exception:
+            self.log.error(f"Could not access registries for processor: {self._parser._component_platform}")
+
+        return runtime_registries
 
     def _get_reader(self, registry_location_type: str, file_types: List[str]) -> ComponentReader:
         """
