@@ -23,6 +23,7 @@ import pytest
 
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
 from elyra.metadata.schema import SchemaManager
+from elyra.metadata.schema import Schemaspace
 from elyra.metadata.schema import SchemasProvider
 from elyra.metadata.tests.test_utils import BYOSchemaspace
 from elyra.metadata.tests.test_utils import NON_EXISTENT_SCHEMASPACE_ID
@@ -148,86 +149,57 @@ def test_schemaspace_case_sensitive_name_id(byo_schemaspaces, caplog):
     assert "The following schemaspaces have no schemas: ['byo-schemaspace_CaseSensitiveName']" in caplog.text
 
 
-def test_schemaspace_bad_name(byo_schemaspaces, caplog):
-    """Ensure a Schemaspace with a bad name (not alphanumeric, w/ dash, underscore) is handled cleanly."""
+def validate_log_output(caplog: pytest.LogCaptureFixture, expected_entry: str) -> Schemaspace:
+    """Common negative test pattern that validates expected log output."""
 
     SchemaManager.clear_instance()
     schema_mgr = SchemaManager.instance()
-    assert "The 'name' property (byo.schemaspace-bad.name) must be alphanumeric with dash or underscore only!" \
-           in caplog.text
+    assert expected_entry in caplog.text
     byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
     # Ensure there are two valid schemas and make sure our bad one is not in the list.
     assert len(byo_ss.schemas) == 2
     for name, schema in byo_ss.schemas.items():
         assert schema['name'] in ['byo-test-0', 'byo-test-1']
+    return byo_ss  # in case caller wants to check other things.
+
+
+def test_schemaspace_bad_name(byo_schemaspaces, caplog):
+    """Ensure a Schemaspace with a bad name (not alphanumeric, w/ dash, underscore) is handled cleanly."""
+
+    validate_log_output(caplog, "The 'name' property (byo.schemaspace-bad.name) must "
+                                "be alphanumeric with dash or underscore only!")
 
 
 def test_schemaspace_bad_class(byo_schemaspaces, caplog):
     """Ensure a Schemaspace that is registered but not a subclass of Schemaspace is handled cleanly."""
 
-    SchemaManager.clear_instance()
-    schema_mgr = SchemaManager.instance()
-    assert "'byo-schemaspace-bad-class' is not an instance of 'Schemaspace'" in caplog.text
-    byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
-    # Ensure there are two valid schemas and make sure our bad one is not in the list.
-    assert len(byo_ss.schemas) == 2
-    for name, schema in byo_ss.schemas.items():
-        assert schema['name'] in ['byo-test-0', 'byo-test-1']
+    validate_log_output(caplog, "'byo-schemaspace-bad-class' is not an instance of 'Schemaspace'")
 
 
 def test_schemaspace_throws(byo_schemaspaces, caplog):
     """Ensure a schemaspace that throws from its constructor doesn't affect the loads of other schemas."""
 
-    SchemaManager.clear_instance()
-    schema_mgr = SchemaManager.instance()
-    assert "Test that throw from constructor is not harmful." in caplog.text
-    byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
-    # Ensure there are two valid schemas and make sure our bad one is not in the list.
-    assert len(byo_ss.schemas) == 2
-    for name, schema in byo_ss.schemas.items():
-        assert schema['name'] in ['byo-test-0', 'byo-test-1']
+    validate_log_output(caplog, "Test that throw from constructor is not harmful.")
 
 
 def test_schemasprovider_bad_class(byo_schemaspaces, caplog):
     """Ensure a bad SchemasProvider class doesn't affect the loads of other schemas."""
 
-    SchemaManager.clear_instance()
-    schema_mgr = SchemaManager.instance()
-    # Ensure the provider threw an error and didn't side-effect things
-    assert "SchemasProvider instance 'byo-schemas-provider-bad-class' is not an " \
-           f"instance of '{SchemasProvider.__name__}'!" in caplog.text
-    byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
-    # Ensure there are two valid schemas and make sure our bad one is not in the list.
-    assert len(byo_ss.schemas) == 2
-    for name, schema in byo_ss.schemas.items():
-        assert schema['name'] in ['byo-test-0', 'byo-test-1']
+    validate_log_output(caplog, "SchemasProvider instance 'byo-schemas-provider-bad-class' is not an "
+                                f"instance of '{SchemasProvider.__name__}'!")
 
 
 def test_schemasprovider_throws(byo_schemaspaces, caplog):
     """Ensure exception thrown by SchemasProvider doesn't affect the loads of other schemas."""
 
-    SchemaManager.clear_instance()
-    schema_mgr = SchemaManager.instance()
-    # Ensure the provider threw an error and didn't side-effect things
-    assert "Error loading schemas for SchemasProvider 'byo-schemas-provider-throws'" in caplog.text
-    byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
-    # Ensure there are two valid schemas and make sure our bad one is not in the list.
-    assert len(byo_ss.schemas) == 2
-    for name, schema in byo_ss.schemas.items():
-        assert schema['name'] in ['byo-test-0', 'byo-test-1']
+    validate_log_output(caplog, "Error loading schemas for SchemasProvider 'byo-schemas-provider-throws'")
 
 
 def test_schemasprovider_no_schemaspace(byo_schemaspaces, caplog):
     """Ensure SchemasProvider that references a non-existent schemaspace doesn't affect the loads of other schemas. """
 
-    SchemaManager.clear_instance()
-    schema_mgr = SchemaManager.instance()
-    # Ensure the schema that references the non-existent schemaspace is include in the captured log
-    assert f"Schema 'byo-test-unknown_schemaspace' references a schemaspace " \
-           f"'{NON_EXISTENT_SCHEMASPACE_ID}' that is not loaded!" in caplog.text
-    byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
-    # Ensure there are two valid schemas and make sure our bad one is not in the list.
+    byo_ss = validate_log_output(caplog, "Schema 'byo-test-unknown_schemaspace' references a schemaspace "
+                                         f"'{NON_EXISTENT_SCHEMASPACE_ID}' that is not loaded!")
     assert len(byo_ss.schemas) == 2
     for name, schema in byo_ss.schemas.items():
         assert schema['name'] != 'byo-test-unknown_schemaspace'
-        assert schema['name'] in ['byo-test-0', 'byo-test-1']
