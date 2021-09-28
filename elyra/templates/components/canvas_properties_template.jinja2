@@ -65,7 +65,9 @@
           "label": {
             "default": "Component Description"
           },
-          "data": {}
+          "data": {
+            "required": false
+          }
         }{% if component.properties|length > 0 %},{% endif %}{% endif %}
 {% for property in component.properties %}
         {
