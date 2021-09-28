@@ -60,6 +60,33 @@ paths:
         500:
           description: Unexpected error.
 
+  /elyra/schemaspace/{schemaspace_name_or_id}:
+    get:
+      tags:
+      - schemaspace
+      summary: Get properties for a given schemaspace.
+      parameters:
+      - name: schemaspace_name_or_id
+        in: path
+        description: The name or id of the schemaspace.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Returns the single-valued properties of the current schemaspace.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: '#/components/schemas/SchemaspaceResource'
+        404:
+          description: Schemaspace not found.
+          content: {}
+        500:
+          description: Unexpected error.
+
   /elyra/schema/{schemaspace_name_or_id}:
     get:
       tags:
@@ -345,7 +372,7 @@ paths:
   /elyra/contents/properties/{filepath}:
     get:
         tags:
-        - properties
+        - contents
         summary: Get a dictionary of properties for a file.
         parameters:
         - name: filepath
@@ -362,7 +389,8 @@ paths:
                 schema:
                   type: object
                   description: A dictionary of properties.
-                  $ref: '#/components/schemas/ContentsPropertiesResource'
+                  allOf:
+                    - $ref: '#/components/schemas/ContentsPropertiesResource'
           400:
             description: File is a directory.
           404:
@@ -439,6 +467,28 @@ components:
           properties: {}
           description: A free-form dictionary consisting of additional information
             about the resource.
+    
+    SchemaspaceResource:
+      description: The set of properties comprising a schemaspace resource entity.
+      required:
+      - name
+      - id
+      - display_name
+      - description
+      type: object
+      properties:
+        name:
+          type: string
+          description: The canonical name of the schemaspace resource.
+        id:
+          type: string
+          description: The id of the schemaspace resource.
+        display_name:
+          type: string
+          description: The display name of the schemaspace resource.
+        description:
+          type: string
+          description: The description of the schemaspace resource.
 
     PipelineResource:
       description: The set of properties comprising a pipeline resource entity.

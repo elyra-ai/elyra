@@ -411,7 +411,7 @@ async def test_get_code_snippets_schema(jp_fetch):
 
 
 async def test_get_test_schema(jp_fetch):
-    # Ensure all schema for code-snippets can be found
+    # Ensure all schema for metadata-test can be found
     await _get_schemaspace_schema(jp_fetch, METADATA_TEST_SCHEMASPACE, 'metadata-test')
 
 
@@ -447,3 +447,22 @@ async def test_get_schemaspaces(jp_fetch):
 
     for expected_schemaspace in expected_schemaspaces:
         assert expected_schemaspace in schemaspaces['schemaspaces']
+
+
+async def test_get_schemaspace_info(jp_fetch):
+    r = await jp_fetch('elyra', 'schemaspace', METADATA_TEST_SCHEMASPACE)
+    assert r.code == 200
+    schemaspace_info = json.loads(r.body.decode('utf-8'))
+    assert 'name' in schemaspace_info
+    assert 'id' in schemaspace_info
+    assert 'display_name' in schemaspace_info
+    assert 'description' in schemaspace_info
+    assert 'schemas' not in schemaspace_info
+    assert schemaspace_info['name'] == METADATA_TEST_SCHEMASPACE
+    assert schemaspace_info['id'] == METADATA_TEST_SCHEMASPACE_ID
+
+
+async def test_get_missing_schemaspace_info(jp_fetch):
+    with pytest.raises(HTTPClientError) as e:
+        await jp_fetch('elyra', 'schemaspace', 'missing-schemaspace')
+    assert expected_http_error(e, 404)

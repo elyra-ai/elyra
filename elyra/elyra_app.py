@@ -26,6 +26,7 @@ from elyra.metadata.handlers import MetadataResourceHandler
 from elyra.metadata.handlers import SchemaHandler
 from elyra.metadata.handlers import SchemaResourceHandler
 from elyra.metadata.handlers import SchemaspaceHandler
+from elyra.metadata.handlers import SchemaspaceResourceHandler
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
@@ -81,6 +82,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
             (f'/{self.name}/schema/{schemaspace_regex}', SchemaHandler),
             (f'/{self.name}/schema/{schemaspace_regex}/{resource_regex}', SchemaResourceHandler),
             (f'/{self.name}/schemaspace', SchemaspaceHandler),
+            (f'/{self.name}/schemaspace/{schemaspace_regex}', SchemaspaceResourceHandler),
             (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
             (f'/{self.name}/pipeline/export', PipelineExportHandler),
             (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),
