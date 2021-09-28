@@ -1,7 +1,8 @@
 {
     "current_parameters": {
       "label": "",
-      "component_source": "{{ component.location }}"{% if component.properties|length > 0 %},{% endif %}
+      "component_source": "{{ component.location }}"{% if component.description or component.properties|length > 0 %},{% endif %}
+      {% if component.description %}"elyra_component_description": "{{ component.description }}"{% if component.properties|length > 0 %},{% endif %}{% endif %}
 {% for property in component.properties %}
     {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
       "elyra_{{ property.ref }}": {{ property.value|lower }}
@@ -20,7 +21,10 @@
       },
       {
         "id": "component_source"
-      }{% if component.properties|length > 0 %},{% endif %}
+      }{% if component.description or component.properties|length > 0 %},{% endif %}
+      {% if component.description %}{
+        "id": "elyra_component_description"
+      }{% if component.properties|length > 0 %},{% endif %}{% endif %}
 {% for property in component.properties %}
       {
         "id": "elyra_{{ property.ref }}"
@@ -54,7 +58,15 @@
             "placement": "on_panel"
           },
           "data": {}
-        }{% if component.properties|length > 0 %},{% endif %}
+        }{% if component.description or component.properties|length > 0 %},{% endif %}
+        {% if component.description %}{
+          "parameter_ref": "elyra_component_description",
+          "control": "readonly",
+          "label": {
+            "default": "Component Description"
+          },
+          "data": {}
+        }{% if component.properties|length > 0 %},{% endif %}{% endif %}
 {% for property in component.properties %}
         {
           "parameter_ref": "elyra_{{ property.ref }}",
@@ -99,7 +111,12 @@
               "id": "component_source",
               "type": "controls",
               "parameter_refs": ["component_source"]
-            }{% if component.properties|length > 0 %},{% endif %}
+            }{% if component.description or component.properties|length > 0 %},{% endif %}
+            {% if component.description %}{
+              "id": "elyra_component_description",
+              "type": "controls",
+              "parameter_refs": ["elyra_component_description"]
+            }{% if component.properties|length > 0 %},{% endif %}{% endif %}
 {% for property in component.properties %}
             {
               "id": "elyra_{{ property.ref }}",
