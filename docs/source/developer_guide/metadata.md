@@ -212,7 +212,7 @@ entry_points={
 }
 ```
 ## Implementing Custom Metadata Classes
-Another area within the metadata service applications can influence behavior is by introducing their own sublcass of `Metadata` to wrap instance data.  When this is done, those implementations will be called prior to and after any create, update and delete operations, in addition to following any load (get) operations.  As a result, applications can influence what is persisted and what is retrieved.
+Applications can also influence behavior by introducing their own sublcass of `Metadata` to wrap instance data.  When this is done, those implementations will be called prior to and after any create, update and delete operations, in addition to following any load (get) operations.  As a result, applications can influence what is persisted and what is retrieved.
 
 It should be noted that any exceptions raised from the method overrides will affect the overall operation.  This may be warranted in some cases in which the application finds some invariant condition violations, perhaps those that can't be expressed in the schema, in which the operation should be terminated.  If the exceptions are raised in either `post_save()` or `post_delete()`, the `MetadataManager` will also apply a _compensating transaction_ corresponding to the current operation.  For example, if an instance is being created and the `post_save()` method raises an exception, the `MetadataManager` will apply a compensating transaction that _deletes_ the newly-created instance.
 
