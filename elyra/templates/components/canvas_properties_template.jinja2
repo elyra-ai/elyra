@@ -1,7 +1,7 @@
 {
     "current_parameters": {
-      "label": "",
       {% if component.description %}"elyra_component_description": "{{ component.description }}",{% endif %}
+      "label": "",
 {% for property in component.properties %}
     {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
       "elyra_{{ property.ref }}": {{ property.value|lower }}
@@ -16,12 +16,12 @@
       "component_source": "{{ component.location }}"
     },
     "parameters": [
-      {
-        "id": "label"
-      },
       {% if component.description %}{
         "id": "elyra_component_description"
       },{% endif %}
+      {
+        "id": "label"
+      },
 {% for property in component.properties %}
       {
         "id": "elyra_{{ property.ref }}"
@@ -34,6 +34,16 @@
     "uihints": {
       "id": "nodeProperties",
       "parameter_info": [
+        {% if component.description %}{
+          "parameter_ref": "elyra_component_description",
+          "control": "readonly",
+          "label": {
+            "default": "Component Description"
+          },
+          "data": {
+            "required": false
+          }
+        },{% endif %}
         {
           "parameter_ref": "label",
           "control": "custom",
@@ -47,16 +57,6 @@
           },
           "data": {}
         },
-        {% if component.description %}{
-          "parameter_ref": "elyra_component_description",
-          "control": "readonly",
-          "label": {
-            "default": "Component Description"
-          },
-          "data": {
-            "required": false
-          }
-        },{% endif %}
 {% for property in component.properties %}
         {
           "parameter_ref": "elyra_{{ property.ref }}",
@@ -104,16 +104,16 @@
           "id": "nodeGroupInfo",
           "type": "panels",
           "group_info": [
-            {
-              "id": "label",
-              "type": "controls",
-              "parameter_refs": ["label"]
-            },
             {% if component.description %}{
               "id": "elyra_component_description",
               "type": "controls",
               "parameter_refs": ["elyra_component_description"]
             },{% endif %}
+            {
+              "id": "label",
+              "type": "controls",
+              "parameter_refs": ["label"]
+            },
 {% for property in component.properties %}
             {
               "id": "elyra_{{ property.ref }}",
