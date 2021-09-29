@@ -30,7 +30,7 @@ COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0
 
 def _get_resource_path(filename):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    resource_path = os.path.join(root, '../../../tests/pipeline', 'resources', 'components', filename)
+    resource_path = os.path.join(root, '..', '..', '..', 'tests/pipeline', 'resources', 'components', filename)
     resource_path = os.path.normpath(resource_path)
 
     return resource_path
