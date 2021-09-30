@@ -27,7 +27,7 @@ This section describes how Elyra issues are organized.
 | Impact | ![][blocker] ![][blocked]  ![][do not merge] ![][needs doc updates] ![][needs example updates] ![][needs release note] |
 | Help Wanted | ![][good first use] ![][good first project] ![][help wanted] |
 | Mentoring Program | ![][jumpstart] ![][rcos] |
-| Kind | ![][accessibility] ![][accessibility] ![][bug] ![][config] ![][enhancement] ![][investigate] ![][no functionality change] ![][question] ![][task] ![][user error] |
+| Kind | ![][accessibility] ![][bug] ![][config] ![][enhancement] ![][investigate] ![][no functionality change] ![][question] ![][task] ![][user error] |
 | Feedback | ![][isv] ![][proposal] ![][user] |
 | External | ![][jupyter enterprise gateway] ![][jupyter server] ![][jupyter hub] ![][jupyter lab 1.x] ![][jupyter lab 2.x] ![][jupyter lab 3.x] ![][jupyter lab 4.x] ![][upstream] |
 | Component | ![][application utils] ![][binder] ![][build] ![][cli tools] ![][code snippets] ![][component registry] ![][content parser] ![][docker] ![][git] ![][install] ![][lsp] ![][metadata editor] ![][metadata] ![][performance] ![][pipeline editor visual studio] ![][pipeline editor] ![][pipeline runtime] ![][pipeline validation] ![][python editor] ![][r editor] ![][resource usage] ![][s3] ![][submit notebook button] ![][submit script button] ![][test] ![][toc] ![][troubleshooting] |
