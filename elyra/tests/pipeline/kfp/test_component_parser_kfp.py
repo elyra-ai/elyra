@@ -276,7 +276,7 @@ def test_parse_kfp_component_url():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
     assert properties_json['current_parameters']['component_source'] == component_entry.location
-    assert properties_json['current_parameters']['elyra_notebook'] == ''
+    assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
     assert properties_json['current_parameters']['elyra_parameters'] == '{}'
     assert properties_json['current_parameters']['elyra_packages_to_install'] == ''  # {}
     assert properties_json['current_parameters']['elyra_input_data'] == ''
