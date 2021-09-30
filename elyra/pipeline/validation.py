@@ -317,7 +317,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
                             elif self._get_component_type(property_dict, node_property) == 'inputpath':
-                                if not len(node.get_component_parameter(node_property).keys()) == 2:
+                                if len(node.get_component_parameter(node_property).keys()) < 2:
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
                                                          message="Node is missing required output property parameter",
@@ -721,8 +721,8 @@ class PipelineValidationManager(SingletonConfigurable):
         Helper function to determine the type of a node property
         :param property_dict: a dictionary containing the full list of property parameters and descriptions
         :param node_property: the property to look for
-        :return: the data type associated with node_property
+        :return: the data type associated with node_property, defaults to 'string'
         """
         for prop in property_dict['uihints']['parameter_info']:
             if prop["parameter_ref"] == f"elyra_{node_property}":
-                return prop['data']['format']
+                return prop['data'].get('format', 'string')
