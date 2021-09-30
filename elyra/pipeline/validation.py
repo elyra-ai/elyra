@@ -317,8 +317,6 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
                             elif self._get_component_type(property_dict, node_property) == 'inputpath':
-                                print(node_property)
-                                print(node.get_component_parameter(node_property))
                                 if not len(node.get_component_parameter(node_property).keys()) == 2:
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
@@ -721,7 +719,7 @@ class PipelineValidationManager(SingletonConfigurable):
     def _get_component_type(self, property_dict: dict, node_property: str) -> str:
         """
         Helper function to determine the type of a node property
-        :param property_dict: a dictioanry containing the full list of property parameters and descriptions
+        :param property_dict: a dictionary containing the full list of property parameters and descriptions
         :param node_property: the property to look for
         :return: the data type associated with node_property
         """
