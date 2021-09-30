@@ -25,7 +25,7 @@ This section describes how Elyra issues are organized.
 | --- | --- |
 | Area | ![][backend] ![][community] ![][documentation] ![][front-end] |
 | Impact | ![][blocker] ![][blocked]  ![][do not merge] ![][needs doc updates] ![][needs example updates] ![][needs release note] |
-| Help Wanted | ![][good first use] ![][good first project] ![][help wanted] |
+| Help Wanted | ![][good first issue] ![][good first project] ![][help wanted] |
 | Mentoring Program | ![][jumpstart] ![][rcos] |
 | Kind | ![][accessibility] ![][bug] ![][config] ![][enhancement] ![][investigate] ![][no functionality change] ![][question] ![][task] ![][user error] |
 | Feedback | ![][isv] ![][proposal] ![][user] |
@@ -55,7 +55,7 @@ This section describes how Elyra issues are organized.
 [needs example updates]: https://img.shields.io/badge/-needs_example_updates-d93f0b?style=flat
 [needs release note]: https://img.shields.io/badge/-needs_release_note-d93f0b?style=flat
 <!--Help Wanted-->
-[good first use]: https://img.shields.io/badge/-good_first_use-84e251?style=flat
+[good first issue]: https://img.shields.io/badge/-good_first_issue-84e251?style=flat
 [good first project]: https://img.shields.io/badge/-good_first_project-84e251?style=flat
 [help wanted]: https://img.shields.io/badge/-help_wanted-84e251?style=flat
 <!--Mentoring-->
