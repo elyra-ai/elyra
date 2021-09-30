@@ -64,8 +64,7 @@
             "component_parameters": {
               "notebook": {
                 "value": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
-                "invalid_key": "elyra_output_data",
-                "label": "Download data: (Output) Data"
+                "invalid_key": "elyra_output_data"
               },
               "parameters": "{}",
               "packages_to_install": "[]",
@@ -126,8 +125,7 @@
           "app_data": {
             "component_parameters": {
               "data": {
-                "value": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1",
-                "option": "elyra_output_notebook"
+                "value": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1"
               },
               "hash_algorithm": "SHA512",
               "output_hash": ""
