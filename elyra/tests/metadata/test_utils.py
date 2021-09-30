@@ -193,7 +193,7 @@ def create_instance(metadata_store: MetadataStore, location: str, name: str, con
 
 
 def get_unfiltered_schema(schema_name):
-    schema_file = os.path.join(os.path.dirname(__file__), '../../metadata', 'schemas', schema_name + '.json')
+    schema_file = os.path.join(os.path.dirname(__file__), '..', '..', 'metadata', 'schemas', schema_name + '.json')
     if not os.path.exists(schema_file):
         raise ValidationError("Metadata schema file '{}' is missing!".format(schema_file))
 

@@ -22,7 +22,7 @@ import pytest
 @pytest.fixture
 def setup_factory_data(jp_environ, jp_env_jupyter_path):
     """Copies the factory metadata instances for runtime-images and compontent-registries to test hierarchy."""
-    source = os.path.join(os.path.dirname(__file__), '../../../etc/config/metadata')
+    source = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'etc/config/metadata')
     destination = os.path.join(jp_env_jupyter_path, 'metadata')
     shutil.copytree(source, destination)
     yield destination  # this return value probably won't be used, but here nonetheless
