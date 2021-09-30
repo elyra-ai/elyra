@@ -34,7 +34,7 @@ This section describes how Elyra issues are organized.
 | Platform | ![][open data hub] ![][OpenShift] ![][Pipeline Airflow] ![][Pipeline Kubeflow] ![][Pipeline Local] ![][Windows] |
 | Browser | ![][chrome] ![][firefox] ![][safari] |
 | Inactive | ![][cannot reproduce] ![][deferred] ![][duplicate] ![][invalid] ![][obsolete] ![][wontfix] |
-| Satus | ![][needs discussion] ![][needs triage] ![][needs update] ![][waiting for author] ![][work in progress] |
+| Status | ![][needs discussion] ![][needs triage] ![][needs update] ![][waiting for author] ![][work in progress] |
 | Priority | ![][high] ![][low] ![][normal] ![][stretch] |
 
 
