@@ -319,7 +319,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             elif self._get_component_type(property_dict, node_property) == 'inputpath':
                                 print(node_property)
                                 print(node.get_component_parameter(node_property))
-                                if not len(node.get_component_parameter(node_property).keys()) == 3:
+                                if not len(node.get_component_parameter(node_property).keys()) == 2:
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
                                                          message="Node is missing required output property parameter",
@@ -327,7 +327,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                "nodeName": node_label})
                                 else:
                                     for key in node.get_component_parameter(node_property).keys():
-                                        if key not in ['value', 'option', 'label']:
+                                        if key not in ['value', 'option']:
                                             response.add_message(severity=ValidationSeverity.Error,
                                                                  message_type="invalidNodeProperty",
                                                                  message="Node property has invalid key.",

@@ -191,6 +191,7 @@ class KfpComponentParser(ComponentParser):
                 data_type_info.data_type = 'inputpath'
                 data_type_info.control_id = "NestedEnumControl"
                 data_type_info.undetermined = False
+                data_type_info.default_value = None
             elif 'inputvalue' in data_type_info.parsed_data:
                 data_type_info.data_type = 'inputvalue'
                 data_type_info.undetermined = False

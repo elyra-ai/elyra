@@ -86,8 +86,7 @@
               "component_source_type": "filename",
               "text": {
                 "value": "fe08b42d-bd8c-4e97-8010-0503a3185427",
-                "option": "elyra_output_notebook",
-                "label": "Run notebook using papermill: (Output) Notebook"
+                "option": "elyra_output_notebook"
               },
               "pattern": ".*",
               "label": "Filter text",
