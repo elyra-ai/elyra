@@ -128,14 +128,14 @@ setup_args = dict(
             'runtimes-images = elyra.metadata.schemaspaces:RuntimeImages',
             'code-snippets = elyra.metadata.schemaspaces:CodeSnippets',
             'component-registries = elyra.metadata.schemaspaces:ComponentRegistries',
-            'metadata-tests = elyra.metadata.tests.test_utils:MetadataTestSchemaspace'
+            'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemaspace'
         ],
         'metadata.schemas_providers': [
             'runtimes = elyra.metadata.schemasproviders:RuntimesSchemas',
             'runtimes-images = elyra.metadata.schemasproviders:RuntimeImagesSchemas',
             'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',
             'component-registries = elyra.metadata.schemasproviders:ComponentRegistriesSchemas',
-            'metadata-tests = elyra.metadata.tests.test_utils:MetadataTestSchemasProvider'
+            'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemasProvider'
         ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.local.processor_local:LocalPipelineProcessor',
