@@ -19,7 +19,7 @@ limitations under the License.
 
 [Components](pipeline-components.md) are the fundamental building blocks of pipelines in Elyra. This document outlines requirements that user-provided custom components must meet to be compatible with the Visual Pipeline Editor. Best practices for generic components are documented in the [Best practices for file-based pipeline nodes](best-practices-file-based-nodes.md) topic.
 
-### Kubeflow Pipeline components
+### Kubeflow Pipelines components
 
 This documentation content is currently under development.
 
