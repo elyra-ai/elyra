@@ -21,8 +21,17 @@ limitations under the License.
 
 ### Kubeflow Pipelines components
 
-This documentation content is currently under development.
+#### Requirements
+
+- The component is implemented as described [here](https://www.kubeflow.org/docs/components/pipelines/sdk/component-development/).
+- [Python function-based components](https://www.kubeflow.org/docs/components/pipelines/sdk/python-function-components/) are not supported.
+- The [component specification](https://www.kubeflow.org/docs/components/pipelines/sdk/v2/component-development/#creating-a-component-specification) must be accessible to the Visual Pipeline Editor and can be stored locally or remotely. Refer to the 
+[Managing pipeline components topic](pipeline-components.html#managing-pipeline-components) for details.
+
+#### Best practices
+
+> This documentation content is currently under development.
 
 ### Apache Airflow components
 
-This documentation content is currently under development.
+> This documentation content is currently under development.
