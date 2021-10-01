@@ -496,3 +496,20 @@ async def test_pipeline_invalid_kfp_inputpath_parameter(validation_manager, load
     assert issues[1]['severity'] == 1
     assert issues[1]['type'] == 'invalidNodeProperty'
     assert issues[1]['data']['nodeID'] == missing_param_node_id
+
+
+async def test_pipeline_invalid_kfp_inputpath_missing_connection(validation_manager, load_pipeline):
+    invalid_node_id = "65ef3a01-569a-4ea4-bd3d-842ca6ce47ac"
+    pipeline, response = load_pipeline('kf_invalid_inputpath_missing_connection.pipeline')
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
+                                                       response=response,
+                                                       pipeline_type='kfp',
+                                                       pipeline_runtime='kfp')
+
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert response.has_fatal
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidNodeProperty'
+    assert issues[0]['data']['nodeID'] == invalid_node_id

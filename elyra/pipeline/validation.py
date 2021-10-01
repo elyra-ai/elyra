@@ -333,6 +333,14 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                        "nodeName": node_label,
                                                                        "propertyName": node_property,
                                                                        "keyName": key})
+                                link_ids = list(x.get('node_id_ref', None) for x in node.get_component_links)
+                                if node.get_component_parameter(node_property)['value'] not in link_ids:
+                                    response.add_message(severity=ValidationSeverity.Error,
+                                                         message_type="invalidNodeProperty",
+                                                         message="Node contains an invalid inputpath reference. Please "
+                                                                 "check your node connections",
+                                                         data={"nodeID": node.id,
+                                                               "nodeName": node_label})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:

@@ -17,6 +17,7 @@ import json
 import os
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
 
 
@@ -225,6 +226,15 @@ class Node(AppDataBase):
             return self._node['subflow_ref'].get('pipeline_id_ref')
         else:
             return None
+
+    @property
+    def get_component_links(self) -> List:
+        """
+        Retrieve component links to other components.
+        These values are stored in inputs.links
+        :return: the list of links associated with this node or an empty list if none are found
+        """
+        return self._node['inputs'][0].get('links', [])
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
