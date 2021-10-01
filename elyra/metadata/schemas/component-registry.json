@@ -37,11 +37,9 @@
           "title": "Category Names",
           "description": "Category names associated with this Component Registry (the components defined in this registry will be organized in the component palette according to these categories)",
           "type": "array",
-          "items": [
-            {
-              "type": "string"
-            }
-          ],
+          "items": {
+            "type": "string"
+          },
           "uihints": {
             "field_type": "array",
             "category": "Component Categories"
@@ -72,11 +70,9 @@
           "title": "Paths",
           "description": "A list of absolute paths to individual component specification files or to repositories containing multiple component files (e.g., a directory in the file system)",
           "type": "array",
-          "items": [
-            {
-              "type": "string"
-            }
-          ],
+          "items": {
+            "type": "string"
+          },
           "uihints": {
             "field_type": "array",
             "category": "Source"
