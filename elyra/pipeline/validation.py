@@ -333,12 +333,14 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                        "nodeName": node_label,
                                                                        "propertyName": node_property,
                                                                        "keyName": key})
-                                link_ids = list(x.get('node_id_ref', None) for x in node.get_component_links)
-                                if node.get_component_parameter(node_property)['value'] not in link_ids:
+
+                                node_ids = list(x.get('node_id_ref', None) for x in node.get_component_links)
+                                parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
+                                if node.get_component_parameter(node_property)['value'] not in parent_list:
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
                                                          message="Node contains an invalid inputpath reference. Please "
-                                                                 "check your node connections",
+                                                                 "check your node-to-node connections",
                                                          data={"nodeID": node.id,
                                                                "nodeName": node_label})
 
@@ -734,3 +736,19 @@ class PipelineValidationManager(SingletonConfigurable):
         for prop in property_dict['uihints']['parameter_info']:
             if prop["parameter_ref"] == f"elyra_{node_property}":
                 return prop['data'].get('format', 'string')
+
+    def _get_parent_id_list(self, pipeline_definition, node_id_list: list, parent_list: list) -> List:
+        """
+        Helper function to return a complete list of parent node_ids
+        :param pipeline_definition: the complete pipeline definition
+        :param node_id_list: list of parent node ids
+        :param parent_list: the list to add additional found parent node ids
+        :return:
+        """
+        for node_id in node_id_list:
+            node = pipeline_definition.get_node(node_id)
+            if node:
+                parent_list.append(node_id)
+                node_ids = list(x.get('node_id_ref', None) for x in node.get_component_links)
+                self._get_parent_id_list(pipeline_definition, node_ids, parent_list)
+        return parent_list

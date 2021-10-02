@@ -430,7 +430,7 @@ class PipelineDefinition(object):
         """
         return self._pipeline_definition
 
-    def get_pipeline_definition(self, pipeline_id) -> Pipeline:
+    def get_pipeline_definition(self, pipeline_id) -> Any:
         """
         Retrieve a given pipeline from the pipeline definition
         :param pipeline_id: the pipeline unique identifier
@@ -441,4 +441,16 @@ class PipelineDefinition(object):
                 if pipeline['id'] == pipeline_id:
                     return Pipeline(pipeline)
 
+        return None
+
+    def get_node(self, node_id: str):
+        """
+        Given a node id returns the associated node object in the pipeline
+        :param node_id: the node id
+        :return: the node object or None
+        """
+        for pipeline in self._pipelines:
+            for node in pipeline.nodes:
+                if node.id == node_id:
+                    return node
         return None

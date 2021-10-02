@@ -499,7 +499,7 @@ async def test_pipeline_invalid_kfp_inputpath_parameter(validation_manager, load
 
 
 async def test_pipeline_invalid_kfp_inputpath_missing_connection(validation_manager, load_pipeline):
-    invalid_node_id = "65ef3a01-569a-4ea4-bd3d-842ca6ce47ac"
+    invalid_node_id = "5b78ea0a-e5fc-4022-94d4-7b9dc170d794"
     pipeline, response = load_pipeline('kf_invalid_inputpath_missing_connection.pipeline')
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
