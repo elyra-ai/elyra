@@ -186,7 +186,7 @@ This section outlines what is needed to introduce your own runtime for integrati
 ### Custom Runtime Schema
 The first requirement for introducing a new runtime for use in Elyra is to define the necessary metadata corresponding to the runtime.  This is accomplished via a JSON schema file describing the necessary metadata used to integrate with the targeted runtime platform.
 
-The schema will be made available to the application via a `SchemasProvider` (See _Bring Your Own Schema_ in _Metadata Services_) which implements a single method `get_schemas()`.
+The schema will be made available to the application via a `SchemasProvider` (See [_Bring Your Own Schema_](../developer_guide/metadata.html#bring-your-own-schemas) in [_Metadata Services_](../developer_guide/metadata.html#metadata-services)) which implements a single method `get_schemas()`.
 
 The schema name, represented by the value of the top-level `name` property is what the pipeline engine uses to locate the appropriate pipeline processor implementation.  This value is also set into the pipeline definition's `runtime` property in Elyra's UI, thereby tying the pipeline to the appropriate processor.
 
