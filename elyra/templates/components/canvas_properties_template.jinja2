@@ -1,6 +1,6 @@
 {
     "current_parameters": {
-      {% if component.description %}"elyra_component_description": "{{ component.description }}",{% endif %}
+      {% if component.description %}"component_description": "{{ component.description }}",{% endif %}
       "label": "",
 {% for property in component.properties %}
     {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
@@ -17,7 +17,7 @@
     },
     "parameters": [
       {% if component.description %}{
-        "id": "elyra_component_description"
+        "id": "component_description"
       },{% endif %}
       {
         "id": "label"
@@ -35,10 +35,14 @@
       "id": "nodeProperties",
       "parameter_info": [
         {% if component.description %}{
-          "parameter_ref": "elyra_component_description",
+          "parameter_ref": "component_description",
           "control": "readonly",
           "label": {
             "default": "Component Description"
+          },
+          "description": {
+            "default": " ",
+            "placement": "on_panel"
           },
           "data": {
             "required": false
@@ -105,9 +109,9 @@
           "type": "panels",
           "group_info": [
             {% if component.description %}{
-              "id": "elyra_component_description",
+              "id": "component_description",
               "type": "controls",
-              "parameter_refs": ["elyra_component_description"]
+              "parameter_refs": ["component_description"]
             },{% endif %}
             {
               "id": "label",
