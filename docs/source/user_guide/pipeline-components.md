@@ -38,6 +38,8 @@ _Custom components_ are commonly only implemented for Kubeflow Pipelines or Apac
 
 There are many example custom components available that you can utilize in pipelines, but you can also create your own. Details on how to create a component can be found in the [Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/components/pipelines/sdk/component-development/) and the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html). Do note that in Apache Airflow components are called operators, but for the sake of consistency the Elyra documentation refers to them as components.
 
+Note: Refer to the [_Requirements and best practices for custom pipeline components_ topic in the _User Guide_](best-practices-custom-pipeline-components.md) to learn more about special considerations for custom components.
+
 #### Example custom components
 
 For illustrative purposes the Elyra component registry includes a few custom components that you can use to get started. These example components and the generic components are pre-loaded into the pipeline editor palette by default.
