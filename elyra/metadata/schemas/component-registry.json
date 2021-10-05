@@ -38,7 +38,8 @@
           "description": "Category names associated with this Component Registry (the components defined in this registry will be organized in the component palette according to these categories)",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 18
           },
           "uihints": {
             "field_type": "array",
@@ -50,7 +51,7 @@
           "description": "The runtime associated with this Component Registry",
           "type": "string",
           "$comment": "This enum is dynamically generated to contain the available runtime values.",
-          "enum": ["{currently-configured-runtmes}"],
+          "enum": ["{currently-configured-runtimes}"],
           "uihints": {
             "field_type": "dropdown",
             "category": "Source"

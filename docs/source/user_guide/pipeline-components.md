@@ -130,7 +130,7 @@ $ elyra-metadata install component-registries \
        --runtime=kfp \
        --location_type=URL \
        --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
-       --categories='["filter file content"]'
+       --categories='["filter content"]'
 ```
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
@@ -190,11 +190,11 @@ Example: `Load data from external data sources`
 
 ##### Category (categories)
 
-In the pipeline editor palette components are grouped into categories to make them more easily accessible. If no category is provided, the components defined by this registry entry are added to the palette under `no category`.  
+In the pipeline editor palette components are grouped into categories to make them more easily accessible. If no category is provided, the components defined by this registry entry are added to the palette under `no category`. A limit of 18 characters or fewer is enforced for each category.
 
 Examples (CLI):
 
-- `['load data from database']`
+- `['load data from db']`
 - `['train model','pytorch']`
 
 
