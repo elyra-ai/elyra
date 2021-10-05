@@ -230,7 +230,9 @@ class PipelineValidationManager(SingletonConfigurable):
                         if node.type == "execution_node" and node.op not in supported_ops:
                             response.add_message(severity=ValidationSeverity.Error,
                                                  message_type="invalidNodeType",
-                                                 message="Unsupported node type found in this pipeline",
+                                                 message="This component was not found in the registry. Please add it "
+                                                         "to your component registry or remove this node from the "
+                                                         "pipeline",
                                                  data={"nodeID": node.id,
                                                        "nodeOpName": node.op,
                                                        "nodeName": node.label,
