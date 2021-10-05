@@ -38,11 +38,11 @@
           "title": "Category Names",
           "description": "Category names associated with this Component Registry (the components defined in this registry will be organized in the component palette according to these categories)",
           "type": "array",
-          "items": [
-            {
-              "type": "string"
-            }
-          ],
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "maxLength": 20
+          },
           "uihints": {
             "field_type": "array",
             "category": "Component Categories"
@@ -53,7 +53,7 @@
           "description": "The runtime associated with this Component Registry",
           "type": "string",
           "$comment": "This enum is dynamically generated to contain the available runtime values.",
-          "enum": ["{currently-configured-runtmes}"],
+          "enum": ["{currently-configured-runtimes}"],
           "uihints": {
             "field_type": "dropdown",
             "category": "Source"
@@ -73,11 +73,9 @@
           "title": "Paths",
           "description": "A list of absolute paths to individual component specification files or to repositories containing multiple component files (e.g., a directory in the file system)",
           "type": "array",
-          "items": [
-            {
-              "type": "string"
-            }
-          ],
+          "items": {
+            "type": "string"
+          },
           "uihints": {
             "field_type": "array",
             "category": "Source"
