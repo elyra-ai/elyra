@@ -128,10 +128,7 @@ class Pipeline(AppDataBase):
         The pipeline name
         :rtype: The pipeline name or `untitled`
         """
-        pipeline_name = 'untitled'
-        if 'properties' in self._node['app_data']:
-            pipeline_name = self._node['app_data']['properties'].get('name', pipeline_name)
-        return pipeline_name
+        return self._node['app_data'].get('properties', {}).get('name', 'untitled')
 
     @property
     def source(self) -> str:
