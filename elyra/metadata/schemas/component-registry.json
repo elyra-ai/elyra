@@ -41,7 +41,7 @@
           "uniqueItems": true,
           "items": {
             "type": "string",
-            "maxLength": 20
+            "maxLength": 18
           },
           "uihints": {
             "field_type": "array",
