@@ -53,7 +53,7 @@ import React from 'react';
 
 import {
   CodeSnippetService,
-  CODE_SNIPPET_NAMESPACE,
+  CODE_SNIPPET_SCHEMASPACE,
   CODE_SNIPPET_SCHEMA
 } from './CodeSnippetService';
 
@@ -78,7 +78,7 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
   metadata: IMetadata[];
   openMetadataEditor: (args: any) => void;
   updateMetadata: () => void;
-  namespace: string;
+  schemaspace: string;
   schema: string;
   sortMetadata: boolean;
   className: string;
@@ -392,7 +392,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         onClick: (): void => {
           this.props.openMetadataEditor({
             onSave: this.props.updateMetadata,
-            namespace: CODE_SNIPPET_NAMESPACE,
+            schemaspace: CODE_SNIPPET_SCHEMASPACE,
             schema: CODE_SNIPPET_SCHEMA,
             name: metadata.name
           });
@@ -412,7 +412,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
                   (value: Widget, index: number) => {
                     return (
                       value.id ==
-                      `${METADATA_EDITOR_ID}:${CODE_SNIPPET_NAMESPACE}:${CODE_SNIPPET_SCHEMA}:${metadata.name}`
+                      `${METADATA_EDITOR_ID}:${CODE_SNIPPET_SCHEMASPACE}:${CODE_SNIPPET_SCHEMA}:${metadata.name}`
                     );
                   }
                 );
@@ -530,7 +530,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
 export interface ICodeSnippetWidgetProps extends IMetadataWidgetProps {
   app: JupyterFrontEnd;
   display_name: string;
-  namespace: string;
+  schemaspace: string;
   schema: string;
   icon: LabIcon;
   getCurrentWidget: () => Widget | null;
@@ -570,7 +570,7 @@ export class CodeSnippetWidget extends MetadataWidget {
         metadata={metadata}
         openMetadataEditor={this.openMetadataEditor}
         updateMetadata={this.updateMetadata}
-        namespace={CODE_SNIPPET_NAMESPACE}
+        schemaspace={CODE_SNIPPET_SCHEMASPACE}
         schema={CODE_SNIPPET_SCHEMA}
         getCurrentWidget={this.props.getCurrentWidget}
         className={CODE_SNIPPETS_METADATA_CLASS}

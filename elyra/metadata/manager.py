@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import io
-import json
 import os
 import re
 from typing import Any
@@ -34,23 +32,17 @@ from elyra.metadata.storage import MetadataStore
 
 
 class MetadataManager(LoggingConfigurable):
-    """Manages metadata instances"""
-
-    # System-owned namespaces
-    NAMESPACE_RUNTIMES = "runtimes"
-    NAMESPACE_CODE_SNIPPETS = "code-snippets"
-    NAMESPACE_RUNTIME_IMAGES = "runtime-images"
-    NAMESPACE_COMPONENT_REGISTRIES = "component-registries"
+    """Manages the persistence and retrieval of metadata instances"""
 
     metadata_store_class = Type(default_value=FileMetadataStore, config=True,
                                 klass=MetadataStore,
                                 help="""The metadata store class.  This is configurable to allow subclassing of
                                 the MetadataStore for customized behavior.""")
 
-    def __init__(self, namespace: str, **kwargs: Any):
+    def __init__(self, schemaspace: str, **kwargs: Any):
         """
         Generic object to manage metadata instances.
-        :param namespace (str): the partition where metadata instances are stored
+        :param schemaspace (str): the partition where metadata instances are stored
         :param kwargs: additional arguments to be used to instantiate a metadata manager
         Keyword Args:
             metadata_store_class (str): the name of the MetadataStore subclass to use for storing managed instances
@@ -58,13 +50,13 @@ class MetadataManager(LoggingConfigurable):
         super().__init__(**kwargs)
 
         self.schema_mgr = SchemaManager.instance()
-        self.schema_mgr.validate_namespace(namespace)
-        self.namespace = namespace
-        self.metadata_store = self.metadata_store_class(namespace, **kwargs)
+        schemaspace_instance = self.schema_mgr.get_schemaspace(schemaspace)
+        self.schemaspace = schemaspace_instance.name
+        self.metadata_store = self.metadata_store_class(self.schemaspace, **kwargs)
 
-    def namespace_exists(self) -> bool:
-        """Returns True if the namespace for this instance exists"""
-        return self.metadata_store.namespace_exists()
+    def schemaspace_exists(self) -> bool:
+        """Returns True if the schemaspace for this instance exists"""
+        return self.metadata_store.schemaspace_exists()
 
     def get_all(self, include_invalid: bool = False) -> List[Metadata]:
         """Returns all metadata instances in summary form (name, display_name, location)"""
@@ -74,7 +66,7 @@ class MetadataManager(LoggingConfigurable):
         for metadata_dict in instance_list:
             # validate the instance prior to return, include invalid instances as appropriate
             try:
-                metadata = Metadata.from_dict(self.namespace, metadata_dict)
+                metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
                 metadata.post_load()  # Allow class instances to handle loads
                 # if we're including invalid and there was an issue on retrieval, add it to the list
                 if include_invalid and metadata.reason:
@@ -88,8 +80,8 @@ class MetadataManager(LoggingConfigurable):
                 # Since we may not have a metadata instance due to a failure during `from_dict()`,
                 # instantiate a bad instance directly to use in the message and invalid result.
                 invalid_instance = Metadata(**metadata_dict)
-                self.log.debug("Fetch of instance '{}' of namespace '{}' encountered an exception: {}".
-                               format(invalid_instance.name, self.namespace, ex))
+                self.log.debug("Fetch of instance '{}' of schemaspace '{}' encountered an exception: {}".
+                               format(invalid_instance.name, self.schemaspace, ex))
                 if include_invalid:
                     invalid_instance.reason = ex.__class__.__name__
                     instances.append(invalid_instance)
@@ -101,7 +93,7 @@ class MetadataManager(LoggingConfigurable):
             raise ValueError("The 'name' parameter requires a value.")
         instance_list = self.metadata_store.fetch_instances(name=name)
         metadata_dict = instance_list[0]
-        metadata = Metadata.from_dict(self.namespace, metadata_dict)
+        metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
 
         # Validate the instance on load
         self.validate(name, metadata)
@@ -125,10 +117,10 @@ class MetadataManager(LoggingConfigurable):
         instance_list = self.metadata_store.fetch_instances(name=name)
         metadata_dict = instance_list[0]
 
-        self.log.debug("Removing metadata resource '{}' from namespace '{}'.".format(name, self.namespace))
+        self.log.debug("Removing metadata resource '{}' from schemaspace '{}'.".format(name, self.schemaspace))
 
-        metadata = Metadata.from_dict(self.namespace, metadata_dict)
-        metadata.pre_delete()  # Allow class instances to handle pre-delete tasks
+        metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
+        metadata.pre_delete()  # Allow class instances to handle delete
 
         self.metadata_store.delete_instance(metadata_dict)
 
@@ -147,8 +139,8 @@ class MetadataManager(LoggingConfigurable):
         metadata_dict = metadata.to_dict()
         schema_name = metadata_dict.get('schema_name')
         if not schema_name:
-            raise ValueError("Instance '{}' in the {} namespace is missing a 'schema_name' field!".
-                             format(name, self.namespace))
+            raise ValueError("Instance '{}' in the {} schemaspace is missing a 'schema_name' field!".
+                             format(name, self.schemaspace))
 
         schema = self._get_schema(schema_name)  # returns a value or throws
         try:
@@ -179,16 +171,13 @@ class MetadataManager(LoggingConfigurable):
         """Loads the schema based on the schema_name and returns the loaded schema json.
            Throws ValidationError if schema file is not present.
         """
-        schema_json = self.schema_mgr.get_schema(self.namespace, schema_name)
+        schema_json = self.schema_mgr.get_schema(self.schemaspace, schema_name)
         if schema_json is None:
             schema_file = os.path.join(os.path.dirname(__file__), 'schemas', schema_name + '.json')
             if not os.path.exists(schema_file):
                 self.log.error("The file for schema '{}' is missing from its expected location: '{}'".
                                format(schema_name, schema_file))
                 raise SchemaNotFoundError("The file for schema '{}' is missing!".format(schema_name))
-            with io.open(schema_file, 'r', encoding='utf-8') as f:
-                schema_json = json.load(f)
-            self.schema_mgr.add_schema(self.namespace, schema_name, schema_json)
 
         return schema_json
 
@@ -226,7 +215,7 @@ class MetadataManager(LoggingConfigurable):
 
         metadata_dict = self.metadata_store.store_instance(name, metadata.prepare_write(), for_update=for_update)
 
-        metadata_post_op = Metadata.from_dict(self.namespace, metadata_dict)
+        metadata_post_op = Metadata.from_dict(self.schemaspace, metadata_dict)
 
         # Allow class instances to handle post-save tasks (e.g., cache updates, etc.)
         # Note that this is a _different_ instance from pre-save call
@@ -236,7 +225,7 @@ class MetadataManager(LoggingConfigurable):
             if for_update:
                 self._rollback(name, orig_value, "update", ex)
             else:  # Use the metadata instance prior to post op
-                self._rollback(name, Metadata.from_dict(self.namespace, metadata_dict), "create", ex)
+                self._rollback(name, Metadata.from_dict(self.schemaspace, metadata_dict), "create", ex)
             raise ex
 
         return metadata_post_op
@@ -270,7 +259,7 @@ class MetadataManager(LoggingConfigurable):
         # values of None for default replacement since that may be intentional (although those values will
         # likely fail subsequent validation).
 
-        schema = self.schema_mgr.get_schema(self.namespace, metadata.schema_name)
+        schema = self.schema_mgr.get_schema(self.schemaspace, metadata.schema_name)
 
         meta_properties = schema['properties']['metadata']['properties']
         property_defaults = {}

@@ -134,7 +134,7 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
                               )
     mocked_path = "/some-placeholder"
 
-    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda namespace, name: mocked_runtime)
+    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda schemaspace, name: mocked_runtime)
     monkeypatch.setattr(processor, "create_pipeline_file",
                         lambda pipeline, pipeline_export_format, pipeline_export_path, pipeline_name: mocked_path)
 
@@ -162,7 +162,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                               metadata=sample_metadata
                               )
 
-    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, namespace=None: mocked_runtime)
+    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y: parsed_ordered_dict)
 
@@ -248,7 +248,7 @@ def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, 
                               metadata=sample_metadata
                               )
 
-    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, namespace=None: mocked_runtime)
+    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y: parsed_ordered_dict)
 

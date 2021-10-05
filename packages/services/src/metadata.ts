@@ -17,8 +17,9 @@
 import { IDictionary } from './parsing';
 import { RequestHandler } from './requests';
 
-const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
 const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
+const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
+const ELYRA_SCHEMASPACE_API_ENDPOINT = 'elyra/schemaspace';
 
 /**
  * A service class for accessing the elyra api.
@@ -27,29 +28,32 @@ export class MetadataService {
   /**
    * Service function for making GET calls to the elyra metadata API.
    *
-   * @param namespace - the metadata namespace being accessed
+   * @param schemaspace - the metadata schemaspace being accessed
    *
    * @returns a promise that resolves with the requested metadata or
    * an error dialog result
    */
-  static async getMetadata(namespace: string): Promise<any> {
+  static async getMetadata(schemaspace: string): Promise<any> {
     return RequestHandler.makeGetRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace
-    ).then(metadataResponse => metadataResponse[namespace]);
+      ELYRA_METADATA_API_ENDPOINT + schemaspace
+    ).then(metadataResponse => metadataResponse[schemaspace]);
   }
 
   /**
    * Service function for making POST calls to the elyra metadata API.
    *
-   * @param namespace - the metadata namespace being accessed
+   * @param schemaspace - the metadata schemaspace being accessed
    * @param requestBody - the body of the request
    *
    * @returns a promise that resolves with the newly created metadata or
    * an error dialog result
    */
-  static async postMetadata(namespace: string, requestBody: any): Promise<any> {
+  static async postMetadata(
+    schemaspace: string,
+    requestBody: any
+  ): Promise<any> {
     return RequestHandler.makePostRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace,
+      ELYRA_METADATA_API_ENDPOINT + schemaspace,
       requestBody
     );
   }
@@ -57,7 +61,7 @@ export class MetadataService {
   /**
    * Service function for making PUT calls to the elyra metadata API.
    *
-   * @param namespace - the metadata namespace being accessed
+   * @param schemaspace - the metadata schemaspace being accessed
    * @param name - the metadata name being updated
    * @param requestBody - the body of the request
    *
@@ -65,12 +69,12 @@ export class MetadataService {
    * an error dialog result
    */
   static async putMetadata(
-    namespace: string,
+    schemaspace: string,
     name: string,
     requestBody: any
   ): Promise<any> {
     return RequestHandler.makePutRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name,
+      `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`,
       requestBody
     );
   }
@@ -78,14 +82,14 @@ export class MetadataService {
   /**
    * Service function for making DELETE calls to the elyra metadata API.
    *
-   * @param namespace - the metadata namespace being accessed
+   * @param schemaspace - the metadata schemaspace being accessed
    * @param name - the metadata name being updated
    *
    * @returns void or an error dialog result
    */
-  static async deleteMetadata(namespace: string, name: string): Promise<any> {
+  static async deleteMetadata(schemaspace: string, name: string): Promise<any> {
     return RequestHandler.makeDeleteRequest(
-      ELYRA_METADATA_API_ENDPOINT + namespace + '/' + name
+      `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`
     );
   }
 
@@ -94,25 +98,25 @@ export class MetadataService {
   /**
    * Service function for making GET calls to the elyra schema API.
    *
-   * @param namespace - the schema namespace being requested
+   * @param schemaspace - the schema schemaspace being requested
    *
    * @returns a promise that resolves with the requested schemas or
    * an error dialog result
    */
-  static async getSchema(namespace: string): Promise<any> {
-    if (this.schemaCache[namespace]) {
+  static async getSchema(schemaspace: string): Promise<any> {
+    if (this.schemaCache[schemaspace]) {
       // Deep copy cached schema to mimic request call
-      return JSON.parse(JSON.stringify(this.schemaCache[namespace]));
+      return JSON.parse(JSON.stringify(this.schemaCache[schemaspace]));
     }
 
     return RequestHandler.makeGetRequest(
-      ELYRA_SCHEMA_API_ENDPOINT + namespace
+      ELYRA_SCHEMA_API_ENDPOINT + schemaspace
     ).then(schemaResponse => {
-      if (schemaResponse[namespace]) {
-        this.schemaCache[namespace] = schemaResponse[namespace];
+      if (schemaResponse[schemaspace]) {
+        this.schemaCache[schemaspace] = schemaResponse[schemaspace];
       }
 
-      return schemaResponse[namespace];
+      return schemaResponse[schemaspace];
     });
   }
 
@@ -124,10 +128,13 @@ export class MetadataService {
    */
   static async getAllSchema(): Promise<any> {
     try {
-      const namespaces = await RequestHandler.makeGetRequest('elyra/namespace');
+      const schemaspaces = await RequestHandler.makeGetRequest(
+        ELYRA_SCHEMASPACE_API_ENDPOINT
+      );
       const schemas = [];
-      for (const namespace of namespaces['namespaces']) {
-        const schema = await this.getSchema(namespace);
+
+      for (const schemaspace of schemaspaces['schemaspaces']) {
+        const schema = await this.getSchema(schemaspace);
         schemas.push(...schema);
       }
       return schemas;

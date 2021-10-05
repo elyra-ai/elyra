@@ -21,7 +21,7 @@ import React from 'react';
 interface IFilterMetadataProps {
   tags: string[];
   onFilter: (searchValue: string, filterTags: string[]) => void;
-  namespaceId: string;
+  schemaspace: string;
   omitTags?: boolean;
 }
 
@@ -79,7 +79,7 @@ export class FilterTools extends React.Component<
 
   createFilterBox(): void {
     const filterOption = document.querySelector(
-      `#${this.props.namespaceId} .${FILTER_OPTION}`
+      `#${this.props.schemaspace} .${FILTER_OPTION}`
     );
 
     filterOption?.classList.toggle('idle');
@@ -181,7 +181,7 @@ export class FilterTools extends React.Component<
 
   filterMetadata(): void {
     const isTagFilterOpen = document
-      .querySelector(`#${this.props.namespaceId} .${FILTER_OPTION}`)
+      .querySelector(`#${this.props.schemaspace} .${FILTER_OPTION}`)
       ?.classList.contains('idle');
     this.props.onFilter(
       this.state.searchValue,
@@ -209,7 +209,7 @@ export class FilterTools extends React.Component<
         {this.props.omitTags ? (
           <div style={{ height: '4px' }} />
         ) : (
-          <div className={FILTER_CLASS} id={this.props.namespaceId}>
+          <div className={FILTER_CLASS} id={this.props.schemaspace}>
             <button
               title="Filter by tag"
               className={FILTER_BUTTON}

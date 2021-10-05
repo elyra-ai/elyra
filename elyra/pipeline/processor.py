@@ -379,19 +379,19 @@ class RuntimePipelineProcessor(PipelineProcessor):
                            format(operation.name), exc_info=True)
             raise ex from ex
 
-    def _get_metadata_configuration(self, namespace, name=None):
+    def _get_metadata_configuration(self, schemaspace, name=None):
         """
-        Retrieve associated metadata configuration based on namespace provided and optional instance name
+        Retrieve associated metadata configuration based on schemaspace provided and optional instance name
         :return: metadata in json format
         """
         try:
             if not name:
-                return MetadataManager(namespace=namespace).get_all()
+                return MetadataManager(schemaspace=schemaspace).get_all()
             else:
-                return MetadataManager(namespace=namespace).get(name)
+                return MetadataManager(schemaspace=schemaspace).get(name)
         except BaseException as err:
-            self.log.error('Error retrieving metadata configuration for {}'.format(name), exc_info=True)
-            raise RuntimeError('Error retrieving metadata configuration for {}', err) from err
+            self.log.error(f'Error retrieving metadata configuration for {name}', exc_info=True)
+            raise RuntimeError(f'Error retrieving metadata configuration for {name}', err) from err
 
     def _collect_envs(self, operation: GenericOperation, **kwargs) -> Dict:
         """
