@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>
-<svg height="500px" id="elyra-code-snippet-icon" version="1.1" viewBox="125 150 250 200" width="500px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg id="elyra-code-snippet-icon" version="1.1" viewBox="125 150 250 200" width="32" height="32"  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g>
         <g>
             <polygon class="jp-icon3" fill="#231F20" points="195.568,185.811 142.681,250.173 195.568,314.534 208.077,293.962 172.44,250.173 208.077,206.384"/>
