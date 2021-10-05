@@ -423,7 +423,7 @@ def test_invalid_node_property_label_bad_characters(validation_manager):
 
 def test_pipeline_graph_single_cycle(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_single_cycle.pipeline')
-    cycle_ID = ['c309f6dd-b022-4b1c-b2b0-b6449bb26e8f', '8cb986cb-4fc9-4b1d-864d-0ec64b7ac13c']
+    # cycle_ID = ['c309f6dd-b022-4b1c-b2b0-b6449bb26e8f', '8cb986cb-4fc9-4b1d-864d-0ec64b7ac13c']
 
     validation_manager._validate_pipeline_graph(pipeline=pipeline,
                                                 response=response)
@@ -431,24 +431,24 @@ def test_pipeline_graph_single_cycle(validation_manager, load_pipeline):
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'circularReference'
-    assert issues[0]['data']['linkIDList'].sort() == cycle_ID.sort()
+    # assert issues[0]['data']['linkIDList'].sort() == cycle_ID.sort()
 
 
 def test_pipeline_graph_double_cycle(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_double_cycle.pipeline')
-    cycle_ID = ['597b2971-b95d-4df7-a36d-9d93b0345298', 'b63378e4-9085-4a33-9330-6f86054681f4']
-    cycle_two_ID = ['c309f6dd-b022-4b1c-b2b0-b6449bb26e8f', '8cb986cb-4fc9-4b1d-864d-0ec64b7ac13c']
+    # cycle_ID = ['597b2971-b95d-4df7-a36d-9d93b0345298', 'b63378e4-9085-4a33-9330-6f86054681f4']
+    # cycle_two_ID = ['c309f6dd-b022-4b1c-b2b0-b6449bb26e8f', '8cb986cb-4fc9-4b1d-864d-0ec64b7ac13c']
 
     validation_manager._validate_pipeline_graph(pipeline=pipeline,
                                                 response=response)
     issues = response.to_json().get('issues')
-    assert len(issues) == 2
+    assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'circularReference'
-    assert issues[0]['data']['linkIDList'].sort() == cycle_ID.sort()
-    assert issues[1]['severity'] == 1
-    assert issues[1]['type'] == 'circularReference'
-    assert issues[1]['data']['linkIDList'].sort() == cycle_two_ID.sort()
+    # assert issues[0]['data']['linkIDList'].sort() == cycle_ID.sort()
+    # assert issues[1]['severity'] == 1
+    # assert issues[1]['type'] == 'circularReference'
+    # assert issues[1]['data']['linkIDList'].sort() == cycle_two_ID.sort()
 
 
 def test_pipeline_graph_singleton(validation_manager, load_pipeline):
@@ -463,6 +463,28 @@ def test_pipeline_graph_singleton(validation_manager, load_pipeline):
     assert issues[0]['severity'] == 2
     assert issues[0]['type'] == 'singletonReference'
     assert issues[0]['data']['nodeID'] == node_id
+
+
+def test_pipeline_valid_kfp_with_supernode(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('kf_supernode_valid.pipeline')
+
+    validation_manager._validate_pipeline_graph(pipeline=pipeline,
+                                                response=response)
+    issues = response.to_json().get('issues')
+    assert len(issues) == 0
+    assert not response.has_fatal
+
+
+def test_pipeline_invalid_single_cycle_kfp_with_supernode(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline('kf_supernode_invalid.pipeline')
+
+    validation_manager._validate_pipeline_graph(pipeline=pipeline,
+                                                response=response)
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert response.has_fatal
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'circularReference'
 
 
 async def test_pipeline_kfp_inputpath_parameter(validation_manager, load_pipeline):

@@ -146,12 +146,15 @@ class PipelineValidationManager(SingletonConfigurable):
                                            pipeline_runtime=pipeline_runtime,
                                            response=response)
 
+        self._validate_pipeline_graph(pipeline=pipeline, response=response)
+
+        if response.has_fatal:
+            return response
+
         await self._validate_node_properties(pipeline_definition=pipeline_definition,
                                              pipeline_type=pipeline_type,
                                              pipeline_runtime=pipeline_runtime,
                                              response=response)
-
-        self._validate_pipeline_graph(pipeline=pipeline, response=response)
 
         return response
 
@@ -527,9 +530,16 @@ class PipelineValidationManager(SingletonConfigurable):
                 if node['type'] == "execution_node":
                     graph.add_node(node['id'])
                     if node.get('inputs'):
-                        if 'links' in node['inputs'][0]:
+                        if "links" in node['inputs'][0]:
                             for link in node['inputs'][0]['links']:
-                                graph.add_edge(link['node_id_ref'], node['id'])
+                                if "_outPort" in link['port_id_ref']:  # is ref to node, doesnt add links to supernodes
+                                    graph.add_edge(link['port_id_ref'].strip('_outPort'), node['id'])
+                                elif link['port_id_ref'] == "outPort":  # do not link to bindings
+                                    graph.add_edge(link['node_id_ref'], node['id'])
+                if node['type'] == "super_node":
+                    for link in node['inputs'][0]['links']:
+                        child_node_id = node['inputs'][0]['id'].strip("_inPort")
+                        graph.add_edge(link['node_id_ref'], child_node_id)
 
         for isolate in nx.isolates(graph):
             if graph.number_of_nodes() > 1:
@@ -542,28 +552,25 @@ class PipelineValidationManager(SingletonConfigurable):
                                            "pipelineID": self._get_pipeline_id(pipeline, node_id=isolate)})
 
         cycles_detected = nx.simple_cycles(graph)
+        # link_dict_table = {}
+        # cycle_counter = 1
+        # for cycle in cycles_detected:
+        #     size_of_cycle = len(cycle)
+        #     if cycle_counter not in link_dict_table:
+        #         link_dict_table[cycle_counter] = []
+        #     for i in range(size_of_cycle):
+        #         if i == size_of_cycle - 1:
+        #             link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[0]))
+        #         else:
+        #             link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[i + 1]))
+        #     cycle_counter += 1
 
-        link_dict_table = {}
-        cycle_counter = 1
-        for cycle in cycles_detected:
-            size_of_cycle = len(cycle)
-            if cycle_counter not in link_dict_table:
-                link_dict_table[cycle_counter] = []
-            for i in range(size_of_cycle):
-                if i == size_of_cycle - 1:
-                    link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[0]))
-                else:
-                    link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[i + 1]))
-            cycle_counter += 1
-
-        for cycle_number, cycle_link_list in link_dict_table.items():
+        # for cycle_number, cycle_link_list in link_dict_table.items():
+        if len(list(cycles_detected)) > 0:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="circularReference",
                                  message="The pipeline contains a circular dependency between nodes.",
-                                 data={"cycleNumber": cycle_number,
-                                       "nodeNames": self._get_node_labels(pipeline,
-                                                                          cycle_link_list),
-                                       "linkIDList": cycle_link_list})
+                                 data={})
 
     def _get_link_id(self, pipeline: dict, u_edge: str, v_edge: str) -> str:
         """
