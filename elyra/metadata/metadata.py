@@ -87,14 +87,14 @@ class Metadata(object):
         pass
 
     @classmethod
-    def from_dict(cls: Type[M], namespace: str, metadata_dict: dict) -> M:
+    def from_dict(cls: Type[M], schemaspace: str, metadata_dict: dict) -> M:
         """Creates an appropriate instance of Metadata from a dictionary instance """
 
         # Get the schema and look for metadata_class entry and use that, else Metadata.
         metadata_class_name = 'elyra.metadata.metadata.Metadata'
         schema_name = metadata_dict.get('schema_name')
         if schema_name:
-            schema = SchemaManager.instance().get_schema(namespace, schema_name)
+            schema = SchemaManager.instance().get_schema(schemaspace, schema_name)
             metadata_class_name = schema.get('metadata_class_name', metadata_class_name)
         metadata_class = import_item(metadata_class_name)
         try:

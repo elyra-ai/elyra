@@ -1,11 +1,11 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/component-registry.json",
   "title": "Component Registry",
   "name": "component-registry",
   "display_name": "Pipeline Component",
-  "namespace": "component-registries",
-  "metadata_class_name": "elyra.pipeline.component_metadata.ComponentRegistryMetadata",
-  "schema_filter_class_name": "elyra.pipeline.component_metadata.RegistrySchemaFilter",
+  "schemaspace": "component-registries",
+  "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
   "uihints": {
     "title": "Pipeline Components",
     "icon": "",
@@ -16,8 +16,7 @@
       "title": "Schema Name",
       "description": "The schema associated with this instance",
       "type": "string",
-      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
-      "minLength": 1
+      "const": "component-registry"
     },
     "display_name": {
       "title": "Display Name",

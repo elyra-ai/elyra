@@ -21,6 +21,7 @@ import pytest
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
+from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
 from elyra.pipeline.component import FilesystemComponentReader
 from elyra.pipeline.component import UrlComponentReader
@@ -59,7 +60,7 @@ def test_modify_component_registries():
     # Components must be sorted by id for the equality comparison with later component lists
     initial_components = sorted(initial_components, key=lambda component: component.id)
 
-    metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
     paths = ["https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/"
@@ -131,7 +132,7 @@ def test_directory_based_component_registry():
     component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
 
-    metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')

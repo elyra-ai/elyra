@@ -42,9 +42,9 @@ import { addIcon } from '@jupyterlab/ui-components';
 
 import { getRuntimeIcon } from './pipeline-hooks';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
-import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
+import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 import {
-  RUNTIME_IMAGES_NAMESPACE,
+  RUNTIME_IMAGES_SCHEMASPACE,
   RuntimeImagesWidget
 } from './RuntimeImagesWidget';
 import { RuntimesWidget } from './RuntimesWidget';
@@ -56,7 +56,7 @@ import '../style/index.css';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-const COMPONENT_REGISTRY_NAMESPACE = 'component-registries';
+const COMPONENT_REGISTRY_SCHEMASPACE = 'component-registries';
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -300,11 +300,11 @@ const extension: JupyterFrontEndPlugin<void> = {
       app,
       themeManager,
       display_name: 'Runtimes',
-      namespace: RUNTIMES_NAMESPACE,
+      schemaspace: RUNTIMES_SCHEMASPACE,
       icon: runtimesIcon,
       schemaType: 'runtime'
     });
-    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_NAMESPACE}`;
+    const runtimesWidgetID = `elyra-metadata:${RUNTIMES_SCHEMASPACE}`;
     runtimesWidget.id = runtimesWidgetID;
     runtimesWidget.title.icon = runtimesIcon;
     runtimesWidget.title.caption = 'Runtimes';
@@ -316,10 +316,10 @@ const extension: JupyterFrontEndPlugin<void> = {
       app,
       themeManager,
       display_name: 'Runtime Images',
-      namespace: RUNTIME_IMAGES_NAMESPACE,
+      schemaspace: RUNTIME_IMAGES_SCHEMASPACE,
       icon: containerIcon
     });
-    const runtimeImagesWidgetID = `elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`;
+    const runtimeImagesWidgetID = `elyra-metadata:${RUNTIME_IMAGES_SCHEMASPACE}`;
     runtimeImagesWidget.id = runtimeImagesWidgetID;
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
@@ -328,10 +328,10 @@ const extension: JupyterFrontEndPlugin<void> = {
       app,
       themeManager,
       display_name: 'Pipeline Components',
-      namespace: COMPONENT_REGISTRY_NAMESPACE,
+      schemaspace: COMPONENT_REGISTRY_SCHEMASPACE,
       icon: pipelineComponentsIcon
     });
-    const componentRegistryWidgetID = `elyra-metadata:${COMPONENT_REGISTRY_NAMESPACE}`;
+    const componentRegistryWidgetID = `elyra-metadata:${COMPONENT_REGISTRY_SCHEMASPACE}`;
     componentRegistryWidget.id = componentRegistryWidgetID;
     componentRegistryWidget.title.icon = pipelineComponentsIcon;
     componentRegistryWidget.title.caption = 'Pipeline Components';

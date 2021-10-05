@@ -46,8 +46,8 @@ except ImportError:
 
 from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
-from elyra.metadata.manager import MetadataManager
-from elyra.metadata.schema import SchemaFilter
+from elyra.metadata.schemaspaces import RuntimeImages
+from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
@@ -84,7 +84,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
 
         api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
@@ -299,7 +299,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # we're using its absolute form.
         absolute_pipeline_export_path = get_absolute_path(self.root_dir, pipeline_export_path)
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
         namespace = runtime_configuration.metadata.get('user_namespace')
@@ -417,7 +417,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                      cos_directory=None,
                      export=False):
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
 
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
@@ -506,7 +506,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 if cos_secret and not export:
                     target_ops[operation.id].apply(use_aws_secret(cos_secret))
 
-                image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+                image_namespace = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
                 for image_instance in image_namespace:
                     if image_instance.metadata['image_name'] == operation.runtime_image and \
                             image_instance.metadata.get('pull_policy'):
@@ -608,7 +608,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Gather input for container image pull secrets in support of private container image registries
         # https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf.set_image_pull_secrets
         #
-        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+        image_namespace = self._get_metadata_configuration(schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
 
         # iterate through pipeline operations and create list of Kubernetes secret names
         # that are associated with generic components
@@ -704,24 +704,3 @@ class KfpPipelineProcessorResponse(PipelineProcessorResponse):
     @property
     def type(self):
         return self._type
-
-
-class KfpSchemaFilter(SchemaFilter):
-    """
-    This class exists to ensure that the KFP schema's engine metadata
-    appropriately reflects what is installed on the system.
-    """
-
-    def post_load(self, name: str, schema_json: Dict) -> Dict:
-        """Ensure tekton packages are present and remove engine from schema if not."""
-
-        filtered_schema = super().post_load(name, schema_json)
-
-        # If TektonClient package is missing, navigate to the engine property
-        # and remove 'tekton' entry if present and return updated result.
-        if not TektonClient:
-            engine_enum: list = filtered_schema['properties']['metadata']['properties']['engine']['enum']
-            if 'Tekton' in engine_enum:
-                engine_enum.remove('Tekton')
-                filtered_schema['properties']['metadata']['properties']['engine']['enum'] = engine_enum
-        return filtered_schema

@@ -25,7 +25,7 @@ import * as React from 'react';
 
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
-import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
+import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 import Utils from './utils';
 
 /**
@@ -64,10 +64,10 @@ export class SubmitNotebookButtonExtension
     ).catch(error => RequestErrors.serverError(error));
 
     if (Utils.isDialogResult(runtimes)) {
-      if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+      if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
         // Open the runtimes widget
         Utils.getLabShell(panel).activateById(
-          `elyra-metadata:${RUNTIMES_NAMESPACE}`
+          `elyra-metadata:${RUNTIMES_SCHEMASPACE}`
         );
       }
       return;
