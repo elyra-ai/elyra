@@ -183,8 +183,9 @@ Example: `anonymous`
 
 ##### Kubeflow Pipelines API endpoint username (api_username)
 Username used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled.
+Currently, only Dex `staticPasswords` authentication is supported.
 
-Example: `username@email.com`
+Example: `user@example.com`
 
 ##### Kubeflow Pipelines API endpoint (api_password)
 Password used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled.
