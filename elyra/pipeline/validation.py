@@ -553,44 +553,12 @@ class PipelineValidationManager(SingletonConfigurable):
                                            "pipelineID": self._get_pipeline_id(pipeline, node_id=isolate)})
 
         cycles_detected = nx.simple_cycles(graph)
-        # link_dict_table = {}
-        # cycle_counter = 1
-        # for cycle in cycles_detected:
-        #     size_of_cycle = len(cycle)
-        #     if cycle_counter not in link_dict_table:
-        #         link_dict_table[cycle_counter] = []
-        #     for i in range(size_of_cycle):
-        #         if i == size_of_cycle - 1:
-        #             link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[0]))
-        #         else:
-        #             link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[i + 1]))
-        #     cycle_counter += 1
 
-        # for cycle_number, cycle_link_list in link_dict_table.items():
         if len(list(cycles_detected)) > 0:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="circularReference",
                                  message="The pipeline contains a circular dependency between nodes.",
                                  data={})
-
-    def _get_link_id(self, pipeline: dict, u_edge: str, v_edge: str) -> str:
-        """
-        Retrieves the LinkID associated with the connecting edge from u_edge to v_edge
-        :param pipeline: pipeline definition where the link is located
-        :param u_edge: the starting node_id edge
-        :param v_edge: the ending node_id_edge
-        :return: a string Link ID representing the edge connecting one node to another
-        """
-        pipeline_json = json.loads(json.dumps(pipeline))
-
-        for single_pipeline in pipeline_json['pipelines']:
-            node_list = single_pipeline['nodes']
-
-            for node in node_list:
-                if node['type'] == "execution_node":
-                    for link in node['inputs'][0].get('links', []):
-                        if u_edge == link['node_id_ref'] and v_edge == node['id']:
-                            return link['id']
 
     def _get_pipeline_id(self, pipeline: dict, node_id: str) -> str:
         """
@@ -745,7 +713,8 @@ class PipelineValidationManager(SingletonConfigurable):
             if prop["parameter_ref"] == f"elyra_{node_property}":
                 return prop['data'].get('format', 'string')
 
-    def _get_parent_id_list(self, pipeline_definition, node_id_list: list, parent_list: list) -> List:
+    def _get_parent_id_list(self, pipeline_definition: PipelineDefinition,
+                            node_id_list: list, parent_list: list) -> List:
         """
         Helper function to return a complete list of parent node_ids
         :param pipeline_definition: the complete pipeline definition
