@@ -449,7 +449,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # and its parent's outputs.
 
         PipelineProcessor._propagate_operation_inputs_outputs(pipeline, sorted_operations)
-        component_task_factories = {}
 
         for operation in sorted_operations:
 
@@ -538,7 +537,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         output_node_id = property_value['value']
                         output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
                         operation.component_params[component_property.ref] = \
-                            component_task_factories[output_node_id].outputs[output_node_parameter_key]
+                            target_ops[output_node_id].outputs[output_node_parameter_key]
                     elif component_property.data_type == 'dictionary':
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
@@ -579,8 +578,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     # Create ContainerOp instance and assign appropriate user-provided name
                     container_op = factory_function(**operation.component_params_as_dict)
                     container_op.set_display_name(operation.name)
-
-                    component_task_factories[operation.id] = container_op
 
                     target_ops[operation.id] = container_op
                 except Exception as e:
