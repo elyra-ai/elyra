@@ -339,7 +339,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                        "propertyName": node_property,
                                                                        "keyName": key})
 
-                                node_ids = list(x.get('node_id_ref', None) for x in node.get_component_links)
+                                node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
                                 parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
                                 if node.get_component_parameter(node_property)['value'] not in parent_list:
                                     response.add_message(severity=ValidationSeverity.Error,
@@ -527,7 +527,6 @@ class PipelineValidationManager(SingletonConfigurable):
 
         for single_pipeline in pipeline_json['pipelines']:
             node_list = single_pipeline['nodes']
-
             for node in node_list:
                 if node['type'] == "execution_node":
                     graph.add_node(node['id'])
@@ -757,7 +756,17 @@ class PipelineValidationManager(SingletonConfigurable):
         for node_id in node_id_list:
             node = pipeline_definition.get_node(node_id)
             if node:
-                parent_list.append(node_id)
-                node_ids = list(x.get('node_id_ref', None) for x in node.get_component_links)
-                self._get_parent_id_list(pipeline_definition, node_ids, parent_list)
+                if node.type in ['execution_node', 'super_node']:
+                    parent_list.append(node_id)
+                    node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
+                    for nid in node_ids:  # look-ahead to determine if node is a binding node
+                        if pipeline_definition.get_node(nid).type == 'binding':
+                            node_ids.remove(nid)
+                            for super_node in pipeline_definition.get_supernodes():
+                                if super_node['inputs'][0]['subflow_node_ref'] == nid:
+                                    links = list(x.get('node_id_ref', None) for x in super_node.component_links)
+                                    node_ids.append(links)
+                    self._get_parent_id_list(pipeline_definition, node_ids, parent_list)
+                else:  # binding node
+                    pass
         return parent_list

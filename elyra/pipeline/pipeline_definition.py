@@ -228,13 +228,16 @@ class Node(AppDataBase):
             return None
 
     @property
-    def get_component_links(self) -> List:
+    def component_links(self) -> List:
         """
         Retrieve component links to other components.
-        These values are stored in inputs.links
         :return: the list of links associated with this node or an empty list if none are found
         """
-        return self._node['inputs'][0].get('links', [])
+        if self.type in ['execution_node', 'super_node']:
+            return self._node['inputs'][0].get('links', [])
+        else:
+            #  binding nodes do not contain links
+            return []
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
@@ -418,7 +421,7 @@ class PipelineDefinition(object):
 
     def is_valid(self) -> bool:
         """
-        Represents wether or not the pipeline structure is valid
+        Represents whether or not the pipeline structure is valid
         :return: True for a valid pipeline definition
         """
         return len(self.validate()) == 0
@@ -454,3 +457,15 @@ class PipelineDefinition(object):
                 if node.id == node_id:
                     return node
         return None
+
+    def get_supernodes(self) -> List[Node]:
+        """
+        Returns a list of all supernodes in the pipeline
+        :return:
+        """
+        supernode_list = []
+        for pipeline in self._pipelines:
+            for node in pipeline.nodes:
+                if node.type == "super_node":
+                    supernode_list.append(node)
+        return supernode_list
