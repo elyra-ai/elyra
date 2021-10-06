@@ -31,11 +31,13 @@
         }
       ],
       "app_data": {
-        "name": "{{name}}",
         "runtime": "{{runtime}}",
         "runtime-config": "{{runtime-config}}",
         "ui_data": {
           "comments": []
+        },
+        "properties": {
+          "name": "{{name}}"
         },
         "version": 5
       }

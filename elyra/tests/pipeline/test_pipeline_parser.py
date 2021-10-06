@@ -145,7 +145,7 @@ def test_pipeline_global_attributes():
 
 def test_missing_pipeline_name_should_default_to_untitled():
     pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['app_data'].pop('name')
+    pipeline_json['pipelines'][0]['app_data']['properties'].pop('name')
 
     pipeline = PipelineParser().parse(pipeline_json)
 

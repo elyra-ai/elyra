@@ -232,9 +232,11 @@
         }
       ],
       "app_data": {
-        "name": "pipeline-title",
         "ui_data": {
           "comments": []
+        },
+        "properties": {
+          "name": "pipeline-title"
         },
         "version": 5,
         "runtime": "kfp",
