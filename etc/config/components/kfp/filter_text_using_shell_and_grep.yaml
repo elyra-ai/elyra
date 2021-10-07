@@ -15,6 +15,7 @@
 # Component source location: https://raw.githubusercontent.com/kubeflow/pipelines/master/components/sample/Shell_script/component.yaml
 # Component details: Takes a text file and a regex pattern filter to produce a filtered text file
 name: Filter text
+description: Filter input text according to the given regex pattern using shell and grep.
 inputs:
 - {name: Text, optional: false, description: 'Path to file to be filtered'}
 - {name: Pattern, optional: true, default: '.*', description: 'Regex pattern'}

@@ -146,17 +146,25 @@ class PipelineValidationManager(SingletonConfigurable):
                                            pipeline_runtime=pipeline_runtime,
                                            response=response)
 
+        self._validate_pipeline_graph(pipeline=pipeline, response=response)
+
+        if response.has_fatal:
+            return response
+
         await self._validate_node_properties(pipeline_definition=pipeline_definition,
                                              pipeline_type=pipeline_type,
                                              pipeline_runtime=pipeline_runtime,
                                              response=response)
 
-        self._validate_pipeline_graph(pipeline=pipeline, response=response)
-
         return response
 
     def _validate_pipeline_structure(self, pipeline_definition: PipelineDefinition,
                                      response: ValidationResponse) -> None:
+        """
+        Validates the pipeline structure based on version of schema
+        :param pipeline_definition: the pipeline definition to be validated
+        :param response: ValidationResponse containing the issue list to be updated
+        """
 
         # Validate pipeline schema version
         if float(pipeline_definition.schema_version) != PIPELINE_CURRENT_SCHEMA:
@@ -193,6 +201,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         Checks that the pipeline payload is compatible with this version of elyra (ISSUE #938)
         as well as verifying all nodes in the pipeline are supported by the runtime
+        :param pipeline_definition: the pipeline definition to be validated
         :param pipeline_type: name of the pipeline runtime being used e.g. kfp, airflow, generic
         :param pipeline_runtime: name of the pipeline runtime for execution  e.g. kfp, airflow, local
         :param response: ValidationResponse containing the issue list to be updated
@@ -221,7 +230,9 @@ class PipelineValidationManager(SingletonConfigurable):
                         if node.type == "execution_node" and node.op not in supported_ops:
                             response.add_message(severity=ValidationSeverity.Error,
                                                  message_type="invalidNodeType",
-                                                 message="Unsupported node type found in this pipeline",
+                                                 message="This component was not found in the registry. Please add it "
+                                                         "to your component registry or remove this node from the "
+                                                         "pipeline",
                                                  data={"nodeID": node.id,
                                                        "nodeOpName": node.op,
                                                        "nodeName": node.label,
@@ -241,7 +252,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         Validates each of the node's structure for required fields/properties as well as
         their values
-        :param pipeline: the pipeline definition to be validated
+        :param pipeline_definition: the pipeline definition to be validated
         :param pipeline_type: name of the pipeline runtime being used e.g. kfp, airflow, generic
         :param pipeline_runtime: name of the pipeline runtime for execution  e.g. kfp, airflow, local
         :param response: ValidationResponse containing the issue list to be updated
@@ -303,21 +314,40 @@ class PipelineValidationManager(SingletonConfigurable):
 
                         for node_property in cleaned_property_list:
                             if not node.get_component_parameter(node_property):
-                                if self._is_required_property(property_dict, f"elyra_{node_property}"):
+                                if self._is_required_property(property_dict, node_property):
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
                                                          message="Node is missing required property.",
                                                          data={"nodeID": node.id,
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
-                            elif not isinstance(node.get_component_parameter(node_property),
-                                                type(property_dict['current_parameters']['elyra_' + node_property])):
-                                response.add_message(severity=ValidationSeverity.Error,
-                                                     message_type="invalidNodeProperty",
-                                                     message="Node property is incorrect type.",
-                                                     data={"nodeID": node.id,
-                                                           "nodeName": node_label,
-                                                           "propertyName": node_property})
+                            elif self._get_component_type(property_dict, node_property) == 'inputpath':
+                                if len(node.get_component_parameter(node_property).keys()) < 2:
+                                    response.add_message(severity=ValidationSeverity.Error,
+                                                         message_type="invalidNodeProperty",
+                                                         message="Node is missing required output property parameter",
+                                                         data={"nodeID": node.id,
+                                                               "nodeName": node_label})
+                                else:
+                                    for key in node.get_component_parameter(node_property).keys():
+                                        if key not in ['value', 'option']:
+                                            response.add_message(severity=ValidationSeverity.Error,
+                                                                 message_type="invalidNodeProperty",
+                                                                 message="Node property has invalid key.",
+                                                                 data={"nodeID": node.id,
+                                                                       "nodeName": node_label,
+                                                                       "propertyName": node_property,
+                                                                       "keyName": key})
+
+                                node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
+                                parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
+                                if node.get_component_parameter(node_property)['value'] not in parent_list:
+                                    response.add_message(severity=ValidationSeverity.Error,
+                                                         message_type="invalidNodeProperty",
+                                                         message="Node contains an invalid inputpath reference. Please "
+                                                                 "check your node-to-node connections",
+                                                         data={"nodeID": node.id,
+                                                               "nodeName": node_label})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:
@@ -325,6 +355,7 @@ class PipelineValidationManager(SingletonConfigurable):
         Validates the image name exists and is proper in syntax
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
+        :param image_name: container image name to be evaluated
         :param response: ValidationResponse containing the issue list to be updated
         """
         if not image_name:
@@ -341,9 +372,9 @@ class PipelineValidationManager(SingletonConfigurable):
         Validates the value for hardware resources requested
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
-        :param response: ValidationResponse containing the issue list to be updated
         :param resource_name: the name of the resource e.g. cpu, gpu. memory
         :param resource_value: the value of the resource
+        :param response: ValidationResponse containing the issue list to be updated
         """
         try:
             if int(resource_value) <= 0:
@@ -371,9 +402,9 @@ class PipelineValidationManager(SingletonConfigurable):
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
         :param property_name: name of the node property being validated
-        :param file_dir: the dir path of the where the pipeline file resides in the elyra workspace
         :param filename: the name of the file or directory to verify
         :param response: ValidationResponse containing the issue list to be updated
+        :param file_dir: the dir path of the where the pipeline file resides in the elyra workspace
         """
         file_dir = file_dir or self.root_dir
 
@@ -435,7 +466,6 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         KFP specific check for the label name when constructing the node operation using dsl
         :param node_id: the unique ID of the node
-        :param filename: the name of the file with or without a relative path prefix
         :param node_label: the given node name or user customized name/label of the node
         :param response: ValidationResponse containing the issue list to be updated
         """
@@ -497,14 +527,20 @@ class PipelineValidationManager(SingletonConfigurable):
 
         for single_pipeline in pipeline_json['pipelines']:
             node_list = single_pipeline['nodes']
-
             for node in node_list:
                 if node['type'] == "execution_node":
                     graph.add_node(node['id'])
                     if node.get('inputs'):
-                        if 'links' in node['inputs'][0]:
+                        if "links" in node['inputs'][0]:
                             for link in node['inputs'][0]['links']:
-                                graph.add_edge(link['node_id_ref'], node['id'])
+                                if "_outPort" in link['port_id_ref']:  # is ref to node, doesnt add links to supernodes
+                                    graph.add_edge(link['port_id_ref'].strip('_outPort'), node['id'])
+                                elif link['port_id_ref'] == "outPort":  # do not link to bindings
+                                    graph.add_edge(link['node_id_ref'], node['id'])
+                if node['type'] == "super_node":
+                    for link in node['inputs'][0]['links']:
+                        child_node_id = node['inputs'][0]['id'].strip("_inPort")
+                        graph.add_edge(link['node_id_ref'], child_node_id)
 
         for isolate in nx.isolates(graph):
             if graph.number_of_nodes() > 1:
@@ -518,46 +554,11 @@ class PipelineValidationManager(SingletonConfigurable):
 
         cycles_detected = nx.simple_cycles(graph)
 
-        link_dict_table = {}
-        cycle_counter = 1
-        for cycle in cycles_detected:
-            size_of_cycle = len(cycle)
-            if cycle_counter not in link_dict_table:
-                link_dict_table[cycle_counter] = []
-            for i in range(size_of_cycle):
-                if i == size_of_cycle - 1:
-                    link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[0]))
-                else:
-                    link_dict_table[cycle_counter].append(self._get_link_id(pipeline, cycle[i], cycle[i + 1]))
-            cycle_counter += 1
-
-        for cycle_number, cycle_link_list in link_dict_table.items():
+        if len(list(cycles_detected)) > 0:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="circularReference",
                                  message="The pipeline contains a circular dependency between nodes.",
-                                 data={"cycleNumber": cycle_number,
-                                       "nodeNames": self._get_node_labels(pipeline,
-                                                                          cycle_link_list),
-                                       "linkIDList": cycle_link_list})
-
-    def _get_link_id(self, pipeline: dict, u_edge: str, v_edge: str) -> str:
-        """
-        Retrieves the LinkID associated with the connecting edge from u_edge to v_edge
-        :param pipeline: pipeline definition where the link is located
-        :param u_edge: the starting node_id edge
-        :param v_edge: the ending node_id_edge
-        :return: a string Link ID representing the edge connecting one node to another
-        """
-        pipeline_json = json.loads(json.dumps(pipeline))
-
-        for single_pipeline in pipeline_json['pipelines']:
-            node_list = single_pipeline['nodes']
-
-            for node in node_list:
-                if node['type'] == "execution_node":
-                    for link in node['inputs'][0].get('links', []):
-                        if u_edge == link['node_id_ref'] and v_edge == node['id']:
-                            return link['id']
+                                 data={})
 
     def _get_pipeline_id(self, pipeline: dict, node_id: str) -> str:
         """
@@ -697,6 +698,44 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         node_op_parameter_list = property_dict['uihints']['parameter_info']
         for parameter in node_op_parameter_list:
-            if parameter['parameter_ref'] == node_property:
+            if parameter['parameter_ref'] == f"elyra_{node_property}":
                 return parameter['data']['required']
         return False
+
+    def _get_component_type(self, property_dict: dict, node_property: str) -> str:
+        """
+        Helper function to determine the type of a node property
+        :param property_dict: a dictionary containing the full list of property parameters and descriptions
+        :param node_property: the property to look for
+        :return: the data type associated with node_property, defaults to 'string'
+        """
+        for prop in property_dict['uihints']['parameter_info']:
+            if prop["parameter_ref"] == f"elyra_{node_property}":
+                return prop['data'].get('format', 'string')
+
+    def _get_parent_id_list(self, pipeline_definition: PipelineDefinition,
+                            node_id_list: list, parent_list: list) -> List:
+        """
+        Helper function to return a complete list of parent node_ids
+        :param pipeline_definition: the complete pipeline definition
+        :param node_id_list: list of parent node ids
+        :param parent_list: the list to add additional found parent node ids
+        :return:
+        """
+        for node_id in node_id_list:
+            node = pipeline_definition.get_node(node_id)
+            if node:
+                if node.type in ['execution_node', 'super_node']:
+                    parent_list.append(node_id)
+                    node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
+                    for nid in node_ids:  # look-ahead to determine if node is a binding node
+                        if pipeline_definition.get_node(nid).type == 'binding':
+                            node_ids.remove(nid)
+                            for super_node in pipeline_definition.get_supernodes():
+                                if super_node['inputs'][0]['subflow_node_ref'] == nid:
+                                    links = list(x.get('node_id_ref', None) for x in super_node.component_links)
+                                    node_ids.append(links)
+                    self._get_parent_id_list(pipeline_definition, node_ids, parent_list)
+                else:  # binding node
+                    pass
+        return parent_list

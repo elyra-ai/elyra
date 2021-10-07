@@ -256,6 +256,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
+
                     if component_property.data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template

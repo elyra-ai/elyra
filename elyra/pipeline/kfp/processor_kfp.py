@@ -55,7 +55,6 @@ from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.util.path import get_absolute_path
-from elyra.util.path import get_expanded_path
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
@@ -533,15 +532,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
-                    if component_property.data_type == "file":
-                        filename = get_absolute_path(get_expanded_path(self.root_dir), property_value)
-                        try:
-                            with open(filename) as f:
-                                operation.component_params[component_property.ref] = f.read()
-                        except Exception:
-                            # If file can't be found locally, assume a remote file location was entered.
-                            # This may cause the pipeline run to fail; the user must debug in this case.
-                            pass
+
+                    if component_property.data_type == "inputpath":
+                        output_node_id = property_value['value']
+                        output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
+                        operation.component_params[component_property.ref] = \
+                            target_ops[output_node_id].outputs[output_node_parameter_key]
                     elif component_property.data_type == 'dictionary':
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
@@ -566,9 +562,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
-                    # Remove inputs and outputs from params dict until support for data exchange is provided
-                    operation.component_params_as_dict.pop("inputs")
-                    operation.component_params_as_dict.pop("outputs")
+                    comp_spec_inputs = [inputs.name.lower().replace(" ", "_") for
+                                        inputs in factory_function.component_spec.inputs]
+
+                    # Remove inputs and outputs from params dict
+                    # TODO: need to have way to retrieve only required params
+                    parameter_removal_list = ["inputs", "outputs"]
+                    for component_param in operation.component_params_as_dict.keys():
+                        if component_param not in comp_spec_inputs:
+                            parameter_removal_list.append(component_param)
+
+                    for parameter in parameter_removal_list:
+                        operation.component_params_as_dict.pop(parameter, None)
 
                     # Create ContainerOp instance and assign appropriate user-provided name
                     container_op = factory_function(**operation.component_params_as_dict)

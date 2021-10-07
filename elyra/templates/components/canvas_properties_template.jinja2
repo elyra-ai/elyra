@@ -1,33 +1,53 @@
 {
     "current_parameters": {
+      {% if component.description %}"component_description": "{{ component.description }}",{% endif %}
       "label": "",
-      "component_source": "{{ component.location }}"{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
     {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
       "elyra_{{ property.ref }}": {{ property.value|lower }}
     {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
       "elyra_{{ property.ref }}": {{ property.value }}
+    {% elif property.type|lower == "dict" %}
+      "elyra_{{ property.ref }}": '{'{{ property.value }}'}'
     {% else %}
       "elyra_{{ property.ref }}": "{{ property.value }}"
-    {% endif %}{% if loop.index != component.properties|length %},{% endif %}
+    {% endif %},
 {% endfor %}
+      "component_source": "{{ component.location }}"
     },
     "parameters": [
+      {% if component.description %}{
+        "id": "component_description"
+      },{% endif %}
       {
         "id": "label"
       },
-      {
-        "id": "component_source"
-      }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
       {
         "id": "elyra_{{ property.ref }}"
-      }{% if loop.index != component.properties|length %},{% endif %}
+      },
 {% endfor %}
+      {
+        "id": "component_source"
+      }
     ],
     "uihints": {
       "id": "nodeProperties",
       "parameter_info": [
+        {% if component.description %}{
+          "parameter_ref": "component_description",
+          "control": "readonly",
+          "label": {
+            "default": "Component Description"
+          },
+          "description": {
+            "default": " ",
+            "placement": "on_panel"
+          },
+          "data": {
+            "required": false
+          }
+        },{% endif %}
         {
           "parameter_ref": "label",
           "control": "custom",
@@ -41,18 +61,6 @@
           },
           "data": {}
         },
-        {
-          "parameter_ref": "component_source",
-          "control": "readonly",
-          "label": {
-            "default": "Component Source"
-          },
-          "description": {
-            "default": "The path to the component specification file.",
-            "placement": "on_panel"
-          },
-          "data": {}
-        }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
         {
           "parameter_ref": "elyra_{{ property.ref }}",
@@ -80,31 +88,48 @@
               ]
             {% endif %}
           }
-        }{% if loop.index != component.properties|length %},{% endif %}
+        },
 {% endfor %}
+        {
+          "parameter_ref": "component_source",
+          "control": "readonly",
+          "label": {
+            "default": "Component Source"
+          },
+          "description": {
+            "default": "The path to the component specification file.",
+            "placement": "on_panel"
+          },
+          "data": {}
+        }
       ],
       "group_info": [
         {
           "id": "nodeGroupInfo",
           "type": "panels",
           "group_info": [
+            {% if component.description %}{
+              "id": "component_description",
+              "type": "controls",
+              "parameter_refs": ["component_description"]
+            },{% endif %}
             {
               "id": "label",
               "type": "controls",
               "parameter_refs": ["label"]
             },
-            {
-              "id": "component_source",
-              "type": "controls",
-              "parameter_refs": ["component_source"]
-            }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
             {
               "id": "elyra_{{ property.ref }}",
               "type": "controls",
               "parameter_refs": ["elyra_{{ property.ref }}"]
-            }{% if loop.index != component.properties|length %},{% endif %}
+            },
 {% endfor %}
+            {
+              "id": "component_source",
+              "type": "controls",
+              "parameter_refs": ["component_source"]
+            }
           ]
         }
       ]
