@@ -151,7 +151,10 @@ elyra
 ```
 
 ### Backend tests
-To run all server tests, use `make test-server` from the root directory. To run specific backend tests, run `pytest` followed by the path to a directory or file inside the [server tests](https://github.com/elyra-ai/elyra/tree/master/elyra/tests) folder.
+To run all server tests, use `make test-server` from the root directory. There are also a two ways to run only specific backend tests:
+
+* To run all tests in a specific directory or file, run `pytest [resource]` where `resource` is the relative path to a directory or file inside the [server tests](https://github.com/elyra-ai/elyra/tree/master/elyra/tests) folder.
+* To run specific tests by function name, run `pytest -k [test_function1 test_function2 ...]`
 
 
 ## Elyra documentation
