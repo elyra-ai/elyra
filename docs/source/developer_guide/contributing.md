@@ -74,9 +74,11 @@ and unit tests (which use [jest](https://jestjs.io/docs/en/getting-started)).
 
 #### UI Integration tests
 Before running integration tests, docker needs to be installed and running on your machine.
-There are two ways to run the integration tests: to only see the output logs from all of the integration tests,
-run `make test-integration` from the root directory. To debug tests that are going wrong or develop new tests,
-run `make test-integration-debug` - this will open an interactive tool for writing and debugging tests.
+There are two ways to run the integration tests:
+* To only see the output logs from all of the integration tests,
+run `make test-integration` from the root directory.
+* To run or debug specific tests,
+run `make test-integration-debug`. This will open an interactive UI tool for writing and debugging individual test files.
 
 Elyra's integration tests automatically start JupyterLab and visit / interact with pages through cypress API calls.
 The tests use the cypress API to check for the existence of various buttons and visual elements.
@@ -147,6 +149,9 @@ elyra
     -- templates
     -- util
 ```
+
+### Backend tests
+To run all server tests, use `make test-server` from the root directory. To run specific backend tests, run `pytest` followed by the path to a directory or file inside the [server tests](https://github.com/elyra-ai/elyra/tree/master/elyra/tests) folder.
 
 
 ## Elyra documentation
