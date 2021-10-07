@@ -11,10 +11,9 @@
 
 - Refactor kubeflow pipelines flow and improve dex auth - [#2167](https://github.com/elyra-ai/elyra/pull/2167)
 - Support data exchange between KFP components - [#2094](https://github.com/elyra-ai/elyra/pull/2094)
-- Use tmpdir fixture instead of /tmp/lib in bootstrapper test
-- update snapshots with new encoded svgs
-- Clean up svg files
-- Fix metadata class links
+- Use tmpdir fixture instead of /tmp/lib in bootstrapper test - [#2200](https://github.com/elyra-ai/elyra/pull/2200)
+- Clean up svg files - [#2195](https://github.com/elyra-ai/elyra/pull/2195)
+- Fix metadata class links - [#2198](https://github.com/elyra-ai/elyra/pull/2198)
 - Fix pipeline name calculation algorithm - [#2181](https://github.com/elyra-ai/elyra/pull/2181)
 - Update component registry schema to enforce length for categories - [#2193](https://github.com/elyra-ai/elyra/pull/2193)
 - Implement Bring Your Own Schemas and Schemaspaces feature - [#2109](https://github.com/elyra-ai/elyra/pull/2109)
