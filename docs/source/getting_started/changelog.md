@@ -1,5 +1,43 @@
 # Changelog
 
+## Release 3.2.0rc0 - 10/06/2021
+
+- Refactor kubeflow pipelines flow and improve dex auth - [#2167](https://github.com/elyra-ai/elyra/pull/2167)
+- Support data exchange between KFP components - [#2094](https://github.com/elyra-ai/elyra/pull/2094)
+- Use tmpdir fixture instead of /tmp/lib in bootstrapper test
+- update snapshots with new encoded svgs
+- Clean up svg files
+- Fix metadata class links
+- Fix pipeline name calculation algorithm - [#2181](https://github.com/elyra-ai/elyra/pull/2181)
+- Update component registry schema to enforce length for categories - [#2193](https://github.com/elyra-ai/elyra/pull/2193)
+- Implement Bring Your Own Schemas and Schemaspaces feature - [#2109](https://github.com/elyra-ai/elyra/pull/2109)
+- Add stub for 'custom pipeline components' topic to docs - [#2179](https://github.com/elyra-ai/elyra/pull/2179)
+- Document issue management workflow - [#2035](https://github.com/elyra-ai/elyra/pull/2035)
+- Refactor tests to common parent folder to better code sharing - [#2160](https://github.com/elyra-ai/elyra/pull/2160)
+- Add link to KFP custom component tutorial - [#2178](https://github.com/elyra-ai/elyra/pull/2178)
+- Add link to hackmd dev meeting notes to documentation - [#2177](https://github.com/elyra-ai/elyra/pull/2177)
+- Add daily dev meetig info to docs - [#2176](https://github.com/elyra-ai/elyra/pull/2176)
+- Parallelize reading of component definitions in registry - [#2169](https://github.com/elyra-ai/elyra/pull/2169)
+- Remove unnecessary files from Elyra python distro
+- Update root readme with daily scrum info - [#2172](https://github.com/elyra-ai/elyra/pull/2172)
+- Add 'properties' element to run as pipeline template - [#2170](https://github.com/elyra-ai/elyra/pull/2170)
+- Add rollback to metadata when post_save/delete hooks throw - [#2163](https://github.com/elyra-ai/elyra/pull/2163)
+- Add manage pipeline components content to user guide - [#2104](https://github.com/elyra-ai/elyra/pull/2104)
+- Update docs for Troubleshooting and Contribution sections - [#2149](https://github.com/elyra-ai/elyra/pull/2149)
+- Fix caching to update immediately after component registry modifications - [#2157](https://github.com/elyra-ai/elyra/pull/2157)
+- Comment out support for '[item1,item2]'; breaks int, bool, number
+- Handle non-quoted items in array
+- Attempt to coerce string values for array types to lists
+- Catch argument errors and display formatting hints
+- Add argo icon to ui-components - [#2156](https://github.com/elyra-ai/elyra/pull/2156)
+- Refactor different runtimes into its own folder/module - [#2125](https://github.com/elyra-ai/elyra/pull/2125)
+- Enable json option for pipeline cli commands - [#2118](https://github.com/elyra-ai/elyra/pull/2118)
+- Add export pipeline to Python DSL test case - [#2142](https://github.com/elyra-ai/elyra/pull/2142)
+- Reformat the processor registration logging - [#2155](https://github.com/elyra-ai/elyra/pull/2155)
+- Make improvements to Airflow DAG render - [#2131](https://github.com/elyra-ai/elyra/pull/2131)
+- Properly describe empty pipelines using Pipelines CLI - [#2115](https://github.com/elyra-ai/elyra/pull/2115)
+- Fix pipeline upload on Windows system - [#2150](https://github.com/elyra-ai/elyra/pull/2150)
+
 ## Release 3.1.1 - 09/15/2021
 
 - Update Pipeline Editor to version 1.2.0 - [#2143](https://github.com/elyra-ai/elyra/pull/2143)
