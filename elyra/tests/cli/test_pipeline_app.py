@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 """Tests for elyra-pipeline application"""
+import json
 import os
 
 from click.testing import CliRunner
@@ -274,3 +275,60 @@ def test_describe_with_empty_pipeline():
         assert "Description: None" in result.output
         assert "Type: generic" in result.output
         assert "Nodes: 0" in result.output
+
+
+def test_describe_with_kfp_components():
+    runner = CliRunner()
+    pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
+
+    result = runner.invoke(pipeline, ['describe', pipeline_file_path])
+    assert "Description: 3-node custom component pipeline" in result.output
+    assert "Type: kfp" in result.output
+    assert "Nodes: 3" in result.output
+    assert result.exit_code == 0
+
+
+def test_validate_with_kfp_components():
+    runner = CliRunner()
+    pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
+
+    result = runner.invoke(pipeline, ['validate', pipeline_file_path])
+    assert "Validating pipeline..." in result.output
+    assert result.exit_code == 0
+
+
+def test_describe_with_missing_kfp_component():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        valid_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
+        pipeline_file_path = os.path.join(os.getcwd(), 'foo.pipeline')
+        with open(pipeline_file_path, 'w') as pipeline_file:
+            with open(valid_file_path) as valid_file:
+                valid_data = json.load(valid_file)
+                # Update known component name to trigger a missing component
+                valid_data['pipelines'][0]['nodes'][0]['op'] = valid_data['pipelines'][0]['nodes'][0]['op'] + 'Missing'
+                pipeline_file.write(json.dumps(valid_data))
+
+        result = runner.invoke(pipeline, ['describe', pipeline_file_path])
+        assert "Description: 3-node custom component pipeline" in result.output
+        assert "Type: kfp" in result.output
+        assert "Nodes: 3" in result.output
+        assert result.exit_code == 0
+
+
+def test_validate_with_missing_kfp_component():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        valid_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
+        pipeline_file_path = os.path.join(os.getcwd(), 'foo.pipeline')
+        with open(pipeline_file_path, 'w') as pipeline_file:
+            with open(valid_file_path) as valid_file:
+                valid_data = json.load(valid_file)
+                # Update known component name to trigger a missing component
+                valid_data['pipelines'][0]['nodes'][0]['op'] = valid_data['pipelines'][0]['nodes'][0]['op'] + 'Missing'
+                pipeline_file.write(json.dumps(valid_data))
+
+        result = runner.invoke(pipeline, ['validate', pipeline_file_path])
+        assert "Validating pipeline..." in result.output
+        assert "[Error][Calculate data hash] - This component was not found in the registry." in result.output
+        assert result.exit_code != 0

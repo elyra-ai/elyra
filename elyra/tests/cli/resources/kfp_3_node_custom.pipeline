@@ -1,0 +1,190 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "151538a2-4279-49a4-8742-c3ed50c31b2d",
+          "type": "execution_node",
+          "op": "component_Calculatedatahash",
+          "app_data": {
+            "component_parameters": {
+              "hash_algorithm": "SHA256",
+              "output_hash": "",
+              "data": {
+                "value": "b7d9fe00-2a2d-4bd8-8fc4-73a9d8917052",
+                "option": "elyra_output_filtered_text"
+              }
+            },
+            "label": "",
+            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml",
+            "ui_data": {
+              "label": "Calculate data hash",
+              "x_pos": 90,
+              "y_pos": 238.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "05c3101a-9f63-4a0d-9184-ec011fa38511",
+                  "node_id_ref": "b7d9fe00-2a2d-4bd8-8fc4-73a9d8917052",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "321b18d9-1585-4a08-9ca7-9128ee3df527",
+          "type": "execution_node",
+          "op": "component_Downloaddata",
+          "app_data": {
+            "component_parameters": {
+              "url": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/error.py",
+              "curl_options": "--location",
+              "output_data": ""
+            },
+            "label": "",
+            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
+            "ui_data": {
+              "label": "Download data",
+              "x_pos": 30,
+              "y_pos": 10.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "b7d9fe00-2a2d-4bd8-8fc4-73a9d8917052",
+          "type": "execution_node",
+          "op": "filter_text_using_shell_and_grep_Filtertext",
+          "app_data": {
+            "component_parameters": {
+              "component_description": "Filter input text according to the given regex pattern using shell and grep.",
+              "pattern": "*Error",
+              "output_filtered_text": "",
+              "text": {
+                "value": "321b18d9-1585-4a08-9ca7-9128ee3df527",
+                "option": "elyra_output_data"
+              }
+            },
+            "component_source": "/opt/anaconda3/envs/elyra-dev/share/jupyter/components/kfp/filter_text_using_shell_and_grep.yaml",
+            "ui_data": {
+              "label": "Filter text",
+              "x_pos": 33,
+              "y_pos": 89.5,
+              "description": "Filter input text according to the given regex pattern using shell and grep."
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "99d621f2-63ac-4cef-8f42-7505ccc40792",
+                  "node_id_ref": "321b18d9-1585-4a08-9ca7-9128ee3df527",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 5,
+        "runtime": "kfp",
+        "properties": {
+          "name": "kfp_custom",
+          "runtime": "Kubeflow Pipelines",
+          "description": "3-node custom component pipeline"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}
