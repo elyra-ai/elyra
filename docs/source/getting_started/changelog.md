@@ -1,5 +1,12 @@
 # Changelog
 
+## Release 3.2.0rc1 - 10/07/2021
+
+- Update developer testing documentation - [#2207](https://github.com/elyra-ai/elyra/pull/2207)
+- Exclude kfp dependency version 1.7.2 - [#2209](https://github.com/elyra-ai/elyra/pull/2209)
+- Tolerate components w/ no dependencies, add tests with custom components - [#2206](https://github.com/elyra-ai/elyra/pull/2206)
+- Fix ability to override pipeline name at submission - [#2205](https://github.com/elyra-ai/elyra/pull/2205)
+
 ## Release 3.2.0rc0 - 10/06/2021
 
 - Refactor kubeflow pipelines flow and improve dex auth - [#2167](https://github.com/elyra-ai/elyra/pull/2167)
