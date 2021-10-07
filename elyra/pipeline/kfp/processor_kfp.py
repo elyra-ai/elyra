@@ -14,13 +14,13 @@
 # limitations under the License.
 #
 from datetime import datetime
-import json
 import logging
 import os
 import re
 import tempfile
 import time
 from typing import Dict
+from urllib.parse import urlsplit
 
 import autopep8
 from jinja2 import Environment
@@ -31,11 +31,8 @@ from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
-from kfp_server_api.exceptions import ApiException
 from kubernetes import client as k8s_client
 import requests
-from urllib3.exceptions import LocationValueError
-from urllib3.exceptions import MaxRetryError
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
     from kfp_tekton import TektonClient
@@ -46,8 +43,8 @@ except ImportError:
 
 from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
-from elyra.metadata.manager import MetadataManager
-from elyra.metadata.schema import SchemaFilter
+from elyra.metadata.schemaspaces import RuntimeImages
+from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
@@ -55,7 +52,6 @@ from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.util.path import get_absolute_path
-from elyra.util.path import get_expanded_path
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
@@ -75,208 +71,293 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         super().__init__(root_dir, component_parser=KfpComponentParser(), **kwargs)
 
     def process(self, pipeline):
-        """Runs a pipeline on Kubeflow Pipelines
+        """
+        Runs a pipeline on Kubeflow Pipelines
 
         Each time a pipeline is processed, a new version
         is uploaded and run under the same experiment name.
         """
-
-        t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
-                                                                 name=pipeline.runtime_config)
+        ################
+        # Runtime Configs
+        ################
+        runtime_configuration = self._get_metadata_configuration(
+            schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
+            name=pipeline.runtime_config
+        )
 
+        # unpack Kubeflow Pipelines configs
         api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
+        api_username = runtime_configuration.metadata.get('api_username')
+        api_password = runtime_configuration.metadata.get('api_password')
+        user_namespace = runtime_configuration.metadata.get('user_namespace')
+        engine = runtime_configuration.metadata.get('engine')
+        if engine == 'Tekton' and not TektonClient:
+            raise ValueError(
+                "Python package `kfp-tekton` is not installed. "
+                "Please install using `elyra[kfp-tekton]` to use Tekton engine."
+            )
+
+        # unpack Cloud Object Storage configs
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
-        user_namespace = runtime_configuration.metadata.get('user_namespace')
+        ################
+        # Istio Auth Session
+        ################
+        try:
+            auth_session = self._get_istio_auth_session(
+                url=api_endpoint,
+                username=api_username,
+                password=api_password
+            )
+        except Exception as ex:
+            raise RuntimeError(
+                f"Failed to create istio auth session for Kubeflow endpoint: '{api_endpoint}' - "
+                f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
+            ) from ex
 
-        # TODO: try to encapsulate the info below
-        api_username = runtime_configuration.metadata.get('api_username')
-        api_password = runtime_configuration.metadata.get('api_password')
+        self.log.debug(f"Kubeflow istio `auth_session` dict: {auth_session}")
 
-        engine = runtime_configuration.metadata.get('engine')
-        if engine == 'Tekton' and not TektonClient:
-            raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
+        #############
+        # Kubeflow Client
+        #############
+        try:
+            if engine == "Tekton":
+                client = TektonClient(
+                    host=api_endpoint,
+                    cookies=auth_session['session_cookie'],
+                    namespace=user_namespace
+                )
+            else:
+                client = ArgoClient(
+                    host=api_endpoint,
+                    cookies=auth_session['session_cookie'],
+                    namespace=user_namespace
+                )
+        except Exception as ex:
+            # a common cause of these errors is forgetting to include `/pipeline` or including it with an 's'
+            api_endpoint_obj = urlsplit(api_endpoint)
+            if api_endpoint_obj.path != "/pipeline":
+                api_endpoint_tip = api_endpoint_obj._replace(path="/pipeline").geturl()
+                tip_string = f" - [TIP: did you mean to set '{api_endpoint_tip}' as the endpoint, " \
+                             f"take care not to include 's' at end]"
+            else:
+                tip_string = ""
 
+            raise RuntimeError(
+                f"Failed to initialize `kfp.Client()` against: '{api_endpoint}' - "
+                f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
+                f"{tip_string}"
+            ) from ex
+
+        #############
+        # Verify Namespace
+        #############
+        try:
+            client.list_experiments(namespace=user_namespace, page_size=1)
+        except Exception as ex:
+            if user_namespace:
+                tip_string = f"[TIP: ensure namespace '{user_namespace}' is correct]"
+            else:
+                tip_string = "[TIP: you probably need to set a namespace]"
+
+            raise RuntimeError(
+                f"Failed to `kfp.Client().list_experiments()` against: '{api_endpoint}' - "
+                f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}' - "
+                f"{tip_string}"
+            ) from ex
+
+        #############
+        # Pipeline Metadata
+        #############
+        # generate a pipeline name
         pipeline_name = pipeline.name
-        try:
-            # Connect to the Kubeflow server, determine whether it is secured,
-            # and if it is try to authenticate with the user-provided credentials
-            # (if any were defined in the runtime configuration)
 
-            endpoint = api_endpoint.replace('/pipeline', '')
-            auth_info = \
-                KfpPipelineProcessor._get_user_auth_session_cookie(endpoint,
-                                                                   api_username,
-                                                                   api_password)
+        # generate a pipeline description
+        pipeline_description = pipeline.description
+        if pipeline_description is None:
+            pipeline_description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
-            self.log.debug(f"Kubeflow authentication info: {auth_info}")
-
-            if auth_info['endpoint_secured'] and \
-               auth_info['authservice_session_cookie'] is None:
-                # Kubeflow is secured but our attempt to authenticate did
-                # not yield the expected results. Log the collected authentication
-                # information and abort processing.
-                self.log.warning(f"Kubeflow authentication info: {auth_info}")
-                raise RuntimeError(f"Error connecting to Kubeflow at '{endpoint}'"
-                                   f": Authentication request failed. Check the "
-                                   f"Kubeflow Pipelines credentials in runtime "
-                                   f"configuration '{pipeline.runtime_config}'.")
-
-            # Create a KFP client
-            if 'Tekton' == engine:
-                client = TektonClient(host=api_endpoint,
-                                      cookies=auth_info['authservice_session_cookie'])
-            else:
-                client = ArgoClient(host=api_endpoint,
-                                    cookies=auth_info['authservice_session_cookie'])
-
-            # Determine whether a pipeline with the provided
-            # name already exists
-            pipeline_id = client.get_pipeline_id(pipeline_name)
-            if pipeline_id is None:
-                # The KFP default version name is the pipeline
-                # name
-                pipeline_version_name = pipeline_name
-            else:
-                # Append timestamp to generate unique version name
-                pipeline_version_name = f'{pipeline_name}-{timestamp}'
-            # Establish a 1:1 relationship with an experiment
-            # work around https://github.com/kubeflow/pipelines/issues/5172
-            experiment_name = pipeline_name.lower()
-            # Unique identifier for the pipeline run
-            job_name = f'{pipeline_name}-{timestamp}'
-            # Unique location on COS where the pipeline run artifacts
-            # will be stored
-            cos_directory = f'{pipeline_name}-{timestamp}'
-
-        except (requests.exceptions.ConnectionError, MaxRetryError) as ce:
-            raise RuntimeError(f"Error connecting to pipeline server {api_endpoint}.  Check the "
-                               f"Kubeflow Pipelines connection information in runtime "
-                               f"configuration '{pipeline.runtime_config}'.") from ce
-        except LocationValueError as lve:
-            if api_username:
-                raise ValueError(f"Failure occurred uploading pipeline. Check the "
-                                 f"Kubeflow Pipelines credentials in runtime "
-                                 f"configuration '{pipeline.runtime_config}'.") from lve
-            else:
-                raise lve
-
-        # Verify that user-entered namespace is valid
-        try:
-            client.list_experiments(namespace=user_namespace,
-                                    page_size=0)
-        except ApiException as ae:
-            error_msg = f"{ae.reason} ({ae.status})"
-            if ae.body:
-                error_body = json.loads(ae.body)
-                error_msg += f": {error_body['error']}"
-            if error_msg[-1] not in ['.', '?', '!']:
-                error_msg += '.'
-
-            namespace = "namespace" if not user_namespace else f"namespace {user_namespace}"
-
-            self.log.error(f"Error validating {namespace}: {error_msg}")
-            raise RuntimeError(f"Error validating {namespace}: {error_msg} " +
-                               "Please validate your runtime configuration details and retry.") from ae
-
+        #############
+        # Submit & Run the Pipeline
+        #############
         self.log_pipeline_info(pipeline_name, "submitting pipeline")
+
         with tempfile.TemporaryDirectory() as temp_dir:
+            self.log.debug(f"Created temporary directory at: {temp_dir}")
             pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
 
-            self.log.debug("Creating temp directory %s", temp_dir)
-
-            # Compile the new pipeline
+            #############
+            # Get Pipeline ID
+            #############
             try:
-                pipeline_function = lambda: self._cc_pipeline(pipeline,  # nopep8 E731
-                                                              pipeline_name=pipeline_name,
-                                                              pipeline_version=pipeline_version_name,
-                                                              experiment_name=experiment_name,
-                                                              cos_directory=cos_directory)
+                # get the kubeflow pipeline id (returns None if not found, otherwise the ID of the pipeline)
+                pipeline_id = client.get_pipeline_id(pipeline_name)
+
+                # calculate what "pipeline version" name to use
+                if pipeline_id is None:
+                    # the first "pipeline version" name must be the pipeline name
+                    pipeline_version_name = pipeline_name
+                else:
+                    # generate a unique name for a new "pipeline version" by appending the current timestamp
+                    pipeline_version_name = f"{pipeline_name}-{timestamp}"
+
+            except Exception as ex:
+                raise RuntimeError(
+                    f"Failed to get ID of Kubeflow pipeline: '{pipeline_name}' - "
+                    f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
+                ) from ex
+
+            #############
+            # Compile the Pipeline
+            #############
+            try:
+                t0 = time.time()
+
+                # generate a name for the experiment (lowercase because experiments are case intensive)
+                experiment_name = pipeline_name.lower()
+
+                # unique location on COS where the pipeline run artifacts will be stored
+                cos_directory = f"{pipeline_name}-{timestamp}"
+
+                pipeline_function = lambda: self._cc_pipeline(  # nopep8 E731
+                    pipeline,
+                    pipeline_name=pipeline_name,
+                    pipeline_version=pipeline_version_name,
+                    experiment_name=experiment_name,
+                    cos_directory=cos_directory
+                )
+
                 # collect pipeline configuration information
                 pipeline_conf = self._generate_pipeline_conf(pipeline)
 
-                if 'Tekton' == engine:
-                    kfp_tekton_compiler.TektonCompiler().compile(pipeline_function,
-                                                                 pipeline_path,
-                                                                 pipeline_conf=pipeline_conf)
+                # compile the pipeline
+                if engine == "Tekton":
+                    kfp_tekton_compiler.TektonCompiler().compile(
+                        pipeline_function,
+                        pipeline_path,
+                        pipeline_conf=pipeline_conf
+                    )
                 else:
-                    kfp_argo_compiler.Compiler().compile(pipeline_function,
-                                                         pipeline_path,
-                                                         pipeline_conf=pipeline_conf)
+                    kfp_argo_compiler.Compiler().compile(
+                        pipeline_function,
+                        pipeline_path,
+                        pipeline_conf=pipeline_conf
+                    )
             except Exception as ex:
-                if ex.__cause__:
-                    raise RuntimeError(str(ex)) from ex
-                raise RuntimeError('Error pre-processing pipeline {} for engine {} at {}'.
-                                   format(pipeline_name, engine, pipeline_path), str(ex)) from ex
+                raise RuntimeError(
+                    f"Failed to compile pipeline '{pipeline_name}' with engine '{engine}' to: '{pipeline_path}'"
+                ) from ex
 
-            self.log.debug("Kubeflow Pipeline was created in %s", pipeline_path)
+            self.log_pipeline_info(pipeline_name, "pipeline compiled", duration=time.time() - t0)
 
-            # Upload the compiled pipeline, create an experiment and run
-
+            #############
+            # Upload Pipeline Version
+            #############
             try:
-                pipeline_description = pipeline.description
-                if pipeline_description is None:
-                    pipeline_description = f"Created with Elyra {__version__} pipeline editor "\
-                                           f"using `{pipeline.source}`."
                 t0 = time.time()
 
+                # CASE 1: pipeline needs to be created
                 if pipeline_id is None:
-                    # Upload new pipeline. The call returns
-                    # a unique pipeline id.
-                    kfp_pipeline = \
-                        client.upload_pipeline(pipeline_path,
-                                               pipeline_name,
-                                               pipeline_description)
+                    # create new pipeline (and initial "pipeline version")
+                    kfp_pipeline = client.upload_pipeline(
+                        pipeline_package_path=pipeline_path,
+                        pipeline_name=pipeline_name,
+                        description=pipeline_description
+                    )
+
+                    # extract the ID of the pipeline we created
                     pipeline_id = kfp_pipeline.id
-                    version_id = None
+
+                    # the initial "pipeline version" has the same id as the pipeline itself
+                    version_id = pipeline_id
+
+                # CASE 2: pipeline already exists
                 else:
-                    # Upload a pipeline version. The call returns
-                    # a unique version id.
-                    kfp_pipeline = \
-                        client.upload_pipeline_version(pipeline_path,
-                                                       pipeline_version_name,
-                                                       pipeline_id=pipeline_id)
+                    # upload the "pipeline version"
+                    kfp_pipeline = client.upload_pipeline_version(
+                        pipeline_package_path=pipeline_path,
+                        pipeline_version_name=pipeline_version_name,
+                        pipeline_id=pipeline_id
+                    )
+
+                    # extract the id of the "pipeline version" that was created
                     version_id = kfp_pipeline.id
 
-                self.log_pipeline_info(pipeline_name, 'pipeline uploaded', duration=(time.time() - t0))
-            except MaxRetryError as ex:
-                raise RuntimeError('Error connecting to pipeline server {}'.format(api_endpoint)) from ex
-
-            except LocationValueError as lve:
-                if api_username:
-                    raise ValueError("Failure occurred uploading pipeline, check your credentials") from lve
+            except Exception as ex:
+                # a common cause of these errors is forgetting to include `/pipeline` or including it with an 's'
+                api_endpoint_obj = urlsplit(api_endpoint)
+                if api_endpoint_obj.path != "/pipeline":
+                    api_endpoint_tip = api_endpoint_obj._replace(path="/pipeline").geturl()
+                    tip_string = f" - [TIP: did you mean to set '{api_endpoint_tip}' as the endpoint, " \
+                                 f"take care not to include 's' at end]"
                 else:
-                    raise lve
+                    tip_string = ""
 
-            # Create a new experiment. If it already exists this is
-            # a no-op.
-            experiment = client.create_experiment(name=experiment_name,
-                                                  namespace=user_namespace)
-            self.log_pipeline_info(pipeline_name,
-                                   f'Created experiment {experiment_name}',
-                                   duration=(time.time() - t0_all))
+                raise RuntimeError(
+                    f"Failed to upload Kubeflow pipeline: '{pipeline_name}' - "
+                    f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
+                    f"{tip_string}"
+                ) from ex
 
-            # Run the pipeline (or specified pipeline version)
-            run = client.run_pipeline(experiment_id=experiment.id,
-                                      job_name=job_name,
-                                      pipeline_id=pipeline_id,
-                                      version_id=version_id)
+            self.log_pipeline_info(pipeline_name, "pipeline uploaded", duration=time.time() - t0)
 
-            self.log_pipeline_info(pipeline_name,
-                                   f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}",
-                                   duration=(time.time() - t0_all))
+            #############
+            # Create Experiment
+            #############
+            try:
+                t0 = time.time()
 
-            return KfpPipelineProcessorResponse(
-                run_url=f'{api_endpoint}/#/runs/details/{run.id}',
-                object_storage_url=f'{cos_endpoint}',
-                object_storage_path=f'/{cos_bucket}/{cos_directory}',
+                # create a new experiment (if already exists, this a no-op)
+                experiment = client.create_experiment(
+                    name=experiment_name,
+                    namespace=user_namespace
+                )
+
+            except Exception as ex:
+                raise RuntimeError(
+                    f"Failed to create Kubeflow experiment: '{experiment_name}' - "
+                    f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
+                ) from ex
+
+            self.log_pipeline_info(pipeline_name, "created experiment", duration=time.time() - t0)
+
+            #############
+            # Create Pipeline Run
+            #############
+            try:
+                t0 = time.time()
+
+                # generate name for the pipeline run
+                job_name = f"{pipeline_name}-{timestamp}"
+
+                # create pipeline run (or specified pipeline version)
+                run = client.run_pipeline(
+                    experiment_id=experiment.id,
+                    job_name=job_name,
+                    pipeline_id=pipeline_id,
+                    version_id=version_id
+                )
+
+            except Exception as ex:
+                raise RuntimeError(
+                    f"Failed to create Kubeflow pipeline run: '{job_name}' - "
+                    f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
+                ) from ex
+
+            self.log_pipeline_info(
+                pipeline_name,
+                f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}",
+                duration=time.time() - t0
             )
 
-        return None
+        return KfpPipelineProcessorResponse(
+            run_url=f"{api_endpoint}/#/runs/details/{run.id}",
+            object_storage_url=f"{cos_endpoint}",
+            object_storage_path=f"/{cos_bucket}/{cos_directory}",
+        )
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         if pipeline_export_format not in ["yaml", "py"]:
@@ -299,7 +380,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # we're using its absolute form.
         absolute_pipeline_export_path = get_absolute_path(self.root_dir, pipeline_export_path)
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
         namespace = runtime_configuration.metadata.get('user_namespace')
@@ -417,7 +498,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                      cos_directory=None,
                      export=False):
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
 
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
@@ -506,7 +587,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 if cos_secret and not export:
                     target_ops[operation.id].apply(use_aws_secret(cos_secret))
 
-                image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+                image_namespace = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
                 for image_instance in image_namespace:
                     if image_instance.metadata['image_name'] == operation.runtime_image and \
                             image_instance.metadata.get('pull_policy'):
@@ -533,15 +614,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
-                    if component_property.data_type == "file":
-                        filename = get_absolute_path(get_expanded_path(self.root_dir), property_value)
-                        try:
-                            with open(filename) as f:
-                                operation.component_params[component_property.ref] = f.read()
-                        except Exception:
-                            # If file can't be found locally, assume a remote file location was entered.
-                            # This may cause the pipeline run to fail; the user must debug in this case.
-                            pass
+
+                    if component_property.data_type == "inputpath":
+                        output_node_id = property_value['value']
+                        output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
+                        operation.component_params[component_property.ref] = \
+                            target_ops[output_node_id].outputs[output_node_parameter_key]
                     elif component_property.data_type == 'dictionary':
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
@@ -566,9 +644,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
-                    # Remove inputs and outputs from params dict until support for data exchange is provided
-                    operation.component_params_as_dict.pop("inputs")
-                    operation.component_params_as_dict.pop("outputs")
+                    comp_spec_inputs = [inputs.name.lower().replace(" ", "_") for
+                                        inputs in factory_function.component_spec.inputs]
+
+                    # Remove inputs and outputs from params dict
+                    # TODO: need to have way to retrieve only required params
+                    parameter_removal_list = ["inputs", "outputs"]
+                    for component_param in operation.component_params_as_dict.keys():
+                        if component_param not in comp_spec_inputs:
+                            parameter_removal_list.append(component_param)
+
+                    for parameter in parameter_removal_list:
+                        operation.component_params_as_dict.pop(parameter, None)
 
                     # Create ContainerOp instance and assign appropriate user-provided name
                     container_op = factory_function(**operation.component_params_as_dict)
@@ -608,7 +695,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Gather input for container image pull secrets in support of private container image registries
         # https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf.set_image_pull_secrets
         #
-        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+        image_namespace = self._get_metadata_configuration(schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
 
         # iterate through pipeline operations and create list of Kubernetes secret names
         # that are associated with generic components
@@ -642,56 +729,93 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-', name)).lstrip('-').rstrip('-')
 
     @staticmethod
-    def _get_user_auth_session_cookie(url, username=None, password=None) -> dict:
+    def _get_istio_auth_session(url: str, username: str, password: str) -> dict:
         """
-        Determine whether the specified URL is secured by Dex and, if username
-        and password were provided, try to obtain a session cookie. Other forms
-        of authentication are not supported.
+        Determine if the specified URL is secured by Dex and try to obtain a session cookie.
+        WARNING: only Dex `staticPasswords` authentication is currently supported
 
         :param url: Kubeflow server URL, including protocol
-        :type url: str
-        :param username: Kubeflow user name, defaults to None
-        :type username: str, optional
-        :param password: Kubeflow user's password, defaults to None
-        :type password: str, optional
-        :return: authentication information
-        :rtype: dict
+        :param username: Dex `staticPasswords` username
+        :param password: Dex `staticPasswords` password
+        :return: auth session information
         """
-
-        # Return data structure
-        auth_info = {
-            'endpoint': url,                    # KF endpoint URL
-            'endpoint_response_url': None,      # KF redirect URL, if applicable
-            'endpoint_secured': False,          # True if KF is secured [by dex]
-            'authservice_session_cookie': None  # Set if KF is secured & user authenticated
+        # define the default return object
+        auth_session = {
+            "endpoint_url": url,    # KF endpoint URL
+            "redirect_url": None,   # KF redirect URL, if applicable
+            "dex_login_url": None,  # Dex login URL (for POST of credentials)
+            "is_secured": None,     # True if KF endpoint is secured
+            "session_cookie": None  # Resulting session cookies in the form "key1=value1; key2=value2"
         }
 
-        # Obtain redirect URL
-        get_response = requests.get(url)
+        # use a persistent session (for cookies)
+        with requests.Session() as s:
 
-        auth_info['endpoint_response_url'] = get_response.url
+            ################
+            # Determine if Endpoint is Secured
+            ################
+            resp = s.get(url, allow_redirects=True)
+            if resp.status_code != 200:
+                raise RuntimeError(
+                    f"HTTP status code '{resp.status_code}' for GET against: {url}"
+                )
 
-        # If KF redirected to '/dex/auth/local?req=REQ_VALUE'
-        # try to authenticate using the provided credentials
-        if 'dex/auth' in get_response.url:
-            auth_info['endpoint_secured'] = True  # KF is secured
+            auth_session["redirect_url"] = resp.url
 
-            # Try to authenticate user by sending a request to the
-            # Dex redirect URL
-            session = requests.Session()
-            session.post(get_response.url,
-                         data={'login': username,
-                               'password': password})
-            # Capture authservice_session cookie, if one was returned
-            # in the response
-            cookie_auth_key = 'authservice_session'
-            cookie_auth_value = session.cookies.get(cookie_auth_key)
+            # if we were NOT redirected, then the endpoint is UNSECURED
+            if len(resp.history) == 0:
+                auth_session["is_secured"] = False
+                return auth_session
+            else:
+                auth_session["is_secured"] = True
 
-            if cookie_auth_value:
-                auth_info['authservice_session_cookie'] = \
-                    f"{cookie_auth_key}={cookie_auth_value}"
+            ################
+            # Get Dex Login URL (that allows us to POST credentials)
+            ################
+            redirect_url_obj = urlsplit(auth_session["redirect_url"])
 
-        return auth_info
+            # we expect a "Dex Login" URL to have `/auth` in the HTTP path
+            if "/auth" not in redirect_url_obj.path:
+                raise RuntimeError(
+                    f"Path of `redirect_url` must contain '/auth', but got: {auth_session['redirect_url']}"
+                )
+
+            # rewrite "Dex Login" URL to "/auth/local" (for dex `staticPasswords` login)
+            # (needed when dex is configured with multiple auth options)
+            if "/auth/local" not in redirect_url_obj.path:
+                redirect_url_obj = redirect_url_obj._replace(
+                    path=redirect_url_obj.path.replace("/auth", "/auth/local")
+                )
+                auth_session["redirect_url"] = redirect_url_obj.geturl()
+
+            # Get redirected to page we can POST credentials to
+            # (needed when dex is configured with multiple auth options)
+            resp = s.get(auth_session["redirect_url"], allow_redirects=True)
+            if resp.status_code != 200:
+                raise RuntimeError(
+                    f"HTTP status code '{resp.status_code}' for GET against: {auth_session['redirect_url']}"
+                )
+
+            auth_session["dex_login_url"] = resp.url
+
+            ################
+            # Attempt Dex `staticPasswords` Login
+            ################
+            resp = s.post(
+                auth_session["dex_login_url"],
+                data={"login": username, "password": password},
+                allow_redirects=True
+            )
+            if len(resp.history) == 0:
+                raise RuntimeError(
+                    f"No redirect after POST to: {auth_session['dex_login_url']} - "
+                    f"Login credentials were probably invalid."
+                )
+
+            # store the session cookies in a "key1=value1; key2=value2" string
+            auth_session["session_cookie"] = "; ".join([f"{c.name}={c.value}" for c in s.cookies])
+
+        return auth_session
 
 
 class KfpPipelineProcessorResponse(PipelineProcessorResponse):
@@ -704,24 +828,3 @@ class KfpPipelineProcessorResponse(PipelineProcessorResponse):
     @property
     def type(self):
         return self._type
-
-
-class KfpSchemaFilter(SchemaFilter):
-    """
-    This class exists to ensure that the KFP schema's engine metadata
-    appropriately reflects what is installed on the system.
-    """
-
-    def post_load(self, name: str, schema_json: Dict) -> Dict:
-        """Ensure tekton packages are present and remove engine from schema if not."""
-
-        filtered_schema = super().post_load(name, schema_json)
-
-        # If TektonClient package is missing, navigate to the engine property
-        # and remove 'tekton' entry if present and return updated result.
-        if not TektonClient:
-            engine_enum: list = filtered_schema['properties']['metadata']['properties']['engine']['enum']
-            if 'Tekton' in engine_enum:
-                engine_enum.remove('Tekton')
-                filtered_schema['properties']['metadata']['properties']['engine']['enum'] = engine_enum
-        return filtered_schema

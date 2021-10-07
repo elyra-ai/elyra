@@ -1,0 +1,14 @@
+{
+  "display_name": "KFP Preloaded Components - URL",
+  "metadata": {
+    "description": "Preloaded URL-based components that are supported by Kubeflow Pipelines",
+    "runtime": "kfp",
+    "location_type": "URL",
+    "categories": ["Preloaded KFP"],
+    "paths": [
+      "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
+      "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml"
+    ]
+  },
+  "schema_name": "component-registry"
+}

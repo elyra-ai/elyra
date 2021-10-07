@@ -19,14 +19,12 @@ from logging import Logger
 import os
 from queue import Empty
 from queue import Queue
-import re
 from threading import Thread
 from types import SimpleNamespace
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Tuple
 
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
@@ -51,7 +49,7 @@ class ComponentParameter(object):
         """
         :param id: Unique identifier for a property
         :param name: The name of the property for display
-        :param type: The type that the property value takes on
+        :param data_type: The type that the property value takes on
         :param value: The default value of the property
         :param description: A description of the property for display
         :param control: The control of the property on the display, e.g. custom or readonly
@@ -482,49 +480,77 @@ class ComponentParser(LoggingConfigurable):  # ABC
             return f"{description} (type: {data_type})"
         return f"(type: {data_type})"
 
-    def determine_type_information(self, parsed_type: str) -> Tuple[str, str, Any]:
+    def determine_type_information(self, parsed_type: str) -> SimpleNamespace:
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.
 
         """
-        type_lowered = parsed_type.lower()
-        type_options = ['dictionary', 'dict', 'set', 'list', 'array', 'arr']
+        parsed_type_lowered = parsed_type.lower()
 
-        # Prefer types that occur in a clause of the form "[type] of ..."
+        data_type_info: SimpleNamespace
+
+        # Determine if this is a "container type"
+        # Prefer types that occur in a clause of the form "[type] of ..." (i.e., "container" types)
         # E.g. "a dictionary of key/value pairs" will produce the type "dictionary"
-        for option in type_options:
-            if any(word + " of " in type_lowered for word in type_options):
-                reg = re.compile(f"({option}) of ")
-                match = reg.search(type_lowered)
-                if match:
-                    type_lowered = option
-                    break
-            elif option in type_lowered:
-                type_lowered = option
+        container_types = ['dictionary', 'dict', 'set', 'list', 'array', 'arr']
+        for option in container_types:
+            if option in parsed_type_lowered:
+                data_type = option
+                if data_type in ['dict', 'dictionary']:
+                    data_type = "dictionary"
+                elif data_type in ['list', 'set', 'array', 'arr']:
+                    data_type = "list"
+
+                # Since we know the type, create our return value and bail
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type=data_type)
                 break
+        else:  # None of the container types were found...
+            # Standardize type names
+            if any(word in parsed_type_lowered for word in ["str", "string"]):
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="string")
+            elif any(word in parsed_type_lowered for word in ['int', 'integer', 'number']):
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="number",
+                                                                       control_id="NumberControl",
+                                                                       default_value=0)
+            elif any(word in parsed_type_lowered for word in ['bool', 'boolean']):
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="boolean",
+                                                                       control_id="BooleanControl",
+                                                                       default_value=False)
+            else:  # Let this be undetermined.  Callers should check for this status and adjust
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="string",
+                                                                       undetermined=True)
 
-        # Set control id and default value for UI rendering purposes
-        # Standardize type names
-        control_id = "StringControl"
-        default_value = ''
-        if any(word in type_lowered for word in ["str", "string"]):
-            type_lowered = "string"
-        elif any(word in type_lowered for word in ['int', 'integer', 'number']):
-            type_lowered = "number"
-            control_id = "NumberControl"
-            default_value = 0
-        elif any(word in type_lowered for word in ['bool', 'boolean']):
-            type_lowered = "boolean"
-            control_id = "BooleanControl"
-            default_value = False
-        elif type_lowered in ['dict', 'dictionary']:
-            type_lowered = "dictionary"
-        elif type_lowered in ['list', 'set', 'array', 'arr']:
-            type_lowered = "list"
-        elif type_lowered in ['file']:
-            type_lowered = "file"
-        else:
-            type_lowered = "string"
+        return data_type_info
 
-        return type_lowered, control_id, default_value
+    @staticmethod
+    def create_data_type_info(parsed_data: str,
+                              data_type: str = 'string',
+                              default_value: Any = '',
+                              required: bool = True,
+                              control_id: str = 'StringControl',
+                              control: str = 'custom',
+                              undetermined: bool = False) -> SimpleNamespace:
+        """Returns a SimpleNamespace instance that contains the current state of data-type parsing.
+
+        This method is called by ComponentParser.determine_type_information() and used by subclass
+        implementations to determine the current state of parsing a data-type.
+
+        The instance will indicate that the base ComponentParser could not determine the actual data-type
+        via a `True` value in its `undetermined` attribute, in which case subclass implementations
+        are advised to attempt further parsing. In such cases, the rest of the attributes of the instance
+        will reflect a 'string' data type as that is the most flexible data_type and, hence, the default.
+        """
+        dti = SimpleNamespace(parsed_data=parsed_data,
+                              data_type=data_type,
+                              default_value=default_value,
+                              required=required,
+                              control_id=control_id,
+                              control=control,
+                              undetermined=undetermined)
+        return dti

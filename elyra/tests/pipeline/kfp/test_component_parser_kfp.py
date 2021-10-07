@@ -20,6 +20,7 @@ import jupyter_core.paths
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
+from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.component import FilesystemComponentReader
 from elyra.pipeline.component import UrlComponentReader
 from elyra.pipeline.component_registry import ComponentRegistry
@@ -53,7 +54,7 @@ def test_modify_component_registries():
     # Components must be sorted by id for the equality comparison with later component lists
     initial_components = sorted(initial_components, key=lambda component: component.id)
 
-    metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
     paths = [_get_resource_path('kfp_test_operator.yaml')]
@@ -121,7 +122,7 @@ def test_directory_based_component_registry():
     component_registry = ComponentRegistry(parser, caching_enabled=False)
     initial_components = component_registry.get_all_components()
 
-    metadata_manager = MetadataManager(namespace=MetadataManager.NAMESPACE_COMPONENT_REGISTRIES)
+    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')
@@ -231,18 +232,19 @@ def test_parse_kfp_component_file():
 
     file_property = next(prop for prop in properties_json['uihints']['parameter_info']
                          if prop.get('parameter_ref') == 'elyra_test_unusual_type_file')
-    assert file_property['data']['format'] == "file"
+    assert file_property['data']['format'] == "inputpath"
 
     no_type_property = next(prop for prop in properties_json['uihints']['parameter_info']
                             if prop.get('parameter_ref') == 'elyra_test_unusual_type_notgiven')
     assert no_type_property['data']['format'] == "string"
 
     # Ensure descriptions are rendered properly with type hint in parentheses
-    assert unusual_dict_property['description']['default'] == "The test command description "\
+    assert unusual_dict_property['description']['default'] == "The test command description " \
                                                               "(type: Dictionary of arrays)"
     assert unusual_list_property['description']['default'] == "The test command description (type: An array)"
     assert unusual_string_property['description']['default'] == "The test command description (type: A string)"
-    assert file_property['description']['default'] == "The test command description (type: Notebook)"
+    assert file_property['description']['default'] == \
+           "The test command description"  # No data type info is included in parentheses for inputPath variables
     assert no_type_property['description']['default'] == "The test command description (type: string)"
 
 
@@ -274,7 +276,7 @@ def test_parse_kfp_component_url():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
     assert properties_json['current_parameters']['component_source'] == component_entry.location
-    assert properties_json['current_parameters']['elyra_notebook'] == ''
+    assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
     assert properties_json['current_parameters']['elyra_parameters'] == '{}'
     assert properties_json['current_parameters']['elyra_packages_to_install'] == ''  # {}
     assert properties_json['current_parameters']['elyra_input_data'] == ''
@@ -306,8 +308,10 @@ def test_parse_kfp_component_file_no_inputs():
     properties_json = ComponentRegistry.to_canvas_properties(component)
 
     # Properties JSON should only include the two parameters common to every
-    # component:'label' and 'component_source'
-    num_common_params = 2
+    # component:'label' and 'component_source', the component description if
+    # exists (which it does for this component), and the output parameter for
+    # this component
+    num_common_params = 4
     assert len(properties_json['current_parameters'].keys()) == num_common_params
     assert len(properties_json['parameters']) == num_common_params
     assert len(properties_json['uihints']['parameter_info']) == num_common_params

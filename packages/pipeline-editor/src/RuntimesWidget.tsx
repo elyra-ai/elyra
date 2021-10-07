@@ -25,7 +25,7 @@ import { IDictionary } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import React from 'react';
 
-import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
+import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 
 const RUNTIMES_METADATA_CLASS = 'elyra-metadata-runtimes';
 
@@ -47,7 +47,7 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
   metadata: IMetadata[];
   openMetadataEditor: (args: any) => void;
   updateMetadata: () => void;
-  namespace: string;
+  schemaspace: string;
   sortMetadata: boolean;
   className: string;
   schemas?: IDictionary<any>[];
@@ -160,7 +160,7 @@ export class RuntimesWidget extends MetadataWidget {
         metadata={metadata}
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
-        namespace={RUNTIMES_NAMESPACE}
+        schemaspace={RUNTIMES_SCHEMASPACE}
         sortMetadata={true}
         schemas={this.schemas}
         className={RUNTIMES_METADATA_CLASS}

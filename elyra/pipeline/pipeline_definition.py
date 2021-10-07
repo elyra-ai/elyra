@@ -17,10 +17,11 @@ import json
 import os
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
 
 
-class AppDataBase():
+class AppDataBase:  # ABC
     """
     An abstraction for app_data based nodes
     """
@@ -128,7 +129,7 @@ class Pipeline(AppDataBase):
         The pipeline name
         :rtype: The pipeline name or `untitled`
         """
-        return self._node['app_data'].get('name') or 'untitled'
+        return self._node['app_data'].get('properties', {}).get('name', 'untitled')
 
     @property
     def source(self) -> str:
@@ -225,6 +226,18 @@ class Node(AppDataBase):
             return self._node['subflow_ref'].get('pipeline_id_ref')
         else:
             return None
+
+    @property
+    def component_links(self) -> List:
+        """
+        Retrieve component links to other components.
+        :return: the list of links associated with this node or an empty list if none are found
+        """
+        if self.type in ['execution_node', 'super_node']:
+            return self._node['inputs'][0].get('links', [])
+        else:
+            #  binding nodes do not contain links
+            return []
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
@@ -408,7 +421,7 @@ class PipelineDefinition(object):
 
     def is_valid(self) -> bool:
         """
-        Represents wether or not the pipeline structure is valid
+        Represents whether or not the pipeline structure is valid
         :return: True for a valid pipeline definition
         """
         return len(self.validate()) == 0
@@ -420,7 +433,7 @@ class PipelineDefinition(object):
         """
         return self._pipeline_definition
 
-    def get_pipeline_definition(self, pipeline_id) -> Pipeline:
+    def get_pipeline_definition(self, pipeline_id) -> Any:
         """
         Retrieve a given pipeline from the pipeline definition
         :param pipeline_id: the pipeline unique identifier
@@ -432,3 +445,27 @@ class PipelineDefinition(object):
                     return Pipeline(pipeline)
 
         return None
+
+    def get_node(self, node_id: str):
+        """
+        Given a node id returns the associated node object in the pipeline
+        :param node_id: the node id
+        :return: the node object or None
+        """
+        for pipeline in self._pipelines:
+            for node in pipeline.nodes:
+                if node.id == node_id:
+                    return node
+        return None
+
+    def get_supernodes(self) -> List[Node]:
+        """
+        Returns a list of all supernodes in the pipeline
+        :return:
+        """
+        supernode_list = []
+        for pipeline in self._pipelines:
+            for node in pipeline.nodes:
+                if node.type == "super_node":
+                    supernode_list.append(node)
+        return supernode_list

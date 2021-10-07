@@ -38,8 +38,7 @@
                   "y_pos": -8
                 }
               ]
-            },
-            "invalidNodeError": "property \"Runtime Image\" is required"
+            }
           },
           "inputs": [
             {

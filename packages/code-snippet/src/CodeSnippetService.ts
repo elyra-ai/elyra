@@ -19,12 +19,12 @@ import { MetadataService } from '@elyra/services';
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 
-export const CODE_SNIPPET_NAMESPACE = 'code-snippets';
+export const CODE_SNIPPET_SCHEMASPACE = 'code-snippets';
 export const CODE_SNIPPET_SCHEMA = 'code-snippet';
 
 export class CodeSnippetService {
   static async findAll(): Promise<IMetadata[]> {
-    return MetadataService.getMetadata(CODE_SNIPPET_NAMESPACE);
+    return MetadataService.getMetadata(CODE_SNIPPET_SCHEMASPACE);
   }
 
   // TODO: Test this function
@@ -62,7 +62,7 @@ export class CodeSnippetService {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
         return MetadataService.deleteMetadata(
-          CODE_SNIPPET_NAMESPACE,
+          CODE_SNIPPET_SCHEMASPACE,
           codeSnippet.name
         ).then(() => true);
       } else {

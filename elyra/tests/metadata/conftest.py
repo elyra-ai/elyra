@@ -16,7 +16,7 @@
 import pytest
 
 from elyra.metadata.manager import MetadataManager
-from elyra.metadata.schema import METADATA_TEST_NAMESPACE
+from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
 from elyra.metadata.schema import SchemaManager
 from elyra.tests.metadata.test_utils import another_metadata_json
 from elyra.tests.metadata.test_utils import byo_metadata_json
@@ -36,17 +36,21 @@ def mkdir(tmp_path, *parts):
 
 
 # These location fixtures will need to be revisited once we support multiple metadata storage types.
-namespace_location = pytest.fixture(lambda jp_data_dir: mkdir(jp_data_dir, "metadata", METADATA_TEST_NAMESPACE))
-bogus_location = pytest.fixture(lambda jp_data_dir: mkdir(jp_data_dir, "metadata", "bogus"))
-shared_location = pytest.fixture(lambda jp_system_jupyter_path: mkdir(jp_system_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))  # noqa
-factory_location = pytest.fixture(lambda jp_env_jupyter_path: mkdir(jp_env_jupyter_path, "metadata", METADATA_TEST_NAMESPACE))  # noqa
+schemaspace_location = pytest.fixture(lambda jp_data_dir:
+                                      mkdir(jp_data_dir, "metadata", METADATA_TEST_SCHEMASPACE))
+bogus_location = pytest.fixture(lambda jp_data_dir:
+                                mkdir(jp_data_dir, "metadata", "bogus"))
+shared_location = pytest.fixture(lambda jp_system_jupyter_path:
+                                 mkdir(jp_system_jupyter_path, "metadata", METADATA_TEST_SCHEMASPACE))
+factory_location = pytest.fixture(lambda jp_env_jupyter_path:
+                                  mkdir(jp_env_jupyter_path, "metadata", METADATA_TEST_SCHEMASPACE))
 
 
 @pytest.fixture
-def setup_data(namespace_location):
-    create_json_file(namespace_location, 'valid.json', valid_metadata_json)
-    create_json_file(namespace_location, 'another.json', another_metadata_json)
-    create_json_file(namespace_location, 'invalid.json', invalid_metadata_json)
+def setup_data(schemaspace_location):
+    create_json_file(schemaspace_location, 'valid.json', valid_metadata_json)
+    create_json_file(schemaspace_location, 'another.json', another_metadata_json)
+    create_json_file(schemaspace_location, 'invalid.json', invalid_metadata_json)
 
 
 @pytest.fixture
@@ -66,20 +70,20 @@ def store_manager(tests_manager):
 
 @pytest.fixture(params=["elyra.metadata.storage.FileMetadataStore",
                         "elyra.tests.metadata.test_utils.MockMetadataStore"])  # Add types as needed
-def tests_manager(jp_environ, namespace_location, request):
-    metadata_mgr = MetadataManager(namespace=METADATA_TEST_NAMESPACE, metadata_store_class=request.param)
+def tests_manager(jp_environ, schemaspace_location, request):
+    metadata_mgr = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE, metadata_store_class=request.param)
     store_mgr = metadata_mgr.metadata_store
-    create_instance(store_mgr, namespace_location, 'valid', valid_metadata_json)
-    create_instance(store_mgr, namespace_location, 'another', another_metadata_json)
-    create_instance(store_mgr, namespace_location, 'invalid', invalid_metadata_json)
-    create_instance(store_mgr, namespace_location, 'bad', invalid_json)
-    create_instance(store_mgr, namespace_location, 'invalid_schema_name', invalid_schema_name_json)
+    create_instance(store_mgr, schemaspace_location, 'valid', valid_metadata_json)
+    create_instance(store_mgr, schemaspace_location, 'another', another_metadata_json)
+    create_instance(store_mgr, schemaspace_location, 'invalid', invalid_metadata_json)
+    create_instance(store_mgr, schemaspace_location, 'bad', invalid_json)
+    create_instance(store_mgr, schemaspace_location, 'invalid_schema_name', invalid_schema_name_json)
     return metadata_mgr
 
 
 @pytest.fixture
 def tests_hierarchy_manager(setup_hierarchy):  # Only uses FileMetadataStore for storage right now.
-    return MetadataManager(namespace=METADATA_TEST_NAMESPACE)
+    return MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
 
 
 @pytest.fixture

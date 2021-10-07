@@ -18,8 +18,7 @@
               "filename": "helloworld.ipynb",
               "runtime_image": "",
               "env_vars": [],
-              "include_subdirectories": false,
-              "invalidNodeError": "notebook does not exist"
+              "include_subdirectories": false
             },
             "ui_data": {
               "label": "helloworld.ipynb",
@@ -36,8 +35,7 @@
                   "y_pos": -8
                 }
               ]
-            },
-            "invalidNodeError": "property \"Runtime Image\" is required"
+            }
           },
           "inputs": [
             {
@@ -77,8 +75,7 @@
             "component_parameters": {
               "filename": "helloworld.py",
               "runtime_image": "",
-              "include_subdirectories": false,
-              "invalidNodeError": "notebook does not exist"
+              "include_subdirectories": false
             },
             "ui_data": {
               "label": "helloworld.py",
@@ -95,8 +92,7 @@
                   "y_pos": -8
                 }
               ]
-            },
-            "invalidNodeError": "property \"Runtime Image\" is required"
+            }
           },
           "inputs": [
             {

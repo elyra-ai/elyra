@@ -30,7 +30,6 @@ Object {
               "outputs": Array [],
               "runtime_image": "",
             },
-            "invalidNodeError": "property \"Runtime Image\" is required",
             "label": "",
             "ui_data": Object {
               "decorations": Array [

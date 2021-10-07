@@ -39,129 +39,156 @@ paths:
         500:
           description: Unexpected error.
 
-  /elyra/namespace:
+  /elyra/schemaspace:
     get:
       tags:
-      - namespace
-      summary: Get current namespaces.
+      - schemaspace
+      summary: Get current schemaspace names.
       responses:
         200:
-          description: Returns the list of current namespaces.
+          description: Returns the list of current schemaspace names.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  namespaces:
+                  schemaspaces:
                     items: {
                       type: string
                     }
-                    description: The list of current namespaces.
+                    description: The list of current schemaspace names.
         500:
           description: Unexpected error.
 
-  /elyra/schema/{namespace}:
+  /elyra/schemaspace/{schemaspace_name_or_id}:
     get:
       tags:
-      - schema
-      summary: Get schemas for a given namespace
+      - schemaspace
+      summary: Get properties for a given schemaspace.
       parameters:
-      - name: namespace
+      - name: schemaspace_name_or_id
         in: path
-        description: The name of the namespace
+        description: The name or id of the schemaspace.
         required: true
         schema:
           type: string
       responses:
         200:
-          description: Returns the schema instances for a given namespace.
+          description: Returns the single-valued properties of the current schemaspace.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: '#/components/schemas/SchemaspaceResource'
+        404:
+          description: Schemaspace not found.
+          content: {}
+        500:
+          description: Unexpected error.
+
+  /elyra/schema/{schemaspace_name_or_id}:
+    get:
+      tags:
+      - schema
+      summary: Get schemas for a given schemaspace
+      parameters:
+      - name: schemaspace_name_or_id
+        in: path
+        description: The name or id of the schemaspace
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Returns the schema instances for a given schemaspace name or id.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  namespace:
+                  schemaspace:
                     type: array
-                    description: The schema instances within the namespace.
+                    description: The schema instances within the schemaspace.
                     items:
                       $ref: '#/components/schemas/SchemaResource'
         404:
-          description: Namespace not found.
+          description: Schemaspace not found.
           content: {}
         500:
           description: Unexpected error.
 
-  /elyra/schema/{namespace}/{resource}:
+  /elyra/schema/{schemaspace_name_or_id}/{resource}:
     get:
       tags:
       - schema
-      summary: Get a given schema instance from a given namespace.
+      summary: Get a given schema instance from a given schemaspace name or id.
       parameters:
-      - name: namespace
+      - name: schemaspace_name_or_id
         in: path
-        description: The name of the namespace.
+        description: The name or id of the schemaspace.
         required: true
         schema:
           type: string
       - name: resource
         in: path
-        description: The name of the resource in a given namespace.
+        description: The name of the resource in a given schemaspace.
         required: true
         schema:
           type: string
       responses:
         200:
-          description: The named schema instance within the namespace.
+          description: The named schema instance within the schemaspace.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SchemaResource'
         404:
-          description: Namespace/Resource not found.
+          description: Schemaspace/Resource not found.
           content: {}
         500:
           description: Unexpected error.
 
-  /elyra/metadata/{namespace}:
+  /elyra/metadata/{schemaspace_name_or_id}:
     get:
       tags:
       - metadata
-      summary: Get metadata for a given namespace.
+      summary: Get metadata for a given schemaspace name or id.
       parameters:
-      - name: namespace
+      - name: schemaspace_name_or_id
         in: path
-        description: The name of the namespace.
+        description: The name or id of the schemaspace.
         required: true
         schema:
           type: string
       responses:
         200:
-          description: The metadata instances within the namespace.
+          description: The metadata instances within the schemaspace.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  namespace:
+                  schemaspace:
                     type: array
-                    description: The name of the namespace.
+                    description: The name of the schemaspace.
                     items:
                       $ref: '#/components/schemas/MetadataResource'
         400:
           description: An error (validation, syntax) occurred relative to the instance data.
         404:
-          description: Namespace not found.
+          description: Schemaspace not found.
           content: {}
         500:
           description: Unexpected error.
     post:
       tags:
       - metadata
-      summary: Create a metadata instance in a given namespace.
+      summary: Create a metadata instance in a given schemaspace.
       parameters:
-      - name: namespace
+      - name: schemaspace_name_or_id
         in: path
-        description: The name of the namespace.
+        description: The name or id of the schemaspace.
         required: true
         schema:
           type: string
@@ -188,33 +215,33 @@ paths:
         400:
           description: An error (validation, syntax) occurred relative to the instance data.
         404:
-          description: Namespace not found.
+          description: Schemaspace not found.
         409:
           description: Resource already exists.
         500:
           description: Unexpected error.
 
-  /elyra/metadata/{namespace}/{resource}:
+  /elyra/metadata/{schemaspace_name_or_id}/{resource}:
     get:
       tags:
       - metadata
-      summary: Get a given metadata instance from a given namespace.
+      summary: Get a given metadata instance from a given schemaspace name or id.
       parameters:
-      - name: namespace
+      - name: schemaspace_name_or_id
         in: path
-        description: The name of the namespace.
+        description: The name or id of the schemaspace.
         required: true
         schema:
           type: string
       - name: resource
         in: path
-        description: The name of the resource in a given namespace.
+        description: The name of the resource in a given schemaspace.
         required: true
         schema:
           type: string
       responses:
         200:
-          description: The named metadata instance within the namespace.
+          description: The named metadata instance within the schemaspace.
           content:
             application/json:
               schema:
@@ -222,7 +249,7 @@ paths:
         400:
           description: An error (validation, syntax) occurred relative to the instance data.
         404:
-          description: Namespace/Resource not found.
+          description: Schemaspace/Resource not found.
           content: {}
         500:
           description: Unexpected error.
@@ -230,17 +257,17 @@ paths:
     put:
       tags:
         - metadata
-      summary: Update a given metadata resource within a given namespace.
+      summary: Update a given metadata resource within a given schemaspace.
       parameters:
-        - name: namespace
+        - name: schemaspace_name_or_id
           in: path
-          description: The name of the namespace.
+          description: The name or id of the schemaspace.
           required: true
           schema:
             type: string
         - name: resource
           in: path
-          description: The name of the resource in a given namespace.
+          description: The name of the resource in a given schemaspace.
           required: true
           schema:
             type: string
@@ -268,17 +295,17 @@ paths:
     delete:
       tags:
       - metadata
-      summary: Delete a given metadata resource from a given namespace.
+      summary: Delete a given metadata resource from a given schemaspace.
       parameters:
-      - name: namespace
+      - name: schemaspace_name_or_id
         in: path
-        description: The name of the namespace.
+        description: The name or id of the schemaspace.
         required: true
         schema:
           type: string
       - name: resource
         in: path
-        description: The name of the resource in a given namespace.
+        description: The name of the resource in a given schemaspace.
         required: true
         schema:
           type: string
@@ -345,7 +372,7 @@ paths:
   /elyra/contents/properties/{filepath}:
     get:
         tags:
-        - properties
+        - contents
         summary: Get a dictionary of properties for a file.
         parameters:
         - name: filepath
@@ -362,7 +389,8 @@ paths:
                 schema:
                   type: object
                   description: A dictionary of properties.
-                  $ref: '#/components/schemas/ContentsPropertiesResource'
+                  allOf:
+                    - $ref: '#/components/schemas/ContentsPropertiesResource'
           400:
             description: File is a directory.
           404:
@@ -422,12 +450,12 @@ components:
       description: The set of properties comprising a schema resource entity.
       required:
       - name
-      - namespace
+      - schemaspace
       type: object
       properties:
-        namespace:
+        schemaspace:
           type: string
-          description: The namespace of the schema resource.
+          description: The schemaspace name or id of the schema resource.
         name:
           type: string
           description: The canonical name of the schema resource.
@@ -439,6 +467,28 @@ components:
           properties: {}
           description: A free-form dictionary consisting of additional information
             about the resource.
+    
+    SchemaspaceResource:
+      description: The set of properties comprising a schemaspace resource entity.
+      required:
+      - name
+      - id
+      - display_name
+      - description
+      type: object
+      properties:
+        name:
+          type: string
+          description: The canonical name of the schemaspace resource.
+        id:
+          type: string
+          description: The id of the schemaspace resource.
+        display_name:
+          type: string
+          description: The display name of the schemaspace resource.
+        description:
+          type: string
+          description: The description of the schemaspace resource.
 
     PipelineResource:
       description: The set of properties comprising a pipeline resource entity.

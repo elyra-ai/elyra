@@ -30,7 +30,8 @@ from jinja2 import PackageLoader
 
 from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
-from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schemaspaces import RuntimeImages
+from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
@@ -61,7 +62,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata.get('api_endpoint')
         cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
@@ -136,9 +137,9 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
     def _cc_pipeline(self, pipeline, pipeline_name):
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
-        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+        image_namespace = self._get_metadata_configuration(schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
 
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata['cos_username']
@@ -255,6 +256,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
+
                     if component_property.data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
@@ -327,7 +329,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             template = template_env.get_template('airflow_template.jinja2')
 
             target_ops = self._cc_pipeline(pipeline, pipeline_name)
-            runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+            runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                      name=pipeline.runtime_config)
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
             cos_secret = runtime_configuration.metadata.get('cos_secret')

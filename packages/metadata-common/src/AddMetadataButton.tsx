@@ -83,7 +83,7 @@ export const AddMetadataButton = (
           title={`Create new ${
             singleSchema
               ? props.schemas?.[0].display_name
-              : props.schemas?.[0].namespace
+              : props.schemas?.[0].schemaspace
           }`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />

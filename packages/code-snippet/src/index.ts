@@ -33,7 +33,7 @@ import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
 import { Widget } from '@lumino/widgets';
 
 import {
-  CODE_SNIPPET_NAMESPACE,
+  CODE_SNIPPET_SCHEMASPACE,
   CODE_SNIPPET_SCHEMA
 } from './CodeSnippetService';
 import { CodeSnippetWidget } from './CodeSnippetWidget';
@@ -69,13 +69,13 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       app,
       themeManager,
       display_name: 'Code Snippets',
-      namespace: CODE_SNIPPET_NAMESPACE,
+      schemaspace: CODE_SNIPPET_SCHEMASPACE,
       schema: CODE_SNIPPET_SCHEMA,
       icon: codeSnippetIcon,
       getCurrentWidget,
       editorServices
     });
-    const codeSnippetWidgetId = `elyra-metadata:${CODE_SNIPPET_NAMESPACE}`;
+    const codeSnippetWidgetId = `elyra-metadata:${CODE_SNIPPET_SCHEMASPACE}`;
     codeSnippetWidget.id = codeSnippetWidgetId;
     codeSnippetWidget.title.icon = codeSnippetIcon;
     codeSnippetWidget.title.caption = 'Code Snippets';
@@ -118,7 +118,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
 
         if (selection) {
           codeSnippetWidget.openMetadataEditor({
-            namespace: CODE_SNIPPET_NAMESPACE,
+            schemaspace: CODE_SNIPPET_SCHEMASPACE,
             schema: CODE_SNIPPET_SCHEMA,
             code: selection.split('\n'),
             onSave: codeSnippetWidget.updateMetadata

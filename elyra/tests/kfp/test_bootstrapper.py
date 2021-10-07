@@ -555,7 +555,7 @@ def test_package_installation(monkeypatch, virtualenv):
         assert virtual_env_dict[package] == version
 
 
-def test_package_installation_with_target_path(monkeypatch, virtualenv):
+def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
     # TODO : Need to add test for direct-source e.g. ' @ '
     elyra_dict = {'ipykernel': '5.3.0',
                   'ansiwrap': '0.8.4',
@@ -579,15 +579,15 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv):
     monkeypatch.setattr(sys, "executable", virtualenv.python)
 
     virtualenv.run("python3 -m pip install --upgrade pip")
-    virtualenv.run("python3 -m pip install --target='/tmp/lib/' bleach==3.1.5")
-    virtualenv.run("python3 -m pip install --target='/tmp/lib/' ansiwrap==0.7.0")
-    virtualenv.run("python3 -m pip install --target='/tmp/lib/' packaging==20.9")
-    virtualenv.run("python3 -m pip install --target='/tmp/lib/' git+https://github.com/akchinSTC/"
+    virtualenv.run(f"python3 -m pip install --target={tmpdir} bleach==3.1.5")
+    virtualenv.run(f"python3 -m pip install --target={tmpdir} ansiwrap==0.7.0")
+    virtualenv.run(f"python3 -m pip install --target={tmpdir} packaging==20.9")
+    virtualenv.run(f"python3 -m pip install --target={tmpdir} git+https://github.com/akchinSTC/"
                    "text-extensions-for-pandas@3de5ce17ab0493dcdf88b51e8727f580c08d6997")
 
-    bootstrapper.OpUtil.package_install(user_volume_path='/tmp/lib/')
+    bootstrapper.OpUtil.package_install(user_volume_path=str(tmpdir))
     virtual_env_dict = {}
-    output = virtualenv.run("python3 -m pip freeze --path=/tmp/lib/", capture=True)
+    output = virtualenv.run(f"python3 -m pip freeze --path={tmpdir}", capture=True)
     print("This is the [pip freeze] output :\n" + output)
     for line in output.strip().split('\n'):
         if " @ " in line:

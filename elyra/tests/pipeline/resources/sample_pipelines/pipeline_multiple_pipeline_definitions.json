@@ -203,9 +203,11 @@
         }
       ],
       "app_data": {
-        "name": "test-definition",
         "ui_data": {
           "comments": []
+        },
+        "properties": {
+          "name": "test-definition"
         },
         "version": 5
       },

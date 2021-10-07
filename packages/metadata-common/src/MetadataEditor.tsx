@@ -52,7 +52,7 @@ const DIRTY_CLASS = 'jp-mod-dirty';
 
 interface IMetadataEditorProps {
   schema: string;
-  namespace: string;
+  schemaspace: string;
   name?: string;
   code?: string[];
   onSave: () => void;
@@ -163,7 +163,7 @@ export class MetadataEditor extends ReactWidget {
   editorServices: IEditorServices | null;
   status: ILabStatus;
   schemaName: string;
-  namespace: string;
+  schemaspace: string;
   name?: string;
   code?: string[];
   allTags: string[];
@@ -191,7 +191,7 @@ export class MetadataEditor extends ReactWidget {
     this.editorServices = props.editorServices;
     this.status = props.status;
     this.clearDirty = null;
-    this.namespace = props.namespace;
+    this.schemaspace = props.schemaspace;
     this.schemaName = props.schema;
     this.allTags = [];
     this.onSave = props.onSave;
@@ -217,7 +217,7 @@ export class MetadataEditor extends ReactWidget {
 
   async initializeMetadata(): Promise<void> {
     try {
-      const schemas = await MetadataService.getSchema(this.namespace);
+      const schemas = await MetadataService.getSchema(this.schemaspace);
       for (const schema of schemas) {
         if (this.schemaName === schema.name) {
           this.schema = schema.properties.metadata.properties;
@@ -251,7 +251,7 @@ export class MetadataEditor extends ReactWidget {
     }
 
     try {
-      this.allMetadata = await MetadataService.getMetadata(this.namespace);
+      this.allMetadata = await MetadataService.getMetadata(this.schemaspace);
     } catch (error) {
       RequestErrors.serverError(error);
     }
@@ -354,7 +354,10 @@ export class MetadataEditor extends ReactWidget {
     }
 
     if (!this.name) {
-      MetadataService.postMetadata(this.namespace, JSON.stringify(newMetadata))
+      MetadataService.postMetadata(
+        this.schemaspace,
+        JSON.stringify(newMetadata)
+      )
         .then((response: any): void => {
           this.handleDirtyState(false);
           this.onSave();
@@ -363,7 +366,7 @@ export class MetadataEditor extends ReactWidget {
         .catch(error => RequestErrors.serverError(error));
     } else {
       MetadataService.putMetadata(
-        this.namespace,
+        this.schemaspace,
         this.name,
         JSON.stringify(newMetadata)
       )
