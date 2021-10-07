@@ -96,6 +96,7 @@ def _check_pipeline_correct_pipeline_name():
 
     assert primary_pipeline.name == "{{name}}"
 
+
 def _check_pipeline_correct_pipeline_alternative_name():
     pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid_alternative_name.json')
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
