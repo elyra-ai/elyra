@@ -42,8 +42,7 @@
                   "y_pos": -8
                 }
               ]
-            },
-            "invalidNodeError": "property \"Notebook\" is required\nproperty \"Packages to install\" is required"
+            }
           },
           "inputs": [
             {

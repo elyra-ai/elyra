@@ -37,8 +37,7 @@
                   "y_pos": -8
                 }
               ]
-            },
-            "invalidNodeError": "property \"Packages to install\" is required"
+            }
           },
           "inputs": [
             {
