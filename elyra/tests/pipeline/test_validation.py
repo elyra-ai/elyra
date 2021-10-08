@@ -230,20 +230,31 @@ async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch, load_pip
 
 def test_invalid_node_property_image_name(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_invalid_node_property_image_name.pipeline')
-    node_id = '88ab83dc-d5f0-443a-8837-788ed16851b7'
+    node_ids = ['88ab83dc-d5f0-443a-8837-788ed16851b7', '7ae74ba6-d49f-48ea-9e4f-e44d13594b2f']
     node_property = 'runtime_image'
 
-    node = pipeline['pipelines'][0]['nodes'][0]
-    node_label = node['app_data'].get('label')
-    image_name = node['app_data']['component_parameters'].get('runtime_image')
-    validation_manager._validate_container_image_name(node['id'], node_label, image_name, response)
+    for i, node_id in enumerate(node_ids):
+        node = pipeline['pipelines'][0]['nodes'][i]
+        node_label = node['app_data'].get('label')
+        image_name = node['app_data']['component_parameters'].get('runtime_image')
+        validation_manager._validate_container_image_name(node['id'], node_label, image_name, response)
 
     issues = response.to_json().get('issues')
-    assert len(issues) == 1
+    assert len(issues) == 2
+    # Test missing runtime image in node 0
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidNodeProperty'
     assert issues[0]['data']['propertyName'] == node_property
-    assert issues[0]['data']['nodeID'] == node_id
+    assert issues[0]['data']['nodeID'] == node_ids[0]
+    assert issues[0]['message'] == 'Required property value is missing.'
+
+    # Test invalid format for runtime image in node 1
+    assert issues[1]['severity'] == 1
+    assert issues[1]['type'] == 'invalidNodeProperty'
+    assert issues[1]['data']['propertyName'] == node_property
+    assert issues[1]['data']['nodeID'] == node_ids[1]
+    assert issues[1]['message'] == 'Node contains an invalid runtime image. Runtime image '\
+                                   'must conform to the format [registry/]owner/image:tag'
 
 
 def test_invalid_node_property_dependency_filepath_workspace(validation_manager):
