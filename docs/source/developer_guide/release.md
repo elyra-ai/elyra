@@ -202,3 +202,13 @@ docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && d
   - https://github.com/conda-forge/elyra-pipeline-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-r-editor-extension-feedstock/pulls
+
+## Release Candidate Approval
+
+### Our RC Builds
+Elyra release candidate distributions are packages that have been proposed for release but either still require further
+developer testing and/or approval.
+
+Release candidate testing results as well as approvals are discussed in our 
+[Daily Developer Meeting](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html#join-the-daily-development-meetings) 
+the days immediately following release candidate creation. 
