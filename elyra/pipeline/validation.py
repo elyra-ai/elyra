@@ -366,7 +366,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "nodeName": node_label,
                                        "propertyName": 'runtime_image'})
         else:
-            image_regex = re.compile(r"[^/ ]+/[^/ ]+")
+            image_regex = re.compile(r"[^/ ]+/[^/ ]+$")
             matched = image_regex.search(image_name)
             if not matched:
                 response.add_message(severity=ValidationSeverity.Error,
