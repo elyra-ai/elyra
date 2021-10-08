@@ -257,6 +257,21 @@ def test_invalid_node_property_image_name(validation_manager, load_pipeline):
                                    'must conform to the format [registry/]owner/image:tag'
 
 
+def test_invalid_node_property_image_name_list(validation_manager):
+    response = ValidationResponse()
+    node_label = "test_label"
+    node_id = "test-id"
+    failing_image_names = ["12345566:one-two-three",
+                           "someregistry.io/some_org/some_tag/something/",
+                           "docker.io//missing_org_name:test"]
+
+    for image_name in failing_image_names:
+        validation_manager._validate_container_image_name(node_id, node_label, image_name, response)
+
+    issues = response.to_json().get('issues')
+    assert len(issues) == len(failing_image_names)
+
+
 def test_invalid_node_property_dependency_filepath_workspace(validation_manager):
     response = ValidationResponse()
     node = {"id": "test-id", "app_data": {"label": "test"}}

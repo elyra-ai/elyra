@@ -375,7 +375,8 @@ class PipelineValidationManager(SingletonConfigurable):
                                              "must conform to the format [registry/]owner/image:tag",
                                      data={"nodeID": node_id,
                                            "nodeName": node_label,
-                                           "propertyName": 'runtime_image'})
+                                           "propertyName": 'runtime_image',
+                                           "imageName": image_name})
 
     def _validate_resource_value(self, node_id: str, node_label: str, resource_name: str,
                                  resource_value: str, response: ValidationResponse) -> None:
