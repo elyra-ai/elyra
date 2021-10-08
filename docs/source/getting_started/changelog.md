@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 3.2.0rc2 - 10/08/2021
+
+- Validate runtime image format with regex - [#2213](https://github.com/elyra-ai/elyra/pull/2213)
+- Add missing links to rc0 changelog items
+
 ## Release 3.2.0rc1 - 10/07/2021
 
 - Update developer testing documentation - [#2207](https://github.com/elyra-ai/elyra/pull/2207)
