@@ -79,7 +79,7 @@
             "component_parameters": {
               "label": "",
               "filename": "notebookB.ipynb",
-              "runtime_image": "",
+              "runtime_image": "image/with spaces",
               "outputs": [],
               "env_vars": [],
               "dependencies": [],
