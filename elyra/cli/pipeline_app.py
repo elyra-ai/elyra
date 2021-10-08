@@ -382,7 +382,7 @@ def describe(json_option, pipeline_path):
     describe_dict["nodes"] = len(primary_pipeline.nodes)
     describe_dict["file_dependencies"] = set()
     for node in primary_pipeline.nodes:
-        for dependency in node.get_component_parameter("dependencies"):
+        for dependency in node.get_component_parameter("dependencies", []):
             describe_dict["file_dependencies"].add(f"{dependency}")
 
     if not json_option:

@@ -88,6 +88,23 @@ def test_updates_to_nodes_updates_pipeline_definition():
         assert node['app_data']['component_parameters']['filename'] == 'foo'
 
 
+def _check_pipeline_correct_pipeline_name():
+    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+
+    primary_pipeline = pipeline_definition.primary_pipeline
+
+    assert primary_pipeline.name == "{{name}}"
+
+
+def _check_pipeline_correct_pipeline_alternative_name():
+    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid_alternative_name.json')
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+
+    primary_pipeline = pipeline_definition.primary_pipeline
+
+    assert primary_pipeline.name == "{{alternative_name}}"
+
 # Utility questions
 
 

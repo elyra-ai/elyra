@@ -1,13 +1,19 @@
 # Changelog
 
+## Release 3.2.0rc1 - 10/07/2021
+
+- Update developer testing documentation - [#2207](https://github.com/elyra-ai/elyra/pull/2207)
+- Exclude kfp dependency version 1.7.2 - [#2209](https://github.com/elyra-ai/elyra/pull/2209)
+- Tolerate components w/ no dependencies, add tests with custom components - [#2206](https://github.com/elyra-ai/elyra/pull/2206)
+- Fix ability to override pipeline name at submission - [#2205](https://github.com/elyra-ai/elyra/pull/2205)
+
 ## Release 3.2.0rc0 - 10/06/2021
 
 - Refactor kubeflow pipelines flow and improve dex auth - [#2167](https://github.com/elyra-ai/elyra/pull/2167)
 - Support data exchange between KFP components - [#2094](https://github.com/elyra-ai/elyra/pull/2094)
-- Use tmpdir fixture instead of /tmp/lib in bootstrapper test
-- update snapshots with new encoded svgs
-- Clean up svg files
-- Fix metadata class links
+- Use tmpdir fixture instead of /tmp/lib in bootstrapper test - [#2200](https://github.com/elyra-ai/elyra/pull/2200)
+- Clean up svg files - [#2195](https://github.com/elyra-ai/elyra/pull/2195)
+- Fix metadata class links - [#2198](https://github.com/elyra-ai/elyra/pull/2198)
 - Fix pipeline name calculation algorithm - [#2181](https://github.com/elyra-ai/elyra/pull/2181)
 - Update component registry schema to enforce length for categories - [#2193](https://github.com/elyra-ai/elyra/pull/2193)
 - Implement Bring Your Own Schemas and Schemaspaces feature - [#2109](https://github.com/elyra-ai/elyra/pull/2109)

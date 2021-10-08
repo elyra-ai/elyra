@@ -94,7 +94,7 @@ setup_args = dict(
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp>=1.6.3<2.0',
+        'kfp>=1.6.3<2.0,!=1.7.2',
         # Airflow runtime dependencies
         'pygithub',
         'black',
