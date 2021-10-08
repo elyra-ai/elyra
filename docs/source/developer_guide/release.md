@@ -209,6 +209,6 @@ docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && d
 Elyra release candidate distributions are packages that have been proposed for release but either still require further
 developer testing and/or approval.
 
-Release candidate testing results as well as approvals are discussed in our 
-[Daily Developer Meeting](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html#join-the-daily-development-meetings) 
-the days immediately following release candidate creation. 
+Release candidate testing results are discussed in our Daily 
+[Developer Meetings](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html#join-the-daily-development-meetings), 
+where we determine whether to produce an additional RC or the official release.
