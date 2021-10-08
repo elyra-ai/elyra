@@ -366,10 +366,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "nodeName": node_label,
                                        "propertyName": 'runtime_image'})
         else:
-            image_regex = re.compile(r"[^/ ]+/[^/ ]+:.+")
-            # image_regex = re.compile(r"[a-z\d]+(?:[a-z\d\-]+[_]{0,2}\.?)*/"  # match owner name
-            #                          r"[a-z\d]+(?:[a-z\d\-]+[_]{0,2}\.?)*:"  # match image name
-            #                          r"[^.-][\w\d\-_.]*")  # match tag name
+            image_regex = re.compile(r"[^/ ]+/[^/ ]+")
             matched = image_regex.search(image_name)
             if not matched:
                 response.add_message(severity=ValidationSeverity.Error,
