@@ -22,7 +22,7 @@
 
 SHELL:=/bin/bash
 
-TAG:=3.2.0rc2
+TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 
