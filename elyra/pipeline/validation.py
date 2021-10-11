@@ -365,6 +365,18 @@ class PipelineValidationManager(SingletonConfigurable):
                                  data={"nodeID": node_id,
                                        "nodeName": node_label,
                                        "propertyName": 'runtime_image'})
+        else:
+            image_regex = re.compile(r"[^/ ]+/[^/ ]+$")
+            matched = image_regex.search(image_name)
+            if not matched:
+                response.add_message(severity=ValidationSeverity.Error,
+                                     message_type="invalidNodeProperty",
+                                     message="Node contains an invalid runtime image. Runtime image "
+                                             "must conform to the format [registry/]owner/image:tag",
+                                     data={"nodeID": node_id,
+                                           "nodeName": node_label,
+                                           "propertyName": 'runtime_image',
+                                           "imageName": image_name})
 
     def _validate_resource_value(self, node_id: str, node_label: str, resource_name: str,
                                  resource_value: str, response: ValidationResponse) -> None:
