@@ -322,10 +322,17 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
                             elif self._get_component_type(property_dict, node_property) == 'inputpath':
-                                if len(node.get_component_parameter(node_property).keys()) < 2:
+                                if not node.get_component_parameter(node_property):
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
-                                                         message="Node is missing required output property parameter",
+                                                         message="Node is missing required output property "
+                                                                 "parameter value",
+                                                         data={"nodeID": node.id,
+                                                               "nodeName": node_label})
+                                elif len(node.get_component_parameter(node_property).keys()) < 2:
+                                    response.add_message(severity=ValidationSeverity.Error,
+                                                         message_type="invalidNodeProperty",
+                                                         message="Node has malformed `InputPath` parameter structure",
                                                          data={"nodeID": node.id,
                                                                "nodeName": node_label})
                                 else:
