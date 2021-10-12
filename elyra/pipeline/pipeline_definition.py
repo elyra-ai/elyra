@@ -256,7 +256,8 @@ class Node(AppDataBase):
         :param default_value: a default value in case the key is not found
         :return: the value or the default value if the key is not found
         """
-        return self._node['app_data']['component_parameters'].get(key, default_value)
+        value = self._node['app_data']['component_parameters'].get(key, default_value)
+        return None if value == "None" else value
 
     def set_component_parameter(self, key: str, value: Any):
         """
