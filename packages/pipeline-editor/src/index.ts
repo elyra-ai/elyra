@@ -257,6 +257,19 @@ const extension: JupyterFrontEndPlugin<void> = {
                     ? 3
                     : 4
               });
+              menu.fileMenu.newMenu.addGroup(
+                [
+                  {
+                    command: openPipelineEditorCommand,
+                    args: { runtime, isMenu: true }
+                  }
+                ],
+                runtime.name === 'kfp'
+                  ? 31
+                  : runtime.name === 'airflow'
+                  ? 32
+                  : 33
+              );
             }
           }
         }
@@ -265,21 +278,6 @@ const extension: JupyterFrontEndPlugin<void> = {
           [{ command: openPipelineEditorCommand, args: { isMenu: true } }],
           30
         );
-        for (const runtime of schema) {
-          if (
-            runtimes.find((value: any) => value.schema_name === runtime.name)
-          ) {
-            menu.fileMenu.newMenu.addGroup(
-              [
-                {
-                  command: openPipelineEditorCommand,
-                  args: { runtime, isMenu: true }
-                }
-              ],
-              runtime.name === 'kfp' ? 31 : runtime.name === 'airflow' ? 32 : 33
-            );
-          }
-        }
       },
       (error: any) => RequestErrors.serverError(error)
     );
