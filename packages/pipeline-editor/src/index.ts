@@ -233,7 +233,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     PipelineService.getRuntimesSchema().then(
-      (schema: any) => {
+      async (schema: any) => {
+        const runtimes = await PipelineService.getRuntimes();
         // Add the command to the launcher
         if (launcher) {
           launcher.add({
@@ -242,13 +243,21 @@ const extension: JupyterFrontEndPlugin<void> = {
             rank: 1
           });
           for (const runtime of schema) {
-            launcher.add({
-              command: openPipelineEditorCommand,
-              category: 'Elyra',
-              args: { runtime },
-              rank:
-                runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
-            });
+            if (
+              runtimes.find((value: any) => value.schema_name === runtime.name)
+            ) {
+              launcher.add({
+                command: openPipelineEditorCommand,
+                category: 'Elyra',
+                args: { runtime },
+                rank:
+                  runtime.name === 'kfp'
+                    ? 2
+                    : runtime.name === 'airflow'
+                    ? 3
+                    : 4
+              });
+            }
           }
         }
         // Add new pipeline to the file menu
@@ -257,15 +266,19 @@ const extension: JupyterFrontEndPlugin<void> = {
           30
         );
         for (const runtime of schema) {
-          menu.fileMenu.newMenu.addGroup(
-            [
-              {
-                command: openPipelineEditorCommand,
-                args: { runtime, isMenu: true }
-              }
-            ],
-            runtime.name === 'kfp' ? 31 : runtime.name === 'airflow' ? 32 : 33
-          );
+          if (
+            runtimes.find((value: any) => value.schema_name === runtime.name)
+          ) {
+            menu.fileMenu.newMenu.addGroup(
+              [
+                {
+                  command: openPipelineEditorCommand,
+                  args: { runtime, isMenu: true }
+                }
+              ],
+              runtime.name === 'kfp' ? 31 : runtime.name === 'airflow' ? 32 : 33
+            );
+          }
         }
       },
       (error: any) => RequestErrors.serverError(error)
