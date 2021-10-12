@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 3.2.0 - 10/12/2021
+
+- Make small changes to KFP DSL export template - [#2222](https://github.com/elyra-ai/elyra/pull/2222)
+
 ## Release 3.2.0rc2 - 10/08/2021
 
 - Validate runtime image format with regex - [#2213](https://github.com/elyra-ai/elyra/pull/2213)
