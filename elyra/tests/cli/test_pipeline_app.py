@@ -288,9 +288,12 @@ def test_describe_with_kfp_components():
     assert "Type: kfp" in result.output
     assert "Nodes: 3" in result.output
     assert "File Dependencies:\n    None Listed" in result.output
-    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml" in result.output
-    assert "- /opt/anaconda3/envs/elyra-dev/share/jupyter/components/kfp/filter_text_using_shell_and_grep.yaml" in result.output
-    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml" in result.output
+    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/"
+    "basics/Calculate_hash/component.yaml" in result.output
+    assert "- /opt/anaconda3/envs/elyra-dev/share/jupyter/components/"
+    "kfp/filter_text_using_shell_and_grep.yaml" in result.output
+    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/"
+    "web/Download/component.yaml" in result.output
     assert result.exit_code == 0
 
 
