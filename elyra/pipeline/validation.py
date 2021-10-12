@@ -325,7 +325,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                 if not node.get_component_parameter(node_property):
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
-                                                         message="Node is missing required output property "
+                                                         message="Node is missing required input source value. "
                                                                  "parameter value",
                                                          data={"nodeID": node.id,
                                                                "nodeName": node_label})
