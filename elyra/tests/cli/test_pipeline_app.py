@@ -275,6 +275,8 @@ def test_describe_with_empty_pipeline():
         assert "Description: None" in result.output
         assert "Type: generic" in result.output
         assert "Nodes: 0" in result.output
+        assert "File Dependencies:\n    None Listed" in result.output
+        assert "Component Dependencies:\n    None Listed" in result.output
 
 
 def test_describe_with_kfp_components():
@@ -285,6 +287,10 @@ def test_describe_with_kfp_components():
     assert "Description: 3-node custom component pipeline" in result.output
     assert "Type: kfp" in result.output
     assert "Nodes: 3" in result.output
+    assert "File Dependencies:\n    None Listed" in result.output
+    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml" in result.output
+    assert "- /opt/anaconda3/envs/elyra-dev/share/jupyter/components/kfp/filter_text_using_shell_and_grep.yaml" in result.output
+    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml" in result.output
     assert result.exit_code == 0
 
 
