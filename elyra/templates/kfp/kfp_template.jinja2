@@ -5,6 +5,7 @@ import kfp_tekton
 {% if kf_secured %}
 import requests
 import sys
+import urllib
 {% endif %}
 {% if cos_secret %}
 from kfp.aws import use_aws_secret
@@ -108,7 +109,7 @@ def get_istio_auth_session(url: str, username: str, password: str) -> dict:
         ################
         # Get Dex Login URL (that allows us to POST credentials)
         ################
-        redirect_url_obj = urlsplit(auth_session["redirect_url"])
+        redirect_url_obj = urllib.parse.urlsplit(auth_session["redirect_url"])
 
         # we expect a "Dex Login" URL to have `/auth` in the HTTP path
         if "/auth" not in redirect_url_obj.path:
@@ -166,6 +167,7 @@ if __name__ == "__main__":
 
     print('Trying to authenticate with Kubeflow server ...')
     api_endpoint = '{{ api_endpoint }}'.rstrip('/')
+    api_username, api_password = sys.argv[1], sys.argv[2]
 
     try:
         # attempt to create a session cookies using the provided `api_username` and `api_password`
