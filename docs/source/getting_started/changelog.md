@@ -1,19 +1,13 @@
 # Changelog
 
-## Release 3.2.0rc2 - 10/08/2021
+## Release 3.2.0 - 10/12/2021
 
+- Make small changes to KFP DSL export template - [#2222](https://github.com/elyra-ai/elyra/pull/2222)
 - Validate runtime image format with regex - [#2213](https://github.com/elyra-ai/elyra/pull/2213)
-- Add missing links to rc0 changelog items
-
-## Release 3.2.0rc1 - 10/07/2021
-
 - Update developer testing documentation - [#2207](https://github.com/elyra-ai/elyra/pull/2207)
 - Exclude kfp dependency version 1.7.2 - [#2209](https://github.com/elyra-ai/elyra/pull/2209)
 - Tolerate components w/ no dependencies, add tests with custom components - [#2206](https://github.com/elyra-ai/elyra/pull/2206)
 - Fix ability to override pipeline name at submission - [#2205](https://github.com/elyra-ai/elyra/pull/2205)
-
-## Release 3.2.0rc0 - 10/06/2021
-
 - Refactor kubeflow pipelines flow and improve dex auth - [#2167](https://github.com/elyra-ai/elyra/pull/2167)
 - Support data exchange between KFP components - [#2094](https://github.com/elyra-ai/elyra/pull/2094)
 - Use tmpdir fixture instead of /tmp/lib in bootstrapper test - [#2200](https://github.com/elyra-ai/elyra/pull/2200)
@@ -27,7 +21,7 @@
 - Refactor tests to common parent folder to better code sharing - [#2160](https://github.com/elyra-ai/elyra/pull/2160)
 - Add link to KFP custom component tutorial - [#2178](https://github.com/elyra-ai/elyra/pull/2178)
 - Add link to hackmd dev meeting notes to documentation - [#2177](https://github.com/elyra-ai/elyra/pull/2177)
-- Add daily dev meetig info to docs - [#2176](https://github.com/elyra-ai/elyra/pull/2176)
+- Add daily dev meeting info to docs - [#2176](https://github.com/elyra-ai/elyra/pull/2176)
 - Parallelize reading of component definitions in registry - [#2169](https://github.com/elyra-ai/elyra/pull/2169)
 - Remove unnecessary files from Elyra python distro
 - Update root readme with daily scrum info - [#2172](https://github.com/elyra-ai/elyra/pull/2172)
