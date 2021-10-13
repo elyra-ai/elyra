@@ -61,7 +61,7 @@
           "title": "Location Type",
           "description": "The type of location from which this registry's component definitions will be accessed",
           "type": "string",
-          "enum": ["URL", "Filename", "Directory"],
+          "enum": ["URL", "Filename", "Directory", "MLX"],
           "uihints": {
             "field_type": "dropdown",
             "category": "Source"

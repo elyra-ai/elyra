@@ -15,10 +15,13 @@
 #
 from abc import abstractmethod
 from http import HTTPStatus
+from io import BytesIO
 from logging import Logger
 import os
 from queue import Empty
 from queue import Queue
+import tarfile
+from tempfile import TemporaryFile
 from threading import Thread
 from types import SimpleNamespace
 from typing import Any
@@ -300,8 +303,8 @@ class ComponentReader(LoggingConfigurable):
                 try:
                     self.log.debug(f"Attempting read of component definition file at location '{loc}'...")
                     self.read_component_definition(loc, location_to_def)
-                except Exception:
-                    self.log.warning(f"Could not read component definition file at location '{loc}'. Skipping...")
+                except Exception as ex:
+                    self.log.warning(f"Could not read component definition file at location '{loc}': {ex}. Skipping...")
 
                 loc_q.task_done()
 
@@ -431,6 +434,100 @@ class GitHubComponentReader(UrlComponentReader):
 
     def get_absolute_locations(self, paths: List[str]) -> List[str]:
         pass
+
+    @property
+    def resource_type(self):
+        """
+        The RuntimePipelineProcessor accesses this property in order to process
+        components on pipeline submit/export. The superclass location_type is
+        used because the value must be one of ('filename', 'url').
+        """
+        return super().location_type
+
+
+class MLXComponentReader(ComponentReader):
+    """
+    Read component definitions from an MLX repository
+    https://github.com/machine-learning-exchange/mlx
+    """
+    location_type = 'mlx'
+
+    def read_component_definition(self,
+                                  location: str,
+                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
+        self.log.info(f'read_component_definition -> {location}')
+        try:
+            # compose download url
+            download_url = f'http://localhost:8080/apis/v1alpha1/components/{location}/download'
+            res = requests.get(download_url)
+        except Exception as e:
+            self.log.warning(f"Failed to download component: {location}: {str(e)}")
+        else:
+            if res.status_code != HTTPStatus.OK:
+                self.log.warning(f"Invalid location for component: {location} (HTTP code {res.status_code})")
+            else:
+                # response type should be 'application/gzip'
+                # Content-Disposition: attachment; filename=model-fairness-check.tgz
+                with TemporaryFile() as fp:
+                    fp.write(res.content)
+                    fp.seek(0)
+                    try:
+                        tar = tarfile.open(fileobj=BytesIO(fp.read()),
+                                           mode='r:gz')
+                        if len(tar.getnames()) == 1:
+                            location_to_def[location] = tar.extractfile(tar.getnames()[0]).read()
+                        else:
+                            # the archive contains more than one member
+                            # can't determine which one to use ...
+                            self.log.warning(f'The response archive contains more than one member: {tar.getnames()}')
+                    except Exception as ex:
+                        # the response is not a tgz file
+                        self.log.warning(f'The repository response does not include a valid tgz file: {ex}')
+
+        return location_to_def
+
+    def get_absolute_locations(self, paths: List[str]) -> List[str]:
+        """
+        Each path represents an MLX API URL. This method retrieves a list
+        of components and translates them into keys that can be used
+        to retrieve them.
+
+        :param paths: List of MLX instance API URLs
+        :type paths: List[str]
+        :return: List of components stored in the MLX instance
+        :rtype: List[str]
+        """
+        absolute_paths = []
+        for path in paths:
+            try:
+                self.log.debug(f'Retrieving component list from {path}')
+                # Query MLX components endpoint
+                endpoint = f'{path}/apis/v1alpha1/components'
+                res = requests.get(endpoint)
+                if res.status_code != HTTPStatus.OK:
+                    self.log.warning(f'Error processing component registry {path}: '
+                                     f'HTTP code: {res.status_code}.')
+                    continue
+                if res.headers['Content-Type'] != 'application/json':
+                    self.log.warning(f'Error processing component registry {path}: '
+                                     f'Unexpected content type: {res.headers["Content-Type"]}.'
+                                     f'Content: {res.content}')
+                    continue
+
+                # the response is JSON formatted:
+                # "components": [
+                #    {
+                #      "id": "component-id-used-for-retrieval",
+                #      ...
+                #    }
+                # ]
+                for component in res.json().get('components', []):
+                    absolute_paths.append(component.get('id'))
+
+            except Exception as ex:
+                self.log.warning(f'Error processing component registry {path}: {ex}')
+
+        return absolute_paths
 
     @property
     def resource_type(self):

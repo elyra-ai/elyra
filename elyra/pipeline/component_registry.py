@@ -31,6 +31,7 @@ from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ComponentReader
 from elyra.pipeline.component import DirectoryComponentReader
 from elyra.pipeline.component import FilesystemComponentReader
+from elyra.pipeline.component import MLXComponentReader
 from elyra.pipeline.component import UrlComponentReader
 
 
@@ -252,7 +253,8 @@ class ComponentRegistry(LoggingConfigurable):
         readers = {
             FilesystemComponentReader.location_type: FilesystemComponentReader(file_types),
             DirectoryComponentReader.location_type: DirectoryComponentReader(file_types),
-            UrlComponentReader.location_type: UrlComponentReader(file_types)
+            UrlComponentReader.location_type: UrlComponentReader(file_types),
+            MLXComponentReader.location_type: MLXComponentReader(file_types)
         }
 
         reader = readers.get(registry_location_type)
