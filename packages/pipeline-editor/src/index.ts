@@ -233,7 +233,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     PipelineService.getRuntimesSchema().then(
-      async (schema: any) => {
+      (schema: any) => {
         // Add the command to the launcher
         if (launcher) {
           launcher.add({
