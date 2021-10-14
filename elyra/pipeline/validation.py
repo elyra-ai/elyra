@@ -323,7 +323,10 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
                             elif self._get_component_type(property_dict, node_property) == 'inputpath':
-                                if not isinstance(component_param, dict) or len(component_param) < 2:
+                                # Any component property with type `InputPath` will be a dictionary of two keys
+                                # "value": the node ID of the parent node containing the output
+                                # "option": the name of the key (which is an output) of the above referenced node
+                                if not isinstance(component_param, dict) or len(component_param) != 2:
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
                                                          message="Node has malformed `InputPath` parameter structure",
