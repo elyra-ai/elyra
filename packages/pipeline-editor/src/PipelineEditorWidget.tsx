@@ -308,6 +308,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       if (isDialogAlreadyShowing.current) {
         return; // bail, we are already showing a dialog.
       }
+      isDialogAlreadyShowing.current = true;
       if (error instanceof PipelineOutOfDateError) {
         showDialog({
           title: 'Migrate pipeline?',
@@ -332,17 +333,20 @@ const PipelineWrapper: React.FC<IProps> = ({
           if (result.button.accept) {
             // proceed with migration
             console.log('migrating pipeline');
-            const migratedPipeline = migrate(pipeline, pipeline => {
-              // function for updating to relative paths in v2
-              // uses location of filename as expected in v1
-              for (const node of pipeline.nodes) {
-                node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                  contextRef.current.path,
-                  node.app_data.filename
-                );
+            const migratedPipeline = migrate(
+              contextRef.current.model.toJSON(),
+              pipeline => {
+                // function for updating to relative paths in v2
+                // uses location of filename as expected in v1
+                for (const node of pipeline.nodes) {
+                  node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                    contextRef.current.path,
+                    node.app_data.filename
+                  );
+                }
+                return pipeline;
               }
-              return pipeline;
-            });
+            );
             contextRef.current.model.fromString(
               JSON.stringify(migratedPipeline, null, 2)
             );
@@ -361,7 +365,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [pipeline, shell.currentWidget]
+    [shell.currentWidget]
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
