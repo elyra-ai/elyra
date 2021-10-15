@@ -18,4 +18,5 @@ c.ServerApp.token = 'test'
 c.ServerApp.port = 58888
 c.ServerApp.port_retries = 0
 c.ServerApp.quit_button = False
+c.LabApp.open_browser = False
 c.ServerApp.root_dir = './build/cypress-tests'
