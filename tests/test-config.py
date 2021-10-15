@@ -19,5 +19,4 @@ c.ServerApp.port = 58888
 c.ServerApp.port_retries = 0
 c.ServerApp.quit_button = False
 c.LabApp.open_browser = False
-c.LabApp.workspaces_dir = './build/cypress-tests'
-c.FileContentsManager.root_dir = './build/cypress-tests'
+c.ServerApp.root_dir = './build/cypress-tests'
