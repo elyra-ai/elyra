@@ -85,7 +85,7 @@ const theme: any = {
       input: 'transparent'
     },
     highlight: {
-      border: 'rgba(0, 0, 0, 0.12)',
+      border: 'transparent',
       hover: 'transparent',
       focus: 'transparent'
     }
