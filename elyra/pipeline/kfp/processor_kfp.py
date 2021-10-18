@@ -732,11 +732,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     def _get_istio_auth_session(url: str, username: str, password: str) -> dict:
         """
         Determine if the specified URL is secured by Dex and try to obtain a session cookie.
-        WARNING: only Dex `staticPasswords` authentication is currently supported
+        WARNING: only Dex `staticPasswords` and `LDAP` authentication are currently supported
+                 (we default default to using `staticPasswords` if both are enabled)
 
         :param url: Kubeflow server URL, including protocol
-        :param username: Dex `staticPasswords` username
-        :param password: Dex `staticPasswords` password
+        :param username: Dex `staticPasswords` or `LDAP` username
+        :param password: Dex `staticPasswords` or `LDAP` password
         :return: auth session information
         """
         # define the default return object
@@ -770,36 +771,35 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 auth_session["is_secured"] = True
 
             ################
-            # Get Dex Login URL (that allows us to POST credentials)
+            # Get Dex Login URL
             ################
             redirect_url_obj = urlsplit(auth_session["redirect_url"])
 
-            # we expect a "Dex Login" URL to have `/auth` in the HTTP path
-            if "/auth" not in redirect_url_obj.path:
-                raise RuntimeError(
-                    f"Path of `redirect_url` must contain '/auth', but got: {auth_session['redirect_url']}"
-                )
-
-            # rewrite "Dex Login" URL to "/auth/local" (for dex `staticPasswords` login)
-            # (needed when dex is configured with multiple auth options)
-            if "/auth/local" not in redirect_url_obj.path:
+            # if we are at `/auth?=xxxx` path, we need to select an auth type
+            if re.search(r"/auth$", redirect_url_obj.path):
+                # default to "staticPasswords" auth type
                 redirect_url_obj = redirect_url_obj._replace(
-                    path=redirect_url_obj.path.replace("/auth", "/auth/local")
-                )
-                auth_session["redirect_url"] = redirect_url_obj.geturl()
-
-            # Get redirected to page we can POST credentials to
-            # (needed when dex is configured with multiple auth options)
-            resp = s.get(auth_session["redirect_url"], allow_redirects=True)
-            if resp.status_code != 200:
-                raise RuntimeError(
-                    f"HTTP status code '{resp.status_code}' for GET against: {auth_session['redirect_url']}"
+                    path=re.sub(r"/auth$", "/auth/local", redirect_url_obj.path)
                 )
 
-            auth_session["dex_login_url"] = resp.url
+            # if we are at `/auth/xxxx/login` path, then no further action is needed (we can use it for login POST)
+            if re.search(r"/auth/.*/login$", redirect_url_obj.path):
+                auth_session["dex_login_url"] = redirect_url_obj.geturl()
+
+            # else, we need to be redirected to the actual login page
+            else:
+                # this GET should redirect us to the `/auth/xxxx/login` path
+                resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
+                if resp.status_code != 200:
+                    raise RuntimeError(
+                        f"HTTP status code '{resp.status_code}' for GET against: {redirect_url_obj.geturl()}"
+                    )
+
+                # set the login url
+                auth_session["dex_login_url"] = resp.url
 
             ################
-            # Attempt Dex `staticPasswords` Login
+            # Attempt Dex Login
             ################
             resp = s.post(
                 auth_session["dex_login_url"],
@@ -808,8 +808,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             )
             if len(resp.history) == 0:
                 raise RuntimeError(
-                    f"No redirect after POST to: {auth_session['dex_login_url']} - "
-                    f"Login credentials were probably invalid."
+                    f"Login credentials were probably invalid - "
+                    f"No redirect after POST to: {auth_session['dex_login_url']}"
                 )
 
             # store the session cookies in a "key1=value1; key2=value2" string
