@@ -15,6 +15,7 @@
 #
 import string
 
+from kfp.dsl import RUN_ID_PLACEHOLDER
 import pytest
 
 from elyra.kfp.operator import ExecuteFileOp
@@ -344,7 +345,7 @@ def test_construct_with_env_variables_argo():
     confirmation_names = ["ENV_VAR_ONE", "ENV_VAR_TWO", "ENV_VAR_THREE",
                           "ELYRA_RUN_NAME"]
     confirmation_values = ["1", "2", "3",
-                           "{{workflow.annotations.pipelines.kubeflow.org/run_name}}"]
+                           RUN_ID_PLACEHOLDER]
     for env_val in notebook_op.container.env:
         assert env_val.name in confirmation_names
         assert env_val.value in confirmation_values
@@ -372,7 +373,7 @@ def test_construct_with_env_variables_argo():
     confirmation_names = ["ENV_VAR_ONE", "ENV_VAR_TWO", "ENV_VAR_THREE",
                           "ELYRA_RUN_NAME"]
     confirmation_values = ["1", "2", "3",
-                           "{{workflow.annotations.pipelines.kubeflow.org/run_name}}"]
+                           RUN_ID_PLACEHOLDER]
     for env_val in notebook_op.container.env:
         assert env_val.name in confirmation_names
         assert env_val.value in confirmation_values
