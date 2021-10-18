@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
-  "$id": "https://github.com/kiersten-stokes/elyra/tree/registry-updates/elyra/metadata/schemas/url-catalog.json",
+  "$id": "https://raw.githubusercontent.com/kiersten-stokes/elyra/registry-updates/elyra/metadata/schemas/url-catalog.json",
   "title": "Url Component Catalog",
   "name": "url-catalog",
   "display_name": "Url Component Catalog",
