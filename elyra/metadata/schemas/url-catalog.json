@@ -16,7 +16,7 @@
       "title": "Schema Name",
       "description": "The schema associated with this instance",
       "type": "string",
-      "const": "component-registry"
+      "const": "url-catalog"
     },
     "display_name": {
       "title": "Display Name",
