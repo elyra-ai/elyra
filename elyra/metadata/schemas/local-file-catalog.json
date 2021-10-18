@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://github.com/kiersten-stokes/elyra/tree/registry-updates/elyra/metadata/schemas/local-file-catalog.json",
+  "title": "Filesystem Component Catalog",
+  "name": "local-file-catalog",
+  "display_name": "Filesystem Component Catalog",
+  "schemaspace": "component-registries",
+  "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
+  "uihints": {
+    "title": "Filesystem Component Catalogs",
+    "icon": "",
+    "reference_url": "https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "component-registry"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "Display name of this Component Catalog",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "description": "Description of this Component Catalog",
+          "type": "string"
+        },
+        "runtime": {
+          "title": "Runtime",
+          "description": "The runtime associated with this Component Catalog",
+          "type": "string",
+          "$comment": "This enum is dynamically generated to contain the available runtime values.",
+          "enum": ["{currently-configured-runtimes}"],
+          "uihints": {
+            "field_type": "dropdown"
+          }
+        },
+        "categories": {
+          "title": "Category Names",
+          "description": "Category names associated with this Component Catalog (the components defined in this registry will be organized in the component palette according to these categories)",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 18
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Component Categories"
+          }
+        },
+        "paths": {
+          "title": "Paths",
+          "description": "A list of absolute paths to individual component specification files in the local file system",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Source"
+          }
+        }
+      },
+      "required": ["runtime", "paths"]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}
