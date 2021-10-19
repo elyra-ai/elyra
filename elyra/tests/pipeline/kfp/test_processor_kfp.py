@@ -282,7 +282,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           name="Filter text",
                           description="",
                           op="filter-text",
-                          location_type="url",
+                          catalog_type="url",
                           location=url,
                           properties=[],
                           categories=[])
@@ -352,7 +352,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           name="Filter text",
                           description="",
                           op="filter-text",
-                          location_type="filename",
+                          catalog_type="filename",
                           location=relative_path,
                           properties=[],
                           categories=[])

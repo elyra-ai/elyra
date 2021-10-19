@@ -277,8 +277,8 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                                                                         operation_list=target_ops)
 
                 # Get the reader class associated with this component and construct the appropriate import statements
-                catalog_reader = entrypoints.get_single('elyra.component.catalog_types', component.location_type)
-                reader = catalog_reader.load()(component.location_type, self.component_parser.file_types)
+                catalog_reader = entrypoints.get_single('elyra.component.catalog_types', component.catalog_type)
+                reader = catalog_reader.load()(component.catalog_type, self.component_parser.file_types)
 
                 modules = reader.get_component_import_statement(component)
 

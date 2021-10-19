@@ -46,7 +46,7 @@ class ComponentRegistry(LoggingConfigurable):
                               name="Notebook",
                               description="Run notebook file",
                               op="execute-notebook-node",
-                              location_type="elyra",
+                              catalog_type="elyra",
                               location="elyra",
                               extensions=[".ipynb"],
                               categories=[_generic_category_label]),
@@ -54,7 +54,7 @@ class ComponentRegistry(LoggingConfigurable):
                                    name="Python Script",
                                    description="Run Python script",
                                    op="execute-python-node",
-                                   location_type="elyra",
+                                   catalog_type="elyra",
                                    location="elyra",
                                    extensions=[".py"],
                                    categories=[_generic_category_label]),
@@ -62,7 +62,7 @@ class ComponentRegistry(LoggingConfigurable):
                               name="R Script",
                               description="Run R script",
                               op="execute-r-node",
-                              location_type="elyra",
+                              catalog_type="elyra",
                               location="elyra",
                               extensions=[".r"],
                               categories=[_generic_category_label])}
@@ -213,7 +213,7 @@ class ComponentRegistry(LoggingConfigurable):
 
                 component_entry = {
                     "component_id": component_hash,
-                    "location_type": reader.catalog_type,
+                    "catalog_type": reader.catalog_type,
                     "categories": registry_categories,
                     "component_definition": component_metadata_dict.get('definition'),
                     "component_metadata": component_metadata_dict['metadata']

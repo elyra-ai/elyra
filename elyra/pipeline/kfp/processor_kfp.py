@@ -630,8 +630,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Build component task factory
                 try:
                     # Get the reader class associated with this component and construct the appropriate kwargs
-                    catalog_reader = entrypoints.get_single('elyra.component.catalog_types', component.location_type)
-                    reader = catalog_reader.load()(component.location_type, self.component_parser.file_types)
+                    catalog_reader = entrypoints.get_single('elyra.component.catalog_types', component.catalog_type)
+                    reader = catalog_reader.load()(component.catalog_type, self.component_parser.file_types)
                     component_source = reader.get_component_source_kwargs(component)
 
                     factory_function = components.load_component(**component_source)

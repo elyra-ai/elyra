@@ -119,7 +119,7 @@ class Component(object):
 
     def __init__(self, id: str, name: str,
                  description: Optional[str],
-                 location_type: str,
+                 catalog_type: str,
                  location: str,
                  runtime: Optional[str] = None,
                  op: Optional[str] = None,
@@ -132,7 +132,7 @@ class Component(object):
         :param id: Unique identifier for a component
         :param name: The name of the component for display
         :param description: The description of the component
-        :param location_type: Indicates the type of component definition resource
+        :param catalog_type: Indicates the type of component definition resource
                               location; one of ['url', filename', 'directory]
         :param location: The location of the component definition
         :param runtime: The runtime of the component (e.g. KFP or Airflow)
@@ -151,7 +151,7 @@ class Component(object):
         self._id = id
         self._name = name
         self._description = description
-        self._location_type = location_type
+        self._location_type = catalog_type
         self._location = location
 
         self._runtime = runtime
@@ -189,7 +189,7 @@ class Component(object):
         return self._description
 
     @property
-    def location_type(self) -> str:
+    def catalog_type(self) -> str:
         return self._location_type
 
     @property

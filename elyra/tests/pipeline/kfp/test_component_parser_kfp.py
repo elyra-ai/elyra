@@ -63,7 +63,7 @@ def test_modify_component_registries():
         "description": "A test registry",
         "runtime": "kfp",
         "categories": ["New Components"],
-        "location_type": "Filename",
+        "catalog_type": "Filename",
         "paths": paths
     }
     registry_instance = Metadata(schema_name="component-registry",
@@ -130,7 +130,7 @@ def test_directory_based_component_registry():
         "description": "A test registry",
         "runtime": "kfp",
         "categories": ["New Components"],
-        "location_type": "Directory",
+        "catalog_type": "Directory",
         "paths": [registry_path]
     }
     registry_instance = Metadata(schema_name="component-registry",
@@ -173,7 +173,7 @@ def test_parse_kfp_component_file():
 
     # Build entry for parsing
     entry = {
-        "location_type": reader.resource_type,
+        "catalog_type": reader.resource_type,
         "location": path,
         "categories": ["Test"],
         "component_definition": component_definition
@@ -261,7 +261,7 @@ def test_parse_kfp_component_url():
 
     # Build entry for parsing
     entry = {
-        "location_type": reader.resource_type,
+        "catalog_type": reader.resource_type,
         "location": path,
         "categories": ["Test"],
         "component_definition": component_definition
@@ -295,7 +295,7 @@ def test_parse_kfp_component_file_no_inputs():
 
     # Build entry for parsing
     entry = {
-        "location_type": reader.resource_type,
+        "catalog_type": reader.resource_type,
         "location": path,
         "categories": ["Test"],
         "component_definition": component_definition
@@ -334,7 +334,7 @@ async def test_parse_components_invalid_file():
 
     # Build entry for parsing
     entry = {
-        "location_type": reader.resource_type,
+        "catalog_type": reader.resource_type,
         "location": path,
         "categories": ["Test"],
         "component_definition": component_definition
