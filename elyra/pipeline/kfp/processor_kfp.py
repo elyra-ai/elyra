@@ -23,6 +23,7 @@ from typing import Dict
 from urllib.parse import urlsplit
 
 import autopep8
+import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from kfp import Client as ArgoClient
@@ -627,12 +628,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         operation.component_params[component_property.ref] = processed_value
 
                 # TODO Figure out best way to handle getting component details again
-                if component.location:
-                    component_source = {component.location_type: component.location}
-                else:
-                    reader = component.reader
-                    component_metadata = list(reader.read_component_definition((component.id, component.metadata), {}).values())[0]
-                    component_source = {'text': component_metadata['definition']}
+                # TODO Add comment
+                reader = entrypoints.get_single('elyra.component.catalog_types', component.catalog_type)
+                component_source = reader.get_component_source_kwargs(component)
 
                 # Build component task factory
                 try:

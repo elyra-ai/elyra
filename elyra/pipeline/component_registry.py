@@ -213,16 +213,16 @@ class ComponentRegistry(LoggingConfigurable):
 
             # Get content of component definition file for each component in this registry
             hash_to_metadata = reader.read_component_definitions(registry['metadata'])
-            for component_id, component_metadata in hash_to_metadata.items():
+            for component_hash, component_metadata_dict in hash_to_metadata.items():
 
                 component_entry = {
-                    "location_type": reader.rendering_type,
+                    "component_id": component_hash,
+                    "catalog_type": reader.catalog_type,
                     # "location": component_metadata['metadata'].get('location'),
                     "categories": registry_categories,
-                    "component_id": component_id,
-                    "component_definition": component_metadata.get('definition'),
-                    "component_metadata": component_metadata['metadata'],
-                    "reader": reader
+                    "component_definition": component_metadata_dict.get('definition'),
+                    "component_metadata": component_metadata_dict['metadata'],
+                    # "reader": reader
                 }
 
                 # Parse the component entry to get a fully qualified Component object
@@ -249,19 +249,3 @@ class ComponentRegistry(LoggingConfigurable):
             self.log.error(f"Could not access registries for processor: {self._parser._component_platform}")
 
         return runtime_registries
-
-    def _get_reader(self, registry_location_type: str, file_types: List[str]) -> ComponentReader:
-        """
-        Find the proper reader based on the given registry location type
-        """
-        readers = {
-            FilesystemComponentReader.location_type: FilesystemComponentReader(file_types),
-            DirectoryComponentReader.location_type: DirectoryComponentReader(file_types),
-            UrlComponentReader.location_type: UrlComponentReader(file_types)
-        }
-
-        reader = readers.get(registry_location_type)
-        if not reader:
-            raise ValueError(f"Unsupported registry type: '{registry_location_type}'")
-
-        return reader
