@@ -24,6 +24,12 @@
       "type": "string",
       "minLength": 1
     },
+    "version": {
+      "title": "Version",
+      "description": "The version associated with this instance",
+      "type": "integer",
+      "const": 1
+    },
     "metadata": {
       "description": "Additional data specific to this metadata",
       "type": "object",
@@ -73,5 +79,5 @@
       "required": ["runtime", "paths"]
     }
   },
-  "required": ["schema_name", "display_name", "metadata"]
+  "required": ["schema_name", "display_name", "version", "metadata"]
 }

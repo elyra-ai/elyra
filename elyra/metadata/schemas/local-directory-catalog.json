@@ -6,7 +6,7 @@
   "display_name": "Directory Component Catalog",
   "schemaspace": "component-registries",
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
-  "metadata_class_name": "elyra.pipeline.component_metadata.ComponentRegistryMetadata",
+  "metadata_class_name": "elyra.pipeline.component_metadata.DirectoryCatalogMetadata",
   "uihints": {
     "title": "Directory Component Catalogs",
     "icon": "",
@@ -24,6 +24,12 @@
       "description": "Display name of this Component Catalog",
       "type": "string",
       "minLength": 1
+    },
+    "version": {
+      "title": "Version",
+      "description": "The version associated with this instance",
+      "type": "integer",
+      "const": 1
     },
     "metadata": {
       "description": "Additional data specific to this metadata",
@@ -66,7 +72,7 @@
           }
         },
         "paths": {
-          "title": "Paths",
+          "title": "Directories",
           "description": "A list of paths to directories in the local file system that each contain one or more component specification files",
           "type": "array",
           "items": {
@@ -81,5 +87,5 @@
       "required": ["runtime", "paths"]
     }
   },
-  "required": ["schema_name", "display_name", "metadata"]
+  "required": ["schema_name", "display_name", "version", "metadata"]
 }
