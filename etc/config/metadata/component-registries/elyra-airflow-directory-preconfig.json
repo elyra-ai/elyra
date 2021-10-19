@@ -1,0 +1,11 @@
+{
+  "display_name": "Airflow Preloaded Components - Directory",
+  "metadata": {
+    "description": "Preloaded directory-based components that are supported by Apache Airflow",
+    "runtime": "airflow",
+    "location_type": "Directory",
+    "categories": ["Preloaded Airflow"],
+    "paths": ["airflow"]
+  },
+  "schema_name": "component-registry"
+}
