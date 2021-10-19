@@ -66,7 +66,7 @@ export const pipelineIcon = new LabIcon({
   name: 'elyra:pipeline',
   svgstr: pipelineSvg
 });
-export const pipelineComponentsIcon = new LabIcon({
+export const componentCatalogIcon = new LabIcon({
   name: 'elyra:pipeline-components',
   svgstr: pipelineComponentSvg
 });
