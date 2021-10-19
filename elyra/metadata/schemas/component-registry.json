@@ -1,0 +1,88 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/component-registry.json",
+  "title": "Component Registry",
+  "name": "component-registry",
+  "display_name": "Pipeline Component",
+  "schemaspace": "component-registries",
+  "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
+  "metadata_class_name": "elyra.pipeline.component_metadata.ComponentRegistryMetadata",
+  "uihints": {
+    "title": "Pipeline Components",
+    "icon": "",
+    "reference_url": "https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "component-registry"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "Display name of this Component Registry",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "description": "Description of this Component Registry",
+          "type": "string"
+        },
+        "categories": {
+          "title": "Category Names",
+          "description": "Category names associated with this Component Registry (the components defined in this registry will be organized in the component palette according to these categories)",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 18
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Component Categories"
+          }
+        },
+        "runtime": {
+          "title": "Runtime",
+          "description": "The runtime associated with this Component Registry",
+          "type": "string",
+          "$comment": "This enum is dynamically generated to contain the available runtime values.",
+          "enum": ["{currently-configured-runtimes}"],
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Source"
+          }
+        },
+        "location_type": {
+          "title": "Location Type",
+          "description": "The type of location from which this registry's component definitions will be accessed",
+          "type": "string",
+          "enum": ["URL", "Filename", "Directory"],
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Source"
+          }
+        },
+        "paths": {
+          "title": "Paths",
+          "description": "A list of absolute paths to individual component specification files or to repositories containing multiple component files (e.g., a directory in the file system)",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Source"
+          }
+        }
+      },
+      "required": ["runtime", "location_type", "paths"]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}
