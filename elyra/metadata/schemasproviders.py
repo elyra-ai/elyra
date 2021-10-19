@@ -101,7 +101,8 @@ class CodeSnippetsSchemas(ElyraSchemasProvider):
 class ComponentRegistriesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Component Registries schemaspace."""
     def get_schemas(self) -> List[Dict]:
-        schemas = self.get_schemas_by_name(['component-registry'])
+        schemas = self.get_schemas_by_name(['component-registry', 'local-file-catalog',
+                                            'local-directory-catalog', 'url-catalog'])
 
         # Update runtime enum with set of currently registered runtimes
         for schema in schemas:

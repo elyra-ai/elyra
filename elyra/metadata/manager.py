@@ -16,7 +16,9 @@
 import os
 import re
 from typing import Any
+from typing import Dict
 from typing import List
+from typing import Union
 
 from jsonschema import draft7_format_checker
 from jsonschema import validate
@@ -95,11 +97,11 @@ class MetadataManager(LoggingConfigurable):
         metadata_dict = instance_list[0]
         metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
 
-        # Validate the instance on load
-        self.validate(name, metadata)
-
         # Allow class instances to alter instance
         metadata.post_load()
+
+        # Validate the instance on load
+        self.validate(name, metadata)
 
         return metadata
 
@@ -107,9 +109,9 @@ class MetadataManager(LoggingConfigurable):
         """Creates the given metadata, returning the created instance"""
         return self._save(name, metadata)
 
-    def update(self, name: str, metadata: Metadata) -> Metadata:
+    def update(self, name: str, metadata: Metadata, for_migration: bool = False) -> Metadata:
         """Updates the given metadata, returning the updated instance"""
-        return self._save(name, metadata, for_update=True)
+        return self._save(name, metadata, for_update=True, for_migration=for_migration)
 
     def remove(self, name: str) -> None:
         """Removes the metadata instance corresponding to the given name"""
@@ -181,7 +183,7 @@ class MetadataManager(LoggingConfigurable):
 
         return schema_json
 
-    def _save(self, name: str, metadata: Metadata, for_update: bool = False) -> Metadata:
+    def _save(self, name: str, metadata: Metadata, for_update: bool = False, for_migration: bool = False) -> Metadata:
         if not metadata:
             raise ValueError("An instance of class 'Metadata' was not provided.")
 
@@ -203,7 +205,11 @@ class MetadataManager(LoggingConfigurable):
 
         orig_value = None
         if for_update:
-            orig_value = self.get(name)
+            if for_migration:  # Avoid triggering a post_load() call since migrations will likely stem from there
+                instance_list = self.metadata_store.fetch_instances(name=name)
+                orig_value = instance_list[0]
+            else:
+                orig_value = self.get(name)
 
         # Allow class instances to handle pre-save tasks
         metadata.pre_save(for_update=for_update)
@@ -230,7 +236,7 @@ class MetadataManager(LoggingConfigurable):
 
         return metadata_post_op
 
-    def _rollback(self, name: str, orig_value: Metadata, operation: str, exception: Exception):
+    def _rollback(self, name: str, orig_value: Union[Metadata, Dict], operation: str, exception: Exception):
         """Rolls back the original value depending on the operation.
 
         For rolled back creation attempts, we must remove the created instance.  For rolled back
@@ -239,10 +245,16 @@ class MetadataManager(LoggingConfigurable):
         """
         self.log.debug(f"Rolling back metadata operation '{operation}' for instance '{name}' due to: {exception}")
         if operation == "create":  # remove the instance, orig_value is the newly-created instance.
-            self.metadata_store.delete_instance(orig_value.to_dict())
+            if isinstance(orig_value, Metadata):
+                orig_value = Metadata.to_dict()
+            self.metadata_store.delete_instance(orig_value)
         elif operation == "update":  # restore original as an update
+            if isinstance(orig_value, dict):
+                orig_value = Metadata.from_dict(self.schemaspace, orig_value)
             self.metadata_store.store_instance(name, orig_value.prepare_write(), for_update=True)
         elif operation == "delete":  # restore original as a create
+            if isinstance(orig_value, dict):
+                orig_value = Metadata.from_dict(self.schemaspace, orig_value)
             self.metadata_store.store_instance(name, orig_value.prepare_write(), for_update=False)
         self.log.warning(f"Rolled back metadata operation '{operation}' for instance '{name}' due to "
                          f"failure in post-processing method: {exception}")

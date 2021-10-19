@@ -13,13 +13,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from logging import getLogger
 from typing import Any
 
+from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.processor import PipelineProcessorRegistry
 
 
 class ComponentRegistryMetadata(Metadata):
+    """
+    This class contains methods to trigger cache updates on modification
+    and deletion of component registry metadata instances.
+    """
+
+    def post_load(self, **kwargs: Any) -> None:
+        """Since this class is tied to an schema, use post_load to trigger migration """
+
+        if self.metadata['location_type'] == 'URL':
+            self.schema_name = "url-catalog"
+            # self.metadata['urls'] = self.metadata['paths']
+            # self.metadata.pop('paths')
+        elif self.metadata['location_type'] == 'Directory':
+            self.schema_name = "local-directory-catalog"
+            # self.metadata['directories'] = self.metadata['paths']
+            # self.metadata.pop('paths')
+        else:  # self.location_type == 'Filename'
+            self.schema_name = "local-file-catalog"
+
+        self.metadata.pop('location_type')
+        self.version = 1
+
+        getLogger('ServerApp').info(f"Migrating 'component-registry' instance '{self.name}' to schema '{self.schema_name}'...")
+        MetadataManager(schemaspace="component-registries").update(self.name, self, for_migration=True)
+
+    def post_save(self, **kwargs: Any) -> None:
+        raise RuntimeError("ComponentRegistry schema is deprecated!")
+
+    def post_delete(self, **kwargs: Any) -> None:
+        raise RuntimeError("ComponentRegistry schema is deprecated!")
+
+
+class ComponentCatalogMetadata(Metadata):
     """
     This class contains methods to trigger cache updates on modification
     and deletion of component registry metadata instances.
@@ -46,3 +81,15 @@ class ComponentRegistryMetadata(Metadata):
                 processor.component_registry.update_cache()
         except Exception:
             pass
+
+
+class UrlCatalogMetadata(ComponentCatalogMetadata):
+    pass
+
+
+class DirectoryCatalogMetadata(ComponentCatalogMetadata):
+    pass
+
+
+class FilenameCatalogMetadata(ComponentCatalogMetadata):
+    pass
