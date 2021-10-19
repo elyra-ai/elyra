@@ -25,7 +25,6 @@ from urllib.parse import urlsplit
 import autopep8
 from jinja2 import Environment
 from jinja2 import PackageLoader
-from jupyter_core.paths import ENV_JUPYTER_PATH
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
@@ -627,12 +626,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
 
-                # Get absolute path to the location of the component definition
-                component_path = component.location
-                if component.location_type == "filename":
-                    component_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', component_path)
-
-                component_source = {component.location_type: component_path}
+                # TODO Figure out best way to handle getting component details again
+                if component.location:
+                    component_source = {component.location_type: component.location}
+                else:
+                    reader = component.reader
+                    component_metadata = list(reader.read_component_definition((component.id, component.metadata), {}).values())[0]
+                    component_source = {'text': component_metadata['definition']}
 
                 # Build component task factory
                 try:

@@ -143,9 +143,9 @@ setup_args = dict(
             'kfp = elyra.pipeline.kfp.processor_kfp:KfpPipelineProcessor'
         ],
         'elyra.component.catalog_types': [
-            'url = elyra.pipeline.component:UrlComponentReader',
-            'local-file = elyra.pipeline.component:FilenameComponentReader',
-            'local-directory = elyra.pipeline.component:DirectoryComponentReader'
+            'url-catalog = elyra.pipeline.component_reader:UrlComponentReader',
+            'local-file-catalog = elyra.pipeline.component_reader:FilesystemComponentReader',
+            'local-directory-catalog = elyra.pipeline.component_reader:DirectoryComponentReader'
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',

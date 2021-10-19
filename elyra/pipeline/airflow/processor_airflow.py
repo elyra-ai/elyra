@@ -273,15 +273,17 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 operation.component_params_as_dict.pop("outputs")
 
                 # Get component class from operation name
-                component_class = operation.classifier.split('_')[-1]
+                # component_class = operation.classifier.split('_')[-1]
 
                 unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
                                                                         operation_list=target_ops)
 
+                # TODO Figure out how to get the module name for non-standard component catalog types
+                location = component.location
                 target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
-                             'module_name': component.location.rsplit('/', 1)[-1].split('.')[0],
-                             'class_name': component_class,
+                             'module_name': location.rsplit('/', 1)[-1].split('.')[0],
+                             'class_name': component.name,
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,
                              'operator_source': component.location,

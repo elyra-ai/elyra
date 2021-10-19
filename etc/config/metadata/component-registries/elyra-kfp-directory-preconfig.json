@@ -4,7 +4,7 @@
     "description": "Preloaded directory-based components that are supported by Kubeflow Pipelines",
     "runtime": "kfp",
     "categories": ["Preloaded KFP"],
-    "path": "kfp"
+    "paths": ["kfp"]
   },
   "schema_name": "local-directory-catalog"
 }

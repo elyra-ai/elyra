@@ -56,16 +56,28 @@
             "category": "Component Categories"
           }
         },
-        "path": {
-          "title": "Path",
-          "description": "A path to a directory in the local file system that contains one or more component specification files",
+        "base_path": {
+          "title": "Optional Base Directory",
+          "description": "An optional base directory from which the given path can be resolved.",
           "type": "string",
           "uihints": {
             "category": "Source"
           }
+        },
+        "paths": {
+          "title": "Paths",
+          "description": "A list of paths to directories in the local file system that each contain one or more component specification files",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Source"
+          }
         }
       },
-      "required": ["runtime", "path"]
+      "required": ["runtime", "paths"]
     }
   },
   "required": ["schema_name", "display_name", "metadata"]

@@ -37,7 +37,7 @@ class KfpComponentParser(ComponentParser):
             return None
 
         # Assign component_id and description
-        component_id = self.get_component_id(registry_entry.location, component_yaml.get('name', ''))
+        # component_id = self.get_component_id(registry_entry.location, component_yaml.get('name', ''))
         description = ""
         if component_yaml.get('description'):
             # Remove whitespace characters and replace with spaces
@@ -45,14 +45,16 @@ class KfpComponentParser(ComponentParser):
 
         component_properties = self._parse_properties(component_yaml)
 
-        component = Component(id=component_id,
+        component = Component(id=registry_entry.component_id,
                               name=component_yaml.get('name'),
                               description=description,
                               runtime=self.component_platform,
                               location_type=registry_entry.location_type,
-                              location=registry_entry.location,
+                              location=registry_entry.component_metadata.get('location'),
                               properties=component_properties,
-                              categories=registry_entry.categories)
+                              categories=registry_entry.categories,
+                              metadata=registry_entry.component_metadata,
+                              reader=registry_entry.reader)
 
         return [component]
 

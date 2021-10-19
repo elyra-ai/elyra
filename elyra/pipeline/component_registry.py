@@ -20,6 +20,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from traitlets.config import LoggingConfigurable
@@ -28,10 +29,10 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component import ComponentReader
-from elyra.pipeline.component import DirectoryComponentReader
-from elyra.pipeline.component import FilesystemComponentReader
-from elyra.pipeline.component import UrlComponentReader
+from elyra.pipeline.component_reader import ComponentReader
+from elyra.pipeline.component_reader import DirectoryComponentReader
+from elyra.pipeline.component_reader import FilesystemComponentReader
+from elyra.pipeline.component_reader import UrlComponentReader
 
 
 class ComponentRegistry(LoggingConfigurable):
@@ -204,20 +205,24 @@ class ComponentRegistry(LoggingConfigurable):
             self.log.debug(f"Component registry: processing components in registry '{registry['display_name']}'")
 
             registry_categories = registry['metadata'].get("categories", [])
-            registry_location_type = registry['metadata']['location_type'].lower()
+            registry_location_type = registry['schema_name']
 
             # Assign reader based on the location type of the registry (file, directory, url)
-            reader = self._get_reader(registry_location_type, self._parser.file_types)
+            catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(registry_location_type)
+            reader = catalog_reader.load()(self._parser.file_types)
 
             # Get content of component definition file for each component in this registry
-            component_definitions = reader.read_component_definitions(registry['metadata']['paths'])
-            for path, component_definition in component_definitions.items():
+            hash_to_metadata = reader.read_component_definitions(registry['metadata'])
+            for component_id, component_metadata in hash_to_metadata.items():
 
                 component_entry = {
-                    "location_type": reader.resource_type,
-                    "location": path,
+                    "location_type": reader.rendering_type,
+                    # "location": component_metadata['metadata'].get('location'),
                     "categories": registry_categories,
-                    "component_definition": component_definition
+                    "component_id": component_id,
+                    "component_definition": component_metadata.get('definition'),
+                    "component_metadata": component_metadata['metadata'],
+                    "reader": reader
                 }
 
                 # Parse the component entry to get a fully qualified Component object

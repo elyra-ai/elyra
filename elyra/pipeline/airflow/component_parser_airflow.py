@@ -46,16 +46,18 @@ class AirflowComponentParser(ComponentParser):
         component_classes = self._get_all_classes(component_definition)
         for component_class in component_classes.keys():
             # Create a Component object for each class
-            component_id = self.get_component_id(registry_entry.location, component_class)
+            # component_id = self.get_component_id(registry_entry.location, component_class)
             component_properties = self._parse_properties(component_definition, component_class)
-            components.append(Component(id=component_id,
+            components.append(Component(id=registry_entry.component_id,
                                         name=component_class,
                                         description='',
                                         runtime=self.component_platform,
                                         location_type=registry_entry.location_type,
-                                        location=registry_entry.location,
+                                        location=registry_entry.component_metadata.get('location'),
                                         properties=component_properties,
-                                        categories=registry_entry.categories))
+                                        categories=registry_entry.categories,
+                                        metadata=registry_entry.component_metadata,
+                                        reader=registry_entry.reader))
 
         return components
 

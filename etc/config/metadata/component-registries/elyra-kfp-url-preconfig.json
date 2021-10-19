@@ -4,7 +4,7 @@
     "description": "Preloaded URL-based components that are supported by Kubeflow Pipelines",
     "runtime": "kfp",
     "categories": ["Preloaded KFP"],
-    "urls": [
+    "paths": [
       "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
       "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml"
     ]

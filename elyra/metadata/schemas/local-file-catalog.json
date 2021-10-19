@@ -56,9 +56,17 @@
             "category": "Component Categories"
           }
         },
+        "base_path": {
+          "title": "Optional Base Directory",
+          "description": "An optional base directory from which the given values of Paths can be resolved.",
+          "type": "string",
+          "uihints": {
+            "category": "Source"
+          }
+        },
         "paths": {
           "title": "Paths",
-          "description": "A list of absolute paths to individual component specification files in the local file system",
+          "description": "A list of paths to individual component specification files in the local file system",
           "type": "array",
           "items": {
             "type": "string"
