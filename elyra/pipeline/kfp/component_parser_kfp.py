@@ -53,8 +53,7 @@ class KfpComponentParser(ComponentParser):
                               location=registry_entry.component_metadata.get('location'),
                               properties=component_properties,
                               categories=registry_entry.categories,
-                              metadata=registry_entry.component_metadata,
-                              reader=registry_entry.reader)
+                              metadata=registry_entry.component_metadata)
 
         return [component]
 

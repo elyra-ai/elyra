@@ -214,7 +214,6 @@ class FilesystemComponentReader(ComponentReader):
         """
         TODO and add abstractmethod
         """
-        # TODO Add a try-catch?
         return {self.rendering_type: component.metadata.get('location')}
 
 

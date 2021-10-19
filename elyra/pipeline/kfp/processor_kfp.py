@@ -627,13 +627,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
 
-                # TODO Figure out best way to handle getting component details again
-                # TODO Add comment
-                reader = entrypoints.get_single('elyra.component.catalog_types', component.catalog_type)
-                component_source = reader.get_component_source_kwargs(component)
-
                 # Build component task factory
                 try:
+                    # TODO Add comment
+                    reader = entrypoints.get_single('elyra.component.catalog_types', component.location_type)
+                    component_source = reader.get_component_source_kwargs(component)
+
                     factory_function = components.load_component(**component_source)
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories

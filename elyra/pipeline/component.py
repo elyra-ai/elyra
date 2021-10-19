@@ -128,7 +128,6 @@ class Component(object):
                  categories: Optional[List[str]] = None,
                  properties: Optional[List[ComponentParameter]] = None,
                  metadata: Optional[Dict[str, Any]] = None,
-                 reader: Optional[ComponentReader] = None,
                  extensions: Optional[List[str]] = None,
                  parameter_refs: Optional[dict] = None):
         """
@@ -142,7 +141,7 @@ class Component(object):
         :param op: The operation name of the component; used by generic components in rendering the palette
         :param categories: A list of categories that this component belongs to
         :param properties: The set of properties for the component
-        :TODO add metadata and reader
+        :TODO add metadata
         :param extensions: The file extension used by the component
         """
 
@@ -162,7 +161,6 @@ class Component(object):
         self._categories = categories or []
         self._properties = properties
         self._metadata = metadata or {}
-        self._reader = reader
 
         if not parameter_refs:
             if self._location_type == "elyra":
@@ -222,10 +220,6 @@ class Component(object):
     @property
     def metadata(self) -> Dict[str, Any]:
         return self._metadata
-
-    @property
-    def reader(self) -> ComponentReader:
-        return self._reader
 
     @property
     def extensions(self) -> Optional[List[str]]:

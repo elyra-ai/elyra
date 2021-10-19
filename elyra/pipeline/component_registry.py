@@ -217,12 +217,11 @@ class ComponentRegistry(LoggingConfigurable):
 
                 component_entry = {
                     "component_id": component_hash,
-                    "catalog_type": reader.catalog_type,
+                    "location_type": reader.catalog_type,
                     # "location": component_metadata['metadata'].get('location'),
                     "categories": registry_categories,
                     "component_definition": component_metadata_dict.get('definition'),
-                    "component_metadata": component_metadata_dict['metadata'],
-                    # "reader": reader
+                    "component_metadata": component_metadata_dict['metadata']
                 }
 
                 # Parse the component entry to get a fully qualified Component object
