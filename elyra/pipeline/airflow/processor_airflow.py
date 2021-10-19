@@ -272,13 +272,10 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 operation.component_params_as_dict.pop("inputs")
                 operation.component_params_as_dict.pop("outputs")
 
-                # Get component class from operation name
-                # component_class = operation.classifier.split('_')[-1]
-
                 unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
                                                                         operation_list=target_ops)
 
-                # TODO Figure out how to get the module name for non-standard component catalog types
+                # TODO Will need to figure out how to get the module name for non-standard component catalog types
                 location = component.location
                 target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
@@ -289,6 +286,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                              'operator_source': component.location,
                              'is_generic_operator': False
                              }
+                #
                 if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
                                             'spark-sql-operator', 'ssh-operator']:
                     target_op['is_contrib_operator'] = True

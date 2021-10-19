@@ -29,10 +29,6 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component_reader import ComponentReader
-from elyra.pipeline.component_reader import DirectoryComponentReader
-from elyra.pipeline.component_reader import FilesystemComponentReader
-from elyra.pipeline.component_reader import UrlComponentReader
 
 
 class ComponentRegistry(LoggingConfigurable):
@@ -209,7 +205,7 @@ class ComponentRegistry(LoggingConfigurable):
 
             # Assign reader based on the location type of the registry (file, directory, url)
             catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(registry_location_type)
-            reader = catalog_reader.load()(self._parser.file_types)
+            reader = catalog_reader.load()(registry_location_type, self._parser.file_types)
 
             # Get content of component definition file for each component in this registry
             hash_to_metadata = reader.read_component_definitions(registry['metadata'])
@@ -218,7 +214,6 @@ class ComponentRegistry(LoggingConfigurable):
                 component_entry = {
                     "component_id": component_hash,
                     "location_type": reader.catalog_type,
-                    # "location": component_metadata['metadata'].get('location'),
                     "categories": registry_categories,
                     "component_definition": component_metadata_dict.get('definition'),
                     "component_metadata": component_metadata_dict['metadata']

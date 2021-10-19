@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 from abc import abstractmethod
+import hashlib
 from http import HTTPStatus
 import os
 from queue import Empty
@@ -22,6 +23,7 @@ from threading import Thread
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 
 from jupyter_core.paths import ENV_JUPYTER_PATH
@@ -29,28 +31,33 @@ import requests
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import Integer
 
-from build.lib.elyra.pipeline.component import Component
-from elyra.metadata.metadata import Metadata
+from elyra.pipeline.component import Component
 
 
 class ComponentReader(LoggingConfigurable):
     """
     Abstract class to model component_entry readers that can read components from different locations
     """
-    catalog_type: str = None
 
     max_readers = Integer(3, config=True, allow_none=True,
                           help="""Sets the number of reader threads""")
 
-    def __init__(self, file_types: List[str]):
+    def __init__(self, catalog_type: str, file_types: List[str]):
         super().__init__()
+        self._catalog_type = catalog_type
         self.file_types = file_types
 
+    @property
+    def catalog_type(self) -> Optional[str]:
+        return self._catalog_type
+
     @abstractmethod
-    def get_component_metadata_from_registry(self, registry_metadata: List[Metadata]) -> List[Dict[str, Any]]:
+    def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of component_metadata instances, one per component found in the given registry.
         The form that component_metadata takes is determined by requirements of the reader class.
+
+        :param registry_metadata: the dictionary-form of the Metadata instance for a single registry
         """
         raise NotImplementedError()
 
@@ -65,48 +72,72 @@ class ComponentReader(LoggingConfigurable):
         :param hash_to_metadata: a mapping of component hash to a dictionary of the form
             {
                 'definition': 'component-definition-as-string',
-                'metadata': {}
+                'metadata': component_metadata
             }
-            where the 'metadata' key stores any information that may be needed to retrieve
+            where the 'metadata' key stores the dictionary of info that may be needed to retrieve
             the component definition in subsequent calls to read_component_definition()
 
         :returns: the given 'hash_to_metadata' object, optionally including a new
                   key-value pair if the given component location is successfully read
-                  TODO
         """
         raise NotImplementedError()
 
     @abstractmethod
     def get_component_source_kwargs(self, component: Component) -> Dict[str, str]:
         """
-        TODO
+        Constructs the appropriate dictionary to send as kwargs to the KFP load_component()
+        function, which accepts either 'url', 'filename', or 'text' as parameter names, and a
+        url, path to a file, or component definition text as argument values, respectively.
         """
         raise NotImplementedError()
+
+    def log_message(self, pre_amble: str,
+                    message: str,
+                    post_amble: str,
+                    log_level: Optional[str] = None):
+        """
+        Log a message at the specified level
+        """
+        full_message = f"{pre_amble}{message}{post_amble}"
+        if log_level == 'info':
+            self.log.info(full_message)
+        elif log_level == 'debug':
+            self.log.debug(full_message)
+        elif log_level == 'warning':
+            self.log.warning(full_message)
+        elif log_level == 'error':
+            self.log.error(full_message)
+        else:
+            self.log.debug(full_message)
+
+    def get_log_message_dialog(self, metadata: Dict[str, Any]) -> str:
+        """
+        Provides message dialog to better identify a component during logging.
+        Subclasses can extend this to provide information specific to that
+        reader class.
+        """
+        return f"with metadata: '{metadata}'"
 
     def get_unique_component_hash(self, catalog_class: str, component_metadata: Dict[str, Any]) -> str:
         """
         Constructs a unique hash for the given component based on the component's catalog
-        reader class and other elements specific to that class (passed in as args) that
-        serve to unique-ify a component id
-
-        Example: A component using a FilesystemComponentReader class, will have the following
-        arguments: catalog_class = FilesystemComponentReader and *args = ['abspath_to_comp_def']
+        reader class and the metadata specific to that component and catalog_type combination
         """
         hash_str = catalog_class
         for value in component_metadata.values():
             hash_str = f"{hash_str}:{value}"
 
-        return str(hash(hash_str))
+        hash_object = hashlib.sha256(hash_str.encode())
+        return hash_object.hexdigest()
 
-    def read_component_definitions(self, registry_metadata: List[Metadata]) -> Dict[str, Dict]:
+    def read_component_definitions(self, registry_metadata: Dict[str, Any]) -> Dict[str, Dict]:
         """
-        This function starts a number of threads ('max_reader' or fewer) that read component
-        definitions in parallel.
+        Starts a number of threads ('max_reader' or fewer) that read component definitions in parallel.
 
-        The 'hash_to_metadata' variable is a mapping of a unique component hash to its metadata. TODO
-        As a mutable object, this dictionary provides a means to retrieve a return value for
-        each thread. If a thread is able to successfully read the content of the given
-        component file location, a hash-to-metadata mapping is added to 'hash_to_metadata'.
+        The 'hash_to_metadata' variable is a mapping of a unique component hash to its definition and
+        metadata. As a mutable object, this dictionary provides a means to retrieve a return value for
+        each thread. If a thread is able to successfully read the content of the given component file
+        location, a definition key is added to its hash_to_metadata mapping entry.
         """
         hash_to_metadata = {}
 
@@ -125,15 +156,23 @@ class ComponentReader(LoggingConfigurable):
                     continue
 
                 try:
-                    self.log.debug(f"Attempting read of component definition for component with metadata: "
-                                   f"'{component_md_tuple[1]}'...")
+                    # self.log.debug(f"Attempting read of component definition for component with metadata: "
+                    #                f"'{component_md_tuple[1]}'...")
+                    self.log_message(pre_amble="Attempting read of definition for component ",
+                                     message=self.get_log_message_dialog(component_md_tuple[1]),
+                                     post_amble="...",
+                                     log_level="debug")
 
                     # Add component hash and metadata to the dictionary
                     hash_to_metadata[component_md_tuple[0]] = {'metadata': component_md_tuple[1]}
                     self.read_component_definition(component_md_tuple, hash_to_metadata)
                 except Exception:
-                    self.log.warning(f"Could not read component definition for component with metadata: "
-                                     f"'{component_md_tuple[1]}'. Skipping...")
+                    # self.log.warning(f"Could not read component definition for component with metadata: "
+                    #                 f"'{component_md_tuple[1]}'. Skipping...")
+                    self.log_message(pre_amble="Could not read definition for component ",
+                                     message=self.get_log_message_dialog(component_md_tuple[1]),
+                                     post_amble=". Skipping...",
+                                     log_level="warning")
                     pass
 
                 loc_q.task_done()
@@ -154,8 +193,9 @@ class FilesystemComponentReader(ComponentReader):
     """
     Read a singular component definition from the local filesystem
     """
-    catalog_type = 'local-file-catalog'
-    rendering_type = 'filename'
+
+    def get_log_message_dialog(self, metadata: Dict[str, Any]) -> str:
+        return f"at location '{metadata['location']}"
 
     def determine_location(self, location_path: str) -> str:
         """
@@ -173,7 +213,7 @@ class FilesystemComponentReader(ComponentReader):
         path = os.path.join(ENV_JUPYTER_PATH[0], 'components', path)
         return path
 
-    def get_component_metadata_from_registry(self, registry_metadata: List[Metadata]) -> List[Dict[str, Any]]:
+    def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of component_metadata instances, one per component found in the given registry.
         The form that component_metadata takes is determined by requirements of the reader class.
@@ -185,7 +225,7 @@ class FilesystemComponentReader(ComponentReader):
         paths = registry_metadata['paths']
 
         # Concatenate paths with the base_path if provided
-        if registry_metadata['base_path']:
+        if registry_metadata.get('base_path'):
             paths = [os.path.join(registry_metadata['base_path'], path) for path in paths]
 
         for path in paths:
@@ -211,20 +251,15 @@ class FilesystemComponentReader(ComponentReader):
         return hash_to_metadata
 
     def get_component_source_kwargs(self, component: Component) -> Dict[str, str]:
-        """
-        TODO and add abstractmethod
-        """
-        return {self.rendering_type: component.metadata.get('location')}
+        return {'filename': component.metadata.get('location')}
 
 
 class DirectoryComponentReader(FilesystemComponentReader):
     """
     Read component definitions from a local directory
     """
-    catalog_type = 'local-directory-catalog'
-    rendering_type = 'filename'
 
-    def get_component_metadata_from_registry(self, registry_metadata: List[Metadata]) -> List[Dict[str, Any]]:
+    def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of component_metadata instances, one per component found in the given registry.
         The form that component_metadata takes is determined by requirements of the reader class.
@@ -233,7 +268,13 @@ class DirectoryComponentReader(FilesystemComponentReader):
         {'location': 'absolute_path_to_component_definition_in_localfs'}
         """
         component_metadata = []
-        for path in registry_metadata['paths']:
+        paths = registry_metadata['paths']
+
+        # Concatenate paths with the base_path if provided
+        if registry_metadata.get('base_path'):
+            paths = [os.path.join(registry_metadata['base_path'], path) for path in paths]
+
+        for path in paths:
             absolute_path = self.determine_location(path)
             if not os.path.exists(absolute_path):
                 self.log.warning(f"Invalid directory -> {absolute_path}")
@@ -250,10 +291,11 @@ class UrlComponentReader(ComponentReader):
     """
     Read a singular component definition from a url
     """
-    catalog_type = 'url-catalog'
-    rendering_type = 'url'
 
-    def get_component_metadata_from_registry(self, registry_metadata: List[Metadata]) -> List[Dict[str, Any]]:
+    def get_log_message_dialog(self, metadata: Dict[str, Any]) -> str:
+        return f"at location '{metadata['location']}"
+
+    def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of component_metadata instances, one per component found in the given registry.
         The form that component_metadata takes is determined by requirements of the reader class.
@@ -276,24 +318,20 @@ class UrlComponentReader(ComponentReader):
                 self.log.warning(f"Invalid location for component: {location} (HTTP code {res.status_code})")
             else:
                 component_hash = component_metadata_tuple[0]
-                hash_to_metadata[component_hash]['definition'] = res.text,
+                hash_to_metadata[component_hash]['definition'] = res.text
 
         return hash_to_metadata
 
     def get_component_source_kwargs(self, component: Component) -> Dict[str, str]:
-        """
-        TODO and add abstractmethod
-        """
-        # TODO Add a try-catch?
-        return {self.rendering_type: component.metadata.get('location')}
+        return {'url': component.metadata.get('location')}
 
 
 class GitHubComponentReader(UrlComponentReader):
     """
     Read component definitions from a github repo
     """
-    catalog_type = 'github-catalog'
+    # catalog_type = 'github-catalog'
     rendering_type = 'url'
 
-    def get_component_metadata_from_registry(self, registry_metadata: List[Metadata]) -> List[Tuple[str, Dict]]:
+    def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         pass

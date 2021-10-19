@@ -24,8 +24,6 @@ from typing import Optional
 
 from traitlets.config import LoggingConfigurable
 
-from elyra.pipeline.component_reader import ComponentReader
-
 
 class ComponentParameter(object):
     """
@@ -141,7 +139,7 @@ class Component(object):
         :param op: The operation name of the component; used by generic components in rendering the palette
         :param categories: A list of categories that this component belongs to
         :param properties: The set of properties for the component
-        :TODO add metadata
+        :param metadata: Metadata associated with this component for use in reading its definition
         :param extensions: The file extension used by the component
         """
 

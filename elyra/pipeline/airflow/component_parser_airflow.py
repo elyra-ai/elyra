@@ -29,12 +29,6 @@ class AirflowComponentParser(ComponentParser):
     _component_platform = "airflow"
     _file_types = [".py"]
 
-    def get_catalog_entry_id_for_component(self, component_id: str) -> str:
-        # Component ids are structure differently in Airflow to handle the case
-        # where there are multiple classes in one operator file. The id queried
-        # must be adjusted to match the id expected in the component_entry catalog.
-        return component_id.split('_')[0]
-
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         components: List[Component] = list()
 
@@ -46,7 +40,6 @@ class AirflowComponentParser(ComponentParser):
         component_classes = self._get_all_classes(component_definition)
         for component_class in component_classes.keys():
             # Create a Component object for each class
-            # component_id = self.get_component_id(registry_entry.location, component_class)
             component_properties = self._parse_properties(component_definition, component_class)
             components.append(Component(id=registry_entry.component_id,
                                         name=component_class,

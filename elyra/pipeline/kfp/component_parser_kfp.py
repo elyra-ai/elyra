@@ -37,7 +37,6 @@ class KfpComponentParser(ComponentParser):
             return None
 
         # Assign component_id and description
-        # component_id = self.get_component_id(registry_entry.location, component_yaml.get('name', ''))
         description = ""
         if component_yaml.get('description'):
             # Remove whitespace characters and replace with spaces
@@ -148,7 +147,7 @@ class KfpComponentParser(ComponentParser):
             return yaml.safe_load(registry_entry.component_definition)
         except Exception as e:
             self.log.warning(f"Could not read definition for component at "
-                             f"location: '{registry_entry.location}' -> {str(e)}")
+                             f"location: '{registry_entry.component_metadata.get('location')}' -> {str(e)}")
             return None
 
     def _is_path_based_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:
