@@ -88,6 +88,20 @@ class ComponentReader(LoggingConfigurable):
         Constructs the appropriate dictionary to send as kwargs to the KFP load_component()
         function, which accepts either 'url', 'filename', or 'text' as parameter names, and a
         url, path to a file, or component definition text as argument values, respectively.
+
+        :returns: a dictionary with key value of either 'url', 'filename', or 'text' and its
+                  string value
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_component_import_statement(self, component: Component) -> List[str]:
+        """
+        Constructs the appropriate import statement(s) and compiles them within a
+        list that will be sent to the jinja Airflow DAG rendering template.
+
+        :returns: a list of applicable, syntactically correct import statements that
+                  will be populated in the rendered Airflow DAG
         """
         raise NotImplementedError()
 
@@ -253,6 +267,14 @@ class FilesystemComponentReader(ComponentReader):
     def get_component_source_kwargs(self, component: Component) -> Dict[str, str]:
         return {'filename': component.metadata.get('location')}
 
+    def get_component_import_statement(self, component: Component) -> List[str]:
+        module_name = component.location.rsplit('/', 1)[-1].split('.')[0]
+
+        if component.name in ['SparkSubmitOperator', 'SparkSqlOperator']:
+            return [f"from airflow.contrib.operators.{module_name} import {component.name}"]
+
+        return [f"from airflow.operators.{module_name} import {component.name}"]
+
 
 class DirectoryComponentReader(FilesystemComponentReader):
     """
@@ -325,13 +347,19 @@ class UrlComponentReader(ComponentReader):
     def get_component_source_kwargs(self, component: Component) -> Dict[str, str]:
         return {'url': component.metadata.get('location')}
 
+    def get_component_import_statement(self, component: Component) -> List[str]:
+        module_name = component.location.rsplit('/', 1)[-1].split('.')[0]
+
+        if component.name in ['SparkSubmitOperator', 'SparkSqlOperator']:
+            return [f"from airflow.contrib.operators.{module_name} import {component.name}"]
+
+        return [f"from airflow.operators.{module_name} import {component.name}"]
+
 
 class GitHubComponentReader(UrlComponentReader):
     """
     Read component definitions from a github repo
     """
-    # catalog_type = 'github-catalog'
-    rendering_type = 'url'
 
     def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         pass

@@ -25,6 +25,7 @@ from typing import List
 from typing import Union
 
 import autopep8
+import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 
@@ -275,21 +276,21 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
                                                                         operation_list=target_ops)
 
-                # TODO Will need to figure out how to get the module name for non-standard component catalog types
-                location = component.location
+                # Get the reader class associated with this component and construct the appropriate import statements
+                catalog_reader = entrypoints.get_single('elyra.component.catalog_types', component.location_type)
+                reader = catalog_reader.load()(component.location_type, self.component_parser.file_types)
+
+                modules = reader.get_component_import_statement(component)
+
                 target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
-                             'module_name': location.rsplit('/', 1)[-1].split('.')[0],
+                             'imports': modules,
                              'class_name': component.name,
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,
                              'operator_source': component.location,
                              'is_generic_operator': False
                              }
-                #
-                if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
-                                            'spark-sql-operator', 'ssh-operator']:
-                    target_op['is_contrib_operator'] = True
 
                 target_ops.append(target_op)
 
