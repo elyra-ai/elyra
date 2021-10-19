@@ -1,5 +1,15 @@
 # Changelog
 
+## Release 3.2.1 - 10/18/2021
+
+- Fix run name issue for KubeFlow v1.4 - [#2237](https://github.com/elyra-ai/elyra/pull/2237)
+- Replace missing `metadata_class_name` in Component Registry schema - [#2233](https://github.com/elyra-ai/elyra/pull/2233)
+- Support KFP with LDAP Dex auth - [#2212](https://github.com/elyra-ai/elyra/pull/2212)
+- Fixes issue that produces invalid container image on migration - [#2231](https://github.com/elyra-ai/elyra/pull/2231)
+- Use ServerApp.root_dir to set directory for cypress tests - [#2235](https://github.com/elyra-ai/elyra/pull/2235)
+- Add front end integration tests for python and R editor operations - [#2216](https://github.com/elyra-ai/elyra/pull/2216)
+- Clean up changelog
+
 ## Release 3.2.0 - 10/12/2021
 
 - Make small changes to KFP DSL export template - [#2222](https://github.com/elyra-ai/elyra/pull/2222)
