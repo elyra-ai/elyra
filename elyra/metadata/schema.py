@@ -23,6 +23,7 @@ import re
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
 
 from entrypoints import get_group_all
 from jsonschema import draft7_format_checker
@@ -73,8 +74,11 @@ class SchemaManager(SingletonConfigurable):
     def get_schemaspace_schemas(self, schemaspace_name_or_id: str) -> dict:
         self._validate_schemaspace(schemaspace_name_or_id)
         schemaspace = self.schemaspaces.get(schemaspace_name_or_id.lower())
-        schemas = schemaspace.schemas
-        return copy.deepcopy(schemas)
+        schemas = copy.deepcopy(schemaspace.schemas)
+        # Filter out deprecated schemas
+        for schema_name in schemaspace.deprecated_schema_names:
+            del schemas[schema_name]
+        return schemas
 
     def get_schema(self, schemaspace_name_or_id: str, schema_name: str) -> dict:
         """Returns the specified schema for the specified schemaspace."""
@@ -159,24 +163,25 @@ class SchemaManager(SingletonConfigurable):
                 schemas = schemas_provider.get_schemas()
                 for schema in schemas:
                     try:
-                        schemaspace_id = schema.get("schemaspace_id")
+                        schemaspace_id = schema.get("schemaspace_id").lower()
                         schemaspace_name = schema.get("schemaspace")
                         schema_name = schema.get("name")
                         # Ensure that both schemaspace id and name are registered and both point to same instance
-                        if schemaspace_id.lower() not in self.schemaspaces:
+                        if schemaspace_id not in self.schemaspaces:
                             raise ValueError(f"Schema '{schema_name}' references a schemaspace "
                                              f"'{schemaspace_id}' that is not loaded!")
-                        if schemaspace_name.lower() not in self.schemaspaces:
+                        if schemaspace_name not in self.schemaspaces:
                             raise ValueError(f"Schema '{schema_name}' references a schemaspace "
                                              f"'{schemaspace_name}' that is not loaded!")
-                        if self.schemaspaces[schemaspace_id.lower()] != self.schemaspaces[schemaspace_name.lower()]:
+                        if self.schemaspaces[schemaspace_id] != self.schemaspaces[schemaspace_name.lower()]:
                             raise ValueError(f"Schema '{schema_name}' references a schemaspace name "
                                              f"'{schemaspace_name}' and a schemaspace id '{schemaspace_id}' "
                                              f"that are associated with different Schemaspace instances!")
 
+                        schema = self.schemaspaces[schemaspace_id].filter_schema(schema)
                         self._validate_schema(schemaspace_name, schema_name, schema)
                         # Only add the schema once since schemaspace_name is pointing to the same Schemaspace instance.
-                        self.schemaspaces[schemaspace_id.lower()].add_schema(schema)
+                        self.schemaspaces[schemaspace_id].add_schema(schema)
 
                     except Exception as schema_err:
                         self.log.error(f"Error loading schema '{schema.get('name', '??')}' for SchemasProvider "
@@ -216,6 +221,7 @@ class Schemaspace(LoggingConfigurable):
     _display_name: str
     _description: str
     _schemas: Dict[str, Dict]  # use a dict to prevent duplicate entries
+    _deprecated_schema_names: Set[str]
 
     def __init__(self,
                  schemaspace_id: str,
@@ -226,6 +232,7 @@ class Schemaspace(LoggingConfigurable):
         super().__init__(**kwargs)
 
         self._schemas = {}
+        self._deprecated_schema_names = set()
 
         # Validate properties
         if not schemaspace_id:
@@ -270,10 +277,21 @@ class Schemaspace(LoggingConfigurable):
         """Returns the schemas currently associated with this schemaspace"""
         return self._schemas
 
+    @property
+    def deprecated_schema_names(self) -> List[str]:
+        """Returns a list of deprecated schema names associated with this schemaspace"""
+        return self._deprecated_schema_names
+
+    def filter_schema(self, schema: Dict) -> Dict:
+        """Allows Schemaspace to apply changes to a given schema prior to its validation (and add)."""
+        return schema
+
     def add_schema(self, schema: Dict) -> None:
         """Associates the given schema to this schemaspace"""
         assert isinstance(schema, dict), "Parameter 'schema' is not a dictionary!"
         self._schemas[schema.get('name')] = schema
+        if schema.get('deprecated', False):
+            self._deprecated_schema_names.add(schema.get('name'))
 
     @staticmethod
     def _validate_id(id) -> bool:

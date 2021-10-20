@@ -13,6 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import entrypoints
+from typing import Dict
+
 from elyra.metadata.schema import Schemaspace
 
 
@@ -62,3 +65,17 @@ class ComponentRegistries(Schemaspace):
                          name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_NAME,
                          display_name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME,
                          description="Schemaspace for instances of Elyra component registries configurations")
+
+        # get set of registered runtimes
+        self._runtime_processor_names = set()
+        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
+            # load the names of the runtime processors (skip 'local')
+            if processor.name == 'local':
+                continue
+            self._runtime_processor_names.add(processor.name)
+
+    def filter_schema(self, schema: Dict) -> Dict:
+        """Replace contents of Runtimes value with set of runtimes if using templated value."""
+        if schema['properties']['metadata']['properties']['runtime']['enum'] == ["{currently-configured-runtimes}"]:
+            schema['properties']['metadata']['properties']['runtime']['enum'] = list(self._runtime_processor_names)
+        return schema
