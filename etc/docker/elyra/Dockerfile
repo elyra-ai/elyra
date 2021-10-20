@@ -16,7 +16,8 @@
 #
 
 # Ubuntu 18.04 LTS - Bionic
-FROM jupyterhub/k8s-singleuser-sample:0.10.6
+# Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
+FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
 ARG TAG="dev"
 
