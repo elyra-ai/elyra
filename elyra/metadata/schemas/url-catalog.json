@@ -6,6 +6,7 @@
   "display_name": "Url Component Catalog",
   "schemaspace": "component-registries",
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
+  "metadata_class_name": "elyra.pipeline.component_metadata.UrlCatalogMetadata",
   "uihints": {
     "title": "Url Component Catalogs",
     "icon": "",
@@ -46,7 +47,8 @@
           "$comment": "This enum is dynamically generated to contain the available runtime values.",
           "enum": ["{currently-configured-runtimes}"],
           "uihints": {
-            "field_type": "dropdown"
+            "field_type": "dropdown",
+            "category": "Runtime"
           }
         },
         "categories": {
@@ -72,7 +74,7 @@
           },
           "uihints": {
             "field_type": "array",
-            "category": "Source"
+            "category": "Configuration"
           }
         }
       },

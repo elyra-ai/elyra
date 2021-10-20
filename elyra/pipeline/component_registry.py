@@ -200,12 +200,12 @@ class ComponentRegistry(LoggingConfigurable):
         for registry in runtime_registries:
             self.log.debug(f"Component registry: processing components in registry '{registry['display_name']}'")
 
-            registry_categories = registry['metadata'].get("categories", [])
-            registry_location_type = registry['schema_name']
+            categories = registry['metadata'].get("categories", [])
+            catalog_type = registry['schema_name']
 
             # Assign reader based on the location type of the registry (file, directory, url)
-            catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(registry_location_type)
-            reader = catalog_reader.load()(registry_location_type, self._parser.file_types)
+            catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog_type)
+            reader = catalog_reader.load()(catalog_type, self._parser.file_types)
 
             # Get content of component definition file for each component in this registry
             hash_to_metadata = reader.read_component_definitions(registry['metadata'])
@@ -214,7 +214,7 @@ class ComponentRegistry(LoggingConfigurable):
                 component_entry = {
                     "component_id": component_hash,
                     "catalog_type": reader.catalog_type,
-                    "categories": registry_categories,
+                    "categories": categories,
                     "component_definition": component_metadata_dict.get('definition'),
                     "component_metadata": component_metadata_dict['metadata']
                 }

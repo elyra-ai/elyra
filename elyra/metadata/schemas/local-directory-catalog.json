@@ -47,7 +47,8 @@
           "$comment": "This enum is dynamically generated to contain the available runtime values.",
           "enum": ["{currently-configured-runtimes}"],
           "uihints": {
-            "field_type": "dropdown"
+            "field_type": "dropdown",
+            "category": "Runtime"
           }
         },
         "categories": {
@@ -63,14 +64,6 @@
             "category": "Component Categories"
           }
         },
-        "base_path": {
-          "title": "Optional Base Directory",
-          "description": "An optional base directory from which the given path can be resolved.",
-          "type": "string",
-          "uihints": {
-            "category": "Source"
-          }
-        },
         "paths": {
           "title": "Directories",
           "description": "A list of paths to directories in the local file system that each contain one or more component specification files",
@@ -80,7 +73,7 @@
           },
           "uihints": {
             "field_type": "array",
-            "category": "Source"
+            "category": "Configuration"
           }
         }
       },

@@ -73,7 +73,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         resource_regex = r"(?P<resource>[\w\.\-]+)"
         path_regex = r"(?P<path>[\w\.\/\-\%]+)"
         processor_regex = r"(?P<processor>[\w]+)"
-        component_regex = r"(?P<component_id>[\w\.\-]+)"
+        component_regex = r"(?P<component_id>[\w\.\-:]+)"
 
         self.handlers.extend([
             (f'/{self.name}/{YamlSpecHandler.get_resource_metadata()[0]}', YamlSpecHandler),

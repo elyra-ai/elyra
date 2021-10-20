@@ -34,6 +34,7 @@ from traitlets.traitlets import Integer
 from elyra.pipeline.component import Component
 
 
+# TODO ComponentCatalogConnector
 class ComponentReader(LoggingConfigurable):
     """
     Abstract class to model component_entry readers that can read components from different locations
@@ -105,6 +106,13 @@ class ComponentReader(LoggingConfigurable):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def get_component_hash_keys(self) -> List[Any]:
+        """
+        TODO Add docstring
+        """
+        raise NotImplementedError()
+
     def log_message(self, pre_amble: str,
                     message: str,
                     post_amble: str,
@@ -132,17 +140,20 @@ class ComponentReader(LoggingConfigurable):
         """
         return f"with metadata: '{metadata}'"
 
-    def get_unique_component_hash(self, catalog_class: str, component_metadata: Dict[str, Any]) -> str:
+    def get_unique_component_hash(self, catalog_class: str,
+                                  component_metadata: Dict[str, Any],
+                                  component_hash_keys: List[Any]) -> str:
         """
         Constructs a unique hash for the given component based on the component's catalog
         reader class and the metadata specific to that component and catalog_type combination
+        as given in component_hash_keys.
         """
-        hash_str = catalog_class
-        for value in component_metadata.values():
-            hash_str = f"{hash_str}:{value}"
+        hash_str = ""
+        for key_to_hash in component_hash_keys:
+            hash_str = hash_str + component_metadata[key_to_hash] + ":"
+        hash_str = hash_str[:-1]
 
-        hash_object = hashlib.sha256(hash_str.encode())
-        return hash_object.hexdigest()
+        return f"{catalog_class}:{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
 
     def read_component_definitions(self, registry_metadata: Dict[str, Any]) -> Dict[str, Dict]:
         """
@@ -156,9 +167,15 @@ class ComponentReader(LoggingConfigurable):
         hash_to_metadata = {}
 
         loc_q = Queue()
-        for component_metadata in self.get_component_metadata_from_registry(registry_metadata):
-            component_hash = self.get_unique_component_hash(str(self.__class__), component_metadata)
-            loc_q.put_nowait((component_hash, component_metadata))
+
+        try:
+            for component_metadata in self.get_component_metadata_from_registry(registry_metadata):
+                keys_to_hash = self.get_component_hash_keys()
+                component_hash = self.get_unique_component_hash(self.catalog_type, component_metadata, keys_to_hash)
+                loc_q.put_nowait((component_hash, component_metadata))
+        except Exception:
+            # self.log.warning(f"Could not read component catalog '{}'. Skipping...")
+            pass
 
         def read_with_thread():
             """Get a location from the queue and read contents"""
@@ -211,7 +228,7 @@ class FilesystemComponentReader(ComponentReader):
     def get_log_message_dialog(self, metadata: Dict[str, Any]) -> str:
         return f"at location '{metadata['location']}"
 
-    def determine_location(self, location_path: str) -> str:
+    def determine_location(self, location_path: str, base_path: Optional[str] = None) -> str:
         """
         Determines the absolute location of a given path. Error
         checking is delegated to the calling function
@@ -223,9 +240,18 @@ class FilesystemComponentReader(ComponentReader):
         if os.path.isabs(path):
             return path
 
-        # If path is not absolute, default to the Jupyter share location
+        # Concatenate paths with the base_path and check for absolute path again
+        if base_path:
+            concat_path = os.path.join(os.path.expanduser(base_path), location_path)
+            if os.path.isabs(concat_path):
+                return concat_path
+
+        # If path is still not absolute, default to the Jupyter share location
         path = os.path.join(ENV_JUPYTER_PATH[0], 'components', path)
         return path
+
+    def get_component_hash_keys(self) -> List[Any]:
+        return ['location']
 
     def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -236,14 +262,8 @@ class FilesystemComponentReader(ComponentReader):
         {'location': 'absolute_path_to_component_definition_in_localfs'}
         """
         component_metadata = []
-        paths = registry_metadata['paths']
-
-        # Concatenate paths with the base_path if provided
-        if registry_metadata.get('base_path'):
-            paths = [os.path.join(registry_metadata['base_path'], path) for path in paths]
-
-        for path in paths:
-            absolute_path = self.determine_location(path)
+        for path in registry_metadata['paths']:
+            absolute_path = self.determine_location(path, registry_metadata.get('base_path'))
             if not os.path.exists(absolute_path):
                 self.log.warning(f"File does not exist -> {absolute_path}")
                 continue
@@ -290,14 +310,8 @@ class DirectoryComponentReader(FilesystemComponentReader):
         {'location': 'absolute_path_to_component_definition_in_localfs'}
         """
         component_metadata = []
-        paths = registry_metadata['paths']
-
-        # Concatenate paths with the base_path if provided
-        if registry_metadata.get('base_path'):
-            paths = [os.path.join(registry_metadata['base_path'], path) for path in paths]
-
-        for path in paths:
-            absolute_path = self.determine_location(path)
+        for path in registry_metadata['paths']:
+            absolute_path = self.determine_location(path, registry_metadata.get('base_path'))
             if not os.path.exists(absolute_path):
                 self.log.warning(f"Invalid directory -> {absolute_path}")
                 continue
@@ -316,6 +330,9 @@ class UrlComponentReader(ComponentReader):
 
     def get_log_message_dialog(self, metadata: Dict[str, Any]) -> str:
         return f"at location '{metadata['location']}"
+
+    def get_component_hash_keys(self) -> List[Any]:
+        return ['location']
 
     def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -354,12 +371,3 @@ class UrlComponentReader(ComponentReader):
             return [f"from airflow.contrib.operators.{module_name} import {component.name}"]
 
         return [f"from airflow.operators.{module_name} import {component.name}"]
-
-
-class GitHubComponentReader(UrlComponentReader):
-    """
-    Read component definitions from a github repo
-    """
-
-    def get_component_metadata_from_registry(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
-        pass
