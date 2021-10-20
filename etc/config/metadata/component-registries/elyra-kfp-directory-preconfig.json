@@ -6,5 +6,6 @@
     "categories": ["Preloaded KFP"],
     "paths": ["kfp"]
   },
-  "schema_name": "local-directory-catalog"
+  "schema_name": "local-directory-catalog",
+  "version": 1
 }

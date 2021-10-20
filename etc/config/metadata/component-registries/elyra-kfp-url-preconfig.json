@@ -9,5 +9,6 @@
       "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml"
     ]
   },
-  "schema_name": "url-catalog"
+  "schema_name": "url-catalog",
+  "version": 1
 }

@@ -6,5 +6,6 @@
     "categories": ["Preloaded Airflow"],
     "paths": ["airflow/slack_operator.py"]
   },
-  "schema_name": "local-file-catalog"
+  "schema_name": "local-file-catalog",
+  "version": 1
 }
