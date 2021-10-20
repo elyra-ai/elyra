@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import entrypoints
 from typing import Dict
+
+import entrypoints
 
 from elyra.metadata.schema import Schemaspace
 

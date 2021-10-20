@@ -44,7 +44,8 @@ class ComponentRegistryMetadata(Metadata):
         self.metadata.pop('location_type')
         self.version = 1
 
-        getLogger('ServerApp').info(f"Migrating 'component-registry' instance '{self.name}' to schema '{self.schema_name}'...")
+        getLogger('ServerApp').info(f"Migrating 'component-registry' instance '{self.name}' "
+                                    f"to schema '{self.schema_name}'...")
         MetadataManager(schemaspace="component-registries").update(self.name, self, for_migration=True)
 
     def post_save(self, **kwargs: Any) -> None:
