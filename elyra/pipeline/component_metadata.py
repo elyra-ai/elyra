@@ -27,8 +27,8 @@ class ComponentRegistryMetadata(Metadata):
     and deletion of component registry metadata instances.
     """
 
-    def post_load(self, **kwargs: Any) -> None:
-        """Since this class is tied to an schema, use post_load to trigger migration """
+    def on_load(self, **kwargs: Any) -> None:
+        """Since this class is tied to a deprecated schema, use on_load to trigger migration """
 
         if self.metadata['location_type'] == 'URL':
             self.schema_name = "url-catalog"

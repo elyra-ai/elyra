@@ -46,8 +46,8 @@ class Metadata(object):
         self.resource = kwargs.get('resource')
         self.reason = kwargs.get('reason')
 
-    def post_load(self, **kwargs: Any) -> None:
-        """Called by MetadataManager after fetching the instance.
+    def on_load(self, **kwargs: Any) -> None:
+        """Called by MetadataManager after fetching the instance and prior to validation.
 
         :param kwargs: additional arguments
         """

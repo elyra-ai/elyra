@@ -69,7 +69,7 @@ class MetadataManager(LoggingConfigurable):
             # validate the instance prior to return, include invalid instances as appropriate
             try:
                 metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
-                metadata.post_load()  # Allow class instances to handle loads
+                metadata.on_load()  # Allow class instances to handle loads
                 # if we're including invalid and there was an issue on retrieval, add it to the list
                 if include_invalid and metadata.reason:
                     # If no schema-name is present, set to '{unknown}' since we can't make that determination.
@@ -98,7 +98,7 @@ class MetadataManager(LoggingConfigurable):
         metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
 
         # Allow class instances to alter instance
-        metadata.post_load()
+        metadata.on_load()
 
         # Validate the instance on load
         self.validate(name, metadata)
@@ -205,7 +205,7 @@ class MetadataManager(LoggingConfigurable):
 
         orig_value = None
         if for_update:
-            if for_migration:  # Avoid triggering a post_load() call since migrations will likely stem from there
+            if for_migration:  # Avoid triggering a on_load() call since migrations will likely stem from there
                 instance_list = self.metadata_store.fetch_instances(name=name)
                 orig_value = instance_list[0]
             else:
@@ -262,25 +262,43 @@ class MetadataManager(LoggingConfigurable):
     def _apply_defaults(self, metadata: Metadata) -> None:
         """If a given property has a default value defined, and that property is not currently represented,
 
-        assign it the default value.
+        assign it the default value.  We will also treat constants similarly.
+
+        For schema-level properties (i.e., not application-level), we will check if such a property
+        has a corresponding attribute and, if so, set the property to that value.
+        Note: we only consider constants updates for schema-level properties
         """
 
-        # Get the schema and build a dict consisting of properties and their default values (for those
-        # properties that have defaults).  Then walk the metadata instance looking for missing properties
-        # and assign the corresponding default value.  Note that we do not consider existing properties with
+        # Get the schema and build a dict consisting of properties and their default/const values (for those
+        # properties that have defaults/consts defined).  Then walk the metadata instance looking for missing
+        # properties and assign the corresponding value.  Note that we do not consider existing properties with
         # values of None for default replacement since that may be intentional (although those values will
-        # likely fail subsequent validation).
+        # likely fail subsequent validation).  We also don't consider defaults when applying values to the
+        # schema-level properties since these settings are function of a defined attribute.
 
         schema = self.schema_mgr.get_schema(self.schemaspace, metadata.schema_name)
 
-        meta_properties = schema['properties']['metadata']['properties']
-        property_defaults = {}
-        for name, property in meta_properties.items():
-            if 'default' in property:
-                property_defaults[name] = property['default']
+        def _update_instance(schema_properties: Dict, instance: Union[Metadata, Dict]) -> None:
+            property_defaults = {}
+            for name, property in schema_properties.items():
+                if 'default' in property and isinstance(instance, Dict):  # Don't update defaults on schema props
+                    property_defaults[name] = property['default']
+                elif 'const' in property:
+                    property_defaults[name] = property['const']
 
-        if property_defaults:  # schema defines defaulted properties
-            instance_properties = metadata.metadata
-            for name, default in property_defaults.items():
-                if name not in instance_properties:
-                    instance_properties[name] = default
+            if property_defaults:  # schema defines defaulted properties
+                if isinstance(instance, Metadata):  # schema properties
+                    for name, default in property_defaults.items():
+                        if hasattr(instance, name):
+                            setattr(instance, name, default)
+                else:  # instance properties
+                    instance_properties = instance
+                    for name, default in property_defaults.items():
+                        if name not in instance_properties:
+                            instance_properties[name] = default
+
+        # Update default and const properties of instance properties
+        _update_instance(schema['properties']['metadata']['properties'], metadata.metadata)
+
+        # Update const properties of schema properties
+        _update_instance(schema['properties'], metadata)
