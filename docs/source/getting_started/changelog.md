@@ -1,5 +1,24 @@
 # Changelog
 
+## Release 3.0.2 - 10/21/2021
+
+- Pin elyra dependencies to current version
+- Release v3.0.1
+- Update changelog for release 3.0.1
+- Update release to publish individual runtime extensions
+- Update pipeline CLI to avoid false-positive warning msg - [#2057](https://github.com/elyra-ai/elyra/pull/2057)
+- Account for components with no component parameters - [#2056](https://github.com/elyra-ai/elyra/pull/2056)
+- Enable release of individual Elyra runtime extensions - [#2047](https://github.com/elyra-ai/elyra/pull/2047)
+- Update pipeline cli to tolerate empty pipelines - [#2050](https://github.com/elyra-ai/elyra/pull/2050)
+- Requires minimum JupyterLab 3.0.17 - [#2052](https://github.com/elyra-ai/elyra/pull/2052)
+- Remove obsolete migration script - [#2053](https://github.com/elyra-ai/elyra/pull/2053)
+- Check for relative path when validating node label - [#2030](https://github.com/elyra-ai/elyra/pull/2030)
+- Relax kfp sdk and kfp-tekton dependency - [#2034](https://github.com/elyra-ai/elyra/pull/2034)
+- Standardize processing of custom component parameters types - [#2038](https://github.com/elyra-ai/elyra/pull/2038)
+- Update pipeline cli to handle errors without node info - [#2041](https://github.com/elyra-ai/elyra/pull/2041)
+- Make pipeline CLI preprocessing parameters optional - [#2039](https://github.com/elyra-ai/elyra/pull/2039)
+- Update GitHub issue-template.md - [#2026](https://github.com/elyra-ai/elyra/pull/2026)
+
 ## Release 3.0.1 - 08/18/2021
 
 - Update release to publish individual runtime extensions
