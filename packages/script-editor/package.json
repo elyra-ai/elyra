@@ -33,7 +33,7 @@
     "lab:uninstall": "jupyter labextension unlink --no-build"
   },
   "dependencies": {
-    "@elyra/ui-components": "^3.3.0-dev",
+    "@elyra/ui-components": "3.3.0-dev",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/codeeditor": "^3.0.0",
     "@jupyterlab/docregistry": "^3.0.0",
