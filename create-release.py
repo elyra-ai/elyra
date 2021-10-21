@@ -276,6 +276,8 @@ def checkout_code() -> None:
     os.makedirs(config.work_dir)
     print(f'Cloning : {config.git_url} to {config.work_dir}')
     check_run(['git', 'clone', config.git_url], cwd=config.work_dir)
+    print(f'Checking out branch : {config.git_branch} in {config.source_dir}')
+    check_run(['git', 'checkout', '-b', config.git_branch, f'origin/{config.git_branch}'], cwd=config.source_dir)
     check_run(['git', 'config', 'user.name', config.git_user_name], cwd=config.source_dir)
     check_run(['git', 'config', 'user.email', config.git_user_email], cwd=config.source_dir)
 
@@ -444,11 +446,11 @@ def prepare_runtime_extensions_package_release() -> None:
     print("---------------- Preparing Individual Packages ------------------")
     print("-----------------------------------------------------------------")
 
-    packages = {'kfp-notebook':['kfp>=1.6.3'],
-                'airflow-notebook':['pygithub', 'black']}
+    packages = {'kfp-notebook': ['kfp>=1.6.3'],
+                'airflow-notebook': ['pygithub', 'black']}
 
-    packages_source = {'kfp-notebook':'kfp',
-                      'airflow-notebook':'airflow'}
+    packages_source = {'kfp-notebook': 'kfp',
+                       'airflow-notebook': 'airflow'}
 
     for package in packages:
         package_source_dir = os.path.join(config.work_dir, package)
@@ -606,6 +608,7 @@ def initialize_config(args=None) -> SimpleNamespace:
 
     configuration = {
         'goal': args.goal,
+        'git_branch': args.branch or "master",
         'git_url': DEFAULT_GIT_URL,
         'git_extension_package_url': DEFAULT_EXTENSION_PACKAGE_GIT_URL,
         'git_hash': 'HEAD',
@@ -651,6 +654,8 @@ def print_config() -> None:
         print(f'RC number \t\t -> {config.rc}')
     if config.beta is not None:
         print(f'Beta number \t\t -> {config.beta}')
+    if config.git_branch is not None:
+        print(f'Branch \t\t\t -> {config.git_branch}')
     print(f'Dev Version \t\t -> {config.dev_version}')
     print(f'Dev NPM Version \t -> {config.dev_npm_version}')
     print(f'Release Tag \t\t -> {config.tag}')
@@ -696,6 +701,7 @@ def main(args=None):
     parser.add_argument('goal', help='Supported goals: {prepare-changelog | prepare | publish}', type=str, choices={'prepare-changelog', 'prepare', 'publish'})
     parser.add_argument('--version', help='the new release version', type=str, required=True)
     parser.add_argument('--dev-version', help='the new development version', type=str, required=False)
+    parser.add_argument('--branch', help='the branch to checkout e.g. master, v3.0.x', type=str, required=False)
     parser.add_argument('--beta', help='the release beta number', type=str, required=False)
     parser.add_argument('--rc', help='the release candidate number', type=str, required=False)
     args = parser.parse_args()
