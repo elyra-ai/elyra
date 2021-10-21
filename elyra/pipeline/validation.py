@@ -326,22 +326,14 @@ class PipelineValidationManager(SingletonConfigurable):
                                 # Any component property with type `InputPath` will be a dictionary of two keys
                                 # "value": the node ID of the parent node containing the output
                                 # "option": the name of the key (which is an output) of the above referenced node
-                                if not isinstance(component_param, dict) or len(component_param) != 2:
+                                if not isinstance(component_param, dict) or \
+                                        len(component_param) != 2 or \
+                                        set(component_param.keys()) != {'value', 'option'}:
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
                                                          message="Node has malformed `InputPath` parameter structure",
                                                          data={"nodeID": node.id,
                                                                "nodeName": node_label})
-                                else:
-                                    for key in component_param.keys():
-                                        if key not in ['value', 'option']:
-                                            response.add_message(severity=ValidationSeverity.Error,
-                                                                 message_type="invalidNodeProperty",
-                                                                 message="Node property has invalid key.",
-                                                                 data={"nodeID": node.id,
-                                                                       "nodeName": node_label,
-                                                                       "propertyName": node_property,
-                                                                       "keyName": key})
 
                                 node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
                                 parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
