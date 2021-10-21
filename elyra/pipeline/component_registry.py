@@ -210,6 +210,9 @@ class ComponentRegistry(LoggingConfigurable):
             # Get content of component definition file for each component in this registry
             hash_to_metadata = reader.read_component_definitions(registry['metadata'])
             for component_hash, component_metadata_dict in hash_to_metadata.items():
+                # Ignore this entry if no definition content is returned
+                if not component_metadata_dict.get('definition'):
+                    continue
 
                 component_entry = {
                     "component_id": component_hash,

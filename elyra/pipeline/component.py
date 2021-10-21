@@ -121,6 +121,7 @@ class Component(object):
                  description: Optional[str],
                  catalog_type: str,
                  location: str,
+                 definition: Optional[str] = None,  # TODO Fix this
                  runtime: Optional[str] = None,
                  op: Optional[str] = None,
                  categories: Optional[List[str]] = None,

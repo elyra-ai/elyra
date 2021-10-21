@@ -8,7 +8,6 @@
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
   "metadata_class_name": "elyra.pipeline.component_metadata.UrlCatalogMetadata",
   "uihints": {
-    "title": "Url Component Catalogs",
     "icon": "",
     "reference_url": "https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html"
   },

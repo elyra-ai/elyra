@@ -146,7 +146,7 @@ class KfpComponentParser(ComponentParser):
         try:
             return yaml.safe_load(registry_entry.component_definition)
         except Exception as e:
-            self.log.warning(f"Could not read definition for component at "
+            self.log.warning(f"Could not load YAML definition for component at "
                              f"location: '{registry_entry.component_metadata.get('location')}' -> {str(e)}")
             return None
 

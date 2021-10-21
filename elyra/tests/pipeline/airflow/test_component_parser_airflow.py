@@ -23,8 +23,8 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
-from elyra.pipeline.component import FilesystemComponentReader
-from elyra.pipeline.component import UrlComponentReader
+from elyra.pipeline.component import FilesystemComponentCatalogConnector
+from elyra.pipeline.component import UrlComponentCatalogConnector
 from elyra.pipeline.component_registry import ComponentRegistry
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
@@ -172,7 +172,7 @@ def test_directory_based_component_registry():
 def test_parse_airflow_component_file():
     # Define the appropriate reader for a filesystem-type component definition
     airflow_supported_file_types = [".py"]
-    reader = FilesystemComponentReader(airflow_supported_file_types)
+    reader = FilesystemComponentCatalogConnector(airflow_supported_file_types)
 
     path = _get_resource_path('airflow_test_operator.py')
 
@@ -240,7 +240,7 @@ def test_parse_airflow_component_file():
 def test_parse_airflow_component_url():
     # Define the appropriate reader for a Url-type component definition
     airflow_supported_file_types = [".py"]
-    reader = UrlComponentReader(airflow_supported_file_types)
+    reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
     path = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
 
@@ -274,7 +274,7 @@ def test_parse_airflow_component_url():
 def test_parse_airflow_component_file_no_inputs():
     # Define the appropriate reader for a filesystem-type component definition
     airflow_supported_file_types = [".py"]
-    reader = FilesystemComponentReader(airflow_supported_file_types)
+    reader = FilesystemComponentCatalogConnector(airflow_supported_file_types)
 
     path = _get_resource_path('airflow_test_operator_no_inputs.py')
 
@@ -317,7 +317,7 @@ def test_parse_airflow_component_file_no_inputs():
 async def test_parse_components_invalid_url(invalid_url):
     # Define the appropriate reader for a Url-type component definition
     airflow_supported_file_types = [".py"]
-    reader = UrlComponentReader(airflow_supported_file_types)
+    reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
     # Get path to an invalid component definition file and read contents
     component_definition = reader.read_component_definition(invalid_url, {})
