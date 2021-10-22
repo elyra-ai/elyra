@@ -24,14 +24,11 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-# from typing import Tuple
 
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import Integer
-
-from elyra.pipeline.component import Component
 
 
 class ComponentCatalogConnector(LoggingConfigurable):
@@ -39,6 +36,9 @@ class ComponentCatalogConnector(LoggingConfigurable):
     Abstract class to model component_entry readers that can read components from different locations
     """
 
+    # TODO make this configurable per connector; allow to override max_readers setting
+    # TODO show in help-all, see classes array in elyra_app.py and add the connector to the array
+    # TODO Data structure to encapsulate various flags/capabilities dictionary for extensibility
     max_readers = Integer(3, config=True, allow_none=True,
                           help="""Sets the number of reader threads""")
 
@@ -54,177 +54,153 @@ class ComponentCatalogConnector(LoggingConfigurable):
     @abstractmethod
     def get_component_hash_keys(self) -> List[Any]:
         """
-        Provides a list of keys from the component_metadata dictionary whose values are
-        used to construct a unique hash id for a component with the given catalog type
+        Provides a list of keys available in the 'catalog_entry_data' dictionary whose values
+        will be used to construct a unique hash id for each entry with the given catalog type
 
         :returns: a list of keys
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_catalog_entries(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Returns a list of component_metadata instances, one per component found in the given registry.
-        The form that component_metadata takes is determined by requirements of the reader class.
+        Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
+        The form that each catalog_entry_data takes is determined by the unique requirements of the
+        reader class.
 
-        :param registry_metadata: the dictionary-form of the Metadata instance for a single registry
+        :param catalog_metadata: the dictionary form of the Metadata instance for a single catalog
 
-        :returns: a list of component-specific metadata dictionaries, each of which contains the
-                  information needed to access the content of a component definition
+        :returns: a list of catalog entry dictionaries, each of which contains the information
+                  needed to access a component definition in read_catalog_entry()
         """
         raise NotImplementedError()
 
     @abstractmethod
     def read_catalog_entry(self,
-                           component_id: str,
-                           component_metadata: Dict[str, Any],
-                           registry_metadata: Dict[str, Any]) -> Optional[str]:
+                           catalog_entry_data: Dict[str, Any],
+                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
         """
-        Read a component specification file given its component_metadata
+        Read a component definition for a single catalog entry using the its data (as returned from
+        get_catalog_entries()) and the catalog metadata, if needed
 
-        :param component_id: the unique id of this component
-        :param component_metadata: a dictionary that contains the information needed to read the content
+        :param catalog_entry_data: a dictionary that contains the information needed to read the content
                                    of the component definition
-        :param registry_metadata: the metadata associated with the registry in which this catalog entry is
-                                  stored; in addition to component_metadata, registry_metadata may also be
-                                  needed to read the component definition for some types of catalogs
-        :param hash_to_metadata: a mapping of component hash to a dictionary of the form
-            {
-                'definition': 'component-definition-as-string',
-                'metadata': component_metadata
-            }
-            where the 'metadata' key stores the dictionary of info that may be needed to retrieve
-            the component definition in subsequent calls to read_catalog_entry()
+        :param catalog_metadata: the metadata associated with the catalog in which this catalog entry is
+                                 stored; in addition to catalog_entry_data, catalog_metadata may also be
+                                 needed to read the component definition for certain types of catalogs
 
-        :returns: the given 'hash_to_metadata' object, optionally including a new
-                  key-value pair if the given component location is successfully read
+        :returns: the content of the given catalog entry's definition in string form
         """
         raise NotImplementedError()
 
-    def log_message(self, pre_amble: str,
-                    message: str,
-                    post_amble: str,
-                    log_level: Optional[str] = None):
-        """
-        Log a message at the specified level
-        """
-        full_message = f"{pre_amble}{message}{post_amble}"
-        if log_level == 'info':
-            self.log.info(full_message)
-        elif log_level == 'debug':
-            self.log.debug(full_message)
-        elif log_level == 'warning':
-            self.log.warning(full_message)
-        elif log_level == 'error':
-            self.log.error(full_message)
-        else:
-            self.log.debug(full_message)
-
-    def get_log_message_dialog(self, metadata: Dict[str, Any]) -> str:
-        """
-        Provides message dialog to better identify a component during logging.
-        Subclasses can extend this to provide information specific to that
-        reader class.
-        """
-        return f"with metadata: '{metadata}'"
-
-    @staticmethod
-    def get_unique_component_hash(catalog_class: str,
-                                  component_metadata: Dict[str, Any],
-                                  component_hash_keys: List[Any]) -> str:
+    def get_unique_component_hash(self,
+                                  catalog_entry_data: Dict[str, Any],
+                                  catalog_hash_keys: List[Any]) -> str:
         """
         Constructs a unique hash for the given component based on the name of the catalog
         connector class and any information specific to that component/catalog-type combination
-        as given in component_hash_keys.
+        as given in catalog_hash_keys.
 
-        :param catalog_class: the catalog_type of the ComponentCatalogConnector class for
-                              this component, e.g. url-catalog
-        :param component_metadata: the metadata associated with the component
-        :param component_hash_keys: the list of keys (present in the component_metadata dict)
-                                    whose values will be used to construct the hash
+        :param catalog_entry_data: the metadata associated with the component
+        :param catalog_hash_keys: the list of keys (present in the catalog_entry_data dict)
+                                  whose values will be used to construct the hash
 
         :returns: a unique component id of the form '<catalog-type>:<hash_of_given_metadata>'
-        TODO
         """
         hash_str = ""
-        for key_to_hash in component_hash_keys:
-            hash_str = hash_str + component_metadata[key_to_hash] + ":"
+        for key in catalog_hash_keys:
+            if not catalog_entry_data.get(key):
+                continue
+            hash_str = hash_str + catalog_entry_data[key] + ":"
         hash_str = hash_str[:-1]
 
         # Use only the first 12 characters of the resulting hash
         hash_digest = f"{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
-        return f"{catalog_class}:{hash_digest}"
+        return f"{self.catalog_type}:{hash_digest}"
 
-    def read_component_definitions(self, registry_metadata: Dict[str, Any]) -> Dict[str, Dict]:
+    def read_component_definitions(self, catalog_metadata: Dict[str, Any]) -> Dict[str, Dict]:
         """
-        Starts a number of threads ('max_reader' or fewer) that read component definitions in parallel.
+        This function compiles the definitions of all catalog entries in a given catalog.
 
-        The 'hash_to_metadata' variable is a mapping of a unique component hash to its definition and
-        metadata. As a mutable object, this dictionary provides a means to retrieve a return value for
-        each thread. If a thread is able to successfully read the content of the given component file
-        location, a definition key is added to its hash_to_metadata mapping entry.
+        Catalog entry data is first retrieved for each entry in the catalog. This data is added to a
+        queue, and a number of reader threads ('max_reader' or fewer) are started.
+
+        Each reader thread pulls the data for a singe catalog entry from the queue and uses it to read
+        the definition associated with that entry.
+
+        As a mutable object, the 'catalog_entry_map' provides a means to retrieve a return value for
+        each thread. If a thread is able to successfully read the content of the given catalog entry,
+        a unique hash is created for the entry and a mapping is added to the catalog_entry_map.
+
+        :param catalog_metadata: the metadata associated with this catalog instance
+
+        :returns: a mapping of a unique component ids to their definition and identifying data
         """
-        hash_to_metadata = {}
-
+        catalog_entry_map = {}
         catalog_entry_q = Queue()
 
+        # Retrieve list of keys that will be used to construct
+        # the catalog entry hash for each entry in the catalog
+        keys_to_hash = self.get_component_hash_keys()
+
         try:
-            keys_to_hash = self.get_component_hash_keys()
-            for entry_data in self.get_catalog_entries(registry_metadata):
+            # Add catalog entry data dictionaries to the thread queue
+            for entry_data in self.get_catalog_entries(catalog_metadata):
                 catalog_entry_q.put_nowait(entry_data)
 
-        except Exception:
-            # self.log.warning(f"Could not read component catalog '{registry_metadata[]}'. Skipping...")
-            pass
+        except Exception as e:
+            self.log.warning(f"Could not get catalog entry information for catalog with metadata: "
+                             f"'{str(catalog_metadata)}': {e}")
 
         def read_with_thread():
-            """Get a location from the queue and read contents"""
+            """
+            Gets a catalog entry data dictionary from the queue and attempts to read corresponding definition
+            """
             while not catalog_entry_q.empty():
                 try:
-                    self.log.debug("Retrieving component metadata from queue...")
+                    # Pull a catalog entry dictionary from the queue
                     catalog_entry_data = catalog_entry_q.get(timeout=.1)
                 except Empty:
                     continue
 
                 try:
-                    # Generate hash for this entry
-                    component_hash = ComponentCatalogConnector.get_unique_component_hash(self.catalog_type,
-                                                                                         catalog_entry_data,
-                                                                                         keys_to_hash)
+                    # Read the entry definition given its returned data and the catalog metadata
+                    self.log.debug(f"Attempting read of definition for catalog entry with identifying information: "
+                                   f"{str(catalog_entry_data)}...")
+                    definition = self.read_catalog_entry(catalog_entry_data=catalog_entry_data,
+                                                         catalog_metadata=catalog_metadata)
 
-                    self.log.debug(f"Attempting read of component definition for component with metadata: "
-                                   f"'{catalog_entry_data}'...")
+                    # Ignore this entry if no definition content is returned
+                    if not definition:
+                        self.log.warning(f"No definition content found for catalog entry with identifying information: "
+                                         f"{str(catalog_entry_data)}. Skipping...")
+                        catalog_entry_q.task_done()
+                        continue
 
-                    # Add component hash and metadata to the dictionary
-                    hash_to_metadata[component_hash] = {'metadata': catalog_entry_data}
-
-                    # TODO Test returning a value and constructing hash_to_md here
-                    definition = self.read_catalog_entry(component_id=component_hash,
-                                                         component_metadata=catalog_entry_data,
-                                                         registry_metadata=registry_metadata)
-
-                    hash_to_metadata[component_hash] = {
+                    # Generate hash for this catalog entry and add entry definition and identifying data to mapping
+                    catalog_entry_id = self.get_unique_component_hash(catalog_entry_data, keys_to_hash)
+                    catalog_entry_map[catalog_entry_id] = {
                         "definition": definition,
-                        "metadata": catalog_entry_data
+                        "identifier": catalog_entry_data
                     }
 
-                except Exception:
-                    self.log.warning(f"Could not read component definition for component with metadata: "
-                                     f"'{catalog_entry_data}'. Skipping...")
-                    pass
+                except Exception as e:
+                    self.log.warning(f"Could not read definition for catalog entry with identifying information: "
+                                     f"{str(catalog_entry_data)}: {e}")
 
+                # Mark this thread's read as complete
                 catalog_entry_q.task_done()
 
-        # Start 'max_reader' reader threads if registry includes more than 'max_reader'
-        # number of locations, else start one thread per location
+        # Start 'max_reader' reader threads if catalog includes more than 'max_reader'
+        # number of catalog entries, else start one thread per entry
         num_threads = min(catalog_entry_q.qsize(), self.max_readers)
         for i in range(num_threads):
             Thread(target=read_with_thread).start()
 
-        # Wait for all queued locations to be processed
+        # Wait for all queued entries to be processed
         catalog_entry_q.join()
 
-        return hash_to_metadata
+        return catalog_entry_map
 
 
 class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
@@ -234,8 +210,8 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
 
     def determine_absolute_path(self, path: str, base_path: Optional[str] = None) -> str:
         """
-        Determines the absolute location of a given path. Error
-        checking is delegated to the calling function
+        Determines the absolute location of a given path. Error checking is delegated to
+        the calling function
         """
         # Expand path to include user home if necessary
         path = os.path.expanduser(path)
@@ -257,30 +233,41 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
     def get_component_hash_keys(self) -> List[Any]:
         return ['path']
 
-    def get_catalog_entries(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Returns a list of component_metadata instances, one per component found in the given registry.
-        The form that component_metadata takes is determined by requirements of the reader class.
+        Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
+        The form that each catalog_entry_data takes is determined by the unique requirements of the
+        reader class.
 
         The metadata for the FilesystemComponentCatalogConnector class is of the following form:
-        {'location': 'absolute_path_to_component_definition_in_localfs'}
+        {'path': 'abspath_to_component_definition_in_local_fs'}
         """
-        component_metadata = []
-        for path in registry_metadata['paths']:
-            absolute_path = self.determine_absolute_path(path, registry_metadata.get('base_path'))
+        catalog_entry_data = []
+        for path in catalog_metadata.get('paths'):
+            absolute_path = self.determine_absolute_path(path, catalog_metadata.get('base_path'))
             if not os.path.exists(absolute_path):
                 self.log.warning(f"File does not exist -> {absolute_path}")
                 continue
 
-            component_metadata.append({'path': absolute_path})
-        return component_metadata
+            catalog_entry_data.append({'path': absolute_path})
+        return catalog_entry_data
 
     def read_catalog_entry(self,
-                           component_id: str,
-                           component_metadata: Dict[str, Any],
-                           registry_metadata: Dict[str, Any]) -> Optional[str]:
+                           catalog_entry_data: Dict[str, Any],
+                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+        """
+        Read a component definition for a single catalog entry using the its data (as returned from
+        get_catalog_entries()) and the catalog metadata, if needed
 
-        path = component_metadata['path']
+        catalog_entry_data takes the following for for FilesystemComponentCatalogConnector and
+        DirectoryComponentCatalogConnector:
+
+            catalog_entry_data = {
+                'path': 'abspath_to_component_definition_in_local_fs'
+            }
+
+        """
+        path = catalog_entry_data.get('path')
         if not os.path.exists(path):
             self.log.warning(f"Invalid location for component: {path}")
         else:
@@ -295,26 +282,27 @@ class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
     Read component definitions from a local directory
     """
 
-    def get_catalog_entries(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Returns a list of component_metadata instances, one per component found in the given registry.
-        The form that component_metadata takes is determined by requirements of the reader class.
+        Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
+        The form that each catalog_entry_data takes is determined by the unique requirements of the
+        reader class.
 
         The metadata for the DirectoryComponentCatalogConnector class is of the following form:
-        {'location': 'absolute_path_to_component_definition_in_localfs'}
+        {'path': 'abspath_to_component_definition_in_local_fs'}
         """
-        component_metadata = []
-        for path in registry_metadata['paths']:
-            absolute_path = self.determine_absolute_path(path, registry_metadata.get('base_path'))
+        catalog_entry_data = []
+        for path in catalog_metadata.get('paths'):
+            absolute_path = self.determine_absolute_path(path, catalog_metadata.get('base_path'))
             if not os.path.exists(absolute_path):
                 self.log.warning(f"Invalid directory -> {absolute_path}")
                 continue
 
             for filename in os.listdir(absolute_path):
                 if filename.endswith(tuple(self.file_types)):
-                    component_metadata.append({'location': os.path.join(absolute_path, filename)})
+                    catalog_entry_data.append({'path': os.path.join(absolute_path, filename)})
 
-        return component_metadata
+        return catalog_entry_data
 
 
 class UrlComponentCatalogConnector(ComponentCatalogConnector):
@@ -325,21 +313,33 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
     def get_component_hash_keys(self) -> List[Any]:
         return ['url']
 
-    def get_catalog_entries(self, registry_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Returns a list of component_metadata instances, one per component found in the given registry.
-        The form that component_metadata takes is determined by requirements of the reader class.
+        Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
+        The form that each catalog_entry_data takes is determined by the unique requirements of the
+        reader class.
 
         The metadata for the UrlComponentCatalogConnector class is of the following form:
-        {'location': 'url_of_remote_component_definition'}
+        {'url': 'url_of_remote_component_definition'}
         """
-        return [{'url': url} for url in registry_metadata['paths']]
+        return [{'url': url} for url in catalog_metadata.get('paths')]
 
     def read_catalog_entry(self,
-                           component_id: str,
-                           component_metadata: Dict[str, Any],
-                           registry_metadata: Dict[str, Any]) -> Optional[str]:
-        url = component_metadata['url']
+                           catalog_entry_data: Dict[str, Any],
+                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+        """
+        Read a component definition for a single catalog entry using the its data (as returned from
+        get_catalog_entries()) and the catalog metadata, if needed
+
+        catalog_entry_data takes the following for for UrlComponentCatalogConnector:
+
+            catalog_entry_data = {
+                'url': 'url_of_remote_component_definition'
+            }
+
+        """
+
+        url = catalog_entry_data.get('url')
         try:
             res = requests.get(url)
         except Exception as e:

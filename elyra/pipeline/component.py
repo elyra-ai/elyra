@@ -15,7 +15,6 @@
 #
 from abc import abstractmethod
 from logging import Logger
-import os
 from types import SimpleNamespace
 from typing import Any
 from typing import Dict
@@ -117,11 +116,13 @@ class Component(object):
     Represents a generic or runtime-specific component
     """
 
-    def __init__(self, id: str, name: str,
+    def __init__(self,
+                 id: str,
+                 name: str,
                  description: Optional[str],
                  catalog_type: str,
                  location: str,
-                 definition: Optional[str] = None,  # TODO Fix this
+                 definition: Optional[str] = None,
                  runtime: Optional[str] = None,
                  op: Optional[str] = None,
                  categories: Optional[List[str]] = None,
@@ -136,11 +137,12 @@ class Component(object):
         :param catalog_type: Indicates the type of component definition resource
                               location; one of ['url', filename', 'directory]
         :param location: The location of the component definition
+        :param definition: The content of the specification file for this component
         :param runtime: The runtime of the component (e.g. KFP or Airflow)
         :param op: The operation name of the component; used by generic components in rendering the palette
-        :param categories: A list of categories that this component belongs to
+        :param categories: A list of categories that this component belongs to; used to organize component
+                           in the palette
         :param properties: The set of properties for the component
-        :param metadata: Metadata associated with this component for use in reading its definition
         :param extensions: The file extension used by the component
         """
 
@@ -155,11 +157,11 @@ class Component(object):
         self._location_type = catalog_type
         self._location = location
 
+        self._definition = definition
         self._runtime = runtime
         self._op = op
         self._categories = categories or []
         self._properties = properties
-        self._metadata = metadata or {}
 
         if not parameter_refs:
             if self._location_type == "elyra":
@@ -198,6 +200,10 @@ class Component(object):
         return self._location
 
     @property
+    def definition(self) -> str:
+        return self._definition
+
+    @property
     def runtime(self) -> Optional[str]:
         return self._runtime
 
@@ -215,10 +221,6 @@ class Component(object):
     @property
     def properties(self) -> Optional[List[ComponentParameter]]:
         return self._properties
-
-    @property
-    def metadata(self) -> Dict[str, Any]:
-        return self._metadata
 
     @property
     def extensions(self) -> Optional[List[str]]:
@@ -254,16 +256,6 @@ class ComponentParser(LoggingConfigurable):  # ABC
         a list of fully-qualified Component objects
         """
         raise NotImplementedError()
-
-    def get_component_id(self, location: str, name: str) -> str:
-        """
-        Get a unique id for a component based on its file basename and
-        it's given name.
-        """
-        file_basename = os.path.basename(location)
-        filename = os.path.splitext(file_basename)[0]
-        component_name = f"{filename}_{name.replace(' ', '')}"
-        return component_name
 
     def _format_description(self, description: str, data_type: str) -> str:
         """

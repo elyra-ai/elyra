@@ -38,26 +38,34 @@ class AirflowComponentParser(ComponentParser):
 
         # Parse the component definition for all defined classes
         component_classes = self._get_all_classes(component_definition)
-        for component_class in component_classes.keys():
+
+        for component_class, component_content in component_classes.items():
             # Create a Component object for each class
-            component_properties = self._parse_properties(component_definition, component_class)
-            components.append(Component(id=registry_entry.component_id,
-                                        name=component_class,
-                                        description='',
-                                        runtime=self.component_platform,
-                                        catalog_type=registry_entry.catalog_type,
-                                        location=registry_entry.component_metadata.get('location'),
-                                        properties=component_properties,
-                                        categories=registry_entry.categories,
-                                        metadata=registry_entry.component_metadata))
+            component_properties = self._parse_properties(component_content)
+
+            components.append(
+                Component(
+                    id=registry_entry.component_id,
+                    name=component_class,
+                    description='',
+                    catalog_type=registry_entry.catalog_type,
+                    location=registry_entry.component_identifier.get('location'),
+                    definition=self.get_class_def_as_string(component_content),
+                    runtime=self.component_platform,
+                    categories=registry_entry.categories,
+                    properties=component_properties
+                )
+            )
 
         return components
 
     def _get_all_classes(self, component_definition: str) -> Dict[str, Dict]:
-        # Organize lines according to the class to which they belong
-        classes = {}
+        # Organize lines and arguments according to the class to which they belong
+        class_to_content = {
+            "no_class": {"lines": [], "args": []}
+        }
+
         class_name = "no_class"
-        classes["no_class"] = {"content": [], "args": []}
         class_regex = re.compile(r"class ([\w]+)\(\w*\):")
         for line in component_definition.split('\n'):
             # Remove any inline comments (must follow the '2 preceding spaces and one following space'
@@ -66,43 +74,30 @@ class AirflowComponentParser(ComponentParser):
             match = class_regex.search(line)
             if match:
                 class_name = match.group(1)
-                classes[class_name] = {"content": [], "args": []}
-            classes[class_name]['content'].append(line)
+                class_to_content[class_name] = {"lines": [], "args": []}
+            class_to_content[class_name]['lines'].append(line)
 
-        classes.pop("no_class")
-        return classes
+        class_to_content.pop("no_class")
 
-    def _get_class_with_classname(self, classname: str, component_definition: str) -> Dict[str, List]:
-        classes = self._get_all_classes(component_definition)
-
-        if classname not in classes.keys():
-            raise ValueError(f"Component with class name {classname} not found")
-
-        # Loop through classes to find init function for each class; grab init parameters as properties
         init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*\s\#.\\\/:?]*)\):")
-        for class_name in classes:
-            if class_name != classname:
-                continue
-
+        for class_name, content in class_to_content.items():
             # Concatenate class body and search for __init__ function
-            class_content = ''.join(classes[class_name]['content'])
+            class_content = self.get_class_def_as_string(content)
             for match in init_regex.finditer(class_content):
                 # Get list of parameter:default-value pairs
-                classes[class_name]['args'] = [x.strip() for x in match.group(1).split(',')]
+                class_to_content[class_name]['args'] = [x.strip() for x in match.group(1).split(',')]
 
-        return classes[classname]
+        return class_to_content
 
-    def _parse_properties(self, component_definition: str, component_class: str) -> List[ComponentParameter]:
+    def _parse_properties(self, content: Dict[str, List]) -> List[ComponentParameter]:
         properties: List[ComponentParameter] = list()
 
         # NOTE: Currently no runtime-specific properties are needed, including runtime image. See
         # justification here: https://github.com/elyra-ai/elyra/issues/1912#issuecomment-879424452
         # properties.extend(self.get_runtime_specific_properties())
 
-        # Retrieve the content of the specified class only
-        component_definition = self._get_class_with_classname(component_class, component_definition)
-        class_content = ''.join(component_definition.get('content'))
-        for arg in component_definition.get('args'):
+        class_definition = self.get_class_def_as_string(content)
+        for arg in content.get('args'):
             # For each argument to the init function, build a new parameter and add to existing
             if arg in ['self', '*args', '**kwargs']:
                 continue
@@ -114,17 +109,15 @@ class AirflowComponentParser(ComponentParser):
                 if value and "\n" in str(value):
                     value = value.replace("\n", " ")
 
-            # Search for :type [param] information in class docstring
+            # Search for data type (':type [param]:') in class docstring
             type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
-            match = type_regex.search(class_content)
+            match = type_regex.search(class_definition)
             data_type = match.group(1).strip() if match else "string"
 
-            # Search for :param [param] in class doctring to get description
-            description = ""
+            # Search for description (':param [param]:') in class docstring
             param_regex = re.compile(f":param {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
-            match = param_regex.search(class_content)
-            if match:
-                description = match.group(1).strip().replace("\"", "'")
+            match = param_regex.search(class_definition)
+            description = match.group(1).strip().replace("\"", "'") if match else ""
 
             # Amend description to include type information
             description = self._format_description(description=description, data_type=data_type)
@@ -134,13 +127,24 @@ class AirflowComponentParser(ComponentParser):
                 self.log.warning(f"Data type from parsed data ('{data_type}') could not be determined. "
                                  f"Proceeding as if 'string' was detected.")
 
-            properties.append(ComponentParameter(id=arg,
-                                                 name=arg,
-                                                 data_type=data_type_info.data_type,
-                                                 value=(value or data_type_info.default_value),
-                                                 description=description,
-                                                 control_id=data_type_info.control_id))
+            properties.append(
+                ComponentParameter(
+                    id=arg,
+                    name=arg,
+                    data_type=data_type_info.data_type,
+                    value=(value or data_type_info.default_value),
+                    description=description,
+                    control_id=data_type_info.control_id
+                )
+            )
+
         return properties
+
+    def get_class_def_as_string(self, content: Dict[str, List[str]]) -> str:
+        """
+        TODO
+        """
+        return ''.join(content['lines'])
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
         """

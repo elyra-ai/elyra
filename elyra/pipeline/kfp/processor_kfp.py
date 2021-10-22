@@ -628,14 +628,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Build component task factory
                 try:
-                    # Get the reader class associated with this component and construct the appropriate kwargs
-                    # catalog_reader = entrypoints.get_single('elyra.component.catalog_types', component.catalog_type)
-                    # reader = catalog_reader.load()(component.catalog_type, self.component_parser.file_types)
-                    # component_source = reader.get_component_source_kwargs(component)
-
-                    component_source = {'text': component.definition}
-
-                    factory_function = components.load_component(**component_source)
+                    factory_function = components.load_component_from_text(component.definition)
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
                     self.log.error(f"Error loading component spec for {operation.name}: {str(e)}")
