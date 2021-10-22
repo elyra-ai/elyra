@@ -249,6 +249,15 @@ const extension: JupyterFrontEndPlugin<void> = {
               rank:
                 runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
             });
+            menu.fileMenu.newMenu.addGroup(
+              [
+                {
+                  command: openPipelineEditorCommand,
+                  args: { runtime, isMenu: true }
+                }
+              ],
+              runtime.name === 'kfp' ? 31 : runtime.name === 'airflow' ? 32 : 33
+            );
           }
         }
         // Add new pipeline to the file menu
@@ -256,17 +265,6 @@ const extension: JupyterFrontEndPlugin<void> = {
           [{ command: openPipelineEditorCommand, args: { isMenu: true } }],
           30
         );
-        for (const runtime of schema) {
-          menu.fileMenu.newMenu.addGroup(
-            [
-              {
-                command: openPipelineEditorCommand,
-                args: { runtime, isMenu: true }
-              }
-            ],
-            runtime.name === 'kfp' ? 31 : runtime.name === 'airflow' ? 32 : 33
-          );
-        }
       },
       (error: any) => RequestErrors.serverError(error)
     );

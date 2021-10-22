@@ -239,6 +239,15 @@ class Node(AppDataBase):
             #  binding nodes do not contain links
             return []
 
+    @property
+    def component_source(self) -> Optional[str]:
+        """
+        Retrieve the component source path.
+        :return: None, if the node is a generic component, the component path otherwise.
+        """
+        if self.type == 'execution_node':
+            return self._node['app_data'].get('component_source', None)
+
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
         Retrieve component parameter values.

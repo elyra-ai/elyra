@@ -41,7 +41,7 @@ metadata_path_registries = './etc/config/metadata/component-registries/*.json'
 settings_path = './etc/config/settings/*.json'
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=0.8.1',]
+    'kfp-tekton': ['kfp-tekton~=1.0.1',]
 }
 runtime_extras['all'] = list(set(sum(runtime_extras.values(), [])))
 
