@@ -20,7 +20,7 @@ FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.3.0
 
 # install - elyra
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated legacy-resolver \
-    elyra[all]==3.1.1
+    elyra[all]==3.1.2
 
 # build jupyter plugins
 RUN jupyter lab build
