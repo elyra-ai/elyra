@@ -58,7 +58,7 @@ class AirflowComponentParser(ComponentParser):
         classes = {}
         class_name = "no_class"
         classes["no_class"] = {"content": [], "args": []}
-        class_regex = re.compile(r"class ([\w]+)\(\w*\):")
+        class_regex = re.compile(r"class ([\w]+[.\w]*)\(\w*\):")
         for line in component_definition.split('\n'):
             # Remove any inline comments (must follow the '2 preceding spaces and one following space'
             # rule). This avoids the case where the default value of an __init__ arg contains '#'.
