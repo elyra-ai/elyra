@@ -18,6 +18,7 @@ import os
 import tarfile
 from unittest import mock
 
+from jupyter_core.paths import ENV_JUPYTER_PATH
 from kfp import compiler as kfp_argo_compiler
 import pytest
 import yaml
@@ -345,6 +346,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
 def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
     # Assign test resource location
     relative_path = "kfp/filter_text_using_shell_and_grep.yaml"
+    absolute_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', relative_path)
 
     # Instantiate a file-based component
     component_id = "filter-text"
@@ -353,7 +355,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           description="",
                           op="filter-text",
                           catalog_type="filename",
-                          location=relative_path,
+                          location=absolute_path,
                           properties=[],
                           categories=[])
 
@@ -409,4 +411,4 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
 
     component_ref = pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/component_ref']
     component_ref = ast.literal_eval(component_ref)
-    assert relative_path in component_ref['url']
+    assert absolute_path in component_ref['url']

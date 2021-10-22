@@ -52,7 +52,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
         return self._catalog_type
 
     @abstractmethod
-    def get_component_hash_keys(self) -> List[Any]:
+    def get_hash_keys(self) -> List[Any]:
         """
         Provides a list of keys available in the 'catalog_entry_data' dictionary whose values
         will be used to construct a unique hash id for each entry with the given catalog type
@@ -141,7 +141,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         # Retrieve list of keys that will be used to construct
         # the catalog entry hash for each entry in the catalog
-        keys_to_hash = self.get_component_hash_keys()
+        keys_to_hash = self.get_hash_keys()
 
         try:
             # Add catalog entry data dictionaries to the thread queue
