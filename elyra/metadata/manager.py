@@ -246,7 +246,7 @@ class MetadataManager(LoggingConfigurable):
         self.log.debug(f"Rolling back metadata operation '{operation}' for instance '{name}' due to: {exception}")
         if operation == "create":  # remove the instance, orig_value is the newly-created instance.
             if isinstance(orig_value, Metadata):
-                orig_value = Metadata.to_dict()
+                orig_value = orig_value.to_dict()
             self.metadata_store.delete_instance(orig_value)
         elif operation == "update":  # restore original as an update
             if isinstance(orig_value, dict):
@@ -278,27 +278,25 @@ class MetadataManager(LoggingConfigurable):
 
         schema = self.schema_mgr.get_schema(self.schemaspace, metadata.schema_name)
 
-        def _update_instance(schema_properties: Dict, instance: Union[Metadata, Dict]) -> None:
+        def _update_instance(target_prop: str, schema_properties: Dict, instance: Union[Metadata, Dict]) -> None:
             property_defaults = {}
             for name, property in schema_properties.items():
-                if 'default' in property and isinstance(instance, Dict):  # Don't update defaults on schema props
-                    property_defaults[name] = property['default']
-                elif 'const' in property:
-                    property_defaults[name] = property['const']
+                if target_prop in property:
+                    property_defaults[name] = property[target_prop]
 
             if property_defaults:  # schema defines defaulted properties
-                if isinstance(instance, Metadata):  # schema properties
+                if isinstance(instance, Metadata):  # schema properties, updated constants
                     for name, default in property_defaults.items():
                         if hasattr(instance, name):
                             setattr(instance, name, default)
-                else:  # instance properties
+                else:  # instance properties, update missing defaults
                     instance_properties = instance
                     for name, default in property_defaults.items():
                         if name not in instance_properties:
                             instance_properties[name] = default
 
-        # Update default and const properties of instance properties
-        _update_instance(schema['properties']['metadata']['properties'], metadata.metadata)
+        # Update default properties of instance properties
+        _update_instance("default", schema['properties']['metadata']['properties'], metadata.metadata)
 
         # Update const properties of schema properties
-        _update_instance(schema['properties'], metadata)
+        _update_instance("const", schema['properties'], metadata)
