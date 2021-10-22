@@ -21,8 +21,8 @@ import jupyter_core.paths
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
-from elyra.pipeline.component import FilesystemComponentReader
-from elyra.pipeline.component import UrlComponentReader
+from elyra.pipeline.component import FilesystemComponentCatalogConnector
+from elyra.pipeline.component import UrlComponentCatalogConnector
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 
@@ -163,7 +163,7 @@ def test_directory_based_component_registry():
 def test_parse_kfp_component_file():
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
-    reader = FilesystemComponentReader(kfp_supported_file_types)
+    reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
     path = _get_resource_path('kfp_test_operator.yaml')
 
@@ -251,7 +251,7 @@ def test_parse_kfp_component_file():
 def test_parse_kfp_component_url():
     # Define the appropriate reader for a URL-type component definition
     kfp_supported_file_types = [".yaml"]
-    reader = UrlComponentReader(kfp_supported_file_types)
+    reader = UrlComponentCatalogConnector(kfp_supported_file_types)
 
     path = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml'  # noqa: E501
 
@@ -285,7 +285,7 @@ def test_parse_kfp_component_url():
 def test_parse_kfp_component_file_no_inputs():
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
-    reader = FilesystemComponentReader(kfp_supported_file_types)
+    reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
     path = _get_resource_path('kfp_test_operator_no_inputs.yaml')
 
@@ -325,7 +325,7 @@ def test_parse_kfp_component_file_no_inputs():
 async def test_parse_components_invalid_file():
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
-    reader = FilesystemComponentReader(kfp_supported_file_types)
+    reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
     # Get path to an invalid component definition file and read contents
     path = _get_resource_path('kfp_test_operator_invalid.yaml')

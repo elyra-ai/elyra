@@ -44,15 +44,17 @@ class KfpComponentParser(ComponentParser):
 
         component_properties = self._parse_properties(component_yaml)
 
-        component = Component(id=registry_entry.component_id,
-                              name=component_yaml.get('name'),
-                              description=description,
-                              runtime=self.component_platform,
-                              catalog_type=registry_entry.catalog_type,
-                              location=registry_entry.component_metadata.get('location'),
-                              properties=component_properties,
-                              categories=registry_entry.categories,
-                              metadata=registry_entry.component_metadata)
+        component = Component(
+            id=registry_entry.component_id,
+            name=component_yaml.get('name'),
+            description=description,
+            catalog_type=registry_entry.catalog_type,
+            location=registry_entry.component_identifier.get('location'),
+            definition=registry_entry.component_definition,
+            runtime=self.component_platform,
+            categories=registry_entry.categories,
+            properties=component_properties
+        )
 
         return [component]
 
@@ -113,14 +115,18 @@ class KfpComponentParser(ComponentParser):
                     # Add sentence to description to clarify that paraeter is an output
                     description = f"This is an output of this component. {description}"
 
-                properties.append(ComponentParameter(id=ref_name,
-                                                     name=display_name,
-                                                     data_type=data_type_info.data_type,
-                                                     value=(value or data_type_info.default_value),
-                                                     description=description,
-                                                     control=data_type_info.control,
-                                                     control_id=data_type_info.control_id,
-                                                     required=required))
+                properties.append(
+                    ComponentParameter(
+                        id=ref_name,
+                        name=display_name,
+                        data_type=data_type_info.data_type,
+                        value=(value or data_type_info.default_value),
+                        description=description,
+                        control=data_type_info.control,
+                        control_id=data_type_info.control_id,
+                        required=required
+                    )
+                )
         return properties
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
@@ -146,8 +152,8 @@ class KfpComponentParser(ComponentParser):
         try:
             return yaml.safe_load(registry_entry.component_definition)
         except Exception as e:
-            self.log.warning(f"Could not read definition for component at "
-                             f"location: '{registry_entry.component_metadata.get('location')}' -> {str(e)}")
+            self.log.warning(f"Could not load YAML definition for component with identifying information: "
+                             f"'{str(registry_entry.component_identifier)}' -> {str(e)}")
             return None
 
     def _is_path_based_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:

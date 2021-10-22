@@ -198,7 +198,7 @@ class ComponentRegistry(LoggingConfigurable):
 
         runtime_registries = self._get_registries_for_runtime()
         for registry in runtime_registries:
-            self.log.debug(f"Component registry: processing components in registry '{registry['display_name']}'")
+            self.log.debug(f"Processing components in catalog '{registry['display_name']}'")
 
             categories = registry['metadata'].get("categories", [])
             catalog_type = registry['schema_name']
@@ -208,15 +208,19 @@ class ComponentRegistry(LoggingConfigurable):
             reader = catalog_reader.load()(catalog_type, self._parser.file_types)
 
             # Get content of component definition file for each component in this registry
-            hash_to_metadata = reader.read_component_definitions(registry['metadata'])
-            for component_hash, component_metadata_dict in hash_to_metadata.items():
+            component_data_dict = reader.read_component_definitions(registry['metadata'])
+            if not component_data_dict:
+                self.log.debug(f"Could not read catalog '{registry['display_name']}'. Skipping...")
+                continue
+
+            for component_id, component_data in component_data_dict.items():
 
                 component_entry = {
-                    "component_id": component_hash,
+                    "component_id": component_id,
                     "catalog_type": reader.catalog_type,
                     "categories": categories,
-                    "component_definition": component_metadata_dict.get('definition'),
-                    "component_metadata": component_metadata_dict['metadata']
+                    "component_definition": component_data.get('definition'),
+                    "component_identifier": component_data.get('identifier')
                 }
 
                 # Parse the component entry to get a fully qualified Component object
