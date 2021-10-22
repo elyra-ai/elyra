@@ -1,5 +1,23 @@
 # Changelog
 
+## Release 3.1.2 - 10/21/2021
+
+- Pin elyra dependencies to current version
+- Release v3.1.1
+- Update changelog for release 3.1.1
+- Update Pipeline Editor to version 1.2.0 - [#2143](https://github.com/elyra-ai/elyra/pull/2143)
+- Add notes about packaging changes - [#2148](https://github.com/elyra-ai/elyra/pull/2148)
+- Fix module name for KFP export template - [#2141](https://github.com/elyra-ai/elyra/pull/2141)
+- Add additional safeguards to list and dictionary parameter types - [#2127](https://github.com/elyra-ai/elyra/pull/2127)
+- Update elyra installation documentation - [#2137](https://github.com/elyra-ai/elyra/pull/2137)
+- Bump elyra version in KF Dockerfile - [#2132](https://github.com/elyra-ai/elyra/pull/2132)
+- Update/add fixtures to setup factory metadata instances
+- Small validation fixes for pipeline references and cleanup
+- Fix Copyright year/attribution
+- Fix instances of type attribute in processors - [#2126](https://github.com/elyra-ai/elyra/pull/2126)
+- Fix bootstrapper start_minio test fixture - [#2122](https://github.com/elyra-ai/elyra/pull/2122)
+- Update correct filename on publish goal of release script - [#2123](https://github.com/elyra-ai/elyra/pull/2123)
+
 ## Release 3.1.1 - 09/15/2021
 
 - Update Pipeline Editor to version 1.2.0 - [#2143](https://github.com/elyra-ai/elyra/pull/2143)
