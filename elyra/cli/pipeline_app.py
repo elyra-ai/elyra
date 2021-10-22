@@ -363,8 +363,8 @@ def describe(json_option, pipeline_path):
     indent_length = 4
     blank_field = "Not Specified"
     blank_list = ["None Listed"]
-    pipeline_keys = ["name", "description", "type", "version", "nodes", "file_dependencies"]
-    iter_keys = {"file_dependencies"}
+    pipeline_keys = ["name", "description", "type", "version", "nodes", "file_dependencies", "component_dependencies"]
+    iter_keys = {"file_dependencies", "component_dependencies"}
 
     _validate_pipeline_file_extension(pipeline_path)
 
@@ -381,9 +381,14 @@ def describe(json_option, pipeline_path):
     describe_dict["version"] = primary_pipeline.version
     describe_dict["nodes"] = len(primary_pipeline.nodes)
     describe_dict["file_dependencies"] = set()
+    describe_dict["component_dependencies"] = set()
     for node in primary_pipeline.nodes:
+        # collect information about file dependencies
         for dependency in node.get_component_parameter("dependencies", []):
             describe_dict["file_dependencies"].add(f"{dependency}")
+        # collect information about component dependencies
+        if node.component_source is not None:
+            describe_dict["component_dependencies"].add(node.component_source)
 
     if not json_option:
         for key in pipeline_keys:
@@ -394,7 +399,7 @@ def describe(json_option, pipeline_path):
                     click.echo(f"{' ' * indent_length}{blank_list[0]}")
                 else:
                     for item in describe_dict.get(key, blank_list):
-                        click.echo(f"{' ' * indent_length}{item}")
+                        click.echo(f"{' ' * indent_length}- {item}")
             else:
                 click.echo(f"{readable_key}: {describe_dict.get(key, blank_field)}")
     else:
