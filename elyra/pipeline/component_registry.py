@@ -26,6 +26,7 @@ from jinja2 import PackageLoader
 from traitlets.config import LoggingConfigurable
 
 from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
@@ -198,19 +199,18 @@ class ComponentRegistry(LoggingConfigurable):
 
         runtime_registries = self._get_registries_for_runtime()
         for registry in runtime_registries:
-            self.log.debug(f"Processing components in catalog '{registry['display_name']}'")
+            self.log.debug(f"Processing components in catalog '{registry.display_name}'")
 
-            categories = registry['metadata'].get("categories", [])
-            catalog_type = registry['schema_name']
+            categories = registry.metadata.get("categories", [])
+            catalog_type = registry.schema_name
 
             # Assign reader based on the location type of the registry (file, directory, url)
             catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog_type)
             reader = catalog_reader.load()(catalog_type, self._parser.file_types)
 
             # Get content of component definition file for each component in this registry
-            component_data_dict = reader.read_component_definitions(registry['metadata'])
+            component_data_dict = reader.read_component_definitions(registry)
             if not component_data_dict:
-                self.log.debug(f"Could not read catalog '{registry['display_name']}'. Skipping...")
                 continue
 
             for component_id, component_data in component_data_dict.items():
@@ -230,18 +230,18 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component_dict
 
-    def _get_registries_for_runtime(self) -> List[Dict]:
+    def _get_registries_for_runtime(self) -> List[Metadata]:
         """
         Retrieve the registries relevant to the calling processor instance
         """
         runtime_registries = []
         try:
             metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
-            all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
+            all_registries = metadata_manager.get_all()
 
             # Filter registries according to processor type
             runtime_registries = list(
-                filter(lambda r: r['metadata']['runtime'] == self._parser.component_platform, all_registries)
+                filter(lambda r: r.metadata['runtime'] == self._parser.component_platform, all_registries)
             )
         except Exception:
             self.log.error(f"Could not access registries for processor: {self._parser._component_platform}")

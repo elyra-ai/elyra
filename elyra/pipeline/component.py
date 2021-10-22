@@ -197,7 +197,7 @@ class Component(object):
 
     @property
     def location(self) -> str:
-        return self._location
+        return str(self._location)
 
     @property
     def definition(self) -> str:

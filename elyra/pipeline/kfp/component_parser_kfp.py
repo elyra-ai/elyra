@@ -49,7 +49,7 @@ class KfpComponentParser(ComponentParser):
             name=component_yaml.get('name'),
             description=description,
             catalog_type=registry_entry.catalog_type,
-            location=registry_entry.component_identifier.get('location'),
+            location=registry_entry.component_identifier,
             definition=registry_entry.component_definition,
             runtime=self.component_platform,
             categories=registry_entry.categories,

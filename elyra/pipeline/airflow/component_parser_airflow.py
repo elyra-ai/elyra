@@ -49,7 +49,7 @@ class AirflowComponentParser(ComponentParser):
                     name=component_class,
                     description='',
                     catalog_type=registry_entry.catalog_type,
-                    location=registry_entry.component_identifier.get('location'),
+                    location=registry_entry.component_identifier,
                     definition=self.get_class_def_as_string(component_content),
                     runtime=self.component_platform,
                     categories=registry_entry.categories,

@@ -30,6 +30,8 @@ import requests
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import Integer
 
+from elyra.metadata.metadata import Metadata
+
 
 class ComponentCatalogConnector(LoggingConfigurable):
     """
@@ -45,7 +47,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
     def __init__(self, catalog_type: str, file_types: List[str]):
         super().__init__()
         self._catalog_type = catalog_type
-        self.file_types = file_types
+        self._file_types = file_types
 
     @property
     def catalog_type(self) -> Optional[str]:
@@ -59,7 +61,9 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         :returns: a list of keys
         """
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "abstract method 'get_hash_keys()' must be implemented"
+        )
 
     @abstractmethod
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -73,7 +77,9 @@ class ComponentCatalogConnector(LoggingConfigurable):
         :returns: a list of catalog entry dictionaries, each of which contains the information
                   needed to access a component definition in read_catalog_entry()
         """
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "abstract method 'get_catalog_entries()' must be implemented"
+        )
 
     @abstractmethod
     def read_catalog_entry(self,
@@ -91,7 +97,13 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         :returns: the content of the given catalog entry's definition in string form
         """
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "abstract method 'read_catalog_entry()' must be implemented"
+        )
+
+    def log_and_raise_error(self, msg):
+        self.log.warning(msg)
+        raise NotImplementedError(msg)
 
     def get_unique_component_hash(self,
                                   catalog_entry_data: Dict[str, Any],
@@ -118,7 +130,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
         hash_digest = f"{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
         return f"{self.catalog_type}:{hash_digest}"
 
-    def read_component_definitions(self, catalog_metadata: Dict[str, Any]) -> Dict[str, Dict]:
+    def read_component_definitions(self, catalog_instance: Metadata) -> Dict[str, Dict]:
         """
         This function compiles the definitions of all catalog entries in a given catalog.
 
@@ -132,25 +144,29 @@ class ComponentCatalogConnector(LoggingConfigurable):
         each thread. If a thread is able to successfully read the content of the given catalog entry,
         a unique hash is created for the entry and a mapping is added to the catalog_entry_map.
 
-        :param catalog_metadata: the metadata associated with this catalog instance
+        :param catalog_instance: the Metadata instance for this catalog
 
         :returns: a mapping of a unique component ids to their definition and identifying data
         """
         catalog_entry_map = {}
         catalog_entry_q = Queue()
 
-        # Retrieve list of keys that will be used to construct
-        # the catalog entry hash for each entry in the catalog
-        keys_to_hash = self.get_hash_keys()
-
         try:
+            # Retrieve list of keys that will be used to construct
+            # the catalog entry hash for each entry in the catalog
+            keys_to_hash = self.get_hash_keys()
+
             # Add catalog entry data dictionaries to the thread queue
-            for entry_data in self.get_catalog_entries(catalog_metadata):
+            for entry_data in self.get_catalog_entries(catalog_instance.metadata):
                 catalog_entry_q.put_nowait(entry_data)
 
+        except NotImplementedError as e:
+            err_msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}."
+            self.log.warning(err_msg)
+            # raise NotImplementedError(err_msg)
         except Exception as e:
-            self.log.warning(f"Could not get catalog entry information for catalog with metadata: "
-                             f"'{str(catalog_metadata)}': {e}")
+            self.log.warning(f"Could not get catalog entry information for catalog "
+                             f"'{catalog_instance.display_name}': {e}")
 
         def read_with_thread():
             """
@@ -168,7 +184,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                     self.log.debug(f"Attempting read of definition for catalog entry with identifying information: "
                                    f"{str(catalog_entry_data)}...")
                     definition = self.read_catalog_entry(catalog_entry_data=catalog_entry_data,
-                                                         catalog_metadata=catalog_metadata)
+                                                         catalog_metadata=catalog_instance.metadata)
 
                     # Ignore this entry if no definition content is returned
                     if not definition:
@@ -184,6 +200,10 @@ class ComponentCatalogConnector(LoggingConfigurable):
                         "identifier": catalog_entry_data
                     }
 
+                except NotImplementedError as e:
+                    msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}."
+                    self.log.warning(msg)
+                    # raise NotImplementedError(msg)
                 except Exception as e:
                     self.log.warning(f"Could not read definition for catalog entry with identifying information: "
                                      f"{str(catalog_entry_data)}: {e}")
@@ -299,7 +319,7 @@ class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
                 continue
 
             for filename in os.listdir(absolute_path):
-                if filename.endswith(tuple(self.file_types)):
+                if filename.endswith(tuple(self._file_types)):
                     catalog_entry_data.append({'path': os.path.join(absolute_path, filename)})
 
         return catalog_entry_data
