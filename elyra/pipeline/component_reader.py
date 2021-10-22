@@ -230,7 +230,7 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
         path = os.path.join(ENV_JUPYTER_PATH[0], 'components', path)
         return path
 
-    def get_component_hash_keys(self) -> List[Any]:
+    def get_hash_keys(self) -> List[Any]:
         return ['path']
 
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -310,7 +310,7 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
     Read a singular component definition from a url
     """
 
-    def get_component_hash_keys(self) -> List[Any]:
+    def get_hash_keys(self) -> List[Any]:
         return ['url']
 
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
