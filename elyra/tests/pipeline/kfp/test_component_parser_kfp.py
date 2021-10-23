@@ -21,8 +21,8 @@ import jupyter_core.paths
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
-from elyra.pipeline.component import FilesystemComponentCatalogConnector
-from elyra.pipeline.component import UrlComponentCatalogConnector
+from elyra.pipeline.component_reader import FilesystemComponentCatalogConnector
+from elyra.pipeline.component_reader import UrlComponentCatalogConnector
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 

@@ -23,8 +23,8 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
-from elyra.pipeline.component import FilesystemComponentCatalogConnector
-from elyra.pipeline.component import UrlComponentCatalogConnector
+from elyra.pipeline.component_reader import FilesystemComponentCatalogConnector
+from elyra.pipeline.component_reader import UrlComponentCatalogConnector
 from elyra.pipeline.component_registry import ComponentRegistry
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
