@@ -49,7 +49,7 @@ const theme: any = {
     inputBorder: 'var(--jp-border-color0)',
     primary: {
       main: 'var(--jp-inverse-layout-color4)',
-      hover: 'var(--jp-inverse-layout-color3)',
+      hover: 'transparent',
       contrastText: 'var(--jp-layout-color1)'
     },
     secondary: {
