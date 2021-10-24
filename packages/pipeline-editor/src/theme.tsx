@@ -86,7 +86,7 @@ const theme: any = {
     },
     highlight: {
       border: 'transparent',
-      hover: 'transparent',
+      hover: 'var(--jp-content-font-color0)',
       focus: 'transparent'
     }
   },
