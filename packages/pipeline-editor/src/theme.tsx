@@ -53,7 +53,7 @@ const theme: any = {
       contrastText: 'var(--jp-layout-color1)'
     },
     secondary: {
-      main: 'var(--jp-border-color2)',
+      main: 'transparent',
       contrastText: 'var(--jp-content-font-color1)'
     },
     error: {
@@ -89,6 +89,9 @@ const theme: any = {
       hover: 'transparent',
       focus: 'transparent'
     }
+  },
+  shape: {
+    borderRadius: '4px'
   },
   typography: {
     fontFamily: 'var(--jp-ui-font-family)',
