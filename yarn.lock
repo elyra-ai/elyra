@@ -1393,6 +1393,24 @@
     seedrandom "3.0.5"
     uuid "8.3.0"
 
+"@elyra/metadata-common@3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@elyra/metadata-common/-/metadata-common-3.2.1.tgz#db5561876c49ad540a8de5b8c8b83196edc8d1d2"
+  integrity sha512-9lVDVSkPxx3Btkexp84nAnelEyFkRH1h1cIyDJdsvQZBIKWZxhoG7IpaPIYH46y+7E5gJcBFEa8h5DPJIw/8BA==
+  dependencies:
+    "@elyra/services" "^3.2.1"
+    "@elyra/ui-components" "^3.2.1"
+    "@jupyterlab/application" "^3.0.0"
+    "@jupyterlab/apputils" "^3.0.0"
+    "@jupyterlab/codeeditor" "^3.0.0"
+    "@jupyterlab/ui-components" "^3.0.0"
+    "@lumino/algorithm" "^1.3.3"
+    "@lumino/messaging" "^1.4.3"
+    "@lumino/widgets" "^1.17.0"
+    "@material-ui/core" "^4.12.1"
+    react "^17.0.1"
+    react-dom "^17.0.1"
+
 "@elyra/pipeline-editor@~1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.3.0.tgz#362269eb1797b2752af2284bb3b6742b7eca2286"
@@ -1421,6 +1439,51 @@
   dependencies:
     immer "^9.0.6"
     jsonc-parser "^3.0.0"
+
+"@elyra/script-editor@3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@elyra/script-editor/-/script-editor-3.2.1.tgz#96c2f5d7b4b7917385bb628f73d7931f861dce8a"
+  integrity sha512-0ObhvlJftKXZTxDhYBtWPZGZt2QRUsP6NR2T2Ul9JtY8N7QIHvbSQ3E1kxi3fxbPIqaSmC11QOz++eEXKHwGLA==
+  dependencies:
+    "@elyra/ui-components" "^3.2.1"
+    "@jupyterlab/apputils" "^3.0.0"
+    "@jupyterlab/codeeditor" "^3.0.0"
+    "@jupyterlab/docregistry" "^3.0.0"
+    "@jupyterlab/fileeditor" "^3.0.0"
+    "@jupyterlab/logconsole" "^3.0.0"
+    "@jupyterlab/outputarea" "^3.0.0"
+    "@jupyterlab/rendermime" "^3.0.0"
+    "@jupyterlab/services" "^6.0.0"
+    "@jupyterlab/ui-components" "^3.0.0"
+    "@lumino/widgets" "^1.17.0"
+    react "^17.0.1"
+    react-dom "^17.0.1"
+
+"@elyra/services@3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@elyra/services/-/services-3.2.1.tgz#38ee9c92a6ae8def037b90beba6d30c451845a5d"
+  integrity sha512-eJA/TIn/BYoqURy280lBG0ye1k7rHGUhYfWChlfjbmUntp3U/GEfBnVzy58aqcag93n4v/8BcL8GR2o84ugKDg==
+  dependencies:
+    "@jupyterlab/apputils" "^3.0.0"
+    "@jupyterlab/coreutils" "^5.0.0"
+    "@jupyterlab/services" "^6.0.0"
+    react "^17.0.1"
+    react-dom "^17.0.1"
+    react-intl "^3.0.0"
+
+"@elyra/ui-components@3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@elyra/ui-components/-/ui-components-3.2.1.tgz#cef90548601d06dc10630804f63e06ef81f3d4d9"
+  integrity sha512-6mvfVIqWARPhXndhAZWxY8Y4KB0rs9pgaCy5ltxhYHAJe/8UDew2+3pVRWNcWmn0oe/aQszRFaYx9PcAQi3zGQ==
+  dependencies:
+    "@jupyterlab/apputils" "^3.0.0"
+    "@jupyterlab/ui-components" "^3.0.0"
+    "@material-ui/core" "^4.12.1"
+    "@material-ui/icons" "^4.2.1"
+    "@material-ui/lab" "^4.0.0-alpha.18"
+    react "^17.0.1"
+    react-dom "^17.0.1"
+    react-json-tree "^0.11.2"
 
 "@emotion/hash@^0.8.0":
   version "0.8.0"
