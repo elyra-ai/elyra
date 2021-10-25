@@ -28,6 +28,8 @@ import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
 import useSWR from 'swr';
 
+import Utils from './utils';
+
 interface IReturn<T> {
   data?: T | undefined;
   error?: any;
@@ -74,7 +76,7 @@ interface IRuntimeComponentsResponse {
   categories: IRuntimeComponent[];
 }
 
-interface IRuntimeComponent {
+export interface IRuntimeComponent {
   label: string;
   image: string;
   id: string;
@@ -168,6 +170,8 @@ const componentFetcher = async (runtime: string): Promise<any> => {
       node.app_data.properties = prop?.properties;
     }
   }
+
+  Utils.sortPalette(palette);
 
   return palette;
 };
