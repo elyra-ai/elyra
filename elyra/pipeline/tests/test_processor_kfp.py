@@ -268,7 +268,7 @@ def test_process_dictionary_value_function(processor):
 
 def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
     # Assign test resource location
-    url = 'https://raw.githubusercontent.com/elyra-ai/elyra/master/' \
+    url = 'https://raw.githubusercontent.com/elyra-ai/elyra/v3.0.x/' \
           'elyra/pipeline/tests/resources/components/filter_text.yaml'
 
     # Instantiate a url-based component

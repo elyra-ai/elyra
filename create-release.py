@@ -38,6 +38,7 @@ VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_rele
 DEFAULT_GIT_URL = 'git@github.com:elyra-ai/elyra.git'
 DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:elyra-ai/elyra-package-template.git'
 DEFAULT_BUILD_DIR = 'build/release'
+GIT_BRANCH = 'v3.0.x'
 
 
 class DependencyException(Exception):
@@ -608,7 +609,7 @@ def initialize_config(args=None) -> SimpleNamespace:
 
     configuration = {
         'goal': args.goal,
-        'git_branch': args.branch or "master",
+        'git_branch': GIT_BRANCH,
         'git_url': DEFAULT_GIT_URL,
         'git_extension_package_url': DEFAULT_EXTENSION_PACKAGE_GIT_URL,
         'git_hash': 'HEAD',
@@ -701,7 +702,6 @@ def main(args=None):
     parser.add_argument('goal', help='Supported goals: {prepare-changelog | prepare | publish}', type=str, choices={'prepare-changelog', 'prepare', 'publish'})
     parser.add_argument('--version', help='the new release version', type=str, required=True)
     parser.add_argument('--dev-version', help='the new development version', type=str, required=False)
-    parser.add_argument('--branch', help='the branch to checkout e.g. master, v3.0.x', type=str, required=False)
     parser.add_argument('--beta', help='the release beta number', type=str, required=False)
     parser.add_argument('--rc', help='the release candidate number', type=str, required=False)
     args = parser.parse_args()
