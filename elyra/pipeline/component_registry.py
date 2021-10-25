@@ -199,26 +199,26 @@ class ComponentRegistry(LoggingConfigurable):
 
         runtime_registries = self._get_registries_for_runtime()
         for registry in runtime_registries:
-            self.log.debug(f"Processing components in catalog '{registry.display_name}'")
-
-            categories = registry.metadata.get("categories", [])
-            catalog_type = registry.schema_name
-
-            # Assign reader based on the location type of the registry (file, directory, url)
-            catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog_type)
-            reader = catalog_reader.load()(catalog_type, self._parser.file_types)
+            # Assign reader based on the type of the registry (the 'schema_name')
+            try:
+                catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types')\
+                    .get(registry.schema_name)\
+                    .load()(self._parser.file_types)
+            except Exception as e:
+                self.log.warning(f"Could not load appropriate ComponentCatalogConnector class: {e}")
+                raise RuntimeError(f"Could not load appropriate ComponentCatalogConnector class: {e}")
 
             # Get content of component definition file for each component in this registry
-            component_data_dict = reader.read_component_definitions(registry)
+            self.log.debug(f"Processing components in catalog '{registry.display_name}'")
+            component_data_dict = catalog_reader.read_component_definitions(registry)
             if not component_data_dict:
                 continue
 
             for component_id, component_data in component_data_dict.items():
-
                 component_entry = {
                     "component_id": component_id,
-                    "catalog_type": reader.catalog_type,
-                    "categories": categories,
+                    "catalog_type": registry.schema_name,
+                    "categories": registry.metadata.get("categories", []),
                     "component_definition": component_data.get('definition'),
                     "component_identifier": component_data.get('identifier')
                 }

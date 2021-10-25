@@ -145,7 +145,7 @@ setup_args = dict(
         'elyra.component.catalog_types': [
             'url-catalog = elyra.pipeline.catalog_connector:UrlComponentCatalogConnector',
             'local-file-catalog = elyra.pipeline.catalog_connector:FilesystemComponentCatalogConnector',
-            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector'
+            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCkhkatalogConnector'
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',

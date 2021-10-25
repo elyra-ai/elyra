@@ -196,10 +196,12 @@ class ComponentCatalogConnector(LoggingConfigurable):
         except NotImplementedError as e:
             err_msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}."
             self.log.warning(err_msg)
-            # raise NotImplementedError(err_msg)
+            raise NotImplementedError(err_msg)
         except Exception as e:
-            self.log.warning(f"Could not get catalog entry information for catalog "
-                             f"'{catalog_instance.display_name}': {e}")
+            err_msg = f"Could not get catalog entry information for catalog '{catalog_instance.display_name}': {e}"
+            # Dump stack trace with error message
+            self.log.exception(err_msg)
+            raise RuntimeError(err_msg)
 
         def read_with_thread():
             """
@@ -238,10 +240,11 @@ class ComponentCatalogConnector(LoggingConfigurable):
                 except NotImplementedError as e:
                     msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}."
                     self.log.warning(msg)
-                    # raise NotImplementedError(msg)
+                    raise NotImplementedError(msg)
                 except Exception as e:
-                    self.log.warning(f"Could not read definition for catalog entry with identifying information: "
-                                     f"{str(catalog_entry_data)}: {e}")
+                    # Dump stack trace with error message and continue
+                    self.log.exception(f"Could not read definition for catalog entry with identifying information: "
+                                       f"{str(catalog_entry_data)}: {e}")
 
                 # Mark this thread's read as complete
                 catalog_entry_q.task_done()
@@ -296,12 +299,12 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
         """
         catalog_entry_data = []
         for path in catalog_metadata.get('paths'):
-            absolute_path = self.determine_absolute_path(path, catalog_metadata.get('base_path'))
-            if not os.path.exists(absolute_path):
-                self.log.warning(f"File does not exist -> {absolute_path}")
-                continue
+           absolute_path = self.determine_absolute_path(path, catalog_metadata.get('base_path'))
+           if not os.path.exists(absolute_path):
+               self.log.warning(f"File does not exist -> {absolute_path}")
+               continue
 
-            catalog_entry_data.append({'path': absolute_path})
+           catalog_entry_data.append({'path': absolute_path})
         return catalog_entry_data
 
     def read_catalog_entry(self,
