@@ -17,6 +17,7 @@ from abc import abstractmethod
 import hashlib
 from http import HTTPStatus
 import os
+from pathlib import Path
 from queue import Empty
 from queue import Queue
 from threading import Thread
@@ -299,12 +300,12 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
         """
         catalog_entry_data = []
         for path in catalog_metadata.get('paths'):
-           absolute_path = self.determine_absolute_path(path, catalog_metadata.get('base_path'))
-           if not os.path.exists(absolute_path):
-               self.log.warning(f"File does not exist -> {absolute_path}")
-               continue
+            absolute_path = self.determine_absolute_path(path, catalog_metadata.get('base_path'))
+            if not os.path.exists(absolute_path):
+                self.log.warning(f"File does not exist -> {absolute_path}")
+                continue
 
-           catalog_entry_data.append({'path': absolute_path})
+            catalog_entry_data.append({'path': absolute_path})
         return catalog_entry_data
 
     def read_catalog_entry(self,
@@ -359,9 +360,12 @@ class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
                 self.log.warning(f"Invalid directory -> {absolute_path}")
                 continue
 
-            for filename in os.listdir(absolute_path):
-                if filename.endswith(tuple(self._file_types)):
-                    catalog_entry_data.append({'path': os.path.join(absolute_path, filename)})
+            # Include '**/' in the glob pattern if files in subdirectories should be included
+            recursive_flag = "**/" if catalog_metadata.get("include_subdirs", False) else ""
+
+            patterns = [f"{recursive_flag}*{file_type}" for file_type in self._file_types]
+            for file_pattern in patterns:
+                catalog_entry_data.extend([{'path': str(file)} for file in Path(absolute_path).glob(file_pattern)])
 
         return catalog_entry_data
 

@@ -74,6 +74,15 @@
             "field_type": "array",
             "category": "Configuration"
           }
+        },
+        "include_subdirs": {
+          "title": "Include Subdirectories",
+          "description": "Indicates whether a recursive search for component specification files should be performed on subdirectories",
+          "type": "boolean",
+          "uihints": {
+            "placeholder": "false",
+            "category": "Configuration"
+          }
         }
       },
       "required": ["runtime", "paths"]
