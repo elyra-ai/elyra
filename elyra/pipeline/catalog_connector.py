@@ -28,6 +28,8 @@ from typing import Optional
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
+from traitlets.traitlets import CUnicode
+from traitlets.traitlets import Dict as DictTrait
 from traitlets.traitlets import Integer
 
 from elyra.metadata.metadata import Metadata
@@ -38,20 +40,27 @@ class ComponentCatalogConnector(LoggingConfigurable):
     Abstract class to model component_entry readers that can read components from different locations
     """
 
-    # TODO make this configurable per connector; allow to override max_readers setting
-    # TODO show in help-all, see classes array in elyra_app.py and add the connector to the array
-    # TODO Data structure to encapsulate various flags/capabilities dictionary for extensibility
-    max_readers = Integer(3, config=True, allow_none=True,
-                          help="""Sets the number of reader threads""")
+    # Data structure to encapsulate various capabilities & flags for a connector class
+    configuration = DictTrait(
+        default_value={
+            "max_readers": 3  # Sets the number of reader threads in read_component_definitions()
+        },
+        per_key_traits={
+            "max_readers": Integer()
+        },
+        key_trait=CUnicode(),
+        help="""A dictionary of configurable settings for a ComponentCatalogConnector class.
+        Subclasses can override these settings as needed.
 
-    def __init__(self, catalog_type: str, file_types: List[str]):
+        Settings:
+            'max_readers': Integer; sets the maximum number of reader threads to be used to read
+                           catalog entries in parallel in read_component_definitions(); default 3
+        """
+    ).tag(config=True)
+
+    def __init__(self, file_types: List[str]):
         super().__init__()
-        self._catalog_type = catalog_type
         self._file_types = file_types
-
-    @property
-    def catalog_type(self) -> Optional[str]:
-        return self._catalog_type
 
     @abstractmethod
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -113,6 +122,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
         )
 
     def get_unique_component_hash(self,
+                                  catalog_type: str,
                                   catalog_entry_data: Dict[str, Any],
                                   catalog_hash_keys: List[Any]) -> str:
         """
@@ -120,6 +130,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
         connector class and any information specific to that component/catalog-type combination
         as given in catalog_hash_keys.
 
+        :param catalog_type: the identifying type of this Connector class, as taken from the
+                             schema_name of the related schema (e.g., url-catalog)
         :param catalog_entry_data: the metadata associated with the component
         :param catalog_hash_keys: the list of keys (present in the catalog_entry_data dict)
                                   whose values will be used to construct the hash
@@ -135,7 +147,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         # Use only the first 12 characters of the resulting hash
         hash_digest = f"{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
-        return f"{self.catalog_type}:{hash_digest}"
+        return f"{catalog_type}:{hash_digest}"
 
     def read_component_definitions(self, catalog_instance: Metadata) -> Dict[str, Dict]:
         """
@@ -155,7 +167,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
         to a few additional attributes used internally:
 
             display_name: str = "Catalog Name"
-            schema_name: str = "connector-type"  # this is the 'catalog_type' of the ComponentCatalogConnector class
+            schema_name: str = "connector-type"
             metadata: Dict[str, Any] = {
                 "description": "...",  # only present if a description is added
                 "runtime": "...",  # must be present
@@ -215,7 +227,9 @@ class ComponentCatalogConnector(LoggingConfigurable):
                         continue
 
                     # Generate hash for this catalog entry and add entry definition and identifying data to mapping
-                    catalog_entry_id = self.get_unique_component_hash(catalog_entry_data, keys_to_hash)
+                    catalog_entry_id = self.get_unique_component_hash(catalog_type=catalog_instance.schema_name,
+                                                                      catalog_entry_data=catalog_entry_data,
+                                                                      catalog_hash_keys=keys_to_hash)
                     catalog_entry_map[catalog_entry_id] = {
                         "definition": definition,
                         "identifier": catalog_entry_data
@@ -234,7 +248,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         # Start 'max_reader' reader threads if catalog includes more than 'max_reader'
         # number of catalog entries, else start one thread per entry
-        num_threads = min(catalog_entry_q.qsize(), self.max_readers)
+        num_threads = min(catalog_entry_q.qsize(), self.configuration['max_readers'])
         for i in range(num_threads):
             Thread(target=read_with_thread).start()
 
