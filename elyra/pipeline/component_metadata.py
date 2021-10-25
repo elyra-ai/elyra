@@ -32,12 +32,8 @@ class ComponentRegistryMetadata(Metadata):
 
         if self.metadata['location_type'] == 'URL':
             self.schema_name = "url-catalog"
-            # self.metadata['urls'] = self.metadata['paths']
-            # self.metadata.pop('paths')
         elif self.metadata['location_type'] == 'Directory':
             self.schema_name = "local-directory-catalog"
-            # self.metadata['directories'] = self.metadata['paths']
-            # self.metadata.pop('paths')
         else:  # self.location_type == 'Filename'
             self.schema_name = "local-file-catalog"
 

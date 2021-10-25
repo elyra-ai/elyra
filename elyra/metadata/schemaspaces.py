@@ -77,6 +77,15 @@ class ComponentRegistries(Schemaspace):
 
     def filter_schema(self, schema: Dict) -> Dict:
         """Replace contents of Runtimes value with set of runtimes if using templated value."""
-        if schema['properties']['metadata']['properties']['runtime']['enum'] == ["{currently-configured-runtimes}"]:
-            schema['properties']['metadata']['properties']['runtime']['enum'] = list(self._runtime_processor_names)
+
+        # Component-registry requires that `runtime` be a defined property so ensure its existence.
+        instance_properties = schema.get('properties', {}).get('metadata', {}).get('properties', {})
+        runtime = instance_properties.get('runtime')
+        if not runtime:
+            raise ValueError(f"{ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME} schemas are "
+                             f"required to define a 'runtime' (string-valued) property and schema "
+                             f"\'{schema.get('name')}\' does not define 'runtime'.")
+
+        if runtime.get('enum') == ["{currently-configured-runtimes}"]:
+            runtime['enum'] = list(self._runtime_processor_names)
         return schema

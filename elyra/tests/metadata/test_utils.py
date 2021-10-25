@@ -45,7 +45,8 @@ valid_metadata_json = {
         'uri_test': 'http://localhost:31823/v1/models?version=2017-02-13',
         'number_range_test': 8,
         'required_test': "required_value"
-    }
+    },
+    "version": 0
 }
 
 valid_metadata2_json = {
