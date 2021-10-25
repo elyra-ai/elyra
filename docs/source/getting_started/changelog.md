@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 3.2.2 - 10/25/2021
+
+- Update release script
+- Pin elyra dependencies to current version
+
 ## Release 3.2.1 - 10/18/2021
 
 - Fix run name issue for KubeFlow v1.4 - [#2237](https://github.com/elyra-ai/elyra/pull/2237)
