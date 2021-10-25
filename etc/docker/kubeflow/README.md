@@ -27,4 +27,4 @@ To build a custom version of this container image:
 - Update the requirements in `etc/docker/kubeflow/requirements.txt`.
 - Run `make kf-notebook-image` in the root directory of this repository.
 
-> The container image is automatically tagged with `elyra/kf-notebook:dev` and `quay.io/elyra/kf-notebook:dev`.
+> The container image is automatically tagged with `elyra/kf-notebook:3.2.2` and `quay.io/elyra/kf-notebook:3.2.2`.

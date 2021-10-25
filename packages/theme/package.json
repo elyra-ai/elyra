@@ -1,6 +1,6 @@
 {
   "name": "@elyra/theme-extension",
-  "version": "3.3.0-dev",
+  "version": "3.2.2",
   "description": "JupyterLab extension - Elyra theme",
   "keywords": [
     "jupyter",
