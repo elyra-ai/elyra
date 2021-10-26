@@ -87,7 +87,7 @@ class ComponentRegistry(LoggingConfigurable):
                 self.update_cache()
             return list(self._cached_components.values())
 
-        return list(self._read_component_registries().values())
+        return list(self._read_component_catalogs().values())
 
     def get_component(self, component_id: str) -> Optional[Component]:
         """
@@ -100,16 +100,16 @@ class ComponentRegistry(LoggingConfigurable):
                 self.update_cache()
             component = self._cached_components.get(component_id)
         else:
-            component = self._read_component_registries().get(component_id)
+            component = self._read_component_catalogs().get(component_id)
 
         if component is None:
             self.log.error(f"Component with ID '{component_id}' could not be found in any "
-                           f"{self._parser.component_platform} registries.")
+                           f"{self._parser.component_platform} catalog.")
 
         return component
 
     def update_cache(self):
-        self._cached_components = self._read_component_registries()
+        self._cached_components = self._read_component_catalogs()
         self._cache_last_updated = time.time()
 
     def _is_cache_expired(self) -> bool:
@@ -191,34 +191,35 @@ class ComponentRegistry(LoggingConfigurable):
         properties_json = json.loads(canvas_properties)
         return properties_json
 
-    def _read_component_registries(self) -> Dict[str, Component]:
+    def _read_component_catalogs(self) -> Dict[str, Component]:
         """
-        Read through component registries and return a dictionary of components indexed by component_id.
+        Read through component catalogs for a given runtime platform and return
+        a dictionary of components indexed by component_id.
         """
         component_dict: Dict[str, Component] = {}
 
-        runtime_registries = self._get_registries_for_runtime()
-        for registry in runtime_registries:
-            # Assign reader based on the type of the registry (the 'schema_name')
+        runtime_catalogs = self._get_catalogs_for_runtime()
+        for catalog in runtime_catalogs:
+            # Assign reader based on the type of the catalog (the 'schema_name')
             try:
                 catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types')\
-                    .get(registry.schema_name)\
+                    .get(catalog.schema_name)\
                     .load()(self._parser.file_types)
             except Exception as e:
                 self.log.warning(f"Could not load appropriate ComponentCatalogConnector class: {e}")
                 raise RuntimeError(f"Could not load appropriate ComponentCatalogConnector class: {e}")
 
-            # Get content of component definition file for each component in this registry
-            self.log.debug(f"Processing components in catalog '{registry.display_name}'")
-            component_data_dict = catalog_reader.read_component_definitions(registry)
+            # Get content of component definition file for each component in this catalog
+            self.log.debug(f"Processing components in catalog '{catalog.display_name}'")
+            component_data_dict = catalog_reader.read_component_definitions(catalog)
             if not component_data_dict:
                 continue
 
             for component_id, component_data in component_data_dict.items():
                 component_entry = {
                     "component_id": component_id,
-                    "catalog_type": registry.schema_name,
-                    "categories": registry.metadata.get("categories", []),
+                    "catalog_type": catalog.schema_name,
+                    "categories": catalog.metadata.get("categories", []),
                     "component_definition": component_data.get('definition'),
                     "component_identifier": component_data.get('identifier')
                 }
@@ -230,20 +231,20 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component_dict
 
-    def _get_registries_for_runtime(self) -> List[Metadata]:
+    def _get_catalogs_for_runtime(self) -> List[Metadata]:
         """
-        Retrieve the registries relevant to the calling processor instance
+        Retrieve the catalogs relevant to the calling processor instance
         """
-        runtime_registries = []
+        runtime_catalogs = []
         try:
             metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
-            all_registries = metadata_manager.get_all()
+            all_catalogs = metadata_manager.get_all()
 
-            # Filter registries according to processor type
-            runtime_registries = list(
-                filter(lambda r: r.metadata['runtime'] == self._parser.component_platform, all_registries)
+            # Filter catalogs according to processor type
+            runtime_catalogs = list(
+                filter(lambda r: r.metadata['runtime'] == self._parser.component_platform, all_catalogs)
             )
         except Exception:
-            self.log.error(f"Could not access registries for processor: {self._parser._component_platform}")
+            self.log.error(f"Could not access catalogs for processor: {self._parser.component_platform}")
 
-        return runtime_registries
+        return runtime_catalogs
