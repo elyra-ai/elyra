@@ -163,12 +163,6 @@ class ComponentRegistry(LoggingConfigurable):
                 if component.id not in [comp.id for comp in category_dict[category]]:
                     category_dict[category].append(component)
 
-        # Reorder the dictionary such that components with
-        # no category to render last
-        fallback_category = category_dict.pop(fallback_category_name, None)
-        if fallback_category:
-            category_dict[fallback_category_name] = fallback_category
-
         # Render template
         canvas_palette = template.render(category_dict=category_dict)
         palette_json = json.loads(canvas_palette)
