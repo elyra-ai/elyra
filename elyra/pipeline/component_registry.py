@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import json
+import os
 import time
 from types import SimpleNamespace
 from typing import Dict
@@ -23,7 +24,9 @@ from typing import Optional
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Template
-from traitlets.config import LoggingConfigurable
+from traitlets import default
+from traitlets import Integer
+from traitlets.config import LoggingConfigurable  # noqa: H306 (alphabetical order catch-22)
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
@@ -72,10 +75,24 @@ class ComponentRegistry(LoggingConfigurable):
                               extensions=[".r"],
                               categories=[_generic_category_label])}
 
+    ttl_default = 300
+    cache_ttl_env = 'ELYRA_COMPONENT_REGISTRY_CACHE_TTL'
+    cache_ttl = Integer(ttl_default,
+                        help="Time-to-live (in seconds) for Component Registry cache entries. "
+                             "(ELYRA_COMPONENT_REGISTRY_CACHE_TTL env var)").tag(config=True)
+
+    @default('cache_ttl')
+    def cache_ttl_default(self):
+        ttl = ComponentRegistry.ttl_default
+        try:
+            ttl = int(os.getenv(self.cache_ttl_env, ttl))
+        except ValueError:
+            pass
+        return ttl
+
     def __init__(self,
                  parser: ComponentParser,
                  caching_enabled: bool = True,
-                 cache_ttl_in_seconds: int = 300,
                  **kwargs):
         super().__init__(**kwargs)
         self._parser = parser
@@ -83,7 +100,7 @@ class ComponentRegistry(LoggingConfigurable):
         # Initialize the cache
         self.caching_enabled = caching_enabled
         if self.caching_enabled:
-            self.cache_ttl_in_seconds = cache_ttl_in_seconds
+            self.log.debug(f"ComponentRegistry cache TTL: {self.cache_ttl}")
             self.update_cache()
 
     def get_all_components(self) -> List[Component]:
@@ -138,7 +155,7 @@ class ComponentRegistry(LoggingConfigurable):
         if self._cache_last_updated:
             now = time.time()
             elapsed = int(now - self._cache_last_updated)
-            if elapsed < self.cache_ttl_in_seconds:
+            if elapsed < self.cache_ttl:
                 is_expired = False
 
         return is_expired
