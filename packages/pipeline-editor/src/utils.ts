@@ -25,8 +25,6 @@ import { IRuntimeComponent } from './pipeline-hooks';
 
 import pipeline_template from './pipeline-template.json';
 
-export const GENERIC_CATEGORY_ID = 'Elyra';
-
 /**
  * A utilities class for static functions.
  */
@@ -111,29 +109,5 @@ export default class Utils {
     }
 
     return widget;
-  };
-
-  /**
-   * Sort palette in place. Takes a list of categories each containing a list of
-   * components.
-   * - Categories: alphabetically by "label" (exception: "generic" always first)
-   * - Components: alphabetically by "op" (where is component label stored?)
-   */
-  static sortPalette = (palette: { categories: IRuntimeComponent[] }): void => {
-    palette.categories.sort((a, b) => {
-      if (a.id === GENERIC_CATEGORY_ID) {
-        return -1;
-      }
-      if (b.id === GENERIC_CATEGORY_ID) {
-        return 1;
-      }
-      return a.label.localeCompare(b.label, undefined, { numeric: true });
-    });
-
-    for (const components of palette.categories) {
-      components.node_types.sort((a, b) =>
-        a.op.localeCompare(b.op, undefined, { numeric: true })
-      );
-    }
   };
 }

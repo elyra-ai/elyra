@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IRuntimeComponent } from './pipeline-hooks';
-import Utils, { GENERIC_CATEGORY_ID } from './utils';
+import {
+  IRuntimeComponent,
+  GENERIC_CATEGORY_ID,
+  sortPalette
+} from './pipeline-hooks';
 
 const GENERIC_CATEGORY = {
   label: 'ZZZZ should not matter',
@@ -55,7 +58,7 @@ describe('sortPalette', () => {
   it('should function with no categories', () => {
     const palette = { categories: [] };
     const expected = { categories: [] };
-    Utils.sortPalette(palette);
+    sortPalette(palette);
     expect(palette).toStrictEqual(expected);
   });
 
@@ -74,7 +77,7 @@ describe('sortPalette', () => {
         createMockCategory('c')
       ]
     };
-    Utils.sortPalette(palette);
+    sortPalette(palette);
     expect(palette).toStrictEqual(expected);
   });
 
@@ -97,7 +100,7 @@ describe('sortPalette', () => {
         ])
       ]
     };
-    Utils.sortPalette(palette);
+    sortPalette(palette);
     expect(palette).toStrictEqual(expected);
   });
 
@@ -122,7 +125,7 @@ describe('sortPalette', () => {
         createMockCategory('c200')
       ]
     };
-    Utils.sortPalette(palette);
+    sortPalette(palette);
     expect(palette).toStrictEqual(expected);
   });
 
@@ -151,7 +154,7 @@ describe('sortPalette', () => {
         ])
       ]
     };
-    Utils.sortPalette(palette);
+    sortPalette(palette);
     expect(palette).toStrictEqual(expected);
   });
 
@@ -172,7 +175,7 @@ describe('sortPalette', () => {
         createMockCategory('c')
       ]
     };
-    Utils.sortPalette(palette);
+    sortPalette(palette);
     expect(palette).toStrictEqual(expected);
   });
 });
