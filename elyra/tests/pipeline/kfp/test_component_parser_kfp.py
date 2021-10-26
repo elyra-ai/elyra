@@ -21,8 +21,8 @@ import jupyter_core.paths
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
-from elyra.pipeline.component_reader import FilesystemComponentCatalogConnector
-from elyra.pipeline.component_reader import UrlComponentCatalogConnector
+from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
+from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 
@@ -63,10 +63,9 @@ def test_modify_component_registries():
         "description": "A test registry",
         "runtime": "kfp",
         "categories": ["New Components"],
-        "catalog_type": "Filename",
         "paths": paths
     }
-    registry_instance = Metadata(schema_name="component-registry",
+    registry_instance = Metadata(schema_name="local-file-catalog",
                                  name="new_registry",
                                  display_name="New Registry",
                                  metadata=instance_metadata)
@@ -130,10 +129,9 @@ def test_directory_based_component_registry():
         "description": "A test registry",
         "runtime": "kfp",
         "categories": ["New Components"],
-        "catalog_type": "Directory",
         "paths": [registry_path]
     }
-    registry_instance = Metadata(schema_name="component-registry",
+    registry_instance = Metadata(schema_name="local-directory-catalog",
                                  name="new_registry",
                                  display_name="New Registry",
                                  metadata=instance_metadata)
@@ -169,14 +167,15 @@ def test_parse_kfp_component_file():
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_component_definition(path, {})[path]
+    component_definition = reader.read_catalog_entry({"path": path}, {})
 
     # Build entry for parsing
     entry = {
-        "catalog_type": reader.resource_type,
-        "location": path,
+        "component_id": reader.get_unique_component_hash('local-file-catalog', {"path": path}, ["path"]),
+        "catalog_type": "local-file-catalog",
         "categories": ["Test"],
-        "component_definition": component_definition
+        "component_definition": component_definition,
+        "component_identifier": {"path": path}
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -187,7 +186,7 @@ def test_parse_kfp_component_file():
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
-    assert properties_json['current_parameters']['component_source'] == component_entry.location
+    assert properties_json['current_parameters']['component_source'] == str(component_entry.component_identifier)
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
     assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
     assert properties_json['current_parameters']['elyra_test_string_default_empty'] == ''
@@ -253,18 +252,19 @@ def test_parse_kfp_component_url():
     kfp_supported_file_types = [".yaml"]
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
 
-    path = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml'  # noqa: E501
+    url = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml'  # noqa: E501
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_component_definition(path, {})[path]
+    component_definition = reader.read_catalog_entry({"url": url}, {})
 
     # Build entry for parsing
     entry = {
-        "catalog_type": reader.resource_type,
-        "location": path,
+        "component_id": reader.get_unique_component_hash('local-file-catalog', {"url": url}, ["url"]),
+        "catalog_type": "url-catalog",
         "categories": ["Test"],
-        "component_definition": component_definition
+        "component_definition": component_definition,
+        "component_identifier": {"url": url}
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -275,7 +275,7 @@ def test_parse_kfp_component_url():
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
-    assert properties_json['current_parameters']['component_source'] == component_entry.location
+    assert properties_json['current_parameters']['component_source'] == str(component_entry.component_identifier)
     assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
     assert properties_json['current_parameters']['elyra_parameters'] == '{}'
     assert properties_json['current_parameters']['elyra_packages_to_install'] == ''  # {}
@@ -291,14 +291,15 @@ def test_parse_kfp_component_file_no_inputs():
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_component_definition(path, {})[path]
+    component_definition = reader.read_catalog_entry({"path": path}, {})
 
     # Build entry for parsing
     entry = {
-        "catalog_type": reader.resource_type,
-        "location": path,
+        "component_id": reader.get_unique_component_hash('local-file-catalog', {"path": path}, ["path"]),
+        "catalog_type": "local-file-catalog",
         "categories": ["Test"],
-        "component_definition": component_definition
+        "component_definition": component_definition,
+        "component_identifier": {"path": path}
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -319,7 +320,7 @@ def test_parse_kfp_component_file_no_inputs():
 
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
-    assert properties_json['current_parameters']['component_source'] == component_entry.location
+    assert properties_json['current_parameters']['component_source'] == str(component_entry.component_identifier)
 
 
 async def test_parse_components_invalid_file():
@@ -329,19 +330,5 @@ async def test_parse_components_invalid_file():
 
     # Get path to an invalid component definition file and read contents
     path = _get_resource_path('kfp_test_operator_invalid.yaml')
-    component_definition = reader.read_component_definition(path, {})
-    assert component_definition == {}
-
-    # Build entry for parsing
-    entry = {
-        "catalog_type": reader.resource_type,
-        "location": path,
-        "categories": ["Test"],
-        "component_definition": component_definition
-    }
-    component_entry = SimpleNamespace(**entry)
-
-    # Parse the component entry
-    parser = KfpComponentParser()
-    component = parser.parse(component_entry)
-    assert component is None
+    component_definition = reader.read_catalog_entry({"path": path}, {})
+    assert component_definition is None
