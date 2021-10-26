@@ -60,6 +60,12 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     conda install -y -c conda-forge/label/main nodejs
     ```
 
+* Install Yarn
+
+    ```
+    conda install -y -c conda-forge/label/main yarn
+    ```
+
 ### Setting up your Elyra Github repository
 
 * Fork the [Elyra Github repository](https://github.com/elyra-ai/elyra) (if you haven't already)
