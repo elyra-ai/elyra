@@ -21,8 +21,6 @@ import { PathExt } from '@jupyterlab/coreutils';
 
 import uuid4 from 'uuid/v4';
 
-import { IRuntimeComponent } from './pipeline-hooks';
-
 import pipeline_template from './pipeline-template.json';
 
 /**
