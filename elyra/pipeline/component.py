@@ -17,7 +17,6 @@ from abc import abstractmethod
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
-from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -121,13 +120,12 @@ class Component(object):
                  name: str,
                  description: Optional[str],
                  catalog_type: str,
-                 location: str,
+                 location: Any,
                  definition: Optional[str] = None,
                  runtime: Optional[str] = None,
                  op: Optional[str] = None,
                  categories: Optional[List[str]] = None,
                  properties: Optional[List[ComponentParameter]] = None,
-                 metadata: Optional[Dict[str, Any]] = None,
                  extensions: Optional[List[str]] = None,
                  parameter_refs: Optional[dict] = None):
         """
