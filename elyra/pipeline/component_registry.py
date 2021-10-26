@@ -70,7 +70,7 @@ class ComponentRegistry(LoggingConfigurable):
                               extensions=[".r"],
                               categories=[_generic_category_label])}
 
-    def __init__(self, parser: ComponentParser, caching_enabled: bool = True, cache_ttl_in_seconds: int = 60, **kwargs):
+    def __init__(self, parser: ComponentParser, caching_enabled: bool = True, cache_ttl_in_seconds: int = 300, **kwargs):
         super().__init__(**kwargs)
         self._parser = parser
 
