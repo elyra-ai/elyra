@@ -45,6 +45,9 @@ from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
+from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
+from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
+from elyra.pipeline.kfp.kfp_authentication import SupportedKFPAuthProviders
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.processor import PipelineProcessor
@@ -102,37 +105,42 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
-        ################
-        # Istio Auth Session
-        ################
-        try:
-            auth_session = self._get_istio_auth_session(
-                url=api_endpoint,
-                username=api_username,
-                password=api_password
-            )
-        except Exception as ex:
-            raise RuntimeError(
-                f"Failed to create istio auth session for Kubeflow endpoint: '{api_endpoint}' - "
-                f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
-            ) from ex
+        # Determine which provider to use to authenticate with Kubeflow
+        # If not set, no authentication is assumed
+        # TODO set default to legacy 3_2
+        auth_type = runtime_configuration.metadata.get('auth_type',
+                                                       SupportedKFPAuthProviders.AUTO)
 
-        self.log.debug(f"Kubeflow istio `auth_session` dict: {auth_session}")
+        try:
+            auth_info = \
+                KFPAuthenticator().authenticate(api_endpoint,
+                                                auth_type=auth_type,
+                                                runtime_config_name=pipeline.runtime_config,
+                                                auth_parm_1=api_username,
+                                                auth_parm_2=api_password)
+            # TODO
+            self.log.info(f'Authenticator returned {auth_info}')
+        except AuthenticationError as ae:
+            # TODO
+            self.log.error(ae)
+            raise
 
         #############
-        # Kubeflow Client
+        # Create Kubeflow Client
         #############
         try:
             if engine == "Tekton":
                 client = TektonClient(
                     host=api_endpoint,
-                    cookies=auth_session['session_cookie'],
+                    cookies=auth_info.get('cookies'),
+                    existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
             else:
                 client = ArgoClient(
                     host=api_endpoint,
-                    cookies=auth_session['session_cookie'],
+                    cookies=auth_info.get('cookies'),
+                    existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
         except Exception as ex:
@@ -345,6 +353,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     f"Failed to create Kubeflow pipeline run: '{job_name}' - "
                     f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
                 ) from ex
+
+            if run is None:
+                # client.run_pipeline seemed to have encountered an issue
+                # but didn't raise an exception
+                raise RuntimeError(
+                    f"Failed to create Kubeflow pipeline run: '{job_name}' - "
+                    f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
+                )
 
             self.log_pipeline_info(
                 pipeline_name,

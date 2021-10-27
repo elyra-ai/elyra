@@ -53,6 +53,28 @@
             "category": "Kubeflow Pipelines"
           }
         },
+        "engine": {
+          "title": "Kubeflow Pipelines engine",
+          "description": "The Kubeflow Pipelines engine in use",
+          "type": "string",
+          "enum": ["Argo", "Tekton"],
+          "default": "Argo",
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Kubeflow Pipelines"
+          }
+        },
+        "auth_type": {
+          "title": "Authentication Type",
+          "description": "Authentication type Elyra uses to authenticate with Kubeflow",
+          "type": "string",
+          "enum": ["No authentication", "Auto", "Elyra (deprecated)"],
+          "default": "No authentication",
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Kubeflow Pipelines"
+          }
+        },
         "api_username": {
           "title": "Kubeflow Pipelines API Endpoint Username",
           "description": "The Kubeflow Pipelines API endpoint username",
@@ -67,17 +89,6 @@
           "type": "string",
           "uihints": {
             "secure": true,
-            "category": "Kubeflow Pipelines"
-          }
-        },
-        "engine": {
-          "title": "Kubeflow Pipelines engine",
-          "description": "The Kubeflow Pipelines engine in use",
-          "type": "string",
-          "enum": ["Argo", "Tekton"],
-          "default": "Argo",
-          "uihints": {
-            "field_type": "dropdown",
             "category": "Kubeflow Pipelines"
           }
         },
