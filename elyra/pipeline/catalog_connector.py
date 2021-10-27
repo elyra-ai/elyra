@@ -67,8 +67,9 @@ class ComponentCatalogConnector(LoggingConfigurable):
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
-        The form that each catalog_entry_data takes is determined by the unique requirements of the
-        reader class.
+        Each catalog_entry_data dictionary contains the information needed to access a single component
+        definition. The form that each catalog_entry_data takes is determined by the unique requirements
+        of the reader class. No two catalog entries can have equivalent catalog_entry_data dictionaries.
 
         The catalog_metadata dictionary will take the following form:
 
@@ -95,8 +96,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
                            catalog_entry_data: Dict[str, Any],
                            catalog_metadata: Dict[str, Any]) -> Optional[str]:
         """
-        Read a component definition for a single catalog entry using the its data (as returned from
-        get_catalog_entries()) and the catalog metadata, if needed
+        Reads a component definition for a single catalog entry using the catalog_entry_data returned
+        from get_catalog_entries() and, if needed, the catalog metadata.
 
         :param catalog_entry_data: a dictionary that contains the information needed to read the content
                                    of the component definition
@@ -113,8 +114,23 @@ class ComponentCatalogConnector(LoggingConfigurable):
     @abstractmethod
     def get_hash_keys(self) -> List[Any]:
         """
-        Provides a list of keys available in the 'catalog_entry_data' dictionary whose values
-        will be used to construct a unique hash id for each entry with the given catalog type
+        Provides a list of keys, available in the 'catalog_entry_data' dictionary, whose values
+        will be used to construct a unique hash id for each entry with the given catalog type.
+
+        To ensure the hash is unique, no two catalog entries can have the same key-value pairs
+        over set of the keys returned by this function.
+
+        Example:
+        Given a set of keys ['key1', 'key2', 'key3'] returned here, the below two catalog_entry_data
+        dictionaries will produce unique hashes. The same can not be said, however, if the set of
+        keys returned is ['key2', 'key3'].
+
+        component_entry_data for entry1:        component_entry_data for entry2:
+        {                                       {
+            'key1': 'value1',                       'key1': 'value4',
+            'key2': 'value2',                       'key2': 'value2',
+            'key3': 'value3'                        'key3': 'value3'
+        }                                       {
 
         :returns: a list of keys
         """
@@ -292,10 +308,8 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
-        The form that each catalog_entry_data takes is determined by the unique requirements of the
-        reader class.
 
-        :returns: a list of component_entry_data, for the FilesystemComponentCatalogConnector class this
+        :returns: a list of component_entry_data; for the FilesystemComponentCatalogConnector class this
                   takes the form { 'path': 'abspath_to_component_definition_in_local_fs' }
         """
         catalog_entry_data = []
@@ -347,11 +361,9 @@ class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
-        The form that each catalog_entry_data takes is determined by the unique requirements of the
-        reader class.
 
-        :returns: a list of component_entry_data, for the DirectoryComponentCatalogConnector class this takes
-                  the form { 'path': 'abspath_to_component_definition_in_local_fs' }
+        :returns: a list of component_entry_data; for the DirectoryComponentCatalogConnector class this
+                  takes the form { 'path': 'abspath_to_component_definition_in_local_fs' }
         """
         catalog_entry_data = []
         for path in catalog_metadata.get('paths'):
@@ -378,10 +390,8 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
-        The form that each catalog_entry_data takes is determined by the unique requirements of the
-        reader class.
 
-        :returns: a list of component_entry_data, for the UrlComponentCatalogConnector class this takes
+        :returns: a list of component_entry_data; for the UrlComponentCatalogConnector class this takes
                   the form { 'url': 'url_of_remote_component_definition' }
         """
         return [{'url': url} for url in catalog_metadata.get('paths')]
