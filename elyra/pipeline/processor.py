@@ -312,7 +312,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         super().__init__(root_dir, **kwargs)
 
         self._component_parser = component_parser
-        self._component_registry = ComponentRegistry(component_parser)
+        self._component_registry = ComponentRegistry(component_parser, parent=self.parent)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)

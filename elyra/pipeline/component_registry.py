@@ -204,7 +204,7 @@ class ComponentRegistry(LoggingConfigurable):
             try:
                 catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types')\
                     .get(catalog.schema_name)\
-                    .load()(self._parser.file_types)
+                    .load()(self._parser.file_types, parent=self.parent)
             except Exception as e:
                 self.log.warning(f"Could not load appropriate ComponentCatalogConnector class: {e}")
                 raise RuntimeError(f"Could not load appropriate ComponentCatalogConnector class: {e}")

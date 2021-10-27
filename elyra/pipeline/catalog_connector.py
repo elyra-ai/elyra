@@ -59,8 +59,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
         """
     ).tag(config=True)
 
-    def __init__(self, file_types: List[str]):
-        super().__init__()
+    def __init__(self, file_types: List[str], **kwargs):
+        super().__init__(**kwargs)
         self._file_types = file_types
 
     @abstractmethod
