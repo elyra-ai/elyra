@@ -105,7 +105,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
                                  stored; in addition to catalog_entry_data, catalog_metadata may also be
                                  needed to read the component definition for certain types of catalogs
 
-        :returns: the content of the given catalog entry's definition in string form
+        :returns: the content of the given catalog entry's definition in string form, if found, or None;
+                  if None is returned, this catalog entry is skipped and a warning message logged
         """
         raise NotImplementedError(
             "abstract method 'read_catalog_entry()' must be implemented"
