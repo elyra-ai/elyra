@@ -68,8 +68,13 @@
           "title": "Authentication Type",
           "description": "Authentication type Elyra uses to authenticate with Kubeflow",
           "type": "string",
-          "enum": ["No authentication", "Auto", "Elyra (deprecated)"],
-          "default": "No authentication",
+          "enum": [
+            "Auto",
+            "Elyra (deprecated)",
+            "KF_PIPELINES_SA_TOKEN_PATH",
+            "No authentication"
+          ],
+          "default": "Auto",
           "uihints": {
             "field_type": "dropdown",
             "category": "Kubeflow Pipelines"
