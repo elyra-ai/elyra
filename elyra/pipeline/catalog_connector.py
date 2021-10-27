@@ -284,7 +284,7 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
     Read a singular component definition from the local filesystem
     """
 
-    def determine_absolute_path(self, path: str, base_path: Optional[str] = None) -> str:
+    def get_absolute_path(self, path: str, base_path: Optional[str] = None) -> str:
         """
         Determines the absolute location of a given path. Error checking is delegated to
         the calling function
@@ -315,12 +315,16 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
         """
         catalog_entry_data = []
         for path in catalog_metadata.get('paths'):
-            absolute_path = self.determine_absolute_path(path, catalog_metadata.get('base_path'))
+            absolute_path = self.get_absolute_path(path, catalog_metadata.get('base_path'))
             if not os.path.exists(absolute_path):
                 self.log.warning(f"File does not exist -> {absolute_path}")
                 continue
 
-            catalog_entry_data.append({'path': absolute_path})
+            # Use the relative path for the catalog_entry_data
+            catalog_entry_data.append({
+                'absolute_path': absolute_path,
+                'relative_path': path
+            })
         return catalog_entry_data
 
     def read_catalog_entry(self,
@@ -336,7 +340,7 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
                                  field to read individual catalog entries
 
         """
-        path = catalog_entry_data.get('path')
+        path = catalog_entry_data.get('absolute_path')
         if not os.path.exists(path):
             self.log.warning(f"Invalid location for component: {path}")
         else:
@@ -351,13 +355,36 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
         'path' value is needed from the catalog_entry_data dictionary to construct a
         unique hash id for a single catalog entry
         """
-        return ['path']
+        return ['relative_path']
 
 
 class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
     """
     Read component definitions from a local directory
     """
+
+    def get_relative_path(self, base_dir: str, file_path: str) -> str:
+        """
+        Determines the relative portion of a path from the given base directory.
+
+        :param base_dir: the absolute path to a base directory to compare against
+        :param file_path: the absolute path to a file within the given base directory
+
+        :returns: the path to the given file relative to the given base directory
+
+        Example:
+            given: base_path = "/path/to/folder"
+            given: absolute_path = "/path/to/folder/nested/file.py"
+
+            returns: 'nested/file.py'
+        """
+        base_list = base_dir.split('/')
+        absolute_list = file_path.split('/')
+        while base_list:
+            base_list = base_list[1:]
+            absolute_list = absolute_list[1:]
+
+        return '/'.join(absolute_list)
 
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -368,9 +395,9 @@ class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
         """
         catalog_entry_data = []
         for path in catalog_metadata.get('paths'):
-            absolute_path = self.determine_absolute_path(path, catalog_metadata.get('base_path'))
-            if not os.path.exists(absolute_path):
-                self.log.warning(f"Invalid directory -> {absolute_path}")
+            base_path = self.get_absolute_path(path, catalog_metadata.get('base_path'))
+            if not os.path.exists(base_path):
+                self.log.warning(f"Invalid directory -> {base_path}")
                 continue
 
             # Include '**/' in the glob pattern if files in subdirectories should be included
@@ -378,7 +405,12 @@ class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
 
             patterns = [f"{recursive_flag}*{file_type}" for file_type in self._file_types]
             for file_pattern in patterns:
-                catalog_entry_data.extend([{'path': str(file)} for file in Path(absolute_path).glob(file_pattern)])
+                catalog_entry_data.extend([
+                    {
+                        'absolute_path': str(absolute_path),
+                        'relative_path': self.get_relative_path(base_path, str(absolute_path))
+                    } for absolute_path in Path(base_path).glob(file_pattern)
+                ])
 
         return catalog_entry_data
 

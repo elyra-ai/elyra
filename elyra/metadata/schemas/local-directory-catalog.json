@@ -80,6 +80,7 @@
           "description": "Indicates whether a recursive search for component specification files should be performed on subdirectories",
           "type": "boolean",
           "uihints": {
+            "field_type": "boolean",
             "placeholder": "false",
             "category": "Configuration"
           }
