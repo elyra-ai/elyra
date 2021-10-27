@@ -48,7 +48,7 @@ class ComponentRegistry(LoggingConfigurable):
                               description="Run notebook file",
                               op="execute-notebook-node",
                               catalog_type="elyra",
-                              location="elyra",
+                              source_identifier="elyra",
                               extensions=[".ipynb"],
                               categories=[_generic_category_label]),
         "python-script": Component(id="python-script",
@@ -56,7 +56,7 @@ class ComponentRegistry(LoggingConfigurable):
                                    description="Run Python script",
                                    op="execute-python-node",
                                    catalog_type="elyra",
-                                   location="elyra",
+                                   source_identifier="elyra",
                                    extensions=[".py"],
                                    categories=[_generic_category_label]),
         "r-script": Component(id="r-script",
@@ -64,7 +64,7 @@ class ComponentRegistry(LoggingConfigurable):
                               description="Run R script",
                               op="execute-r-node",
                               catalog_type="elyra",
-                              location="elyra",
+                              source_identifier="elyra",
                               extensions=[".r"],
                               categories=[_generic_category_label])}
 
