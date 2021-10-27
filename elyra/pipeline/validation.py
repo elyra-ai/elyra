@@ -124,12 +124,7 @@ class PipelineValidationManager(SingletonConfigurable):
             return response
 
         pipeline_runtime = pipeline_definition.primary_pipeline.runtime  # local, kfp, airflow, None
-        if pipeline_runtime is None:
-            # This submission of the pipeline via CLI for validation e.g. 'elyra-pipeline validate'
-            # will not contain the information required to determine the pipeline runtime and
-            # will be set to "local" by default.
-            pipeline_runtime = "local"
-        elif PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime) is False:
+        if PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime) is False:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidRuntime",
                                  message="Unsupported pipeline runtime",
