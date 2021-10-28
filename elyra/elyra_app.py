@@ -30,6 +30,7 @@ from elyra.metadata.handlers import SchemaspaceResourceHandler
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
+from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
@@ -54,7 +55,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     extension_url = '/lab'
     load_other_extensions = True
 
-    classes = [FileMetadataCache, MetadataManager, PipelineProcessor]
+    classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentRegistry]
 
     # Local path to static files directory.
     # static_paths = [
