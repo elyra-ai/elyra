@@ -32,6 +32,7 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
 from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
+from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
@@ -57,7 +58,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     load_other_extensions = True
 
     classes = [FileMetadataCache, MetadataManager, PipelineProcessor, AirflowPipelineProcessor,
-               ComponentCatalogConnector]
+               ComponentCatalogConnector, ComponentRegistry]
 
     # Local path to static files directory.
     # static_paths = [
