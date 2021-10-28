@@ -359,7 +359,7 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
                                  field to read individual catalog entries
 
         """
-        path = os.path.join(catalog_entry_data.get('base_dir'), catalog_entry_data.get('path'))
+        path = os.path.join(catalog_entry_data.get('base_dir', ''), catalog_entry_data.get('path'))
         if not os.path.exists(path):
             self.log.warning(f"Invalid location for component: {path}")
         else:
