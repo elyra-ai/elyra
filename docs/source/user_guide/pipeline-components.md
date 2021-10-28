@@ -40,9 +40,30 @@ There are many example custom components available that you can utilize in pipel
 
 Note: Refer to the [_Requirements and best practices for custom pipeline components_ topic in the _User Guide_](best-practices-custom-pipeline-components.md) to learn more about special considerations for custom components.
 
+#### Component catalogs
+
+Elyra does not include its own component repository. Instead you can configure it to pull components from local or remote catalogs, such as file systems, web resources, or source control systems. Elyra defines a connector API, which provides access to the catalogs resources.
+
+![component catalogs](../images/user_guide/pipeline-components/component-catalogs.png)
+
+Elyra includes connectors for the following component catalog types:
+ - _Filesystem component catalogs_ provide access to components that are stored in a file system that is readable by JupyterLab/Elyra.
+
+   Example: A filesystem component catalog that is configured using the `/users/jdoe/kubeflow_components/dev/my_component.yaml` path makes `my_component.yaml` available to Elyra.
+
+ - _Directory component catalogs_ provide access to components that are stored in a directory.
+
+   Example: A directory component catalog that is configured using the `/users/jdoe/kubeflow_components/test` path makes all component files in that directory available to Elyra.
+
+ - _URL component catalogs_ provide access to components that are stored on the web and can be retrieved using anonymous HTTP `GET` requests.
+
+    Example: A URL component catalog that is configured using the `http://myserver:myport/mypath/my_component.yaml` URL makes the `my_component.yaml` component file available to Elyra.
+
+You can add support for other component catalogs by installing a connector from the [catalog connector marketplace](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/marketplace.md) or by [implementing your own catalog connector](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors).
+
 #### Example custom components
 
-For illustrative purposes the Elyra component registry includes a few custom components that you can use to get started. These example components and the generic components are pre-loaded into the pipeline editor palette by default.
+For illustrative purposes the Elyra includes a few custom components that you can use to get started. These example components and the generic components are pre-loaded into the pipeline editor palette by default.
 
 ![Example pipeline for the HTTP component](../images/user_guide/pipeline-components/example-components-pipeline.png)
 
@@ -80,23 +101,24 @@ To access the panel in JupyterLab:
 
   ![Open panel from command palette](../images/user_guide/pipeline-components/cmd-palette.png)
 
-#### Adding components to the registry
+#### Adding a component catalog
 
-To add a component registry entry: 
+To add components from a catalog:
 
 1. Click `+` in the _Pipeline Components_ panel.
+1. Select a component catalog type from the list of available options.
 1. Define the registry entry. Refer to section [Configuration properties](#configuration-properties) for a description of each property.
 
 If the registry entry validates correctly, the associated pipeline components are added  to the pipeline editor's palette. 
 
-#### Modifying a component registry entry
+#### Modifying a component catalog entry
 
 1. Click the `edit` (pencil) icon next to the entry name.
 1. Modify the registry entry as desired.
 
-#### Deleting components from the registry
+#### Deleting a component catalog from the registry
 
-To delete a component registry entry and its referenced component(s) from the Visual Pipeline Editor palette:
+To delete a component catalog entry and its referenced component(s) from the Visual Pipeline Editor palette:
 
 1. Click the `delete` (trash) icon next to the entry name.
 1. Confirm deletion.
