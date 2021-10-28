@@ -123,7 +123,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
             return response
 
-        pipeline_runtime = pipeline_definition.primary_pipeline.runtime  # local, kfp, airflow, None
+        pipeline_runtime = pipeline_definition.primary_pipeline.runtime  # local, kfp, airflow
         if PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime) is False:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidRuntime",
