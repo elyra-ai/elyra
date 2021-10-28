@@ -181,6 +181,12 @@
   width: 600px;
 }
 
+.elyra-metadataEditor-BooleanInput {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+}
+
 .elyra-expandableContainer-draggable:hover {
   cursor: grab;
 }
