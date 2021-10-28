@@ -131,7 +131,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
         will be used to construct a unique hash id for each entry with the given catalog type.
 
         To ensure the hash is unique, no two catalog entries can have the same key-value pairs
-        over set of the keys returned by this function.
+        over the set of keys returned by this function.
 
         Example:
         Given a set of keys ['key1', 'key2', 'key3'], the below two catalog_entry_data dictionaries
