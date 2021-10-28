@@ -28,8 +28,6 @@ import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
 import useSWR from 'swr';
 
-import Utils from './utils';
-
 export const GENERIC_CATEGORY_ID = 'Elyra';
 
 interface IReturn<T> {
