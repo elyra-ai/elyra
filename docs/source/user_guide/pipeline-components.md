@@ -59,6 +59,8 @@ Elyra includes connectors for the following component catalog types:
 
     Example: A URL component catalog that is configured using the `http://myserver:myport/mypath/my_component.yaml` URL makes the `my_component.yaml` component file available to Elyra.
 
+Refer to section [Built-in catalog connector reference](#built-in-catalog-connector-reference) for details about these connectors. 
+
 You can add support for other component catalogs by installing a connector from the [catalog connector marketplace](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/marketplace.md) or by [implementing your own catalog connector](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors).
 
 #### Example custom components
@@ -228,31 +230,53 @@ Example:
 
 - `airflow`
 
-##### Location Type (location_type)
+### Built-in catalog connector reference
 
-The location type identifies the format that the value(s) provided in `Paths` represent. Supported types are `URL`, `Filename`, or `Directory`. This property is required.
+Elyra supports fetching components from the file system and the web using its built-in connectors. 
 
-- `URL`: The provided `Paths` identify web resources. The pipeline editor loads the specified URLs using anonymous HTTP `GET` requests.
-- `Filename`: The provided absolute `Paths` identify files in the file system where JupyterLab/Elyra is running. `~` may be used to denote the user's home directory.
-- `Directory`: The provided absolute `Paths` must identify existing directories in the file system where JupyterLab/Elyra is running. `~` may be used to denote the user's home directory. The pipeline editor scans the specified directories for component specifications. Scans are not performed recursively.
+#### Filesystem component catalog
 
-##### Paths (paths)
-
-A path defines the location from where the pipeline editor loads one or more component specifications. The provided value must be a valid representation of the selected _location type_. This property is required.
+The filesystem component catalog connector provides access to components that are stored in the file system where Elyra is running:
+ - `~` may be used to denote the user's home directory.
+ - Wildcards (e.g. `*` or `?`) are not supported.
+ - You can specify one or more file names.
+ - Best practice: Pipeline files include references to the location from where components were loaded. When adding files to the catalog, specify a `base directory` and a relative file path to make pipelines portable across environments.
 
 Examples (GUI):
- - URL: `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
- - Filename: `/Users/patti/specs/load_data_from_public_source/http_operator.py`
- - Filename: `~patti/specs/filter_files/row_filter.yaml`
- - Directory: `/Users/patti/specs/load_from_database`
+ - `/Users/patti/specs/load_data_from_public_source/http_operator.py`
+ - `~patti/specs/filter_files/row_filter.yaml`
 
- Examples (CLI):
- - URL: `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
- - Filename: `['/Users/patti/specs/load_data_from_public_source/http_operator.py']`
- - Filename: `['~patti/specs/filter_files/row_filter.yaml']`
- - Directory: `['/Users/patti/specs/load_from_database']`
+Examples (CLI):
+ - `['/Users/patti/specs/load_data_from_public_source/http_operator.py']`
+ - `['~patti/specs/filter_files/row_filter.yaml']`
+ - `['/Users/patti/specs/comp1.yaml','/Users/patti/specs/comp2.yaml']`
 
- Examples multiple components (CLI):
- - URL: `['URL1', 'URL2']`
- - Filename: `['/Users/patti/specs/comp1.yaml','/Users/patti/specs/comp2.yaml']`
- - Directory: `['/Users/patti/load_specs/','/Users/patti/cleanse_specs/']`
+#### Directory component catalog
+
+The directory component catalog connector provides access to components that are stored in a file system directory: 
+ - If `Path` is set to `/Users/patti/specs/load_from_database`, the connector searches  the specified directory for components for the selected runtime type.
+ - The search is performed recursively if the subdirectory option is enabled.
+ - `~` may be used to denote the user's home directory.
+ - You can specify one or more directories.
+
+Examples (GUI):
+ - `/Users/patti/specs/load_from_database`
+ - `~patti/specs/load_from_cloud_storage`
+
+Examples (CLI):
+ - `['/Users/patti/specs/load_from_database']`
+ - `['~patti/specs/load_from_cloud_storage']`
+ - `['/Users/patti/load_specs/','/Users/patti/cleanse_specs/']` 
+
+#### URL component catalog
+
+The URL component catalog connector provides access to components that are stored on the web:
+- The specified URL must be retrievable using an anonymous HTTP `GET` request.
+- You can specify one or more URLs.
+
+Examples (GUI):
+ - `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
+
+Examples (CLI):
+ - `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
+ - `['<URL_1>','<URL_2>']` 
