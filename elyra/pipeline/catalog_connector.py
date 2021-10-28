@@ -167,7 +167,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
         :param catalog_hash_keys: the list of keys (present in the catalog_entry_data dict)
                                   whose values will be used to construct the hash
 
-        :returns: a unique component id of the form '<catalog-type>:<hash_of_given_metadata>'
+        :returns: a unique component id of the form '<catalog-type>:<hash_of_entry_data>'
         """
         hash_str = ""
         for key in catalog_hash_keys:
@@ -248,7 +248,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                     continue
 
                 try:
-                    # Read the entry definition given its returned data and the catalog metadata
+                    # Read the entry definition given its returned data and the catalog entry data
                     self.log.debug(f"Attempting read of definition for catalog entry with identifying information: "
                                    f"{str(catalog_entry_data)}...")
                     definition = self.read_catalog_entry(catalog_entry_data=catalog_entry_data,
