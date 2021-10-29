@@ -106,8 +106,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         # Determine which provider to use to authenticate with Kubeflow
-        # If not set, no authentication is assumed
-        # TODO set default to legacy 3_2
+        # If not set, use "auto" (try no authentication, followed by generic)
         auth_type = runtime_configuration.metadata.get('auth_type',
                                                        SupportedKFPAuthProviders.AUTO.value)
 
@@ -118,7 +117,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                 runtime_config_name=pipeline.runtime_config,
                                                 auth_parm_1=api_username,
                                                 auth_parm_2=api_password)
-            # TODO debug
             self.log.debug(f'Authenticator returned {auth_info}')
         except AuthenticationError as ae:
             if ae.get_request_history() is not None:

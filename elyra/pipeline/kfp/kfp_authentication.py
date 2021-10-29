@@ -51,9 +51,9 @@ class SupportedKFPAuthProviders(Enum):
     # Supports multiple authentication mechanisms
     # (See AutoKFPAuthenticator implementation)
     AUTO = 'Auto'
-    # Supports multiple authentication mechanisms
-    # (See LegacyDEXKFPAuthenticator implementation)
-    ELYRA_DEX_LEGACY = 'Elyra (deprecated)'
+    # Supports LDAP authentication
+    # (See LDAPKFPAuthenticator implementation)
+    LDAP = 'LDAP'
 
 
 class AuthenticationError(Exception):
@@ -162,14 +162,14 @@ class KFPAuthenticator():
                 if auth_info.get('cookies') is not None:
                     auth_info['kf_secured'] = True
 
-            elif auth_type == SupportedKFPAuthProviders.ELYRA_DEX_LEGACY.value:
-                # see implementation for details; the authenticator returns
+            elif auth_type == SupportedKFPAuthProviders.LDAP.value:
+                # DEX/LDAP authentication; the authenticator returns
                 # a cookie value
                 auth_info['cookies'] =\
-                    LegacyDEXKFPAuthenticator().authenticate(kf_url,
-                                                             runtime_config_name,
-                                                             username=auth_parm_1,
-                                                             password=auth_parm_2)
+                    LDAPKFPAuthenticator().authenticate(kf_url,
+                                                        runtime_config_name,
+                                                        username=auth_parm_1,
+                                                        password=auth_parm_2)
                 if auth_info.get('cookies') is not None:
                     auth_info['kf_secured'] = True
             elif auth_type == SupportedKFPAuthProviders.KF_PIPELINES_SA_TOKEN_PATH.value:
@@ -269,8 +269,175 @@ class StaticPasswordKFPAuthenticator(AbstractKFPAuthenticator):
                      runtime_config_name: str,
                      username: str,
                      password: str) -> Optional[str]:
-        # TODO
-        raise NotImplementedError('StaticPasswordKFPAuthenticator.authenticate must be implemented.')
+        with requests.Session() as s:
+
+            request_history = []
+
+            ################
+            # Determine if Endpoint is Secured
+            ################
+            resp = s.get(kf_endpoint, allow_redirects=True)
+            request_history.append({'request_url': kf_endpoint, 'response': resp})
+            if resp.status_code != HTTPStatus.OK:
+                raise AuthenticationError(f'Error detecting whether Kubeflow server at {kf_endpoint} is secured: '
+                                          f'HTTP status code {resp.status_code}'
+                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                                          provider=self._type,
+                                          request_history=request_history)
+
+            if len(resp.history) == 0:
+                # if we were NOT redirected, then the endpoint is UNSECURED
+                # treat this as an error.
+                raise AuthenticationError(f'The Kubeflow server at {kf_endpoint} is not secured using LDAP. '
+                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                                          provider=self._type,
+                                          request_history=request_history)
+
+            ################
+            # Get Dex Login URL
+            ################
+            redirect_url_obj = urlsplit(resp.url)
+
+            # if we are at `/auth?=xxxx` path, we need to select the
+            # static password auth type
+            if re.search(r"/auth$", redirect_url_obj.path):
+                redirect_url_obj = redirect_url_obj._replace(
+                    path=re.sub(r"/auth$", "/auth/local", redirect_url_obj.path)
+                )
+
+            # if we are at `/auth/xxxx/login` path, then no further action is needed
+            # (we can use it for login POST)
+            if re.search(r"/auth/.*/login$", redirect_url_obj.path):
+                dex_login_url = redirect_url_obj.geturl()
+            else:
+                # else, we need to be redirected to the actual login page
+                # this GET should redirect us to the `/auth/xxxx/login` path
+                resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
+                request_history.append({'request_url': redirect_url_obj.geturl(), 'response': resp})
+                if resp.status_code != HTTPStatus.OK:
+                    raise AuthenticationError('Error redirecting to the DEX login page: '
+                                              f'HTTP status code {resp.status_code}.',
+                                              provider=self._type,
+                                              request_history=request_history)
+                # set the login url
+                dex_login_url = resp.url
+
+            ################
+            # Attempt Dex Login
+            ################
+            resp = s.post(
+                dex_login_url,
+                data={"login": username, "password": password},
+                allow_redirects=True
+            )
+            request_history.append({'request_url': dex_login_url, 'response': resp})
+
+            if len(resp.history) == 0:
+                raise AuthenticationError('The LDAP credentials are probably invalid. '
+                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                                          provider=self._type,
+                                          request_history=request_history)
+
+            # store the session cookies in a "key1=value1; key2=value2" string
+            return "; ".join([f"{c.name}={c.value}" for c in s.cookies])
+
+        # this code should never be reached; raise an error
+        raise AuthenticationError('An implementation problem was detected for static password authentication. '
+                                  'Please create an issue.',
+                                  provider=self._type,
+                                  request_history=request_history)
+
+
+class LDAPKFPAuthenticator(AbstractKFPAuthenticator):
+    """
+    Tries to authenticate using LDAP
+    """
+
+    _type = SupportedKFPAuthProviders.LDAP.value
+
+    def authenticate(self,
+                     kf_endpoint: str,
+                     runtime_config_name: str,
+                     username: str,
+                     password: str) -> Optional[str]:
+
+        with requests.Session() as s:
+
+            request_history = []
+
+            ################
+            # Determine if Endpoint is Secured
+            ################
+            resp = s.get(kf_endpoint, allow_redirects=True)
+            request_history.append({'request_url': kf_endpoint, 'response': resp})
+            if resp.status_code != HTTPStatus.OK:
+                raise AuthenticationError(f'Error detecting whether Kubeflow server at {kf_endpoint} is secured: '
+                                          f'HTTP status code {resp.status_code}'
+                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                                          provider=self._type,
+                                          request_history=request_history)
+
+            if len(resp.history) == 0:
+                # if we were NOT redirected, then the endpoint is UNSECURED
+                # treat this as an error.
+                raise AuthenticationError(f'The Kubeflow server at {kf_endpoint} is not secured using LDAP. '
+                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                                          provider=self._type,
+                                          request_history=request_history)
+
+            ################
+            # Get Dex Login URL
+            ################
+            redirect_url_obj = urlsplit(resp.url)
+
+            # if we are at `/auth?=xxxx` path, we need to select
+            # the LDAP auth type
+            if re.search(r"/auth$", redirect_url_obj.path):
+                redirect_url_obj = redirect_url_obj._replace(
+                    path=re.sub(r"/auth$", "/auth/ldap", redirect_url_obj.path)
+                )
+
+            # if we are at `/auth/xxxx/login` path, then no further action is needed
+            # (we can use it for login POST)
+            if re.search(r"/auth/.*/login$", redirect_url_obj.path):
+                dex_login_url = redirect_url_obj.geturl()
+            else:
+                # else, we need to be redirected to the actual login page
+                # this GET should redirect us to the `/auth/xxxx/login` path
+                resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
+                request_history.append({'request_url': redirect_url_obj.geturl(), 'response': resp})
+                if resp.status_code != HTTPStatus.OK:
+                    raise AuthenticationError('Error redirecting to the DEX login page: '
+                                              f'HTTP status code {resp.status_code}.',
+                                              provider=self._type,
+                                              request_history=request_history)
+                # set the login url
+                dex_login_url = resp.url
+
+            ################
+            # Attempt Dex Login
+            ################
+            resp = s.post(
+                dex_login_url,
+                data={"login": username, "password": password},
+                allow_redirects=True
+            )
+            request_history.append({'request_url': dex_login_url, 'response': resp})
+
+            if len(resp.history) == 0:
+                raise AuthenticationError('The LDAP credentials are probably invalid. '
+                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                                          provider=self._type,
+                                          request_history=request_history)
+
+            # store the session cookies in a "key1=value1; key2=value2" string
+            return "; ".join([f"{c.name}={c.value}" for c in s.cookies])
+
+        # this code should never be reached; raise an error
+        raise AuthenticationError('An implementation problem was detected for LDAP authentication. '
+                                  'Please create an issue.',
+                                  provider=self._type,
+                                  request_history=request_history)
 
 
 class SATokenPathKFPAuthenticator(AbstractKFPAuthenticator):
@@ -385,84 +552,4 @@ class AutoKFPAuthenticator(AbstractKFPAuthenticator):
                 return f'{cookie_auth_key}={cookie_auth_value}'
 
         # The endpoint is not secured.
-        return None
-
-
-class LegacyDEXKFPAuthenticator(AbstractKFPAuthenticator):
-
-    _type = SupportedKFPAuthProviders.AUTO.value
-
-    def authenticate(self,
-                     kf_endpoint: str,
-                     runtime_config_name: str,
-                     username: str,
-                     password: str) -> Optional[str]:
-
-        with requests.Session() as s:
-
-            request_history = []
-
-            ################
-            # Determine if Endpoint is Secured
-            ################
-            resp = s.get(kf_endpoint, allow_redirects=True)
-            request_history.append({'request_url': kf_endpoint, 'response': resp})
-            if resp.status_code != HTTPStatus.OK:
-                raise AuthenticationError(f'Error detecting whether Kubeflow server at {kf_endpoint} is secured: '
-                                          f'HTTP status code {resp.status_code}'
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
-
-            # if we were NOT redirected, then the endpoint is UNSECURED
-            if len(resp.history) == 0:
-                return None
-
-            ################
-            # Get Dex Login URL
-            ################
-            redirect_url_obj = urlsplit(resp.url)
-
-            # if we are at `/auth?=xxxx` path, we need to select an auth type
-            if re.search(r"/auth$", redirect_url_obj.path):
-                # default to "staticPasswords" auth type
-                redirect_url_obj = redirect_url_obj._replace(
-                    path=re.sub(r"/auth$", "/auth/local", redirect_url_obj.path)
-                )
-
-            # if we are at `/auth/xxxx/login` path, then no further action is needed
-            # (we can use it for login POST)
-            if re.search(r"/auth/.*/login$", redirect_url_obj.path):
-                dex_login_url = redirect_url_obj.geturl()
-            else:
-                # else, we need to be redirected to the actual login page
-                # this GET should redirect us to the `/auth/xxxx/login` path
-                resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
-                request_history.append({'request_url': redirect_url_obj.geturl(), 'response': resp})
-                if resp.status_code != HTTPStatus.OK:
-                    raise AuthenticationError('Error redirecting to the DEX login page: '
-                                              f'HTTP status code {resp.status_code}.',
-                                              provider=self._type,
-                                              request_history=request_history)
-                # set the login url
-                dex_login_url = resp.url
-
-            ################
-            # Attempt Dex Login
-            ################
-            resp = s.post(
-                dex_login_url,
-                data={"login": username, "password": password},
-                allow_redirects=True
-            )
-            request_history.append({'request_url': dex_login_url, 'response': resp})
-            if len(resp.history) == 0:
-                raise AuthenticationError('Authentication failed. The credentials are probably invalid. '
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
-
-            # store the session cookies in a "key1=value1; key2=value2" string
-            return "; ".join([f"{c.name}={c.value}" for c in s.cookies])
-
         return None

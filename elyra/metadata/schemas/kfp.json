@@ -70,9 +70,10 @@
           "type": "string",
           "enum": [
             "Auto",
-            "Elyra (deprecated)",
             "KF_PIPELINES_SA_TOKEN_PATH",
-            "No authentication"
+            "LDAP",
+            "No authentication",
+            "Static password"
           ],
           "default": "Auto",
           "uihints": {
