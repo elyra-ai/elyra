@@ -61,7 +61,7 @@ Elyra includes connectors for the following component catalog types:
 
 Refer to section [Built-in catalog connector reference](#built-in-catalog-connector-reference) for details about these connectors. 
 
-You can add support for other component catalogs by installing a connector from the [catalog connector marketplace](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/marketplace.md) or by [implementing your own catalog connector](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors).
+You can add support for other component catalogs by installing a connector from the [catalog connector marketplace](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/connector-directory.md) or by [implementing your own catalog connector](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/build-a-custom-connector.md).
 
 #### Example custom components
 
