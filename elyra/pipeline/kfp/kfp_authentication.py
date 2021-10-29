@@ -256,7 +256,7 @@ class UnsecuredKFPAuthenticator(AbstractKFPAuthenticator):
             raise AuthenticationError(f'Authentication is required for Kubeflow at {kf_endpoint}. '
                                       f'Update the authentication type setting in runtime configuration '
                                       f'\'{runtime_config_name}\' and try again.',
-                                      self._type)
+                                      provider=self._type)
         return None
 
 
@@ -269,6 +269,22 @@ class StaticPasswordKFPAuthenticator(AbstractKFPAuthenticator):
                      runtime_config_name: str,
                      username: str,
                      password: str) -> Optional[str]:
+        """
+        Authenticate using static password authentication. An AuthenticationError is raised
+        if (1) kf_endpoint is unsecured (2) kf_endpoint does not
+        support static password authentication (3) the credentials are invalid
+
+        :param kf_endpoint: Kubeflow API endpoint to verify
+        :type kf_endpoint: str
+        :param runtime_config_name: Runtime configuration name where kf_endpoint is specified
+        :type runtime_config_name: str
+        :param username: Id to be used for authentication
+        :type username: str
+        :param password: Password to be used for authentication
+        :type password: str
+        :raises AuthenticationError: Authentication failed due to the specified error.
+        :return: A cookie value
+        """
         with requests.Session() as s:
 
             request_history = []
@@ -304,6 +320,15 @@ class StaticPasswordKFPAuthenticator(AbstractKFPAuthenticator):
                 redirect_url_obj = redirect_url_obj._replace(
                     path=re.sub(r"/auth$", "/auth/local", redirect_url_obj.path)
                 )
+            else:
+                # verify that KF is secured by LDAP
+                m = re.search(r"/auth/([^/]*)/?", redirect_url_obj.path)
+                if m and m.group(1) != 'local':
+                    raise AuthenticationError(
+                        f'The Kubeflow server at {kf_endpoint} is secured using \'{m.group(1)}\'. '
+                        f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                        provider=self._type,
+                        request_history=request_history)
 
             # if we are at `/auth/xxxx/login` path, then no further action is needed
             # (we can use it for login POST)
@@ -333,7 +358,7 @@ class StaticPasswordKFPAuthenticator(AbstractKFPAuthenticator):
             request_history.append({'request_url': dex_login_url, 'response': resp})
 
             if len(resp.history) == 0:
-                raise AuthenticationError('The LDAP credentials are probably invalid. '
+                raise AuthenticationError('The credentials are probably invalid. '
                                           f'Update runtime configuration \'{runtime_config_name}\' and try again.',
                                           provider=self._type,
                                           request_history=request_history)
@@ -350,7 +375,7 @@ class StaticPasswordKFPAuthenticator(AbstractKFPAuthenticator):
 
 class LDAPKFPAuthenticator(AbstractKFPAuthenticator):
     """
-    Tries to authenticate using LDAP
+    Tries to authenticate using LDAP.
     """
 
     _type = SupportedKFPAuthProviders.LDAP.value
@@ -360,6 +385,22 @@ class LDAPKFPAuthenticator(AbstractKFPAuthenticator):
                      runtime_config_name: str,
                      username: str,
                      password: str) -> Optional[str]:
+        """
+        Authenticate using LDAP. An AuthenticationError is raised
+        if (1) kf_endpoint is unsecured (2) kf_endpoint does not
+        support LDAP authentication (3) the credentials are invalid
+
+        :param kf_endpoint: Kubeflow API endpoint to verify
+        :type kf_endpoint: str
+        :param runtime_config_name: Runtime configuration name where kf_endpoint is specified
+        :type runtime_config_name: str
+        :param username: Id to be used for authentication
+        :type username: str
+        :param password: Password to be used for authentication
+        :type password: str
+        :raises AuthenticationError: Authentication failed due to the specified error.
+        :return: A cookie value
+        """
 
         with requests.Session() as s:
 
@@ -396,6 +437,15 @@ class LDAPKFPAuthenticator(AbstractKFPAuthenticator):
                 redirect_url_obj = redirect_url_obj._replace(
                     path=re.sub(r"/auth$", "/auth/ldap", redirect_url_obj.path)
                 )
+            else:
+                # verify that KF is secured by LDAP
+                m = re.search(r"/auth/([^/]*)/?", redirect_url_obj.path)
+                if m and m.group(1) != 'ldap':
+                    raise AuthenticationError(
+                        f'The Kubeflow server at {kf_endpoint} is secured using \'{m.group(1)}\'. '
+                        f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                        provider=self._type,
+                        request_history=request_history)
 
             # if we are at `/auth/xxxx/login` path, then no further action is needed
             # (we can use it for login POST)
