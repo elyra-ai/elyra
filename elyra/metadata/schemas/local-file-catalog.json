@@ -65,7 +65,7 @@
         },
         "base_path": {
           "title": "Optional Base Directory",
-          "description": "An optional base directory from which the given values of Paths can be resolved.",
+          "description": "An optional base directory from which the given values of Paths can be resolved",
           "type": "string",
           "uihints": {
             "category": "Configuration"
@@ -73,7 +73,7 @@
         },
         "paths": {
           "title": "Paths",
-          "description": "A list of paths to individual component specification files in the local file system",
+          "description": "A list of paths to individual component specification files in the local filesystem",
           "type": "array",
           "items": {
             "type": "string"

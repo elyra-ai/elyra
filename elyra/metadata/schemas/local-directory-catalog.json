@@ -65,7 +65,7 @@
         },
         "paths": {
           "title": "Directories",
-          "description": "A list of paths to directories in the local file system that each contain one or more component specification files",
+          "description": "A list of paths to directories in the local filesystem that each contain one or more component specification files",
           "type": "array",
           "items": {
             "type": "string"
