@@ -11,7 +11,7 @@
         {
           "id": "2ccb6e75-3a57-4cc1-8a96-8e19ce15c7a5",
           "type": "execution_node",
-          "op": "component_Downloaddata",
+          "op": "url-catalog:c6c0588048ae",
           "app_data": {
             "component_parameters": {
               "url": "test",
@@ -115,7 +115,7 @@
         {
           "id": "9023de3e-b4cb-4549-b630-ae842e926ee2",
           "type": "execution_node",
-          "op": "run_notebook_using_papermill_Runnotebookusingpapermill",
+          "op": "local-directory-catalog:0c7bc4a10720",
           "app_data": {
             "component_parameters": {
               "notebook": "None",
@@ -192,7 +192,7 @@
         {
           "id": "5bd9bfbb-5db8-4ee5-b49e-ebcac2e7c185",
           "type": "execution_node",
-          "op": "filter_text_using_shell_and_grep_Filtertext",
+          "op": "local-directory-catalog:737915b826e9",
           "app_data": {
             "component_parameters": {
               "pattern": ".*",
@@ -251,7 +251,7 @@
         {
           "id": "51036094-4cc5-440a-a652-a84b0871786a",
           "type": "execution_node",
-          "op": "component_Calculatedatahash",
+          "op": "url-catalog:4fc759382b1b",
           "app_data": {
             "component_parameters": {
               "hash_algorithm": "SHA256",
