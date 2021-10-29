@@ -312,8 +312,7 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
             return path
 
         # If path is still not absolute, default to the Jupyter share location
-        path = os.path.join(ENV_JUPYTER_PATH[0], 'components', path)
-        return path
+        return os.path.join(ENV_JUPYTER_PATH[0], 'components', path)
 
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -337,8 +336,9 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
                 return catalog_entry_data
 
         for path in catalog_metadata.get('paths'):
-            if not base_dir:
-                path = self.get_absolute_path(path)  # Assume absolute paths if no base_dir
+            path = os.path.expanduser(path)
+            if not base_dir and not os.path.isabs(path):
+                base_dir = os.path.join(ENV_JUPYTER_PATH[0], 'components')
 
             catalog_entry_data.append({
                 'base_dir': base_dir,
@@ -382,7 +382,7 @@ class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
     Read component definitions from a local directory
     """
 
-    def get_relative_path(self, base_dir: str, file_path: str) -> str:
+    def get_relative_path_from_base(self, base_dir: str, file_path: str) -> str:
         """
         Determines the relative portion of a path from the given base directory.
 
@@ -432,7 +432,7 @@ class DirectoryComponentCatalogConnector(FilesystemComponentCatalogConnector):
                 catalog_entry_data.extend([
                     {
                         'base_dir': base_dir,
-                        'path': self.get_relative_path(base_dir, str(absolute_path))
+                        'path': self.get_relative_path_from_base(base_dir, str(absolute_path))
                     } for absolute_path in Path(base_dir).glob(file_pattern)
                 ])
 
