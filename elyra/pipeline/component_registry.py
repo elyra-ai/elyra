@@ -250,8 +250,8 @@ class ComponentRegistry(LoggingConfigurable):
                     .get(catalog.schema_name)\
                     .load()(self._parser.file_types, parent=self.parent)
             except Exception as e:
-                self.log.warning(f"Could not load appropriate ComponentCatalogConnector class: {e}")
-                raise RuntimeError(f"Could not load appropriate ComponentCatalogConnector class: {e}")
+                self.log.warning(f"Could not load appropriate ComponentCatalogConnector class: {e}. Skipping...")
+                continue
 
             # Get content of component definition file for each component in this catalog
             self.log.debug(f"Processing components in catalog '{catalog.display_name}'")
