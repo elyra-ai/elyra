@@ -24,6 +24,12 @@
       "type": "string",
       "minLength": 1
     },
+    "runtime_type": {
+      "title": "Runtime Type",
+      "description": "The runtime associated with this instance",
+      "type": "string",
+      "const": "APACHE_AIRFLOW"
+    },
     "metadata": {
       "description": "Additional data specific to this metadata",
       "type": "object",

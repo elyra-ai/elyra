@@ -50,21 +50,19 @@ from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.path import get_absolute_path
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
-    _type = 'kfp'
+    _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
+    _name = 'kfp'
 
     # Provide users with the ability to identify a writable directory in the
     # running container where the notebook | script is executed. The location
     # must exist and be known before the container is started.
     # Defaults to `/tmp`
     WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
-
-    @property
-    def type(self):
-        return self._type
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, component_parser=KfpComponentParser(), **kwargs)
@@ -811,12 +809,5 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
 
 class KfpPipelineProcessorResponse(PipelineProcessorResponse):
-
-    _type = 'kfp'
-
-    def __init__(self, run_url, object_storage_url, object_storage_path):
-        super().__init__(run_url, object_storage_url, object_storage_path)
-
-    @property
-    def type(self):
-        return self._type
+    _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
+    _name = 'kfp'

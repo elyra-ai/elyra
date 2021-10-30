@@ -20,6 +20,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline.runtime_type import RuntimeProcessorType
+
 
 class AppDataBase(object):  # ABC
     """
@@ -92,7 +94,7 @@ class Pipeline(AppDataBase):
     @property
     def runtime(self) -> str:
         """
-        The runtime associated with the pipeline
+        The runtime processor name associated with the pipeline
         :return: The runtime keyword
         """
         return self._node['app_data'].get('runtime')
@@ -111,6 +113,19 @@ class Pipeline(AppDataBase):
         The pipeline type
         :return: The runtime keyword associated with the pipeline or `generic`
         """
+        # TODO this needs to check 'app_data'.'runtime_type', but can only occur once
+        # front-end builds the proper pipeline.
+        # New code follows here once field exists.
+        # if 'runtime_type' in self._node['app_data']:
+        #     runtime_type = self._node['app_data'].get('runtime_type', 'generic')
+        #     try:
+        #         RuntimeProcessorType.get_instance_by_name(runtime_type)
+        #     except KeyError as ke:
+        #         raise ValueError(f'Unsupported pipeline runtime: {runtime_type}')
+        #     return runtime_type
+        #
+        # return 'generic'
+
         type_description_to_type = {'Kubeflow Pipelines': 'kfp',
                                     'Apache Airflow': 'airflow',
                                     'Generic': 'generic'}

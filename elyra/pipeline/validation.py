@@ -32,6 +32,7 @@ from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
+# from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.path import get_expanded_path
 
 
@@ -202,7 +203,7 @@ class PipelineValidationManager(SingletonConfigurable):
         Checks that the pipeline payload is compatible with this version of elyra (ISSUE #938)
         as well as verifying all nodes in the pipeline are supported by the runtime
         :param pipeline_definition: the pipeline definition to be validated
-        :param pipeline_type: name of the pipeline runtime being used e.g. kfp, airflow, generic
+        :param pipeline_type: type of the pipeline runtime being used e.g. KUBEFLOW_PIPELINES, APACHE_AIRFLOW, generic
         :param pipeline_runtime: name of the pipeline runtime for execution  e.g. kfp, airflow, local
         :param response: ValidationResponse containing the issue list to be updated
         """
@@ -211,6 +212,8 @@ class PipelineValidationManager(SingletonConfigurable):
         supported_ops = []
 
         if pipeline_runtime:
+            # TODO, need to get the schema corresponding to pipeline_runtime and compare its
+            # runtime_type value to pipeline_type and replace pipeline_runtime with that value below.
             if pipeline_runtime != pipeline_type and pipeline_type != 'generic':
                 response.add_message(severity=ValidationSeverity.Error,
                                      message_type="invalidRuntime",
@@ -259,6 +262,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         if pipeline_runtime:
             # don't check if incompatible pipeline type and runtime
+            # TODO - see previous TODO.  Should probably make this check a helper method
             if pipeline_runtime != pipeline_type and pipeline_type != 'generic':
                 return
 
@@ -304,7 +308,7 @@ class PipelineValidationManager(SingletonConfigurable):
                     # Validate runtime components against specific node properties in component registry
                     else:
                         # This is the full dict of properties for the operation e.g. current params, optionals etc
-                        property_dict = await self._get_component_properties(pipeline_type, components, node.op)
+                        property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
                         cleaned_property_list = list(map(lambda x: str(x).replace('elyra_', ''),
                                                          property_dict['current_parameters'].keys()))
 
@@ -586,7 +590,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 if node['id'] == node_id:
                     return single_pipeline['id']
 
-    async def _get_component_properties(self, pipeline_type: str, components: dict, node_op: str) -> Dict:
+    async def _get_component_properties(self, pipeline_runtime: str, components: dict, node_op: str) -> Dict:
         """
         Retrieve the full dict of properties associated with the node_op
         :param components: list of components associated with the pipeline runtime being used e.g. kfp, airflow
@@ -604,31 +608,11 @@ class PipelineValidationManager(SingletonConfigurable):
             for node_type in category['node_types']:
                 if node_op == node_type['op']:
                     component: Component = \
-                        await PipelineProcessorManager.instance().get_component(pipeline_type, node_op)
+                        await PipelineProcessorManager.instance().get_component(pipeline_runtime, node_op)
                     component_properties = ComponentRegistry.to_canvas_properties(component)
                     return component_properties
 
         return {}
-
-    def _get_runtime_schema(self, pipeline: dict, response: ValidationResponse) -> str:
-        pipeline_json = json.loads(json.dumps(pipeline))
-        if not self._is_legacy_pipeline(pipeline):
-            runtime = pipeline_json['pipelines'][0]['app_data']['properties'].get('runtime')
-        else:
-            # Assume Generic since properties field doesnt exist = older version of pipeline schema
-            runtime = "Generic"
-
-        if runtime == "Kubeflow Pipelines":
-            return "kfp"
-        elif runtime == "Apache Airflow":
-            return "airflow"
-        elif runtime == "Generic":
-            return "generic"
-        else:
-            response.add_message(severity=ValidationSeverity.Error,
-                                 message_type="invalidRuntime",
-                                 message="Unsupported pipeline runtime selected in this pipeline.",
-                                 data={"pipelineRuntime": runtime})
 
     def _get_node_names(self, pipeline: dict, node_id_list: list) -> List:
         """

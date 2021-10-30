@@ -104,7 +104,7 @@ class ComponentRegistry(LoggingConfigurable):
 
         if component is None:
             self.log.error(f"Component with ID '{component_id}' could not be found in any "
-                           f"{self._parser.component_platform} catalog.")
+                           f"{self._parser.component_platform.name} catalog.")
 
         return component
 
@@ -242,9 +242,9 @@ class ComponentRegistry(LoggingConfigurable):
 
             # Filter catalogs according to processor type
             runtime_catalogs = list(
-                filter(lambda r: r.metadata['runtime'] == self._parser.component_platform, all_catalogs)
+                filter(lambda r: r.metadata['runtime_type'] == self._parser.component_platform.name, all_catalogs)
             )
         except Exception:
-            self.log.error(f"Could not access catalogs for processor: {self._parser.component_platform}")
+            self.log.error(f"Could not access catalogs for processor: {self._parser.component_platform.name}")
 
         return runtime_catalogs

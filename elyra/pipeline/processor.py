@@ -40,6 +40,7 @@ from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from elyra.util.path import get_expanded_path
@@ -67,17 +68,17 @@ class PipelineProcessorRegistry(SingletonConfigurable):
                                f'"{processor.module_name}.{processor.object_name}" - {err}')
 
     def add_processor(self, processor):
-        self.log.debug(f'Registering processor {processor.type}')
-        self._processors[processor.type] = processor
+        self.log.debug(f"Registering {processor.type.value} runtime processor '{processor.name}'")
+        self._processors[processor.name] = processor
 
-    def get_processor(self, processor_type: str):
-        if self.is_valid_processor(processor_type):
-            return self._processors[processor_type]
+    def get_processor(self, processor_name: str):
+        if self.is_valid_processor(processor_name):
+            return self._processors[processor_name]
         else:
-            raise RuntimeError('Could not find pipeline processor for [{}]'.format(processor_type))
+            raise RuntimeError(f"Could not find pipeline processor '{processor_name}'")
 
-    def is_valid_processor(self, processor_type: str) -> bool:
-        return processor_type in self._processors.keys()
+    def is_valid_processor(self, processor_name: str) -> bool:
+        return processor_name in self._processors.keys()
 
 
 class PipelineProcessorManager(SingletonConfigurable):
@@ -88,21 +89,25 @@ class PipelineProcessorManager(SingletonConfigurable):
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
         self._registry = PipelineProcessorRegistry.instance()
 
-    def _get_processor_for_runtime(self, processor_type: str):
-        processor = self._registry.get_processor(processor_type)
+    def _get_processor_for_runtime(self, runtime_name: str):
+        processor = self._registry.get_processor(runtime_name)
         return processor
 
-    def is_supported_runtime(self, processor_type: str) -> bool:
-        return self._registry.is_valid_processor(processor_type)
+    def is_supported_runtime(self, runtime_name: str) -> bool:
+        return self._registry.is_valid_processor(runtime_name)
 
-    async def get_components(self, processor_type):
-        processor = self._get_processor_for_runtime(processor_type)
+    def get_runtime_type(self, runtime_name: str) -> RuntimeProcessorType:
+        processor = self._get_processor_for_runtime(runtime_name)
+        return processor.type
+
+    async def get_components(self, runtime_name):
+        processor = self._get_processor_for_runtime(runtime_name)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
         return res
 
-    async def get_component(self, processor_type, component_id):
-        processor = self._get_processor_for_runtime(processor_type)
+    async def get_component(self, runtime_name, component_id):
+        processor = self._get_processor_for_runtime(runtime_name)
 
         res = await asyncio.get_event_loop().\
             run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
@@ -124,7 +129,8 @@ class PipelineProcessorManager(SingletonConfigurable):
 
 class PipelineProcessorResponse(ABC):
 
-    _type = None
+    _type: RuntimeProcessorType = None
+    _name: str = None
 
     def __init__(self, run_url, object_storage_url, object_storage_path):
         self._run_url = run_url
@@ -132,9 +138,16 @@ class PipelineProcessorResponse(ABC):
         self._object_storage_path = object_storage_path
 
     @property
-    @abstractmethod
-    def type(self):
-        raise NotImplementedError()
+    def type(self) -> str:  # Return the string value so that JSON serialization works
+        if self._type is None:
+            raise NotImplementedError("_type must have a value!")
+        return self._type.value
+
+    @property
+    def name(self) -> str:
+        if self._name is None:
+            raise NotImplementedError("_name must have a value!")
+        return self._name
 
     @property
     def run_url(self):
@@ -169,7 +182,8 @@ class PipelineProcessorResponse(ABC):
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
 
-    _type: str = None
+    _type: RuntimeProcessorType = None
+    _name: str = None
 
     _component_registry: ComponentRegistry = None
 
@@ -185,9 +199,16 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         self.root_dir = root_dir
 
     @property
-    @abstractmethod
-    def type(self) -> str:
-        raise NotImplementedError()
+    def type(self):
+        if self._type is None:
+            raise NotImplementedError("_type must have a value!")
+        return self._type
+
+    @property
+    def name(self):
+        if self._name is None:
+            raise NotImplementedError("_name must have a value!")
+        return self._name
 
     def get_components(self) -> List[Component]:
         """
@@ -244,7 +265,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             operation_name = kwargs.get('operation_name')
             op_clause = f":'{operation_name}'" if operation_name else ""
 
-            self.log.info(f"{self._type} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
+            self.log.info(f"{self._name} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
 
     @staticmethod
     def _propagate_operation_inputs_outputs(pipeline: Pipeline, sorted_operations: List[Operation]) -> None:
@@ -301,17 +322,15 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 class RuntimePipelineProcessor(PipelineProcessor):
 
     @property
-    def component_parser(self) -> ComponentParser:
-        return self._component_parser
-
-    @property
     def component_registry(self) -> ComponentRegistry:
         return self._component_registry
 
     def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
         super().__init__(root_dir, **kwargs)
 
-        self._component_parser = component_parser
+        # TODO - we should look into decoupling the registry/parser from the proessor
+        # TODO - make ComponentRegistry a singleton that loads all component catalogs
+        # associated with the types corresponding to each registered runtime processor.
         self._component_registry = ComponentRegistry(component_parser, parent=self.parent)
 
     def _get_dependency_archive_name(self, operation):
@@ -402,7 +421,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         """
 
         envs: Dict = operation.env_vars_as_dict(logger=self.log)
-        envs['ELYRA_RUNTIME_ENV'] = self.type
+        envs['ELYRA_RUNTIME_ENV'] = self.name
 
         if 'cos_secret' not in kwargs or not kwargs['cos_secret']:
             envs['AWS_ACCESS_KEY_ID'] = kwargs['cos_username']

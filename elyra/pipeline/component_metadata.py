@@ -56,13 +56,24 @@ class ComponentCatalogMetadata(Metadata):
     This class contains methods to trigger cache updates on modification
     and deletion of component registry metadata instances.
     """
+    def on_load(self, **kwargs: Any) -> None:
+        """Check for runtime property and update to runtime_type """
+        if 'runtime' in self.metadata:
+            if self.metadata['runtime'] == 'kfp':
+                self.metadata['runtime_type'] = 'KUBEFLOW_PIPELINES'
+            else:  # self.metadata['runtime'] == 'airflow'
+                self.metadata['runtime_type'] = 'APACHE_AIRFLOW'
+            self.metadata.pop('runtime', None)
+            getLogger('ServerApp').info(f"Upgrading component-registry {self.schema_name} instance '{self.name}' "
+                                        f"to include runtime_type '{self.metadata['runtime_type']}'...")
+            MetadataManager(schemaspace="component-registries").update(self.name, self, for_migration=True)
 
     def post_save(self, **kwargs: Any) -> None:
-        processor_type = self.metadata.get('runtime')
+        processor_name = self.metadata.get('runtime')
 
         # Get processor instance and update its cache
         try:
-            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
+            processor = PipelineProcessorRegistry.instance().get_processor(processor_name=processor_name)
             if processor.component_registry.caching_enabled:
                 processor.component_registry.update_cache()
         except Exception:
@@ -73,7 +84,7 @@ class ComponentCatalogMetadata(Metadata):
 
         # Get processor instance and update its cache
         try:
-            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
+            processor = PipelineProcessorRegistry.instance().get_processor(processor_name=processor_type)
             if processor.component_registry.caching_enabled:
                 processor.component_registry.update_cache()
         except Exception:
