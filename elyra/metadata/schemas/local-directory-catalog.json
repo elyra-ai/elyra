@@ -101,18 +101,9 @@
             "field_type": "numeric",
             "category": "Configuration"
           }
-        },
-        "required_number_field": {
-          "title": "Test Required Number",
-          "description": "Test an Number",
-          "type": "number",
-          "uihints": {
-            "field_type": "numeric",
-            "category": "Configuration"
-          }
         }
       },
-      "required": ["runtime_type", "paths", "required_number_field"]
+      "required": ["runtime_type", "paths"]
     }
   },
   "required": ["schema_name", "display_name", "version", "metadata"]
