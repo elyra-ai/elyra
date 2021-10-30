@@ -11,7 +11,7 @@
         {
           "id": "65ef3a01-569a-4ea4-bd3d-842ca6ce47ac",
           "type": "execution_node",
-          "op": "filter_text_using_shell_and_grep_Filtertext",
+          "op": "local-directory-catalog:737915b826e9",
           "app_data": {
             "component_parameters": {
               "component_description": "Filter input text according to the given regex pattern using shell and grep.",
@@ -71,7 +71,7 @@
         {
           "id": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
           "type": "execution_node",
-          "op": "component_Downloaddata",
+          "op": "url-catalog:c6c0588048ae",
           "app_data": {
             "component_parameters": {
               "curl_options": "--location",
@@ -119,7 +119,7 @@
         {
           "id": "5b78ea0a-e5fc-4022-94d4-7b9dc170d794",
           "type": "execution_node",
-          "op": "component_Calculatedatahash",
+          "op": "url-catalog:4fc759382b1b",
           "app_data": {
             "component_parameters": {
               "hash_algorithm": "SHA256",

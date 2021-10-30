@@ -317,7 +317,8 @@ class PipelineValidationManager(SingletonConfigurable):
                         cleaned_property_list.remove('label')
 
                         for node_property in cleaned_property_list:
-                            if not node.get_component_parameter(node_property):
+                            component_param = node.get_component_parameter(node_property)
+                            if not component_param:
                                 if self._is_required_property(property_dict, node_property):
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
@@ -326,22 +327,17 @@ class PipelineValidationManager(SingletonConfigurable):
                                                                "nodeName": node_label,
                                                                "propertyName": node_property})
                             elif self._get_component_type(property_dict, node_property) == 'inputpath':
-                                if len(node.get_component_parameter(node_property).keys()) < 2:
+                                # Any component property with type `InputPath` will be a dictionary of two keys
+                                # "value": the node ID of the parent node containing the output
+                                # "option": the name of the key (which is an output) of the above referenced node
+                                if not isinstance(component_param, dict) or \
+                                        len(component_param) != 2 or \
+                                        set(component_param.keys()) != {'value', 'option'}:
                                     response.add_message(severity=ValidationSeverity.Error,
                                                          message_type="invalidNodeProperty",
-                                                         message="Node is missing required output property parameter",
+                                                         message="Node has malformed `InputPath` parameter structure",
                                                          data={"nodeID": node.id,
                                                                "nodeName": node_label})
-                                else:
-                                    for key in node.get_component_parameter(node_property).keys():
-                                        if key not in ['value', 'option']:
-                                            response.add_message(severity=ValidationSeverity.Error,
-                                                                 message_type="invalidNodeProperty",
-                                                                 message="Node property has invalid key.",
-                                                                 data={"nodeID": node.id,
-                                                                       "nodeName": node_label,
-                                                                       "propertyName": node_property,
-                                                                       "keyName": key})
 
                                 node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
                                 parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])

@@ -75,7 +75,7 @@ class ComponentCatalogMetadata(Metadata):
         try:
             processor = PipelineProcessorRegistry.instance().get_processor(processor_name=processor_name)
             if processor.component_registry.caching_enabled:
-                processor.component_registry.update_cache()
+                processor.component_registry.update_cache(catalog=self, operation='modify')
         except Exception:
             pass
 
@@ -86,7 +86,7 @@ class ComponentCatalogMetadata(Metadata):
         try:
             processor = PipelineProcessorRegistry.instance().get_processor(processor_name=processor_type)
             if processor.component_registry.caching_enabled:
-                processor.component_registry.update_cache()
+                processor.component_registry.update_cache(catalog=self, operation='delete')
         except Exception:
             pass
 

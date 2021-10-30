@@ -293,7 +293,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           description="",
                           op="filter-text",  # TODO remove this??
                           catalog_type="url-catalog",
-                          location={"url": url},
+                          source_identifier={"url": url},
                           definition=component_definition,
                           categories=[],
                           properties=[])
@@ -369,7 +369,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           description="",
                           op="filter-text",
                           catalog_type="local-directory-catalog",
-                          location={"path": absolute_path},
+                          source_identifier={"path": absolute_path},
                           definition=component_definition,
                           properties=[],
                           categories=[])

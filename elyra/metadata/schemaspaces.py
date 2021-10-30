@@ -78,4 +78,11 @@ class ComponentRegistries(Schemaspace):
                 raise ValueError(f"{ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME} schemas are "
                                  f"required to define a 'runtime_type' (string-valued) property and schema "
                                  f"\'{schema.get('name')}\' does not define 'runtime_type'.")
+
+        # Component catalogs should have an associated 'metadata' class name
+        # If none is provided, use the ComponentCatalogMetadata class, which implements
+        # post_save and post_delete hooks for improved component caching performance
+        if not schema.get('metadata_class_name'):
+            schema['metadata_class_name'] = "elyra.pipeline.component_metadata.ComponentCatalogMetadata"
+
         return schema

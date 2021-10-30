@@ -325,7 +325,7 @@ be fully qualified (i.e., prefixed with their package names).
                              'class_name': component.name,
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,
-                             'operator_source': component.location,
+                             'operator_source': component.source_identifier,
                              'is_generic_operator': False
                              }
 

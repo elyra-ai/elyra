@@ -1,9 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
-  "$id": "https://raw.githubusercontent.com/kiersten-stokes/elyra/registry-updates/elyra/metadata/schemas/url-catalog.json",
-  "title": "Url Component Catalog",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/url-catalog.json",
+  "title": "URL Component Catalog",
   "name": "url-catalog",
-  "display_name": "Url Component Catalog",
+  "display_name": "URL Component Catalog",
   "schemaspace": "component-registries",
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
   "metadata_class_name": "elyra.pipeline.component_metadata.UrlCatalogMetadata",

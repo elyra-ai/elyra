@@ -122,7 +122,7 @@ class Component(object):
                  name: str,
                  description: Optional[str],
                  catalog_type: str,
-                 location: Any,
+                 source_identifier: Any,
                  definition: Optional[str] = None,
                  runtime_type: Optional[RuntimeProcessorType] = None,
                  op: Optional[str] = None,
@@ -136,7 +136,7 @@ class Component(object):
         :param description: The description of the component
         :param catalog_type: Indicates the type of component definition resource
                               location; one of ['url', filename', 'directory]
-        :param location: The location of the component definition
+        :param source_identifier: Source information to help locate the component definition
         :param definition: The content of the specification file for this component
         :param runtime_type: The runtime type of the component (e.g. KUBEFLOW_PIPELINES, APACHE_AIRFLOW, etc.)
         :param op: The operation name of the component; used by generic components in rendering the palette
@@ -154,8 +154,8 @@ class Component(object):
         self._id = id
         self._name = name
         self._description = description
-        self._location_type = catalog_type
-        self._location = location
+        self._catalog_type = catalog_type
+        self._source_identifier = source_identifier
 
         self._definition = definition
         self._runtime_type = runtime_type
@@ -164,7 +164,7 @@ class Component(object):
         self._properties = properties
 
         if not parameter_refs:
-            if self._location_type == "elyra":
+            if self._catalog_type == "elyra":
                 parameter_refs = {
                     "filehandler": "filename"
                 }
@@ -193,11 +193,11 @@ class Component(object):
 
     @property
     def catalog_type(self) -> str:
-        return self._location_type
+        return self._catalog_type
 
     @property
-    def location(self) -> str:
-        return str(self._location)
+    def source_identifier(self) -> str:
+        return str(self._source_identifier)
 
     @property
     def definition(self) -> str:
