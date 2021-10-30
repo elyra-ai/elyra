@@ -70,8 +70,8 @@ class ComponentRegistries(Schemaspace):
 
         # Component-registry requires that `runtime_type` be a defined property so ensure its existence.
         # Since schema 'component-registry' is deprecated, skip its check.
-        schema_name = schema.get('name')
-        if schema_name != 'component-registry':  # Skip the deprecated schema, TODO: remove next release
+        is_deprecated = schema.get('deprecated', False)
+        if not is_deprecated:  # Skip deprecated schemas
             instance_properties = schema.get('properties', {}).get('metadata', {}).get('properties', {})
             runtime_type = instance_properties.get('runtime_type')
             if not runtime_type:
