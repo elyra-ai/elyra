@@ -288,20 +288,23 @@ def test_describe_with_kfp_components():
     assert "Type: kfp" in result.output
     assert "Nodes: 3" in result.output
     assert "File Dependencies:\n    None Listed" in result.output
-    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/"
-    "basics/Calculate_hash/component.yaml" in result.output
-    assert "- /opt/anaconda3/envs/elyra-dev/share/jupyter/components/"
-    "kfp/filter_text_using_shell_and_grep.yaml" in result.output
-    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/"
-    "web/Download/component.yaml" in result.output
+    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/" \
+           "basics/Calculate_hash/component.yaml" in result.output
+    assert "- /opt/anaconda3/envs/elyra-dev/share/jupyter/components/" \
+           "kfp/filter_text_using_shell_and_grep.yaml" in result.output
+    assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/" \
+           "web/Download/component.yaml" in result.output
     assert result.exit_code == 0
 
 
-def test_validate_with_kfp_components():
+def test_validate_with_kfp_components(monkeypatch):
     runner = CliRunner()
     pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
 
+    monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
+
     result = runner.invoke(pipeline, ['validate', pipeline_file_path])
+
     assert "Validating pipeline..." in result.output
     assert result.exit_code == 0
 
@@ -325,7 +328,7 @@ def test_describe_with_missing_kfp_component():
         assert result.exit_code == 0
 
 
-def test_validate_with_missing_kfp_component():
+def test_validate_with_missing_kfp_component(monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem():
         valid_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
@@ -337,6 +340,7 @@ def test_validate_with_missing_kfp_component():
                 valid_data['pipelines'][0]['nodes'][0]['op'] = valid_data['pipelines'][0]['nodes'][0]['op'] + 'Missing'
                 pipeline_file.write(json.dumps(valid_data))
 
+        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
         result = runner.invoke(pipeline, ['validate', pipeline_file_path])
         assert "Validating pipeline..." in result.output
         assert "[Error][Calculate data hash] - This component was not found in the registry." in result.output

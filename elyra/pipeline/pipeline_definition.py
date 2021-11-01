@@ -84,7 +84,7 @@ class Pipeline(AppDataBase):
     @property
     def version(self) -> int:
         """
-        The pipelive version
+        The pipeline version
         :return: The version
         """
         return int(self._node['app_data'].get('version'))
