@@ -47,7 +47,6 @@ from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
-from elyra.pipeline.kfp.kfp_authentication import SupportedKFPAuthProviders
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.processor import PipelineProcessor
@@ -106,9 +105,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
         # Determine which provider to use to authenticate with Kubeflow
-        # If not set, use "auto" (try no authentication, followed by generic)
-        auth_type = runtime_configuration.metadata.get('auth_type',
-                                                       SupportedKFPAuthProviders.AUTO.value)
+        auth_type = runtime_configuration.metadata.get('auth_type')
 
         try:
             auth_info = \
@@ -120,8 +117,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             self.log.debug(f'Authenticator returned {auth_info}')
         except AuthenticationError as ae:
             if ae.get_request_history() is not None:
-                # TODO extract useful information from response object(s)
-                self.log.info(ae.get_request_history())
+                self.log.info('An authentication error was raised. Diagnostic information follows.')
+                self.log.info(ae.request_history_to_string())
             raise RuntimeError(f'Kubeflow authentication failed: {ae}')
 
         #############

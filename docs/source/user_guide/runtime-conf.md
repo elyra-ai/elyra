@@ -92,6 +92,7 @@ To create a runtime configuration for a Kubeflow Pipelines deployment:
 elyra-metadata install runtimes \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+       --auth_type="DEX with static password" \
        --api_username=username@email.com \
        --api_password=mypassword \
        --engine=Argo \
@@ -115,6 +116,7 @@ elyra-metadata install runtimes \
        --name="my_kubeflow_pipelines_runtime" \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+       --auth_type="DEX with static password" \
        --api_username=username@email.com \
        --api_password=mynewpassword \
        --engine=Argo \
@@ -181,16 +183,23 @@ The namespace used to run your pipeline in Kubeflow Pipelines. This setting is r
 
 Example: `anonymous`
 
-##### Kubeflow Pipelines API endpoint username (api_username)
-Username used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled.
-Currently, only Dex `staticPasswords` and `LDAP Connector` authentication types are supported.
+##### Kubeflow authentication type (auth_type)
+Authentication type Elyra uses to gain access to Kubeflow Pipelines. This setting is required. Supported types are:
+- No authentication.
+- DEX configured for static password authentication. This authentication requires a username and a password.
+- DEX configured for LDAP authentication. This authentication requires a username and a  password.
+- DEX (generic). Use this type only if none of the other authentication types applies or if your Kubeflow deployment is not configured for any other listed type. This authentication requires a username and a password.
+- Kubernetes service account token. This authentication type is only supported if Elyra runs as a pod in Kubernetes, e.g. as a Kubeflow notebook server. You must configure a service account token in Kubernetes, as outlined [here](https://www.kubeflow.org/docs/components/pipelines/sdk/connect-api/#multi-user-mode).
 
-(NOTE: if multiple Dex authentication types are enabled, we will try to use `staticPasswords`)
+##### Kubeflow Pipelines API endpoint username (api_username)
+
+A username is required for most authentication types. Refer to the Kubeflow authentication type setting for details.
 
 Example: `user@example.com`
 
 ##### Kubeflow Pipelines API endpoint (api_password)
-Password used to access your KubeFlow Pipelines API endpoint. This setting is required if the Kubeflow Pipelines deployment is multi-user, auth enabled.
+
+A password is required for most authentication types. Refer to the Kubeflow authentication type setting for details.
 
 Example: `mypassword`
 

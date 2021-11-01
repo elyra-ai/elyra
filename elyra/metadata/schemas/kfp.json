@@ -6,6 +6,7 @@
   "display_name": "Kubeflow Pipelines",
   "schemaspace": "runtimes",
   "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
+  "metadata_class_name": "elyra.pipeline.kfp.kfp_metadata.KfpMetadata",
   "uihints": {
     "title": "Kubeflow Pipelines runtimes",
     "icon": "elyra:runtimes",
@@ -69,13 +70,13 @@
           "description": "Authentication type Elyra uses to authenticate with Kubeflow",
           "type": "string",
           "enum": [
-            "Auto",
-            "KF_PIPELINES_SA_TOKEN_PATH",
-            "LDAP",
-            "No authentication",
-            "Static password"
+            "DEX (generic)",
+            "DEX with LDAP",
+            "DEX with static passwords",
+            "Kubernetes service account token",
+            "No authentication"
           ],
-          "default": "Auto",
+          "default": "No authentication",
           "uihints": {
             "field_type": "dropdown",
             "category": "Kubeflow Pipelines"
