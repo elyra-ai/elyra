@@ -84,33 +84,6 @@
             "placeholder": "false",
             "category": "Configuration"
           }
-        },
-        "int_field": {
-          "title": "Test Field Integer",
-          "description": "Test an integer",
-          "type": "integer",
-          "uihints": {
-            "field_type": "numeric",
-            "category": "Configuration"
-          }
-        },
-        "number_field": {
-          "title": "Test Field Number",
-          "description": "Test an Number",
-          "type": "number",
-          "uihints": {
-            "field_type": "numeric",
-            "category": "Configuration"
-          }
-        },
-        "required_number_field": {
-          "title": "Test Required Number",
-          "description": "Test an Number",
-          "type": "number",
-          "uihints": {
-            "field_type": "numeric",
-            "category": "Configuration"
-          }
         }
       },
       "required": ["runtime", "paths", "required_number_field"]
