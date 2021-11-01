@@ -579,7 +579,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
         request_history = []
 
         # Verify the API endpoint
-        resp = requests.get(kf_endpoint)
+        resp = requests.get(kf_endpoint, allow_redirects=True)
         request_history.append((kf_endpoint, resp))
         if resp.status_code != HTTPStatus.OK:
             raise AuthenticationError(f'Error detecting whether Kubeflow server at {kf_endpoint} is secured: '
@@ -659,7 +659,7 @@ class DEXLegacyAuthenticator(AbstractAuthenticator):
         # try to authenticate using the provided credentials
         if 'dex/auth' in resp.url:
 
-            if username is None or password is None:
+            if _isNoneOrWhitespacesOnly(username) or _isNoneOrWhitespacesOnly(password):
                 raise AuthenticationError(f'Kubeflow server at {kf_endpoint} is secured: '
                                           'username and password are required. '
                                           f'Update runtime configuration \'{runtime_config_name}\' and try again.',
