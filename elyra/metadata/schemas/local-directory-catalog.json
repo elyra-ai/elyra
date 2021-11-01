@@ -86,7 +86,7 @@
           }
         }
       },
-      "required": ["runtime", "paths", "required_number_field"]
+      "required": ["runtime", "paths"]
     }
   },
   "required": ["schema_name", "display_name", "version", "metadata"]
