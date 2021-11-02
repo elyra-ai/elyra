@@ -35,16 +35,14 @@ env_var_secret_key = Secret(deploy_type='env',
 {% for key, operation in operations_list.items() %}
 
 {% if not operation.is_generic_operator %}
-{% if operation.is_contrib_operator %}
-from airflow.contrib.operators.{{operation.module_name}} import {{ operation.class_name }}
-{% else %}
-from airflow.operators.{{operation.module_name}} import {{ operation.class_name }}
-{% endif %}
+{% for import_statement in operation.imports %}
+{{import_statement}}
+{% endfor %}
 {% else %}
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 {% endif %}
 
-# Operator source: {{ operation.operator_source }}{% if not operation.is_generic_operator %}
+{% if operation.operator_source %}# Operator source: {{ operation.operator_source }}{% endif %}{% if not operation.is_generic_operator %}
 op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
                                                            task_id='{{ operation.notebook|regex_replace }}',
         {% for param, value in operation.component_params.items() %}

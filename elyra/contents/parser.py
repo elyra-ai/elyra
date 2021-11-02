@@ -86,7 +86,7 @@ class NotebookReader(FileReader):
                 yield cell.source.split('\n')
 
 
-class ScriptParser:
+class ScriptParser(object):
     """
     Base class for parsing individual lines of code. Subclasses implement a search_expressions()
     function that returns language-specific regexes to match against code lines.

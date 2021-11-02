@@ -45,7 +45,8 @@ valid_metadata_json = {
         'uri_test': 'http://localhost:31823/v1/models?version=2017-02-13',
         'number_range_test': 8,
         'required_test': "required_value"
-    }
+    },
+    "version": 0
 }
 
 valid_metadata2_json = {
@@ -330,8 +331,8 @@ class MockMetadataTest(Metadata):
             d['post_property'] = self.post_property
         return d
 
-    def post_load(self, **kwargs: Any) -> None:
-        super().post_load(**kwargs)
+    def on_load(self, **kwargs: Any) -> None:
+        super().on_load(**kwargs)
         self.post_property = self.display_name
 
     def pre_save(self, **kwargs: Any) -> None:

@@ -21,7 +21,7 @@ from typing import List
 from typing import Optional
 
 
-class AppDataBase:  # ABC
+class AppDataBase(object):  # ABC
     """
     An abstraction for app_data based nodes
     """

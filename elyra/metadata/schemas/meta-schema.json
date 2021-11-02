@@ -24,6 +24,11 @@
       "description": "Class used by metadata service to alter instances on load, save, and deletion.",
       "type": "string"
     },
+    "deprecated": {
+      "title": "Deprecated",
+      "description": "Indicates this schema is deprecated.  When deprecated, the schema can only be retrieved by name.",
+      "type": "boolean"
+    },
     "properties": {
       "type": "object",
       "required": ["schema_name", "display_name", "metadata"],
