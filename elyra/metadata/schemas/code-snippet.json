@@ -3,7 +3,6 @@
   "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/code-snippet.json",
   "title": "Code Snippet",
   "name": "code-snippet",
-  "display_name": "Code Snippet",
   "schemaspace": "code-snippets",
   "schemaspace_id": "aa60988f-8f7c-4d09-a243-c54ef9c2f7fb",
   "uihints": {
