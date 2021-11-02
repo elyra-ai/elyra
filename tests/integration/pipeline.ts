@@ -108,7 +108,7 @@ describe('Pipeline Editor tests', () => {
       /clear/i,
       /open runtimes/i,
       /open runtime images/i,
-      /open pipeline components/i,
+      /open component catalogs/i,
       /undo/i,
       /add comment/i,
       /arrange horizontally/i,
