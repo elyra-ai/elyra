@@ -29,8 +29,6 @@ from typing import Optional
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
-from traitlets.traitlets import CUnicode
-from traitlets.traitlets import Dict as DictTrait
 from traitlets.traitlets import Integer
 
 from elyra.metadata.metadata import Metadata
@@ -41,23 +39,9 @@ class ComponentCatalogConnector(LoggingConfigurable):
     Abstract class to model component_entry readers that can read components from different locations
     """
 
-    # Data structure to encapsulate various capabilities & flags for a connector class
-    configuration = DictTrait(
-        default_value={
-            "max_readers": 3  # Sets the number of reader threads in read_component_definitions()
-        },
-        per_key_traits={
-            "max_readers": Integer()
-        },
-        key_trait=CUnicode(),
-        help="""A dictionary of configurable settings for a ComponentCatalogConnector class.
-        Subclasses can override these settings as needed.
-
-        Settings:
-            'max_readers': Integer; sets the maximum number of reader threads to be used to read
-                           catalog entries in parallel in read_component_definitions(); default 3
-        """
-    ).tag(config=True)
+    max_readers = Integer(3, config=True, allow_none=True,
+                          help="""Sets the maximum number of reader threads to be used to read
+                          catalog entries in parallel""")
 
     def __init__(self, file_types: List[str], **kwargs):
         super().__init__(**kwargs)
@@ -306,7 +290,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         # Start 'max_reader' reader threads if catalog includes more than 'max_reader'
         # number of catalog entries, else start one thread per entry
-        num_threads = min(catalog_entry_q.qsize(), self.configuration['max_readers'])
+        num_threads = min(catalog_entry_q.qsize(), self.max_readers)
         for i in range(num_threads):
             Thread(target=read_with_thread).start()
 
