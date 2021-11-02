@@ -599,7 +599,7 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
         virtual_env_dict[package_name] = package_version
 
     for package, version in correct_dict.items():
-        assert virtual_env_dict[package] == version
+        assert virtual_env_dict[package].split('.')[0] == version.split('.')[0]
 
 
 def test_convert_notebook_to_html(tmpdir):

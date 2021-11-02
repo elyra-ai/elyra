@@ -638,11 +638,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
 
-                component_source = {component.location_type: component.location}
-
                 # Build component task factory
                 try:
-                    factory_function = components.load_component(**component_source)
+                    factory_function = components.load_component_from_text(component.definition)
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
                     self.log.error(f"Error loading component spec for {operation.name}: {str(e)}")

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import ast
 import os
 import tarfile
 from unittest import mock
@@ -24,6 +23,8 @@ import pytest
 import yaml
 
 from elyra.metadata.metadata import Metadata
+from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
+from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
@@ -273,20 +274,29 @@ def test_process_dictionary_value_function(processor):
 
 
 def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+    # Define the appropriate reader for a URL-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = UrlComponentCatalogConnector(kfp_supported_file_types)
+
     # Assign test resource location
     url = 'https://raw.githubusercontent.com/elyra-ai/elyra/master/' \
           'elyra/tests/pipeline/resources/components/filter_text.yaml'
 
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    component_definition = reader.read_catalog_entry({"url": url}, {})
+
     # Instantiate a url-based component
-    component_id = 'filter-text'
+    component_id = 'url-catalog:7f0546b6135c'
     component = Component(id=component_id,
                           name="Filter text",
                           description="",
-                          op="filter-text",
-                          location_type="url",
-                          location=url,
-                          properties=[],
-                          categories=[])
+                          op="filter-text",  # TODO remove this??
+                          catalog_type="url-catalog",
+                          source_identifier={"url": url},
+                          definition=component_definition,
+                          categories=[],
+                          properties=[])
 
     # Replace cached component registry with single url-based component for testing
     processor._component_registry._cached_components = {component_id: component}
@@ -338,24 +348,29 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     assert pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/task_display_name'] == operation_name
     assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
 
-    component_ref = pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/component_ref']
-    component_ref = ast.literal_eval(component_ref)
-    assert component_ref['url'] == url
-
 
 def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+    # Define the appropriate reader for a filesystem-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
+
     # Assign test resource location
     relative_path = "kfp/filter_text_using_shell_and_grep.yaml"
     absolute_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', relative_path)
 
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    component_definition = reader.read_catalog_entry({"path": absolute_path}, {})
+
     # Instantiate a file-based component
-    component_id = "filter-text"
+    component_id = "local-directory-catalog:7f0546b6135c"
     component = Component(id=component_id,
                           name="Filter text",
                           description="",
                           op="filter-text",
-                          location_type="filename",
-                          location=absolute_path,
+                          catalog_type="local-directory-catalog",
+                          source_identifier={"path": absolute_path},
+                          definition=component_definition,
                           properties=[],
                           categories=[])
 
@@ -408,7 +423,3 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     pipeline_template = pipeline_yaml['spec']['templates'][0]
     assert pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/task_display_name'] == operation_name
     assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
-
-    component_ref = pipeline_template['metadata']['annotations']['pipelines.kubeflow.org/component_ref']
-    component_ref = ast.literal_eval(component_ref)
-    assert absolute_path in component_ref['url']

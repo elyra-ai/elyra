@@ -36,7 +36,7 @@ import {
   kubeflowIcon,
   airflowIcon,
   argoIcon,
-  pipelineComponentsIcon
+  componentCatalogIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
 import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
@@ -836,7 +836,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         case 'openRuntimeImages':
           shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_SCHEMASPACE}`);
           break;
-        case 'openPipelineComponents':
+        case 'openComponentCatalogs':
           shell.activateById(
             `elyra-metadata:${PIPELINE_COMPONENTS_SCHEMASPACE}`
           );
@@ -906,11 +906,11 @@ const PipelineWrapper: React.FC<IProps> = ({
         iconDisabled: IconUtil.encode(containerIcon)
       },
       {
-        action: 'openPipelineComponents',
-        label: 'Open Pipeline Components',
+        action: 'openComponentCatalogs',
+        label: 'Open Component Catalogs',
         enable: true,
-        iconEnabled: IconUtil.encode(pipelineComponentsIcon),
-        iconDisabled: IconUtil.encode(pipelineComponentsIcon)
+        iconEnabled: IconUtil.encode(componentCatalogIcon),
+        iconDisabled: IconUtil.encode(componentCatalogIcon)
       },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },

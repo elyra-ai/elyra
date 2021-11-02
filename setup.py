@@ -142,6 +142,11 @@ setup_args = dict(
             'airflow = elyra.pipeline.airflow.processor_airflow:AirflowPipelineProcessor',
             'kfp = elyra.pipeline.kfp.processor_kfp:KfpPipelineProcessor'
         ],
+        'elyra.component.catalog_types': [
+            'url-catalog = elyra.pipeline.catalog_connector:UrlComponentCatalogConnector',
+            'local-file-catalog = elyra.pipeline.catalog_connector:FilesystemComponentCatalogConnector',
+            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector'
+        ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',
         ]
