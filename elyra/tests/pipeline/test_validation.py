@@ -128,7 +128,6 @@ async def test_invalid_runtime_node_kubeflow_with_supernode(validation_manager, 
                                                      pipeline_type='kfp',
                                                      pipeline_runtime='kfp')
     issues = response.to_json().get('issues')
-    print(issues)
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidNodeType'
