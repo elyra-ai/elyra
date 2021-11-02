@@ -16,6 +16,7 @@
 
 from typing import Any
 
+from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.kfp.kfp_authentication import SupportedAuthProviders
 from elyra.pipeline.runtimes_metadata import RuntimesMetadata
 
@@ -25,7 +26,7 @@ class KfpMetadata(RuntimesMetadata):
     Applies changes specific to the kfp schema
     """
 
-    def post_load(self, **kwargs: Any) -> None:
+    def on_load(self, **kwargs: Any) -> None:
 
         if self.metadata.get('auth_type') is None:
             # Inject auth_type property for metadata persisted using Elyra < 3.3:
@@ -38,5 +39,9 @@ class KfpMetadata(RuntimesMetadata):
                 self.metadata['auth_type'] = SupportedAuthProviders.NO_AUTHENTICATION.name
             else:
                 self.metadata['auth_type'] = SupportedAuthProviders.DEX_LEGACY.name
+
+            print('****************')
+            # save changes
+            MetadataManager(schemaspace="runtimes").update(self.name, self, for_migration=True)
 
         return None

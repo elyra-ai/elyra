@@ -81,9 +81,7 @@ class RuntimesSchemas(ElyraSchemasProvider):
                 if schema['name'] == 'kfp':
                     kfp_needed = True
 
-        runtime_schemas = self.get_schemas_by_name(schemas)
-        if kfp_needed:
-            # Update the kfp engine enum to reflect current packages...
+        if kfp_needed:  # Update the kfp engine enum to reflect current packages...
             # If TektonClient package is missing, navigate to the engine property
             # and remove 'tekton' entry if present and return updated result.
             if not TektonClient:
