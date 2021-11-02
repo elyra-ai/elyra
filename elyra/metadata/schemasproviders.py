@@ -28,10 +28,24 @@ except ImportError:
     TektonClient = None
 
 from elyra.metadata.schema import SchemasProvider
+from elyra.metadata.schemaspaces import CodeSnippets
+from elyra.metadata.schemaspaces import ComponentRegistries
+from elyra.metadata.schemaspaces import RuntimeImages
+from elyra.metadata.schemaspaces import Runtimes
 
 
 class ElyraSchemasProvider(SchemasProvider, metaclass=ABCMeta):
     """Base class used for retrieving Elyra-based schema files from its metadata/schemas directory."""
+
+    # Just read the schema files once.  Note that this list will also include the meta-schema.json.
+    local_schemas = []
+    schema_dir = os.path.join(os.path.dirname(__file__), 'schemas')
+    schema_files = [json_file for json_file in os.listdir(schema_dir) if json_file.endswith('.json')]
+    for json_file in schema_files:
+        schema_file = os.path.join(schema_dir, json_file)
+        with io.open(schema_file, 'r', encoding='utf-8') as f:
+            schema_json = json.load(f)
+            local_schemas.append(schema_json)
 
     def __init__(self):
         # get set of registered runtimes
@@ -42,36 +56,30 @@ class ElyraSchemasProvider(SchemasProvider, metaclass=ABCMeta):
                 continue
             self._runtime_processor_names.add(processor.name)
 
-    def get_schemas_by_name(self, schema_names: List[str]) -> List[Dict]:
+    def get_local_schemas_by_schemaspace(self, schemaspace_id: str) -> List[Dict]:
+        """Returns a list of local schemas associated with the given schemaspace_id """
         schemas = []
-        schema_dir = os.path.join(os.path.dirname(__file__), 'schemas')
-        schema_files = [json_file for json_file in os.listdir(schema_dir) if json_file.endswith('.json')]
-        for json_file in schema_files:
-            basename = os.path.splitext(json_file)[0]
-            if basename in schema_names:
-                schema_file = os.path.join(schema_dir, json_file)
-                with io.open(schema_file, 'r', encoding='utf-8') as f:
-                    schema_json = json.load(f)
-                    schemas.append(schema_json)
+        for schema in ElyraSchemasProvider.local_schemas:
+            if schema.get('schemaspace_id') == schemaspace_id:
+                schemas.append(schema)
         return schemas
 
 
 class RuntimesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Runtimes schemaspace only for THIS provider."""
 
-    elyra_processors = ['airflow', 'kfp']
-
     def get_schemas(self) -> List[Dict]:
-        schemas = []
+
         kfp_needed = False
         # determine if both airflow and kfp are needed and note if kfp is needed for later
-        for elyra_processor in self.elyra_processors:
-            if elyra_processor in self._runtime_processor_names:
-                schemas.append(elyra_processor)
-                if elyra_processor == 'kfp':
+        runtime_schemas = []
+        schemas = self.get_local_schemas_by_schemaspace(Runtimes.RUNTIMES_SCHEMASPACE_ID)
+        for schema in schemas:
+            if schema['name'] in self._runtime_processor_names:
+                runtime_schemas.append(schema)
+                if schema['name'] == 'kfp':
                     kfp_needed = True
 
-        runtime_schemas = self.get_schemas_by_name(schemas)
         if kfp_needed:  # Update the kfp engine enum to reflect current packages...
             # If TektonClient package is missing, navigate to the engine property
             # and remove 'tekton' entry if present and return updated result.
@@ -89,22 +97,17 @@ class RuntimesSchemas(ElyraSchemasProvider):
 class RuntimeImagesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Runtime Images schemaspace."""
     def get_schemas(self) -> List[Dict]:
-        return self.get_schemas_by_name(['runtime-image'])
+        return self.get_local_schemas_by_schemaspace(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
 
 
 class CodeSnippetsSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Code Snippets schemaspace."""
     def get_schemas(self) -> List[Dict]:
-        return self.get_schemas_by_name(['code-snippet'])
+        return self.get_local_schemas_by_schemaspace(CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID)
 
 
 class ComponentRegistriesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Component Registries schemaspace."""
     def get_schemas(self) -> List[Dict]:
-        schemas = self.get_schemas_by_name(['component-registry'])
-
-        # Update runtime enum with set of currently registered runtimes
-        for schema in schemas:
-            schema['properties']['metadata']['properties']['runtime']['enum'] = list(self._runtime_processor_names)
-
+        schemas = self.get_local_schemas_by_schemaspace(ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
         return schemas

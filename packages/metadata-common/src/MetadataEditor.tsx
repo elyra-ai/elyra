@@ -20,6 +20,7 @@ import {
   ThemeProvider,
   RequestErrors,
   TextInput,
+  BooleanInput,
   ArrayInput
 } from '@elyra/ui-components';
 
@@ -204,6 +205,7 @@ export class MetadataEditor extends ReactWidget {
 
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleArrayInputChange = this.handleArrayInputChange.bind(this);
+    this.handleBooleanInputChange = this.handleBooleanInputChange.bind(this);
     this.handleChangeOnTag = this.handleChangeOnTag.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.renderField = this.renderField.bind(this);
@@ -396,6 +398,11 @@ export class MetadataEditor extends ReactWidget {
     this.metadata[schemaField] = values;
   }
 
+  handleBooleanInputChange(schemaField: string, value: boolean): void {
+    this.handleDirtyState(true);
+    this.metadata[schemaField] = value;
+  }
+
   handleDropdownChange = (schemaField: string, value: string): void => {
     this.handleDirtyState(true);
     this.metadata[schemaField] = value;
@@ -577,6 +584,19 @@ export class MetadataEditor extends ReactWidget {
           placeholder={uihints.placeholder}
           onChange={(values: string[]): void => {
             this.handleArrayInputChange(fieldName, values);
+          }}
+        />
+      );
+    } else if (uihints.field_type === 'boolean') {
+      return (
+        <BooleanInput
+          label={this.schema[fieldName].title}
+          key={`${fieldName}BooleanInput`}
+          defaultValue={
+            this.metadata[fieldName] ?? this.schema[fieldName].default
+          }
+          onChange={(value): void => {
+            this.handleBooleanInputChange(fieldName, value);
           }}
         />
       );

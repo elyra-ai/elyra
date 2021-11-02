@@ -108,7 +108,7 @@ describe('Pipeline Editor tests', () => {
       /clear/i,
       /open runtimes/i,
       /open runtime images/i,
-      /open pipeline components/i,
+      /open component catalogs/i,
       /undo/i,
       /add comment/i,
       /arrange horizontally/i,
@@ -534,8 +534,8 @@ describe('Pipeline Editor tests', () => {
     cy.expandPaletteCategory({ type: 'kfp' });
 
     const kfpCustomComponents = [
-      'filter_text_using_shell_and_grep_Filtertext',
-      'run_notebook_using_papermill_Runnotebookusingpapermill'
+      'local-directory-catalog\\:737915b826e9', // filter text
+      'local-directory-catalog\\:61e6f4141f65' // run notebook using papermill
     ];
 
     kfpCustomComponents.forEach(component => {
@@ -563,11 +563,11 @@ describe('Pipeline Editor tests', () => {
     cy.expandPaletteCategory({ type: 'airflow' });
 
     const airflowCustomComponents = [
-      'bash_operator_BashOperator',
-      'email_operator_EmailOperator',
-      'http_operator_SimpleHttpOperator',
-      'spark_sql_operator_SparkSqlOperator',
-      'spark_submit_operator_SparkSubmitOperator'
+      'url-catalog\\:49f8e61b78c3', // bash operator
+      'url-catalog\\:8bef428ea3cd', // email operator
+      'url-catalog\\:e97030fb448a', // http operator
+      'url-catalog\\:ff0d51b70719', // spark sql operator
+      'url-catalog\\:2756314f3ff5' // spark submit operator
     ];
 
     airflowCustomComponents.forEach(component => {

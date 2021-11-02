@@ -20,6 +20,7 @@ export * from './FormDialog';
 export * from './icons';
 export * from './DropDown';
 export * from './TextInput';
+export * from './BooleanInput';
 export * from './JSONComponent';
 export * from './Dropzone';
 export * from './RequestErrors';
