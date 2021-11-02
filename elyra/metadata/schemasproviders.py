@@ -28,6 +28,7 @@ except ImportError:
     TektonClient = None
 
 from elyra.metadata.schema import SchemasProvider
+from elyra.pipeline.kfp.kfp_authentication import SupportedAuthProviders
 
 
 class ElyraSchemasProvider(SchemasProvider, metaclass=ABCMeta):
@@ -72,7 +73,8 @@ class RuntimesSchemas(ElyraSchemasProvider):
                     kfp_needed = True
 
         runtime_schemas = self.get_schemas_by_name(schemas)
-        if kfp_needed:  # Update the kfp engine enum to reflect current packages...
+        if kfp_needed:
+            # Update the kfp engine enum to reflect current packages...
             # If TektonClient package is missing, navigate to the engine property
             # and remove 'tekton' entry if present and return updated result.
             if not TektonClient:
@@ -83,6 +85,19 @@ class RuntimesSchemas(ElyraSchemasProvider):
                         if 'Tekton' in engine_enum:
                             engine_enum.remove('Tekton')
                             schema['properties']['metadata']['properties']['engine']['enum'] = engine_enum
+
+            # For KFP schemas replace placeholders:
+            # - properties.metadata.properties.auth_type.enum ({AUTH_PROVIDER_PLACEHOLDERS})
+            # - properties.metadata.properties.auth_type.default ({DEFAULT_AUTH_PROVIDER_PLACEHOLDER})
+            auth_type_enum = SupportedAuthProviders.get_provider_names()
+            auth_type_default = SupportedAuthProviders.get_default_provider().name
+
+            for schema in runtime_schemas:
+                if schema['name'] == 'kfp':
+                    if schema['properties']['metadata']['properties'].get('auth_type') is not None:
+                        schema['properties']['metadata']['properties']['auth_type']['enum'] = auth_type_enum
+                        schema['properties']['metadata']['properties']['auth_type']['default'] = auth_type_default
+
         return runtime_schemas
 
 

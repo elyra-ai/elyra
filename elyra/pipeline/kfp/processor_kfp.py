@@ -110,7 +110,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         try:
             auth_info = \
                 KFPAuthenticator().authenticate(api_endpoint,
-                                                auth_type=auth_type,
+                                                auth_type_str=auth_type,
                                                 runtime_config_name=pipeline.runtime_config,
                                                 auth_parm_1=api_username,
                                                 auth_parm_2=api_password)

@@ -92,7 +92,7 @@ To create a runtime configuration for a Kubeflow Pipelines deployment:
 elyra-metadata install runtimes \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
-       --auth_type="DEX with static password" \
+       --auth_type="DEX_STATIC_PASSWORDS" \
        --api_username=username@email.com \
        --api_password=mypassword \
        --engine=Argo \
@@ -116,7 +116,7 @@ elyra-metadata install runtimes \
        --name="my_kubeflow_pipelines_runtime" \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
-       --auth_type="DEX with static password" \
+       --auth_type="DEX_STATIC_PASSWORDS" \
        --api_username=username@email.com \
        --api_password=mynewpassword \
        --engine=Argo \
@@ -185,11 +185,11 @@ Example: `anonymous`
 
 ##### Kubeflow authentication type (auth_type)
 Authentication type Elyra uses to gain access to Kubeflow Pipelines. This setting is required. Supported types are:
-- No authentication.
-- DEX configured for static password authentication. This authentication requires a username and a password.
-- DEX configured for LDAP authentication. This authentication requires a username and a  password.
-- DEX (generic). Use this type only if none of the other authentication types applies or if your Kubeflow deployment is not configured for any other listed type. This authentication requires a username and a password.
-- Kubernetes service account token. This authentication type is only supported if Elyra runs as a pod in Kubernetes, e.g. as a Kubeflow notebook server. You must configure a service account token in Kubernetes, as outlined [here](https://www.kubeflow.org/docs/components/pipelines/sdk/connect-api/#multi-user-mode).
+- No authentication (`NO_AUTHENTICATION`).
+- Kubernetes service account token (`KUBERNETES_SERVICEACCOUNT_TOKEN`). This authentication type is only supported if Elyra runs as a pod in Kubernetes, e.g. as a Kubeflow notebook server. You must configure a service account token in Kubernetes, as outlined [here](https://www.kubeflow.org/docs/components/pipelines/sdk/connect-api/#multi-user-mode).
+- DEX configured for static password authentication (`DEX_STATIC_PASSWORDS`). This authentication requires a username and a password.
+- DEX configured for LDAP authentication (`DEX_LDAP`). This authentication requires a username and a  password.
+- DEX (`DEX_LEGACY`). Use this type only if none of the other authentication types applies or if your Kubeflow deployment is not configured for any other listed type. This authentication requires a username and a password.
 
 ##### Kubeflow Pipelines API endpoint username (api_username)
 
@@ -197,7 +197,7 @@ A username is required for most authentication types. Refer to the Kubeflow auth
 
 Example: `user@example.com`
 
-##### Kubeflow Pipelines API endpoint (api_password)
+##### Kubeflow Pipelines API endpoint password (api_password)
 
 A password is required for most authentication types. Refer to the Kubeflow authentication type setting for details.
 

@@ -35,8 +35,8 @@ class KfpMetadata(RuntimesMetadata):
                len(self.metadata.get('api_username').strip()) == 0 or\
                self.metadata.get('api_password') is None or\
                len(self.metadata.get('api_password').strip()) == 0:
-                self.metadata['auth_type'] = SupportedAuthProviders.NO_AUTHENTICATION.value
+                self.metadata['auth_type'] = SupportedAuthProviders.NO_AUTHENTICATION.name
             else:
-                self.metadata['auth_type'] = SupportedAuthProviders.DEX_LEGACY.value
+                self.metadata['auth_type'] = SupportedAuthProviders.DEX_LEGACY.name
 
         return None

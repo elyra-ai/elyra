@@ -69,14 +69,8 @@
           "title": "Authentication Type",
           "description": "Authentication type Elyra uses to authenticate with Kubeflow",
           "type": "string",
-          "enum": [
-            "DEX (generic)",
-            "DEX with LDAP",
-            "DEX with static passwords",
-            "Kubernetes service account token",
-            "No authentication"
-          ],
-          "default": "No authentication",
+          "enum": ["{AUTH_PROVIDER_PLACEHOLDERS}"],
+          "default": "{DEFAULT_AUTH_PROVIDER_PLACEHOLDER}",
           "uihints": {
             "field_type": "dropdown",
             "category": "Kubeflow Pipelines"
