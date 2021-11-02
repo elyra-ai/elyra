@@ -154,21 +154,21 @@ const extension: JupyterFrontEndPlugin<void> = {
       label: (args: any) => {
         return args['isPalette']
           ? 'New Pipeline Editor'
-          : args.runtime?.display_name
+          : args.runtime?.title
           ? args.isMenu
-            ? `${args.runtime?.display_name} Pipeline Editor`
+            ? `${args.runtime?.title} Pipeline Editor`
             : 'Pipeline Editor'
           : 'Generic Pipeline Editor';
       },
       caption: (args: any) =>
-        args.runtime?.display_name
-          ? `${args.runtime?.display_name} Pipeline Editor`
+        args.runtime?.title
+          ? `${args.runtime?.title} Pipeline Editor`
           : 'Generic Pipeline Editor',
       iconLabel: (args: any) =>
         args['isPalette']
           ? ''
-          : args.runtime?.display_name
-          ? `${args.runtime?.display_name} Pipeline Editor`
+          : args.runtime?.title
+          ? `${args.runtime?.title} Pipeline Editor`
           : 'Generic Pipeline Editor',
       icon: (args: any) => {
         if (args['isPalette']) {
@@ -300,7 +300,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       display_name: 'Runtimes',
       schemaspace: RUNTIMES_SCHEMASPACE,
       icon: runtimesIcon,
-      schemaType: 'runtime'
+      schemaType: 'runtime configuration'
     });
     const runtimesWidgetID = `elyra-metadata:${RUNTIMES_SCHEMASPACE}`;
     runtimesWidget.id = runtimesWidgetID;

@@ -148,7 +148,7 @@ export class FileSubmissionDialog extends React.Component<IProps, IState> {
         >
           {validSchemas.map(schema => (
             <option key={schema.name} value={schema.name}>
-              {schema.display_name}
+              {schema.title}
             </option>
           ))}
         </select>
