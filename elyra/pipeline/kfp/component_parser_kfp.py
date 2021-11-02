@@ -52,7 +52,7 @@ class KfpComponentParser(ComponentParser):
             catalog_type=registry_entry.catalog_type,
             source_identifier=registry_entry.component_identifier,
             definition=registry_entry.component_definition,
-            runtime_type=self.component_platform,
+            runtime_type=self.component_platform.name,
             categories=registry_entry.categories,
             properties=component_properties
         )

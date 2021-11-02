@@ -178,6 +178,17 @@ export class PipelineService {
   }
 
   /**
+   * The runtime type is found from the runtime (named) schema
+   * @param name
+   * @param metadataArr
+   */
+  static getRuntimeType(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)?.metadata?.[
+      'runtime_type'
+    ];
+  }
+
+  /**
    * Creates a Dialog for passing to makeServerRequest
    */
   static getWaitDialog(

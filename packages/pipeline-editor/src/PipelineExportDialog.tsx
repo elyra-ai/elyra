@@ -23,6 +23,7 @@ import {
   PipelineService
 } from './PipelineService';
 
+// TODO - these (xxx_FILE_TYPES) should eventually come from processor implementations
 const KFP_FILE_TYPES = [
   { label: 'KFP domain-specific language Python code', key: 'py' },
   { label: 'KFP static configuration file (YAML formatted)', key: 'yaml' }
@@ -68,6 +69,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
     return filteredRuntimeOptions;
   };
 
+  // TODO - this needs updating for BYO runtimes
   updateFileTypeOptions = (
     platformSelection: string
   ): Record<string, string>[] => {

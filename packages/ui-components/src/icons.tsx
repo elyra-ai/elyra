@@ -42,11 +42,11 @@ export const importIcon = new LabIcon({
   svgstr: importSvg
 });
 export const airflowIcon = new LabIcon({
-  name: 'elyra:airflow',
+  name: 'elyra:APACHE_AIRFLOW',
   svgstr: airflowSvg
 });
 export const argoIcon = new LabIcon({
-  name: 'elyra:argo',
+  name: 'elyra:ARGO',
   svgstr: argoSvg
 });
 export const codeSnippetIcon = new LabIcon({
@@ -58,7 +58,7 @@ export const dragDropIcon = new LabIcon({
   svgstr: dragDropSvg
 });
 export const kubeflowIcon = new LabIcon({
-  name: 'elyra:kfp',
+  name: 'elyra:KUBEFLOW_PIPELINES',
   svgstr: kubeflowSvg
 });
 export const elyraIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elyraSvg });

@@ -52,7 +52,7 @@ class AirflowComponentParser(ComponentParser):
                     catalog_type=registry_entry.catalog_type,
                     source_identifier=registry_entry.component_identifier,
                     definition=self.get_class_def_as_string(component_content),
-                    runtime_type=self.component_platform,
+                    runtime_type=self.component_platform.name,
                     categories=registry_entry.categories,
                     properties=component_properties
                 )

@@ -170,6 +170,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [alert, setAlert] = React.useState('');
 
   const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
+  const pipelineRuntimeType = pipeline?.pipelines?.[0]?.app_data?.runtime_type;
 
   const { data: palette, error: paletteError } = usePalette(
     pipelineRuntimeName
@@ -601,6 +602,10 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const runtime_config = dialogResult.value.runtime_config;
     const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
+    const runtime_type = PipelineService.getRuntimeType(
+      runtime_config,
+      runtimes
+    );
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
@@ -611,6 +616,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     pipelineJson.pipelines[0].app_data.name = pipeline_name;
     pipelineJson.pipelines[0].app_data.runtime = runtime;
+    pipelineJson.pipelines[0].app_data['runtime_type'] = runtime_type;
     pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
     pipelineJson.pipelines[0].app_data.source = PathExt.basename(
       contextRef.current.path
@@ -747,6 +753,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     const runtime_config = dialogResult.value.runtime_config;
     const runtime =
       PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
+    const runtime_type =
+      PipelineService.getRuntimeType(runtime_config, runtimes) || 'LOCAL';
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
@@ -758,6 +766,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipelineJson.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
     pipelineJson.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineJson.pipelines[0]['app_data']['runtime_type'] = runtime_type;
     pipelineJson.pipelines[0]['app_data']['runtime-config'] = runtime_config;
     pipelineJson.pipelines[0]['app_data']['source'] = PathExt.basename(
       contextRef.current.path
@@ -938,11 +947,11 @@ const PipelineWrapper: React.FC<IProps> = ({
         enable: false,
         kind: 'tertiary',
         iconEnabled: IconUtil.encode(
-          pipelineRuntimeName === 'kfp'
+          pipelineRuntimeType === 'KUBEFLOW_PIPELINES'
             ? kubeflowIcon
-            : pipelineRuntimeName === 'airflow'
+            : pipelineRuntimeType === 'APACHE_AIRFLOW'
             ? airflowIcon
-            : pipelineRuntimeName === 'argo'
+            : pipelineRuntimeType === 'ARGO'
             ? argoIcon
             : pipelineIcon
         )

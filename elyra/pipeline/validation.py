@@ -25,6 +25,8 @@ from typing import Optional
 import networkx as nx
 from traitlets.config import SingletonConfigurable
 
+from elyra.metadata.schema import SchemaManager
+from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.pipeline import Operation
@@ -195,6 +197,15 @@ class PipelineValidationManager(SingletonConfigurable):
                                  data={"supported_version": PIPELINE_CURRENT_VERSION,
                                        "detected_version": pipeline_version})
 
+    @staticmethod
+    def _is_compatible_pipeline(runtime_name: str, runtime_type: str):
+        """Returns true if the pipeline's runtime name is compatible to its type. """
+        if runtime_type == 'generic':  # TODO: this won't always be true
+            return True
+        # fetch the metadata instance corresponding to runtime_name and compare its runtime_type
+        runtime_schema = SchemaManager.instance().get_schema(Runtimes.RUNTIMES_SCHEMASPACE_ID, runtime_name)
+        return runtime_schema.get('runtime_type') == runtime_type
+
     async def _validate_compatibility(self, pipeline_definition: PipelineDefinition,
                                       pipeline_type: str,
                                       pipeline_runtime: str,
@@ -212,9 +223,7 @@ class PipelineValidationManager(SingletonConfigurable):
         supported_ops = []
 
         if pipeline_runtime:
-            # TODO, need to get the schema corresponding to pipeline_runtime and compare its
-            # runtime_type value to pipeline_type and replace pipeline_runtime with that value below.
-            if pipeline_runtime != pipeline_type and pipeline_type != 'generic':
+            if not PipelineValidationManager._is_compatible_pipeline(pipeline_runtime, pipeline_type):
                 response.add_message(severity=ValidationSeverity.Error,
                                      message_type="invalidRuntime",
                                      message="Pipeline runtime platform is not compatible "
@@ -262,8 +271,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         if pipeline_runtime:
             # don't check if incompatible pipeline type and runtime
-            # TODO - see previous TODO.  Should probably make this check a helper method
-            if pipeline_runtime != pipeline_type and pipeline_type != 'generic':
+            if not PipelineValidationManager._is_compatible_pipeline(pipeline_runtime, pipeline_type):
                 return
 
         for pipeline in pipeline_definition.pipelines:

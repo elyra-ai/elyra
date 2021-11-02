@@ -20,6 +20,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 class AppDataBase(object):  # ABC
     """
@@ -111,30 +112,15 @@ class Pipeline(AppDataBase):
         The pipeline type
         :return: The runtime keyword associated with the pipeline or `generic`
         """
-        # TODO this needs to check 'app_data'.'runtime_type', but can only occur once
-        # front-end builds the proper pipeline.
-        # New code follows here once field exists.
-        # if 'runtime_type' in self._node['app_data']:
-        #     runtime_type = self._node['app_data'].get('runtime_type', 'generic')
-        #     try:
-        #         RuntimeProcessorType.get_instance_by_name(runtime_type)
-        #     except KeyError as ke:
-        #         raise ValueError(f'Unsupported pipeline runtime: {runtime_type}')
-        #     return runtime_type
-        #
-        # return 'generic'
+        if 'runtime_type' in self._node['app_data']:
+            runtime_type = self._node['app_data'].get('runtime_type')
+            try:
+                RuntimeProcessorType.get_instance_by_name(runtime_type)
+            except (KeyError, TypeError):
+                raise ValueError(f'Unsupported pipeline runtime: {runtime_type}')
+            return runtime_type
 
-        type_description_to_type = {'Kubeflow Pipelines': 'kfp',
-                                    'Apache Airflow': 'airflow',
-                                    'Generic': 'generic'}
-
-        if 'properties' in self._node['app_data']:
-            pipeline_type_description = self._node['app_data']['properties'].get('runtime', 'Generic')
-            if pipeline_type_description not in type_description_to_type.keys():
-                raise ValueError(f'Unsupported pipeline runtime: {pipeline_type_description}')
-            return type_description_to_type[pipeline_type_description]
-        else:
-            return type_description_to_type['Generic']
+        return 'generic'
 
     @property
     def name(self) -> str:

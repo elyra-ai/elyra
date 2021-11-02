@@ -68,6 +68,7 @@ export default class Utils {
 
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = runtime_platform;
+    template.pipelines[0].app_data.runtime_type = runtime_type;
     template.pipelines[0].app_data['runtime-config'] = runtime_config;
     template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
     template.pipelines[0].app_data.source = PathExt.basename(filename);

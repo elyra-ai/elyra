@@ -146,6 +146,8 @@ const componentFetcher = async (runtime: string): Promise<any> => {
   // inject properties
   for (const category of palette.categories) {
     // TODO: The server will provide this in a later release
+    // TODO: These should be based on runtime-type rather than schema name
+    // TODO: Note: these don't work at all and all fall into the default condition!
     switch (category.id) {
       case 'kfp':
         category.image = IconUtil.encode(kubeflowIcon);
@@ -188,10 +190,10 @@ const NodeIcons: Map<string, string> = new Map([
   ]
 ]);
 
-export const getRuntimeIcon = (runtime?: string): LabIcon => {
+export const getRuntimeIcon = (runtime_type?: string): LabIcon => {
   const runtimeIcons = [kubeflowIcon, airflowIcon, argoIcon];
   for (const runtimeIcon of runtimeIcons) {
-    if (`elyra:${runtime}` === runtimeIcon.name) {
+    if (`elyra:${runtime_type}` === runtimeIcon.name) {
       return runtimeIcon;
     }
   }
@@ -216,7 +218,7 @@ export const usePalette = (pipelineRuntime = 'local'): IReturn<any> => {
           if (nodeIcon === undefined || nodeIcon === '') {
             nodeIcon =
               'data:image/svg+xml;utf8,' +
-              encodeURIComponent(getRuntimeIcon(pipelineRuntime).svgstr);
+              encodeURIComponent(getRuntimeIcon(node.runtime_type).svgstr);
           }
 
           // Not sure which is needed...
