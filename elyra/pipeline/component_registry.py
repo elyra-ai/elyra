@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import json
+import os
 import time
 from types import SimpleNamespace
 from typing import Dict
@@ -22,9 +23,13 @@ from typing import Optional
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
-from traitlets.config import LoggingConfigurable
+from jinja2 import Template
+from traitlets import default
+from traitlets import Integer
+from traitlets.config import LoggingConfigurable  # noqa: H306 (alphabetical order catch-22)
 
 from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
@@ -70,14 +75,32 @@ class ComponentRegistry(LoggingConfigurable):
                               extensions=[".r"],
                               categories=[_generic_category_label])}
 
-    def __init__(self, parser: ComponentParser, caching_enabled: bool = True, cache_ttl_in_seconds: int = 60, **kwargs):
+    ttl_default = 300
+    cache_ttl_env = 'ELYRA_COMPONENT_REGISTRY_CACHE_TTL'
+    cache_ttl = Integer(ttl_default,
+                        help="Time-to-live (in seconds) for Component Registry cache entries. "
+                             "(ELYRA_COMPONENT_REGISTRY_CACHE_TTL env var)").tag(config=True)
+
+    @default('cache_ttl')
+    def cache_ttl_default(self):
+        ttl = ComponentRegistry.ttl_default
+        try:
+            ttl = int(os.getenv(self.cache_ttl_env, ttl))
+        except ValueError:
+            pass
+        return ttl
+
+    def __init__(self,
+                 parser: ComponentParser,
+                 caching_enabled: bool = True,
+                 **kwargs):
         super().__init__(**kwargs)
         self._parser = parser
 
         # Initialize the cache
         self.caching_enabled = caching_enabled
         if self.caching_enabled:
-            self.cache_ttl_in_seconds = cache_ttl_in_seconds
+            self.log.debug(f"ComponentRegistry cache TTL: {self.cache_ttl}")
             self.update_cache()
 
     def get_all_components(self) -> List[Component]:
@@ -110,8 +133,21 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component
 
-    def update_cache(self):
-        self._cached_components = self._read_component_registries()
+    def update_cache(self, registry: Optional[Metadata] = None, operation: Optional[str] = None):
+        updated_components = self._read_component_registries([registry] if registry else None)
+
+        if operation == 'modify':
+            # Replace only the components most recently re-read
+            for component_id, component in updated_components.items():
+                self._cached_components[component_id] = component
+        elif operation == 'delete':
+            # Remove only the components most recently re-read
+            for component_id, component in updated_components.items():
+                self._cached_components.pop(component_id)
+        else:
+            # Replace all components in the cache
+            self._cached_components = updated_components
+
         self._cache_last_updated = time.time()
 
     def _is_cache_expired(self) -> bool:
@@ -119,7 +155,7 @@ class ComponentRegistry(LoggingConfigurable):
         if self._cache_last_updated:
             now = time.time()
             elapsed = int(now - self._cache_last_updated)
-            if elapsed < self.cache_ttl_in_seconds:
+            if elapsed < self.cache_ttl:
                 is_expired = False
 
         return is_expired
@@ -133,14 +169,22 @@ class ComponentRegistry(LoggingConfigurable):
         return ComponentRegistry._generic_components.get(component_id)
 
     @staticmethod
+    def load_jinja_template(template_name: str) -> Template:
+        """
+        Loads the jinja template of the given name from the
+        elyra/templates/components folder
+        """
+        loader = PackageLoader('elyra', 'templates/components')
+        template_env = Environment(loader=loader)
+
+        return template_env.get_template(template_name)
+
+    @staticmethod
     def to_canvas_palette(components: List[Component]) -> Dict:
         """
         Converts registry components into appropriate canvas palette format
         """
-        # Load jinja2 template
-        loader = PackageLoader('elyra', 'templates/components')
-        template_env = Environment(loader=loader)
-        template = template_env.get_template('canvas_palette_template.jinja2')
+        template = ComponentRegistry.load_jinja_template('canvas_palette_template.jinja2')
 
         # Define a fallback category for components with no given categories
         fallback_category_name = "No Category"
@@ -163,54 +207,50 @@ class ComponentRegistry(LoggingConfigurable):
                 if component.id not in [comp.id for comp in category_dict[category]]:
                     category_dict[category].append(component)
 
-        # Reorder the dictionary such that components with
-        # no category to render last
-        fallback_category = category_dict.pop(fallback_category_name, None)
-        if fallback_category:
-            category_dict[fallback_category_name] = fallback_category
-
         # Render template
         canvas_palette = template.render(category_dict=category_dict)
-        palette_json = json.loads(canvas_palette)
-        return palette_json
+        return json.loads(canvas_palette)
 
     @staticmethod
     def to_canvas_properties(component: Component) -> Dict:
         """
         Converts registry components into appropriate canvas properties format
-        """
-        loader = PackageLoader('elyra', 'templates/components')
-        template_env = Environment(loader=loader)
 
-        # If component_id is one of the generic set, render with generic template,
-        # else render with the runtime-specific property template
+        If component_id is one of the generic set, generic template is rendered,
+        otherwise, the  runtime-specific property template is rendered
+        """
         if component.id in ('notebook', 'python-script', 'r-script'):
-            template = template_env.get_template('generic_properties_template.jinja2')
+            template = ComponentRegistry.load_jinja_template('generic_properties_template.jinja2')
         else:
-            template = template_env.get_template('canvas_properties_template.jinja2')
+            template = ComponentRegistry.load_jinja_template('canvas_properties_template.jinja2')
 
         canvas_properties = template.render(component=component)
-        properties_json = json.loads(canvas_properties)
-        return properties_json
+        return json.loads(canvas_properties)
 
-    def _read_component_registries(self) -> Dict[str, Component]:
+    def _read_component_registries(self, registries: Optional[List[Metadata]] = None) -> Dict[str, Component]:
         """
         Read through component registries and return a dictionary of components indexed by component_id.
+
+        :param registries: a list of metadata instances from which to read and construct Component objects;
+                           if none provided, all registries for the active runtime platform are assumed
+
+        :returns: a dictionary of component id to Component object for all read/parsed components
         """
         component_dict: Dict[str, Component] = {}
 
-        runtime_registries = self._get_registries_for_runtime()
-        for registry in runtime_registries:
-            self.log.debug(f"Component registry: processing components in registry '{registry['display_name']}'")
+        if not registries:
+            registries = self._get_registries_for_runtime()
+        for registry in registries:
+            self.log.debug(f"Component registry: processing components in registry '{registry.display_name}'")
 
-            registry_categories = registry['metadata'].get("categories", [])
-            registry_location_type = registry['metadata']['location_type'].lower()
+            registry_categories = registry.metadata.get("categories", [])
+            registry_location_type = registry.metadata['location_type'].lower()
 
             # Assign reader based on the location type of the registry (file, directory, url)
             reader = self._get_reader(registry_location_type, self._parser.file_types)
 
             # Get content of component definition file for each component in this registry
-            component_definitions = reader.read_component_definitions(registry['metadata']['paths'])
+            component_definitions = reader.read_component_definitions(registry.metadata['paths'])
             for path, component_definition in component_definitions.items():
 
                 component_entry = {
@@ -227,21 +267,19 @@ class ComponentRegistry(LoggingConfigurable):
 
         return component_dict
 
-    def _get_registries_for_runtime(self) -> List[Dict]:
+    def _get_registries_for_runtime(self) -> List[Metadata]:
         """
         Retrieve the registries relevant to the calling processor instance
         """
         runtime_registries = []
         try:
-            metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
-            all_registries = [r.to_dict(trim=True) for r in metadata_manager.get_all()]
+            registries = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)\
+                .get_all()
 
             # Filter registries according to processor type
-            runtime_registries = list(
-                filter(lambda r: r['metadata']['runtime'] == self._parser.component_platform, all_registries)
-            )
+            runtime_registries = [r for r in registries if r.metadata['runtime'] == self._parser.component_platform]
         except Exception:
-            self.log.error(f"Could not access registries for processor: {self._parser._component_platform}")
+            self.log.error(f"Could not access registries for processor: {self._parser.component_platform}")
 
         return runtime_registries
 

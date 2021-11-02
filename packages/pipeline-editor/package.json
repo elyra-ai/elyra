@@ -30,7 +30,7 @@
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build ",
-    "test": "jest --passWithNoTests",
+    "test": "FORCE_COLOR=true jest",
     "watch": "tsc -w",
     "lab:install": "jupyter labextension install --no-build",
     "lab:uninstall": "jupyter labextension uninstall --no-build"

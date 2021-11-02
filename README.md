@@ -22,6 +22,7 @@ limitations under the License.
 [![Downloads](https://pepy.tech/badge/elyra)](https://pepy.tech/project/elyra)
 [![Documentation Status](https://readthedocs.org/projects/elyra/badge/?version=latest)](https://elyra.readthedocs.io/en/latest/?badge=latest)
 [![GitHub](https://img.shields.io/badge/issue_tracking-github-blue.svg)](https://github.com/elyra-ai/elyra/issues)
+[![Homepage](https://img.shields.io/badge/homepage-elyra-fd9146.svg)](https://elyra-ai.github.io/website/)
 [![Gitter](https://badges.gitter.im/elyra-ai/community.svg)](https://gitter.im/elyra-ai/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 # Elyra
