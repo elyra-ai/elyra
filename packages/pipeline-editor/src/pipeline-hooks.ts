@@ -28,6 +28,8 @@ import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
 import useSWR from 'swr';
 
+export const GENERIC_CATEGORY_ID = 'Elyra';
+
 interface IReturn<T> {
   data?: T | undefined;
   error?: any;
@@ -74,7 +76,7 @@ interface IRuntimeComponentsResponse {
   categories: IRuntimeComponent[];
 }
 
-interface IRuntimeComponent {
+export interface IRuntimeComponent {
   label: string;
   image: string;
   id: string;
@@ -114,6 +116,32 @@ interface IComponentPropertiesResponse {
     }[];
   }[];
 }
+
+/**
+ * Sort palette in place. Takes a list of categories each containing a list of
+ * components.
+ * - Categories: alphabetically by "label" (exception: "generic" always first)
+ * - Components: alphabetically by "op" (where is component label stored?)
+ */
+export const sortPalette = (palette: {
+  categories: IRuntimeComponent[];
+}): void => {
+  palette.categories.sort((a, b) => {
+    if (a.id === GENERIC_CATEGORY_ID) {
+      return -1;
+    }
+    if (b.id === GENERIC_CATEGORY_ID) {
+      return 1;
+    }
+    return a.label.localeCompare(b.label, undefined, { numeric: true });
+  });
+
+  for (const components of palette.categories) {
+    components.node_types.sort((a, b) =>
+      a.op.localeCompare(b.op, undefined, { numeric: true })
+    );
+  }
+};
 
 // TODO: We should decouple components and properties to support lazy loading.
 // TODO: type this
@@ -170,6 +198,8 @@ const componentFetcher = async (runtime: string): Promise<any> => {
       node.app_data.properties = prop?.properties;
     }
   }
+
+  sortPalette(palette);
 
   return palette;
 };

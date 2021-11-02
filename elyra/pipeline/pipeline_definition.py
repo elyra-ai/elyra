@@ -22,6 +22,7 @@ from typing import Optional
 
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
+
 class AppDataBase(object):  # ABC
     """
     An abstraction for app_data based nodes
@@ -85,7 +86,7 @@ class Pipeline(AppDataBase):
     @property
     def version(self) -> int:
         """
-        The pipelive version
+        The pipeline version
         :return: The version
         """
         return int(self._node['app_data'].get('version'))

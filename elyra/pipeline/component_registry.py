@@ -204,12 +204,6 @@ class ComponentRegistry(LoggingConfigurable):
                 if component.id not in [comp.id for comp in category_dict[category]]:
                     category_dict[category].append(component)
 
-        # Reorder the dictionary such that components with
-        # no category to render last
-        fallback_category = category_dict.pop(fallback_category_name, None)
-        if fallback_category:
-            category_dict[fallback_category_name] = fallback_category
-
         # Render template
         canvas_palette = template.render(category_dict=category_dict)
         return json.loads(canvas_palette)
@@ -288,6 +282,6 @@ class ComponentRegistry(LoggingConfigurable):
             runtime_catalogs = \
                 [r for r in registries if r.metadata['runtime_type'] == self._parser.component_platform.name]
         except Exception:
-            self.log.error(f"Could not access registries for processor: {self._parser.component_platform.name}")
+            self.log.error(f"Could not access registries for processor type: {self._parser.component_platform.name}")
 
         return runtime_catalogs

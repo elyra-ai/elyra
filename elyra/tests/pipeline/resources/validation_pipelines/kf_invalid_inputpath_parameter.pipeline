@@ -59,7 +59,7 @@
         {
           "id": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1",
           "type": "execution_node",
-          "op": "local-directory-catalog:0c7bc4a10720",
+          "op": "local-directory-catalog:61e6f4141f65",
           "app_data": {
             "component_parameters": {
               "notebook": {

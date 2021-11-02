@@ -143,7 +143,8 @@ class AirflowComponentParser(ComponentParser):
 
     def get_class_def_as_string(self, content: Dict[str, List[str]]) -> str:
         """
-        TODO
+        Take the list of lines that make up a component definition and join
+        them to make one continuous string.
         """
         return ''.join(content['lines'])
 

@@ -11,7 +11,7 @@
         {
           "id": "fe08b42d-bd8c-4e97-8010-0503a3185427",
           "type": "execution_node",
-          "op": "local-directory-catalog:0c7bc4a10720",
+          "op": "local-directory-catalog:61e6f4141f65",
           "app_data": {
             "component_parameters": {
               "notebook": "../notebookA.ipynb",

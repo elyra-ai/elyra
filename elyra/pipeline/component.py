@@ -196,8 +196,15 @@ class Component(object):
         return self._catalog_type
 
     @property
-    def source_identifier(self) -> str:
-        return str(self._source_identifier)
+    def source_identifier(self) -> Any:
+        return self._source_identifier
+
+    @property
+    def component_source(self) -> str:
+        return str({
+            "catalog_type": self.catalog_type,
+            "component_ref": self.source_identifier
+        })
 
     @property
     def definition(self) -> str:

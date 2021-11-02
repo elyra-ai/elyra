@@ -179,9 +179,10 @@ def test_parse_airflow_component_file():
     component_definition = reader.read_catalog_entry({"path": path}, {})
 
     # Build entry for parsing
+    catalog_type = "local-file-catalog"
     entry = {
-        "component_id": reader.get_unique_component_hash('local-file-catalog', {"path": path}, ["path"]),
-        "catalog_type": "local-file-catalog",
+        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
+        "catalog_type": catalog_type,
         "categories": ["Test"],
         "component_definition": component_definition,
         "component_identifier": {"path": path}
@@ -195,7 +196,9 @@ def test_parse_airflow_component_file():
 
     # Ensure component parameters are prefixed (and system parameters are not), and hold correct values
     assert properties_json['current_parameters']['label'] == ''
-    assert properties_json['current_parameters']['component_source'] == str(component_entry.component_identifier)
+
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
     assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
     assert properties_json['current_parameters']['elyra_test_string_default_empty'] == ''
@@ -248,9 +251,10 @@ def test_parse_airflow_component_url():
     component_definition = reader.read_catalog_entry({"url": url}, {})
 
     # Build entry for parsing
+    catalog_type = "url-catalog"
     entry = {
-        "component_id": reader.get_unique_component_hash('local-file-catalog', {"url": url}, ["url"]),
-        "catalog_type": "url-catalog",
+        "component_id": reader.get_unique_component_hash(catalog_type, {"url": url}, ["url"]),
+        "catalog_type": catalog_type,
         "categories": ["Test"],
         "component_definition": component_definition,
         "component_identifier": {"url": url}
@@ -264,7 +268,9 @@ def test_parse_airflow_component_url():
 
     # Ensure component parameters are prefixed, and system parameters are not, and hold correct values
     assert properties_json['current_parameters']['label'] == ''
-    assert properties_json['current_parameters']['component_source'] == str(component_entry.component_identifier)
+
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_bash_command'] == ''
     assert properties_json['current_parameters']['elyra_xcom_push'] is False
     assert properties_json['current_parameters']['elyra_env'] == ''  # {}
@@ -283,9 +289,10 @@ def test_parse_airflow_component_file_no_inputs():
     component_definition = reader.read_catalog_entry({"path": path}, {})
 
     # Build entry for parsing
+    catalog_type = "local-file-catalog"
     entry = {
-        "component_id": reader.get_unique_component_hash('local-file-catalog', {"path": path}, ["path"]),
-        "catalog_type": "local-file-catalog",
+        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
+        "catalog_type": catalog_type,
         "categories": ["Test"],
         "component_definition": component_definition,
         "component_identifier": {"path": path}
@@ -307,7 +314,9 @@ def test_parse_airflow_component_file_no_inputs():
 
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
-    assert properties_json['current_parameters']['component_source'] == str(component_entry.component_identifier)
+
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    assert properties_json['current_parameters']['component_source'] == component_source
 
 
 @pytest.mark.parametrize('invalid_url', [

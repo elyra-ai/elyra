@@ -47,13 +47,9 @@ SEVERITY = {ValidationSeverity.Error: 'Error',
 
 def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
     if not runtime_config or runtime_config == 'local':
-        # No runtime configuration was  specified or it is local.
+        # No runtime configuration was specified or it is local.
         # Cannot use metadata manager to determine the runtime type.
-        return runtime_config
-
-    if runtime_config == 'local':
-        return runtime_config
-
+        return 'local'
     try:
         metadata_manager = MetadataManager(schemaspace='runtimes')
         metadata = metadata_manager.get(runtime_config)

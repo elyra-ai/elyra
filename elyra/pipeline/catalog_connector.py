@@ -29,8 +29,6 @@ from typing import Optional
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
-from traitlets.traitlets import CUnicode
-from traitlets.traitlets import Dict as DictTrait
 from traitlets.traitlets import Integer
 
 from elyra.metadata.metadata import Metadata
@@ -41,23 +39,9 @@ class ComponentCatalogConnector(LoggingConfigurable):
     Abstract class to model component_entry readers that can read components from different locations
     """
 
-    # Data structure to encapsulate various capabilities & flags for a connector class
-    configuration = DictTrait(
-        default_value={
-            "max_readers": 3  # Sets the number of reader threads in read_component_definitions()
-        },
-        per_key_traits={
-            "max_readers": Integer()
-        },
-        key_trait=CUnicode(),
-        help="""A dictionary of configurable settings for a ComponentCatalogConnector class.
-        Subclasses can override these settings as needed.
-
-        Settings:
-            'max_readers': Integer; sets the maximum number of reader threads to be used to read
-                           catalog entries in parallel in read_component_definitions(); default 3
-        """
-    ).tag(config=True)
+    max_readers = Integer(3, config=True, allow_none=True,
+                          help="""Sets the maximum number of reader threads to be used to read
+                          catalog entries in parallel""")
 
     def __init__(self, file_types: List[str], **kwargs):
         super().__init__(**kwargs)
@@ -72,7 +56,13 @@ class ComponentCatalogConnector(LoggingConfigurable):
         definition. The form that each catalog_entry_data takes is determined by the unique requirements
         of the reader class.
 
-        No two catalog entries can have equivalent catalog_entry_data dictionaries.
+        For example, the FilesystemCatalogConnector includes both a base directory ('base_dir') key-value
+        pair and a relative path ('path') key-value pair in its 'catalog_entry_data' dict. Both fields
+        are needed in order to access the corresponding component definition in read_catalog_entry().
+
+        Every catalog_entry_data should contain each of the keys returned in get_hash_keys() to ensure
+        uniqueness and portability among entries. For the same reason, no two catalog entries should have
+        equivalent catalog_entry_data dictionaries.
 
         :param catalog_metadata: the dictionary form of the metadata associated with a single catalog;
                                  the general structure is given in the example below
@@ -130,8 +120,19 @@ class ComponentCatalogConnector(LoggingConfigurable):
         Provides a list of keys, available in the 'catalog_entry_data' dictionary, whose values
         will be used to construct a unique hash id for each entry with the given catalog type.
 
+        Besides being a means to uniquely identify a single component (catalog entry), the hash id
+        also enables pipeline portability across installations when the keys returned here are
+        chosen strategically. For example, the FilesystemCatalogConnector includes both a base
+        directory key-value pair and a relative path key-value pair in its 'catalog_entry_data' dict.
+        Both fields are required to access the component definition in read_catalog_entry(), but
+        only the relative path field is used to create the unique hash. This allows a component
+        that has the same relative path defined in two separate a catalogs in two separate
+        installations to resolve to the same unique id in each, and therefore to be portable across
+        pipelines in these installations.
+
         To ensure the hash is unique, no two catalog entries can have the same key-value pairs
-        over the set of keys returned by this function.
+        over the set of keys returned by this function. If two entries resolve to the same hash,
+        the one whose definition is read last will overwrite the other(s).
 
         Example:
         Given a set of keys ['key1', 'key2', 'key3'], the below two catalog_entry_data dictionaries
@@ -144,6 +145,10 @@ class ComponentCatalogConnector(LoggingConfigurable):
                 'key2': 'value2',                       'key2': 'value2',
                 'key3': 'value3'                        'key3': 'value3'
             }                                       {
+
+        Additionally, every catalog_entry_data dict should include each key in the set returned
+        here. If this is not the case, a catalog entry's portability and uniqueness may be negatively
+        affected.
 
         :returns: a list of keys
         """
@@ -172,8 +177,10 @@ class ComponentCatalogConnector(LoggingConfigurable):
         hash_str = ""
         for key in catalog_hash_keys:
             if not catalog_entry_data.get(key):
+                self.log.warning(f"Catalog entry does not have key '{key}'. Continuing to build hash "
+                                 f"string without this key...")
                 continue
-            hash_str = hash_str + catalog_entry_data[key] + ":"
+            hash_str = hash_str + str(catalog_entry_data[key]) + ":"
         hash_str = hash_str[:-1]
 
         # Use only the first 12 characters of the resulting hash
@@ -259,10 +266,12 @@ class ComponentCatalogConnector(LoggingConfigurable):
                         catalog_entry_q.task_done()
                         continue
 
-                    # Generate hash for this catalog entry and add entry definition and identifying data to mapping
+                    # Generate hash for this catalog entry
                     catalog_entry_id = self.get_unique_component_hash(catalog_type=catalog_instance.schema_name,
                                                                       catalog_entry_data=catalog_entry_data,
                                                                       catalog_hash_keys=keys_to_hash)
+
+                    # Add entry definition and identifying data to mapping
                     catalog_entry_map[catalog_entry_id] = {
                         "definition": definition,
                         "identifier": catalog_entry_data
@@ -281,7 +290,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         # Start 'max_reader' reader threads if catalog includes more than 'max_reader'
         # number of catalog entries, else start one thread per entry
-        num_threads = min(catalog_entry_q.qsize(), self.configuration['max_readers'])
+        num_threads = min(catalog_entry_q.qsize(), self.max_readers)
         for i in range(num_threads):
             Thread(target=read_with_thread).start()
 

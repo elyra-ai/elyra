@@ -29,7 +29,8 @@ const codeSnippetMetadata = {
   metadata: {
     language: 'Python',
     code: ['hello_world']
-  }
+  },
+  version: 0
 };
 
 beforeAll(async () => {

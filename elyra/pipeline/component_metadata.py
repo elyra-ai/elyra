@@ -69,22 +69,22 @@ class ComponentCatalogMetadata(Metadata):
             MetadataManager(schemaspace="component-registries").update(self.name, self, for_migration=True)
 
     def post_save(self, **kwargs: Any) -> None:
-        processor_name = self.metadata.get('runtime')
+        processor_type = self.metadata.get('runtime_type')
 
         # Get processor instance and update its cache
         try:
-            processor = PipelineProcessorRegistry.instance().get_processor(processor_name=processor_name)
+            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
             if processor.component_registry.caching_enabled:
                 processor.component_registry.update_cache(catalog=self, operation='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
-        processor_type = self.metadata.get('runtime')
+        processor_type = self.metadata.get('runtime_type')
 
         # Get processor instance and update its cache
         try:
-            processor = PipelineProcessorRegistry.instance().get_processor(processor_name=processor_type)
+            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
             if processor.component_registry.caching_enabled:
                 processor.component_registry.update_cache(catalog=self, operation='delete')
         except Exception:
