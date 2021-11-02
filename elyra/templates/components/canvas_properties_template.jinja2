@@ -13,7 +13,7 @@
       "elyra_{{ property.ref }}": "{{ property.value }}"
     {% endif %},
 {% endfor %}
-      "component_source": "{{ component.source_identifier }}"
+      "component_source": "{{ component.component_source }}"
     },
     "parameters": [
       {% if component.description %}{
@@ -97,7 +97,7 @@
             "default": "Component Source"
           },
           "description": {
-            "default": "Unique information used to identify this component for catalog type '{{component.catalog_type}}'",
+            "default": "Unique information used to identify this component.",
             "placement": "on_panel"
           },
           "data": {}
