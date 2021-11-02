@@ -40,7 +40,6 @@ class KfpMetadata(RuntimesMetadata):
             else:
                 self.metadata['auth_type'] = SupportedAuthProviders.DEX_LEGACY.name
 
-            print('****************')
             # save changes
             MetadataManager(schemaspace="runtimes").update(self.name, self, for_migration=True)
 
