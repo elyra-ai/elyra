@@ -21,7 +21,7 @@ import {
   pipelineIcon,
   RequestErrors,
   runtimesIcon,
-  pipelineComponentsIcon
+  componentCatalogIcon
 } from '@elyra/ui-components';
 
 import {
@@ -325,14 +325,14 @@ const extension: JupyterFrontEndPlugin<void> = {
     const componentRegistryWidget = new MetadataWidget({
       app,
       themeManager,
-      display_name: 'Pipeline Components',
+      display_name: 'Component Catalogs',
       schemaspace: COMPONENT_REGISTRY_SCHEMASPACE,
-      icon: pipelineComponentsIcon
+      icon: componentCatalogIcon
     });
     const componentRegistryWidgetID = `elyra-metadata:${COMPONENT_REGISTRY_SCHEMASPACE}`;
     componentRegistryWidget.id = componentRegistryWidgetID;
-    componentRegistryWidget.title.icon = pipelineComponentsIcon;
-    componentRegistryWidget.title.caption = 'Pipeline Components';
+    componentRegistryWidget.title.icon = componentCatalogIcon;
+    componentRegistryWidget.title.caption = 'Component Catalogs';
 
     restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
     app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });

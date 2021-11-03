@@ -27,6 +27,8 @@ from typing import Union
 import autopep8
 from jinja2 import Environment
 from jinja2 import PackageLoader
+from traitlets import CUnicode
+from traitlets import List as ListTrait
 
 from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
@@ -50,12 +52,38 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
     # Defaults to `/tmp`
     WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
 
+    # This specifies the default airflow operators included with Elyra.  Any Airflow-based
+    # custom connectors should create/extend the elyra configuration file to include
+    # those fully-qualified operator/class names.
+    available_airflow_operators = ListTrait(
+        CUnicode(),
+        ["airflow.operators.slack_operator.SlackAPIPostOperator",
+         "airflow.operators.bash_operator.BashOperator",
+         "airflow.operators.email_operator.EmailOperator",
+         "airflow.operators.http_operator.SimpleHttpOperator",
+         "airflow.contrib.operators.spark_sql_operator.SparkSqlOperator",
+         "airflow.contrib.operators.spark_submit_operator.SparkSubmitOperator"],
+        help="""List of available Apache Airflow operator names.
+
+Operators available for use within Apache Airflow pipelines.  These operators must
+be fully qualified (i.e., prefixed with their package names).
+       """,
+    ).tag(config=True)
+
+    # Contains mappings from class to import statement for each available Airflow operator
+    class_import_map = {}
+
     @property
     def type(self):
         return self._type
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, component_parser=AirflowComponentParser(), **kwargs)
+        if not self.class_import_map:  # Only need to load once
+            for package in self.available_airflow_operators:
+                parts = package.rsplit(".", 1)
+                self.class_import_map[parts[1]] = f"from {parts[0]} import {parts[1]}"
+        self.log.debug(f"class_package_map = {self.class_import_map}")
 
     def process(self, pipeline):
         t0_all = time.time()
@@ -272,24 +300,36 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 operation.component_params_as_dict.pop("inputs")
                 operation.component_params_as_dict.pop("outputs")
 
-                # Get component class from operation name
-                component_class = operation.classifier.split('_')[-1]
-
                 unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
                                                                         operation_list=target_ops)
+                # Locate the import statement. If not found raise...
+                import_stmts = []
+                import_stmt = self.class_import_map.get(component.name)
+                if import_stmt:
+                    import_stmts.append(import_stmt)
+                else:
+                    # If we didn't find a mapping to the import statement, let's check if the component
+                    # name includes a package prefix.  If it does, log a warning, but proceed, otherwise
+                    # raise an exception.
+                    if len(component.name.split(".")) > 1:  # We (presumably) have a package prefix
+                        self.log.warning(f"Operator '{component.name}' of node '{operation.name}' is not configured "
+                                         f"in the list of available Airflow operators but appears to include a "
+                                         f"package prefix and processing will proceed.")
+                    else:
+                        raise ValueError(f"Operator '{component.name}' of node '{operation.name}' is not configured "
+                                         f"in the list of available operators.  Please add the fully-qualified "
+                                         f"package name for '{component.name}' to the "
+                                         f"AirflowPipelineProcessor.available_airflow_operators configuration.")
 
                 target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
-                             'module_name': component.location.rsplit('/', 1)[-1].split('.')[0],
-                             'class_name': component_class,
+                             'imports': import_stmts,
+                             'class_name': component.name,
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,
-                             'operator_source': component.location,
+                             'operator_source': component.source_identifier,
                              'is_generic_operator': False
                              }
-                if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
-                                            'spark-sql-operator', 'ssh-operator']:
-                    target_op['is_contrib_operator'] = True
 
                 target_ops.append(target_op)
 

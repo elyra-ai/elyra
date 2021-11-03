@@ -135,7 +135,7 @@ async def test_create_instance(jp_base_url, jp_fetch):
                                                       METADATA_TEST_SCHEMASPACE_ID, 'valid')
     metadata = json.loads(r.body.decode())
     # Add expected "extra" fields to 'valid' so whole-object comparison is satisfied.
-    # These are added during the pre_save(), post_save() and post_load() hooks on the
+    # These are added during the pre_save(), post_save() and on_load() hooks on the
     # MockMetadataTest class instance or when default values for missing properties are applied.
     valid['pre_property'] = valid['metadata']['required_test']
     valid['post_property'] = valid['display_name']

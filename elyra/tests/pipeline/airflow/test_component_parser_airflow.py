@@ -23,8 +23,8 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
-from elyra.pipeline.component import FilesystemComponentReader
-from elyra.pipeline.component import UrlComponentReader
+from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
+from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_registry import ComponentRegistry
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
@@ -63,17 +63,16 @@ def test_modify_component_registries():
     metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
-    paths = ["https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/"
-             "airflow_test_operator.py"]
+    urls = ["https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/"
+            "airflow_test_operator.py"]
 
     instance_metadata = {
         "description": "A test registry",
         "runtime": "airflow",
         "categories": ["New Components"],
-        "location_type": "URL",
-        "paths": paths
+        "paths": urls
     }
-    registry_instance = Metadata(schema_name="component-registry",
+    registry_instance = Metadata(schema_name="url-catalog",
                                  name="new_registry",
                                  display_name="New Registry",
                                  metadata=instance_metadata)
@@ -96,8 +95,8 @@ def test_modify_component_registries():
     assert 'TestOperatorNoInputs' not in added_component_names
 
     # Modify the test registry to add an additional path to
-    paths.append("https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components"
-                 "/airflow_test_operator_no_inputs.py")
+    urls.append("https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components"
+                "/airflow_test_operator_no_inputs.py")
     metadata_manager.update("new_registry", registry_instance)
 
     # Get set of components from all active registries, including modified test registry
@@ -140,10 +139,9 @@ def test_directory_based_component_registry():
         "description": "A test registry",
         "runtime": "airflow",
         "categories": ["New Components"],
-        "location_type": "Directory",
         "paths": [registry_path]
     }
-    registry_instance = Metadata(schema_name="component-registry",
+    registry_instance = Metadata(schema_name="local-directory-catalog",
                                  name="new_registry",
                                  display_name="New Registry",
                                  metadata=instance_metadata)
@@ -172,20 +170,22 @@ def test_directory_based_component_registry():
 def test_parse_airflow_component_file():
     # Define the appropriate reader for a filesystem-type component definition
     airflow_supported_file_types = [".py"]
-    reader = FilesystemComponentReader(airflow_supported_file_types)
+    reader = FilesystemComponentCatalogConnector(airflow_supported_file_types)
 
     path = _get_resource_path('airflow_test_operator.py')
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_component_definition(path, {})[path]
+    component_definition = reader.read_catalog_entry({"path": path}, {})
 
     # Build entry for parsing
+    catalog_type = "local-file-catalog"
     entry = {
-        "location_type": reader.resource_type,
-        "location": path,
+        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
+        "catalog_type": catalog_type,
         "categories": ["Test"],
-        "component_definition": component_definition
+        "component_definition": component_definition,
+        "component_identifier": {"path": path}
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -196,7 +196,9 @@ def test_parse_airflow_component_file():
 
     # Ensure component parameters are prefixed (and system parameters are not), and hold correct values
     assert properties_json['current_parameters']['label'] == ''
-    assert properties_json['current_parameters']['component_source'] == component_entry.location
+
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
     assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
     assert properties_json['current_parameters']['elyra_test_string_default_empty'] == ''
@@ -240,20 +242,22 @@ def test_parse_airflow_component_file():
 def test_parse_airflow_component_url():
     # Define the appropriate reader for a Url-type component definition
     airflow_supported_file_types = [".py"]
-    reader = UrlComponentReader(airflow_supported_file_types)
+    reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
-    path = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
+    url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_component_definition(path, {})[path]
+    component_definition = reader.read_catalog_entry({"url": url}, {})
 
     # Build entry for parsing
+    catalog_type = "url-catalog"
     entry = {
-        "location_type": reader.resource_type,
-        "location": path,
+        "component_id": reader.get_unique_component_hash(catalog_type, {"url": url}, ["url"]),
+        "catalog_type": catalog_type,
         "categories": ["Test"],
-        "component_definition": component_definition
+        "component_definition": component_definition,
+        "component_identifier": {"url": url}
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -264,7 +268,9 @@ def test_parse_airflow_component_url():
 
     # Ensure component parameters are prefixed, and system parameters are not, and hold correct values
     assert properties_json['current_parameters']['label'] == ''
-    assert properties_json['current_parameters']['component_source'] == component_entry.location
+
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_bash_command'] == ''
     assert properties_json['current_parameters']['elyra_xcom_push'] is False
     assert properties_json['current_parameters']['elyra_env'] == ''  # {}
@@ -274,20 +280,22 @@ def test_parse_airflow_component_url():
 def test_parse_airflow_component_file_no_inputs():
     # Define the appropriate reader for a filesystem-type component definition
     airflow_supported_file_types = [".py"]
-    reader = FilesystemComponentReader(airflow_supported_file_types)
+    reader = FilesystemComponentCatalogConnector(airflow_supported_file_types)
 
     path = _get_resource_path('airflow_test_operator_no_inputs.py')
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_component_definition(path, {})[path]
+    component_definition = reader.read_catalog_entry({"path": path}, {})
 
     # Build entry for parsing
+    catalog_type = "local-file-catalog"
     entry = {
-        "location_type": reader.resource_type,
-        "location": path,
+        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
+        "catalog_type": catalog_type,
         "categories": ["Test"],
-        "component_definition": component_definition
+        "component_definition": component_definition,
+        "component_identifier": {"path": path}
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -306,7 +314,9 @@ def test_parse_airflow_component_file_no_inputs():
 
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
-    assert properties_json['current_parameters']['component_source'] == component_entry.location
+
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    assert properties_json['current_parameters']['component_source'] == component_source
 
 
 @pytest.mark.parametrize('invalid_url', [
@@ -317,22 +327,8 @@ def test_parse_airflow_component_file_no_inputs():
 async def test_parse_components_invalid_url(invalid_url):
     # Define the appropriate reader for a Url-type component definition
     airflow_supported_file_types = [".py"]
-    reader = UrlComponentReader(airflow_supported_file_types)
+    reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
     # Get path to an invalid component definition file and read contents
-    component_definition = reader.read_component_definition(invalid_url, {})
-    assert component_definition == {}
-
-    # Build entry for parsing
-    entry = {
-        "location_type": reader.resource_type,
-        "location": invalid_url,
-        "categories": ["Test"],
-        "component_definition": component_definition
-    }
-    component_entry = SimpleNamespace(**entry)
-
-    # Parse the component entry
-    parser = AirflowComponentParser()
-    component = parser.parse(component_entry)
-    assert component is None
+    component_definition = reader.read_catalog_entry({"url": invalid_url}, {})
+    assert component_definition is None

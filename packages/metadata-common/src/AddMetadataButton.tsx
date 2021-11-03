@@ -58,6 +58,16 @@ export const AddMetadataButton = (
     setOpen((prevOpen: boolean) => !prevOpen);
   };
 
+  const sortedSchema = props.schemas?.sort((a, b) => {
+    if (a.name > b.name) {
+      return 1;
+    } else if (a.name < b.name) {
+      return -1;
+    } else {
+      return 0;
+    }
+  });
+
   const handleClose = (event: React.MouseEvent<Document, MouseEvent>): void => {
     if (
       anchorRef.current &&
@@ -98,7 +108,7 @@ export const AddMetadataButton = (
         <Paper>
           <ClickAwayListener onClickAway={handleClose}>
             <MenuList id="split-button-menu">
-              {props.schemas?.map((schema: IDictionary<any>) => (
+              {sortedSchema?.map((schema: IDictionary<any>) => (
                 <MenuItem
                   key={schema.title}
                   title={`New ${schema.title} ${props.schemaType ?? ''}`}
