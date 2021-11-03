@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
   "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/component-registry.json",
-  "title": "Pipeline Component",
+  "title": "Component Registry",
   "name": "component-registry",
   "schemaspace": "component-registries",
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",

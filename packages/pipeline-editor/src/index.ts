@@ -315,7 +315,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       themeManager,
       display_name: 'Runtime Images',
       schemaspace: RUNTIME_IMAGES_SCHEMASPACE,
-      icon: containerIcon
+      icon: containerIcon,
+      schemaType: 'runtime image'
     });
     const runtimeImagesWidgetID = `elyra-metadata:${RUNTIME_IMAGES_SCHEMASPACE}`;
     runtimeImagesWidget.id = runtimeImagesWidgetID;
@@ -327,7 +328,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       themeManager,
       display_name: 'Component Catalogs',
       schemaspace: COMPONENT_REGISTRY_SCHEMASPACE,
-      icon: componentCatalogIcon
+      icon: componentCatalogIcon,
+      schemaType: 'component catalog'
     });
     const componentRegistryWidgetID = `elyra-metadata:${COMPONENT_REGISTRY_SCHEMASPACE}`;
     componentRegistryWidget.id = componentRegistryWidgetID;

@@ -76,7 +76,7 @@ export interface IMetadataDisplayProps {
   schemaspace: string;
   sortMetadata: boolean;
   className: string;
-  // Optional string to append to a schema display name
+  // Optional string to append after schema title
   schemaType?: string;
   labelName?: (args: any) => string;
   omitTags?: boolean;
@@ -326,7 +326,7 @@ export interface IMetadataWidgetProps {
   display_name: string;
   schemaspace: string;
   icon: LabIcon;
-  // Optional string to append after schema display name
+  // Optional string to append after schema title
   schemaType?: string;
 }
 
@@ -346,7 +346,6 @@ export class MetadataWidget extends ReactWidget {
     this.props = props;
     this.renderSignal = new Signal<this, any>(this);
     this.schemaType = props.schemaType;
-
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
@@ -428,6 +427,7 @@ export class MetadataWidget extends ReactWidget {
         sortMetadata={true}
         className={`${METADATA_CLASS}-${this.props.schemaspace}`}
         omitTags={this.omitTags()}
+        schemaType={this.props.schemaType}
       />
     );
   }

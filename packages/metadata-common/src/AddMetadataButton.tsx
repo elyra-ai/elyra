@@ -90,11 +90,7 @@ export const AddMetadataButton = (
               ? (): void => props.addMetadata(props.schemas?.[0].name)
               : handleToggle
           }
-          title={`Create new ${
-            singleSchema
-              ? props.schemas?.[0].title
-              : props.schemas?.[0].schemaspace.slice(0, -1)
-          }`}
+          title={`Create new ${props.schemaType}`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
         </StyledButton>
@@ -111,13 +107,25 @@ export const AddMetadataButton = (
               {sortedSchema?.map((schema: IDictionary<any>) => (
                 <MenuItem
                   key={schema.title}
-                  title={`New ${schema.title} ${props.schemaType ?? ''}`}
+                  title={`New ${schema.title} ${
+                    schema.title
+                      .toLowerCase()
+                      .includes(props.schemaType?.toLocaleLowerCase())
+                      ? ''
+                      : props.schemaType
+                  }`}
                   onClick={(event: any): void => {
                     props.addMetadata(schema.name);
                     handleClose(event);
                   }}
                 >
-                  {`New ${schema.title} ${props.schemaType ?? ''}`}
+                  {`New ${schema.title} ${
+                    schema.title
+                      .toLowerCase()
+                      .includes(props.schemaType?.toLocaleLowerCase())
+                      ? ''
+                      : props.schemaType
+                  }`}
                 </MenuItem>
               ))}
             </MenuList>
