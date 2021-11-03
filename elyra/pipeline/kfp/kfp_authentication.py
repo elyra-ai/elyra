@@ -57,9 +57,9 @@ class SupportedAuthProviders(Enum):
     # KF is not secured
     # (See NoAuthenticationAuthenticator)
     NO_AUTHENTICATION = 'No authentication'
-    # KF is secured using KUBERNETES_SERVICEACCOUNT_TOKEN
+    # KF is secured using KUBERNETES_SERVICE_ACCOUNT_TOKEN
     # (See K8sServiceAccountTokenAuthenticator implementation)
-    KUBERNETES_SERVICEACCOUNT_TOKEN = 'Kubernetes service account token'
+    KUBERNETES_SERVICE_ACCOUNT_TOKEN = 'Kubernetes service account token'
     # KF is secured using DEX with static id/password
     # (See StaticPasswordKFPAuthenticator implementation)
     DEX_STATIC_PASSWORDS = 'DEX with static passwords'
@@ -68,7 +68,7 @@ class SupportedAuthProviders(Enum):
     DEX_LDAP = 'DEX with LDAP'
     # Supports multiple authentication mechanisms
     # (See DEXLegacyAuthenticator implementation)
-    DEX_LEGACY = 'DEX (generic)'
+    DEX_LEGACY = 'DEX (legacy)'
 
     @staticmethod
     def get_default_provider() -> 'SupportedAuthProviders':
@@ -112,6 +112,21 @@ class SupportedAuthProviders(Enum):
         :rtype: SupportedAuthProviders
         """
         return SupportedAuthProviders(value)
+
+    @staticmethod
+    def to_dict() -> Dict:
+        """
+        Convert the enum into a dictionary. Keys are the member
+        names (internal authentication type id) and values are
+        the associated user-friendly member values.
+
+        :return: dictionary, comprising all members of the enum
+        :rtype: Dict
+        """
+        enum_member_dict = {}
+        for member in SupportedAuthProviders:
+            enum_member_dict[member.name] = member.value
+        return enum_member_dict
 
 
 class AuthenticationError(Exception):
@@ -261,11 +276,15 @@ class KFPAuthenticator():
                                                         password=auth_parm_2)
                 if auth_info.get('cookies') is not None:
                     auth_info['kf_secured'] = True
-            elif auth_type == SupportedAuthProviders.KUBERNETES_SERVICEACCOUNT_TOKEN:
+            elif auth_type == SupportedAuthProviders.KUBERNETES_SERVICE_ACCOUNT_TOKEN:
                 # see implementation for details; the authenticator returns None
                 K8sServiceAccountTokenAuthenticator().authenticate(kf_url,
                                                                    runtime_config_name)
                 auth_info['kf_secured'] = True
+            else:
+                # SupportedAuthProviders contains a member that is not yet
+                # associated with an implementation of AbstractAuthenticator
+                raise AuthenticationError(f'Support for authentication type \'{auth_type.name}\' is not implemented.')
         except AuthenticationError:
             raise
         except Exception as ex:
@@ -400,7 +419,8 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
             if len(resp.history) == 0:
                 # if we were NOT redirected, then the endpoint is UNSECURED
                 # treat this as an error.
-                raise AuthenticationError(f'The Kubeflow server at {kf_endpoint} is not secured using DEX with LDAP. '
+                raise AuthenticationError(f'The Kubeflow server at {kf_endpoint} is not secured '
+                                          'using DEX static password. '
                                           f'Update runtime configuration \'{runtime_config_name}\' and try again.',
                                           provider=self._type,
                                           request_history=request_history)
@@ -417,7 +437,7 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
                     path=re.sub(r"/auth$", "/auth/local", redirect_url_obj.path)
                 )
             else:
-                # verify that KF is secured by LDAP
+                # verify that KF is secured by static passwords
                 m = re.search(r"/auth/([^/]*)/?", redirect_url_obj.path)
                 if m and m.group(1) != 'local':
                     raise AuthenticationError(
@@ -428,17 +448,17 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
                         provider=self._type,
                         request_history=request_history)
 
-            # if we are at `/auth/xxxx/login` path, then no further action is needed
+            # if we are at `/auth/local/login` path, then no further action is needed
             # (we can use it for login POST)
-            if re.search(r"/auth/.*/login$", redirect_url_obj.path):
+            if re.search(r"/auth/local/login$", redirect_url_obj.path):
                 dex_login_url = redirect_url_obj.geturl()
             else:
                 # else, we need to be redirected to the actual login page
-                # this GET should redirect us to the `/auth/xxxx/login` path
+                # this GET should redirect us to the `/auth/local/login` path
                 resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
                 request_history.append((redirect_url_obj.geturl(), resp))
                 if resp.status_code != HTTPStatus.OK:
-                    raise AuthenticationError('Error redirecting to the DEX login page: '
+                    raise AuthenticationError('Error redirecting to the DEX static password login page: '
                                               f'HTTP status code {resp.status_code}.',
                                               provider=self._type,
                                               request_history=request_history)
@@ -465,7 +485,7 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
             return "; ".join([f"{c.name}={c.value}" for c in s.cookies])
 
         # this code should never be reached; raise an error
-        raise AuthenticationError('An implementation problem was detected for static password authentication. '
+        raise AuthenticationError('An implementation problem was detected for DEX static password authentication. '
                                   'Please create an issue.',
                                   provider=self._type,
                                   request_history=request_history)
@@ -556,17 +576,17 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
                         provider=self._type,
                         request_history=request_history)
 
-            # if we are at `/auth/xxxx/login` path, then no further action is needed
+            # if we are at `/auth/ldap/login` path, then no further action is needed
             # (we can use it for login POST)
-            if re.search(r"/auth/.*/login$", redirect_url_obj.path):
+            if re.search(r"/auth/ldap/login$", redirect_url_obj.path):
                 dex_login_url = redirect_url_obj.geturl()
             else:
                 # else, we need to be redirected to the actual login page
-                # this GET should redirect us to the `/auth/xxxx/login` path
+                # this GET should redirect us to the `/auth/ldap/login` path
                 resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
                 request_history.append((redirect_url_obj.geturl(), resp))
                 if resp.status_code != HTTPStatus.OK:
-                    raise AuthenticationError('Error redirecting to the DEX login page: '
+                    raise AuthenticationError('Error redirecting to the DEX LDAP login page: '
                                               f'HTTP status code {resp.status_code}.',
                                               provider=self._type,
                                               request_history=request_history)
@@ -584,7 +604,7 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
             request_history.append((dex_login_url, resp))
 
             if len(resp.history) == 0:
-                raise AuthenticationError('The LDAP credentials are probably invalid. '
+                raise AuthenticationError('The DEX LDAP credentials are probably invalid. '
                                           f'Update runtime configuration \'{runtime_config_name}\' and try again.',
                                           provider=self._type,
                                           request_history=request_history)
@@ -604,7 +624,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
     Authenticator for Service Account Tokens on Kubernetes.
     """
 
-    _type = SupportedAuthProviders.KUBERNETES_SERVICEACCOUNT_TOKEN
+    _type = SupportedAuthProviders.KUBERNETES_SERVICE_ACCOUNT_TOKEN
 
     def authenticate(self,
                      kf_endpoint: str,
@@ -624,7 +644,10 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
 
         request_history = []
 
-        # Verify the API endpoint
+        """
+        Disable connectivity test to avoid false positives.
+
+        # Verify connectivity for the API endpoint
         resp = requests.get(kf_endpoint, allow_redirects=True)
         request_history.append((kf_endpoint, resp))
         if resp.status_code != HTTPStatus.OK:
@@ -633,6 +656,16 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
                                       f'Update runtime configuration \'{runtime_config_name}\' and try again.',
                                       provider=self._type,
                                       request_history=request_history)
+        # If redirected, KF cannot be accessed using service account token.
+        # This is a likely mismatch between selected Kubeflow auth type and configured auth type.
+        if len(resp.history) > 0:
+            raise AuthenticationError(f'Kubeflow server at {kf_endpoint} redirected to an unexpected '
+                                      f'URL \'{resp.url}\'. Service account token access cannot be used '
+                                      'for authentication. '
+                                      f'Update runtime configuration \'{runtime_config_name}\' and try again.',
+                                      provider=self._type,
+                                      request_history=request_history)
+        """
 
         # Running in a Kubernetes pod, kfp.Client can use a service account token
         # for authentication. Verify that a token file exists in the current environment.
