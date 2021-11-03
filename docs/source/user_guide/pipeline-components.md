@@ -42,12 +42,12 @@ Note: Refer to the [_Requirements and best practices for custom pipeline compone
 
 #### Component catalogs
 
-Elyra does not include its own component repository. Instead you can configure it to pull components from local or remote catalogs, such as file systems, web resources, or source control systems. Elyra defines a connector API, which provides access to the catalogs resources.
+Elyra does not include its own component repository. Instead you can configure it to pull components from local or remote catalogs, such as filesystems, web resources, or source control systems. Elyra defines a connector API, which provides access to the catalogs resources.
 
 ![component catalogs](../images/user_guide/pipeline-components/component-catalogs.png)
 
 Elyra includes connectors for the following component catalog types:
- - _Filesystem component catalogs_ provide access to components that are stored in a file system that is readable by JupyterLab/Elyra.
+ - _Filesystem component catalogs_ provide access to components that are stored in a filesystem that is readable by JupyterLab/Elyra.
 
    Example: A filesystem component catalog that is configured using the `/users/jdoe/kubeflow_components/dev/my_component.yaml` path makes `my_component.yaml` available to Elyra.
 
@@ -109,29 +109,32 @@ To add components from a catalog:
 
 1. Click `+` in the _Pipeline Components_ panel.
 1. Select a component catalog type from the list of available options.
-1. Define the registry entry. Refer to section [Configuration properties](#configuration-properties) for a description of each property.
+1. Enter the catalog information. Refer to section [Configuration properties](#configuration-properties) for a description of each property.
+1. Save the catalog entry.
 
-If the registry entry validates correctly, the associated pipeline components are added  to the pipeline editor's palette. 
+ Elyra queries the catalog, loads the components, and adds them to the Visual Pipeline Editor palette. 
+
+ > Tip: check the log file for error messages if no components from the added catalog are displayed in the palette.
 
 #### Modifying a component catalog entry
 
 1. Click the `edit` (pencil) icon next to the entry name.
-1. Modify the registry entry as desired.
+1. Modify the catalog entry as desired.
 
-#### Deleting a component catalog from the registry
+#### Removing a component catalog entry
 
-To delete a component catalog entry and its referenced component(s) from the Visual Pipeline Editor palette:
+To remove a component catalog entry and its referenced component(s) from the Visual Pipeline Editor palette:
 
 1. Click the `delete` (trash) icon next to the entry name.
 1. Confirm deletion.
 
-Caution: Pipelines that utilize the referenced components are no longer valid after the component registry entry was deleted.
+Caution: Pipelines that utilize the referenced components are no longer valid after the catalog entry was deleted.
 
 ### Managing custom components using the Elyra CLI
 
 Custom components can be added, modified, and removed using the [`elyra-metadata` command line interface](/user_guide/command-line-interface.md).
 
-To list component registry entries:
+To list component catalog entries:
 
 ```bash
 $ elyra-metadata list component-registries
@@ -143,9 +146,9 @@ Schema               Instance                            Resource
 component-registry   elyra-airflow-filesystem-preconfig  .../jupyter/metadata/component-registries/elyra-airflow-filesystem-preconfig.json
 ```
 
-#### Adding components to the registry
+#### Adding a component catalog
 
-To add a component registry entry run `elyra-metadata install component-registries`.
+To add a component catalog entry run `elyra-metadata install component-registries`.
 
 ```bash
 $ elyra-metadata install component-registries \
@@ -159,9 +162,9 @@ $ elyra-metadata install component-registries \
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
-#### Modifying a component registry entry
+#### Modifying a component catalog entry
 
-To replace a component registry entry run `elyra-metadata install component-registries` and specify the `--replace` option:
+To replace a component catalog entry run `elyra-metadata install component-registries` and specify the `--replace` option:
 
 ```bash
 $ elyra-metadata install component-registries \
@@ -179,9 +182,9 @@ Note: You must specify all property values, not only the ones that you want to m
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
-#### Deleting components from the registry
+#### Removing a component catalog entry
 
-To delete a component registry entry and its component definitions:
+To remove a component catalog entry and its component definitions from the Visual Pipeline Editor palette:
 
 ```bash
 $ elyra-metadata remove component-registries \
@@ -192,29 +195,29 @@ Refer to section [Configuration properties](#configuration-properties) for param
 
 ### Configuration properties
 
-The component registry entry properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
+The component catalog entry properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
 
 ##### Name (display_name)
 
-A user-friendly name for the registry entry. Note that the registry entry name is not displayed in the palette. This property is required.
+A user-friendly name for the catalog entry. Note that the catalog entry name is not displayed in the palette. This property is required.
 
 Example: `data load components`
 
 ##### N/A (name)
 
-The canonical name for this registry entry. A value is generated from `Name` if no value is provided.
+The canonical name for this catalog entry. A value is generated from `Name` if no value is provided.
 
 Example: `data_load_components`
 
 ##### Description (description)
 
-A description for the registry entry.
+A description for the catalog entry.
 
 Example: `Load data from external data sources`
 
 ##### Category (categories)
 
-In the pipeline editor palette components are grouped into categories to make them more easily accessible. If no category is provided, the components defined by this registry entry are added to the palette under `no category`. A limit of 18 characters or fewer is enforced for each category.
+In the pipeline editor palette components are grouped into categories to make them more easily accessible. If no category is provided, the components defined by this catalog entry are added to the palette under `no category`. A limit of 18 characters or fewer is enforced for each category.
 
 Examples (CLI):
 
@@ -232,11 +235,11 @@ Example:
 
 ### Built-in catalog connector reference
 
-Elyra supports fetching components from the file system and the web using its built-in connectors. 
+Elyra supports fetching components from the filesystem and the web using its built-in connectors. 
 
 #### Filesystem component catalog
 
-The filesystem component catalog connector provides access to components that are stored in the file system where Elyra is running:
+The filesystem component catalog connector provides access to components that are stored in the filesystem where Elyra is running:
  - `~` may be used to denote the user's home directory.
  - Wildcards (e.g. `*` or `?`) are not supported.
  - You can specify one or more file names.
@@ -253,7 +256,7 @@ Examples (CLI):
 
 #### Directory component catalog
 
-The directory component catalog connector provides access to components that are stored in a file system directory: 
+The directory component catalog connector provides access to components that are stored in a filesystem directory: 
  - If `Path` is set to `/Users/patti/specs/load_from_database`, the connector searches  the specified directory for components for the selected runtime type.
  - The search is performed recursively if the subdirectory option is enabled.
  - `~` may be used to denote the user's home directory.
