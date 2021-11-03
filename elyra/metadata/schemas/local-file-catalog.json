@@ -1,0 +1,91 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/local-file-catalog.json",
+  "title": "Filesystem Component Catalog",
+  "name": "local-file-catalog",
+  "display_name": "Filesystem Component Catalog",
+  "schemaspace": "component-registries",
+  "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
+  "metadata_class_name": "elyra.pipeline.component_metadata.FilenameCatalogMetadata",
+  "uihints": {
+    "icon": "",
+    "reference_url": "https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "local-file-catalog"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "Display name of this Component Catalog",
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "title": "Version",
+      "description": "The version associated with this instance",
+      "type": "integer",
+      "const": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "description": "Description of this Component Catalog",
+          "type": "string"
+        },
+        "runtime": {
+          "title": "Runtime",
+          "description": "The runtime associated with this Component Catalog",
+          "type": "string",
+          "$comment": "This enum is dynamically generated to contain the available runtime values.",
+          "enum": ["{currently-configured-runtimes}"],
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Runtime"
+          }
+        },
+        "categories": {
+          "title": "Category Names",
+          "description": "Category names associated with this Component Catalog (the components defined in this registry will be organized in the component palette according to these categories)",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 18
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Component Categories"
+          }
+        },
+        "base_path": {
+          "title": "Optional Base Directory",
+          "description": "An optional base directory from which the given values of Paths can be resolved",
+          "type": "string",
+          "uihints": {
+            "category": "Configuration"
+          }
+        },
+        "paths": {
+          "title": "Paths",
+          "description": "A list of paths to individual component specification files in the local filesystem",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Configuration"
+          }
+        }
+      },
+      "required": ["runtime", "paths"]
+    }
+  },
+  "required": ["schema_name", "display_name", "version", "metadata"]
+}

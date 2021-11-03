@@ -138,9 +138,9 @@ $ elyra-metadata list component-registries
 
 Available metadata instances for component-registries (includes invalid):
 
-Schema               Instance                          Resource                                                                                                        
-------               --------                          --------                                                                                                        
-component-registry   elyra-airflow-filename-preconfig  .../jupyter/metadata/component-registries/elyra-airflow-filename-preconfig.json   
+Schema               Instance                            Resource
+------               --------                            --------
+component-registry   elyra-airflow-filesystem-preconfig  .../jupyter/metadata/component-registries/elyra-airflow-filesystem-preconfig.json
 ```
 
 #### Adding components to the registry

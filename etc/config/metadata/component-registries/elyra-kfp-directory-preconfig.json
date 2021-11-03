@@ -3,9 +3,9 @@
   "metadata": {
     "description": "Preloaded directory-based components that are supported by Kubeflow Pipelines",
     "runtime": "kfp",
-    "location_type": "Directory",
     "categories": ["Preloaded KFP"],
     "paths": ["kfp"]
   },
-  "schema_name": "component-registry"
+  "schema_name": "local-directory-catalog",
+  "version": 1
 }

@@ -14,22 +14,13 @@
 # limitations under the License.
 #
 from abc import abstractmethod
-from http import HTTPStatus
 from logging import Logger
-import os
-from queue import Empty
-from queue import Queue
-from threading import Thread
 from types import SimpleNamespace
 from typing import Any
-from typing import Dict
 from typing import List
 from typing import Optional
 
-from jupyter_core.paths import ENV_JUPYTER_PATH
-import requests
 from traitlets.config import LoggingConfigurable
-from traitlets.traitlets import Integer
 
 
 class ComponentParameter(object):
@@ -124,10 +115,13 @@ class Component(object):
     Represents a generic or runtime-specific component
     """
 
-    def __init__(self, id: str, name: str,
+    def __init__(self,
+                 id: str,
+                 name: str,
                  description: Optional[str],
-                 location_type: str,
-                 location: str,
+                 catalog_type: str,
+                 source_identifier: Any,
+                 definition: Optional[str] = None,
                  runtime: Optional[str] = None,
                  op: Optional[str] = None,
                  categories: Optional[List[str]] = None,
@@ -138,12 +132,14 @@ class Component(object):
         :param id: Unique identifier for a component
         :param name: The name of the component for display
         :param description: The description of the component
-        :param location_type: Indicates the type of component definition resource
+        :param catalog_type: Indicates the type of component definition resource
                               location; one of ['url', filename', 'directory]
-        :param location: The location of the component definition
+        :param source_identifier: Source information to help locate the component definition
+        :param definition: The content of the specification file for this component
         :param runtime: The runtime of the component (e.g. KFP or Airflow)
         :param op: The operation name of the component; used by generic components in rendering the palette
-        :param categories: A list of categories that this component belongs to
+        :param categories: A list of categories that this component belongs to; used to organize component
+                           in the palette
         :param properties: The set of properties for the component
         :param extensions: The file extension used by the component
         """
@@ -156,16 +152,17 @@ class Component(object):
         self._id = id
         self._name = name
         self._description = description
-        self._location_type = location_type
-        self._location = location
+        self._catalog_type = catalog_type
+        self._source_identifier = source_identifier
 
+        self._definition = definition
         self._runtime = runtime
         self._op = op
         self._categories = categories or []
         self._properties = properties
 
         if not parameter_refs:
-            if self._location_type == "elyra":
+            if self._catalog_type == "elyra":
                 parameter_refs = {
                     "filehandler": "filename"
                 }
@@ -193,12 +190,23 @@ class Component(object):
         return self._description
 
     @property
-    def location_type(self) -> str:
-        return self._location_type
+    def catalog_type(self) -> str:
+        return self._catalog_type
 
     @property
-    def location(self) -> str:
-        return self._location
+    def source_identifier(self) -> Any:
+        return self._source_identifier
+
+    @property
+    def component_source(self) -> str:
+        return str({
+            "catalog_type": self.catalog_type,
+            "component_ref": self.source_identifier
+        })
+
+    @property
+    def definition(self) -> str:
+        return self._definition
 
     @property
     def runtime(self) -> Optional[str]:
@@ -235,213 +243,6 @@ class Component(object):
             print(f"WARNING: {msg}")
 
 
-class ComponentReader(LoggingConfigurable):
-    """
-    Abstract class to model component_entry readers that can read components from different locations
-    """
-    location_type: str = None
-
-    max_readers = Integer(3, config=True, allow_none=True,
-                          help="""Sets the number of reader threads""")
-
-    def __init__(self, file_types: List[str]):
-        super().__init__()
-        self.file_types = file_types
-
-    @property
-    def resource_type(self):
-        """
-        The RuntimePipelineProcessor accesses this property in order to
-        process components on pipeline submit/export. The value must be
-        one of ('filename', 'url').
-        """
-        return self.location_type
-
-    @abstractmethod
-    def read_component_definition(self,
-                                  location: str,
-                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
-        """
-        Read an absolute location to get the contents of a component specification file
-
-        :param location: an absolute path to the specification file to read
-        :param location_to_def: a mapping of component locations to file contents
-
-        :returns: the given 'location_to_def' object, optionally including a new
-                  key-value pair if the given component location is successfully read
-        """
-        raise NotImplementedError()
-
-    def read_component_definitions(self, locations: List[str]) -> Dict[str, str]:
-        """
-        This function starts a number of threads ('max_reader' or fewer) that read component
-        definitions in parallel.
-
-        The 'location_to_def' variable is a mapping of a component location to its content.
-        As a mutable object, this dictionary provides a means to retrieve a return value for
-        each thread. If a thread is able to successfully read the content of the given
-        component file location, a location-to-content mapping is added to 'location_to_def'.
-        """
-        location_to_def = {}
-
-        loc_q = Queue()
-        for location in self.get_absolute_locations(locations):
-            loc_q.put_nowait(location)
-
-        def read_with_thread():
-            """Get a location from the queue and read contents"""
-            while not loc_q.empty():
-                try:
-                    self.log.debug("Retrieving component definition file location from queue...")
-                    loc = loc_q.get(timeout=.1)
-                except Empty:
-                    continue
-
-                try:
-                    self.log.debug(f"Attempting read of component definition file at location '{loc}'...")
-                    self.read_component_definition(loc, location_to_def)
-                except Exception:
-                    self.log.warning(f"Could not read component definition file at location '{loc}'. Skipping...")
-
-                loc_q.task_done()
-
-        # Start 'max_reader' reader threads if registry includes more than 'max_reader'
-        # number of locations, else start one thread per location
-        num_threads = min(loc_q.qsize(), self.max_readers)
-        for i in range(num_threads):
-            Thread(target=read_with_thread).start()
-
-        # Wait for all queued locations to be processed
-        loc_q.join()
-
-        return location_to_def
-
-    @abstractmethod
-    def get_absolute_locations(self, paths: List[str]) -> List[str]:
-        """
-        Returns a list of absolute paths to component specification file(s)
-        based on the array of potentially relative locations given
-        """
-        raise NotImplementedError()
-
-
-class FilesystemComponentReader(ComponentReader):
-    """
-    Read a singular component definition from the local filesystem
-    """
-    location_type = 'filename'
-
-    def determine_location(self, location_path: str) -> str:
-        """
-        Determines the absolute location of a given path. Error
-        checking is delegated to the calling function
-        """
-        # Expand path to include user home if necessary
-        path = os.path.expanduser(location_path)
-
-        # Check for absolute path
-        if os.path.isabs(path):
-            return path
-
-        # If path is not absolute, default to the Jupyter share location
-        path = os.path.join(ENV_JUPYTER_PATH[0], 'components', path)
-        return path
-
-    def read_component_definition(self,
-                                  location: str,
-                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
-        if not os.path.exists(location):
-            self.log.warning(f"Invalid location for component: {location}")
-        else:
-            with open(location, 'r') as f:
-                location_to_def[location] = f.read()
-
-        return location_to_def
-
-    def get_absolute_locations(self, paths: List[str]) -> List[str]:
-        absolute_paths = []
-        for path in paths:
-            absolute_path = self.determine_location(path)
-            if not os.path.exists(absolute_path):
-                self.log.warning(f"File does not exist -> {absolute_path}")
-            absolute_paths.append(absolute_path)
-        return absolute_paths
-
-
-class DirectoryComponentReader(FilesystemComponentReader):
-    """
-    Read component definitions from a local directory
-    """
-    location_type = 'directory'
-
-    def get_absolute_locations(self, paths: List[str]) -> List[str]:
-        absolute_paths = []
-        for path in paths:
-            absolute_path = self.determine_location(path)
-            if not os.path.exists(absolute_path):
-                self.log.warning(f"Invalid directory -> {absolute_path}")
-                continue
-
-            for filename in os.listdir(absolute_path):
-                if filename.endswith(tuple(self.file_types)):
-                    absolute_paths.append(os.path.join(absolute_path, filename))
-
-        return absolute_paths
-
-    @property
-    def resource_type(self):
-        """
-        The RuntimePipelineProcessor accesses this property in order to process
-        components on pipeline submit/export. The superclass location_type is
-        used because the value must be one of ('filename', 'url').
-        """
-        return super().location_type
-
-
-class UrlComponentReader(ComponentReader):
-    """
-    Read a singular component definition from a url
-    """
-    location_type = 'url'
-
-    def read_component_definition(self,
-                                  location: str,
-                                  location_to_def: Dict[str, str]) -> Dict[str, str]:
-        try:
-            res = requests.get(location)
-        except Exception as e:
-            self.log.warning(f"Failed to connect to URL for component: {location}: {str(e)}")
-        else:
-            if res.status_code != HTTPStatus.OK:
-                self.log.warning(f"Invalid location for component: {location} (HTTP code {res.status_code})")
-            else:
-                location_to_def[location] = res.text
-
-        return location_to_def
-
-    def get_absolute_locations(self, paths: List[str]) -> List[str]:
-        return paths
-
-
-class GitHubComponentReader(UrlComponentReader):
-    """
-    Read component definitions from a github repo
-    """
-    location_type = 'github'
-
-    def get_absolute_locations(self, paths: List[str]) -> List[str]:
-        pass
-
-    @property
-    def resource_type(self):
-        """
-        The RuntimePipelineProcessor accesses this property in order to process
-        components on pipeline submit/export. The superclass location_type is
-        used because the value must be one of ('filename', 'url').
-        """
-        return super().location_type
-
-
 class ComponentParser(LoggingConfigurable):  # ABC
     _component_platform = None
 
@@ -460,16 +261,6 @@ class ComponentParser(LoggingConfigurable):  # ABC
         a list of fully-qualified Component objects
         """
         raise NotImplementedError()
-
-    def get_component_id(self, location: str, name: str) -> str:
-        """
-        Get a unique id for a component based on its file basename and
-        it's given name.
-        """
-        file_basename = os.path.basename(location)
-        filename = os.path.splitext(file_basename)[0]
-        component_name = f"{filename}_{name.replace(' ', '')}"
-        return component_name
 
     def _format_description(self, description: str, data_type: str) -> str:
         """

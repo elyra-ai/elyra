@@ -11,7 +11,7 @@
         {
           "id": "fe08b42d-bd8c-4e97-8010-0503a3185427",
           "type": "execution_node",
-          "op": "run_notebook_using_papermill_Runnotebookusingpapermill",
+          "op": "local-directory-catalog:61e6f4141f65",
           "app_data": {
             "component_parameters": {
               "notebook": "../notebookA.ipynb",
@@ -71,7 +71,7 @@
         {
           "id": "bfa62a7e-4f55-4fb5-b358-a6f70278ae62",
           "type": "execution_node",
-          "op": "filter_text_using_shell_and_grep_Filtertext",
+          "op": "local-directory-catalog:737915b826e9",
           "app_data": {
             "component_parameters": {
               "text": "../B.txt",
