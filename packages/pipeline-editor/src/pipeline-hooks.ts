@@ -138,7 +138,13 @@ export const sortPalette = (palette: {
 
   for (const components of palette.categories) {
     components.node_types.sort((a, b) =>
-      a.op.localeCompare(b.op, undefined, { numeric: true })
+      a.app_data.ui_data.label.localeCompare(
+        b.app_data.ui_data.label,
+        undefined,
+        {
+          numeric: true
+        }
+      )
     );
   }
 };
