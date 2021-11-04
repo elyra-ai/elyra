@@ -369,9 +369,9 @@
           "comments": []
         },
         "version": 5,
+        "runtime_type": "GENERIC",
         "properties": {
-          "name": "generic_invalid_node_property_structure",
-          "runtime": "Generic"
+          "name": "generic_invalid_node_property_structure"
         }
       },
       "runtime_ref": ""

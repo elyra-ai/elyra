@@ -68,7 +68,7 @@ def test_modify_component_registries():
 
     instance_metadata = {
         "description": "A test registry",
-        "runtime": "airflow",
+        "runtime_type": "APACHE_AIRFLOW",
         "categories": ["New Components"],
         "paths": urls
     }
@@ -137,7 +137,7 @@ def test_directory_based_component_registry():
     registry_path = _get_resource_path('')
     instance_metadata = {
         "description": "A test registry",
-        "runtime": "airflow",
+        "runtime_type": "APACHE_AIRFLOW",
         "categories": ["New Components"],
         "paths": [registry_path]
     }

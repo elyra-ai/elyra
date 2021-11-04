@@ -107,7 +107,7 @@ async def test_invalid_runtime_node_kubeflow(validation_manager, load_pipeline):
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_type='kfp',
+                                                     pipeline_type='KUBEFLOW_PIPELINES',
                                                      pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
@@ -125,7 +125,7 @@ async def test_invalid_runtime_node_kubeflow_with_supernode(validation_manager, 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_type='kfp',
+                                                     pipeline_type='KUBEFLOW_PIPELINES',
                                                      pipeline_runtime='kfp')
     issues = response.to_json().get('issues')
     print(issues)
@@ -142,7 +142,7 @@ async def test_invalid_pipeline_runtime_with_kubeflow_execution(validation_manag
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_type='airflow',
+                                                     pipeline_type='APACHE_AIRFLOW',
                                                      pipeline_runtime='kfp')
     issues = response.to_json().get('issues')
     assert len(issues) == 1
@@ -156,13 +156,13 @@ async def test_invalid_pipeline_runtime_with_local_execution(validation_manager,
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_type='airflow',
+                                                     pipeline_type='APACHE_AIRFLOW',
                                                      pipeline_runtime='local')
     issues = response.to_json().get('issues')
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidRuntime'
-    assert issues[0]['data']['pipelineType'] == 'airflow'
+    assert issues[0]['data']['pipelineType'] == 'APACHE_AIRFLOW'
 
 
 async def test_invalid_node_op_with_airflow(validation_manager, load_pipeline):
@@ -172,7 +172,7 @@ async def test_invalid_node_op_with_airflow(validation_manager, load_pipeline):
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_compatibility(pipeline_definition=pipeline_definition,
                                                      response=response,
-                                                     pipeline_type='airflow',
+                                                     pipeline_type='APACHE_AIRFLOW',
                                                      pipeline_runtime='airflow')
     issues = response.to_json().get('issues')
     assert len(issues) == 1
@@ -196,7 +196,7 @@ async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await pvm._validate_node_properties(pipeline_definition=pipeline_definition,
                                         response=response,
-                                        pipeline_type='generic',
+                                        pipeline_type='GENERIC',
                                         pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
@@ -218,7 +218,7 @@ async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch, load_pip
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await pvm._validate_node_properties(pipeline_definition=pipeline_definition,
                                         response=response,
-                                        pipeline_type='kfp',
+                                        pipeline_type='KUBEFLOW_PIPELINES',
                                         pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
@@ -333,7 +333,7 @@ async def test_valid_node_property_pipeline_filepath(monkeypatch, validation_man
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
                                                        response=response,
-                                                       pipeline_type='generic',
+                                                       pipeline_type='GENERIC',
                                                        pipeline_runtime='kfp')
 
     assert not response.has_fatal
@@ -518,7 +518,7 @@ async def test_pipeline_kfp_inputpath_parameter(validation_manager, load_pipelin
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
                                                        response=response,
-                                                       pipeline_type='kfp',
+                                                       pipeline_type='KUBEFLOW_PIPELINES',
                                                        pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
@@ -532,7 +532,7 @@ async def test_pipeline_invalid_kfp_inputpath_parameter(validation_manager, load
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
                                                        response=response,
-                                                       pipeline_type='kfp',
+                                                       pipeline_type='KUBEFLOW_PIPELINES',
                                                        pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
@@ -552,7 +552,7 @@ async def test_pipeline_invalid_kfp_inputpath_missing_connection(validation_mana
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
                                                        response=response,
-                                                       pipeline_type='kfp',
+                                                       pipeline_type='KUBEFLOW_PIPELINES',
                                                        pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')

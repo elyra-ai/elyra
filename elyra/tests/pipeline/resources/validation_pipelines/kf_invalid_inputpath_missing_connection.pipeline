@@ -174,9 +174,9 @@
         },
         "version": 5,
         "runtime": "kfp",
+        "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
-          "name": "kf_invalid_inputpath_missing_connection",
-          "runtime": "Kubeflow Pipelines"
+          "name": "kf_invalid_inputpath_missing_connection"
         }
       },
       "runtime_ref": ""

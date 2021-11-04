@@ -183,9 +183,9 @@
         },
         "version": 5,
         "runtime": "kfp",
+        "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
-          "name": "kf_inputpath_parameter",
-          "runtime": "Kubeflow Pipelines"
+          "name": "kf_inputpath_parameter"
         }
       },
       "runtime_ref": ""

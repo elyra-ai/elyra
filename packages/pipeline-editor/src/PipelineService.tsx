@@ -31,11 +31,13 @@ export interface IRuntime {
   name: string;
   display_name: string;
   schema_name: string;
+  runtime_type: string;
 }
 
 export interface ISchema {
   name: string;
   display_name: string;
+  runtime_type: string;
 }
 
 enum ContentType {

@@ -692,13 +692,15 @@ const PipelineWrapper: React.FC<IProps> = ({
     const localRuntime: IRuntime = {
       name: 'local',
       display_name: 'Run in-place locally',
-      schema_name: 'local'
+      schema_name: 'local',
+      runtime_type: 'Generic'
     };
     runtimes.unshift(JSON.parse(JSON.stringify(localRuntime)));
 
     const localSchema: ISchema = {
       name: 'local',
-      display_name: 'Local Runtime'
+      display_name: 'Local Runtime',
+      runtime_type: 'Generic'
     };
     schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 

@@ -61,7 +61,7 @@ def test_modify_component_registries():
 
     instance_metadata = {
         "description": "A test registry",
-        "runtime": "kfp",
+        "runtime_type": "KUBEFLOW_PIPELINES",
         "categories": ["New Components"],
         "paths": paths
     }
@@ -127,7 +127,7 @@ def test_directory_based_component_registry():
     registry_path = _get_resource_path('')
     instance_metadata = {
         "description": "A test registry",
-        "runtime": "kfp",
+        "runtime_type": "KUBEFLOW_PIPELINES",
         "categories": ["New Components"],
         "paths": [registry_path]
     }
