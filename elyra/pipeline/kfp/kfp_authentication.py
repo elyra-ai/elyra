@@ -62,10 +62,10 @@ class SupportedAuthProviders(Enum):
     KUBERNETES_SERVICE_ACCOUNT_TOKEN = 'Kubernetes service account token'
     # KF is secured using DEX with static id/password
     # (See StaticPasswordKFPAuthenticator implementation)
-    DEX_STATIC_PASSWORDS = 'DEX with static passwords'
+    DEX_STATIC_PASSWORDS = 'DEX (static passwords)'
     # Supports DEX with LDAP authentication
     # (See DEXLDAPAuthenticator implementation)
-    DEX_LDAP = 'DEX with LDAP'
+    DEX_LDAP = 'DEX (LDAP)'
     # Supports multiple authentication mechanisms
     # (See DEXLegacyAuthenticator implementation)
     DEX_LEGACY = 'DEX (legacy)'
