@@ -21,6 +21,7 @@ from typing import Dict
 from typing import List
 
 import entrypoints
+from traitlets import log  # noqa H306
 try:
     from kfp_tekton import TektonClient
 except ImportError:
@@ -48,6 +49,7 @@ class ElyraSchemasProvider(SchemasProvider, metaclass=ABCMeta):
             local_schemas.append(schema_json)
 
     def __init__(self):
+        self.log = log.get_logger()
         # get set of registered runtimes
         self._runtime_processor_names = set()
         for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
@@ -79,6 +81,9 @@ class RuntimesSchemas(ElyraSchemasProvider):
                 runtime_schemas.append(schema)
                 if schema['name'] == 'kfp':
                     kfp_needed = True
+            else:
+                self.log.error(f"No entrypoint with name '{schema['name']}' was found in group "
+                               f"'elyra.pipeline.processor'. Skipping...")
 
         if kfp_needed:  # Update the kfp engine enum to reflect current packages...
             # If TektonClient package is missing, navigate to the engine property
@@ -109,5 +114,4 @@ class CodeSnippetsSchemas(ElyraSchemasProvider):
 class ComponentRegistriesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Component Registries schemaspace."""
     def get_schemas(self) -> List[Dict]:
-        schemas = self.get_local_schemas_by_schemaspace(ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
-        return schemas
+        return self.get_local_schemas_by_schemaspace(ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
