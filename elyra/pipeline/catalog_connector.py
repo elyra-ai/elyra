@@ -301,8 +301,6 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         # Start 'max_reader' reader threads if catalog includes more than 'max_reader'
         # number of catalog entries, else start one thread per entry
-        print("MAX READERS: " + str(self.max_readers))
-
         num_threads = min(catalog_entry_q.qsize(), self.max_readers)
         for i in range(num_threads):
             Thread(target=read_with_thread).start()
