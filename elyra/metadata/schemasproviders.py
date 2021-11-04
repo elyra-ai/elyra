@@ -83,7 +83,7 @@ class RuntimesSchemas(ElyraSchemasProvider):
                     kfp_needed = True
             else:
                 self.log.error(f"No entrypoint with name '{schema['name']}' was found in group "
-                               f"'elyra.pipeline.processor'. Skipping...")
+                               f"'elyra.pipeline.processor' to match the schema with the same name. Skipping...")
 
         if kfp_needed:  # Update the kfp engine enum to reflect current packages...
             # If TektonClient package is missing, navigate to the engine property
