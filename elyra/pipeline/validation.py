@@ -204,7 +204,7 @@ class PipelineValidationManager(SingletonConfigurable):
             return True  # TODO: this won't always be true as some runtime impls won't support generics
         # We need to make the "local" runtimes a real runtime someday! Until then, we have this...
         if runtime_name.lower() == 'local':
-            runtime_type_from_schema = runtime_name  # just use the same value
+            runtime_type_from_schema = runtime_name.upper()  # use the up-cased value since runtime_types are up-cased
         else:  # fetch the metadata instance corresponding to runtime_name and compare its runtime_type
             runtime_schema = SchemaManager.instance().get_schema(Runtimes.RUNTIMES_SCHEMASPACE_ID, runtime_name)
             runtime_type_from_schema = runtime_schema.get('runtime_type')
