@@ -85,6 +85,7 @@ export interface IRuntimeComponent {
   node_types: {
     op: string;
     id: string;
+    label: string;
     type: 'execution_node';
     inputs: { app_data: any }[];
     outputs: { app_data: any }[];
@@ -138,7 +139,9 @@ export const sortPalette = (palette: {
 
   for (const components of palette.categories) {
     components.node_types.sort((a, b) =>
-      a.op.localeCompare(b.op, undefined, { numeric: true })
+      a.label.localeCompare(b.label, undefined, {
+        numeric: true
+      })
     );
   }
 };

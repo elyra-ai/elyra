@@ -240,11 +240,15 @@ class ComponentRegistry(LoggingConfigurable):
         for catalog in catalogs:
             # Assign reader based on the type of the catalog (the 'schema_name')
             try:
-                catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types')\
-                    .get(catalog.schema_name)\
-                    .load()(self._parser.file_types, parent=self.parent)
+                catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog.schema_name)
+                if not catalog_reader:
+                    self.log.error(f"No entrypoint with name '{catalog.schema_name}' was found in group "
+                                   f"'elyra.component.catalog_types' to match the 'schema_name' given in catalog "
+                                   f"'{catalog.display_name}'. Skipping...")
+                    continue
+                catalog_reader = catalog_reader.load()(self._parser.file_types, parent=self.parent)
             except Exception as e:
-                self.log.warning(f"Could not load appropriate ComponentCatalogConnector class: {e}. Skipping...")
+                self.log.error(f"Could not load appropriate ComponentCatalogConnector class: {e}. Skipping...")
                 continue
 
             # Get content of component definition file for each component in this catalog

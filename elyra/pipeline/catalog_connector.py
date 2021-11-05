@@ -29,6 +29,7 @@ from typing import Optional
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
+from traitlets.traitlets import default
 from traitlets.traitlets import Integer
 
 from elyra.metadata.metadata import Metadata
@@ -38,10 +39,20 @@ class ComponentCatalogConnector(LoggingConfigurable):
     """
     Abstract class to model component_entry readers that can read components from different locations
     """
-
-    max_readers = Integer(3, config=True, allow_none=True,
+    max_threads_default = 3
+    max_readers_env = 'ELYRA_CATALOG_CONNECTOR_MAX_READERS'
+    max_readers = Integer(max_threads_default,
                           help="""Sets the maximum number of reader threads to be used to read
-                          catalog entries in parallel""")
+                          catalog entries in parallel""").tag(config=True)
+
+    @default('max_readers')
+    def max_readers_default(self):
+        max_reader_threads = ComponentCatalogConnector.max_threads_default
+        try:
+            max_reader_threads = int(os.getenv(self.max_readers_env, max_reader_threads))
+        except ValueError:
+            pass
+        return max_reader_threads
 
     def __init__(self, file_types: List[str], **kwargs):
         super().__init__(**kwargs)
@@ -235,7 +246,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         except NotImplementedError as e:
             err_msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}"
-            self.log.warning(err_msg)
+            self.log.error(err_msg)
         except Exception as e:
             err_msg = f"Could not get catalog entry information for catalog '{catalog_instance.display_name}': {e}"
             # Dump stack trace with error message
@@ -279,7 +290,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
                 except NotImplementedError as e:
                     msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}."
-                    self.log.warning(msg)
+                    self.log.error(msg)
                 except Exception as e:
                     # Dump stack trace with error message and continue
                     self.log.exception(f"Could not read definition for catalog entry with identifying information: "
