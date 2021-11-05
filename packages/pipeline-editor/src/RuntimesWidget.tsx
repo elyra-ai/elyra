@@ -51,6 +51,7 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
   sortMetadata: boolean;
   className: string;
   schemas?: IDictionary<any>[];
+  schemaType?: string;
 }
 
 /**
@@ -165,6 +166,7 @@ export class RuntimesWidget extends MetadataWidget {
         schemas={this.schemas}
         className={RUNTIMES_METADATA_CLASS}
         labelName={this.getSchemaTitle}
+        schemaType={this.props.schemaType}
       />
     );
   }

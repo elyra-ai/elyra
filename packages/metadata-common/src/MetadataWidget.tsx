@@ -115,7 +115,7 @@ export class MetadataDisplay<
     return showDialog({
       title: `Delete ${
         this.props.labelName ? this.props.labelName(metadata) : ''
-      } '${metadata.display_name}'?`,
+      } ${this.props.schemaType || ''} '${metadata.display_name}'?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
