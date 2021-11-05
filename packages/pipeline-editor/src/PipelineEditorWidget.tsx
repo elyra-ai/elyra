@@ -116,6 +116,16 @@ const getRuntimeDisplayName = (
   return schema?.display_name;
 };
 
+const getRuntimeTypeFromSchema = (
+  schemas: { name: string; runtime_type: string }[] | undefined,
+  runtime: string | undefined
+): string | undefined => {
+  const schema = schemas?.find(s => s.name === runtime);
+  console.log('getRuntimeTypeFromSchema, runtime=', runtime);
+  console.log('getRuntimeTypeFromSchema, schema=', schema);
+  return schema?.runtime_type;
+};
+
 class PipelineEditorWidget extends ReactWidget {
   browserFactory: IFileBrowserFactory;
   shell: ILabShell;
@@ -170,7 +180,6 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [alert, setAlert] = React.useState('');
 
   const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
-  const pipelineRuntimeType = pipeline?.pipelines?.[0]?.app_data?.runtime_type;
 
   const { data: palette, error: paletteError } = usePalette(
     pipelineRuntimeName
@@ -184,6 +193,11 @@ const PipelineWrapper: React.FC<IProps> = ({
   } = useRuntimesSchema();
 
   const pipelineRuntimeDisplayName = getRuntimeDisplayName(
+    runtimesSchema,
+    pipelineRuntimeName
+  );
+
+  const pipelineRuntimeTypeFromSchema = getRuntimeTypeFromSchema(
     runtimesSchema,
     pipelineRuntimeName
   );
@@ -256,9 +270,9 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipeline_path,
           PathExt.extname(pipeline_path)
         );
+        pipelineJson.pipelines[0].app_data.runtime_type =
+          pipelineRuntimeTypeFromSchema ?? 'Generic';
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
-        pipelineJson.pipelines[0].app_data.properties.runtime =
-          pipelineRuntimeDisplayName ?? 'Generic';
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -270,7 +284,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [pipelineRuntimeDisplayName, runtimeImages]);
+  }, [pipelineRuntimeTypeFromSchema, runtimeImages]);
 
   const onChange = useCallback(
     (pipelineJson: any): void => {
@@ -944,16 +958,16 @@ const PipelineWrapper: React.FC<IProps> = ({
     rightBar: [
       {
         action: '',
-        label: `Runtime: ${pipelineRuntimeDisplayName ?? 'Generic'}`,
+        label: `Runtime: ${pipelineRuntimeTypeFromSchema ?? 'GENERIC'}`,
         incLabelWithIcon: 'before',
         enable: false,
         kind: 'tertiary',
         iconEnabled: IconUtil.encode(
-          pipelineRuntimeType === 'KUBEFLOW_PIPELINES'
+          pipelineRuntimeTypeFromSchema === 'KUBEFLOW_PIPELINES'
             ? kubeflowIcon
-            : pipelineRuntimeType === 'APACHE_AIRFLOW'
+            : pipelineRuntimeTypeFromSchema === 'APACHE_AIRFLOW'
             ? airflowIcon
-            : pipelineRuntimeType === 'ARGO'
+            : pipelineRuntimeTypeFromSchema === 'ARGO'
             ? argoIcon
             : pipelineIcon
         )

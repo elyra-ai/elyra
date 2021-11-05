@@ -85,6 +85,7 @@ export interface IRuntimeComponent {
   node_types: {
     op: string;
     id: string;
+    runtime_type?: string;
     type: 'execution_node';
     inputs: { app_data: any }[];
     outputs: { app_data: any }[];
@@ -173,17 +174,18 @@ const componentFetcher = async (runtime: string): Promise<any> => {
 
   // inject properties
   for (const category of palette.categories) {
-    // TODO: The server will provide this in a later release
-    // TODO: These should be based on runtime-type rather than schema name
-    // TODO: Note: these don't work at all and all fall into the default condition!
-    switch (category.id) {
-      case 'kfp':
+    // Use the runtime_type from the first node of the category to determine category
+    // icon.  TODO: Ideally, this would be included in the category.
+    const category_runtime_type =
+      category.node_types?.[0]?.runtime_type ?? 'GENERIC';
+    switch (category_runtime_type) {
+      case 'KUBEFLOW_PIPELINES':
         category.image = IconUtil.encode(kubeflowIcon);
         break;
-      case 'airflow':
+      case 'APACHE_AIRFLOW':
         category.image = IconUtil.encode(airflowIcon);
         break;
-      case 'argo':
+      case 'ARGO':
         category.image = IconUtil.encode(argoIcon);
         break;
       default:
