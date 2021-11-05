@@ -45,7 +45,8 @@ const createMockCategory = (
 
 const createMockComponent = (name: string): Component => {
   return {
-    op: name,
+    op: 'string',
+    label: name,
     id: 'string',
     type: 'execution_node',
     inputs: [],
