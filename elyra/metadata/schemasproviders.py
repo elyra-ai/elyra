@@ -114,4 +114,5 @@ class CodeSnippetsSchemas(ElyraSchemasProvider):
 class ComponentRegistriesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Component Registries schemaspace."""
     def get_schemas(self) -> List[Dict]:
-        return self.get_local_schemas_by_schemaspace(ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
+        schemas = self.get_local_schemas_by_schemaspace(ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
+        return schemas
