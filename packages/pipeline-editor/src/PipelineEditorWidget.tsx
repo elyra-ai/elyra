@@ -121,8 +121,6 @@ const getRuntimeTypeFromSchema = (
   runtime: string | undefined
 ): string | undefined => {
   const schema = schemas?.find(s => s.name === runtime);
-  console.log('getRuntimeTypeFromSchema, runtime=', runtime);
-  console.log('getRuntimeTypeFromSchema, schema=', schema);
   return schema?.runtime_type;
 };
 
