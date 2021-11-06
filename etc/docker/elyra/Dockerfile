@@ -23,7 +23,7 @@ ARG TAG="dev"
 
 USER root
 
-ADD  start-elyra.sh /usr/local/bin/start-elyra.sh
+ADD start-elyra.sh /usr/local/bin/start-elyra.sh
 
 RUN chmod ugo+x /usr/local/bin/start-elyra.sh
 
