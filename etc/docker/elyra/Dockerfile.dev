@@ -34,12 +34,9 @@ RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
 
 USER $NB_USER
 
-#RUN python -m pip install --upgrade pandas numpy
-#RUN npm install -g yarn
-#RUN cd /tmp/elyra && make clean install
-
 RUN python -m pip install --upgrade pandas numpy && \
     npm install -g yarn && \
+    npm install -g npm && \
     cd /tmp/elyra && make clean install
 
 CMD ["/usr/local/bin/start-elyra.sh"]
