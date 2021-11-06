@@ -7,5 +7,6 @@
     "categories": ["Preloaded Airflow"],
     "paths": ["airflow"]
   },
-  "schema_name": "component-registry"
+  "schema_name": "local-directory-catalog",
+  "version": 1
 }
