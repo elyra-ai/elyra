@@ -4,8 +4,8 @@
   "title": "Directory Component Catalog",
   "name": "local-directory-catalog",
   "display_name": "Directory Component Catalog",
-  "schemaspace": "component-registries",
-  "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
+  "schemaspace": "component-catalogs",
+  "schemaspace_id": "8dc89ca3-4b90-41fd-adb9-9510ad346620",
   "metadata_class_name": "elyra.pipeline.component_metadata.DirectoryCatalogMetadata",
   "uihints": {
     "icon": "",

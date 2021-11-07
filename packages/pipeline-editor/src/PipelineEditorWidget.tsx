@@ -74,7 +74,7 @@ import {
   PipelineService,
   RUNTIMES_SCHEMASPACE,
   RUNTIME_IMAGES_SCHEMASPACE,
-  PIPELINE_COMPONENTS_SCHEMASPACE
+  COMPONENT_CATALOGS_SCHEMASPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { theme } from './theme';
@@ -861,7 +861,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           break;
         case 'openComponentCatalogs':
           shell.activateById(
-            `elyra-metadata:${PIPELINE_COMPONENTS_SCHEMASPACE}`
+            `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`
           );
           break;
         case 'openFile':

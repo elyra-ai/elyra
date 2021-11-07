@@ -28,7 +28,7 @@ from traitlets.config import SingletonConfigurable
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_registry import ComponentRegistry
+from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
@@ -246,8 +246,8 @@ class PipelineValidationManager(SingletonConfigurable):
                         if node.type == "execution_node" and node.op not in supported_ops:
                             response.add_message(severity=ValidationSeverity.Error,
                                                  message_type="invalidNodeType",
-                                                 message="This component was not found in the registry. Please add it "
-                                                         "to your component registry or remove this node from the "
+                                                 message="This component was not found in the catalog. Please add it "
+                                                         "to your component catalog or remove this node from the "
                                                          "pipeline",
                                                  data={"nodeID": node.id,
                                                        "nodeOpName": node.op,
@@ -280,7 +280,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
         for pipeline in pipeline_definition.pipelines:
             component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-            components = ComponentRegistry.to_canvas_palette(component_list)
+            components = ComponentCatalog.to_canvas_palette(component_list)
             for node in pipeline.nodes:
                 if node.type == 'execution_node':
                     node_label = node.label
@@ -317,7 +317,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                 self._validate_environmental_variables(node.id, node_label, env_var=env_var,
                                                                        response=response)
 
-                    # Validate runtime components against specific node properties in component registry
+                    # Validate runtime components against specific node properties in component catalog
                     else:
                         # This is the full dict of properties for the operation e.g. current params, optionals etc
                         property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
@@ -617,7 +617,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 if node_op == node_type['op']:
                     component: Component = \
                         await PipelineProcessorManager.instance().get_component(pipeline_runtime, node_op)
-                    component_properties = ComponentRegistry.to_canvas_properties(component)
+                    component_properties = ComponentCatalog.to_canvas_properties(component)
                     return component_properties
 
         return {}

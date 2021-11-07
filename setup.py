@@ -33,11 +33,11 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
 npm_packages_path = "./dist/*.tgz"
 auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
 auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
-component_registry_path = './etc/config/components/*.json'
+component_catalog_path = './etc/config/components/*.json'
 components_kfp_path = './etc/config/components/kfp/*.yaml'
 components_airflow_path = './etc/config/components/airflow/*.py'
 metadata_path_runtime_image = './etc/config/metadata/runtime-images/*.json'
-metadata_path_registries = './etc/config/metadata/component-registries/*.json'
+metadata_path_catalogs = './etc/config/metadata/component-catalogs/*.json'
 settings_path = './etc/config/settings/*.json'
 
 runtime_extras = {
@@ -56,8 +56,8 @@ setup_args = dict(
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
                 ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path_runtime_image)),
-                ('share/jupyter/metadata/component-registries', glob(metadata_path_registries)),
-                ('share/jupyter/components', glob(component_registry_path)),
+                ('share/jupyter/metadata/component-catalogs', glob(metadata_path_catalogs)),
+                ('share/jupyter/components', glob(component_catalog_path)),
                 ('share/jupyter/components/kfp/', glob(components_kfp_path)),
                 ('share/jupyter/components/airflow/', glob(components_airflow_path)),
                 ('share/jupyter/lab/settings', glob(settings_path))],
@@ -128,6 +128,7 @@ setup_args = dict(
             'runtimes-images = elyra.metadata.schemaspaces:RuntimeImages',
             'code-snippets = elyra.metadata.schemaspaces:CodeSnippets',
             'component-registries = elyra.metadata.schemaspaces:ComponentRegistries',
+            'component-catalogs = elyra.metadata.schemaspaces:ComponentCatalogs',
             'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemaspace'
         ],
         'metadata.schemas_providers': [
@@ -135,6 +136,7 @@ setup_args = dict(
             'runtimes-images = elyra.metadata.schemasproviders:RuntimeImagesSchemas',
             'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',
             'component-registries = elyra.metadata.schemasproviders:ComponentRegistriesSchemas',
+            'component-catalogs = elyra.metadata.schemasproviders:ComponentCatalogsSchemas',
             'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemasProvider'
         ],
         'elyra.pipeline.processors': [

@@ -58,9 +58,18 @@ class SchemaManager(SingletonConfigurable):
             self._meta_schema = json.load(f)
         self._load_schemaspace_schemas()
 
-    def get_schemaspace_names(self) -> list:
+    def get_schemaspace_names(self) -> List[str]:
         """Returns list of registered schemaspace names."""
-        return list(self.schemaspace_id_to_name.values())
+
+        schemaspace_names: List[str] = []
+        # Filter out deprecated schemaspaces
+        for id, name in self.schemaspace_id_to_name.items():
+            if self.schemaspaces.get(id).is_deprecated:
+                self.log.debug(f"get_schemaspace_names: skipping deprecated schemaspace '{name}'...")
+                continue
+            schemaspace_names.append(name)
+
+        return schemaspace_names
 
     def get_schemaspace_name(self, schemaspace_name_or_id: str) -> str:
         """Returns the human-readable name of the given schemaspace name or id.
@@ -94,7 +103,10 @@ class SchemaManager(SingletonConfigurable):
     def get_schemaspace(self, schemaspace_name_or_id: str) -> 'Schemaspace':
         """Returns the Schemaspace instance associated with the given name or id."""
         self._validate_schemaspace(schemaspace_name_or_id)
-        return copy.deepcopy(self.schemaspaces.get(schemaspace_name_or_id.lower()))
+        schemaspace = self.schemaspaces.get(schemaspace_name_or_id.lower())
+        if schemaspace.is_deprecated:
+            self.log.warning(f"Schemaspace '{schemaspace.name}' is deprecated.")
+        return copy.deepcopy(schemaspace)
 
     def clear_all(self) -> None:
         """Primarily used for testing, this method reloads schemas from initial values. """
@@ -221,6 +233,7 @@ class Schemaspace(LoggingConfigurable):
     _display_name: str
     _description: str
     _schemas: Dict[str, Dict]  # use a dict to prevent duplicate entries
+    _deprecated: bool
     _deprecated_schema_names: Set[str]
 
     def __init__(self,
@@ -232,6 +245,7 @@ class Schemaspace(LoggingConfigurable):
         super().__init__(**kwargs)
 
         self._schemas = {}
+        self._deprecated = False
         self._deprecated_schema_names = set()
 
         # Validate properties
@@ -276,6 +290,11 @@ class Schemaspace(LoggingConfigurable):
     def schemas(self) -> Dict[str, Dict]:
         """Returns the schemas currently associated with this schemaspace"""
         return self._schemas
+
+    @property
+    def is_deprecated(self) -> bool:
+        """Indicates if this schemaspace is deprecaated"""
+        return self._deprecated
 
     @property
     def deprecated_schema_names(self) -> List[str]:

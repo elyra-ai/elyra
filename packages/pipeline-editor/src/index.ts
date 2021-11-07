@@ -56,7 +56,7 @@ import '../style/index.css';
 const PIPELINE_FACTORY = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-const COMPONENT_REGISTRY_SCHEMASPACE = 'component-registries';
+const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -331,21 +331,21 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
 
-    const componentRegistryWidget = new MetadataWidget({
+    const componentCatalogWidget = new MetadataWidget({
       app,
       themeManager,
-      display_name: 'Component Catalogs',
-      schemaspace: COMPONENT_REGISTRY_SCHEMASPACE,
+      display_name: 'Component Catalogs', // TODO: This info should come from the server for all schemaspaces
+      schemaspace: COMPONENT_CATALOGS_SCHEMASPACE,
       icon: componentCatalogIcon
     });
-    const componentRegistryWidgetID = `elyra-metadata:${COMPONENT_REGISTRY_SCHEMASPACE}`;
-    componentRegistryWidget.id = componentRegistryWidgetID;
-    componentRegistryWidget.title.icon = componentCatalogIcon;
-    componentRegistryWidget.title.caption = 'Component Catalogs';
+    const componentCatalogWidgetID = `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`;
+    componentCatalogWidget.id = componentCatalogWidgetID;
+    componentCatalogWidget.title.icon = componentCatalogIcon;
+    componentCatalogWidget.title.caption = 'Component Catalogs';
 
     restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
     app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
-    app.shell.add(componentRegistryWidget, 'left', { rank: 961 });
+    app.shell.add(componentCatalogWidget, 'left', { rank: 961 });
   }
 };
 export default extension;

@@ -30,7 +30,8 @@ except ImportError:
 
 from elyra.metadata.schema import SchemasProvider
 from elyra.metadata.schemaspaces import CodeSnippets
-from elyra.metadata.schemaspaces import ComponentRegistries
+from elyra.metadata.schemaspaces import ComponentCatalogs
+from elyra.metadata.schemaspaces import ComponentRegistries  # TODO: deprecated, remove in 3.4
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 
@@ -115,4 +116,11 @@ class ComponentRegistriesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Component Registries schemaspace."""
     def get_schemas(self) -> List[Dict]:
         schemas = self.get_local_schemas_by_schemaspace(ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
+        return schemas
+
+
+class ComponentCatalogsSchemas(ElyraSchemasProvider):
+    """Returns schemas relative to Component Catalogs schemaspace."""
+    def get_schemas(self) -> List[Dict]:
+        schemas = self.get_local_schemas_by_schemaspace(ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
         return schemas
