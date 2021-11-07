@@ -58,13 +58,13 @@ class SchemaManager(SingletonConfigurable):
             self._meta_schema = json.load(f)
         self._load_schemaspace_schemas()
 
-    def get_schemaspace_names(self) -> List[str]:
+    def get_schemaspace_names(self, include_deprecated: bool = False) -> List[str]:
         """Returns list of registered schemaspace names."""
 
         schemaspace_names: List[str] = []
         # Filter out deprecated schemaspaces
         for id, name in self.schemaspace_id_to_name.items():
-            if self.schemaspaces.get(id).is_deprecated:
+            if not include_deprecated and self.schemaspaces.get(id).is_deprecated:
                 self.log.debug(f"get_schemaspace_names: skipping deprecated schemaspace '{name}'...")
                 continue
             schemaspace_names.append(name)
@@ -299,7 +299,7 @@ class Schemaspace(LoggingConfigurable):
     @property
     def deprecated_schema_names(self) -> List[str]:
         """Returns a list of deprecated schema names associated with this schemaspace"""
-        return self._deprecated_schema_names
+        return list(self._deprecated_schema_names)
 
     def filter_schema(self, schema: Dict) -> Dict:
         """Allows Schemaspace to apply changes to a given schema prior to its validation (and add)."""
@@ -311,6 +311,18 @@ class Schemaspace(LoggingConfigurable):
         self._schemas[schema.get('name')] = schema
         if schema.get('deprecated', False):
             self._deprecated_schema_names.add(schema.get('name'))
+
+    def migrate(self, *args, **kwargs) -> List[str]:
+        """Migrate schemaspace instances.
+
+        Returns the list of migrated instance names.
+
+        Schemaspace implementations may override this method as a means of enabling the migration
+        of a schemaspace's instances (which should include both schemas and instances of those schemas
+        of that schemaspace).
+        """
+        self.log.info(f"Schemaspace '{self._name}' has nothing to migrate.")
+        return list()
 
     @staticmethod
     def _validate_id(id) -> bool:
