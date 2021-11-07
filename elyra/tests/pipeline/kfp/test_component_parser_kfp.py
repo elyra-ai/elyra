@@ -23,7 +23,7 @@ from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentRegistries
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
-from elyra.pipeline.component_registry import ComponentRegistry
+from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
@@ -37,24 +37,24 @@ def _get_resource_path(filename):
     return resource_path
 
 
-def test_component_registry_can_load_components_from_registries():
+def test_component_catalog_can_load_components_from_registries():
     component_parser = KfpComponentParser()
-    component_registry = ComponentRegistry(component_parser)
+    component_catalog = ComponentCatalog(component_parser)
 
-    components = component_registry.get_all_components()
+    components = component_catalog.get_all_components()
     assert len(components) > 0
 
 
-def test_modify_component_registries():
+def test_modify_component_catalogs():
     # Get initial set of components from the current active registries
     parser = KfpComponentParser()
-    component_registry = ComponentRegistry(parser, caching_enabled=False)
-    initial_components = component_registry.get_all_components()
+    component_catalog = ComponentCatalog(parser, caching_enabled=False)
+    initial_components = component_catalog.get_all_components()
 
     # Components must be sorted by id for the equality comparison with later component lists
     initial_components = sorted(initial_components, key=lambda component: component.id)
 
-    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
+    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
     paths = [_get_resource_path('kfp_test_operator.yaml')]
@@ -79,7 +79,7 @@ def test_modify_component_registries():
     metadata_manager.create("new_registry", registry_instance)
 
     # Get new set of components from all active registries, including added test registry
-    added_components = component_registry.get_all_components()
+    added_components = component_catalog.get_all_components()
     assert len(added_components) > len(initial_components)
 
     added_component_names = [component.name for component in added_components]
@@ -91,7 +91,7 @@ def test_modify_component_registries():
     metadata_manager.update("new_registry", registry_instance)
 
     # Get set of components from all active registries, including modified test registry
-    modified_components = component_registry.get_all_components()
+    modified_components = component_catalog.get_all_components()
     assert len(modified_components) > len(added_components)
 
     modified_component_names = [component.name for component in modified_components]
@@ -100,7 +100,7 @@ def test_modify_component_registries():
 
     # Delete the test registry
     metadata_manager.remove("new_registry")
-    post_delete_components = component_registry.get_all_components()
+    post_delete_components = component_catalog.get_all_components()
     post_delete_components = sorted(post_delete_components, key=lambda component: component.id)
     assert len(post_delete_components) == len(initial_components)
 
@@ -110,18 +110,18 @@ def test_modify_component_registries():
     assert post_delete_component_ids == initial_component_ids
 
     # Check that component palette is the same as before addition of the test registry
-    initial_palette = ComponentRegistry.to_canvas_palette(post_delete_components)
-    post_delete_palette = ComponentRegistry.to_canvas_palette(initial_components)
+    initial_palette = ComponentCatalog.to_canvas_palette(post_delete_components)
+    post_delete_palette = ComponentCatalog.to_canvas_palette(initial_components)
     assert initial_palette == post_delete_palette
 
 
-def test_directory_based_component_registry():
+def test_directory_based_component_catalog():
     # Get initial set of components from the current active registries
     parser = KfpComponentParser()
-    component_registry = ComponentRegistry(parser, caching_enabled=False)
-    initial_components = component_registry.get_all_components()
+    component_catalog = ComponentCatalog(parser, caching_enabled=False)
+    initial_components = component_catalog.get_all_components()
 
-    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
+    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')
@@ -145,7 +145,7 @@ def test_directory_based_component_registry():
     metadata_manager.create("new_registry", registry_instance)
 
     # Get new set of components from all active registries, including added test registry
-    added_components = component_registry.get_all_components()
+    added_components = component_catalog.get_all_components()
     assert len(added_components) > len(initial_components)
 
     # Check that all relevant components from the new registry have been added
@@ -183,7 +183,7 @@ def test_parse_kfp_component_file():
     # Parse the component entry
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
-    properties_json = ComponentRegistry.to_canvas_properties(component)
+    properties_json = ComponentCatalog.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
@@ -275,7 +275,7 @@ def test_parse_kfp_component_url():
     # Parse the component entry
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
-    properties_json = ComponentRegistry.to_canvas_properties(component)
+    properties_json = ComponentCatalog.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
@@ -313,7 +313,7 @@ def test_parse_kfp_component_file_no_inputs():
     # Parse the component entry
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
-    properties_json = ComponentRegistry.to_canvas_properties(component)
+    properties_json = ComponentCatalog.to_canvas_properties(component)
 
     # Properties JSON should only include the two parameters common to every
     # component:'label' and 'component_source', the component description if

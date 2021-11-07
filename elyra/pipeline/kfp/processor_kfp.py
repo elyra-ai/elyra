@@ -602,7 +602,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # If operation is a "non-standard" component, load it's spec and create operation with factory function
             else:
                 # Retrieve component from cache
-                component = self._component_registry.get_component(operation.classifier)
+                component = self._component_catalog.get_component(operation.classifier)
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
