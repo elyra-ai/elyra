@@ -368,7 +368,10 @@ class MetadataApp(AppBase):
         self.schemaspace_schemas = {}
         schema_mgr = SchemaManager.instance()
         # Migration should include deprecated schemaspaces
-        include_deprecated = kwargs.get('argv', ['place-holder'])[0] == 'migrate'
+        include_deprecated = False
+        args = kwargs.get('argv', [])
+        if len(args) > 0:
+            include_deprecated = args[0] == 'migrate'
         schemaspace_names = schema_mgr.get_schemaspace_names(include_deprecated=include_deprecated)
         for name in schemaspace_names:
             self.schemaspace_schemas[name] = schema_mgr.get_schemaspace_schemas(name)

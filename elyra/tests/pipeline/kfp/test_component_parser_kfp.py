@@ -20,7 +20,7 @@ import jupyter_core.paths
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
-from elyra.metadata.schemaspaces import ComponentRegistries
+from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCatalog
@@ -54,7 +54,7 @@ def test_modify_component_catalogs():
     # Components must be sorted by id for the equality comparison with later component lists
     initial_components = sorted(initial_components, key=lambda component: component.id)
 
-    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+    metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
     paths = [_get_resource_path('kfp_test_operator.yaml')]
@@ -121,7 +121,7 @@ def test_directory_based_component_catalog():
     component_catalog = ComponentCatalog(parser, caching_enabled=False)
     initial_components = component_catalog.get_all_components()
 
-    metadata_manager = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+    metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')

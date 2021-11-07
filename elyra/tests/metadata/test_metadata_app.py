@@ -53,14 +53,14 @@ def mock_data_dir():
 def test_no_opts(script_runner):
     ret = script_runner.run('elyra-metadata')
     assert ret.success is False
-    assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove']" in ret.stdout
+    assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove', 'migrate']" in ret.stdout
 
 
 def test_bad_subcommand(script_runner):
     ret = script_runner.run('elyra-metadata', 'bogus-subcommand')
     assert ret.success is False
     assert ret.stdout.startswith("Subcommand 'bogus-subcommand' is invalid.")
-    assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove']" in ret.stdout
+    assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove', 'migrate']" in ret.stdout
 
 
 def test_install_bad_argument(script_runner):
