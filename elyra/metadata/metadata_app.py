@@ -371,7 +371,7 @@ class MetadataApp(AppBase):
         include_deprecated = False
         args = kwargs.get('argv', [])
         if len(args) > 0:
-            include_deprecated = args[0] == 'migrate'
+            include_deprecated = args[0] != 'install'  # Only install will not operate against a deprecated schemaspace
         schemaspace_names = schema_mgr.get_schemaspace_names(include_deprecated=include_deprecated)
         for name in schemaspace_names:
             self.schemaspace_schemas[name] = schema_mgr.get_schemaspace_schemas(name)

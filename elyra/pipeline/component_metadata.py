@@ -20,16 +20,7 @@ from elyra.pipeline.processor import PipelineProcessorRegistry
 
 
 class ComponentRegistryMetadata(Metadata):
-    """
-    This class contains methods to trigger cache updates on modification
-    and deletion of component registry metadata instances.
-    """
-
-    def post_save(self, **kwargs: Any) -> None:
-        raise RuntimeError("ComponentRegistry schema is deprecated!")
-
-    def post_delete(self, **kwargs: Any) -> None:
-        raise RuntimeError("ComponentRegistry schema is deprecated!")
+    pass
 
 
 class ComponentCatalogMetadata(Metadata):

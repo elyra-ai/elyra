@@ -7,7 +7,6 @@
   "schemaspace": "component-registries",
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
   "metadata_class_name": "elyra.pipeline.component_metadata.ComponentRegistryMetadata",
-  "deprecated": true,
   "uihints": {
     "title": "Pipeline Components",
     "icon": "",
