@@ -18,9 +18,12 @@ from abc import abstractmethod
 import copy
 import io
 import json
+from logging import getLogger
+from logging import Logger
 import os
 import re
 from typing import Dict
+from typing import final
 from typing import List
 from typing import Optional
 from typing import Set
@@ -43,9 +46,21 @@ class SchemaManager(SingletonConfigurable):
     """Singleton used to store all schemas for all metadata types.
        Note: we currently don't refresh these entries.
     """
+    # Maps SchemaspaceID AND SchemaspaceName to Schemaspace instance (two entries from Schemaspace instance)
+    schemaspaces: Dict[str, 'Schemaspace']
+
+    # Maps SchemaspaceID to ShemaspaceName
+    schemaspace_id_to_name: Dict[str, str]
+
+    # Maps SchemaspaceID to mapping of schema name to SchemasProvider
+    schemaspace_schemasproviders: Dict[str, Dict[str, 'SchemasProvider']]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        self.schemaspaces = {}
+        self.schemaspace_id_to_name = {}
+        self.schemaspace_schemasproviders = {}
 
         # The following exposes the metadata-test schemaspace if true or 1.
         # Metadata testing will enable this env.  Note: this cannot be globally
@@ -104,9 +119,11 @@ class SchemaManager(SingletonConfigurable):
         """Returns the Schemaspace instance associated with the given name or id."""
         self._validate_schemaspace(schemaspace_name_or_id)
         schemaspace = self.schemaspaces.get(schemaspace_name_or_id.lower())
-        if schemaspace.is_deprecated:
-            self.log.warning(f"Schemaspace '{schemaspace.name}' is deprecated.")
         return copy.deepcopy(schemaspace)
+
+    def get_schemasproviders(self, schemaspace_id: str) -> Dict[str, 'SchemasProvider']:
+        """Returns a dictionary of schema name to SchemasProvider instance within a given schemaspace. """
+        return self.schemaspace_schemasproviders.get(schemaspace_id, {})
 
     def clear_all(self) -> None:
         """Primarily used for testing, this method reloads schemas from initial values. """
@@ -121,8 +138,7 @@ class SchemaManager(SingletonConfigurable):
 
     def _load_schemaspace_schemas(self):
         """Gets Schemaspaces and SchemasProviders via entrypoints and validates/loads their schemas."""
-        self.schemaspaces: Dict[str, Schemaspace] = {}
-        self.schemaspace_id_to_name: Dict[str, str] = {}
+
         self._load_schemaspaces()
         self._load_schemas_providers()
         # Issue a warning for any "empty" schemaspaces...
@@ -194,10 +210,14 @@ class SchemaManager(SingletonConfigurable):
                         self._validate_schema(schemaspace_name, schema_name, schema)
                         # Only add the schema once since schemaspace_name is pointing to the same Schemaspace instance.
                         self.schemaspaces[schemaspace_id].add_schema(schema)
+                        providers = self.schemaspace_schemasproviders.get(schemaspace_id, {})
+                        providers[schema_name] = schemas_provider  # Capture the schemasprovider for this schema
+                        self.schemaspace_schemasproviders[schemaspace_id] = providers
 
                     except Exception as schema_err:
                         self.log.error(f"Error loading schema '{schema.get('name', '??')}' for SchemasProvider "
                                        f"'{schemas_provider_ep.name}' - {schema_err}")
+
             except Exception as provider_err:
                 # log and ignore initialization errors
                 self.log.error(f"Error loading schemas for SchemasProvider "
@@ -312,17 +332,24 @@ class Schemaspace(LoggingConfigurable):
         if schema.get('deprecated', False):
             self._deprecated_schema_names.add(schema.get('name'))
 
+    @final
     def migrate(self, *args, **kwargs) -> List[str]:
-        """Migrate schemaspace instances.
+        """Migrate schemaspace instances.  This method is `final` and should not be overridden.
+
+        Its purpose is to drive migration across the Schemaspace's SchemasProviders and gather
+        results.
 
         Returns the list of migrated instance names.
-
-        Schemaspace implementations may override this method as a means of enabling the migration
-        of a schemaspace's instances (which should include both schemas and instances of those schemas
-        of that schemaspace).
         """
-        self.log.info(f"Schemaspace '{self._name}' has nothing to migrate.")
-        return list()
+        migrated_instances: List[str] = []
+        # For each schema in this schemaspace, invoke its corresponding
+        # SchemasProvider's migrate method and collect the results.
+        schema_to_provider = SchemaManager.instance().get_schemasproviders(self.id)
+        for schema_name, provider in schema_to_provider.items():
+            instances = provider.migrate(schemaspace_name=self.name, schema_name=schema_name)
+            migrated_instances.extend(instances)
+
+        return migrated_instances
 
     @staticmethod
     def _validate_id(id) -> bool:
@@ -348,7 +375,25 @@ class Schemaspace(LoggingConfigurable):
 class SchemasProvider(ABC):
     """Abstract base class used to obtain schema definitions from registered schema providers."""
 
+    log: Logger
+
+    def __init__(self, *args, **kwargs):
+        self.log = getLogger('ElyraApp')
+
     @abstractmethod
     def get_schemas(self) -> List[Dict]:
         """Returns a list of schemas"""
         pass
+
+    def migrate(self, *args, **kwargs) -> List[str]:
+        """Migrate instances of schemas provided by this SchemasProvider.
+
+        kwargs:
+        schema_name: str  The name of the schema
+        schemaspace_name: str  The name of the schemaspace in which this schema resides
+
+        Called by Schemaspace.migrate(), this method will be called with a `schema_name`
+        keyword argument indicating a name of schema provided by this SchemasProvider.
+        The method will return a list of migrated instances or an empty array.
+        """
+        return list()

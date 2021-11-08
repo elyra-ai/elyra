@@ -17,8 +17,10 @@ from abc import ABCMeta
 import io
 import json
 import os
+import sys
 from typing import Dict
 from typing import List
+from typing import Optional
 
 import entrypoints
 from traitlets import log  # noqa H306
@@ -112,15 +114,85 @@ class CodeSnippetsSchemas(ElyraSchemasProvider):
         return self.get_local_schemas_by_schemaspace(CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID)
 
 
+class ComponentCatalogsSchemas(ElyraSchemasProvider):
+    """Returns schemas relative to Component Catalogs schemaspace."""
+    def get_schemas(self) -> List[Dict]:
+        schemas = self.get_local_schemas_by_schemaspace(ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+        return schemas
+
+
 class ComponentRegistriesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Component Registries schemaspace."""
     def get_schemas(self) -> List[Dict]:
         schemas = self.get_local_schemas_by_schemaspace(ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)
         return schemas
 
+    def migrate(self, *args, **kwargs) -> List[str]:
+        """Migrate any user-created instances of the component-registry schema to the component-catalogs schemaspace.
 
-class ComponentCatalogsSchemas(ElyraSchemasProvider):
-    """Returns schemas relative to Component Catalogs schemaspace."""
-    def get_schemas(self) -> List[Dict]:
-        schemas = self.get_local_schemas_by_schemaspace(ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
-        return schemas
+        Returns the list of migrated instance names.
+
+        The appropriate schema within component-catalogs is determined by the value of the `location_type`
+        entry of the instance.  Note that "factory instances" will NOT be migrated and are determined by the
+        resource value's path prefix.  If the prefix matches sys.prefix, they are considered factory instances.
+        """
+        from elyra.metadata.error import MetadataNotFoundError
+        from elyra.metadata.manager import MetadataManager
+        from elyra.pipeline.runtime_type import RuntimeProcessorType
+
+        schemaspace_name = kwargs.get('schemaspace_name')
+        if not schemaspace_name:
+            self.log.error("ComponentRegistriesSchemas.migrate no 'schemaspace_name' was provided!")
+        schema_name = kwargs.get('schema_name')
+        if not schema_name:
+            self.log.error("ComponentRegistriesSchemas.migrate no 'schema_name' was provided!")
+        if not schema_name or not schemaspace_name:
+            self.log.error("ComponentRegistriesSchemas.migrate requires both 'schemaspace_name' and 'schema_name'!")
+            return list()
+        if schema_name != 'component-registry':
+            return list()
+
+        # Get all instances of the component-registry schema.  Had this been a multi-schema schemaspace,
+        # then we'd need to deal with others.
+        registry_mgr = MetadataManager(schemaspace_name)
+        registries = registry_mgr.get_all(of_schema=schema_name)
+        catalog_mgr: Optional[MetadataManager] = None
+        migrated_instances: List[str] = []
+        for registry in registries:
+            if registry.resource.startswith(sys.prefix):  # Skip factory instances
+                continue
+            if catalog_mgr is None:
+                catalog_mgr = MetadataManager(ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+
+            # Check if the same instance already exists in destination.  If so, assume its already migrated.
+            try:
+                catalog_mgr.get(registry.name)
+                self.log.info(f"Instance '{registry.name}' already exists in schemaspace "
+                              f"'{ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME}' and will not be migrated "
+                              f"from schemaspace '{schemaspace_name}'.")
+                continue
+            except MetadataNotFoundError:
+                pass
+
+            if registry.metadata['location_type'] == 'URL':
+                registry.schema_name = "url-catalog"
+            elif registry.metadata['location_type'] == 'Directory':
+                registry.schema_name = "local-directory-catalog"
+            else:  # self.location_type == 'Filename'
+                registry.schema_name = "local-file-catalog"
+
+            if registry.metadata['runtime'] == 'kfp':
+                registry.metadata['runtime_type'] = RuntimeProcessorType.KUBEFLOW_PIPELINES.name
+            elif registry.metadata['runtime'] == 'airflow':
+                registry.metadata['runtime_type'] = RuntimeProcessorType.APACHE_AIRFLOW.name
+
+            registry.metadata.pop('location_type')
+            registry.metadata.pop('runtime')
+
+            self.log.info(f"Migrating '{ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_NAME}' "
+                          f"instance '{registry.name}' to schema '{registry.schema_name}' of "
+                          f"schemaspace '{ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME}'...")
+            catalog_mgr.create(registry.name, registry)
+            migrated_instances.append(registry.name)
+
+        return migrated_instances
