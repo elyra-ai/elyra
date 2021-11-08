@@ -31,7 +31,7 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
-import requests
+
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
     from kfp_tekton import TektonClient
@@ -45,6 +45,8 @@ from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
+from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
+from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.processor import PipelineProcessor
@@ -102,37 +104,39 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_bucket = runtime_configuration.metadata['cos_bucket']
 
-        ################
-        # Istio Auth Session
-        ################
-        try:
-            auth_session = self._get_istio_auth_session(
-                url=api_endpoint,
-                username=api_username,
-                password=api_password
-            )
-        except Exception as ex:
-            raise RuntimeError(
-                f"Failed to create istio auth session for Kubeflow endpoint: '{api_endpoint}' - "
-                f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
-            ) from ex
+        # Determine which provider to use to authenticate with Kubeflow
+        auth_type = runtime_configuration.metadata.get('auth_type')
 
-        self.log.debug(f"Kubeflow istio `auth_session` dict: {auth_session}")
+        try:
+            auth_info = \
+                KFPAuthenticator().authenticate(api_endpoint,
+                                                auth_type_str=auth_type,
+                                                runtime_config_name=pipeline.runtime_config,
+                                                auth_parm_1=api_username,
+                                                auth_parm_2=api_password)
+            self.log.debug(f'Authenticator returned {auth_info}')
+        except AuthenticationError as ae:
+            if ae.get_request_history() is not None:
+                self.log.info('An authentication error was raised. Diagnostic information follows.')
+                self.log.info(ae.request_history_to_string())
+            raise RuntimeError(f'Kubeflow authentication failed: {ae}')
 
         #############
-        # Kubeflow Client
+        # Create Kubeflow Client
         #############
         try:
             if engine == "Tekton":
                 client = TektonClient(
                     host=api_endpoint,
-                    cookies=auth_session['session_cookie'],
+                    cookies=auth_info.get('cookies', None),
+                    existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
             else:
                 client = ArgoClient(
                     host=api_endpoint,
-                    cookies=auth_session['session_cookie'],
+                    cookies=auth_info.get('cookies', None),
+                    existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
         except Exception as ex:
@@ -345,6 +349,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     f"Failed to create Kubeflow pipeline run: '{job_name}' - "
                     f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
                 ) from ex
+
+            if run is None:
+                # client.run_pipeline seemed to have encountered an issue
+                # but didn't raise an exception
+                raise RuntimeError(
+                    f"Failed to create Kubeflow pipeline run: '{job_name}' - "
+                    f"Check Kubeflow Pipelines runtime configuration: '{pipeline.runtime_config}'"
+                )
 
             self.log_pipeline_info(
                 pipeline_name,
@@ -719,95 +731,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         :param name: name of the operation
         """
         return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-', name)).lstrip('-').rstrip('-')
-
-    @staticmethod
-    def _get_istio_auth_session(url: str, username: str, password: str) -> dict:
-        """
-        Determine if the specified URL is secured by Dex and try to obtain a session cookie.
-        WARNING: only Dex `staticPasswords` and `LDAP` authentication are currently supported
-                 (we default default to using `staticPasswords` if both are enabled)
-
-        :param url: Kubeflow server URL, including protocol
-        :param username: Dex `staticPasswords` or `LDAP` username
-        :param password: Dex `staticPasswords` or `LDAP` password
-        :return: auth session information
-        """
-        # define the default return object
-        auth_session = {
-            "endpoint_url": url,    # KF endpoint URL
-            "redirect_url": None,   # KF redirect URL, if applicable
-            "dex_login_url": None,  # Dex login URL (for POST of credentials)
-            "is_secured": None,     # True if KF endpoint is secured
-            "session_cookie": None  # Resulting session cookies in the form "key1=value1; key2=value2"
-        }
-
-        # use a persistent session (for cookies)
-        with requests.Session() as s:
-
-            ################
-            # Determine if Endpoint is Secured
-            ################
-            resp = s.get(url, allow_redirects=True)
-            if resp.status_code != 200:
-                raise RuntimeError(
-                    f"HTTP status code '{resp.status_code}' for GET against: {url}"
-                )
-
-            auth_session["redirect_url"] = resp.url
-
-            # if we were NOT redirected, then the endpoint is UNSECURED
-            if len(resp.history) == 0:
-                auth_session["is_secured"] = False
-                return auth_session
-            else:
-                auth_session["is_secured"] = True
-
-            ################
-            # Get Dex Login URL
-            ################
-            redirect_url_obj = urlsplit(auth_session["redirect_url"])
-
-            # if we are at `/auth?=xxxx` path, we need to select an auth type
-            if re.search(r"/auth$", redirect_url_obj.path):
-                # default to "staticPasswords" auth type
-                redirect_url_obj = redirect_url_obj._replace(
-                    path=re.sub(r"/auth$", "/auth/local", redirect_url_obj.path)
-                )
-
-            # if we are at `/auth/xxxx/login` path, then no further action is needed (we can use it for login POST)
-            if re.search(r"/auth/.*/login$", redirect_url_obj.path):
-                auth_session["dex_login_url"] = redirect_url_obj.geturl()
-
-            # else, we need to be redirected to the actual login page
-            else:
-                # this GET should redirect us to the `/auth/xxxx/login` path
-                resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
-                if resp.status_code != 200:
-                    raise RuntimeError(
-                        f"HTTP status code '{resp.status_code}' for GET against: {redirect_url_obj.geturl()}"
-                    )
-
-                # set the login url
-                auth_session["dex_login_url"] = resp.url
-
-            ################
-            # Attempt Dex Login
-            ################
-            resp = s.post(
-                auth_session["dex_login_url"],
-                data={"login": username, "password": password},
-                allow_redirects=True
-            )
-            if len(resp.history) == 0:
-                raise RuntimeError(
-                    f"Login credentials were probably invalid - "
-                    f"No redirect after POST to: {auth_session['dex_login_url']}"
-                )
-
-            # store the session cookies in a "key1=value1; key2=value2" string
-            auth_session["session_cookie"] = "; ".join([f"{c.name}={c.value}" for c in s.cookies])
-
-        return auth_session
 
 
 class KfpPipelineProcessorResponse(PipelineProcessorResponse):
