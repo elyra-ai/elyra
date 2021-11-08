@@ -16,7 +16,8 @@
 #
 
 # Ubuntu 20.04.2 LTS (Focal Fossa)
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.3.0
+# Repository: https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.4
 
 # install - elyra
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated legacy-resolver \

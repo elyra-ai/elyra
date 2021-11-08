@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import json
+# import os
 
 from jupyter_server.tests.utils import expected_http_error
 import pytest
@@ -51,29 +52,29 @@ async def test_invalid_file_type(jp_fetch, create_text_file, text_filename):
     assert json.loads(response.body) == expected_response_empty
 
 
-async def test_valid_notebook(jp_fetch, create_notebook_file, notebook_filename):
-    response = await jp_fetch('elyra', 'contents/properties', notebook_filename)
+async def test_valid_notebook(jp_fetch, create_notebook_file):
+    response = await jp_fetch('elyra', 'contents/properties', create_notebook_file)
 
     assert response.code == 200
     assert json.loads(response.body) == expected_response
 
 
-async def test_valid_python_file(jp_fetch, create_python_file, python_filename):
-    response = await jp_fetch('elyra', 'contents/properties', python_filename)
+async def test_valid_python_file(jp_fetch, create_python_file):
+    response = await jp_fetch('elyra', 'contents/properties', create_python_file)
 
     assert response.code == 200
     assert json.loads(response.body) == expected_response
 
 
-async def test_valid_r_file(jp_fetch, create_r_file, r_filename):
-    response = await jp_fetch('elyra', 'contents/properties', r_filename)
+async def test_valid_r_file(jp_fetch, create_r_file):
+    response = await jp_fetch('elyra', 'contents/properties', create_r_file)
 
     assert response.code == 200
     assert json.loads(response.body) == expected_response
 
 
-async def test_empty_notebook(jp_fetch, create_empty_notebook_file, notebook_filename):
-    response = await jp_fetch('elyra', 'contents/properties', notebook_filename)
+async def test_empty_notebook(jp_fetch, create_empty_notebook_file):
+    response = await jp_fetch('elyra', 'contents/properties', create_empty_notebook_file)
 
     assert response.code == 200
     assert json.loads(response.body) == expected_response_empty

@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:experimental
 #
 # Copyright 2018-2021 Elyra Authors
 #
@@ -14,23 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from elyra.metadata.metadata import Metadata
 
-# Ubuntu 18.04 LTS - Bionic
-# Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
-FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
-ARG TAG="dev"
-
-USER root
-
-ADD start-elyra.sh /usr/local/bin/start-elyra.sh
-
-RUN chmod ugo+x /usr/local/bin/start-elyra.sh
-
-USER $NB_USER
-
-RUN python -m pip install --upgrade pandas numpy && \
-    python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
-    jupyter lab build
-
-CMD ["/usr/local/bin/start-elyra.sh"]
+class RuntimesMetadata(Metadata):
+    pass
