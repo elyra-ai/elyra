@@ -19,7 +19,11 @@ import {
   PipelineOutOfDateError,
   ThemeProvider
 } from '@elyra/pipeline-editor';
-import { migrate, validate } from '@elyra/pipeline-services';
+import {
+  migrate,
+  validate,
+  ComponentNotFoundError
+} from '@elyra/pipeline-services';
 import { ContentParser } from '@elyra/services';
 import {
   IconUtil,
@@ -63,6 +67,7 @@ import {
 } from './EmptyPipelineContent';
 import { formDialogWidget } from './formDialogWidget';
 import {
+  componentFetcher,
   usePalette,
   useRuntimeImages,
   useRuntimesSchema
@@ -349,28 +354,73 @@ const PipelineWrapper: React.FC<IProps> = ({
             </p>
           ),
           buttons: [Dialog.cancelButton(), Dialog.okButton()]
-        }).then(result => {
+        }).then(async result => {
           isDialogAlreadyShowing.current = false;
           if (result.button.accept) {
             // proceed with migration
             console.log('migrating pipeline');
-            const migratedPipeline = migrate(
-              contextRef.current.model.toJSON(),
-              pipeline => {
-                // function for updating to relative paths in v2
-                // uses location of filename as expected in v1
-                for (const node of pipeline.nodes) {
-                  node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                    contextRef.current.path,
-                    node.app_data.filename
-                  );
-                }
-                return pipeline;
+            let migrationPalette = palette;
+            const pipelineJSON: any = contextRef.current.model.toJSON();
+            const oldRuntime = pipelineJSON?.pipelines[0].app_data.runtime;
+            if (oldRuntime === 'kfp' || oldRuntime === 'airflow') {
+              migrationPalette = await componentFetcher(oldRuntime);
+            }
+            try {
+              const migratedPipeline = migrate(
+                pipelineJSON,
+                pipeline => {
+                  // function for updating to relative paths in v2
+                  // uses location of filename as expected in v1
+                  for (const node of pipeline.nodes) {
+                    node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                      contextRef.current.path,
+                      node.app_data.filename
+                    );
+                  }
+                  return pipeline;
+                },
+                migrationPalette
+              );
+              contextRef.current.model.fromString(
+                JSON.stringify(migratedPipeline, null, 2)
+              );
+            } catch (migrationError) {
+              if (migrationError instanceof ComponentNotFoundError) {
+                showDialog({
+                  title: 'Pipeline migration failed!',
+                  body: (
+                    <p>
+                      {' '}
+                      The pipeline you are trying to migrate uses example
+                      components. <br />
+                      Example components are no longer included in the base
+                      Elyra install. <br />
+                      Follow the{' '}
+                      <a
+                        href="https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#example-custom-components"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Example Custom Components Documentation
+                      </a>{' '}
+                      to learn how to install the example components before
+                      migrating this pipeline. <br />
+                    </p>
+                  ),
+                  buttons: [Dialog.okButton({ label: 'Close' })]
+                }).then(() => {
+                  shell.currentWidget?.close();
+                });
+              } else {
+                showDialog({
+                  title: 'Pipeline migration failed!',
+                  body: <p> {migrationError?.message || ''} </p>,
+                  buttons: [Dialog.okButton()]
+                }).then(() => {
+                  shell.currentWidget?.close();
+                });
               }
-            );
-            contextRef.current.model.fromString(
-              JSON.stringify(migratedPipeline, null, 2)
-            );
+            }
           } else {
             shell.currentWidget?.close();
           }
@@ -378,7 +428,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       } else {
         showDialog({
           title: 'Load pipeline failed!',
-          body: <p> {error || ''} </p>,
+          body: <p> {error?.message || ''} </p>,
           buttons: [Dialog.okButton()]
         }).then(() => {
           isDialogAlreadyShowing.current = false;
@@ -386,7 +436,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [shell.currentWidget]
+    [palette, shell.currentWidget]
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
