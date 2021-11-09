@@ -138,10 +138,10 @@ class PipelineProcessorResponse(ABC):
         self._object_storage_path = object_storage_path
 
     @property
-    def type(self) -> str:  # Return the string value so that JSON serialization works
+    def type(self) -> str:  # Return the string value of the name so that JSON serialization works
         if self._type is None:
             raise NotImplementedError("_type must have a value!")
-        return self._type.value
+        return self._type.name
 
     @property
     def name(self) -> str:
