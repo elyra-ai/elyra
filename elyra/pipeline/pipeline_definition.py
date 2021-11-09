@@ -118,7 +118,10 @@ class Pipeline(AppDataBase):
             try:
                 RuntimeProcessorType.get_instance_by_name(runtime_type)
             except (KeyError, TypeError):
-                raise ValueError(f'Unsupported pipeline runtime: {runtime_type}')
+                # Check for 'generic'...
+                if runtime_type.lower() != 'generic':
+                    raise ValueError(f'Unsupported pipeline runtime: {runtime_type}')
+                runtime_type = 'generic'
             return runtime_type
 
         return 'generic'
