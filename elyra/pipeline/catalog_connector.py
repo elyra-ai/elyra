@@ -246,7 +246,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         except NotImplementedError as e:
             err_msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}"
-            self.log.warning(err_msg)
+            self.log.error(err_msg)
         except Exception as e:
             err_msg = f"Could not get catalog entry information for catalog '{catalog_instance.display_name}': {e}"
             # Dump stack trace with error message
@@ -290,7 +290,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
                 except NotImplementedError as e:
                     msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}."
-                    self.log.warning(msg)
+                    self.log.error(msg)
                 except Exception as e:
                     # Dump stack trace with error message and continue
                     self.log.exception(f"Could not read definition for catalog entry with identifying information: "
