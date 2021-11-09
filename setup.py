@@ -41,7 +41,11 @@ metadata_path_registries = './etc/config/metadata/component-registries/*.json'
 settings_path = './etc/config/settings/*.json'
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=1.0.1',]
+    'kfp-tekton': ['kfp-tekton~=1.0.1', ],
+    # TODO
+    # 'airflow-examples': ['elyra-examples-airflow-catalog'],
+    # TODO
+    # 'kfp-examples': ['elyra-examples-kfp-catalog']
 }
 runtime_extras['all'] = list(set(sum(runtime_extras.values(), [])))
 
@@ -64,7 +68,7 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
-        'click>=7.1.1,<8', #Required bykfp 1.6.3
+        'click>=7.1.1,<8',  # Required by kfp 1.6.3
         'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11',

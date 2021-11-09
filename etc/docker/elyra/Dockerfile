@@ -48,5 +48,11 @@ RUN conda remove --force -y terminado && \
         jupyter lab build; \
     fi
 
+# Comment out to hide the component examples for Kubeflow Pipelines and Apache Airflow
+RUN if [ "$TAG" != "dev" ] ; then \
+        elyra-metadata install component-registries --schema_name=elyra-airflow-examples-catalog --display_name="Apache Airflow examples" --runtime_type=APACHE_AIRFLOW --categories="['examples']" --version=1 && \
+        elyra-metadata install component-registries --schema_name=elyra-kfp-examples-catalog --display_name="Kubeflow Pipelines examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']" --version=1\
+    fi
+
 CMD ["/usr/local/bin/start-elyra.sh"]
 
