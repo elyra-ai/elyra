@@ -36,7 +36,8 @@ import {
   kubeflowIcon,
   airflowIcon,
   argoIcon,
-  componentCatalogIcon
+  componentCatalogIcon,
+  dragDropIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
 import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
@@ -1052,6 +1053,19 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
+  const EmptyPipelineContent = (
+    <div>
+      <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
+      <div>
+        <h1>
+          {' '}
+          Start your new pipeline by dragging files from the file browser pane
+          or by adding custom components{' '}
+        </h1>{' '}
+      </div>
+    </div>
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -1077,7 +1091,9 @@ const PipelineWrapper: React.FC<IProps> = ({
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
           leftPalette={true}
-        />
+        >
+          {EmptyPipelineContent}
+        </PipelineEditor>
       </Dropzone>
     </ThemeProvider>
   );
