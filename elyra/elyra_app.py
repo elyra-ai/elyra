@@ -73,7 +73,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     def initialize_handlers(self):
         schemaspace_regex = r"(?P<schemaspace>[\w\.\-]+)"
         resource_regex = r"(?P<resource>[\w\.\-]+)"
-        path_regex = r"(?P<path>[\w\.\/\-\%]+)"
+        path_regex = r"(?P<path>(?:(?:/[^/]+)+|/?))"  # same as jupyter server and will include a leading slash
         processor_regex = r"(?P<processor>[\w]+)"
         component_regex = r"(?P<component_id>[\w\.\-:]+)"
 
@@ -90,7 +90,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
             (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),
             (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
              PipelineComponentPropertiesHandler),
-            (f'/{self.name}/contents/properties/{path_regex}', ContentHandler),
+            (f'/{self.name}/contents/properties{path_regex}', ContentHandler),
             (f'/{self.name}/elyra/pipeline/validate', PipelineValidationHandler),
         ])
 

@@ -20,7 +20,7 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 
 
-class RuntimeMetadata(Metadata):
+class RuntimesMetadata(Metadata):
     """
     This class will be instantiated for any instance for a schema within the
     Runtimes schemaspace.
