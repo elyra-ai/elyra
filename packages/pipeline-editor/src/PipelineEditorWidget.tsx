@@ -109,11 +109,11 @@ const getAllPaletteNodes = (palette: any): any[] => {
 };
 
 const getRuntimeDisplayName = (
-  schemas: { name: string; display_name: string }[] | undefined,
+  schemas: { name: string; title: string }[] | undefined,
   runtime: string | undefined
 ): string | undefined => {
   const schema = schemas?.find(s => s.name === runtime);
-  return schema?.display_name;
+  return schema?.title;
 };
 
 class PipelineEditorWidget extends ReactWidget {
