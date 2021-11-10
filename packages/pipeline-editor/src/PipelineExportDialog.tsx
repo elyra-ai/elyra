@@ -122,7 +122,7 @@ export class PipelineExportDialog extends React.Component<IProps, IState> {
             >
               {validSchemas.map(schema => (
                 <option key={schema.name} value={schema.name}>
-                  {schema.display_name}
+                  {schema.runtime_type}
                 </option>
               ))}
             </select>
