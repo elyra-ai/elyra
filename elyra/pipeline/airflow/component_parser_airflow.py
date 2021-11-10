@@ -124,8 +124,8 @@ class AirflowComponentParser(ComponentParser):
 
             data_type_info = self.determine_type_information(data_type)
             if data_type_info.undetermined:
-                self.log.warning(f"Data type from parsed data ('{data_type}') could not be determined. "
-                                 f"Proceeding as if 'string' was detected.")
+                self.log.debug(f"Data type from parsed data ('{data_type}') could not be determined. "
+                               f"Proceeding as if 'string' was detected.")
 
             properties.append(
                 ComponentParameter(
