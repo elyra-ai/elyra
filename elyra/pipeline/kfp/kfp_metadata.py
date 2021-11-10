@@ -27,6 +27,7 @@ class KfpMetadata(RuntimesMetadata):
     """
 
     def on_load(self, **kwargs: Any) -> None:
+        super().on_load(**kwargs)
 
         if self.metadata.get('auth_type') is None:
             # Inject auth_type property for metadata persisted using Elyra < 3.3:

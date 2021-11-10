@@ -177,9 +177,9 @@
         },
         "version": 5,
         "runtime": "kfp",
+        "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "name": "kfp_custom",
-          "runtime": "Kubeflow Pipelines",
           "description": "3-node custom component pipeline"
         }
       },

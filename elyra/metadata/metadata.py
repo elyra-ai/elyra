@@ -33,7 +33,6 @@ class Metadata(object):
     resource = None
     display_name = None
     schema_name = None
-    version = None
     metadata = {}
     reason = None
 
@@ -41,7 +40,6 @@ class Metadata(object):
         self.name = kwargs.get('name')
         self.display_name = kwargs.get('display_name')
         self.schema_name = kwargs.get('schema_name')
-        self.version = kwargs.get('version', 0)
         self.metadata = kwargs.get('metadata', {})
         self.resource = kwargs.get('resource')
         self.reason = kwargs.get('reason')
@@ -112,8 +110,7 @@ class Metadata(object):
     def to_dict(self, trim: bool = False) -> dict:
         # Exclude resource, and reason only if trim is True since we don't want to persist that information.
         #  Method prepare_write will be used to remove name prior to writes.
-        d = dict(name=self.name, display_name=self.display_name, metadata=self.metadata,
-                 schema_name=self.schema_name, version=self.version or 0)
+        d = dict(name=self.name, display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
         if not trim:
             if self.resource:
                 d['resource'] = self.resource

@@ -310,9 +310,9 @@
           "comments": []
         },
         "version": 5,
+        "runtime_type": "Generic",
         "properties": {
-          "name": "producer-consumer",
-          "runtime": "Generic"
+          "name": "producer-consumer"
         }
       },
       "runtime_ref": ""
