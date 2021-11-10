@@ -49,7 +49,7 @@ elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
 
 class PipelineProcessorRegistry(SingletonConfigurable):
-    _processors = {}
+    _processors: Dict[str, 'PipelineProcessor'] = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -76,6 +76,18 @@ class PipelineProcessorRegistry(SingletonConfigurable):
             return self._processors[processor_name]
         else:
             raise RuntimeError(f"Could not find pipeline processor '{processor_name}'")
+
+    # TODO: This should move to ComponentCatalog once made a singleton
+    def get_catalog(self, processor_type: str):
+        # This should be updated when we decouple the catalog from the processors.  For now
+        # (and because there will be few processors) we will just walk the list until we find
+        # a processor with a matching type, then confirm the instances is RuntimePipelineProcessor.
+        for name, processor in self._processors.items():
+            if processor.type.name == processor_type and isinstance(processor, RuntimePipelineProcessor):
+                runtime_processor: RuntimePipelineProcessor = processor
+                return runtime_processor.component_registry
+        else:
+            raise RuntimeError(f"Could not find component catalog associated with type '{processor_type}'!")
 
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()

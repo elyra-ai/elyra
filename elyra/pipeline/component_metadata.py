@@ -71,22 +71,22 @@ class ComponentCatalogMetadata(Metadata):
     def post_save(self, **kwargs: Any) -> None:
         processor_type = self.metadata.get('runtime_type')
 
-        # Get processor instance and update its cache
-        try:
-            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
-            if processor.component_registry.caching_enabled:
-                processor.component_registry.update_cache(catalog=self, operation='modify')
+        # Get component catalog and update its cache
+        try:  # TODO: This should move to ComponentCatalog once made a singleton
+            component_catalog = PipelineProcessorRegistry.instance().get_catalog(processor_type)
+            if component_catalog.caching_enabled:
+                component_catalog.update_cache(catalog=self, operation='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
         processor_type = self.metadata.get('runtime_type')
 
-        # Get processor instance and update its cache
-        try:
-            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
-            if processor.component_registry.caching_enabled:
-                processor.component_registry.update_cache(catalog=self, operation='delete')
+        # Get component catalog and update its cache
+        try:  # TODO: This should move to ComponentCatalog once made a singleton
+            component_catalog = PipelineProcessorRegistry.instance().get_catalog(processor_type)
+            if component_catalog.caching_enabled:
+                component_catalog.update_cache(catalog=self, operation='delete')
         except Exception:
             pass
 
