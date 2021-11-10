@@ -35,8 +35,7 @@ export const METADATA_HEADER_POPPER_CLASS = 'elyra-metadataHeader-popper';
 export interface IAddMetadataButtonProps {
   schemas?: IDictionary<any>[];
   addMetadata: (schema: string) => void;
-  // Optional string to append to the schema title
-  schemaType?: string;
+  titleContext?: string;
 }
 
 const StyledButton = styled(Button)({
@@ -90,7 +89,7 @@ export const AddMetadataButton = (
               ? (): void => props.addMetadata(props.schemas?.[0].name)
               : handleToggle
           }
-          title={`Create new ${props.schemaType}`}
+          title={`Create new ${props.titleContext}`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
         </StyledButton>
@@ -110,9 +109,9 @@ export const AddMetadataButton = (
                   title={`New ${schema.title} ${
                     schema.title
                       .toLowerCase()
-                      .includes(props.schemaType?.toLocaleLowerCase())
+                      .includes(props.titleContext?.toLocaleLowerCase())
                       ? ''
-                      : props.schemaType
+                      : props.titleContext
                   }`}
                   onClick={(event: any): void => {
                     props.addMetadata(schema.name);
@@ -122,9 +121,9 @@ export const AddMetadataButton = (
                   {`New ${schema.title} ${
                     schema.title
                       .toLowerCase()
-                      .includes(props.schemaType?.toLocaleLowerCase())
+                      .includes(props.titleContext?.toLocaleLowerCase())
                       ? ''
-                      : props.schemaType
+                      : props.titleContext
                   }`}
                 </MenuItem>
               ))}

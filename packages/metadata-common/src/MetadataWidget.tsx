@@ -76,8 +76,7 @@ export interface IMetadataDisplayProps {
   schemaspace: string;
   sortMetadata: boolean;
   className: string;
-  // Optional string to append after schema title
-  schemaType?: string;
+  titleContext?: string;
   labelName?: (args: any) => string;
   omitTags?: boolean;
 }
@@ -115,7 +114,7 @@ export class MetadataDisplay<
     return showDialog({
       title: `Delete ${
         this.props.labelName ? this.props.labelName(metadata) : ''
-      } ${this.props.schemaType || ''} '${metadata.display_name}'?`,
+      } ${this.props.titleContext || ''} '${metadata.display_name}'?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
@@ -326,8 +325,7 @@ export interface IMetadataWidgetProps {
   display_name: string;
   schemaspace: string;
   icon: LabIcon;
-  // Optional string to append after schema title
-  schemaType?: string;
+  titleContext?: string;
 }
 
 /**
@@ -337,7 +335,7 @@ export class MetadataWidget extends ReactWidget {
   renderSignal: Signal<this, any>;
   props: IMetadataWidgetProps;
   schemas?: IDictionary<any>[];
-  schemaType?: string;
+  titleContext?: string;
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -345,7 +343,7 @@ export class MetadataWidget extends ReactWidget {
 
     this.props = props;
     this.renderSignal = new Signal<this, any>(this);
-    this.schemaType = props.schemaType;
+    this.titleContext = props.titleContext;
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
@@ -427,7 +425,7 @@ export class MetadataWidget extends ReactWidget {
         sortMetadata={true}
         className={`${METADATA_CLASS}-${this.props.schemaspace}`}
         omitTags={this.omitTags()}
-        schemaType={this.props.schemaType}
+        titleContext={this.props.titleContext}
       />
     );
   }
@@ -450,7 +448,7 @@ export class MetadataWidget extends ReactWidget {
             <AddMetadataButton
               schemas={this.schemas}
               addMetadata={this.addMetadata}
-              schemaType={this.schemaType}
+              titleContext={this.titleContext}
             />
           </header>
           <UseSignal signal={this.renderSignal} initialArgs={[]}>
