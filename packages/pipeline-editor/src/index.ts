@@ -174,7 +174,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         if (args['isPalette']) {
           return undefined;
         } else {
-          return getRuntimeIcon(args.runtime?.name);
+          return getRuntimeIcon(args.runtime?.runtime_type);
         }
       },
       execute: (args: any) => {
@@ -202,7 +202,8 @@ const extension: JupyterFrontEndPlugin<void> = {
                       comments: []
                     },
                     version: PIPELINE_CURRENT_VERSION,
-                    runtime: args.runtime?.name
+                    runtime: args.runtime?.name,
+                    runtime_type: args.runtime?.runtime_type
                   },
                   runtime_ref: ''
                 }
@@ -247,7 +248,11 @@ const extension: JupyterFrontEndPlugin<void> = {
               category: 'Elyra',
               args: { runtime },
               rank:
-                runtime.name === 'kfp' ? 2 : runtime.name === 'airflow' ? 3 : 4
+                runtime.runtime_type === 'KUBEFLOW_PIPELINES'
+                  ? 2
+                  : runtime.runtime_type === 'APACHE_AIRFLOW'
+                  ? 3
+                  : 4
             });
             menu.fileMenu.newMenu.addGroup(
               [
@@ -256,7 +261,11 @@ const extension: JupyterFrontEndPlugin<void> = {
                   args: { runtime, isMenu: true }
                 }
               ],
-              runtime.name === 'kfp' ? 31 : runtime.name === 'airflow' ? 32 : 33
+              runtime.runtime_type === 'KUBEFLOW_PIPELINES'
+                ? 31
+                : runtime.runtime_type === 'APACHE_AIRFLOW'
+                ? 32
+                : 33
             );
           }
         }

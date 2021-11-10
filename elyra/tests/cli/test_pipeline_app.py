@@ -285,7 +285,7 @@ def test_describe_with_kfp_components():
 
     result = runner.invoke(pipeline, ['describe', pipeline_file_path])
     assert "Description: 3-node custom component pipeline" in result.output
-    assert "Type: kfp" in result.output
+    assert "Type: KUBEFLOW_PIPELINES" in result.output
     assert "Nodes: 3" in result.output
     assert "File Dependencies:\n    None Listed" in result.output
     assert "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/" \
@@ -323,7 +323,7 @@ def test_describe_with_missing_kfp_component():
 
         result = runner.invoke(pipeline, ['describe', pipeline_file_path])
         assert "Description: 3-node custom component pipeline" in result.output
-        assert "Type: kfp" in result.output
+        assert "Type: KUBEFLOW_PIPELINES" in result.output
         assert "Nodes: 3" in result.output
         assert result.exit_code == 0
 

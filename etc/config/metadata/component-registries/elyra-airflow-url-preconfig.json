@@ -2,7 +2,7 @@
   "display_name": "Airflow Preloaded Components - URL",
   "metadata": {
     "description": "Preloaded URL-based components that are supported by Apache Airflow",
-    "runtime": "airflow",
+    "runtime_type": "APACHE_AIRFLOW",
     "categories": ["Preloaded Airflow"],
     "paths": [
       "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py",

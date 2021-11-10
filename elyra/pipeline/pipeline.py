@@ -361,14 +361,14 @@ class Pipeline(object):
     @property
     def runtime(self) -> str:
         """
-        Describe the runtime type where the pipeline will be executed
+        The runtime processor name that will execute the pipeline
         """
         return self._runtime
 
     @property
     def runtime_config(self) -> str:
         """
-        Describe the runtime configuration that should be used to submit the pipeline to execution
+        The runtime configuration that should be used to submit the pipeline for execution
         """
         return self._runtime_config
 

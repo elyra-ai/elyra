@@ -24,11 +24,12 @@ import yaml
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
 class KfpComponentParser(ComponentParser):
-    _component_platform = "kfp"
-    _file_types = [".yaml"]
+    _component_platform: RuntimeProcessorType = RuntimeProcessorType.KUBEFLOW_PIPELINES
+    _file_types: List[str] = [".yaml"]
 
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         # Get YAML object from component definition
@@ -51,7 +52,7 @@ class KfpComponentParser(ComponentParser):
             catalog_type=registry_entry.catalog_type,
             source_identifier=registry_entry.component_identifier,
             definition=registry_entry.component_definition,
-            runtime=self.component_platform,
+            runtime_type=self.component_platform.name,
             categories=registry_entry.categories,
             properties=component_properties
         )

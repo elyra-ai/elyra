@@ -15,8 +15,6 @@
 
 from typing import Dict
 
-import entrypoints
-
 from elyra.metadata.schema import Schemaspace
 
 
@@ -67,27 +65,19 @@ class ComponentRegistries(Schemaspace):
                          display_name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME,
                          description="Schemaspace for instances of Elyra component registries configurations")
 
-        # get set of registered runtimes
-        self._runtime_processor_names = set()
-        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
-            # load the names of the runtime processors (skip 'local')
-            if processor.name == 'local':
-                continue
-            self._runtime_processor_names.add(processor.name)
-
     def filter_schema(self, schema: Dict) -> Dict:
         """Replace contents of Runtimes value with set of runtimes if using templated value."""
 
-        # Component-registry requires that `runtime` be a defined property so ensure its existence.
-        instance_properties = schema.get('properties', {}).get('metadata', {}).get('properties', {})
-        runtime = instance_properties.get('runtime')
-        if not runtime:
-            raise ValueError(f"{ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME} schemas are "
-                             f"required to define a 'runtime' (string-valued) property and schema "
-                             f"\'{schema.get('name')}\' does not define 'runtime'.")
-
-        if runtime.get('enum') == ["{currently-configured-runtimes}"]:
-            runtime['enum'] = list(self._runtime_processor_names)
+        # Component-registry requires that `runtime_type` be a defined property so ensure its existence.
+        # Since schema 'component-registry' is deprecated, skip its check.
+        is_deprecated = schema.get('deprecated', False)
+        if not is_deprecated:  # Skip deprecated schemas
+            instance_properties = schema.get('properties', {}).get('metadata', {}).get('properties', {})
+            runtime_type = instance_properties.get('runtime_type')
+            if not runtime_type:
+                raise ValueError(f"{ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME} schemas are "
+                                 f"required to define a 'runtime_type' (string-valued) property and schema "
+                                 f"\'{schema.get('name')}\' does not define 'runtime_type'.")
 
         # Component catalogs should have an associated 'metadata' class name
         # If none is provided, use the ComponentCatalogMetadata class, which implements
