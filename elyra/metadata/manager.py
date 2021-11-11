@@ -60,7 +60,7 @@ class MetadataManager(LoggingConfigurable):
         """Returns True if the schemaspace for this instance exists"""
         return self.metadata_store.schemaspace_exists()
 
-    def get_all(self, include_invalid: bool = False) -> List[Metadata]:
+    def get_all(self, include_invalid: bool = False, of_schema: str = None) -> List[Metadata]:
         """Returns all metadata instances in summary form (name, display_name, location)"""
 
         instances = []
@@ -69,6 +69,8 @@ class MetadataManager(LoggingConfigurable):
             # validate the instance prior to return, include invalid instances as appropriate
             try:
                 metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
+                if of_schema and metadata.schema_name != of_schema:  # If provided, filter on of_schema
+                    continue
                 metadata.on_load()  # Allow class instances to handle loads
                 # if we're including invalid and there was an issue on retrieval, add it to the list
                 if include_invalid and metadata.reason:
