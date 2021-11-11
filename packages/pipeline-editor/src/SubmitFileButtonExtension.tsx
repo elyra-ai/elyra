@@ -26,7 +26,7 @@ import * as React from 'react';
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
-import { createRuntimeData } from './runtime-utils';
+import { createRuntimeData, getConfigDetails } from './runtime-utils';
 import Utils from './utils';
 
 /**
@@ -111,7 +111,6 @@ export class SubmitFileButtonExtension<
     }
 
     const {
-      runtime_platform,
       runtime_config,
       framework,
       cpu,
@@ -122,11 +121,12 @@ export class SubmitFileButtonExtension<
       ...envObject
     } = dialogResult.value;
 
+    const configDetails = getConfigDetails(runtimeData, runtime_config);
+
     // prepare notebook submission details
     const pipeline = Utils.generateSingleFilePipeline(
       context.path,
-      runtime_platform,
-      runtime_config,
+      configDetails,
       framework,
       dependency_include ? dependencies.split(',') : undefined,
       envObject,
