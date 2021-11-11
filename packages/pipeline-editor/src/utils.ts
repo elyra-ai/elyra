@@ -68,12 +68,12 @@ export default class Utils {
 
     template.pipelines[0].app_data.name = artifactName;
     template.pipelines[0].app_data.runtime = runtime_platform;
+    template.pipelines[0].app_data.runtime_type = 'Generic'; // These are always generic
     template.pipelines[0].app_data['runtime-config'] = runtime_config;
     template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
     template.pipelines[0].app_data.source = PathExt.basename(filename);
     template.pipelines[0].app_data['properties'] = {};
     template.pipelines[0].app_data['properties']['name'] = 'generic';
-    template.pipelines[0].app_data['properties']['runtime'] = 'Generic';
 
     return template;
   }

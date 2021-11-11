@@ -86,6 +86,7 @@ export interface IRuntimeComponent {
     op: string;
     id: string;
     label: string;
+    runtime_type?: string;
     type: 'execution_node';
     inputs: { app_data: any }[];
     outputs: { app_data: any }[];
@@ -176,15 +177,18 @@ const componentFetcher = async (runtime: string): Promise<any> => {
 
   // inject properties
   for (const category of palette.categories) {
-    // TODO: The server will provide this in a later release
-    switch (category.id) {
-      case 'kfp':
+    // Use the runtime_type from the first node of the category to determine category
+    // icon.  TODO: Ideally, this would be included in the category.
+    const category_runtime_type =
+      category.node_types?.[0]?.runtime_type ?? 'GENERIC';
+    switch (category_runtime_type) {
+      case 'KUBEFLOW_PIPELINES':
         category.image = IconUtil.encode(kubeflowIcon);
         break;
-      case 'airflow':
+      case 'APACHE_AIRFLOW':
         category.image = IconUtil.encode(airflowIcon);
         break;
-      case 'argo':
+      case 'ARGO':
         category.image = IconUtil.encode(argoIcon);
         break;
       default:
@@ -221,10 +225,10 @@ const NodeIcons: Map<string, string> = new Map([
   ]
 ]);
 
-export const getRuntimeIcon = (runtime?: string): LabIcon => {
+export const getRuntimeIcon = (runtime_type?: string): LabIcon => {
   const runtimeIcons = [kubeflowIcon, airflowIcon, argoIcon];
   for (const runtimeIcon of runtimeIcons) {
-    if (`elyra:${runtime}` === runtimeIcon.name) {
+    if (`elyra:${runtime_type}` === runtimeIcon.name) {
       return runtimeIcon;
     }
   }
@@ -249,7 +253,7 @@ export const usePalette = (pipelineRuntime = 'local'): IReturn<any> => {
           if (nodeIcon === undefined || nodeIcon === '') {
             nodeIcon =
               'data:image/svg+xml;utf8,' +
-              encodeURIComponent(getRuntimeIcon(pipelineRuntime).svgstr);
+              encodeURIComponent(getRuntimeIcon(node.runtime_type).svgstr);
           }
 
           // Not sure which is needed...

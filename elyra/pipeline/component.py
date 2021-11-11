@@ -22,6 +22,8 @@ from typing import Optional
 
 from traitlets.config import LoggingConfigurable
 
+from elyra.pipeline.runtime_type import RuntimeProcessorType
+
 
 class ComponentParameter(object):
     """
@@ -122,7 +124,7 @@ class Component(object):
                  catalog_type: str,
                  source_identifier: Any,
                  definition: Optional[str] = None,
-                 runtime: Optional[str] = None,
+                 runtime_type: Optional[RuntimeProcessorType] = None,
                  op: Optional[str] = None,
                  categories: Optional[List[str]] = None,
                  properties: Optional[List[ComponentParameter]] = None,
@@ -136,7 +138,7 @@ class Component(object):
                               location; one of ['url', filename', 'directory]
         :param source_identifier: Source information to help locate the component definition
         :param definition: The content of the specification file for this component
-        :param runtime: The runtime of the component (e.g. KFP or Airflow)
+        :param runtime_type: The runtime type of the component (e.g. KUBEFLOW_PIPELINES, APACHE_AIRFLOW, etc.)
         :param op: The operation name of the component; used by generic components in rendering the palette
         :param categories: A list of categories that this component belongs to; used to organize component
                            in the palette
@@ -156,7 +158,7 @@ class Component(object):
         self._source_identifier = source_identifier
 
         self._definition = definition
-        self._runtime = runtime
+        self._runtime_type = runtime_type
         self._op = op
         self._categories = categories or []
         self._properties = properties
@@ -209,8 +211,8 @@ class Component(object):
         return self._definition
 
     @property
-    def runtime(self) -> Optional[str]:
-        return self._runtime
+    def runtime_type(self) -> Optional[RuntimeProcessorType]:
+        return self._runtime_type
 
     @property
     def op(self) -> Optional[str]:
@@ -244,10 +246,11 @@ class Component(object):
 
 
 class ComponentParser(LoggingConfigurable):  # ABC
-    _component_platform = None
+    _component_platform: RuntimeProcessorType = None
+    _file_types: List[str] = None
 
     @property
-    def component_platform(self) -> str:
+    def component_platform(self) -> RuntimeProcessorType:
         return self._component_platform
 
     @property

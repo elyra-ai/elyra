@@ -110,11 +110,19 @@ const getAllPaletteNodes = (palette: any): any[] => {
 };
 
 const getRuntimeDisplayName = (
-  schemas: { name: string; display_name: string }[] | undefined,
+  schemas: { name: string; title: string }[] | undefined,
   runtime: string | undefined
 ): string | undefined => {
   const schema = schemas?.find(s => s.name === runtime);
-  return schema?.display_name;
+  return schema?.title;
+};
+
+const getRuntimeTypeFromSchema = (
+  schemas: { name: string; runtime_type: string }[] | undefined,
+  runtime: string | undefined
+): string | undefined => {
+  const schema = schemas?.find(s => s.name === runtime);
+  return schema?.runtime_type;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -188,6 +196,11 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipelineRuntimeName
   );
 
+  const pipelineRuntimeTypeFromSchema = getRuntimeTypeFromSchema(
+    runtimesSchema,
+    pipelineRuntimeName
+  );
+
   useEffect(() => {
     if (runtimeImages?.length === 0) {
       RequestErrors.noMetadataError('runtime image');
@@ -256,9 +269,9 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipeline_path,
           PathExt.extname(pipeline_path)
         );
+        pipelineJson.pipelines[0].app_data.runtime_type =
+          pipelineRuntimeTypeFromSchema ?? 'Generic';
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
-        pipelineJson.pipelines[0].app_data.properties.runtime =
-          pipelineRuntimeDisplayName ?? 'Generic';
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -270,7 +283,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [pipelineRuntimeDisplayName, runtimeImages]);
+  }, [pipelineRuntimeTypeFromSchema, runtimeImages]);
 
   const onChange = useCallback(
     (pipelineJson: any): void => {
@@ -602,6 +615,10 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const runtime_config = dialogResult.value.runtime_config;
     const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
+    const runtime_type = PipelineService.getRuntimeType(
+      runtime_config,
+      runtimes
+    );
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
@@ -612,6 +629,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     pipelineJson.pipelines[0].app_data.name = pipeline_name;
     pipelineJson.pipelines[0].app_data.runtime = runtime;
+    pipelineJson.pipelines[0].app_data['runtime_type'] = runtime_type;
     pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
     pipelineJson.pipelines[0].app_data.source = PathExt.basename(
       contextRef.current.path
@@ -687,13 +705,15 @@ const PipelineWrapper: React.FC<IProps> = ({
     const localRuntime: IRuntime = {
       name: 'local',
       display_name: 'Run in-place locally',
-      schema_name: 'local'
+      schema_name: 'local',
+      runtime_type: 'Generic'
     };
     runtimes.unshift(JSON.parse(JSON.stringify(localRuntime)));
 
     const localSchema: ISchema = {
       name: 'local',
-      display_name: 'Local Runtime'
+      title: 'Local Runtime',
+      runtime_type: 'Generic'
     };
     schema.unshift(JSON.parse(JSON.stringify(localSchema)));
 
@@ -748,6 +768,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     const runtime_config = dialogResult.value.runtime_config;
     const runtime =
       PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
+    const runtime_type =
+      PipelineService.getRuntimeType(runtime_config, runtimes) || 'LOCAL';
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
@@ -759,6 +781,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipelineJson.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
     pipelineJson.pipelines[0]['app_data']['runtime'] = runtime;
+    pipelineJson.pipelines[0]['app_data']['runtime_type'] = runtime_type;
     pipelineJson.pipelines[0]['app_data']['runtime-config'] = runtime_config;
     pipelineJson.pipelines[0]['app_data']['source'] = PathExt.basename(
       contextRef.current.path
@@ -934,16 +957,16 @@ const PipelineWrapper: React.FC<IProps> = ({
     rightBar: [
       {
         action: '',
-        label: `Runtime: ${pipelineRuntimeDisplayName ?? 'Generic'}`,
+        label: `Runtime: ${pipelineRuntimeTypeFromSchema ?? 'GENERIC'}`,
         incLabelWithIcon: 'before',
         enable: false,
         kind: 'tertiary',
         iconEnabled: IconUtil.encode(
-          pipelineRuntimeName === 'kfp'
+          pipelineRuntimeTypeFromSchema === 'KUBEFLOW_PIPELINES'
             ? kubeflowIcon
-            : pipelineRuntimeName === 'airflow'
+            : pipelineRuntimeTypeFromSchema === 'APACHE_AIRFLOW'
             ? airflowIcon
-            : pipelineRuntimeName === 'argo'
+            : pipelineRuntimeTypeFromSchema === 'ARGO'
             ? argoIcon
             : pipelineIcon
         )

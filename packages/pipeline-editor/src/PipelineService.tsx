@@ -31,11 +31,13 @@ export interface IRuntime {
   name: string;
   display_name: string;
   schema_name: string;
+  runtime_type: string;
 }
 
 export interface ISchema {
   name: string;
-  display_name: string;
+  title: string;
+  runtime_type: string;
 }
 
 enum ContentType {
@@ -178,6 +180,17 @@ export class PipelineService {
   }
 
   /**
+   * The runtime type is found from the runtime (named) schema
+   * @param name
+   * @param metadataArr
+   */
+  static getRuntimeType(name: string, metadataArr: IDictionary<any>[]): string {
+    return metadataArr.find(r => r['name'] === name)?.metadata?.[
+      'runtime_type'
+    ];
+  }
+
+  /**
    * Creates a Dialog for passing to makeServerRequest
    */
   static getWaitDialog(
@@ -213,7 +226,7 @@ export class PipelineService {
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
           <p>
-            {response['platform'] == 'airflow' ? (
+            {response['platform'] == 'APACHE_AIRFLOW' ? (
               <p>
                 Apache Airflow DAG has been pushed to the{' '}
                 <a
