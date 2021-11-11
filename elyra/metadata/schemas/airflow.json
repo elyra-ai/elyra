@@ -34,7 +34,10 @@
           "title": "Runtime Type",
           "description": "The runtime associated with this instance",
           "type": "string",
-          "const": "APACHE_AIRFLOW"
+          "const": "APACHE_AIRFLOW",
+          "uihints": {
+            "hidden": true
+          }
         },
         "description": {
           "title": "Description",
