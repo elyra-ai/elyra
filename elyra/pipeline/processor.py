@@ -85,7 +85,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         for name, processor in self._processors.items():
             if processor.type.name == processor_type and isinstance(processor, RuntimePipelineProcessor):
                 runtime_processor: RuntimePipelineProcessor = processor
-                return runtime_processor.component_registry
+                return runtime_processor.component_catalog
         else:
             raise RuntimeError(f"Could not find component catalog associated with type '{processor_type}'!")
 
