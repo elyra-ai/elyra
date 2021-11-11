@@ -121,9 +121,9 @@
           "comments": []
         },
         "version": 5,
+        "runtime_type": "Generic",
         "properties": {
-          "name": "helloworld",
-          "runtime": "Generic"
+          "name": "helloworld"
         }
       },
       "runtime_ref": ""

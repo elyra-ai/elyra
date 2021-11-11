@@ -26,6 +26,7 @@ from elyra.metadata.metadata import Metadata
 from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util import git
 
@@ -116,12 +117,12 @@ def string_to_list(stringed_list):
 
 
 def test_processor_type(processor):
-    assert processor.type == "airflow"
+    assert processor.type == RuntimeProcessorType.APACHE_AIRFLOW
 
 
 def test_fail_processor_type(processor):
     with pytest.raises(Exception):
-        assert processor.type == "kfp"
+        assert processor.type == RuntimeProcessorType.KUBEFLOW_PIPELINES
 
 
 @pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_COMPLEX], indirect=True)

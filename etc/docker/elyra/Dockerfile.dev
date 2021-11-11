@@ -19,24 +19,24 @@
 # Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
 FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
+
 ARG TAG="dev"
 
 USER root
 
-ADD start-elyra.sh /usr/local/bin/start-elyra.sh
+ADD  start-elyra.sh /usr/local/bin/start-elyra.sh
+COPY elyra /tmp/elyra
 
-RUN chmod ugo+x /usr/local/bin/start-elyra.sh
+RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
+    fix-permissions /tmp/elyra && \
+    apt-get update && apt-get install -y build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
 USER $NB_USER
 
 RUN python -m pip install --upgrade pandas numpy && \
-    python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
-    jupyter lab build
-
-# Comment out to hide the component examples for Kubeflow Pipelines and Apache Airflow
-RUN if [ "$TAG" != "dev" ] ; then \
-        elyra-metadata install component-registries --schema_name=elyra-airflow-examples-catalog --display_name="Apache Airflow examples" --runtime_type=APACHE_AIRFLOW --categories="['examples']" --version=1 && \
-        elyra-metadata install component-registries --schema_name=elyra-kfp-examples-catalog --display_name="Kubeflow Pipelines examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']" --version=1\
-    fi
+    npm install -g yarn && \
+    npm install -g npm && \
+    cd /tmp/elyra && make clean install
 
 CMD ["/usr/local/bin/start-elyra.sh"]

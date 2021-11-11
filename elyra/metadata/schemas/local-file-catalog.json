@@ -24,12 +24,6 @@
       "type": "string",
       "minLength": 1
     },
-    "version": {
-      "title": "Version",
-      "description": "The version associated with this instance",
-      "type": "integer",
-      "const": 1
-    },
     "metadata": {
       "description": "Additional data specific to this metadata",
       "type": "object",
@@ -39,12 +33,11 @@
           "description": "Description of this Component Catalog",
           "type": "string"
         },
-        "runtime": {
-          "title": "Runtime",
-          "description": "The runtime associated with this Component Catalog",
+        "runtime_type": {
+          "title": "Runtime Type",
+          "description": "The type of runtime associated with this Component Catalog",
           "type": "string",
-          "$comment": "This enum is dynamically generated to contain the available runtime values.",
-          "enum": ["{currently-configured-runtimes}"],
+          "enum": ["KUBEFLOW_PIPELINES", "APACHE_AIRFLOW"],
           "uihints": {
             "field_type": "dropdown",
             "category": "Runtime"
@@ -84,8 +77,8 @@
           }
         }
       },
-      "required": ["runtime", "paths"]
+      "required": ["runtime_type", "paths"]
     }
   },
-  "required": ["schema_name", "display_name", "version", "metadata"]
+  "required": ["schema_name", "display_name", "metadata"]
 }

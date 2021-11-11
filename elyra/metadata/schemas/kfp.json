@@ -6,6 +6,8 @@
   "display_name": "Kubeflow Pipelines",
   "schemaspace": "runtimes",
   "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
+  "metadata_class_name": "elyra.pipeline.kfp.kfp_metadata.KfpMetadata",
+  "runtime_type": "KUBEFLOW_PIPELINES",
   "uihints": {
     "title": "Kubeflow Pipelines runtimes",
     "icon": "elyra:runtimes",
@@ -28,6 +30,12 @@
       "description": "Additional data specific to this metadata",
       "type": "object",
       "properties": {
+        "runtime_type": {
+          "title": "Runtime Type",
+          "description": "The runtime associated with this instance",
+          "type": "string",
+          "const": "KUBEFLOW_PIPELINES"
+        },
         "description": {
           "title": "Description",
           "description": "Description of this Kubeflow Pipelines configuration",
@@ -53,6 +61,28 @@
             "category": "Kubeflow Pipelines"
           }
         },
+        "engine": {
+          "title": "Kubeflow Pipelines engine",
+          "description": "The Kubeflow Pipelines engine in use",
+          "type": "string",
+          "enum": ["Argo", "Tekton"],
+          "default": "Argo",
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Kubeflow Pipelines"
+          }
+        },
+        "auth_type": {
+          "title": "Authentication Type",
+          "description": "Authentication type Elyra uses to authenticate with Kubeflow",
+          "type": "string",
+          "enum": ["{AUTH_PROVIDER_PLACEHOLDERS}"],
+          "default": "{DEFAULT_AUTH_PROVIDER_PLACEHOLDER}",
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Kubeflow Pipelines"
+          }
+        },
         "api_username": {
           "title": "Kubeflow Pipelines API Endpoint Username",
           "description": "The Kubeflow Pipelines API endpoint username",
@@ -67,17 +97,6 @@
           "type": "string",
           "uihints": {
             "secure": true,
-            "category": "Kubeflow Pipelines"
-          }
-        },
-        "engine": {
-          "title": "Kubeflow Pipelines engine",
-          "description": "The Kubeflow Pipelines engine in use",
-          "type": "string",
-          "enum": ["Argo", "Tekton"],
-          "default": "Argo",
-          "uihints": {
-            "field_type": "dropdown",
             "category": "Kubeflow Pipelines"
           }
         },

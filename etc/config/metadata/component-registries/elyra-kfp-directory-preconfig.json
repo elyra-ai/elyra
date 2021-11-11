@@ -1,0 +1,11 @@
+{
+  "display_name": "KFP Preloaded Components - Directory",
+  "metadata": {
+    "description": "Preloaded directory-based components that are supported by Kubeflow Pipelines",
+    "runtime_type": "KUBEFLOW_PIPELINES",
+    "categories": ["Preloaded KFP"],
+    "paths": ["kfp"]
+  },
+  "schema_name": "local-directory-catalog",
+  "version": 1
+}

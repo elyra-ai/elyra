@@ -34,6 +34,7 @@ from elyra.pipeline.component_registry import ComponentRegistry
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.path import get_absolute_path
 
 
@@ -50,7 +51,8 @@ class LocalPipelineProcessor(PipelineProcessor):
     Note: Execution happens in-place and a ledger of runs will be available at $TMPFILE/elyra/pipeline-name-<timestamp>
     """
     _operation_processor_registry: Dict
-    _type = 'local'
+    _type = RuntimeProcessorType.LOCAL
+    _name = 'local'
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, **kwargs)
@@ -62,10 +64,6 @@ class LocalPipelineProcessor(PipelineProcessor):
             python_op_processor.operation_name: python_op_processor,
             r_op_processor.operation_name: r_op_processor,
         }
-
-    @property
-    def type(self):
-        return self._type
 
     def get_components(self):
         return ComponentRegistry.get_generic_components()
@@ -115,14 +113,11 @@ class LocalPipelineProcessor(PipelineProcessor):
 
 class LocalPipelineProcessorResponse(PipelineProcessorResponse):
 
-    _type = 'local'
+    _type = RuntimeProcessorType.LOCAL
+    _name = 'local'
 
     def __init__(self):
         super().__init__('', '', '')
-
-    @property
-    def type(self):
-        return self._type
 
 
 class OperationProcessor(ABC):
