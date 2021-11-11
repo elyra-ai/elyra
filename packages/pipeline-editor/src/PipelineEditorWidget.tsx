@@ -77,7 +77,6 @@ import {
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
 import { createRuntimeData, IRuntimeData } from './runtime-utils';
 import { theme } from './theme';
-import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -536,40 +535,29 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const action = 'export pipeline';
     const runtimes = await PipelineService.getRuntimes(
-      true,
+      false,
       action
     ).catch(error => RequestErrors.serverError(error));
-
-    if (Utils.isDialogResult(runtimes)) {
-      // Open the runtimes widget
-      runtimes.button.label.includes(RUNTIMES_SCHEMASPACE) &&
-        shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
-      return;
-    }
-
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
 
+    const runtimeData = createRuntimeData({ schema, runtimes });
+
     let title = 'Export pipeline';
-    if (runtimeDisplayName !== undefined && type !== undefined) {
+    if (type !== undefined) {
       title = `Export pipeline for ${runtimeDisplayName}`;
-      const filteredRuntimeOptions = PipelineService.filterRuntimes(
-        runtimes,
-        type
-      );
-      if (filteredRuntimeOptions.length === 0) {
-        const runtimes = await RequestErrors.noMetadataError(
+
+      if (!isRuntimeTypeAvailable(runtimeData, type)) {
+        const res = await RequestErrors.noMetadataError(
           'runtime',
           'export pipeline.',
           runtimeDisplayName
         );
-        if (Utils.isDialogResult(runtimes)) {
-          if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
-            // Open the runtimes widget
-            shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
-          }
-          return;
+
+        if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {
+          // Open the runtimes widget
+          shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
         }
         return;
       }
@@ -578,11 +566,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     const dialogOptions: Partial<Dialog.IOptions<any>> = {
       title,
       body: formDialogWidget(
-        <PipelineExportDialog
-          runtimes={runtimes}
-          runtime={type}
-          schema={schema}
-        />
+        <PipelineExportDialog runtimeData={runtimeData} pipelineType={type} />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
       defaultButton: 1,
@@ -613,12 +597,10 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const overwrite = dialogResult.value.overwrite;
 
+    // TODO
+    const runtime_type = 'TODO';
+    const runtime_processor = 'TODO';
     const runtime_config = dialogResult.value.runtime_config;
-    const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
-    const runtime_type = PipelineService.getRuntimeType(
-      runtime_config,
-      runtimes
-    );
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
@@ -628,12 +610,12 @@ const PipelineWrapper: React.FC<IProps> = ({
     cleanNullProperties();
 
     pipelineJson.pipelines[0].app_data.name = pipeline_name;
-    pipelineJson.pipelines[0].app_data.runtime = runtime;
-    pipelineJson.pipelines[0].app_data['runtime_type'] = runtime_type;
-    pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
     pipelineJson.pipelines[0].app_data.source = PathExt.basename(
       contextRef.current.path
     );
+    pipelineJson.pipelines[0].app_data.runtime_type = runtime_type;
+    pipelineJson.pipelines[0].app_data.runtime = runtime_processor;
+    pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
 
     PipelineService.exportPipeline(
       pipelineJson,
@@ -760,14 +742,13 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     cleanNullProperties();
 
-    pipelineJson.pipelines[0]['app_data']['name'] =
-      dialogResult.value.pipeline_name;
-    pipelineJson.pipelines[0]['app_data']['source'] = PathExt.basename(
+    pipelineJson.pipelines[0].app_data.name = dialogResult.value.pipeline_name;
+    pipelineJson.pipelines[0].app_data.source = PathExt.basename(
       contextRef.current.path
     );
-    pipelineJson.pipelines[0]['app_data']['runtime_type'] = runtime_type;
-    pipelineJson.pipelines[0]['app_data']['runtime'] = runtime_processor;
-    pipelineJson.pipelines[0]['app_data']['runtime-config'] = runtime_config;
+    pipelineJson.pipelines[0].app_data.runtime_type = runtime_type;
+    pipelineJson.pipelines[0].app_data.runtime = runtime_processor;
+    pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
 
     PipelineService.submitPipeline(
       pipelineJson,

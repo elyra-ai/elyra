@@ -23,11 +23,13 @@ const RUN_LOCALLY_ID = '__elyra_local__';
 interface IProps {
   runtimeData: IRuntimeData;
   pipelineType?: string;
+  children?(platform: string): JSX.Element;
 }
 
 const RuntimeConfigSelect: React.FC<IProps> = ({
   runtimeData: { platforms, allowLocal },
-  pipelineType
+  pipelineType,
+  children
 }) => {
   const filteredPlatforms = platforms.filter(p => p.configs.length > 0);
   if (allowLocal) {
@@ -90,6 +92,7 @@ const RuntimeConfigSelect: React.FC<IProps> = ({
           ))}
         </select>
       </div>
+      {children?.(platform)}
     </>
   );
 };
