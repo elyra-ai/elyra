@@ -19,7 +19,7 @@ import * as React from 'react';
 import { IRuntimeData } from './runtime-utils';
 import RuntimeConfigSelect from './RuntimeConfigSelect';
 
-// TODO - these (xxx_FILE_TYPES) should eventually come from processor implementations
+// TODO - these (xxx_FILE_TYPES) should eventually come from platform implementations
 const FILE_TYPE_MAP: Record<string, { displayName: string; id: string }[]> = {
   KUBEFLOW_PIPELINES: [
     // TODO: remove temporary workaround for KFP Python DSL export option
@@ -43,7 +43,6 @@ interface IFileTypeSelectProps {
 }
 
 const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({ platform }) => {
-  // TODO nick - just realized this is meant to come from processor NOT platform
   const fileTypes = FILE_TYPE_MAP[platform];
 
   return (

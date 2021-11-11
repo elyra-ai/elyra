@@ -23,6 +23,9 @@ export interface IRuntimeData {
     configs: {
       id: string;
       displayName: string;
+      processor: {
+        id: string;
+      };
     }[];
   }[];
   allowLocal: boolean;
@@ -50,9 +53,48 @@ export const createRuntimeData = ({
         .filter(r => r.metadata.runtime_type === s.runtime_type)
         .map(r => ({
           id: r.name,
-          displayName: r.display_name
+          displayName: r.display_name,
+          processor: {
+            id: r.schema_name
+          }
         }))
     });
   }
   return { platforms, allowLocal: !!allowLocal };
+};
+
+export interface IConfigDetails {
+  id: string;
+  displayName: string;
+  platform: {
+    id: string;
+    displayName: string;
+  };
+  processor: {
+    id: string;
+  };
+}
+
+export const getConfigDetails = (
+  runtimeData: IRuntimeData,
+  configId: string
+): IConfigDetails | undefined => {
+  for (const platform of runtimeData.platforms) {
+    for (const config of platform.configs) {
+      if (config.id === configId) {
+        return {
+          id: config.id,
+          displayName: config.displayName,
+          platform: {
+            id: platform.id,
+            displayName: platform.displayName
+          },
+          processor: {
+            id: config.processor.id
+          }
+        };
+      }
+    }
+  }
+  return undefined;
 };

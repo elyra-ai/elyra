@@ -75,7 +75,11 @@ import {
   COMPONENT_CATALOGS_SCHEMASPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
-import { createRuntimeData, IRuntimeData } from './runtime-utils';
+import {
+  createRuntimeData,
+  getConfigDetails,
+  IRuntimeData
+} from './runtime-utils';
 import { theme } from './theme';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
@@ -597,10 +601,10 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const overwrite = dialogResult.value.overwrite;
 
-    // TODO
-    const runtime_type = 'TODO';
-    const runtime_processor = 'TODO';
-    const runtime_config = dialogResult.value.runtime_config;
+    const configDetails = getConfigDetails(
+      runtimeData,
+      dialogResult.value.runtime_config
+    );
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
@@ -613,9 +617,11 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipelineJson.pipelines[0].app_data.source = PathExt.basename(
       contextRef.current.path
     );
-    pipelineJson.pipelines[0].app_data.runtime_type = runtime_type;
-    pipelineJson.pipelines[0].app_data.runtime = runtime_processor;
-    pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
+    pipelineJson.pipelines[0].app_data.runtime_type =
+      configDetails?.platform.id;
+    pipelineJson.pipelines[0].app_data.runtime = configDetails?.processor.id;
+    pipelineJson.pipelines[0].app_data['runtime-config'] =
+      configDetails?.processor.id;
 
     PipelineService.exportPipeline(
       pipelineJson,
@@ -729,11 +735,10 @@ const PipelineWrapper: React.FC<IProps> = ({
       return;
     }
 
-    // TODO
-    const runtime_type = 'TODO';
-    const runtime_type_display_name = 'TODO';
-    const runtime_processor = 'TODO';
-    const runtime_config = dialogResult.value.runtime_config;
+    const configDetails = getConfigDetails(
+      runtimeData,
+      dialogResult.value.runtime_config
+    );
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
@@ -746,13 +751,16 @@ const PipelineWrapper: React.FC<IProps> = ({
     pipelineJson.pipelines[0].app_data.source = PathExt.basename(
       contextRef.current.path
     );
-    pipelineJson.pipelines[0].app_data.runtime_type = runtime_type;
-    pipelineJson.pipelines[0].app_data.runtime = runtime_processor;
-    pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
+    pipelineJson.pipelines[0].app_data.runtime_type =
+      configDetails?.platform.id ?? 'LOCAL';
+    pipelineJson.pipelines[0].app_data.runtime =
+      configDetails?.processor.id ?? 'local';
+    pipelineJson.pipelines[0].app_data['runtime-config'] =
+      configDetails?.id ?? 'local';
 
     PipelineService.submitPipeline(
       pipelineJson,
-      runtime_type_display_name
+      configDetails?.platform.displayName ?? ''
     ).catch(error => RequestErrors.serverError(error));
 
     PipelineService.setNodePathsRelativeToPipeline(
