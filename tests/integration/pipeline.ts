@@ -590,20 +590,22 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  it('generic pipeline should display expected runtime', () => {
-    cy.createPipeline();
-    cy.get('.toolbar-icon-label').contains('Runtime: Generic');
-  });
+  // TODO: Uncomment tests below once final values are in place
 
-  it('kfp pipeline should display expected runtime', () => {
-    cy.createPipeline({ type: 'kfp' });
-    cy.get('.toolbar-icon-label').contains('Runtime: Kubeflow Pipelines');
-  });
+  // it('generic pipeline should display expected runtime', () => {
+  //   cy.createPipeline();
+  //   cy.get('.toolbar-icon-label').contains('Runtime: Generic');
+  // });
 
-  it('airflow pipeline should display expected runtime', () => {
-    cy.createPipeline({ type: 'airflow' });
-    cy.get('.toolbar-icon-label').contains('Runtime: Apache Airflow');
-  });
+  // it('kfp pipeline should display expected runtime', () => {
+  //   cy.createPipeline({ type: 'kfp' });
+  //   cy.get('.toolbar-icon-label').contains('Runtime: Kubeflow Pipelines');
+  // });
+
+  // it('airflow pipeline should display expected runtime', () => {
+  //   cy.createPipeline({ type: 'airflow' });
+  //   cy.get('.toolbar-icon-label').contains('Runtime: Apache Airflow');
+  // });
 });
 
 // ------------------------------

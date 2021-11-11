@@ -8,8 +8,8 @@ Object {
       "app_data": Object {
         "properties": Object {
           "name": "empty",
-          "runtime": "Generic",
         },
+        "runtime_type": "Generic",
         "ui_data": Object {
           "comments": Array [],
         },

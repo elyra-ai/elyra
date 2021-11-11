@@ -6,6 +6,7 @@
   "schemaspace": "runtimes",
   "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
   "metadata_class_name": "elyra.pipeline.kfp.kfp_metadata.KfpMetadata",
+  "runtime_type": "KUBEFLOW_PIPELINES",
   "uihints": {
     "title": "Kubeflow Pipelines runtimes",
     "icon": "elyra:runtimes",
@@ -28,6 +29,12 @@
       "description": "Additional data specific to this metadata",
       "type": "object",
       "properties": {
+        "runtime_type": {
+          "title": "Runtime Type",
+          "description": "The runtime associated with this instance",
+          "type": "string",
+          "const": "KUBEFLOW_PIPELINES"
+        },
         "description": {
           "title": "Description",
           "description": "Description of this Kubeflow Pipelines configuration",

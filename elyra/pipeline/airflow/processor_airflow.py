@@ -39,12 +39,14 @@ from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.git import GithubClient
 from elyra.util.path import get_absolute_path
 
 
 class AirflowPipelineProcessor(RuntimePipelineProcessor):
-    _type = 'airflow'
+    _type = RuntimeProcessorType.APACHE_AIRFLOW
+    _name = 'airflow'
 
     # Provide users with the ability to identify a writable directory in the
     # running container where the notebook | script is executed. The location
@@ -72,10 +74,6 @@ be fully qualified (i.e., prefixed with their package names).
 
     # Contains mappings from class to import statement for each available Airflow operator
     class_import_map = {}
-
-    @property
-    def type(self):
-        return self._type
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, component_parser=AirflowComponentParser(), **kwargs)
@@ -432,15 +430,12 @@ be fully qualified (i.e., prefixed with their package names).
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
 
-    _type = 'airflow'
+    _type = RuntimeProcessorType.APACHE_AIRFLOW
+    _name = 'airflow'
 
     def __init__(self, git_url, run_url, object_storage_url, object_storage_path):
         super().__init__(run_url, object_storage_url, object_storage_path)
         self.git_url = git_url
-
-    @property
-    def type(self):
-        return self._type
 
     def to_json(self):
         response = super().to_json()

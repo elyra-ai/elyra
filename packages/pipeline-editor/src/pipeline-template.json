@@ -30,6 +30,7 @@
       "app_data": {
         "name": "{{name}}",
         "runtime": "{{runtime}}",
+        "runtime_type": "{{runtime_type}}",
         "runtime-config": "{{runtime-config}}",
         "version": "{{version}}",
         "ui_data": {

@@ -56,26 +56,37 @@ class ComponentCatalogMetadata(Metadata):
     This class contains methods to trigger cache updates on modification
     and deletion of component registry metadata instances.
     """
+    def on_load(self, **kwargs: Any) -> None:
+        """Check for runtime property and update to runtime_type """
+        if 'runtime' in self.metadata:
+            if self.metadata['runtime'] == 'kfp':
+                self.metadata['runtime_type'] = 'KUBEFLOW_PIPELINES'
+            else:  # self.metadata['runtime'] == 'airflow'
+                self.metadata['runtime_type'] = 'APACHE_AIRFLOW'
+            self.metadata.pop('runtime', None)
+            getLogger('ServerApp').info(f"Upgrading component-registry {self.schema_name} instance '{self.name}' "
+                                        f"to include runtime_type '{self.metadata['runtime_type']}'...")
+            MetadataManager(schemaspace="component-registries").update(self.name, self, for_migration=True)
 
     def post_save(self, **kwargs: Any) -> None:
-        processor_type = self.metadata.get('runtime')
+        processor_type = self.metadata.get('runtime_type')
 
-        # Get processor instance and update its cache
-        try:
-            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
-            if processor.component_registry.caching_enabled:
-                processor.component_registry.update_cache(catalog=self, operation='modify')
+        # Get component catalog and update its cache
+        try:  # TODO: This should move to ComponentCatalog once made a singleton
+            component_catalog = PipelineProcessorRegistry.instance().get_catalog(processor_type)
+            if component_catalog.caching_enabled:
+                component_catalog.update_cache(catalog=self, operation='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
-        processor_type = self.metadata.get('runtime')
+        processor_type = self.metadata.get('runtime_type')
 
-        # Get processor instance and update its cache
-        try:
-            processor = PipelineProcessorRegistry.instance().get_processor(processor_type=processor_type)
-            if processor.component_registry.caching_enabled:
-                processor.component_registry.update_cache(catalog=self, operation='delete')
+        # Get component catalog and update its cache
+        try:  # TODO: This should move to ComponentCatalog once made a singleton
+            component_catalog = PipelineProcessorRegistry.instance().get_catalog(processor_type)
+            if component_catalog.caching_enabled:
+                component_catalog.update_cache(catalog=self, operation='delete')
         except Exception:
             pass
 
