@@ -83,9 +83,11 @@ export default class Utils {
           ],
           app_data: {
             name: artifactName,
-            runtime_type: configDetails?.platform.id,
+            // TODO: `runtime_type` and `runtime` should be deleted in the future
+            // NOTE: `runtime_type` is just a dummy value
+            runtime_type: 'generic',
             runtime: configDetails?.processor.id,
-            'runtime-config': configDetails?.id,
+            runtime_config: configDetails?.id,
             version: PIPELINE_CURRENT_VERSION,
             source: PathExt.basename(filename),
             properties: {
