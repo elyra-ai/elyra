@@ -48,7 +48,7 @@ export const createRuntimeData = ({
     }
     platforms.push({
       id: s.runtime_type,
-      displayName: s.display_name,
+      displayName: s.title,
       configs: runtimes
         .filter(r => r.metadata.runtime_type === s.runtime_type)
         .map(r => ({
