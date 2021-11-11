@@ -72,24 +72,24 @@ const RuntimeConfigSelect: React.FC<IProps> = ({
           </select>
         </div>
       )}
-      {platform !== RUN_LOCALLY_ID && (
-        <>
-          <label htmlFor="runtime_config">Runtime Configuration:</label>
-          <br />
-          <select
-            id="runtime_config"
-            name="runtime_config"
-            className="elyra-form-runtime-config"
-            data-form-required
-          >
-            {configs.map(c => (
-              <option key={c.id} value={c.id}>
-                {c.displayName}
-              </option>
-            ))}
-          </select>
-        </>
-      )}
+
+      {/* must be present in dom at initial render */}
+      <div style={{ display: platform === RUN_LOCALLY_ID ? 'none' : 'block' }}>
+        <label htmlFor="runtime_config">Runtime Configuration:</label>
+        <br />
+        <select
+          id="runtime_config"
+          name="runtime_config"
+          className="elyra-form-runtime-config"
+          data-form-required
+        >
+          {configs.map(c => (
+            <option key={c.id} value={c.id}>
+              {c.displayName}
+            </option>
+          ))}
+        </select>
+      </div>
     </>
   );
 };
