@@ -3,7 +3,6 @@
   "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/runtime-image.json",
   "title": "Runtime Image",
   "name": "runtime-image",
-  "display_name": "Runtime Image",
   "schemaspace": "runtime-images",
   "schemaspace_id": "119c9740-d73f-48c6-a97a-599d3acaf41d",
   "uihints": {

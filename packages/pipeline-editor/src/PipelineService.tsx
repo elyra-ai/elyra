@@ -36,7 +36,7 @@ export interface IRuntime {
 
 export interface ISchema {
   name: string;
-  display_name: string;
+  title: string;
   runtime_type: string;
 }
 

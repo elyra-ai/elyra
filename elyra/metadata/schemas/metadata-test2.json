@@ -3,7 +3,6 @@
   "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/metadata-test2.json",
   "title": "Metadata Test2",
   "name": "metadata-test2",
-  "display_name": "Metadata Test2",
   "schemaspace": "metadata-tests",
   "schemaspace_id": "8182fc28-899a-4521-8342-1a0e218c3a4d",
   "metadata_class_name": "elyra.tests.metadata.test_utils.MockMetadataTestRollback",
