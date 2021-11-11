@@ -33,7 +33,10 @@
           "title": "Runtime Type",
           "description": "The runtime associated with this instance",
           "type": "string",
-          "const": "KUBEFLOW_PIPELINES"
+          "const": "KUBEFLOW_PIPELINES",
+          "uihints": {
+            "hidden": true
+          }
         },
         "description": {
           "title": "Description",
