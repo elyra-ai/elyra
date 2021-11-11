@@ -127,8 +127,8 @@ To add a component registry entry run `elyra-metadata install component-registri
 $ elyra-metadata install component-registries \
        --display_name="filter components" \
        --description="filter text in files" \
-       --runtime=kfp \
-       --location_type=URL \
+       --runtime_type=KUBEFLOW_PIPELINES \
+       --schema_name="url-catalog"\
        --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
        --categories='["filter content"]'
 ```
@@ -144,8 +144,8 @@ $ elyra-metadata install component-registries \
        --name="filter_components" \
        --display_name="filter components" \
        --description="filter text in files" \
-       --runtime=kfp \
-       --location_type=URL \
+       --runtime_type=KUBEFLOW_PIPELINES \
+       --schema_name="url-catalog"\
        --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
        --categories='["file operations"]' \
        --replace
