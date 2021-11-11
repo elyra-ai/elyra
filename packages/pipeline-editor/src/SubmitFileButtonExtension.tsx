@@ -19,7 +19,6 @@ import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
-import { FileEditor } from '@jupyterlab/fileeditor';
 import { IDisposable } from '@lumino/disposable';
 
 import * as React from 'react';
@@ -31,40 +30,37 @@ import { createRuntimeData } from './runtime-utils';
 import Utils from './utils';
 
 /**
- * Submit script button extension
- *  - Attach button to FileEditor toolbar and launch a dialog requesting
- *  information where submit the script for execution
+ * Submit notebook button extension
+ *  - Attach button to notebook toolbar and launch a dialog requesting
+ *  information about the remote location to where submit the notebook
+ *  for execution
  */
-export class SubmitScriptButtonExtension
-  implements
-    DocumentRegistry.IWidgetExtension<
-      DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
-      DocumentRegistry.ICodeModel
-    > {
-  showWidget = async (
-    editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>
-  ): Promise<void> => {
-    if (editor.context.model.dirty) {
+
+export class SubmitFileButtonExtension<
+  T extends DocumentWidget,
+  U extends DocumentRegistry.IModel
+> implements DocumentRegistry.IWidgetExtension<T, U> {
+  showWidget = async (document: T): Promise<void> => {
+    const { context } = document;
+    if (context.model.dirty) {
       const dialogResult = await showDialog({
         title:
-          'This script contains unsaved changes. To run the script as a pipeline the changes need to be saved.',
+          'This notebook contains unsaved changes. To run the notebook as pipeline the changes need to be saved.',
         buttons: [
           Dialog.cancelButton(),
           Dialog.okButton({ label: 'Save and Submit' })
         ]
       });
-      if (dialogResult.button && dialogResult.button.accept === true) {
-        await editor.context.save();
-      } else {
-        // Don't proceed if cancel button pressed
+      if (dialogResult.button.accept === false) {
         return;
       }
+      await context.save();
     }
 
-    const env = await ContentParser.getEnvVars(
-      editor.context.path.toString()
-    ).catch(error => RequestErrors.serverError(error));
-    const action = 'run script as pipeline';
+    const env = await ContentParser.getEnvVars(context.path).catch(error =>
+      RequestErrors.serverError(error)
+    );
+    const action = 'run notebook as pipeline';
     const runtimes = await PipelineService.getRuntimes(
       true,
       action
@@ -73,7 +69,7 @@ export class SubmitScriptButtonExtension
     if (Utils.isDialogResult(runtimes)) {
       if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
         // Open the runtimes widget
-        Utils.getLabShell(editor).activateById(
+        Utils.getLabShell(document).activateById(
           `elyra-metadata:${RUNTIMES_SCHEMASPACE}`
         );
       }
@@ -86,16 +82,20 @@ export class SubmitScriptButtonExtension
     const schema = await PipelineService.getRuntimesSchema().catch(error =>
       RequestErrors.serverError(error)
     );
-    const fileExtension = PathExt.extname(editor.context.path);
 
     const runtimeData = createRuntimeData({ schema, runtimes });
 
+    let dependencyFileExtension = PathExt.extname(context.path);
+    if (dependencyFileExtension === '.ipynb') {
+      dependencyFileExtension = '.py';
+    }
+
     const dialogOptions = {
-      title: 'Run script as pipeline',
+      title: 'Run file as pipeline',
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
-          dependencyFileExtension={fileExtension}
+          dependencyFileExtension={dependencyFileExtension}
           images={images}
           runtimeData={runtimeData}
         />
@@ -122,9 +122,9 @@ export class SubmitScriptButtonExtension
       ...envObject
     } = dialogResult.value;
 
-    // prepare submission details
+    // prepare notebook submission details
     const pipeline = Utils.generateSingleFilePipeline(
-      editor.context.path,
+      context.path,
       runtime_platform,
       runtime_config,
       framework,
@@ -145,22 +145,19 @@ export class SubmitScriptButtonExtension
     );
   };
 
-  createNew(
-    editor: DocumentWidget<FileEditor, DocumentRegistry.ICodeModel>,
-    context: DocumentRegistry.IContext<DocumentRegistry.ICodeModel>
-  ): IDisposable {
+  createNew(editor: T): IDisposable {
     // Create the toolbar button
-    const submitScriptButton = new ToolbarButton({
+    const submitFileButton = new ToolbarButton({
       label: 'Run as Pipeline',
       onClick: (): any => this.showWidget(editor),
-      tooltip: 'Run script as batch'
+      tooltip: 'Run file as batch'
     });
 
-    // Add the toolbar button to editor
-    editor.toolbar.insertItem(10, 'submitScript', submitScriptButton);
+    // Add the toolbar button to the notebook
+    editor.toolbar.insertItem(10, 'submitFile', submitFileButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.
-    return submitScriptButton;
+    return submitFileButton;
   }
 }
