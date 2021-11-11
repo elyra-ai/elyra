@@ -1,9 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
   "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/airflow.json",
-  "title": "Apache Airflow runtime configuration",
+  "title": "Apache Airflow",
   "name": "airflow",
-  "display_name": "Apache Airflow",
   "schemaspace": "runtimes",
   "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
   "metadata_class_name": "elyra.pipeline.runtimes_metadata.RuntimesMetadata",

@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from elyra.metadata.schema import Schemaspace
 
 
@@ -79,4 +78,5 @@ class ComponentRegistries(Schemaspace):
                          name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_NAME,
                          display_name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME,
                          description="Schemaspace for instances of Elyra component registries configurations")
+
         self._deprecated = True

@@ -53,7 +53,7 @@ import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
 
 import '../style/index.css';
 
-const PIPELINE_FACTORY = 'Pipeline Editor';
+const PIPELINE_EDITOR = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
 const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
@@ -85,7 +85,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
-      name: PIPELINE_FACTORY,
+      name: PIPELINE_EDITOR,
       fileTypes: [PIPELINE],
       defaultFor: [PIPELINE],
       shell: app.shell,
@@ -121,7 +121,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: commandIDs.openDocManager,
       args: widget => ({
         path: widget.context.path,
-        factory: PIPELINE_FACTORY
+        factory: PIPELINE_EDITOR
       }),
       name: widget => widget.context.path
     });
@@ -153,23 +153,23 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(openPipelineEditorCommand, {
       label: (args: any) => {
         return args['isPalette']
-          ? 'New Pipeline Editor'
-          : args.runtime?.display_name
+          ? `New ${PIPELINE_EDITOR}`
+          : args.runtime?.title
           ? args.isMenu
-            ? `${args.runtime?.display_name} Pipeline Editor`
-            : 'Pipeline Editor'
-          : 'Generic Pipeline Editor';
+            ? `${args.runtime?.title} ${PIPELINE_EDITOR}`
+            : PIPELINE_EDITOR
+          : `Generic ${PIPELINE_EDITOR}`;
       },
       caption: (args: any) =>
-        args.runtime?.display_name
-          ? `${args.runtime?.display_name} Pipeline Editor`
-          : 'Generic Pipeline Editor',
+        args.runtime?.title
+          ? `${args.runtime?.title} ${PIPELINE_EDITOR}`
+          : `Generic ${PIPELINE_EDITOR}`,
       iconLabel: (args: any) =>
         args['isPalette']
           ? ''
-          : args.runtime?.display_name
-          ? `${args.runtime?.display_name} Pipeline Editor`
-          : 'Generic Pipeline Editor',
+          : args.runtime?.title
+          ? `${args.runtime?.title} ${PIPELINE_EDITOR}`
+          : `Generic ${PIPELINE_EDITOR}`,
       icon: (args: any) => {
         if (args['isPalette']) {
           return undefined;
@@ -214,7 +214,7 @@ const extension: JupyterFrontEndPlugin<void> = {
               commandIDs.openDocManager,
               {
                 path: model.path,
-                factory: PIPELINE_FACTORY
+                factory: PIPELINE_EDITOR
               }
             );
             newWidget.context.ready.then(() => {
@@ -309,7 +309,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       display_name: 'Runtimes',
       schemaspace: RUNTIMES_SCHEMASPACE,
       icon: runtimesIcon,
-      schemaType: 'runtime'
+      titleContext: 'runtime configuration'
     });
     const runtimesWidgetID = `elyra-metadata:${RUNTIMES_SCHEMASPACE}`;
     runtimesWidget.id = runtimesWidgetID;
@@ -324,7 +324,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       themeManager,
       display_name: 'Runtime Images',
       schemaspace: RUNTIME_IMAGES_SCHEMASPACE,
-      icon: containerIcon
+      icon: containerIcon,
+      titleContext: 'runtime image'
     });
     const runtimeImagesWidgetID = `elyra-metadata:${RUNTIME_IMAGES_SCHEMASPACE}`;
     runtimeImagesWidget.id = runtimeImagesWidgetID;
@@ -336,7 +337,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       themeManager,
       display_name: 'Component Catalogs', // TODO: This info should come from the server for all schemaspaces
       schemaspace: COMPONENT_CATALOGS_SCHEMASPACE,
-      icon: componentCatalogIcon
+      icon: componentCatalogIcon,
+      titleContext: 'component catalog'
     });
     const componentCatalogWidgetID = `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`;
     componentCatalogWidget.id = componentCatalogWidgetID;

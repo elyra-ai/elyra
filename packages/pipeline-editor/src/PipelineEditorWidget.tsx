@@ -109,11 +109,19 @@ const getAllPaletteNodes = (palette: any): any[] => {
 };
 
 const getRuntimeDisplayName = (
-  schemas: { name: string; display_name: string }[] | undefined,
+  schemas: { name: string; title: string }[] | undefined,
   runtime: string | undefined
 ): string | undefined => {
   const schema = schemas?.find(s => s.name === runtime);
-  return schema?.display_name;
+  return schema?.title;
+};
+
+const getRuntimeTypeFromSchema = (
+  schemas: { name: string; runtime_type: string }[] | undefined,
+  runtime: string | undefined
+): string | undefined => {
+  const schema = schemas?.find(s => s.name === runtime);
+  return schema?.runtime_type;
 };
 
 const getRuntimeTypeFromSchema = (
@@ -711,7 +719,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     const localSchema: ISchema = {
       name: 'local',
-      display_name: 'Local Runtime',
+      title: 'Local Runtime',
       runtime_type: 'Generic'
     };
     schema.unshift(JSON.parse(JSON.stringify(localSchema)));

@@ -26,7 +26,7 @@ class ComponentRegistryMetadata(Metadata):
 class ComponentCatalogMetadata(Metadata):
     """
     This class contains methods to trigger cache updates on modification
-    and deletion of component registry metadata instances.
+    and deletion of component catalog metadata instances.
     """
 
     def post_save(self, **kwargs: Any) -> None:
