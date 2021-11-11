@@ -33,9 +33,9 @@ describe('Code Snippet tests', () => {
     // make sure it is rendered properly
     cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
     // and code-snippet create new button is visible
-    cy.get(
-      '.elyra-metadata .elyra-metadataHeader-button[title="Create new Code Snippet"]'
-    ).should('be.visible');
+    cy.findByRole('button', { name: /create new code snippet/i }).should(
+      'be.visible'
+    );
   });
 
   it('should provide warnings when required fields are not entered properly', () => {
@@ -343,9 +343,7 @@ const createValidCodeSnippet = (snippetName: string): any => {
 };
 
 const clickCreateNewSnippetButton = (): void => {
-  cy.get(
-    '.elyra-metadataHeader-button[title="Create new Code Snippet"]'
-  ).click();
+  cy.findByRole('button', { name: /create new code snippet/i }).click();
 };
 
 const saveAndCloseMetadataEditor = (): void => {
