@@ -30,7 +30,7 @@ from jupyter_server.gateway.managers import GatewayClient
 import papermill
 from traitlets import log
 
-from elyra.pipeline.component_registry import ComponentRegistry
+from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
@@ -50,7 +50,7 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     Note: Execution happens in-place and a ledger of runs will be available at $TMPFILE/elyra/pipeline-name-<timestamp>
     """
-    _operation_processor_registry: Dict
+    _operation_processor_catalog: Dict
     _type = RuntimeProcessorType.LOCAL
     _name = 'local'
 
@@ -59,14 +59,14 @@ class LocalPipelineProcessor(PipelineProcessor):
         notebook_op_processor = NotebookOperationProcessor(self.root_dir)
         python_op_processor = PythonScriptOperationProcessor(self.root_dir)
         r_op_processor = RScriptOperationProcessor(self.root_dir)
-        self._operation_processor_registry = {
+        self._operation_processor_catalog = {
             notebook_op_processor.operation_name: notebook_op_processor,
             python_op_processor.operation_name: python_op_processor,
             r_op_processor.operation_name: r_op_processor,
         }
 
     def get_components(self):
-        return ComponentRegistry.get_generic_components()
+        return ComponentCatalog.get_generic_components()
 
     def process(self, pipeline):
         """
@@ -95,7 +95,7 @@ class LocalPipelineProcessor(PipelineProcessor):
             assert isinstance(operation, GenericOperation)
             try:
                 t0 = time.time()
-                operation_processor = self._operation_processor_registry[operation.classifier]
+                operation_processor = self._operation_processor_catalog[operation.classifier]
                 operation_processor.process(operation, elyra_run_name)
                 self.log_pipeline_info(pipeline.name, f"completed {operation.filename}",
                                        operation_name=operation.name,

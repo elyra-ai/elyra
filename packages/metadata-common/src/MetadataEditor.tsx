@@ -486,6 +486,9 @@ export class MetadataEditor extends ReactWidget {
       uihints = {};
       this.schema[fieldName].uihints = uihints;
     }
+    if (uihints.hidden) {
+      return <div />;
+    }
     if (
       uihints.field_type === 'textinput' ||
       uihints.field_type === undefined

@@ -6,7 +6,6 @@
   "schemaspace": "component-registries",
   "schemaspace_id": "ae79159a-489d-4656-83a6-1adfbc567c70",
   "metadata_class_name": "elyra.pipeline.component_metadata.ComponentRegistryMetadata",
-  "deprecated": true,
   "uihints": {
     "title": "Pipeline Components",
     "icon": "",
@@ -51,8 +50,7 @@
           "title": "Runtime",
           "description": "The runtime associated with this Component Registry",
           "type": "string",
-          "$comment": "This enum is dynamically generated to contain the available runtime values.",
-          "enum": ["{currently-configured-runtimes}"],
+          "enum": ["kfp", "airflow"],
           "uihints": {
             "field_type": "dropdown",
             "category": "Source"

@@ -12,9 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import Dict
-
 from elyra.metadata.schema import Schemaspace
 
 
@@ -54,7 +51,24 @@ class CodeSnippets(Schemaspace):
                          description="Schemaspace for instances of Elyra code snippets configurations")
 
 
+class ComponentCatalogs(Schemaspace):
+    COMPONENT_CATALOGS_SCHEMASPACE_ID = "8dc89ca3-4b90-41fd-adb9-9510ad346620"
+    COMPONENT_CATALOGS_SCHEMASPACE_NAME = "component-catalogs"
+    COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME = "Component Catalogs"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(schemaspace_id=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID,
+                         name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME,
+                         display_name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME,
+                         description="Schemaspace for instances of Elyra component catalog configurations")
+
+
 class ComponentRegistries(Schemaspace):
+    """DEPRECATED.  ComponentRegistries schemaspace is deprecated.
+
+    The schemaspace instance must remain until 3.4 to complete migration of potential
+    user-created registries.  Factory registries will not require migration.
+    """
     COMPONENT_REGISTRIES_SCHEMASPACE_ID = "ae79159a-489d-4656-83a6-1adfbc567c70"
     COMPONENT_REGISTRIES_SCHEMASPACE_NAME = "component-registries"
     COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME = "Component Registries"
@@ -65,24 +79,4 @@ class ComponentRegistries(Schemaspace):
                          display_name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME,
                          description="Schemaspace for instances of Elyra component registries configurations")
 
-    def filter_schema(self, schema: Dict) -> Dict:
-        """Replace contents of Runtimes value with set of runtimes if using templated value."""
-
-        # Component-registry requires that `runtime_type` be a defined property so ensure its existence.
-        # Since schema 'component-registry' is deprecated, skip its check.
-        is_deprecated = schema.get('deprecated', False)
-        if not is_deprecated:  # Skip deprecated schemas
-            instance_properties = schema.get('properties', {}).get('metadata', {}).get('properties', {})
-            runtime_type = instance_properties.get('runtime_type')
-            if not runtime_type:
-                raise ValueError(f"{ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME} schemas are "
-                                 f"required to define a 'runtime_type' (string-valued) property and schema "
-                                 f"\'{schema.get('name')}\' does not define 'runtime_type'.")
-
-        # Component catalogs should have an associated 'metadata' class name
-        # If none is provided, use the ComponentCatalogMetadata class, which implements
-        # post_save and post_delete hooks for improved component caching performance
-        if not schema.get('metadata_class_name'):
-            schema['metadata_class_name'] = "elyra.pipeline.component_metadata.ComponentCatalogMetadata"
-
-        return schema
+        self._deprecated = True
