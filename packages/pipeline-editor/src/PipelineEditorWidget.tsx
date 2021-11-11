@@ -124,14 +124,6 @@ const getRuntimeTypeFromSchema = (
   return schema?.runtime_type;
 };
 
-const getRuntimeTypeFromSchema = (
-  schemas: { name: string; runtime_type: string }[] | undefined,
-  runtime: string | undefined
-): string | undefined => {
-  const schema = schemas?.find(s => s.name === runtime);
-  return schema?.runtime_type;
-};
-
 class PipelineEditorWidget extends ReactWidget {
   browserFactory: IFileBrowserFactory;
   shell: ILabShell;
