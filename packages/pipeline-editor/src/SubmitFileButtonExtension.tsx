@@ -60,22 +60,9 @@ export class SubmitFileButtonExtension<
     const env = await ContentParser.getEnvVars(context.path).catch(error =>
       RequestErrors.serverError(error)
     );
-    const action = 'run notebook as pipeline';
-    const runtimes = await PipelineService.getRuntimes(
-      true,
-      action
-    ).catch(error => RequestErrors.serverError(error));
-
-    if (Utils.isDialogResult(runtimes)) {
-      if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
-        // Open the runtimes widget
-        Utils.getLabShell(document).activateById(
-          `elyra-metadata:${RUNTIMES_SCHEMASPACE}`
-        );
-      }
-      return;
-    }
-
+    const runtimes = await PipelineService.getRuntimes().catch(error =>
+      RequestErrors.serverError(error)
+    );
     const images = await PipelineService.getRuntimeImages().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -84,6 +71,21 @@ export class SubmitFileButtonExtension<
     );
 
     const runtimeData = createRuntimeData({ schema, runtimes });
+
+    if (runtimeData.platforms.some(p => p.configs.length > 0)) {
+      const res = await RequestErrors.noMetadataError(
+        'runtime',
+        `run file as pipeline.`
+      );
+
+      if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {
+        // Open the runtimes widget
+        Utils.getLabShell(document).activateById(
+          `elyra-metadata:${RUNTIMES_SCHEMASPACE}`
+        );
+      }
+      return;
+    }
 
     let dependencyFileExtension = PathExt.extname(context.path);
     if (dependencyFileExtension === '.ipynb') {
@@ -135,14 +137,10 @@ export class SubmitFileButtonExtension<
       memory
     );
 
-    const displayName = PipelineService.getDisplayName(
-      runtime_config,
-      runtimes
-    );
-
-    PipelineService.submitPipeline(pipeline, displayName).catch(error =>
-      RequestErrors.serverError(error)
-    );
+    PipelineService.submitPipeline(
+      pipeline,
+      configDetails?.platform.displayName ?? ''
+    ).catch(error => RequestErrors.serverError(error));
   };
 
   createNew(editor: T): IDisposable {

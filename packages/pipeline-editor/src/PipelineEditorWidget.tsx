@@ -523,11 +523,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         PathExt.extname(contextRef.current.path)
       );
 
-      const action = `${actionType} pipeline`;
-      const runtimes = await PipelineService.getRuntimes(
-        false,
-        action
-      ).catch(error => RequestErrors.serverError(error));
+      const runtimes = await PipelineService.getRuntimes().catch(error =>
+        RequestErrors.serverError(error)
+      );
       const schema = await PipelineService.getRuntimesSchema().catch(error =>
         RequestErrors.serverError(error)
       );
@@ -538,7 +536,6 @@ const PipelineWrapper: React.FC<IProps> = ({
         allowLocal: actionType === 'run'
       });
 
-      //  TODO: style capitalization with css
       let title = `${actionType} pipeline`;
       if (type !== undefined) {
         title = `${actionType} pipeline for ${runtimeDisplayName}`;
@@ -557,6 +554,8 @@ const PipelineWrapper: React.FC<IProps> = ({
           return;
         }
       }
+      // Capitalize
+      title = title.charAt(0).toUpperCase() + title.slice(1);
 
       let dialogOptions: Partial<Dialog.IOptions<any>>;
 

@@ -115,13 +115,6 @@ export default class Utils {
   }
 
   /**
-   * Check if the object is not an array, but the result of a Dialog instead
-   */
-  static isDialogResult(runtimesObj: any): boolean {
-    return runtimesObj && !(runtimesObj instanceof Array) && runtimesObj.button;
-  }
-
-  /**
    * From a given widget, find the application shell and return it
    */
   static getLabShell = (widget: any): LabShell => {
