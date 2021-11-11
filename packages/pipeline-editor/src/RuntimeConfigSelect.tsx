@@ -62,7 +62,6 @@ const RuntimeConfigSelect: React.FC<IProps> = ({
             id="runtime_platform"
             name="runtime_platform"
             className="elyra-form-runtime-platform"
-            data-form-required
             value={platform}
             onChange={handleChange}
           >
@@ -83,7 +82,6 @@ const RuntimeConfigSelect: React.FC<IProps> = ({
           id="runtime_config"
           name="runtime_config"
           className="elyra-form-runtime-config"
-          data-form-required
         >
           {configs.map(c => (
             <option key={c.id} value={c.id}>

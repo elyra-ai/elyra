@@ -26,6 +26,7 @@ import * as React from 'react';
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
+import { createRuntimeData } from './runtime-utils';
 import Utils from './utils';
 
 /**
@@ -80,15 +81,16 @@ export class SubmitNotebookButtonExtension
       RequestErrors.serverError(error)
     );
 
+    const runtimeData = createRuntimeData({ schema, runtimes });
+
     const dialogOptions = {
       title: 'Run notebook as pipeline',
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
           dependencyFileExtension=".py"
-          runtimes={runtimes}
           images={images}
-          schema={schema}
+          runtimeData={runtimeData}
         />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]

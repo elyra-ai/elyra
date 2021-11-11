@@ -27,6 +27,7 @@ import * as React from 'react';
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
+import { createRuntimeData } from './runtime-utils';
 import Utils from './utils';
 
 /**
@@ -87,6 +88,8 @@ export class SubmitScriptButtonExtension
     );
     const fileExtension = PathExt.extname(editor.context.path);
 
+    const runtimeData = createRuntimeData({ schema, runtimes });
+
     const dialogOptions = {
       title: 'Run script as pipeline',
       body: formDialogWidget(
@@ -94,8 +97,7 @@ export class SubmitScriptButtonExtension
           env={env}
           dependencyFileExtension={fileExtension}
           images={images}
-          runtimes={runtimes}
-          schema={schema}
+          runtimeData={runtimeData}
         />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
