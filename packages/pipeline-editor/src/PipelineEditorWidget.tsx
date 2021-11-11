@@ -69,18 +69,23 @@ import {
 import { PipelineExportDialog } from './PipelineExportDialog';
 import pipelineProperties from './pipelineProperties';
 import {
-  IRuntime,
-  ISchema,
   PipelineService,
   RUNTIMES_SCHEMASPACE,
   RUNTIME_IMAGES_SCHEMASPACE,
   COMPONENT_CATALOGS_SCHEMASPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
+import { createRuntimeData, IRuntimeData } from './runtime-utils';
 import { theme } from './theme';
 import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
+
+const ICON_MAP: any = {
+  KUBEFLOW_PIPELINES: kubeflowIcon,
+  APACHE_AIRFLOW: airflowIcon,
+  ARGO: argoIcon
+};
 
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
@@ -108,20 +113,20 @@ const getAllPaletteNodes = (palette: any): any[] => {
   return nodes;
 };
 
-const getRuntimeDisplayName = (
-  schemas: { name: string; title: string }[] | undefined,
-  runtime: string | undefined
-): string | undefined => {
-  const schema = schemas?.find(s => s.name === runtime);
-  return schema?.title;
+const isRuntimeTypeAvailable = (data: IRuntimeData, type: string): boolean => {
+  const configs = data.platforms.find(p => p.id === type)?.configs ?? [];
+  return configs.length > 0;
 };
 
-const getRuntimeTypeFromSchema = (
-  schemas: { name: string; runtime_type: string }[] | undefined,
-  runtime: string | undefined
+const getDisplayName = (
+  runtimesSchema: any,
+  type?: string
 ): string | undefined => {
-  const schema = schemas?.find(s => s.name === runtime);
-  return schema?.runtime_type;
+  if (!type) {
+    return undefined;
+  }
+  const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
+  return schema?.display_name;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -177,28 +182,29 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState('');
 
-  const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
-
-  const { data: palette, error: paletteError } = usePalette(
-    pipelineRuntimeName
-  );
-
-  const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
+  const type: string | undefined =
+    pipeline?.pipelines?.[0]?.app_data?.runtime_type;
 
   const {
     data: runtimesSchema,
     error: runtimesSchemaError
   } = useRuntimesSchema();
 
-  const pipelineRuntimeDisplayName = getRuntimeDisplayName(
-    runtimesSchema,
-    pipelineRuntimeName
+  const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
+
+  // TODO: DELETE THIS
+  const __doNotUseInFutureMapTypeToRandomProcessor__ = (():
+    | string
+    | undefined => {
+    const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
+    return schema?.name;
+  })();
+
+  const { data: palette, error: paletteError } = usePalette(
+    __doNotUseInFutureMapTypeToRandomProcessor__
   );
 
-  const pipelineRuntimeTypeFromSchema = getRuntimeTypeFromSchema(
-    runtimesSchema,
-    pipelineRuntimeName
-  );
+  const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
 
   useEffect(() => {
     if (runtimeImages?.length === 0) {
@@ -268,8 +274,6 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipeline_path,
           PathExt.extname(pipeline_path)
         );
-        pipelineJson.pipelines[0].app_data.runtime_type =
-          pipelineRuntimeTypeFromSchema ?? 'Generic';
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
       }
       setPipeline(pipelineJson);
@@ -282,7 +286,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [pipelineRuntimeTypeFromSchema, runtimeImages]);
+  }, [runtimeImages]);
 
   const onChange = useCallback(
     (pipelineJson: any): void => {
@@ -548,20 +552,17 @@ const PipelineWrapper: React.FC<IProps> = ({
     );
 
     let title = 'Export pipeline';
-    if (
-      pipelineRuntimeDisplayName !== undefined &&
-      pipelineRuntimeName !== undefined
-    ) {
-      title = `Export pipeline for ${pipelineRuntimeDisplayName}`;
+    if (runtimeDisplayName !== undefined && type !== undefined) {
+      title = `Export pipeline for ${runtimeDisplayName}`;
       const filteredRuntimeOptions = PipelineService.filterRuntimes(
         runtimes,
-        pipelineRuntimeName
+        type
       );
       if (filteredRuntimeOptions.length === 0) {
         const runtimes = await RequestErrors.noMetadataError(
           'runtime',
           'export pipeline.',
-          pipelineRuntimeDisplayName
+          runtimeDisplayName
         );
         if (Utils.isDialogResult(runtimes)) {
           if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
@@ -579,7 +580,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       body: formDialogWidget(
         <PipelineExportDialog
           runtimes={runtimes}
-          runtime={pipelineRuntimeName}
+          runtime={type}
           schema={schema}
         />
       ),
@@ -649,8 +650,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     cleanNullProperties,
     context.model,
     palette,
-    pipelineRuntimeDisplayName,
-    pipelineRuntimeName,
+    runtimeDisplayName,
+    type,
     shell
   ]);
 
@@ -701,43 +702,26 @@ const PipelineWrapper: React.FC<IProps> = ({
       RequestErrors.serverError(error)
     );
 
-    const localRuntime: IRuntime = {
-      name: 'local',
-      display_name: 'Run in-place locally',
-      schema_name: 'local',
-      runtime_type: 'Generic'
-    };
-    runtimes.unshift(JSON.parse(JSON.stringify(localRuntime)));
-
-    const localSchema: ISchema = {
-      name: 'local',
-      title: 'Local Runtime',
-      runtime_type: 'Generic'
-    };
-    schema.unshift(JSON.parse(JSON.stringify(localSchema)));
+    const runtimeData = createRuntimeData({
+      schema,
+      runtimes,
+      allowLocal: true
+    });
 
     let title = 'Run pipeline';
-    if (
-      pipelineRuntimeDisplayName !== undefined &&
-      pipelineRuntimeName !== undefined
-    ) {
-      title = `Run pipeline on ${pipelineRuntimeDisplayName}`;
-      const filteredRuntimeOptions = PipelineService.filterRuntimes(
-        runtimes,
-        pipelineRuntimeName
-      );
-      if (filteredRuntimeOptions.length === 0) {
-        const runtimes = await RequestErrors.noMetadataError(
+    if (type !== undefined) {
+      title = `Run pipeline on ${runtimeDisplayName}`;
+
+      if (!isRuntimeTypeAvailable(runtimeData, type)) {
+        const res = await RequestErrors.noMetadataError(
           'runtime',
           'run pipeline.',
-          pipelineRuntimeDisplayName
+          runtimeDisplayName
         );
-        if (Utils.isDialogResult(runtimes)) {
-          if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
-            // Open the runtimes widget
-            shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
-          }
-          return;
+
+        if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {
+          // Open the runtimes widget
+          shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
         }
         return;
       }
@@ -748,9 +732,8 @@ const PipelineWrapper: React.FC<IProps> = ({
       body: formDialogWidget(
         <PipelineSubmissionDialog
           name={pipelineName}
-          runtimes={runtimes}
-          runtime={pipelineRuntimeName}
-          schema={schema}
+          runtimeData={runtimeData}
+          pipelineType={type}
         />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -764,11 +747,11 @@ const PipelineWrapper: React.FC<IProps> = ({
       return;
     }
 
+    // TODO
+    const runtime_type = 'TODO';
+    const runtime_type_display_name = 'TODO';
+    const runtime_processor = 'TODO';
     const runtime_config = dialogResult.value.runtime_config;
-    const runtime =
-      PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
-    const runtime_type =
-      PipelineService.getRuntimeType(runtime_config, runtimes) || 'LOCAL';
 
     PipelineService.setNodePathsRelativeToWorkspace(
       pipelineJson.pipelines[0],
@@ -779,19 +762,16 @@ const PipelineWrapper: React.FC<IProps> = ({
 
     pipelineJson.pipelines[0]['app_data']['name'] =
       dialogResult.value.pipeline_name;
-    pipelineJson.pipelines[0]['app_data']['runtime'] = runtime;
-    pipelineJson.pipelines[0]['app_data']['runtime_type'] = runtime_type;
-    pipelineJson.pipelines[0]['app_data']['runtime-config'] = runtime_config;
     pipelineJson.pipelines[0]['app_data']['source'] = PathExt.basename(
       contextRef.current.path
     );
+    pipelineJson.pipelines[0]['app_data']['runtime_type'] = runtime_type;
+    pipelineJson.pipelines[0]['app_data']['runtime'] = runtime_processor;
+    pipelineJson.pipelines[0]['app_data']['runtime-config'] = runtime_config;
 
     PipelineService.submitPipeline(
       pipelineJson,
-      PipelineService.getDisplayName(
-        dialogResult.value.runtime_config,
-        runtimes
-      )
+      runtime_type_display_name
     ).catch(error => RequestErrors.serverError(error));
 
     PipelineService.setNodePathsRelativeToPipeline(
@@ -802,8 +782,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     cleanNullProperties,
     context.model,
     palette,
-    pipelineRuntimeDisplayName,
-    pipelineRuntimeName,
+    runtimeDisplayName,
+    type,
     shell
   ]);
 
@@ -956,19 +936,11 @@ const PipelineWrapper: React.FC<IProps> = ({
     rightBar: [
       {
         action: '',
-        label: `Runtime: ${pipelineRuntimeTypeFromSchema ?? 'GENERIC'}`,
+        label: `Runtime: ${runtimeDisplayName}`,
         incLabelWithIcon: 'before',
         enable: false,
         kind: 'tertiary',
-        iconEnabled: IconUtil.encode(
-          pipelineRuntimeTypeFromSchema === 'KUBEFLOW_PIPELINES'
-            ? kubeflowIcon
-            : pipelineRuntimeTypeFromSchema === 'APACHE_AIRFLOW'
-            ? airflowIcon
-            : pipelineRuntimeTypeFromSchema === 'ARGO'
-            ? argoIcon
-            : pipelineIcon
-        )
+        iconEnabled: IconUtil.encode(ICON_MAP[type ?? ''] ?? pipelineIcon)
       },
       {
         action: 'toggleOpenPanel',

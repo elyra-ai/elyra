@@ -202,7 +202,6 @@ const extension: JupyterFrontEndPlugin<void> = {
                       comments: []
                     },
                     version: PIPELINE_CURRENT_VERSION,
-                    runtime: args.runtime?.name,
                     runtime_type: args.runtime?.runtime_type
                   },
                   runtime_ref: ''

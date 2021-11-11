@@ -149,10 +149,10 @@ export const sortPalette = (palette: {
 
 // TODO: We should decouple components and properties to support lazy loading.
 // TODO: type this
-const componentFetcher = async (runtime: string): Promise<any> => {
+const componentFetcher = async (type: string): Promise<any> => {
   const palette = await RequestHandler.makeGetRequest<
     IRuntimeComponentsResponse
-  >(`elyra/pipeline/components/${runtime}`);
+  >(`elyra/pipeline/components/${type}`);
 
   // Gather list of component IDs to fetch properties for.
   const componentList: string[] = [];
@@ -165,7 +165,7 @@ const componentFetcher = async (runtime: string): Promise<any> => {
   const propertiesPromises = componentList.map(async componentID => {
     const res = await RequestHandler.makeGetRequest<
       IComponentPropertiesResponse
-    >(`elyra/pipeline/components/${runtime}/${componentID}/properties`);
+    >(`elyra/pipeline/components/${type}/${componentID}/properties`);
     return {
       id: componentID,
       properties: res
@@ -235,13 +235,10 @@ export const getRuntimeIcon = (runtime_type?: string): LabIcon => {
   return pipelineIcon;
 };
 
-export const usePalette = (pipelineRuntime = 'local'): IReturn<any> => {
+export const usePalette = (type = 'local'): IReturn<any> => {
   const { data: runtimeImages, error: runtimeError } = useRuntimeImages();
 
-  const { data: palette, error: paletteError } = useSWR(
-    pipelineRuntime,
-    componentFetcher
-  );
+  const { data: palette, error: paletteError } = useSWR(type, componentFetcher);
 
   let updatedPalette;
   if (palette !== undefined) {
