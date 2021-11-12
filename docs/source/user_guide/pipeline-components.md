@@ -26,31 +26,64 @@ limitations under the License.
 
 The same pipeline could be implemented using a single component that performs all these tasks, but that component might not be as universally re-usable. Consider, for example, that for another project the data resides in a different kind of storage. With fine-granular components you'd only have to replace the load data component with one that supports the other storage type and could retain everything else. 
 
-Elyra includes three _generic components_ that allow for the processing of: Jupyter notebooks, Python scripts, and R scripts. These components are called generic because they can be used in all runtime environments that Elyra pipelines currently support: local/JupyterLab, Kubeflow Pipelines, and Apache Airflow.
+Elyra includes three _generic components_ that allow for the processing of Jupyter notebooks, Python scripts, and R scripts. These components are called generic because they can be included in pipelines for any supported runtime type: local/JupyterLab, Kubeflow Pipelines, and Apache Airflow. Components are exposed in the pipeline editor via the palette.
 
 ![Generic components in the palette](../images/user_guide/pipeline-components/generic-components-in-palette.png)
 
 Note: Refer to the [_Best practices_ topic in the _User Guide_](best-practices-file-based-nodes.md) to learn more about special considerations for generic components.
 
-_Custom components_ are commonly only implemented for Kubeflow Pipelines or Apache Airflow, but not both.
+_Custom components_ are commonly only implemented for one runtime type, such as Kubeflow Pipelines or Apache Airflow. (The local runtime type does not support custom components.)
 
 ![Kubeflow components in the palette](../images/user_guide/pipeline-components/custom-kubeflow-components-in-palette.png)
 
-There are many example custom components available that you can utilize in pipelines, but you can also create your own. Details on how to create a component can be found in the [Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/components/pipelines/sdk/component-development/) and the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html). Do note that in Apache Airflow components are called operators, but for the sake of consistency the Elyra documentation refers to them as components.
+There are many custom components available on the web that you can include in pipelines, but you can also create your own. Details on how to create a component can be found in the [Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/components/pipelines/sdk/component-development/) and the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/concepts/operators.html). Do note that in Apache Airflow components are called operators, but for the sake of consistency the Elyra documentation refers to them as components.
 
 Note: Refer to the [_Requirements and best practices for custom pipeline components_ topic in the _User Guide_](best-practices-custom-pipeline-components.md) to learn more about special considerations for custom components.
 
+#### Component catalogs
+
+Elyra does not include its own component repository. Instead you can configure it to pull components from local or remote catalogs, such as filesystems, web resources, or source control systems. Elyra defines a connector API, which provides access to the catalogs resources.
+
+![component catalogs](../images/user_guide/pipeline-components/component-catalogs.png)
+
+Elyra includes connectors for the following component catalog types:
+ - _Filesystem component catalogs_ provide access to components that are stored in a filesystem that is readable by JupyterLab/Elyra.
+
+   Example: A filesystem component catalog that is configured using the `/users/jdoe/kubeflow_components/dev/my_component.yaml` path makes `my_component.yaml` available to Elyra.
+
+ - _Directory component catalogs_ provide access to components that are stored in a directory.
+
+   Example: A directory component catalog that is configured using the `/users/jdoe/kubeflow_components/test` path makes all component files in that directory available to Elyra.
+
+ - _URL component catalogs_ provide access to components that are stored on the web and can be retrieved using anonymous HTTP `GET` requests.
+
+    Example: A URL component catalog that is configured using the `http://myserver:myport/mypath/my_component.yaml` URL makes the `my_component.yaml` component file available to Elyra.
+
+Refer to section [Built-in catalog connector reference](#built-in-catalog-connector-reference) for details about these connectors. 
+
+You can add support for other component catalogs by installing a connector from the [catalog connector marketplace](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/connector-directory.md) or by [implementing your own catalog connector](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/build-a-custom-connector.md).
+
 #### Example custom components
 
-For illustrative purposes the Elyra component registry includes a few custom components that you can use to get started. These example components and the generic components are pre-loaded into the pipeline editor palette by default.
+To help you get started with custom components, the Elyra community has selected a couple for each supported runtime type and makes them available using _example catalogs_. 
 
 ![Example pipeline for the HTTP component](../images/user_guide/pipeline-components/example-components-pipeline.png)
 
-Component details and demo pipelines can be found in the `https://github.com/elyra-ai/examples` repository:
+Whether or not your Elyra includes the example components depends on how you deployed it:
+- The community maintained [pre-built container images](getting_started.html#docker) have the example component catalogs for Kubeflow Pipelines and Apache Airflow pre-installed and enabled. The components are ready to use in the pipeline editor.
+- All-inclusive stand-alone installations (e.g. `pip install elyra[all]`) include the example component catalogs. However, the catalogs must be explicitly added to the palette.
+- Core-only installations (e.g. `pip install elyra`) do not include the example components. The example catalogs must be separately installed and explicitly added to the palette. 
+
+**Installing and enabling the component examples catalogs**
+
+If necessary, follow the instructions for the appropriate catalog:
+ - [Kubeflow Pipelines component examples catalog](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
+ - [Apache Airflow component examples catalog](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
+
+Details and demo pipelines for some of the included components can be found in the Elyra examples repository:
 - [Kubeflow Pipeline components](https://github.com/elyra-ai/examples/tree/master/pipelines/kubeflow_pipelines_component_examples)
 - [Apache Airflow components](https://github.com/elyra-ai/examples/tree/master/pipelines/airflow_component_examples)
 
-Note that example components are provided as is. Unless indicated otherwise they are not maintained by the Elyra community.
 
 ### Managing pipeline components
 
@@ -60,7 +93,7 @@ Components are managed in Elyra using the [JupyterLab UI](#managing-custom-compo
 
 Custom components can be added, modified, and removed in the _Pipeline Components_ panel.
 
-![Pipeline components UI](../images/user_guide/pipeline-components/pipeline-components-ui.png)
+![Pipeline components UI](../images/user_guide/pipeline-components/component-catalogs-ui.png)
 
 To access the panel in JupyterLab:
 
@@ -197,40 +230,62 @@ Examples (CLI):
 - `['load data from db']`
 - `['train model','pytorch']`
 
+##### Runtime type (runtime_type)
 
-##### Runtime (runtime)
+The runtime type that supports the component(s). Valid values are the set of configured runtime types that appear in the dropdown (UI) or help-text (CLI). This property is required.
 
-The runtime environment that supports the component(s). Valid values are the set of configured runtimes that appear in the dropdown (UI) or help-text (CLI). This property is required.
+Examples:
 
-Example:
+- `APACHE_AIRFLOW`
+- `KUBEFLOW_PIPELINES`
 
-- `airflow`
+### Built-in catalog connector reference
 
-##### Location Type (location_type)
+Elyra supports fetching components from the filesystem and the web using its built-in connectors. 
 
-The location type identifies the format that the value(s) provided in `Paths` represent. Supported types are `URL`, `Filename`, or `Directory`. This property is required.
+#### Filesystem component catalog
 
-- `URL`: The provided `Paths` identify web resources. The pipeline editor loads the specified URLs using anonymous HTTP `GET` requests.
-- `Filename`: The provided absolute `Paths` identify files in the file system where JupyterLab/Elyra is running. `~` may be used to denote the user's home directory.
-- `Directory`: The provided absolute `Paths` must identify existing directories in the file system where JupyterLab/Elyra is running. `~` may be used to denote the user's home directory. The pipeline editor scans the specified directories for component specifications. Scans are not performed recursively.
-
-##### Paths (paths)
-
-A path defines the location from where the pipeline editor loads one or more component specifications. The provided value must be a valid representation of the selected _location type_. This property is required.
+The filesystem component catalog connector provides access to components that are stored in the filesystem where Elyra is running:
+ - `~` may be used to denote the user's home directory.
+ - Wildcards (e.g. `*` or `?`) are not supported.
+ - You can specify one or more file names.
+ - Best practice: Pipeline files include references to the location from where components were loaded. When adding files to the catalog, specify a `base directory` and a relative file path to make pipelines portable across environments.
 
 Examples (GUI):
- - URL: `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
- - Filename: `/Users/patti/specs/load_data_from_public_source/http_operator.py`
- - Filename: `~patti/specs/filter_files/row_filter.yaml`
- - Directory: `/Users/patti/specs/load_from_database`
+ - `/Users/patti/specs/load_data_from_public_source/http_operator.py`
+ - `~patti/specs/filter_files/row_filter.yaml`
 
- Examples (CLI):
- - URL: `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
- - Filename: `['/Users/patti/specs/load_data_from_public_source/http_operator.py']`
- - Filename: `['~patti/specs/filter_files/row_filter.yaml']`
- - Directory: `['/Users/patti/specs/load_from_database']`
+Examples (CLI):
+ - `['/Users/patti/specs/load_data_from_public_source/http_operator.py']`
+ - `['~patti/specs/filter_files/row_filter.yaml']`
+ - `['/Users/patti/specs/comp1.yaml','/Users/patti/specs/comp2.yaml']`
 
- Examples multiple components (CLI):
- - URL: `['URL1', 'URL2']`
- - Filename: `['/Users/patti/specs/comp1.yaml','/Users/patti/specs/comp2.yaml']`
- - Directory: `['/Users/patti/load_specs/','/Users/patti/cleanse_specs/']`
+#### Directory component catalog
+
+The directory component catalog connector provides access to components that are stored in a filesystem directory: 
+ - If `Path` is set to `/Users/patti/specs/load_from_database`, the connector searches  the specified directory for components for the selected runtime type.
+ - The search is performed recursively if the subdirectory option is enabled.
+ - `~` may be used to denote the user's home directory.
+ - You can specify one or more directories.
+
+Examples (GUI):
+ - `/Users/patti/specs/load_from_database`
+ - `~patti/specs/load_from_cloud_storage`
+
+Examples (CLI):
+ - `['/Users/patti/specs/load_from_database']`
+ - `['~patti/specs/load_from_cloud_storage']`
+ - `['/Users/patti/load_specs/','/Users/patti/cleanse_specs/']` 
+
+#### URL component catalog
+
+The URL component catalog connector provides access to components that are stored on the web:
+- The specified URL must be retrievable using an anonymous HTTP `GET` request.
+- You can specify one or more URLs.
+
+Examples (GUI):
+ - `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
+
+Examples (CLI):
+ - `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
+ - `['<URL_1>','<URL_2>']` 
