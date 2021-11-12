@@ -217,7 +217,7 @@ def test_parse_airflow_component_file():
     assert get_parameter('elyra_test_int_zero') == 0
     assert get_parameter('elyra_test_int_non_zero') == 1
 
-    assert get_parameter('elyra_test_dict_default') == ''  # {}
+    assert get_parameter('elyra_test_dict_default') == '{}'  # {}
     assert get_parameter('elyra_test_list_default') == ''  # []
 
     # Ensure that type information is inferred correctly
@@ -284,7 +284,7 @@ def test_parse_airflow_component_url():
     assert properties_json['current_parameters']['component_source'] == component_source
     assert get_parameter('elyra_bash_command') == ''
     assert get_parameter('elyra_xcom_push') is False
-    assert get_parameter('elyra_env') == ''  # {}
+    assert get_parameter('elyra_env') == '{}'  # {}
     assert get_parameter('elyra_output_encoding') == 'utf-8'
 
 
