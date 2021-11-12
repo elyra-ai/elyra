@@ -309,7 +309,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       display_name: 'Runtimes',
       schemaspace: RUNTIMES_SCHEMASPACE,
       icon: runtimesIcon,
-      titleContext: 'runtime configuration'
+      titleContext: 'runtime configuration',
+      appendToTitle: true
     });
     const runtimesWidgetID = `elyra-metadata:${RUNTIMES_SCHEMASPACE}`;
     runtimesWidget.id = runtimesWidgetID;

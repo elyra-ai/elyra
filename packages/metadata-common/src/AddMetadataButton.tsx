@@ -36,6 +36,7 @@ export interface IAddMetadataButtonProps {
   schemas?: IDictionary<any>[];
   addMetadata: (schema: string) => void;
   titleContext?: string;
+  appendToTitle?: boolean;
 }
 
 const StyledButton = styled(Button)({
@@ -107,11 +108,7 @@ export const AddMetadataButton = (
                 <MenuItem
                   key={schema.title}
                   title={`New ${schema.title} ${
-                    schema.title
-                      .toLowerCase()
-                      .includes(props.titleContext?.toLocaleLowerCase())
-                      ? ''
-                      : props.titleContext
+                    props.appendToTitle ? props.titleContext : ''
                   }`}
                   onClick={(event: any): void => {
                     props.addMetadata(schema.name);
@@ -119,11 +116,7 @@ export const AddMetadataButton = (
                   }}
                 >
                   {`New ${schema.title} ${
-                    schema.title
-                      .toLowerCase()
-                      .includes(props.titleContext?.toLocaleLowerCase())
-                      ? ''
-                      : props.titleContext
+                    props.appendToTitle ? props.titleContext : ''
                   }`}
                 </MenuItem>
               ))}

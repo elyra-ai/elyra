@@ -52,6 +52,7 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
   className: string;
   schemas?: IDictionary<any>[];
   titleContext?: string;
+  appendToTitle?: boolean;
 }
 
 /**
@@ -167,6 +168,7 @@ export class RuntimesWidget extends MetadataWidget {
         className={RUNTIMES_METADATA_CLASS}
         labelName={this.getSchemaTitle}
         titleContext={this.props.titleContext}
+        appendToTitle={this.props.appendToTitle}
       />
     );
   }
