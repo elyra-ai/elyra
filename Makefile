@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
+.PHONY: help purge install-all install-examples install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
 .PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
@@ -70,6 +70,10 @@ uninstall:
 	- jupyter labextension uninstall @jupyter-server/resource-usage
 	pip uninstall -y elyra
 	- jupyter lab clean
+	# remove Kubeflow Pipelines example components
+	- pip uninstall -y elyra-examples-kfp-catalog
+	# remove Apache Airflow example components
+	- pip uninstall -y elyra-examples-airflow-catalog
 
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
@@ -139,6 +143,17 @@ install-server-package:
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[all]"
 
 install: install-server install-ui check-install ## Build and install
+
+install-all: install-server install-ui check-install install-examples ## Build and install, including examples
+
+install-examples: ## Install example pipeline components 
+	# install Kubeflow Pipelines example components
+	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector
+	- pip install --upgrade elyra-examples-kfp-catalog
+	# install Apache Airflow example components
+	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector
+	- pip install --upgrade elyra-examples-airflow-catalog
+
 
 check-install:
 	jupyter serverextension list
