@@ -297,12 +297,13 @@ be fully qualified (i.e., prefixed with their package names).
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
 
-                    if property_value and str(property_value)[0] == '{' and str(property_value)[-1] == '}':
-                        pv = json.loads(json.dumps(property_value))
-                        if isinstance(pv, dict) and set(pv.keys()) == {'value', 'option'}:
-                            parent_node_name = self._get_node_name(sorted_operations, pv['value'])
-                            processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
-                            operation.component_params[component_property.ref] = processed_value
+                    if property_value and str(property_value)[0] == '{' and str(property_value)[-1] == '}' and \
+                        isinstance(json.loads(json.dumps(property_value)), dict) and \
+                            set(json.loads(json.dumps(property_value)).keys()) == {'value', 'option'}:
+                        parent_node_name = self._get_node_name(sorted_operations,
+                                                               json.loads(json.dumps(property_value))['value'])
+                        processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
+                        operation.component_params[component_property.ref] = processed_value
                     elif component_property.data_type == "boolean":
                         operation.component_params[component_property.ref] = property_value
                     elif component_property.data_type == "string":
