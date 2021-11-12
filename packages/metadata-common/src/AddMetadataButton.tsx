@@ -34,7 +34,7 @@ export const METADATA_HEADER_POPPER_CLASS = 'elyra-metadataHeader-popper';
 
 export interface IAddMetadataButtonProps {
   schemas?: IDictionary<any>[];
-  addMetadata: (schema: string) => void;
+  addMetadata: (schema: string, titleContext?: string) => void;
   titleContext?: string;
   appendToTitle?: boolean;
 }
@@ -111,7 +111,7 @@ export const AddMetadataButton = (
                     props.appendToTitle ? props.titleContext : ''
                   }`}
                   onClick={(event: any): void => {
-                    props.addMetadata(schema.name);
+                    props.addMetadata(schema.name, props.titleContext);
                     handleClose(event);
                   }}
                 >

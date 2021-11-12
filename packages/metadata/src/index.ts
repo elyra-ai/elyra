@@ -60,6 +60,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       schemaspace: string;
       name?: string;
       onSave: () => void;
+      titleContext?: string;
     }): void => {
       let widgetLabel: string;
       if (args.name) {
@@ -92,6 +93,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = textEditorIcon;
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
+      metadataEditorWidget.titleContext = args.titleContext;
       app.shell.add(metadataEditorWidget, 'main');
     };
 

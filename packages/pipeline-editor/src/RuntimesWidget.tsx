@@ -144,6 +144,15 @@ export class RuntimesWidget extends MetadataWidget {
     return 'runtime configuration';
   };
 
+  addMetadata(schema: string, titleContext?: string): void {
+    this.openMetadataEditor({
+      onSave: this.updateMetadata,
+      schemaspace: this.props.schemaspace,
+      schema: schema,
+      titleContext: titleContext
+    });
+  }
+
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
     if (Array.isArray(metadata) && !metadata.length) {
       // Empty metadata
