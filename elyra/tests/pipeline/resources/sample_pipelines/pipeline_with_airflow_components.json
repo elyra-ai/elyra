@@ -290,7 +290,7 @@
         },
         "version": 4,
         "runtime": "airflow",
-        "runtime-config": "airflow-yukked1",
+        "runtime_config": "airflow-yukked1",
         "source": "pipeline_with_custom_components.json"
       },
       "runtime_ref": ""

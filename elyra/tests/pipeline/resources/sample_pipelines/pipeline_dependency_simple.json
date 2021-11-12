@@ -240,7 +240,7 @@
         },
         "version": 5,
         "runtime": "kfp",
-        "runtime-config": "kfp-yukked1"
+        "runtime_config": "kfp-yukked1"
       },
       "runtime_ref": ""
     }

@@ -18,9 +18,12 @@ import json
 import os
 
 from click.testing import CliRunner
+import pytest
 
-import elyra.cli.pipeline_app as pipeline_app
 from elyra.cli.pipeline_app import pipeline
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schemaspaces import Runtimes
 
 SUB_COMMANDS = ['run', 'submit', 'describe', 'validate']
 
@@ -31,11 +34,41 @@ PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD = \
     '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","schemas":[]}'
 
 PIPELINE_SOURCE_WITH_ZERO_NODES = \
-    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[{"id":"1","nodes":[],"app_data":{"runtime":"","version": 5,"properties": {"name": "generic","runtime": "Generic"}}, "schemas":[]}]}'  # noqa
+    '{"doc_type":"pipeline","version":"3.0","id":"0","primary_pipeline":"1","pipelines":[{"id":"1","nodes":[],"app_data":{"runtime":"","version": 5, "runtime_type": "KUBEFLOW_PIPELINES", "properties": {"name": "generic"}}, "schemas":[]}]}'  # noqa
+
+KFP_RUNTIME_INSTANCE = {
+    "display_name": "PipelineApp KFP runtime instance",
+    "metadata": {
+        "api_endpoint": "http://acme.com:32470/pipeline",
+        "cos_endpoint": "http://acme.com:30205",
+        "cos_username": "minio",
+        "cos_password": "miniosecret",
+        "cos_bucket": "my-bucket",
+        "tags": [],
+        "engine": "Argo",
+        "user_namespace": "kubeflow-user-example-com",
+        "api_username": "user@example.com",
+        "api_password": "12341234",
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "auth_type": "DEX_LEGACY"
+    },
+    "schema_name": "kfp"
+}
 
 
-def mock_get_runtime_type(runtime_config: str) -> str:
-    return "kfp"
+@pytest.fixture
+def kfp_runtime_instance():
+    """Creates an instance of a kfp scehma and removes after test. """
+    instance_name = "pipeline_app_test"
+    md_mgr = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID)
+    # clean possible orphaned instance...
+    try:
+        md_mgr.remove(instance_name)
+    except Exception:
+        pass
+    runtime_instance = md_mgr.create(instance_name, Metadata(**KFP_RUNTIME_INSTANCE))
+    yield runtime_instance.name
+    md_mgr.remove(runtime_instance.name)
 
 
 def test_no_opts():
@@ -71,13 +104,11 @@ def test_run_with_invalid_pipeline():
     assert result.exit_code != 0
 
 
-def test_submit_with_invalid_pipeline(monkeypatch):
+def test_submit_with_invalid_pipeline(kfp_runtime_instance):
     runner = CliRunner()
 
-    monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
-
     result = runner.invoke(pipeline, ['submit', 'foo.pipeline',
-                                      '--runtime-config', 'foo'])
+                                      '--runtime-config', kfp_runtime_instance])
     assert "Pipeline file not found:" in result.output
     assert "foo.pipeline" in result.output
     assert result.exit_code != 0
@@ -112,16 +143,14 @@ def test_run_with_unsupported_file_type():
         assert result.exit_code != 0
 
 
-def test_submit_with_unsupported_file_type(monkeypatch):
+def test_submit_with_unsupported_file_type(kfp_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.ipynb', 'w') as f:
             f.write('{ "nbformat": 4, "cells": [] }')
 
-        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
-
         result = runner.invoke(pipeline, ['submit', 'foo.ipynb',
-                                          '--runtime-config', 'foo'])
+                                          '--runtime-config', kfp_runtime_instance])
         assert "Pipeline file should be a [.pipeline] file" in result.output
         assert result.exit_code != 0
 
@@ -160,17 +189,15 @@ def test_run_with_no_pipelines_field():
         assert result.exit_code != 0
 
 
-def test_submit_with_no_pipelines_field(monkeypatch):
+def test_submit_with_no_pipelines_field(kfp_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.pipeline', 'w') as pipeline_file:
             pipeline_file.write(PIPELINE_SOURCE_WITHOUT_PIPELINES_FIELD)
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
 
-        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
-
         result = runner.invoke(pipeline, ['submit', pipeline_file_path,
-                                          '--runtime-config', 'foo'])
+                                          '--runtime-config', kfp_runtime_instance])
         assert "Pipeline is missing 'pipelines' field." in result.output
         assert result.exit_code != 0
 
@@ -211,17 +238,15 @@ def test_run_with_zero_length_pipelines_field():
         assert result.exit_code != 0
 
 
-def test_submit_with_zero_length_pipelines_field(monkeypatch):
+def test_submit_with_zero_length_pipelines_field(kfp_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.pipeline', 'w') as pipeline_file:
             pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_LENGTH_PIPELINES_FIELD)
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
 
-        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
-
         result = runner.invoke(pipeline, ['submit', pipeline_file_path,
-                                          '--runtime-config', 'foo'])
+                                          '--runtime-config', kfp_runtime_instance])
         assert "Pipeline has zero length 'pipelines' field." in result.output
         assert result.exit_code != 0
 
@@ -250,16 +275,14 @@ def test_run_pipeline_with_no_nodes():
         assert result.exit_code != 0
 
 
-def test_submit_pipeline_with_no_nodes(monkeypatch):
+def test_submit_pipeline_with_no_nodes(kfp_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.pipeline', 'w') as pipeline_file:
             pipeline_file.write(PIPELINE_SOURCE_WITH_ZERO_NODES)
             pipeline_file_path = os.path.join(os.getcwd(), pipeline_file.name)
 
-        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
-
-        result = runner.invoke(pipeline, ['submit', pipeline_file_path, '--runtime-config', 'foo'])
+        result = runner.invoke(pipeline, ['submit', pipeline_file_path, '--runtime-config', kfp_runtime_instance])
         assert "At least one node must exist in the primary pipeline." in result.output
         assert result.exit_code != 0
 
@@ -273,7 +296,7 @@ def test_describe_with_empty_pipeline():
 
         result = runner.invoke(pipeline, ['describe', pipeline_file_path])
         assert "Description: None" in result.output
-        assert "Type: generic" in result.output
+        assert "Type: KUBEFLOW_PIPELINES" in result.output
         assert "Nodes: 0" in result.output
         assert "File Dependencies:\n    None Listed" in result.output
         assert "Component Dependencies:\n    None Listed" in result.output
@@ -297,13 +320,11 @@ def test_describe_with_kfp_components():
     assert result.exit_code == 0
 
 
-def test_validate_with_kfp_components(monkeypatch):
+def test_validate_with_kfp_components(kfp_runtime_instance):
     runner = CliRunner()
     pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
 
-    monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
-
-    result = runner.invoke(pipeline, ['validate', pipeline_file_path])
+    result = runner.invoke(pipeline, ['validate', pipeline_file_path, '--runtime-config', kfp_runtime_instance])
 
     assert "Validating pipeline..." in result.output
     assert result.exit_code == 0
@@ -328,7 +349,7 @@ def test_describe_with_missing_kfp_component():
         assert result.exit_code == 0
 
 
-def test_validate_with_missing_kfp_component(monkeypatch):
+def test_validate_with_missing_kfp_component(kfp_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
         valid_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
@@ -340,8 +361,7 @@ def test_validate_with_missing_kfp_component(monkeypatch):
                 valid_data['pipelines'][0]['nodes'][0]['op'] = valid_data['pipelines'][0]['nodes'][0]['op'] + 'Missing'
                 pipeline_file.write(json.dumps(valid_data))
 
-        monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
-        result = runner.invoke(pipeline, ['validate', pipeline_file_path])
+        result = runner.invoke(pipeline, ['validate', pipeline_file_path, '--runtime-config', kfp_runtime_instance])
         assert "Validating pipeline..." in result.output
         assert "[Error][Calculate data hash] - This component was not found in the catalog." in result.output
         assert result.exit_code != 0

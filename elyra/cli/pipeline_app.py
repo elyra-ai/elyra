@@ -131,7 +131,7 @@ def _preprocess_pipeline(pipeline_path: str,
     if runtime:
         primary_pipeline.set("runtime", runtime)
     if runtime_config:
-        primary_pipeline.set("runtime-config", runtime_config)
+        primary_pipeline.set("runtime_config", runtime_config)
 
     return pipeline_definition.to_dict()
 
