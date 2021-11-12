@@ -28,8 +28,7 @@ RUN jupyter lab build
 
 # Enable Kubeflow Pipelines examples catalog
 # Comment out the line below to hide the examples
-# TODO https://github.com/elyra-ai/elyra/pull/2282: "component-registries" -> "component-catalogs"
-RUN elyra-metadata install component-registries --schema_name=elyra-kfp-examples-catalog --display_name="KFP examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']"
+RUN elyra-metadata install component-catalogs --schema_name=elyra-kfp-examples-catalog --display_name="KFP examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']"
 
 # install - requirements.txt
 COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt

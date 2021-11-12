@@ -33,19 +33,21 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
 npm_packages_path = "./dist/*.tgz"
 auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
 auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
-component_catalog_path = './etc/config/components/*.json'
-components_kfp_path = './etc/config/components/kfp/*.yaml'
-components_airflow_path = './etc/config/components/airflow/*.py'
+component_catalog_path = './etc/config/components/*.json'  # deprecated
+components_kfp_path = './etc/config/components/kfp/*.yaml'  # deprecated
+components_airflow_path = './etc/config/components/airflow/*.py'  # deprecated
 metadata_path_runtime_image = './etc/config/metadata/runtime-images/*.json'
-metadata_path_catalogs = './etc/config/metadata/component-catalogs/*.json'
+metadata_path_catalogs = './etc/config/metadata/component-catalogs/*.json'  # deprecated
 settings_path = './etc/config/settings/*.json'
 
 runtime_extras = {
     'kfp-tekton': ['kfp-tekton~=1.0.1', ],
-    # TODO
-    # 'airflow-examples': ['elyra-examples-airflow-catalog'],
-    # TODO
-    # 'kfp-examples': ['elyra-examples-kfp-catalog']
+    # Kubeflow Pipelines example components
+    # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
+    'kfp-examples': ['elyra-examples-kfp-catalog'],
+    # Apache Airflow example components
+    # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
+    'airflow-examples': ['elyra-examples-airflow-catalog']
 }
 runtime_extras['all'] = list(set(sum(runtime_extras.values(), [])))
 
@@ -60,10 +62,10 @@ setup_args = dict(
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
                 ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path_runtime_image)),
-                ('share/jupyter/metadata/component-catalogs', glob(metadata_path_catalogs)),
-                ('share/jupyter/components', glob(component_catalog_path)),
-                ('share/jupyter/components/kfp/', glob(components_kfp_path)),
-                ('share/jupyter/components/airflow/', glob(components_airflow_path)),
+                ('share/jupyter/metadata/component-catalogs', glob(metadata_path_catalogs)),  # deprecated
+                ('share/jupyter/components', glob(component_catalog_path)),  # deprecated
+                ('share/jupyter/components/kfp/', glob(components_kfp_path)),  # deprecated
+                ('share/jupyter/components/airflow/', glob(components_airflow_path)),  # deprecated
                 ('share/jupyter/lab/settings', glob(settings_path))],
     packages=find_packages(),
     install_requires=[
