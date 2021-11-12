@@ -629,11 +629,6 @@ const PipelineWrapper: React.FC<IProps> = ({
       );
 
       // Runtime info
-      // TODO: `runtime_type` and `runtime` should be deleted in the future
-      // NOTE: `runtime_type` is just a dummy value
-      pipelineJson.pipelines[0].app_data.runtime_type = 'generic';
-      pipelineJson.pipelines[0].app_data.runtime =
-        configDetails?.processor.id ?? 'local';
       pipelineJson.pipelines[0].app_data.runtime_config =
         configDetails?.id ?? 'local';
 
