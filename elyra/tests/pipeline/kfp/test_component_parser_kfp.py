@@ -16,7 +16,9 @@
 import os
 from types import SimpleNamespace
 
+from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import jupyter_core.paths
+import pytest
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
@@ -37,7 +39,8 @@ def _get_resource_path(filename):
     return resource_path
 
 
-def test_component_catalog_can_load_components_from_registries():
+@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_component_catalog_can_load_components_from_registries(component_cache_instance):
     component_parser = KfpComponentParser()
     component_catalog = ComponentCatalog(component_parser)
 

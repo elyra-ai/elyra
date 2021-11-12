@@ -19,6 +19,7 @@ import re
 import tempfile
 from unittest import mock
 
+from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 import github
 import pytest
 
@@ -35,7 +36,7 @@ PIPELINE_FILE_CUSTOM_COMPONENTS = 'resources/sample_pipelines/pipeline_with_airf
 
 
 @pytest.fixture
-def processor(setup_factory_data):
+def processor(setup_factory_data, component_cache_instance):
     processor = AirflowPipelineProcessor(os.getcwd())
     return processor
 
@@ -237,6 +238,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
 
 
 @pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
+@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
     pipeline_json = _read_pipeline_resource(PIPELINE_FILE_CUSTOM_COMPONENTS)
 

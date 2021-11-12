@@ -106,7 +106,7 @@ setup_args = dict(
         'black',
     ],
     extras_require={
-        'test': ['pytest', 'pytest-tornasync'],
+        'test': ['elyra-examples-airflow-catalog', 'elyra-examples-kfp-catalog', 'pytest', 'pytest-tornasync'],
         **runtime_extras
     },
     include_package_data=True,
