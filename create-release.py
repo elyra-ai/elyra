@@ -154,8 +154,8 @@ def update_version_to_release() -> None:
             f"{new_version}")
 
         sed(_source('etc/docker/kubeflow/Dockerfile'),
-            r"elyra\[all\]==.*",
-            f"elyra\[all\]=={new_version}")
+            r"elyra\[kfp-tekton,kfp-examples\]==.*",
+            f"elyra\[kfp-tekton,kfp-examples\]=={new_version}")
         sed(_source('etc/docker/elyra/Dockerfile'),
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
             f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra")
