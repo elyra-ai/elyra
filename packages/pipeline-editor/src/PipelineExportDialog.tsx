@@ -22,9 +22,10 @@ import RuntimeConfigSelect from './RuntimeConfigSelect';
 // TODO - these (xxx_FILE_TYPES) should eventually come from platform implementations
 const FILE_TYPE_MAP: Record<string, { displayName: string; id: string }[]> = {
   KUBEFLOW_PIPELINES: [
-    // TODO: remove temporary workaround for KFP Python DSL export option
-    // See https://github.com/elyra-ai/elyra/issues/1760 for context.
-    // { label: 'KFP domain-specific language Python code', key: 'py' },
+    {
+      displayName: 'KFP domain-specific language Python code',
+      id: 'py'
+    },
     {
       displayName: 'KFP static configuration file (YAML formatted)',
       id: 'yaml'
@@ -40,10 +41,22 @@ const FILE_TYPE_MAP: Record<string, { displayName: string; id: string }[]> = {
 
 interface IFileTypeSelectProps {
   platform: string;
+  // TODO: remove this prop
+  temporarilyDissablePythonDSLForKFPSpecificPipelines?: boolean;
 }
 
-const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({ platform }) => {
-  const fileTypes = FILE_TYPE_MAP[platform];
+const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({
+  platform,
+  temporarilyDissablePythonDSLForKFPSpecificPipelines
+}) => {
+  // TODO: remove temporary workaround for KFP Python DSL export option
+  // See https://github.com/elyra-ai/elyra/issues/1760 for context.
+  const fileTypes = FILE_TYPE_MAP[platform].filter(t => {
+    if (temporarilyDissablePythonDSLForKFPSpecificPipelines && t.id === 'py') {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <>
@@ -80,7 +93,12 @@ export const PipelineExportDialog: React.FC<IProps> = ({
         runtimeData={runtimeData}
         pipelineType={pipelineType}
       >
-        {(platform): JSX.Element => <FileTypeSelect platform={platform} />}
+        {(platform): JSX.Element => (
+          <FileTypeSelect
+            platform={platform}
+            temporarilyDissablePythonDSLForKFPSpecificPipelines={!!pipelineType}
+          />
+        )}
       </RuntimeConfigSelect>
       <input
         type="checkbox"
