@@ -72,7 +72,7 @@ export class SubmitFileButtonExtension<
 
     const runtimeData = createRuntimeData({ schema, runtimes });
 
-    if (runtimeData.platforms.some(p => p.configs.length > 0)) {
+    if (!runtimeData.platforms.find(p => p.configs.length > 0)) {
       const res = await RequestErrors.noMetadataError(
         'runtime',
         `run file as pipeline.`
