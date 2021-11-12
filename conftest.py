@@ -17,7 +17,6 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
-
 from elyra.metadata.manager import MetadataManager
 
 pytest_plugins = ["jupyter_server.pytest_plugin"]
