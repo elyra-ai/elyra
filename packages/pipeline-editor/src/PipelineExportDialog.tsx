@@ -96,7 +96,9 @@ export const PipelineExportDialog: React.FC<IProps> = ({
         {(platform): JSX.Element => (
           <FileTypeSelect
             platform={platform}
-            temporarilyDissablePythonDSLForKFPSpecificPipelines={!!pipelineType}
+            temporarilyDissablePythonDSLForKFPSpecificPipelines={
+              pipelineType === 'KUBEFLOW_PIPELINES'
+            }
           />
         )}
       </RuntimeConfigSelect>
