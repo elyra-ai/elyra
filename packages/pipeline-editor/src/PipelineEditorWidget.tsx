@@ -1076,15 +1076,42 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
+  const customCompomentExamplesUrl =
+    'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
+
   const EmptyPipelineContent = (
     <div>
-      <dragDropIcon.react tag="div" elementPosition="center" height="120px" />
-      <div>
-        <h1>
-          {' '}
+      <dragDropIcon.react
+        className="drag-drop-icon"
+        tag="div"
+        elementPosition="center"
+        height="120px"
+      />
+      <div className="empty-pipeline-header">
+        <h3>
           Start your new pipeline by dragging files from the file browser pane
-          or by adding custom components{' '}
-        </h1>{' '}
+          or by adding a custom component using the{' '}
+          <componentCatalogIcon.react
+            className="component-catalog-icon"
+            tag="div"
+            height="24px"
+          />{' '}
+          icon.
+          <br />
+          <br />
+        </h3>
+        <h4>
+          Refer to
+          <a
+            href={customCompomentExamplesUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {' '}
+            component examples{' '}
+          </a>
+          for more details about adding custom components.
+        </h4>
       </div>
     </div>
   );
