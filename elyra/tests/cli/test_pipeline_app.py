@@ -343,5 +343,5 @@ def test_validate_with_missing_kfp_component(monkeypatch):
         monkeypatch.setattr(pipeline_app, "_get_runtime_type", mock_get_runtime_type)
         result = runner.invoke(pipeline, ['validate', pipeline_file_path])
         assert "Validating pipeline..." in result.output
-        assert "[Error][Calculate data hash] - This component was not found in the registry." in result.output
+        assert "[Error][Calculate data hash] - This component was not found in the catalog." in result.output
         assert result.exit_code != 0

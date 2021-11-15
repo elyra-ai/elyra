@@ -243,10 +243,32 @@ class SchemaspaceInstall(SchemaspaceBase):
                                   .format(name, schema_name), display_help=True)
 
 
+class SchemaspaceMigrate(SchemaspaceBase):
+    """Handles the 'migrate' subcommand functionality for a specific schemaspace."""
+
+    # 'Migrate' options
+    options = []
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def start(self):
+        super().start()  # process options
+
+        # Regardless of schemaspace, call migrate.  If the schemaspace implementation doesn't
+        # require migration, an appropriate log statement will be produced.
+        schemaspace = SchemaManager.instance().get_schemaspace(self.schemaspace)
+        migrated = schemaspace.migrate()
+        if migrated:
+            print(f"The following {self.schemaspace} instances were migrated: {migrated}")
+        else:
+            print(f"No instances of schemaspace {self.schemaspace} were migrated.")
+
+
 class SubcommandBase(AppBase):
     """Handles building the appropriate subcommands based on existing schemaspaces."""
 
-    subcommand_desciption = None  # Overridden in subclass
+    subcommand_description = None  # Overridden in subclass
     schemaspace_base_class = None  # Overridden in subclass
 
     def __init__(self, **kwargs):
@@ -257,11 +279,11 @@ class SubcommandBase(AppBase):
         # This requires a new subclass of the SchemaspaceList class with an appropriate description
         self.subcommands = {}
         for schemaspace, schemas in self.schemaspace_schemas.items():
-            subcommand_desciption = self.subcommand_desciption.format(schemaspace=schemaspace)
+            subcommand_description = self.subcommand_description.format(schemaspace=schemaspace)
             # Create the appropriate schemaspace class, initialized with its description,
             # schemaspace, and corresponding schemas as attributes,
             schemaspace_class = type(schemaspace, (self.schemaspace_base_class,),
-                                     {'description': subcommand_desciption,
+                                     {'description': subcommand_description,
                                       'schemaspace': schemaspace,
                                       'schemas': schemas})
             self.subcommands[schemaspace] = (schemaspace_class, schemaspace_class.description)
@@ -283,7 +305,7 @@ class List(SubcommandBase):
     """Lists a metadata instances of a given schemaspace."""
 
     description = "List metadata instances for a given schemaspace."
-    subcommand_desciption = "List installed metadata for {schemaspace}."
+    subcommand_description = "List installed metadata for {schemaspace}."
     schemaspace_base_class = SchemaspaceList
 
     def __init__(self, **kwargs):
@@ -294,7 +316,7 @@ class Remove(SubcommandBase):
     """Removes a metadata instance from a given schemaspace."""
 
     description = "Remove a metadata instance from a given schemaspace."
-    subcommand_desciption = "Remove a metadata instance from schemaspace '{schemaspace}'."
+    subcommand_description = "Remove a metadata instance from schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceRemove
 
     def __init__(self, **kwargs):
@@ -305,8 +327,19 @@ class Install(SubcommandBase):
     """Installs a metadata instance into a given schemaspace."""
 
     description = "Install a metadata instance into a given schemaspace."
-    subcommand_desciption = "Install a metadata instance into schemaspace '{schemaspace}'."
+    subcommand_description = "Install a metadata instance into schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceInstall
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+class Migrate(SubcommandBase):
+    """Migrates metadata instances in a given schemaspace."""
+
+    description = "Migrate metadata instances in a given schemaspace."
+    subcommand_description = "Migrate metadata instance in schemaspace '{schemaspace}'."
+    schemaspace_base_class = SchemaspaceMigrate
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -322,6 +355,7 @@ class MetadataApp(AppBase):
         'list': (List, List.description.splitlines()[0]),
         'install': (Install, Install.description.splitlines()[0]),
         'remove': (Remove, Remove.description.splitlines()[0]),
+        'migrate': (Migrate, Migrate.description.splitlines()[0]),
     }
 
     @classmethod
@@ -333,7 +367,12 @@ class MetadataApp(AppBase):
         super().__init__(**kwargs)
         self.schemaspace_schemas = {}
         schema_mgr = SchemaManager.instance()
-        schemaspace_names = schema_mgr.get_schemaspace_names()
+        # Migration should include deprecated schemaspaces
+        include_deprecated = False
+        args = kwargs.get('argv', [])
+        if len(args) > 0:
+            include_deprecated = args[0] != 'install'  # Only install will not operate against a deprecated schemaspace
+        schemaspace_names = schema_mgr.get_schemaspace_names(include_deprecated=include_deprecated)
         for name in schemaspace_names:
             self.schemaspace_schemas[name] = schema_mgr.get_schemaspace_schemas(name)
 

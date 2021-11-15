@@ -299,7 +299,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           properties=[])
 
     # Replace cached component registry with single url-based component for testing
-    processor._component_registry._cached_components = {component_id: component}
+    processor._component_catalog._cached_components = {component_id: component}
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
@@ -375,7 +375,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           categories=[])
 
     # Replace cached component registry with single filename-based component for testing
-    processor._component_registry._cached_components = {component_id: component}
+    processor._component_catalog._cached_components = {component_id: component}
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"

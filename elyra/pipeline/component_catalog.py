@@ -31,15 +31,15 @@ from traitlets.config import LoggingConfigurable  # noqa: H306 (alphabetical ord
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
-from elyra.metadata.schemaspaces import ComponentRegistries
+from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 
 
-class ComponentRegistry(LoggingConfigurable):
+class ComponentCatalog(LoggingConfigurable):
     """
-    Component Registry, responsible to provide a list of available components
-    for each runtime. The registry uses component parser to read and parse each
+    Component Catalog, responsible to provide a list of available components
+    for each runtime. The catalog uses component parser to read and parse each
     component entry from the catalog and transform them into a component value object.
     """
     _cached_components: Dict[str, Component] = {}
@@ -73,14 +73,14 @@ class ComponentRegistry(LoggingConfigurable):
                               categories=[_generic_category_label])}
 
     ttl_default = 300
-    cache_ttl_env = 'ELYRA_COMPONENT_REGISTRY_CACHE_TTL'
+    cache_ttl_env = 'ELYRA_COMPONENT_CATALOG_CACHE_TTL'
     cache_ttl = Integer(ttl_default,
-                        help="Time-to-live (in seconds) for Component Registry cache entries. "
-                             "(ELYRA_COMPONENT_REGISTRY_CACHE_TTL env var)").tag(config=True)
+                        help="Time-to-live (in seconds) for Component Catalog cache entries. "
+                             "(ELYRA_COMPONENT_CATALOG_CACHE_TTL env var)").tag(config=True)
 
     @default('cache_ttl')
     def cache_ttl_default(self):
-        ttl = ComponentRegistry.ttl_default
+        ttl = ComponentCatalog.ttl_default
         try:
             ttl = int(os.getenv(self.cache_ttl_env, ttl))
         except ValueError:
@@ -97,12 +97,12 @@ class ComponentRegistry(LoggingConfigurable):
         # Initialize the cache
         self.caching_enabled = caching_enabled
         if self.caching_enabled:
-            self.log.debug(f"ComponentRegistry cache TTL: {self.cache_ttl}")
+            self.log.debug(f"ComponentCatalog cache TTL: {self.cache_ttl}")
             self.update_cache()
 
     def get_all_components(self) -> List[Component]:
         """
-        Retrieve all components; use the component registry cache if enabled
+        Retrieve all components; use the component catalog cache if enabled
         """
         if self.caching_enabled:
             if self._is_cache_expired():
@@ -113,7 +113,7 @@ class ComponentRegistry(LoggingConfigurable):
 
     def get_component(self, component_id: str) -> Optional[Component]:
         """
-        Retrieve the component with a given component_id; use component registry
+        Retrieve the component with a given component_id; use component catalog
         cache if enabled
         """
         component: Component
@@ -159,11 +159,11 @@ class ComponentRegistry(LoggingConfigurable):
 
     @staticmethod
     def get_generic_components() -> List[Component]:
-        return list(ComponentRegistry._generic_components.values())
+        return list(ComponentCatalog._generic_components.values())
 
     @staticmethod
     def get_generic_component(component_id: str) -> Component:
-        return ComponentRegistry._generic_components.get(component_id)
+        return ComponentCatalog._generic_components.get(component_id)
 
     @staticmethod
     def load_jinja_template(template_name: str) -> Template:
@@ -179,9 +179,9 @@ class ComponentRegistry(LoggingConfigurable):
     @staticmethod
     def to_canvas_palette(components: List[Component]) -> Dict:
         """
-        Converts registry components into appropriate canvas palette format
+        Converts catalog components into appropriate canvas palette format
         """
-        template = ComponentRegistry.load_jinja_template('canvas_palette_template.jinja2')
+        template = ComponentCatalog.load_jinja_template('canvas_palette_template.jinja2')
 
         # Define a fallback category for components with no given categories
         fallback_category_name = "No Category"
@@ -211,15 +211,15 @@ class ComponentRegistry(LoggingConfigurable):
     @staticmethod
     def to_canvas_properties(component: Component) -> Dict:
         """
-        Converts registry components into appropriate canvas properties format
+        Converts catalog components into appropriate canvas properties format
 
         If component_id is one of the generic set, generic template is rendered,
         otherwise, the  runtime-specific property template is rendered
         """
         if component.id in ('notebook', 'python-script', 'r-script'):
-            template = ComponentRegistry.load_jinja_template('generic_properties_template.jinja2')
+            template = ComponentCatalog.load_jinja_template('generic_properties_template.jinja2')
         else:
-            template = ComponentRegistry.load_jinja_template('canvas_properties_template.jinja2')
+            template = ComponentCatalog.load_jinja_template('canvas_properties_template.jinja2')
 
         canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)
@@ -279,13 +279,12 @@ class ComponentRegistry(LoggingConfigurable):
         """
         runtime_catalogs = []
         try:
-            registries = MetadataManager(schemaspace=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID)\
-                .get_all()
+            registries = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
 
             # Filter catalogs according to processor type
             runtime_catalogs = \
                 [r for r in registries if r.metadata['runtime_type'] == self._parser.component_platform.name]
         except Exception:
-            self.log.error(f"Could not access registries for processor type: {self._parser.component_platform.name}")
+            self.log.error(f"Could not access catalogs for processor type: {self._parser.component_platform.name}")
 
         return runtime_catalogs
