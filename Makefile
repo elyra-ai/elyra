@@ -140,11 +140,11 @@ only-install-server: prepare-server build-server install-server-package
 install-server: lint-server only-install-server ## Build and install backend only
 
 install-server-package:
-	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[all]"
+	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install: install-server install-ui check-install ## Build and install
 
-install-all: install-server install-ui check-install install-examples ## Build and install, including examples
+install-all: install install-examples ## Build and install, including examples
 
 install-examples: ## Install example pipeline components 
 	# install Kubeflow Pipelines example components
