@@ -91,7 +91,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
             (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
              PipelineComponentPropertiesHandler),
             (f'/{self.name}/contents/properties{path_regex}', ContentHandler),
-            (f'/{self.name}/elyra/pipeline/validate', PipelineValidationHandler),
+            (f'/{self.name}/pipeline/validate', PipelineValidationHandler),
         ])
 
     def initialize_settings(self):
