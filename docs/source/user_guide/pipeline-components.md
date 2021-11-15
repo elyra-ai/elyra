@@ -113,51 +113,55 @@ To access the panel in JupyterLab:
 
   ![Open panel from command palette](../images/user_guide/pipeline-components/cmd-palette.png)
 
-#### Adding components to the registry
+#### Adding a component catalog
 
-To add a component registry entry: 
+To add components from a catalog:
 
 1. Click `+` in the _Pipeline Components_ panel.
-1. Define the registry entry. Refer to section [Configuration properties](#configuration-properties) for a description of each property.
+1. Select a component catalog type from the list of available options.
+1. Enter the catalog information. Refer to section [Configuration properties](#configuration-properties) for a description of each property.
+1. Save the catalog entry.
 
-If the registry entry validates correctly, the associated pipeline components are added  to the pipeline editor's palette. 
+ Elyra queries the catalog, loads the components, and adds them to the Visual Pipeline Editor palette. 
 
-#### Modifying a component registry entry
+ > Tip: check the log file for error messages if no components from the added catalog are displayed in the palette.
+
+#### Modifying a component catalog entry
 
 1. Click the `edit` (pencil) icon next to the entry name.
-1. Modify the registry entry as desired.
+1. Modify the catalog entry as desired.
 
-#### Deleting components from the registry
+#### Removing a component catalog entry
 
-To delete a component registry entry and its referenced component(s) from the Visual Pipeline Editor palette:
+To remove a component catalog entry and its referenced component(s) from the Visual Pipeline Editor palette:
 
 1. Click the `delete` (trash) icon next to the entry name.
 1. Confirm deletion.
 
-Caution: Pipelines that utilize the referenced components are no longer valid after the component registry entry was deleted.
+Caution: Pipelines that utilize the referenced components are no longer valid after the catalog entry was deleted.
 
 ### Managing custom components using the Elyra CLI
 
 Custom components can be added, modified, and removed using the [`elyra-metadata` command line interface](/user_guide/command-line-interface.md).
 
-To list component registry entries:
+To list component catalog entries:
 
 ```bash
-$ elyra-metadata list component-registries
+$ elyra-metadata list component-catalogs
 
-Available metadata instances for component-registries (includes invalid):
+Available metadata instances for component-catalogs (includes invalid):
 
 Schema               Instance                            Resource
 ------               --------                            --------
-component-registry   elyra-airflow-filesystem-preconfig  .../jupyter/metadata/component-registries/elyra-airflow-filesystem-preconfig.json
+elyra-kfp-examples-catalog       kubeflow_pipelines_examples  /.../Jupyter/metadata/component-catalogs/kubeflow_pipelines_examples.json
 ```
 
-#### Adding components to the registry
+#### Adding a component catalog
 
-To add a component registry entry run `elyra-metadata install component-registries`.
+To add a component catalog entry run `elyra-metadata install component-catalogs`.
 
 ```bash
-$ elyra-metadata install component-registries \
+$ elyra-metadata install component-catalogs \
        --display_name="filter components" \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
@@ -168,12 +172,12 @@ $ elyra-metadata install component-registries \
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
-#### Modifying a component registry entry
+#### Modifying a component catalog entry
 
-To replace a component registry entry run `elyra-metadata install component-registries` and specify the `--replace` option:
+To replace a component catalog entry run `elyra-metadata install component-catalogs` and specify the `--replace` option:
 
 ```bash
-$ elyra-metadata install component-registries \
+$ elyra-metadata install component-catalogs \
        --name="filter_components" \
        --display_name="filter components" \
        --description="filter text in files" \
@@ -188,12 +192,12 @@ Note: You must specify all property values, not only the ones that you want to m
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
-#### Deleting components from the registry
+#### Removing a component catalog entry
 
-To delete a component registry entry and its component definitions:
+To remove a component catalog entry and its component definitions from the Visual Pipeline Editor palette:
 
 ```bash
-$ elyra-metadata remove component-registries \
+$ elyra-metadata remove component-catalogs \
        --name="filter_components"
 ```
 
@@ -201,38 +205,38 @@ Refer to section [Configuration properties](#configuration-properties) for param
 
 ### Configuration properties
 
-The component registry entry properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
+The component catalog entry properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
 
 ##### Name (display_name)
 
-A user-friendly name for the registry entry. Note that the registry entry name is not displayed in the palette. This property is required.
+A user-friendly name for the catalog entry. Note that the catalog entry name is not displayed in the palette. This property is required.
 
 Example: `data load components`
 
 ##### N/A (name)
 
-The canonical name for this registry entry. A value is generated from `Name` if no value is provided.
+The canonical name for this catalog entry. A value is generated from `Name` if no value is provided.
 
 Example: `data_load_components`
 
 ##### Description (description)
 
-A description for the registry entry.
+A description for the catalog entry.
 
 Example: `Load data from external data sources`
 
 ##### Category (categories)
 
-In the pipeline editor palette components are grouped into categories to make them more easily accessible. If no category is provided, the components defined by this registry entry are added to the palette under `no category`. A limit of 18 characters or fewer is enforced for each category.
+In the pipeline editor palette components are grouped into categories to make them more easily accessible. If no category is provided, the components defined by this catalog entry are added to the palette under `no category`. A limit of 18 characters or fewer is enforced for each category.
 
 Examples (CLI):
 
 - `['load data from db']`
 - `['train model','pytorch']`
 
-##### Runtime type (runtime_type)
+##### Runtime (runtime)
 
-The runtime type that supports the component(s). Valid values are the set of configured runtime types that appear in the dropdown (UI) or help-text (CLI). This property is required.
+The runtime environment that supports the component(s). Valid values are the set of configured runtimes that appear in the dropdown (UI) or help-text (CLI). This property is required.
 
 Examples:
 
@@ -288,4 +292,4 @@ Examples (GUI):
 
 Examples (CLI):
  - `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
- - `['<URL_1>','<URL_2>']` 
+ - `['<URL_1>','<URL_2>']`
