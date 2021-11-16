@@ -202,7 +202,7 @@ def test_parse_kfp_component_file():
     assert properties_json['current_parameters']['elyra_test_int_zero'] == 0
     assert properties_json['current_parameters']['elyra_test_int_non_zero'] == 1
 
-    assert properties_json['current_parameters']['elyra_test_dict_default'] == ''  # {}
+    assert properties_json['current_parameters']['elyra_test_dict_default'] == '{}'  # {}
     assert properties_json['current_parameters']['elyra_test_list_default'] == ''  # []
 
     # Ensure that the 'required' attribute was set correctly. KFP components default to required
