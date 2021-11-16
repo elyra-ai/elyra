@@ -326,6 +326,7 @@ export interface IMetadataWidgetProps {
   schemaspace: string;
   icon: LabIcon;
   titleContext?: string;
+  appendToTitle?: boolean;
 }
 
 /**
@@ -449,6 +450,7 @@ export class MetadataWidget extends ReactWidget {
               schemas={this.schemas}
               addMetadata={this.addMetadata}
               titleContext={this.titleContext}
+              appendToTitle={this.props.appendToTitle}
             />
           </header>
           <UseSignal signal={this.renderSignal} initialArgs={[]}>

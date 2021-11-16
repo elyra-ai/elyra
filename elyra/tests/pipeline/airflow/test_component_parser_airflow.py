@@ -199,37 +199,43 @@ def test_parse_airflow_component_file():
 
     component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
-    assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
-    assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
-    assert properties_json['current_parameters']['elyra_test_string_default_empty'] == ''
 
-    assert properties_json['current_parameters']['elyra_test_bool_default'] is False
-    assert properties_json['current_parameters']['elyra_test_bool_false'] is False
-    assert properties_json['current_parameters']['elyra_test_bool_true'] is True
+    # Helper method to retrieve the requested parameter value from the dictionary
+    def get_parameter(param_name):
+        property_dict = properties_json['current_parameters'][param_name]
+        return property_dict[property_dict['activeControl']]
 
-    assert properties_json['current_parameters']['elyra_test_int_default'] == 0
-    assert properties_json['current_parameters']['elyra_test_int_zero'] == 0
-    assert properties_json['current_parameters']['elyra_test_int_non_zero'] == 1
+    assert get_parameter('elyra_test_string_no_default') == ''
+    assert get_parameter('elyra_test_string_default_value') == 'default'
+    assert get_parameter('elyra_test_string_default_empty') == ''
 
-    assert properties_json['current_parameters']['elyra_test_dict_default'] == ''  # {}
-    assert properties_json['current_parameters']['elyra_test_list_default'] == ''  # []
+    assert get_parameter('elyra_test_bool_default') is False
+    assert get_parameter('elyra_test_bool_false') is False
+    assert get_parameter('elyra_test_bool_true') is True
+
+    assert get_parameter('elyra_test_int_default') == 0
+    assert get_parameter('elyra_test_int_zero') == 0
+    assert get_parameter('elyra_test_int_non_zero') == 1
+
+    assert get_parameter('elyra_test_dict_default') == '{}'  # {}
+    assert get_parameter('elyra_test_list_default') == ''  # []
 
     # Ensure that type information is inferred correctly
     unusual_dict_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_dict')
-    assert unusual_dict_property['data']['format'] == "dictionary"
+    assert unusual_dict_property['data']['controls']['StringControl']['format'] == "dictionary"
 
     unusual_list_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_list')
-    assert unusual_list_property['data']['format'] == "list"
+    assert unusual_list_property['data']['controls']['StringControl']['format'] == "list"
 
     unusual_string_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                    if prop.get('parameter_ref') == 'elyra_test_unusual_type_string')
-    assert unusual_string_property['data']['format'] == "string"
+    assert unusual_string_property['data']['controls']['StringControl']['format'] == "string"
 
     no_type_property = next(prop for prop in properties_json['uihints']['parameter_info']
                             if prop.get('parameter_ref') == 'elyra_test_unusual_type_notgiven')
-    assert no_type_property['data']['format'] == "string"
+    assert no_type_property['data']['controls']['StringControl']['format'] == "string"
 
     # Ensure descriptions are rendered properly with type hint in parentheses
     assert unusual_dict_property['description']['default'] == "The test command description "\
@@ -269,12 +275,17 @@ def test_parse_airflow_component_url():
     # Ensure component parameters are prefixed, and system parameters are not, and hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
+    # Helper method to retrieve the requested parameter value from the dictionary
+    def get_parameter(param_name):
+        property_dict = properties_json['current_parameters'][param_name]
+        return property_dict[property_dict['activeControl']]
+
     component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
-    assert properties_json['current_parameters']['elyra_bash_command'] == ''
-    assert properties_json['current_parameters']['elyra_xcom_push'] is False
-    assert properties_json['current_parameters']['elyra_env'] == ''  # {}
-    assert properties_json['current_parameters']['elyra_output_encoding'] == 'utf-8'
+    assert get_parameter('elyra_bash_command') == ''
+    assert get_parameter('elyra_xcom_push') is False
+    assert get_parameter('elyra_env') == '{}'  # {}
+    assert get_parameter('elyra_output_encoding') == 'utf-8'
 
 
 def test_parse_airflow_component_file_no_inputs():
