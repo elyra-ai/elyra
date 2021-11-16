@@ -19,12 +19,17 @@
 # Repository: https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter
 FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.4
 
-# install - elyra
+# Install Elyra with Tekton support ('kfp-tekton') and component examples ('kfp-examples')
+# Customize the extras list as desired
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated legacy-resolver \
-    elyra[all]==3.2.1
+    elyra[kfp-tekton,kfp-examples]==3.3.0
 
 # build jupyter plugins
 RUN jupyter lab build
+
+# Enable Kubeflow Pipelines examples catalog; this wail fail if 'kfp-examples' extra is not installed
+# Comment out the line below to hide the examples by default
+RUN elyra-metadata install component-catalogs --schema_name=elyra-kfp-examples-catalog --display_name="KFP examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']"
 
 # install - requirements.txt
 COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt

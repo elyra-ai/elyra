@@ -61,7 +61,7 @@
         {
           "id": "63804769-699b-444a-89c2-60ab2cbd39e9",
           "type": "execution_node",
-          "op": "local-directory-catalog:737915b826e9",
+          "op": "elyra-kfp-examples-catalog:737915b826e9",
           "app_data": {
             "component_parameters": {
               "text": "Untitled.ipynb",

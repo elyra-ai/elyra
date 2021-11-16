@@ -16,6 +16,7 @@
 import os
 from types import SimpleNamespace
 
+from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 import jupyter_core.paths
 import pytest
 
@@ -43,7 +44,8 @@ def _get_resource_path(filename):
     return resource_path
 
 
-def test_component_catalog_can_load_components_from_registries():
+@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_component_catalog_can_load_components_from_registries(component_cache_instance):
     component_parser = AirflowComponentParser()
     component_catalog = ComponentCatalog(component_parser)
 
