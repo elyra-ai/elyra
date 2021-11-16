@@ -17,7 +17,7 @@ import os
 import tarfile
 from unittest import mock
 
-from jupyter_core.paths import ENV_JUPYTER_PATH
+from conftest import KFP_COMPONENT_CACHE_INSTANCE
 from kfp import compiler as kfp_argo_compiler
 import pytest
 import yaml
@@ -35,7 +35,7 @@ from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
 
 @pytest.fixture
-def processor(setup_factory_data):
+def processor(setup_factory_data, component_cache_instance):
     processor = KfpPipelineProcessor(os.getcwd())
     return processor
 
@@ -349,26 +349,28 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
 
 
+@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
     # Assign test resource location
-    relative_path = "kfp/filter_text_using_shell_and_grep.yaml"
-    absolute_path = os.path.join(ENV_JUPYTER_PATH[0], 'components', relative_path)
+    absolute_path = os.path.abspath(os.path.join(
+        os.path.dirname(__file__), '..', 'resources', 'components', "filter_text.yaml")
+    )
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
     component_definition = reader.read_catalog_entry({"path": absolute_path}, {})
 
     # Instantiate a file-based component
-    component_id = "local-directory-catalog:7f0546b6135c"
+    component_id = "elyra-kfp-examples-catalog:737915b826e9"
     component = Component(id=component_id,
                           name="Filter text",
                           description="",
                           op="filter-text",
-                          catalog_type="local-directory-catalog",
+                          catalog_type="elyra-kfp-examples-catalog",
                           source_identifier={"path": absolute_path},
                           definition=component_definition,
                           properties=[],
