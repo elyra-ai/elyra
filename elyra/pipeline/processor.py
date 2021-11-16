@@ -23,6 +23,7 @@ import time
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
 from typing import Union
 
 import entrypoints
@@ -40,6 +41,7 @@ from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.runtime_type import RuntimePlatformInfo
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
@@ -91,6 +93,20 @@ class PipelineProcessorRegistry(SingletonConfigurable):
 
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
+
+    def get_active_platforms(self) -> List[RuntimePlatformInfo]:
+        """Returns the set of runtime processor info instances for each active runtime type"""
+
+        # Build set of active runtime types, then build list of processor info instances
+        runtime_types: Set[RuntimeProcessorType] = set()
+        for name, processor in self._processors.items():
+            runtime_types.add(processor.type)
+
+        active_platforms: List[RuntimePlatformInfo] = list()
+        for runtime_type in runtime_types:
+            active_platforms.append(RuntimePlatformInfo.get_instance_by_type(runtime_type))
+
+        return active_platforms
 
 
 class PipelineProcessorManager(SingletonConfigurable):

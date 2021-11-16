@@ -27,6 +27,8 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.runtime_type import RuntimePlatformInfo
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.util.http import HttpErrorMixin
 
@@ -194,3 +196,20 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
+
+
+class PipelinePlatformsHandler(HttpErrorMixin, APIHandler):
+    """Handler to get static information relative to the set of configured runtime types"""
+
+    @web.authenticated
+    async def get(self):
+        self.log.debug("Retrieving active runtime information from PipelineProcessorRegistry...")
+        active_platforms: List[RuntimePlatformInfo] = PipelineProcessorRegistry.instance().get_active_platforms()
+
+        platforms = []
+        for platform in active_platforms:
+            platforms.append(platform.to_dict())
+
+        self.set_status(200)
+        self.set_header("Content-Type", 'application/json')
+        await self.finish({"platforms": platforms})

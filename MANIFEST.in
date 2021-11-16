@@ -36,6 +36,7 @@ recursive-exclude * *.py[co]
 
 recursive-include elyra/metadata/schemas *
 recursive-include elyra/templates *
+recursive-include elyra/static *
 recursive-include etc/config/components/ *.json
 recursive-include etc/config/components/kfp *.yaml
 recursive-include etc/config/jupyter_notebook_config.d *.json
