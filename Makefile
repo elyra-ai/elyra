@@ -19,7 +19,7 @@
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image container-images publish-container-images
-
+.PHONY: build-dependencies
 SHELL:=/bin/bash
 
 TAG:=dev
@@ -81,7 +81,11 @@ test-dependencies:
 	python -m pip install --upgrade pip
 	@pip install -q -r test_requirements.txt
 
-lint-server: test-dependencies
+build-dependencies:
+	python -m pip install --upgrade pip
+	@pip install -q -r build_requirements.txt	
+
+lint-server: build-dependencies
 	flake8 elyra
 
 prettier-check-ui:
