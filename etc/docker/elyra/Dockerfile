@@ -33,4 +33,8 @@ RUN python -m pip install --upgrade pandas numpy && \
     python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
     jupyter lab build
 
+# Comment out to hide the component examples for Kubeflow Pipelines and Apache Airflow
+RUN elyra-metadata install component-catalogs --schema_name=elyra-airflow-examples-catalog --display_name="Apache Airflow examples" --runtime_type=APACHE_AIRFLOW --categories="['examples']" && \
+    elyra-metadata install component-catalogs --schema_name=elyra-kfp-examples-catalog --display_name="Kubeflow Pipelines examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']"
+
 CMD ["/usr/local/bin/start-elyra.sh"]

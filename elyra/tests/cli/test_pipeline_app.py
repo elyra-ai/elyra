@@ -18,6 +18,7 @@ import json
 import os
 
 from click.testing import CliRunner
+from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
 from elyra.cli.pipeline_app import pipeline
@@ -320,7 +321,8 @@ def test_describe_with_kfp_components():
     assert result.exit_code == 0
 
 
-def test_validate_with_kfp_components(kfp_runtime_instance):
+@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_validate_with_kfp_components(monkeypatch, component_cache_instance):
     runner = CliRunner()
     pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
 
