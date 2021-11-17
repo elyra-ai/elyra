@@ -203,6 +203,56 @@ $ elyra-metadata remove component-catalogs \
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
+### Migrating user-defined component registries to 3.3
+The Elyra 3.3 release renames _Component Registries_ to _Component Catalogs_ and splits the `component-registry` schema into three separate "component catalog" schemas based on the old schema's `location-type`.  As a result, any  user-defined component registry instances created prior to Elyra 3.3 will not be available until migrated.  This migration is performed using the `elyra-metadata` CLI tool.
+
+#### Determining instances to migrate
+To determine the instances available to migrate, issue the following command:
+```bash
+$ elyra-metadata list component-registries
+```
+In this example, there are three user-defined instances.
+```bash
+Available metadata instances for component-registries (includes invalid):
+
+Schema               Instance            Resource
+------               --------            --------
+component-registry   airflow_components  /Users/jovyan/Library/Jupyter/metadata/component-registries/airflow_components.json
+component-registry   aa_custom           /Users/jovyan/Library/Jupyter/metadata/component-registries/aa_custom.json
+component-registry   myoperators         /Users/jovyan/Library/Jupyter/metadata/component-registries/myoperators.json
+```
+You may find that some of these instances no longer apply.  If there are any that do not apply to 3.3, they can be removed individually:
+```bash
+$ elyra-metadata remove component-registries --name=aa_custom
+
+Metadata instance 'aa_custom' removed from schemaspace 'component-registries'.
+````
+
+Note: Because the `component-registries` schemaspace has been deprecated, instances can be listed, removed, or migrated, but not created.
+
+#### Migrating instances
+Once the set of component registry instances to migrate have been determined, issue the following command to migrate the remaining instances:
+```bash
+$ elyra-metadata migrate component-registries
+```
+Upon completion, which should be on the order of seconds, output similar to the following should be produced:
+```
+[I 2021-11-15 11:05:48,012.012] Migrating 'component-registries' instance 'myoperators' to schema 'local-file-catalog' of schemaspace 'component-catalogs'...
+[I 2021-11-15 11:05:48,042.042] Migrating 'component-registries' instance 'airflow_components' to schema 'url-catalog' of schemaspace 'component-catalogs'...
+The following component-registries instances were migrated: ['myoperators', 'airflow_components']
+```
+Once migrated, these entries should appear in the set of component catalogs.  This can be confirmed by listing the component-catalogs instances:
+```bash
+$ elyra-metadata list component-catalogs
+Available metadata instances for component-catalogs (includes invalid):
+
+Schema                    Instance                            Resource                                                                                                         
+------                    --------                            --------                                                                                                             
+local-file-catalog        aa_custom                           /Users/jovyan/Library/Jupyter/metadata/component-catalogs/aa_custom.json                                         
+local-file-catalog        myoperators                         /Users/jovyan/Library/Jupyter/metadata/component-catalogs/myoperators.json                                       
+url-catalog               airflow_components                  /Users/jovyan/Library/Jupyter/metadata/component-catalogs/airflow_components.json                                             
+```
+
 ### Configuration properties
 
 The component catalog entry properties are defined as follows. The string in the headings below, which is enclosed in parentheses, denotes the CLI option name.
