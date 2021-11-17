@@ -20,8 +20,6 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.runtime_type import RuntimeProcessorType
-
 
 class AppDataBase(object):  # ABC
     """
@@ -93,38 +91,29 @@ class Pipeline(AppDataBase):
 
     @property
     def runtime(self) -> str:
-        """
-        The runtime processor name associated with the pipeline
+        """The runtime processor name associated with the pipeline.
+
+        NOTE: This value should really be derived from runtime_config.
         :return: The runtime keyword
         """
         return self._node['app_data'].get('runtime')
 
     @property
     def runtime_config(self) -> str:
-        """
-        The runtime configuration associated with the pipeline
+        """The runtime configuration associated with the pipeline.
+
         :return: The runtime configuration key. This should be a valid key from the Runtimes metadata
         """
-        return self._node['app_data'].get('runtime-config')
+        return self._node['app_data'].get('runtime_config')
 
     @property
     def type(self):
-        """
-        The pipeline type
-        :return: The runtime keyword associated with the pipeline or `generic`
-        """
-        if 'runtime_type' in self._node['app_data']:
-            runtime_type = self._node['app_data'].get('runtime_type')
-            try:
-                RuntimeProcessorType.get_instance_by_name(runtime_type)
-            except (KeyError, TypeError):
-                # Check for 'generic'...
-                if runtime_type.lower() != 'generic':
-                    raise ValueError(f'Unsupported pipeline runtime: {runtime_type}')
-                runtime_type = 'generic'
-            return runtime_type
+        """The runtime type.
 
-        return 'generic'
+        NOTE: This value should really be derived from runtime_config.
+        :return: The runtime_type keyword associated with the pipeline.
+        """
+        return self._node['app_data'].get('runtime_type')
 
     @property
     def name(self) -> str:

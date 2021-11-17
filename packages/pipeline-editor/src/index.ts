@@ -48,8 +48,7 @@ import {
   RuntimeImagesWidget
 } from './RuntimeImagesWidget';
 import { RuntimesWidget } from './RuntimesWidget';
-import { SubmitNotebookButtonExtension } from './SubmitNotebookButtonExtension';
-import { SubmitScriptButtonExtension } from './SubmitScriptButtonExtension';
+import { SubmitFileButtonExtension } from './SubmitFileButtonExtension';
 
 import '../style/index.css';
 
@@ -202,7 +201,6 @@ const extension: JupyterFrontEndPlugin<void> = {
                       comments: []
                     },
                     version: PIPELINE_CURRENT_VERSION,
-                    runtime: args.runtime?.name,
                     runtime_type: args.runtime?.runtime_type
                   },
                   runtime_ref: ''
@@ -279,7 +277,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     );
 
     // SubmitNotebookButtonExtension initialization code
-    const notebookButtonExtension = new SubmitNotebookButtonExtension();
+    const notebookButtonExtension = new SubmitFileButtonExtension();
     app.docRegistry.addWidgetExtension('Notebook', notebookButtonExtension);
     app.contextMenu.addItem({
       selector: '.jp-Notebook',
@@ -288,7 +286,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // SubmitScriptButtonExtension initialization code
-    const scriptButtonExtension = new SubmitScriptButtonExtension();
+    const scriptButtonExtension = new SubmitFileButtonExtension();
     app.docRegistry.addWidgetExtension('Python Editor', scriptButtonExtension);
     app.contextMenu.addItem({
       selector: '.elyra-ScriptEditor',

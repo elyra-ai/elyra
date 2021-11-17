@@ -21,7 +21,7 @@ import { PathExt } from '@jupyterlab/coreutils';
 
 import uuid4 from 'uuid/v4';
 
-import pipeline_template from './pipeline-template.json';
+import { IConfigDetails } from './runtime-utils';
 
 /**
  * A utilities class for static functions.
@@ -32,8 +32,7 @@ export default class Utils {
    */
   static generateSingleFilePipeline(
     filename: string,
-    runtime_platform: string,
-    runtime_config: string,
+    configDetails: IConfigDetails | undefined,
     runtimeImage: string,
     dependencies: string[] | undefined,
     envObject: { [key: string]: string },
@@ -41,7 +40,6 @@ export default class Utils {
     gpu?: number,
     memory?: number
   ): any {
-    const template = JSON.parse(JSON.stringify(pipeline_template));
     const generated_uuid = uuid4();
 
     const artifactName = PathExt.basename(filename, PathExt.extname(filename));
@@ -50,32 +48,55 @@ export default class Utils {
       ([key, val]) => `${key}=${val}`
     );
 
-    template.id = generated_uuid;
-    template.primary_pipeline = generated_uuid;
-    template.pipelines[0].id = generated_uuid;
-
-    template.pipelines[0].nodes[0].id = generated_uuid;
-    template.pipelines[0].nodes[0].app_data.ui_data.label = PathExt.basename(
-      filename
-    );
-    template.pipelines[0].nodes[0].app_data.component_parameters.filename = filename;
-    template.pipelines[0].nodes[0].app_data.component_parameters.runtime_image = runtimeImage;
-    template.pipelines[0].nodes[0].app_data.component_parameters.env_vars = envVars;
-    template.pipelines[0].nodes[0].app_data.component_parameters.dependencies = dependencies;
-    template.pipelines[0].nodes[0].app_data.component_parameters.cpu = cpu;
-    template.pipelines[0].nodes[0].app_data.component_parameters.gpu = gpu;
-    template.pipelines[0].nodes[0].app_data.component_parameters.memory = memory;
-
-    template.pipelines[0].app_data.name = artifactName;
-    template.pipelines[0].app_data.runtime = runtime_platform;
-    template.pipelines[0].app_data.runtime_type = 'Generic'; // These are always generic
-    template.pipelines[0].app_data['runtime-config'] = runtime_config;
-    template.pipelines[0].app_data.version = PIPELINE_CURRENT_VERSION;
-    template.pipelines[0].app_data.source = PathExt.basename(filename);
-    template.pipelines[0].app_data['properties'] = {};
-    template.pipelines[0].app_data['properties']['name'] = 'generic';
-
-    return template;
+    return {
+      doc_type: 'pipeline',
+      version: '3.0',
+      json_schema:
+        'http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json',
+      id: generated_uuid,
+      primary_pipeline: generated_uuid,
+      pipelines: [
+        {
+          id: generated_uuid,
+          nodes: [
+            {
+              id: generated_uuid,
+              type: 'execution_node',
+              op: 'execute-notebook-node',
+              app_data: {
+                component_parameters: {
+                  filename,
+                  runtime_image: runtimeImage,
+                  outputs: [],
+                  env_vars: envVars,
+                  dependencies,
+                  cpu,
+                  gpu,
+                  memory,
+                  include_subdirectories: false
+                },
+                ui_data: {
+                  label: PathExt.basename(filename)
+                }
+              }
+            }
+          ],
+          app_data: {
+            name: artifactName,
+            runtime_config: configDetails?.id,
+            version: PIPELINE_CURRENT_VERSION,
+            source: PathExt.basename(filename),
+            properties: {
+              name: 'generic'
+            },
+            ui_data: {
+              comments: []
+            }
+          }
+        }
+      ],
+      schemas: []
+    };
   }
 
   /**
@@ -89,13 +110,6 @@ export default class Utils {
     return Array.from(Array(Math.ceil(arr.length / n)), (_, i) =>
       arr.slice(i * n, i * n + n)
     );
-  }
-
-  /**
-   * Check if the object is not an array, but the result of a Dialog instead
-   */
-  static isDialogResult(runtimesObj: any): boolean {
-    return runtimesObj && !(runtimesObj instanceof Array) && runtimesObj.button;
   }
 
   /**

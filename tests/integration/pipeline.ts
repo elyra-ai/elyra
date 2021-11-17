@@ -380,8 +380,10 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /run pipeline/i }).click();
 
     cy.findByLabelText(/pipeline name/i).should('have.value', 'untitled');
-    cy.findByLabelText(/runtime platform/i).should('have.value', 'local');
-    cy.findByLabelText(/runtime configuration/i).should('have.value', 'local');
+    cy.findByLabelText(/runtime platform/i).should(
+      'have.value',
+      '__elyra_local__'
+    );
 
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
@@ -400,7 +402,10 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /run pipeline/i }).click();
 
     cy.findByLabelText(/pipeline name/i).should('have.value', 'helloworld');
-    cy.findByLabelText(/runtime configuration/i).should('have.value', 'local');
+    cy.findByLabelText(/runtime platform/i).should(
+      'have.value',
+      '__elyra_local__'
+    );
 
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
