@@ -277,12 +277,13 @@ class Component(object):
 
 
 class ComponentParser(LoggingConfigurable):  # ABC
-    _component_platform: RuntimeProcessorType = None
+    component_platform: RuntimeProcessorType = None
     _file_types: List[str] = None
 
-    @property
-    def component_platform(self) -> RuntimeProcessorType:
-        return self._component_platform
+    def __new__(cls, platform_type: str):
+        parser_class_map = {subclass.component_platform.name: subclass for subclass in cls.__subclasses__()}
+        parser_subclass = parser_class_map[platform_type]
+        return super(ComponentParser, parser_subclass).__new__(parser_subclass)
 
     @property
     def file_types(self) -> List[str]:

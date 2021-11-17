@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 import json
-import os
-import time
 from types import SimpleNamespace
 from typing import Dict
 from typing import List
@@ -25,25 +23,23 @@ import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Template
-from traitlets import default
-from traitlets import Integer
-from traitlets.config import LoggingConfigurable  # noqa: H306 (alphabetical order catch-22)
+from traitlets.config import SingletonConfigurable
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
+from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser  # noqa F401 - TODO
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser  # noqa F401 - TODO
 
 
-class ComponentCatalog(LoggingConfigurable):
-    """
-    Component Catalog, responsible to provide a list of available components
-    for each runtime. The catalog uses component parser to read and parse each
-    component entry from the catalog and transform them into a component value object.
-    """
-    _cached_components: Dict[str, Component] = {}
-    _cache_last_updated = None
+class ComponentCatalog(SingletonConfigurable):
+    _component_cache: Dict[str, Dict] = {}
+
+    @property
+    def component_cache(self):
+        return self._component_cache
 
     _generic_category_label = "Elyra"
     _generic_components: Dict[str, Component] = {
@@ -72,90 +68,107 @@ class ComponentCatalog(LoggingConfigurable):
                               extensions=[".r"],
                               categories=[_generic_category_label])}
 
-    ttl_default = 300
-    cache_ttl_env = 'ELYRA_COMPONENT_CATALOG_CACHE_TTL'
-    cache_ttl = Integer(ttl_default,
-                        help="Time-to-live (in seconds) for Component Catalog cache entries. "
-                             "(ELYRA_COMPONENT_CATALOG_CACHE_TTL env var)").tag(config=True)
-
-    @default('cache_ttl')
-    def cache_ttl_default(self):
-        ttl = ComponentCatalog.ttl_default
-        try:
-            ttl = int(os.getenv(self.cache_ttl_env, ttl))
-        except ValueError:
-            pass
-        return ttl
-
-    def __init__(self,
-                 parser: ComponentParser,
-                 caching_enabled: bool = True,
-                 **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._parser = parser
 
-        # Initialize the cache
-        self.caching_enabled = caching_enabled
-        if self.caching_enabled:
-            self.log.debug(f"ComponentCatalog cache TTL: {self.cache_ttl}")
-            self.update_cache()
+        if not self._component_cache:
+            self._build_cache()
 
-    def get_all_components(self) -> List[Component]:
-        """
-        Retrieve all components; use the component catalog cache if enabled
-        """
-        if self.caching_enabled:
-            if self._is_cache_expired():
-                self.update_cache()
-            return list(self._cached_components.values())
+    def _build_cache(self):
+        all_catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
+        for catalog in all_catalogs:
+            self.update_cache_for_catalog(catalog)
 
-        return list(self._read_component_catalogs().values())
+    def update_cache_for_runtime_type(self, runtime_type: str):
+        pass
 
-    def get_component(self, component_id: str) -> Optional[Component]:
-        """
-        Retrieve the component with a given component_id; use component catalog
-        cache if enabled
-        """
-        component: Component
-        if self.caching_enabled:
-            if self._is_cache_expired():
-                self.update_cache()
-            component = self._cached_components.get(component_id)
+    def update_cache_for_catalog(self, catalog: Metadata, operation: Optional[str] = None):
+        platform_type = catalog.metadata['runtime_type']
+        if not self._component_cache.get(platform_type):
+            self._component_cache[platform_type] = {}
+        catalog_components = self._read_component_catalog(catalog, platform_type)
+
+        if operation == 'delete':
+            # Remove only the components from this catalog
+            self._component_cache[platform_type].pop(catalog.name)
         else:
-            component = self._read_component_catalogs().get(component_id)
+            # Replace all components for the given catalog
+            self._component_cache[platform_type][catalog.name] = catalog_components
 
-        if component is None:
-            self.log.error(f"Component with ID '{component_id}' could not be found in any "
-                           f"{self._parser.component_platform.name} catalog.")
+    def get_all_components(self, platform_type: str) -> List[Component]:
+        """
+        Retrieve all components from component catalog cache
+        """
+        components = []
+        for catalog_name, component_dict in ComponentCatalog._component_cache.get(platform_type, {}).items():
+            components.extend(list(component_dict.values()))
+
+        if not components:
+            self.log.error(f"No components could be found in any catalog for platform type '{platform_type}'.")
+
+        return components
+
+    def get_component(self, platform_type: str, component_id: str) -> Optional[Component]:
+        """
+        Retrieve the component with a given component_id from component catalog cache
+        """
+        component = None
+        for catalog_name, component_dict in ComponentCatalog._component_cache.get(platform_type, {}).items():
+            if component_id in component_dict.keys():
+                component = component_dict[component_id]
+
+        if not component:
+            self.log.error(f"Component with ID '{component_id}' could not be found in any catalog.")
 
         return component
 
-    def update_cache(self, catalog: Optional[Metadata] = None, operation: Optional[str] = None):
-        updated_components = self._read_component_catalogs([catalog] if catalog else None)
+    def _read_component_catalog(self, catalog: Metadata, platform_type) -> Dict[str, Component]:
+        """
+        Read through component catalogs and return a dictionary of components indexed by component_id.
 
-        if operation == 'modify':
-            # Replace only the components most recently re-read
-            for component_id, component in updated_components.items():
-                self._cached_components[component_id] = component
-        elif operation == 'delete':
-            # Remove only the components most recently re-read
-            for component_id, component in updated_components.items():
-                self._cached_components.pop(component_id)
-        else:
-            # Replace all components in the cache
-            self._cached_components = updated_components
+        :param catalog: a metadata instances from which to read and construct Component objects
 
-        self._cache_last_updated = time.time()
+        :returns: a dictionary of component id to Component object for all read/parsed components
+        """
+        component_dict: Dict[str, Component] = {}
 
-    def _is_cache_expired(self) -> bool:
-        is_expired = True
-        if self._cache_last_updated:
-            now = time.time()
-            elapsed = int(now - self._cache_last_updated)
-            if elapsed < self.cache_ttl:
-                is_expired = False
+        # Assign reader based on the type of the catalog (the 'schema_name')
+        try:
+            parser = ComponentParser(platform_type=platform_type)
 
-        return is_expired
+            catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog.schema_name)
+            if not catalog_reader:
+                self.log.error(f"No entrypoint with name '{catalog.schema_name}' was found in group "
+                               f"'elyra.component.catalog_types' to match the 'schema_name' given in catalog "
+                               f"'{catalog.display_name}'. Skipping...")
+                return component_dict
+
+            catalog_reader = catalog_reader.load()(parser.file_types, parent=self.parent)
+        except Exception as e:
+            self.log.error(f"Could not load appropriate ComponentCatalogConnector class: {e}. Skipping...")
+            return component_dict
+
+        # Get content of component definition file for each component in this catalog
+        self.log.debug(f"Processing components in catalog '{catalog.display_name}'")
+        component_data_dict = catalog_reader.read_component_definitions(catalog)
+        if not component_data_dict:
+            return component_dict
+
+        for component_id, component_data in component_data_dict.items():
+            component_entry = {
+                "component_id": component_id,
+                "catalog_type": catalog.schema_name,
+                "categories": catalog.metadata.get("categories", []),
+                "component_definition": component_data.get('definition'),
+                "component_identifier": component_data.get('identifier')
+            }
+
+            # Parse the component entry to get a fully qualified Component object
+            components = parser.parse(SimpleNamespace(**component_entry)) or []
+            for component in components:
+                component_dict[component.id] = component
+
+        return component_dict
 
     @staticmethod
     def get_generic_components() -> List[Component]:
@@ -223,68 +236,3 @@ class ComponentCatalog(LoggingConfigurable):
 
         canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)
-
-    def _read_component_catalogs(self, catalogs: Optional[List[Metadata]] = None) -> Dict[str, Component]:
-        """
-        Read through component catalogs and return a dictionary of components indexed by component_id.
-
-        :param catalogs: a list of metadata instances from which to read and construct Component objects;
-                         if none provided, all registries for the active runtime platform are assumed
-
-        :returns: a dictionary of component id to Component object for all read/parsed components
-        """
-        component_dict: Dict[str, Component] = {}
-
-        if not catalogs:
-            catalogs = self._get_catalogs_for_runtime()
-        for catalog in catalogs:
-            # Assign reader based on the type of the catalog (the 'schema_name')
-            try:
-                catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog.schema_name)
-                if not catalog_reader:
-                    self.log.error(f"No entrypoint with name '{catalog.schema_name}' was found in group "
-                                   f"'elyra.component.catalog_types' to match the 'schema_name' given in catalog "
-                                   f"'{catalog.display_name}'. Skipping...")
-                    continue
-                catalog_reader = catalog_reader.load()(self._parser.file_types, parent=self.parent)
-            except Exception as e:
-                self.log.error(f"Could not load appropriate ComponentCatalogConnector class: {e}. Skipping...")
-                continue
-
-            # Get content of component definition file for each component in this catalog
-            self.log.debug(f"Processing components in catalog '{catalog.display_name}'")
-            component_data_dict = catalog_reader.read_component_definitions(catalog)
-            if not component_data_dict:
-                continue
-
-            for component_id, component_data in component_data_dict.items():
-                component_entry = {
-                    "component_id": component_id,
-                    "catalog_type": catalog.schema_name,
-                    "categories": catalog.metadata.get("categories", []),
-                    "component_definition": component_data.get('definition'),
-                    "component_identifier": component_data.get('identifier')
-                }
-
-                # Parse the component entry to get a fully qualified Component object
-                components = self._parser.parse(SimpleNamespace(**component_entry)) or []
-                for component in components:
-                    component_dict[component.id] = component
-
-        return component_dict
-
-    def _get_catalogs_for_runtime(self) -> List[Metadata]:
-        """
-        Retrieve the catalogs relevant to the calling processor instance
-        """
-        runtime_catalogs = []
-        try:
-            registries = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
-
-            # Filter catalogs according to processor type
-            runtime_catalogs = \
-                [r for r in registries if r.metadata['runtime_type'] == self._parser.component_platform.name]
-        except Exception:
-            self.log.error(f"Could not access catalogs for processor type: {self._parser.component_platform.name}")
-
-        return runtime_catalogs

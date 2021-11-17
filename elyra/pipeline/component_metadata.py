@@ -16,7 +16,7 @@
 from typing import Any
 
 from elyra.metadata.metadata import Metadata
-from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.component_catalog import ComponentCatalog
 
 
 class ComponentRegistryMetadata(Metadata):
@@ -30,24 +30,14 @@ class ComponentCatalogMetadata(Metadata):
     """
 
     def post_save(self, **kwargs: Any) -> None:
-        processor_type = self.metadata.get('runtime_type')
-
-        # Get component catalog and update its cache
-        try:  # TODO: This should move to ComponentCatalog once made a singleton
-            component_catalog = PipelineProcessorRegistry.instance().get_catalog(processor_type)
-            if component_catalog.caching_enabled:
-                component_catalog.update_cache(catalog=self, operation='modify')
+        try:
+            ComponentCatalog.instance().update_cache_for_catalog(catalog=self, operation='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
-        processor_type = self.metadata.get('runtime_type')
-
-        # Get component catalog and update its cache
-        try:  # TODO: This should move to ComponentCatalog once made a singleton
-            component_catalog = PipelineProcessorRegistry.instance().get_catalog(processor_type)
-            if component_catalog.caching_enabled:
-                component_catalog.update_cache(catalog=self, operation='delete')
+        try:
+            ComponentCatalog.instance().update_cache_for_catalog(catalog=self, operation='delete')
         except Exception:
             pass
 

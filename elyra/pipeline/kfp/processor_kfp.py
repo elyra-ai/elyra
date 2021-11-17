@@ -44,7 +44,6 @@ from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
-from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
@@ -67,7 +66,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
 
     def __init__(self, root_dir, **kwargs):
-        super().__init__(root_dir, component_parser=KfpComponentParser(), **kwargs)
+        super().__init__(root_dir, **kwargs)
 
     def process(self, pipeline):
         """

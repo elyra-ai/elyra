@@ -36,7 +36,6 @@ from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
@@ -79,18 +78,6 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         else:
             raise RuntimeError(f"Could not find pipeline processor '{processor_name}'")
 
-    # TODO: This should move to ComponentCatalog once made a singleton
-    def get_catalog(self, processor_type: str):
-        # This should be updated when we decouple the catalog from the processors.  For now
-        # (and because there will be few processors) we will just walk the list until we find
-        # a processor with a matching type, then confirm the instances is RuntimePipelineProcessor.
-        for name, processor in self._processors.items():
-            if processor.type.name == processor_type and isinstance(processor, RuntimePipelineProcessor):
-                runtime_processor: RuntimePipelineProcessor = processor
-                return runtime_processor.component_catalog
-        else:
-            raise RuntimeError(f"Could not find component catalog associated with type '{processor_type}'!")
-
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
 
@@ -116,6 +103,7 @@ class PipelineProcessorManager(SingletonConfigurable):
         super().__init__(**kwargs)
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
         self._registry = PipelineProcessorRegistry.instance()
+        self._component_catalog = ComponentCatalog().instance(parent=self.parent)
 
     def _get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)
@@ -213,8 +201,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     _type: RuntimeProcessorType = None
     _name: str = None
 
-    _component_catalog: ComponentCatalog = None
-
     root_dir = Unicode(allow_none=True)
 
     enable_pipeline_info = Bool(config=True,
@@ -245,8 +231,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         components: List[Component] = ComponentCatalog.get_generic_components()
 
         # Retrieve runtime-specific components
-        if self._component_catalog:
-            components.extend(self._component_catalog.get_all_components())
+        components.extend(ComponentCatalog().instance().get_all_components(platform_type=self._type.name))
 
         return components
 
@@ -256,7 +241,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
 
         if component_id not in ('notebook', 'python-script', 'r-script'):
-            return self._component_catalog.get_component(component_id=component_id)
+            return ComponentCatalog().instance().get_component(platform_type=self._type.name, component_id=component_id)
 
         return ComponentCatalog.get_generic_component(component_id)
 
@@ -349,17 +334,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
 class RuntimePipelineProcessor(PipelineProcessor):
 
-    @property
-    def component_catalog(self) -> ComponentCatalog:
-        return self._component_catalog
-
-    def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
+    def __init__(self, root_dir: str, **kwargs):
         super().__init__(root_dir, **kwargs)
-
-        # TODO - we should look into decoupling the catalog/parser from the proessor
-        # TODO - make ComponentCatalog a singleton that loads all component catalogs
-        # associated with the types corresponding to each registered runtime processor.
-        self._component_catalog = ComponentCatalog(component_parser, parent=self.parent)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)
