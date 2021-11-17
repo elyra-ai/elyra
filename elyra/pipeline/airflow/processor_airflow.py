@@ -167,12 +167,12 @@ be fully qualified (i.e., prefixed with their package names).
                                                                  name=pipeline.runtime_config)
         image_namespace = self._get_metadata_configuration(schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
 
-        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-        cos_username = runtime_configuration.metadata['cos_username']
-        cos_password = runtime_configuration.metadata['cos_password']
+        cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+        cos_username = runtime_configuration.metadata.get('cos_username')
+        cos_password = runtime_configuration.metadata.get('cos_password')
         cos_secret = runtime_configuration.metadata.get('cos_secret')
         cos_directory = pipeline_name
-        cos_bucket = runtime_configuration.metadata['cos_bucket']
+        cos_bucket = runtime_configuration.metadata.get('cos_bucket')
 
         # Create dictionary that maps component Id to its ContainerOp instance
         target_ops = []
