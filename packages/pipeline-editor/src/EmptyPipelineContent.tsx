@@ -15,11 +15,8 @@
  */
 
 import { componentCatalogIcon, dragDropIcon } from '@elyra/ui-components';
-import { ILabShell } from '@jupyterlab/application';
 
 import React from 'react';
-
-import { COMPONENT_CATALOGS_SCHEMASPACE } from './PipelineService';
 
 const HEADER_CLASS = 'empty-pipeline-header';
 
@@ -27,11 +24,11 @@ const COMPONENT_EXAMPLES_URLl =
   'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
 
 export interface IEmptyPipelineContentProps {
-  shell: ILabShell;
+  openComponentCatalog: () => void;
 }
 
 export const EmptyPipelineContent: React.FC<IEmptyPipelineContentProps> = ({
-  shell
+  openComponentCatalog
 }) => {
   return (
     <div>
@@ -47,11 +44,7 @@ export const EmptyPipelineContent: React.FC<IEmptyPipelineContentProps> = ({
           or by adding a custom component clicking the{' '}
           <button
             className={'open-component-catalog-button'}
-            onClick={(): void => {
-              shell.activateById(
-                `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`
-              );
-            }}
+            onClick={openComponentCatalog}
           >
             <componentCatalogIcon.react
               className="component-catalog-icon"

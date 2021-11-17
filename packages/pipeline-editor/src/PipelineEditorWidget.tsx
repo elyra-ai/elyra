@@ -1102,7 +1102,13 @@ const PipelineWrapper: React.FC<IProps> = ({
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
           leftPalette={true}
         >
-          <EmptyPipelineContent shell={shell} />
+          <EmptyPipelineContent
+            openComponentCatalog={(): void => {
+              shell.activateById(
+                `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`
+              );
+            }}
+          />
         </PipelineEditor>
       </Dropzone>
     </ThemeProvider>
