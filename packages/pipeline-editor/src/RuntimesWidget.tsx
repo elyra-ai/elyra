@@ -127,7 +127,7 @@ export class RuntimesWidget extends MetadataWidget {
   }
 
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes(false).catch(error =>
+    return await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
   }

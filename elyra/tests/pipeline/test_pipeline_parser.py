@@ -164,7 +164,7 @@ def test_missing_pipeline_runtime():
 
 def test_missing_pipeline_runtime_configuration():
     pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['app_data'].pop('runtime-config')
+    pipeline_json['pipelines'][0]['app_data'].pop('runtime_config')
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_json)

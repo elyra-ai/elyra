@@ -31,7 +31,7 @@
       ],
       "app_data": {
         "runtime": "{{runtime}}",
-        "runtime-config": "{{runtime-config}}",
+        "runtime_config": "{{runtime-config}}",
         "ui_data": {
           "comments": []
         },

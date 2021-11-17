@@ -54,7 +54,7 @@ describe('Submit Notebook Button tests', () => {
 
     cy.findByRole('button', { name: /save and submit/i }).click();
 
-    cy.findByText(/run notebook as pipeline/i).should('exist');
+    cy.findByText(/run file as pipeline/i).should('exist');
 
     // Dismiss  dialog
     cy.findByRole('button', { name: /cancel/i }).click();

@@ -80,7 +80,7 @@ describe('Script Editor tests', () => {
     // Click Run as Pipeline button
     cy.contains('Run as Pipeline').click();
     // Check for expected dialog title
-    cy.get('.jp-Dialog-header').should('have.text', 'Run script as pipeline');
+    cy.get('.jp-Dialog-header').should('have.text', 'Run file as pipeline');
     // Dismiss  dialog
     cy.get('button.jp-mod-reject').click();
 

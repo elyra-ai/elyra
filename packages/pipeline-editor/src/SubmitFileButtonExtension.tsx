@@ -17,8 +17,8 @@
 import { ContentParser } from '@elyra/services';
 import { RequestErrors, showFormDialog } from '@elyra/ui-components';
 import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
-import { DocumentRegistry } from '@jupyterlab/docregistry';
-import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { PathExt } from '@jupyterlab/coreutils';
+import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { IDisposable } from '@lumino/disposable';
 
 import * as React from 'react';
@@ -26,6 +26,7 @@ import * as React from 'react';
 import { FileSubmissionDialog } from './FileSubmissionDialog';
 import { formDialogWidget } from './formDialogWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
+import { createRuntimeData, getConfigDetails } from './runtime-utils';
 import Utils from './utils';
 
 /**
@@ -34,10 +35,14 @@ import Utils from './utils';
  *  information about the remote location to where submit the notebook
  *  for execution
  */
-export class SubmitNotebookButtonExtension
-  implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
-  showWidget = async (panel: NotebookPanel): Promise<void> => {
-    if (panel.model?.dirty) {
+
+export class SubmitFileButtonExtension<
+  T extends DocumentWidget,
+  U extends DocumentRegistry.IModel
+> implements DocumentRegistry.IWidgetExtension<T, U> {
+  showWidget = async (document: T): Promise<void> => {
+    const { context } = document;
+    if (context.model.dirty) {
       const dialogResult = await showDialog({
         title:
           'This notebook contains unsaved changes. To run the notebook as pipeline the changes need to be saved.',
@@ -46,33 +51,18 @@ export class SubmitNotebookButtonExtension
           Dialog.okButton({ label: 'Save and Submit' })
         ]
       });
-      if (dialogResult.button && dialogResult.button.accept === true) {
-        await panel.context.save();
-      } else {
-        // Don't proceed if cancel button pressed
+      if (dialogResult.button.accept === false) {
         return;
       }
+      await context.save();
     }
 
-    const env = await ContentParser.getEnvVars(
-      panel.context.path.toString()
-    ).catch(error => RequestErrors.serverError(error));
-    const action = 'run notebook as pipeline';
-    const runtimes = await PipelineService.getRuntimes(
-      true,
-      action
-    ).catch(error => RequestErrors.serverError(error));
-
-    if (Utils.isDialogResult(runtimes)) {
-      if (runtimes.button.label.includes(RUNTIMES_SCHEMASPACE)) {
-        // Open the runtimes widget
-        Utils.getLabShell(panel).activateById(
-          `elyra-metadata:${RUNTIMES_SCHEMASPACE}`
-        );
-      }
-      return;
-    }
-
+    const env = await ContentParser.getEnvVars(context.path).catch(error =>
+      RequestErrors.serverError(error)
+    );
+    const runtimes = await PipelineService.getRuntimes().catch(error =>
+      RequestErrors.serverError(error)
+    );
     const images = await PipelineService.getRuntimeImages().catch(error =>
       RequestErrors.serverError(error)
     );
@@ -80,15 +70,36 @@ export class SubmitNotebookButtonExtension
       RequestErrors.serverError(error)
     );
 
+    const runtimeData = createRuntimeData({ schema, runtimes });
+
+    if (!runtimeData.platforms.find(p => p.configs.length > 0)) {
+      const res = await RequestErrors.noMetadataError(
+        'runtime',
+        `run file as pipeline.`
+      );
+
+      if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {
+        // Open the runtimes widget
+        Utils.getLabShell(document).activateById(
+          `elyra-metadata:${RUNTIMES_SCHEMASPACE}`
+        );
+      }
+      return;
+    }
+
+    let dependencyFileExtension = PathExt.extname(context.path);
+    if (dependencyFileExtension === '.ipynb') {
+      dependencyFileExtension = '.py';
+    }
+
     const dialogOptions = {
-      title: 'Run notebook as pipeline',
+      title: 'Run file as pipeline',
       body: formDialogWidget(
         <FileSubmissionDialog
           env={env}
-          dependencyFileExtension=".py"
-          runtimes={runtimes}
+          dependencyFileExtension={dependencyFileExtension}
           images={images}
-          schema={schema}
+          runtimeData={runtimeData}
         />
       ),
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
@@ -102,7 +113,6 @@ export class SubmitNotebookButtonExtension
     }
 
     const {
-      runtime_platform,
       runtime_config,
       framework,
       cpu,
@@ -113,11 +123,12 @@ export class SubmitNotebookButtonExtension
       ...envObject
     } = dialogResult.value;
 
+    const configDetails = getConfigDetails(runtimeData, runtime_config);
+
     // prepare notebook submission details
     const pipeline = Utils.generateSingleFilePipeline(
-      panel.context.path,
-      runtime_platform,
-      runtime_config,
+      context.path,
+      configDetails,
       framework,
       dependency_include ? dependencies.split(',') : undefined,
       envObject,
@@ -126,32 +137,25 @@ export class SubmitNotebookButtonExtension
       memory
     );
 
-    const displayName = PipelineService.getDisplayName(
-      runtime_config,
-      runtimes
-    );
-
-    PipelineService.submitPipeline(pipeline, displayName).catch(error =>
-      RequestErrors.serverError(error)
-    );
+    PipelineService.submitPipeline(
+      pipeline,
+      configDetails?.platform.displayName ?? ''
+    ).catch(error => RequestErrors.serverError(error));
   };
 
-  createNew(
-    panel: NotebookPanel,
-    context: DocumentRegistry.IContext<INotebookModel>
-  ): IDisposable {
+  createNew(editor: T): IDisposable {
     // Create the toolbar button
-    const submitNotebookButton = new ToolbarButton({
+    const submitFileButton = new ToolbarButton({
       label: 'Run as Pipeline',
-      onClick: (): any => this.showWidget(panel),
-      tooltip: 'Run notebook as batch'
+      onClick: (): any => this.showWidget(editor),
+      tooltip: 'Run file as batch'
     });
 
     // Add the toolbar button to the notebook
-    panel.toolbar.insertItem(10, 'submitNotebook', submitNotebookButton);
+    editor.toolbar.insertItem(10, 'submitFile', submitFileButton);
 
     // The ToolbarButton class implements `IDisposable`, so the
     // button *is* the extension for the purposes of this method.
-    return submitNotebookButton;
+    return submitFileButton;
   }
 }
