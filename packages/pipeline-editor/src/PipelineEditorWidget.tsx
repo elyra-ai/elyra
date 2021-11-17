@@ -36,8 +36,7 @@ import {
   kubeflowIcon,
   airflowIcon,
   argoIcon,
-  componentCatalogIcon,
-  dragDropIcon
+  componentCatalogIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
 import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
@@ -61,6 +60,7 @@ import Alert from '@material-ui/lab/Alert';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { EmptyPipelineContent } from './EmptyPipelineContent';
 import { formDialogWidget } from './formDialogWidget';
 import {
   usePalette,
@@ -1076,55 +1076,6 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
-  const customCompomentExamplesUrl =
-    'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
-
-  const openComponentCatalogs = (): void => {
-    shell.activateById(`elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`);
-  };
-
-  const EmptyPipelineContent = (
-    <div>
-      <dragDropIcon.react
-        className="drag-drop-icon"
-        tag="div"
-        elementPosition="center"
-        height="120px"
-      />
-      <div className="empty-pipeline-header">
-        <h3>
-          Start your new pipeline by dragging files from the file browser pane
-          or by adding a custom component clicking the{' '}
-          <button
-            className={'open-component-catalog-button'}
-            onClick={openComponentCatalogs}
-          >
-            <componentCatalogIcon.react
-              className="component-catalog-icon"
-              tag="div"
-              height="24px"
-            />
-          </button>{' '}
-          button.
-          <br />
-          <br />
-        </h3>
-        <h4>
-          Refer to
-          <a
-            href={customCompomentExamplesUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {' '}
-            component examples{' '}
-          </a>
-          for more details about adding custom components.
-        </h4>
-      </div>
-    </div>
-  );
-
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -1151,7 +1102,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
           leftPalette={true}
         >
-          {EmptyPipelineContent}
+          <EmptyPipelineContent shell={shell} />
         </PipelineEditor>
       </Dropzone>
     </ThemeProvider>
