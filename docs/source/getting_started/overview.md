@@ -81,6 +81,9 @@ to share resources across distributed clusters such as Apache Spark, Kubernetes,
 It simplifies the task of running notebooks interactively on cloud machines,
 seamlessly leveraging the power of cloud-based resources such as GPUs and TPUs.
 
+Refer to the 
+[_Deploying Elyra & JupyterHub in a Kubernetes environment_ topic](../recipes/deploying-elyra-in-a-jupyterhub-environment.md) for an overview on how to deploy Elyra, JupyterHub and the Jupyter Enterprise Gateway on Kubernetes.
+
 #### Python and R scripts execution support
 
 Elyra contributes a Script editor with support for Python and R files, which can take advantage of the
