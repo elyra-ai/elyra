@@ -20,7 +20,7 @@ import React from 'react';
 
 const HEADER_CLASS = 'empty-pipeline-header';
 
-const COMPONENT_EXAMPLES_URLl =
+const COMPONENT_EXAMPLES_URL =
   'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
 
 export interface IEmptyPipelineContentProps {
@@ -59,7 +59,7 @@ export const EmptyPipelineContent: React.FC<IEmptyPipelineContentProps> = ({
         <h4>
           Refer to
           <a
-            href={COMPONENT_EXAMPLES_URLl}
+            href={COMPONENT_EXAMPLES_URL}
             target="_blank"
             rel="noopener noreferrer"
           >
