@@ -369,6 +369,27 @@ paths:
                     type: string
                     description: The pipeline export path.
 
+
+  /elyra/pipeline/runtimes/types:
+    get:
+      tags:
+        - pipeline
+      summary: Get the set of static resources associated with currently configured runtime types
+      responses:
+        200:
+          description: The resources associated with the currently configured runtime types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  runtime_types:
+                    type: array
+                    description: The list of resources associated with each configured runtime type.
+                    items:
+                      $ref: '#/components/schemas/RuntimeTypeResources'
+
+
   /elyra/contents/properties/{filepath}:
     get:
         tags:
@@ -567,7 +588,38 @@ components:
         overwrite:
           type: boolean
           description: Determines if the existing export should be overwritten.
-          
+
+    RuntimeTypeResources:
+      description: The set of properties comprising a runtime type resource entity.
+      required:
+        - id
+        - display_name
+        - icon
+        - export_file_types
+      type: object
+      properties:
+        id:
+          type: string
+          description: The id of the runtime type resource.
+        display_name:
+          type: string
+          description: The display name of the runtime type resource.
+        icon:
+          type: string
+          description: The location (endpoint) in which the runtime type icon can be found.
+        export_file_types:
+          type: array
+          description: The set of export file types this runtime type supports.
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: The supported file suffix
+              display_name:
+                type: string
+                description: The label corresponding to the export file type
+
     ContentsPropertiesResource:
       description: The set of resources comprising the request body.
       required:

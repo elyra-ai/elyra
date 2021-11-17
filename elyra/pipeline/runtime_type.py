@@ -58,61 +58,69 @@ class RuntimeProcessorType(Enum):
         raise KeyError(f"'{value}'")
 
 
-class RuntimePlatformInfo(object):
+class RuntimeTypeResources(object):
     """Base class for a runtime processor's information"""
     type: RuntimeProcessorType
     icon_endpoint: str
-    file_types: List[Dict[str, str]]
+    export_file_types: List[Dict[str, str]]
 
     @classmethod
-    def get_instance_by_type(cls, runtime_type: RuntimeProcessorType) -> 'RuntimePlatformInfo':
+    def get_instance_by_type(cls, runtime_type: RuntimeProcessorType) -> 'RuntimeTypeResources':
         if runtime_type == RuntimeProcessorType.KUBEFLOW_PIPELINES:
-            return KubeflowPipelinesPlatformInfo()
+            return KubeflowPipelinesResources()
         if runtime_type == RuntimeProcessorType.APACHE_AIRFLOW:
-            return ApacheAirflowPlatformInfo()
+            return ApacheAirflowResources()
         if runtime_type == RuntimeProcessorType.ARGO:
-            return ArgoPlatformInfo()
+            return ArgoResources()
         if runtime_type == RuntimeProcessorType.LOCAL:
-            return LocalPlatformInfo()
+            return LocalResources()
         raise ValueError(f"Runtime type {runtime_type} is not recognized.")
 
+    @property
+    def id(self) -> str:
+        return self.type.name
+
+    @property
+    def display_name(self) -> str:
+        return self.type.value
+
     def to_dict(self) -> Dict[str, Any]:
-        d = dict(name=self.type.name,
-                 display_name=self.type.value,
+        d = dict(id=self.id,
+                 display_name=self.display_name,
                  icon=self.icon_endpoint,
-                 file_types=self.file_types)
+                 export_file_types=self.export_file_types)
         return d
 
 
-class ArgoPlatformInfo(RuntimePlatformInfo):
+class ArgoResources(RuntimeTypeResources):
     """Holds static information relative to Argo processors """
     type = RuntimeProcessorType.ARGO
     icon_endpoint = "static/elyra/argo.svg"
-    file_types = [{'name': 'py', 'display_name': 'Argo domain-specific language Python code'}]
+    export_file_types = [{'id': 'py', 'display_name': 'Argo domain-specific language Python code'}]
 
 
-class ApacheAirflowPlatformInfo(RuntimePlatformInfo):
+class ApacheAirflowResources(RuntimeTypeResources):
     """Holds static information relative to Apache Airflow processors """
     type = RuntimeProcessorType.APACHE_AIRFLOW
     icon_endpoint = "static/elyra/airflow.svg"
-    file_types = [{'name': 'py', 'display_name': 'Airflow domain-specific language Python code'}]
+    export_file_types = [{'id': 'py', 'display_name': 'Airflow domain-specific language Python code'}]
 
 
-class KubeflowPipelinesPlatformInfo(RuntimePlatformInfo):
+class KubeflowPipelinesResources(RuntimeTypeResources):
     """Holds static information relative to Kubeflow Pipelines processors """
     type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     icon_endpoint = "static/elyra/kubeflow.svg"
-    file_types = [
-        {'name': 'py', 'display_name': 'KFP domain-specific language Python code'},
-        {'name': 'yaml', 'display_name': 'KFP static configuration file (YAML formatted)'}
+    export_file_types = [
+        {'id': 'py', 'display_name': 'KFP domain-specific language Python code'},
+        {'id': 'yaml', 'display_name': 'KFP static configuration file (YAML formatted)'}
     ]
 
 
-class LocalPlatformInfo(RuntimePlatformInfo):
+class LocalResources(RuntimeTypeResources):
     """Holds static information relative to local processors """
     type = RuntimeProcessorType.LOCAL
     icon_endpoint = "static/elyra/pipeline-flow.svg"
-    file_types = []
+    export_file_types = []
 
 ###########################################################
 # Add new platform info definitions here for each new type

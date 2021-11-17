@@ -41,8 +41,8 @@ from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.runtime_type import RuntimePlatformInfo
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
 from elyra.util.path import get_expanded_path
@@ -94,19 +94,19 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
 
-    def get_active_platforms(self) -> List[RuntimePlatformInfo]:
-        """Returns the set of runtime processor info instances for each active runtime type"""
+    def get_runtime_types_resources(self) -> List[RuntimeTypeResources]:
+        """Returns the set of resource instances for each active runtime type"""
 
-        # Build set of active runtime types, then build list of processor info instances
+        # Build set of active runtime types, then build list of resources instances
         runtime_types: Set[RuntimeProcessorType] = set()
         for name, processor in self._processors.items():
             runtime_types.add(processor.type)
 
-        active_platforms: List[RuntimePlatformInfo] = list()
+        resources: List[RuntimeTypeResources] = list()
         for runtime_type in runtime_types:
-            active_platforms.append(RuntimePlatformInfo.get_instance_by_type(runtime_type))
+            resources.append(RuntimeTypeResources.get_instance_by_type(runtime_type))
 
-        return active_platforms
+        return resources
 
 
 class PipelineProcessorManager(SingletonConfigurable):

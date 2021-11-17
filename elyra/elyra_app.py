@@ -35,7 +35,7 @@ from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
-from elyra.pipeline.handlers import PipelinePlatformsHandler
+from elyra.pipeline.handlers import PipelineRuntimeTypesHandler
 from elyra.pipeline.handlers import PipelineSchedulerHandler
 from elyra.pipeline.handlers import PipelineValidationHandler
 from elyra.pipeline.processor import PipelineProcessor
@@ -98,7 +98,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
             (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
              PipelineComponentPropertiesHandler),
             (f'/{self.name}/pipeline/export', PipelineExportHandler),
-            (f'/{self.name}/pipeline/platforms', PipelinePlatformsHandler),
+            (f'/{self.name}/pipeline/runtimes/types', PipelineRuntimeTypesHandler),
             (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
             (f'/{self.name}/pipeline/validate', PipelineValidationHandler),
 
