@@ -169,13 +169,15 @@ export class RequestHandler {
    */
   static async makeServerRequest<T = any>(
     requestPath: string,
-    requestInit: any,
+    options: RequestInit & { type?: 'blob' | 'json' | 'text' },
     longRequestDialog?: Dialog<any>
   ): Promise<T> {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are in the extension installed by this package
     const settings = ServerConnection.makeSettings();
     const requestUrl = URLExt.join(settings.baseUrl, requestPath);
+
+    const { type = 'json', ...requestInit } = options;
 
     console.log(`Sending a ${requestInit.method} request to ${requestUrl}`);
 
@@ -190,7 +192,7 @@ export class RequestHandler {
             longRequestDialog.resolve();
           }
 
-          response.json().then(
+          response[type]().then(
             // handle cases where the server returns a valid response
             (result: any) => {
               if (response.status < 200 || response.status >= 300) {
