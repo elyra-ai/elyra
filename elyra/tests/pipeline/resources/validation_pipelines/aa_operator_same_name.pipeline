@@ -327,7 +327,7 @@
         "version": 5,
         "runtime": "airflow",
         "runtime_type": "APACHE_AIRFLOW",
-        "runtime-config": "kfp-yukked1",
+        "runtime_config": "kfp-yukked1",
         "properties": {
           "name": "untitled4"
         }
