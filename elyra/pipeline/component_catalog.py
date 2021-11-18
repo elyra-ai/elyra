@@ -75,15 +75,20 @@ class ComponentCatalog(SingletonConfigurable):
             self._build_cache()
 
     def _build_cache(self):
+        """
+        Reads through all catalog Metadata instances to build the initial component cache
+        """
         all_catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
         for catalog in all_catalogs:
             self.update_cache_for_catalog(catalog)
 
-    def update_cache_for_runtime_type(self, runtime_type: str):
-        pass
-
     def update_cache_for_catalog(self, catalog: Metadata, operation: Optional[str] = None):
+        """
+        Updates the component cache for the given catalog Metadata instance
+        """
         platform_type = catalog.metadata['runtime_type']
+
+        # Add sub-dictionary for this platform type if not present
         if not self._component_cache.get(platform_type):
             self._component_cache[platform_type] = {}
         catalog_components = self._read_component_catalog(catalog, platform_type)
@@ -99,8 +104,10 @@ class ComponentCatalog(SingletonConfigurable):
         """
         Retrieve all components from component catalog cache
         """
-        components = []
-        for catalog_name, component_dict in ComponentCatalog._component_cache.get(platform_type, {}).items():
+        components: List[Component] = []
+
+        platform_components_dict = ComponentCatalog._component_cache.get(platform_type, {})
+        for catalog_name, component_dict in platform_components_dict.items():
             components.extend(list(component_dict.values()))
 
         if not components:
@@ -112,10 +119,13 @@ class ComponentCatalog(SingletonConfigurable):
         """
         Retrieve the component with a given component_id from component catalog cache
         """
-        component = None
-        for catalog_name, component_dict in ComponentCatalog._component_cache.get(platform_type, {}).items():
-            if component_id in component_dict.keys():
-                component = component_dict[component_id]
+        component: Optional[Component] = None
+
+        platform_components_dict = ComponentCatalog._component_cache.get(platform_type, {})
+        for catalog_name, component_dict in platform_components_dict.items():
+            component = component_dict.get(component_id)
+            if component:
+                break
 
         if not component:
             self.log.error(f"Component with ID '{component_id}' could not be found in any catalog.")
@@ -124,7 +134,7 @@ class ComponentCatalog(SingletonConfigurable):
 
     def _read_component_catalog(self, catalog: Metadata, platform_type) -> Dict[str, Component]:
         """
-        Read through component catalogs and return a dictionary of components indexed by component_id.
+        Read a component catalog and return a dictionary of components indexed by component_id.
 
         :param catalog: a metadata instances from which to read and construct Component objects
 
