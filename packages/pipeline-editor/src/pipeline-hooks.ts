@@ -20,6 +20,8 @@ import { notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
 import useSWR from 'swr';
 
+import { PipelineService } from './PipelineService';
+
 export const GENERIC_CATEGORY_ID = 'Elyra';
 
 interface IReturn<T> {
@@ -163,9 +165,7 @@ const componentFetcher = async (type: string): Promise<any> => {
     IRuntimeComponentsResponse
   >(`elyra/pipeline/components/${type}`);
 
-  const typesPromise = RequestHandler.makeGetRequest(
-    'elyra/pipeline/runtimes/types'
-  );
+  const typesPromise = PipelineService.getRuntimeTypes();
 
   const [palette, types] = await Promise.all([palettePromise, typesPromise]);
 
@@ -198,17 +198,16 @@ const componentFetcher = async (type: string): Promise<any> => {
     const category_runtime_type =
       category.node_types?.[0]?.runtime_type ?? 'LOCAL';
 
-    const type = types.runtime_types.find(
-      (t: any) => t.id === category_runtime_type
-    );
+    const type = types.find((t: any) => t.id === category_runtime_type);
+    const defaultIcon = `/${type?.icon}`;
 
-    category.image = `/${type.icon}`;
+    category.image = defaultIcon;
 
     for (const node of category.node_types) {
       // update icon
       let nodeIcon = NodeIcons.get(node.op);
       if (nodeIcon === undefined || nodeIcon === '') {
-        nodeIcon = `/${type.icon}`;
+        nodeIcon = defaultIcon;
       }
 
       // Not sure which is needed...

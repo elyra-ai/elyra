@@ -42,7 +42,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
-import { RUNTIMES_SCHEMASPACE } from './PipelineService';
+import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 import {
   RUNTIME_IMAGES_SCHEMASPACE,
   RuntimeImagesWidget
@@ -69,20 +69,6 @@ const createRemoteIcon = async ({
     type: 'text'
   });
   return new LabIcon({ name, svgstr });
-};
-
-interface IRuntimeType {
-  id: string;
-  display_name: string;
-  icon: string;
-  export_file_types: { id: string; display_name: string }[];
-}
-
-const getRuntimeTypes = async (): Promise<IRuntimeType[]> => {
-  const res = await RequestHandler.makeGetRequest(
-    'elyra/pipeline/runtimes/types'
-  );
-  return res.runtime_types;
 };
 
 /**
@@ -266,7 +252,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       category: 'Elyra'
     });
 
-    getRuntimeTypes()
+    PipelineService.getRuntimeTypes()
       .then(async types => {
         const promises = types.map(async t => {
           return {

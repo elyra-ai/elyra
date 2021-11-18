@@ -514,12 +514,14 @@ const PipelineWrapper: React.FC<IProps> = ({
         PathExt.extname(contextRef.current.path)
       );
 
+      // TODO: Parallelize this
       const runtimes = await PipelineService.getRuntimes().catch(error =>
         RequestErrors.serverError(error)
       );
       const schema = await PipelineService.getRuntimesSchema().catch(error =>
         RequestErrors.serverError(error)
       );
+      const runtimeTypes = await PipelineService.getRuntimeTypes();
 
       const runtimeData = createRuntimeData({
         schema,
@@ -572,6 +574,7 @@ const PipelineWrapper: React.FC<IProps> = ({
             body: formDialogWidget(
               <PipelineExportDialog
                 runtimeData={runtimeData}
+                runtimeTypeInfo={runtimeTypes}
                 pipelineType={type}
               />
             ),
