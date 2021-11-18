@@ -24,12 +24,45 @@ const COMPONENT_EXAMPLES_URL =
   'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
 
 export interface IEmptyPipelineContentProps {
-  openComponentCatalog: () => void;
+  openComponentCatalog?: () => void;
 }
 
 export const EmptyPipelineContent: React.FC<IEmptyPipelineContentProps> = ({
   openComponentCatalog
 }) => {
+  const componentCatalogGuide = (
+    <div>
+      <h3>
+        or add custom components by clicking the{' '}
+        <button
+          className={'open-component-catalog-button'}
+          onClick={openComponentCatalog}
+        >
+          <componentCatalogIcon.react
+            className="component-catalog-icon"
+            tag="div"
+            height="24px"
+          />
+        </button>{' '}
+        button.
+        <br />
+        <br />
+      </h3>
+      <h4>
+        Refer to
+        <a
+          href={COMPONENT_EXAMPLES_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {' '}
+          component examples{' '}
+        </a>
+        for more details about adding custom components.
+      </h4>
+    </div>
+  );
+
   return (
     <div>
       <dragDropIcon.react
@@ -41,33 +74,8 @@ export const EmptyPipelineContent: React.FC<IEmptyPipelineContentProps> = ({
       <div className={HEADER_CLASS}>
         <h3>
           Start your new pipeline by dragging files from the file browser pane
-          or by adding a custom component clicking the{' '}
-          <button
-            className={'open-component-catalog-button'}
-            onClick={openComponentCatalog}
-          >
-            <componentCatalogIcon.react
-              className="component-catalog-icon"
-              tag="div"
-              height="24px"
-            />
-          </button>{' '}
-          button.
-          <br />
-          <br />
         </h3>
-        <h4>
-          Refer to
-          <a
-            href={COMPONENT_EXAMPLES_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {' '}
-            component examples{' '}
-          </a>
-          for more details about adding custom components.
-        </h4>
+        {openComponentCatalog ? componentCatalogGuide : null}
       </div>
     </div>
   );

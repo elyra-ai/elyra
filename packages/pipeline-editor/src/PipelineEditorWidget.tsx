@@ -179,6 +179,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [alert, setAlert] = React.useState('');
 
   const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
+  const pipelineRuntimeType = pipeline?.pipelines?.[0]?.app_data?.runtime_type;
 
   const { data: palette, error: paletteError } = usePalette(
     pipelineRuntimeName
@@ -1103,11 +1104,15 @@ const PipelineWrapper: React.FC<IProps> = ({
           leftPalette={true}
         >
           <EmptyPipelineContent
-            openComponentCatalog={(): void => {
-              shell.activateById(
-                `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`
-              );
-            }}
+            openComponentCatalog={
+              pipelineRuntimeType !== 'Generic'
+                ? (): void => {
+                    shell.activateById(
+                      `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`
+                    );
+                  }
+                : undefined
+            }
           />
         </PipelineEditor>
       </Dropzone>
