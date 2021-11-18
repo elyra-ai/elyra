@@ -22,7 +22,7 @@
 .PHONY: build-dependencies
 SHELL:=/bin/bash
 
-TAG:=dev
+TAG:=3.3.0rc0
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 
