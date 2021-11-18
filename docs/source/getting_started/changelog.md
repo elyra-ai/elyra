@@ -1,5 +1,50 @@
 # Changelog
 
+## Release 3.3.0rc0 - 11/17/2021
+
+- Update hybrid runtime support topic in overview doc - [#2310](https://github.com/elyra-ai/elyra/pull/2310)
+- Fix incorrect app data runtime parameter name - [#2312](https://github.com/elyra-ai/elyra/pull/2312)
+- Fix incorrect reference to upstream operator when duplicate exists - [#2306](https://github.com/elyra-ai/elyra/pull/2306)
+- Refactor Pipeline Editor UI to better support Runtime Types - [#2287](https://github.com/elyra-ai/elyra/pull/2287)
+- Update components section with migration instructions - [#2302](https://github.com/elyra-ai/elyra/pull/2302)
+- Exclude markdown 3.3.5 in documentation build requirements - [#2308](https://github.com/elyra-ai/elyra/pull/2308)
+- Make component examples an optional Elyra feature - [#2286](https://github.com/elyra-ai/elyra/pull/2286)
+- Add support for data exchange between airflow operators - [#2244](https://github.com/elyra-ai/elyra/pull/2244)
+- Remove redundant entry from pipeline validation endpoint - [#2303](https://github.com/elyra-ai/elyra/pull/2303)
+- Fix frontend metadata title - [#2296](https://github.com/elyra-ai/elyra/pull/2296)
+- Bump postcss from 7.0.35 to 7.0.39 - [#2295](https://github.com/elyra-ai/elyra/pull/2295)
+- Bump path-parse from 1.0.6 to 1.0.7 - [#2294](https://github.com/elyra-ai/elyra/pull/2294)
+- Bump tmpl from 1.0.4 to 1.0.5 - [#2289](https://github.com/elyra-ai/elyra/pull/2289)
+- Bump tar from 4.4.13 to 4.4.19 - [#2290](https://github.com/elyra-ai/elyra/pull/2290)
+- Bump ws from 5.2.2 to 5.2.3 - [#2291](https://github.com/elyra-ai/elyra/pull/2291)
+- Bump axios from 0.21.1 to 0.21.4 - [#2292](https://github.com/elyra-ai/elyra/pull/2292)
+- Add hidden flag for fields not to be displayed in editor - [#2288](https://github.com/elyra-ai/elyra/pull/2288)
+- Add new component catalogs schemaspace - [#2282](https://github.com/elyra-ai/elyra/pull/2282)
+- Remove display_name property from schema - [#2267](https://github.com/elyra-ai/elyra/pull/2267)
+- Add support for runtime types - [#2263](https://github.com/elyra-ai/elyra/pull/2263)
+- Add 'BYO component catalog connector' topic to 'developer guide' - [#2280](https://github.com/elyra-ai/elyra/pull/2280)
+- Reduce airflow component parser output - [#2285](https://github.com/elyra-ai/elyra/pull/2285)
+- Improve KF authentication handling - [#2257](https://github.com/elyra-ai/elyra/pull/2257)
+- Enable building Elyra docker image from current source code - [#2274](https://github.com/elyra-ai/elyra/pull/2274)
+- Fix contents handler path handling - [#2279](https://github.com/elyra-ai/elyra/pull/2279)
+- Update to Kubeflow image to Jupyter base 1.4
+- Update to JupyterHub Single User image version 1.2.0
+- Improve error messaging for comparisons involving entrypoints - [#2276](https://github.com/elyra-ai/elyra/pull/2276)
+- Sort palette nodes by component label - [#2277](https://github.com/elyra-ai/elyra/pull/2277)
+- Add environment variable for `max_readers` in CatalogConnector - [#2271](https://github.com/elyra-ai/elyra/pull/2271)
+- Generalize component reading and processing for BYO catalog-types - [#2241](https://github.com/elyra-ai/elyra/pull/2241)
+- Check for major version only in bootstrapper test - [#2264](https://github.com/elyra-ai/elyra/pull/2264)
+- Sort palette alphabetically - [#2250](https://github.com/elyra-ai/elyra/pull/2250)
+- Update validation checks for non remote submission scenarios - [#2251](https://github.com/elyra-ai/elyra/pull/2251)
+- Support per-catalog cache updates for improved performance - [#2253](https://github.com/elyra-ai/elyra/pull/2253)
+- Fix validation checks for malformed inputpath in kfp pipelines - [#2226](https://github.com/elyra-ai/elyra/pull/2226)
+- Add yarn install steps to development workflow - [#2252](https://github.com/elyra-ai/elyra/pull/2252)
+- Update README with badge and link to Elyra website
+- Upgrade kfp-tekton dependency to 1.0.1 - [#2215](https://github.com/elyra-ai/elyra/pull/2215)
+- Remove determination of absolute path value in KFP processor - [#2234](https://github.com/elyra-ai/elyra/pull/2234)
+- Refactor add pipeline launcher buttons / file > new menu logic - [#2225](https://github.com/elyra-ai/elyra/pull/2225)
+- Add additional details in elyra-pipeline describe command - [#2221](https://github.com/elyra-ai/elyra/pull/2221)
+
 ## Release 3.2.1 - 10/18/2021
 
 - Fix run name issue for KubeFlow v1.4 - [#2237](https://github.com/elyra-ai/elyra/pull/2237)

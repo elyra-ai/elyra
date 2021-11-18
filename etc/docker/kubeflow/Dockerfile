@@ -22,7 +22,7 @@ FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.4
 # Install Elyra with Tekton support ('kfp-tekton') and component examples ('kfp-examples')
 # Customize the extras list as desired
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated legacy-resolver \
-    elyra[kfp-tekton,kfp-examples]==3.3.0
+    elyra[kfp-tekton,kfp-examples]==3.3.0rc0
 
 # build jupyter plugins
 RUN jupyter lab build
