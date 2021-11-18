@@ -33,9 +33,6 @@ import {
   Dropzone,
   RequestErrors,
   showFormDialog,
-  kubeflowIcon,
-  airflowIcon,
-  argoIcon,
   componentCatalogIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
@@ -84,12 +81,6 @@ import { theme } from './theme';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
-const ICON_MAP: any = {
-  KUBEFLOW_PIPELINES: kubeflowIcon,
-  APACHE_AIRFLOW: airflowIcon,
-  ARGO: argoIcon
-};
-
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
   openMetadata: 'elyra-metadata:open',
@@ -129,7 +120,7 @@ const getDisplayName = (
     return undefined;
   }
   const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
-  return schema?.display_name;
+  return schema?.title;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -801,8 +792,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         label: `Runtime: ${runtimeDisplayName}`,
         incLabelWithIcon: 'before',
         enable: false,
-        kind: 'tertiary',
-        iconEnabled: IconUtil.encode(ICON_MAP[type ?? ''] ?? pipelineIcon)
+        kind: 'tertiary'
+        // TODO: re-add icon
+        // iconEnabled: IconUtil.encode(ICON_MAP[type ?? ''] ?? pipelineIcon)
       },
       {
         action: 'toggleOpenPanel',
