@@ -19,6 +19,7 @@ import re
 import tempfile
 from unittest import mock
 
+from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 import github
 import pytest
 
@@ -35,7 +36,7 @@ PIPELINE_FILE_CUSTOM_COMPONENTS = 'resources/sample_pipelines/pipeline_with_airf
 
 
 @pytest.fixture
-def processor(setup_factory_data):
+def processor(setup_factory_data, component_cache_instance):
     processor = AirflowPipelineProcessor(os.getcwd())
     return processor
 
@@ -48,17 +49,24 @@ def parsed_pipeline(request):
 
 @pytest.fixture
 def sample_metadata():
-    return {"github_api_endpoint": "https://api.github.com",
-            "github_repo": "examples/test-repo",
-            "github_repo_token": "c564d8dfgdsfgdfgdsfgdsfgdfsgdfsgdsfgdsfg",
-            "github_branch": "main",
-            "user_namespace": "default",
-            "api_endpoint": "http://examples.com:31737",
-            "cos_endpoint": "http://examples.com:31671",
-            "cos_username": "example",
-            "cos_password": "example123456",
-            "cos_bucket": "test",
-            "tags": []
+    return {"name": "airflow_test",
+            "display_name": "Apache Airflow Test Endpoint",
+            "metadata": {
+                "github_api_endpoint": "https://api.github.com",
+                "github_repo": "test/test-repo",
+                "github_repo_token": "",
+                "github_branch": "test",
+                "api_endpoint": "http://test.example.com:30000/",
+                "cos_endpoint": "http://test.example.com:30001/",
+                "cos_username": "test",
+                "cos_password": "test-password",
+                "cos_bucket": "test-bucket",
+                "tags": [],
+                "user_namespace": "default",
+                "runtime_type": "APACHE_AIRFLOW"
+            },
+            "schema_name": "airflow",
+            "resource": "/User/test_directory/airflow_test.json"
             }
 
 
@@ -95,7 +103,7 @@ def parsed_ordered_dict(monkeypatch, processor, parsed_pipeline,
     mocked_runtime = Metadata(name="test-metadata",
                               display_name="test",
                               schema_name="airflow",
-                              metadata=sample_metadata
+                              metadata=sample_metadata['metadata']
                               )
 
     mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_image_metadata])
@@ -131,7 +139,7 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
     mocked_runtime = Metadata(name="test-metadata",
                               display_name="test",
                               schema_name="airflow",
-                              metadata=sample_metadata
+                              metadata=sample_metadata['metadata']
                               )
     mocked_path = "/some-placeholder"
 
@@ -144,10 +152,10 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
 
     response = processor.process(pipeline=parsed_pipeline)
 
-    assert response.run_url == sample_metadata['api_endpoint']
-    assert response.object_storage_url == sample_metadata['cos_endpoint']
+    assert response.run_url == sample_metadata['metadata']['api_endpoint']
+    assert response.object_storage_url == sample_metadata['metadata']['cos_endpoint']
     # Verifies that only this substring is in the storage path since a timestamp is injected into the name
-    assert "/" + sample_metadata['cos_bucket'] + "/" + "untitled" in response.object_storage_path
+    assert "/" + sample_metadata['metadata']['cos_bucket'] + "/" + "untitled" in response.object_storage_path
 
 
 @pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_COMPLEX], indirect=True)
@@ -160,7 +168,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
     mocked_runtime = Metadata(name="test-metadata",
                               display_name="test",
                               schema_name="airflow",
-                              metadata=sample_metadata
+                              metadata=sample_metadata['metadata']
                               )
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
@@ -198,11 +206,11 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                     # Gets sub-list slice starting where the Notebook Op starts
                     for line in file_as_lines[i + 1:]:
                         if 'namespace=' in line:
-                            assert sample_metadata['user_namespace'] == read_key_pair(line)['value']
+                            assert sample_metadata['metadata']['user_namespace'] == read_key_pair(line)['value']
                         elif 'cos_endpoint=' in line:
-                            assert sample_metadata['cos_endpoint'] == read_key_pair(line)['value']
+                            assert sample_metadata['metadata']['cos_endpoint'] == read_key_pair(line)['value']
                         elif 'cos_bucket=' in line:
-                            assert sample_metadata['cos_bucket'] == read_key_pair(line)['value']
+                            assert sample_metadata['metadata']['cos_bucket'] == read_key_pair(line)['value']
                         elif 'name=' in line:
                             assert node['app_data']['ui_data']['label'] == read_key_pair(line)['value']
                         elif 'notebook=' in line:
@@ -215,11 +223,11 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                                 # Gets sub-list slice starting where the env vars starts
                                 for env_line in file_as_lines[i + sub_list_line_counter + 2:]:
                                     if "AWS_ACCESS_KEY_ID" in env_line:
-                                        assert sample_metadata['cos_username'] == read_key_pair(env_line,
-                                                                                                sep=':')['value']
+                                        assert sample_metadata['metadata']['cos_username'] == \
+                                               read_key_pair(env_line, sep=':')['value']
                                     elif "AWS_SECRET_ACCESS_KEY" in env_line:
-                                        assert sample_metadata['cos_password'] == read_key_pair(env_line,
-                                                                                                sep=':')['value']
+                                        assert sample_metadata['metadata']['cos_password'] == \
+                                               read_key_pair(env_line, sep=':')['value']
                                     elif var in env_line:
                                         assert var == read_key_pair(env_line, sep=':')['key']
                                         assert value == read_key_pair(env_line, sep=':')['value']
@@ -237,6 +245,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
 
 
 @pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
+@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
     pipeline_json = _read_pipeline_resource(PIPELINE_FILE_CUSTOM_COMPONENTS)
 
@@ -246,7 +255,7 @@ def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, 
     mocked_runtime = Metadata(name="test-metadata",
                               display_name="test",
                               schema_name="airflow",
-                              metadata=sample_metadata
+                              metadata=sample_metadata['metadata']
                               )
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
@@ -351,8 +360,10 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                 for env in component_parameters['env_vars']:
                     var, value = env.split("=")
                     assert ordered_dict[key]['pipeline_envs'][var] == value
-                assert ordered_dict[key]['pipeline_envs']['AWS_ACCESS_KEY_ID'] == sample_metadata['cos_username']
-                assert ordered_dict[key]['pipeline_envs']['AWS_SECRET_ACCESS_KEY'] == sample_metadata['cos_password']
+                assert ordered_dict[key]['pipeline_envs']['AWS_ACCESS_KEY_ID'] == \
+                       sample_metadata['metadata']['cos_username']
+                assert ordered_dict[key]['pipeline_envs']['AWS_SECRET_ACCESS_KEY'] == \
+                       sample_metadata['metadata']['cos_password']
                 for arg in ["inputs", "outputs"]:
                     if node['app_data'].get(arg):
                         for file in node['app_data'][arg]:
@@ -510,3 +521,35 @@ def test_process_dictionary_value_function(processor):
 
     dict_as_str = "{'key1': {key2: 2}, 'key3': ['elem1', 'elem2']}"
     assert processor._process_dictionary_value(dict_as_str) == f"\"{dict_as_str}\""
+
+
+@pytest.mark.parametrize('parsed_pipeline',
+                         ['resources/validation_pipelines/aa_operator_same_name.pipeline'],
+                         indirect=True)
+@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_same_name_operator_in_pipeline(monkeypatch, processor, parsed_pipeline, sample_metadata):
+    task_id = 'e3922a29-f4c0-43d9-8d8b-4509aab80032'
+    upstream_task_id = '0eb57369-99d1-4cd0-a205-8d8d96af3ad4'
+
+    mocked_runtime = Metadata(name="test-metadata",
+                              display_name="test",
+                              schema_name="airflow",
+                              metadata=sample_metadata['metadata']
+                              )
+
+    monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
+
+    pipeline_def_operation = parsed_pipeline.operations[task_id]
+    pipeline_def_operation_parameters = pipeline_def_operation.component_params_as_dict
+    pipeline_def_operation_endpoint_param = pipeline_def_operation_parameters['endpoint']
+
+    assert pipeline_def_operation_endpoint_param['activeControl'] == 'NestedEnumControl'
+    assert set(pipeline_def_operation_endpoint_param['NestedEnumControl'].keys()) == {'value', 'option'}
+    assert pipeline_def_operation_endpoint_param['NestedEnumControl']['value'] == upstream_task_id
+
+    ordered_operations = processor._cc_pipeline(parsed_pipeline, pipeline_name="some-name")
+    operation_parameters = ordered_operations[task_id]['component_params']
+    operation_parameter_endpoint = operation_parameters['endpoint']
+
+    assert operation_parameter_endpoint == '"{{ ti.xcom_pull(task_ids=\'BashOperator_2\') }}"'

@@ -177,6 +177,7 @@ export class MetadataEditor extends ReactWidget {
   displayName?: string;
   editor?: CodeEditor.IEditor;
   schemaDisplayName?: string;
+  titleContext?: string;
   dirty?: boolean;
   requiredFields?: string[];
   referenceURL?: string;
@@ -633,7 +634,8 @@ export class MetadataEditor extends ReactWidget {
     }
     let headerText = `Edit "${this.displayName}"`;
     if (!this.name) {
-      headerText = `Add new ${this.schemaDisplayName}`;
+      headerText = `Add new ${this.schemaDisplayName} ${this.titleContext ??
+        ''}`;
     }
     const error = this.displayName === '' && this.invalidForm;
     const onKeyPress: React.KeyboardEventHandler = (

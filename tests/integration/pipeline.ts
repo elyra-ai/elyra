@@ -380,8 +380,10 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /run pipeline/i }).click();
 
     cy.findByLabelText(/pipeline name/i).should('have.value', 'untitled');
-    cy.findByLabelText(/runtime platform/i).should('have.value', 'local');
-    cy.findByLabelText(/runtime configuration/i).should('have.value', 'local');
+    cy.findByLabelText(/runtime platform/i).should(
+      'have.value',
+      '__elyra_local__'
+    );
 
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
@@ -400,7 +402,10 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /run pipeline/i }).click();
 
     cy.findByLabelText(/pipeline name/i).should('have.value', 'helloworld');
-    cy.findByLabelText(/runtime configuration/i).should('have.value', 'local');
+    cy.findByLabelText(/runtime platform/i).should(
+      'have.value',
+      '__elyra_local__'
+    );
 
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
@@ -529,6 +534,13 @@ describe('Pipeline Editor tests', () => {
     });
   });
 
+  /**
+   * Runtime-specific components are no longer included by default
+   * as of PR2286: https://github.com/elyra-ai/elyra/pull/2286.
+   *
+   * These tests will be revisited at a later time. See issue for
+   * more: https://github.com/elyra-ai/elyra/issues/2298
+   *
   it('kfp pipeline should display custom components', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.expandPaletteCategory({ type: 'kfp' });
@@ -542,6 +554,7 @@ describe('Pipeline Editor tests', () => {
       cy.get(`#${component}`).should('exist');
     });
   });
+  **/
 
   it('kfp pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'kfp' });
@@ -558,6 +571,13 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
+  /**
+   * Runtime-specific components are no longer included by default
+   * as of PR2286: https://github.com/elyra-ai/elyra/pull/2286.
+   *
+   * These tests will be revisited at a later time. See issue for
+   * more: https://github.com/elyra-ai/elyra/issues/2298
+   *
   it('airflow pipeline should display custom components', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.expandPaletteCategory({ type: 'airflow' });
@@ -574,6 +594,7 @@ describe('Pipeline Editor tests', () => {
       cy.get(`#${component}`).should('exist');
     });
   });
+  **/
 
   it('airflow pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'airflow' });

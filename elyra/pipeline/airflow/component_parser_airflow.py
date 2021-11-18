@@ -23,6 +23,7 @@ from typing import Optional
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.component import ControllerMap
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -44,19 +45,18 @@ class AirflowComponentParser(ComponentParser):
             # Create a Component object for each class
             component_properties = self._parse_properties(component_content)
 
-            components.append(
-                Component(
-                    id=registry_entry.component_id,
-                    name=component_class,
-                    description='',
-                    catalog_type=registry_entry.catalog_type,
-                    source_identifier=registry_entry.component_identifier,
-                    definition=self.get_class_def_as_string(component_content),
-                    runtime_type=self.component_platform.name,
-                    categories=registry_entry.categories,
-                    properties=component_properties
-                )
-            )
+            new_component = Component(id=registry_entry.component_id,
+                                      name=component_class,
+                                      description='',
+                                      catalog_type=registry_entry.catalog_type,
+                                      source_identifier=registry_entry.component_identifier,
+                                      definition=self.get_class_def_as_string(component_content),
+                                      runtime_type=self.component_platform.name,
+                                      categories=registry_entry.categories,
+                                      properties=component_properties
+                                      )
+
+            components.append(new_component)
 
         return components
 
@@ -103,8 +103,11 @@ class AirflowComponentParser(ComponentParser):
             if arg in ['self', '*args', '**kwargs']:
                 continue
 
+            # Component parameter to be required to function correctly
+            required = True
             value = None
             if '=' in arg:
+                required = False  # We can use the default value if nothing is provided
                 arg, value = arg.split('=', 1)[:2]
                 value = ast.literal_eval(value)
                 if value and "\n" in str(value):
@@ -128,16 +131,28 @@ class AirflowComponentParser(ComponentParser):
                 self.log.debug(f"Data type from parsed data ('{data_type}') could not be determined. "
                                f"Proceeding as if 'string' was detected.")
 
-            properties.append(
-                ComponentParameter(
-                    id=arg,
-                    name=arg,
-                    data_type=data_type_info.data_type,
-                    value=(value or data_type_info.default_value),
-                    description=description,
-                    control_id=data_type_info.control_id
-                )
-            )
+            # Override control id since all input properties can take in an xcom
+            control_id = "OneOfControl"
+
+            # Set the default control type
+            default_control_type = data_type_info.control_id
+
+            # Create Dict of control ids that this property can use
+            one_of_control_types = [(default_control_type, data_type_info.data_type,
+                                    ControllerMap[default_control_type].value),
+                                    ("NestedEnumControl", "inputpath",
+                                    ControllerMap["NestedEnumControl"].value)]
+
+            component_params = ComponentParameter(id=arg,
+                                                  name=arg,
+                                                  data_type=data_type_info.data_type,
+                                                  value=(value or data_type_info.default_value),
+                                                  description=description,
+                                                  default_control_type=default_control_type,
+                                                  control_id=control_id,
+                                                  one_of_control_types=one_of_control_types,
+                                                  required=required)
+            properties.append(component_params)
 
         return properties
 

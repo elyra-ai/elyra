@@ -167,12 +167,12 @@ be fully qualified (i.e., prefixed with their package names).
                                                                  name=pipeline.runtime_config)
         image_namespace = self._get_metadata_configuration(schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
 
-        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-        cos_username = runtime_configuration.metadata['cos_username']
-        cos_password = runtime_configuration.metadata['cos_password']
+        cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+        cos_username = runtime_configuration.metadata.get('cos_username')
+        cos_password = runtime_configuration.metadata.get('cos_password')
         cos_secret = runtime_configuration.metadata.get('cos_secret')
         cos_directory = pipeline_name
-        cos_bucket = runtime_configuration.metadata['cos_bucket']
+        cos_bucket = runtime_configuration.metadata.get('cos_bucket')
 
         # Create dictionary that maps component Id to its ContainerOp instance
         target_ops = []
@@ -278,12 +278,35 @@ be fully qualified (i.e., prefixed with their package names).
                         continue
 
                     # Get corresponding property's value from parsed pipeline
-                    property_value = operation.component_params.get(component_property.ref)
+                    property_value_dict = operation.component_params.get(component_property.ref)
 
+                    # The type and value of this property can vary depending on what the user chooses
+                    # in the pipeline editor. So we get the current active parameter (e.g. StringControl)
+                    # from the activeControl value
+                    active_property_name = property_value_dict['activeControl']
+
+                    # One we have the value (e.g. StringControl) we use can retrieve the value
+                    # assigned to it
+                    property_value = property_value_dict.get(active_property_name, None)
+
+                    # If the value is not found, assign it the default value assigned in parser
+                    if not property_value:
+                        property_value = component_property.value
+
+                    self.log.debug(f"Active property name : {active_property_name}, value : {property_value}")
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
 
-                    if component_property.data_type == "string":
+                    if property_value and str(property_value)[0] == '{' and str(property_value)[-1] == '}' and \
+                        isinstance(json.loads(json.dumps(property_value)), dict) and \
+                            set(json.loads(json.dumps(property_value)).keys()) == {'value', 'option'}:
+                        parent_node_name = self._get_node_name(target_ops,
+                                                               json.loads(json.dumps(property_value))['value'])
+                        processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
+                        operation.component_params[component_property.ref] = processed_value
+                    elif component_property.data_type == "boolean":
+                        operation.component_params[component_property.ref] = property_value
+                    elif component_property.data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
                         operation.component_params[component_property.ref] = json.dumps(property_value)
@@ -300,6 +323,7 @@ be fully qualified (i.e., prefixed with their package names).
 
                 unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
                                                                         operation_list=target_ops)
+
                 # Locate the import statement. If not found raise...
                 import_stmts = []
                 import_stmt = self.class_import_map.get(component.name)
@@ -426,6 +450,11 @@ be fully qualified (i.e., prefixed with their package names).
         if isinstance(converted_value, str):
             converted_value = json.dumps(converted_value)
         return converted_value
+
+    def _get_node_name(self, operations_list: list, node_id: str) -> str:
+        for operation in operations_list:
+            if operation['id'] == node_id:
+                return operation['notebook']
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):

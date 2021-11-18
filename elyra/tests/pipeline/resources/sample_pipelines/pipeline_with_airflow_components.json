@@ -11,14 +11,26 @@
         {
           "id": "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3",
           "type": "execution_node",
-          "op": "url-catalog:49f8e61b78c3",
+          "op": "elyra-airflow-examples-catalog:3a55d015ea96",
           "app_data": {
             "label": "b",
             "component_parameters": {
-              "bash_command": "echo hello",
-              "xcom_push": true,
-              "env": "",
-              "output_encoding": "utf-8"
+              "bash_command": {
+                "activeControl": "StringControl",
+                "StringControl": "echo hello"
+              },
+              "xcom_push": {
+                "activeControl": "BooleanControl",
+                "BooleanControl": true
+              },
+              "env": {
+                "activeControl": "StringControl",
+                "StringControl": ""
+              },
+              "output_encoding": {
+                "activeControl": "StringControl",
+                "StringControl": "utf-8"
+              }
             },
             "ui_data": {
               "label": "b",
@@ -61,18 +73,42 @@
         {
           "id": "4ef63a48-a27c-4d1e-a0ee-2fbbdbe3be74",
           "type": "execution_node",
-          "op": "url-catalog:8bef428ea3cd",
+          "op": "elyra-airflow-examples-catalog:a043648d3897",
           "app_data": {
             "label": "d",
             "component_parameters": {
-              "to": "example@gmail.com",
-              "subject": "Hello from Airflow",
-              "html_content": "<p>hi</p>",
-              "files": "[]",
-              "cc": "[]",
-              "bcc": "[]",
-              "mime_subtype": "mixed",
-              "mime_charset": "us_ascii"
+              "to": {
+                "activeControl": "StringControl",
+                "StringControl": "example@gmail.com"
+              },
+              "subject": {
+                "activeControl": "StringControl",
+                "StringControl": "Hello from Airflow"
+              },
+              "html_content": {
+                "activeControl": "StringControl",
+                "StringControl": "<p>hi</p>"
+              },
+              "files": {
+                "activeControl": "StringControl",
+                "StringControl": "[]"
+              },
+              "cc": {
+                "activeControl": "StringControl",
+                "StringControl": "[]"
+              },
+              "bcc": {
+                "activeControl": "StringControl",
+                "StringControl": "[]"
+              },
+              "mime_subtype": {
+                "activeControl": "StringControl",
+                "StringControl": "mixed"
+              },
+              "mime_charset": {
+                "activeControl": "StringControl",
+                "StringControl": "us_ascii"
+              }
             },
             "ui_data": {
               "label": "d",
@@ -115,19 +151,46 @@
         {
           "id": "f82c4699-b392-4a3e-92b0-45d9e11126fe",
           "type": "execution_node",
-          "op": "url-catalog:e97030fb448a",
+          "op": "elyra-airflow-examples-catalog:b94cd49692e2",
           "app_data": {
             "label": "f",
             "component_parameters": {
-              "endpoint": "myendpoint/api",
-              "method": "POST",
-              "data": "{\"key\": \"myval\"}",
-              "headers": "{}",
-              "response_check": "",
-              "extra_options": "",
-              "xcom_push": false,
-              "http_conn_id": "http_default",
-              "log_response": false
+              "endpoint": {
+                "activeControl": "StringControl",
+                "StringControl": "myendpoint/api"
+              },
+              "method": {
+                "activeControl": "StringControl",
+                "StringControl": "POST"
+              },
+              "data": {
+                "activeControl": "StringControl",
+                "StringControl": "{\"key\": \"myval\"}"
+              },
+              "headers": {
+                "activeControl": "StringControl",
+                "StringControl": "{}"
+              },
+              "response_check": {
+                "activeControl": "StringControl",
+                "StringControl": ""
+              },
+              "extra_options": {
+                "activeControl": "StringControl",
+                "StringControl": ""
+              },
+              "xcom_push": {
+                "activeControl": "BooleanControl",
+                "BooleanControl": false
+              },
+              "http_conn_id": {
+                "activeControl": "StringControl",
+                "StringControl": "http_default"
+              },
+              "log_response": {
+                "activeControl": "BooleanControl",
+                "BooleanControl": false
+              }
             },
             "ui_data": {
               "label": "f",
@@ -176,19 +239,46 @@
         {
           "id": "779c2630-64bf-47ca-8a98-9ac8a60e85f7",
           "type": "execution_node",
-          "op": "local-file-catalog:81b4f925702e",
+          "op": "elyra-airflow-examples-catalog:16a204f716a2",
           "app_data": {
             "label": "x",
             "component_parameters": {
-              "slack_conn_id": "connection_id",
-              "token": "mytoken",
-              "api_params": "{}",
-              "channel": "#general",
-              "username": "Airflow",
-              "text": "No message has been set. Here is a cat video instead https://www.youtube.com/watch?v=J---aiyznGQ",
-              "icon_url": "https://raw.githubusercontent.com/apache/airflow/master/airflow/www/static/pin_100.png",
-              "attachments": "[]",
-              "blocks": "[]"
+              "slack_conn_id": {
+                "activeControl": "StringControl",
+                "StringControl": "connection_id"
+              },
+              "token": {
+                "activeControl": "StringControl",
+                "StringControl": "mytoken"
+              },
+              "api_params": {
+                "activeControl": "StringControl",
+                "StringControl": "{}"
+              },
+              "channel": {
+                "activeControl": "StringControl",
+                "StringControl": "#general"
+              },
+              "username": {
+                "activeControl": "StringControl",
+                "StringControl": "Airflow"
+              },
+              "text": {
+                "activeControl": "StringControl",
+                "StringControl": "No message has been set. Here is a cat video instead https://www.youtube.com/watch?v=J---aiyznGQ"
+              },
+              "icon_url": {
+                "activeControl": "StringControl",
+                "StringControl": "https://raw.githubusercontent.com/apache/airflow/master/airflow/www/static/pin_100.png"
+              },
+              "attachments": {
+                "activeControl": "StringControl",
+                "StringControl": "[]"
+              },
+              "blocks": {
+                "activeControl": "StringControl",
+                "StringControl": "[]"
+              }
             },
             "ui_data": {
               "label": "x",
@@ -230,14 +320,26 @@
         {
           "id": "92a7a247-1131-489c-8c3e-1e2389d4c673",
           "type": "execution_node",
-          "op": "url-catalog:49f8e61b78c3",
+          "op": "elyra-airflow-examples-catalog:3a55d015ea96",
           "app_data": {
             "label": "h",
             "component_parameters": {
-              "bash_command": "ls -l",
-              "xcom_push": false,
-              "env": "{\"key\": \"val\"}",
-              "output_encoding": "utf-8"
+              "bash_command": {
+                "activeControl": "StringControl",
+                "StringControl": "ls -l"
+              },
+              "xcom_push": {
+                "activeControl": "BooleanControl",
+                "BooleanControl": false
+              },
+              "env": {
+                "activeControl": "StringControl",
+                "StringControl": "{\"key\": \"val\"}"
+              },
+              "output_encoding": {
+                "activeControl": "StringControl",
+                "StringControl": "utf-8"
+              }
             },
             "ui_data": {
               "label": "h",
@@ -290,7 +392,7 @@
         },
         "version": 4,
         "runtime": "airflow",
-        "runtime-config": "airflow-yukked1",
+        "runtime_config": "airflow-yukked1",
         "source": "pipeline_with_custom_components.json"
       },
       "runtime_ref": ""

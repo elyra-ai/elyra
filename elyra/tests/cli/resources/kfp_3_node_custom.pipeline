@@ -11,7 +11,7 @@
         {
           "id": "151538a2-4279-49a4-8742-c3ed50c31b2d",
           "type": "execution_node",
-          "op": "url-catalog:4fc759382b1b",
+          "op": "elyra-kfp-examples-catalog:d68ec7fcdf46",
           "app_data": {
             "component_parameters": {
               "hash_algorithm": "SHA256",
@@ -68,7 +68,7 @@
         {
           "id": "321b18d9-1585-4a08-9ca7-9128ee3df527",
           "type": "execution_node",
-          "op": "url-catalog:c6c0588048ae",
+          "op": "elyra-kfp-examples-catalog:a08014f9252f",
           "app_data": {
             "component_parameters": {
               "url": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/error.py",
@@ -115,7 +115,7 @@
         {
           "id": "b7d9fe00-2a2d-4bd8-8fc4-73a9d8917052",
           "type": "execution_node",
-          "op": "local-directory-catalog:737915b826e9",
+          "op": "elyra-kfp-examples-catalog:737915b826e9",
           "app_data": {
             "component_parameters": {
               "component_description": "Filter input text according to the given regex pattern using shell and grep.",

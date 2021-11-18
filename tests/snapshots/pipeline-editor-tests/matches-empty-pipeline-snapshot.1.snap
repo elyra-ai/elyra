@@ -9,7 +9,6 @@ Object {
         "properties": Object {
           "name": "empty",
         },
-        "runtime_type": "Generic",
         "ui_data": Object {
           "comments": Array [],
         },

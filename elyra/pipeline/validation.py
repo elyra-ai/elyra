@@ -25,6 +25,7 @@ from typing import Optional
 import networkx as nx
 from traitlets.config import SingletonConfigurable
 
+from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
@@ -32,8 +33,10 @@ from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
+from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.path import get_expanded_path
 
 
@@ -117,7 +120,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                  message=issue)
 
         try:
-            pipeline_definition.primary_pipeline
+            primary_pipeline = pipeline_definition.primary_pipeline
         except ValueError:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidJSON",
@@ -125,24 +128,31 @@ class PipelineValidationManager(SingletonConfigurable):
 
             return response
 
-        pipeline_runtime = pipeline_definition.primary_pipeline.runtime  # local, kfp, airflow
-        if PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime) is False:
+        # Validation can be driven from runtime_config since both runtime and pipeline_type can
+        # be derived from that and we should not use the 'runtime' and 'runtime_type' fields in
+        # the pipeline.
+        # Note: validation updates the pipeline definition with the correct values
+        # of 'runtime' and 'runtime_type' obtained from 'runtime_config'.  We may want to move this
+        # into PipelineDefinition, but then parsing tests have issues because parsing (tests) assume
+        # no validation has been applied to the pipeline.
+        runtime_config = primary_pipeline.runtime_config
+        if runtime_config is None:
+            runtime_config = 'local'
+
+        pipeline_runtime = PipelineValidationManager._determine_runtime(runtime_config)
+        if PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime):
+            # Set the runtime since its derived from runtime_config and valid
+            primary_pipeline.set('runtime', pipeline_runtime)
+        else:
             response.add_message(severity=ValidationSeverity.Error,
                                  message_type="invalidRuntime",
                                  message="Unsupported pipeline runtime",
                                  data={"pipelineRuntime": pipeline_runtime})
 
-        pipeline_type = pipeline_definition.primary_pipeline.type  # generic, kfp, airflow
-        if pipeline_type == 'generic' and \
-                PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime) is False:
-            response.add_message(severity=ValidationSeverity.Error,
-                                 message_type="invalidRuntime",
-                                 message="Unsupported pipeline type",
-                                 data={"pipelineRuntime": pipeline_type})
-
         self._validate_pipeline_structure(pipeline_definition=pipeline_definition,
                                           response=response)
 
+        pipeline_type = PipelineValidationManager._determine_runtime_type(runtime_config)
         await self._validate_compatibility(pipeline_definition=pipeline_definition,
                                            pipeline_type=pipeline_type,
                                            pipeline_runtime=pipeline_runtime,
@@ -153,12 +163,43 @@ class PipelineValidationManager(SingletonConfigurable):
         if response.has_fatal:
             return response
 
+        # Set runtime_type since its derived from runtime_config, in case its needed
+        primary_pipeline.set("runtime_type", pipeline_type)
+
         await self._validate_node_properties(pipeline_definition=pipeline_definition,
                                              pipeline_type=pipeline_type,
                                              pipeline_runtime=pipeline_runtime,
                                              response=response)
 
         return response
+
+    @staticmethod
+    def _determine_runtime(runtime_config: str) -> str:
+        """Derives the runtime (processor) from the runtime_config. """
+        # If not present or 'local', treat as special case.
+        if not runtime_config or runtime_config.upper() == RuntimeProcessorType.LOCAL.name:
+            return RuntimeProcessorType.LOCAL.name.lower()
+
+        runtime_metadata = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID).get(runtime_config)
+        return runtime_metadata.schema_name
+
+    @staticmethod
+    def _determine_runtime_type(runtime_config: str) -> str:
+        """Derives the runtime type (platform) from the runtime_config. """
+        # Pull the runtime_type (platform) from the runtime_config
+        # Need to special case 'local' runtime_config instances
+        if runtime_config.lower() == 'local':
+            runtime_type = RuntimeProcessorType.LOCAL
+        else:
+            runtime_metadata = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID).get(runtime_config)
+            runtime_type_name = runtime_metadata.metadata.get('runtime_type')
+
+            try:
+                runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_name)
+            except (KeyError, TypeError):
+                raise ValueError(f"Unsupported pipeline runtime: '{runtime_type_name}' "
+                                 f"found in config '{runtime_config}'!")
+        return runtime_type.name
 
     def _validate_pipeline_structure(self, pipeline_definition: PipelineDefinition,
                                      response: ValidationResponse) -> None:
@@ -278,87 +319,126 @@ class PipelineValidationManager(SingletonConfigurable):
                 return
 
         for pipeline in pipeline_definition.pipelines:
-            component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-            components = ComponentCatalog.to_canvas_palette(component_list)
             for node in pipeline.nodes:
                 if node.type == 'execution_node':
-                    node_label = node.label
                     if Operation.is_generic_operation(node.op):
-                        image_name = node.get_component_parameter('runtime_image')
-                        filename = node.get_component_parameter("filename")
-                        dependencies = node.get_component_parameter("dependencies")
-                        env_vars = node.get_component_parameter("env_vars")
-
-                        self._validate_filepath(node_id=node.id, node_label=node_label, property_name='filename',
-                                                filename=filename, response=response)
-
-                        # If not running locally, we check resource and image name
-                        if pipeline_runtime != 'local':
-                            self._validate_container_image_name(node.id, node_label, image_name, response=response)
-                            for resource_name in ['cpu', 'gpu', 'memory']:
-                                resource_value = node.get_component_parameter(resource_name)
-                                if resource_value:
-                                    self._validate_resource_value(node.id, node_label, resource_name=resource_name,
-                                                                  resource_value=resource_value,
-                                                                  response=response)
-
-                        self._validate_label(node_id=node.id, node_label=node_label, response=response)
-                        if dependencies:
-                            notebook_root_relative_path = os.path.dirname(filename)
-                            for dependency in dependencies:
-                                self._validate_filepath(node_id=node.id, node_label=node_label,
-                                                        file_dir=os.path.join(self.root_dir,
-                                                                              notebook_root_relative_path),
-                                                        property_name='dependencies',
-                                                        filename=dependency, response=response)
-                        if env_vars:
-                            for env_var in env_vars:
-                                self._validate_environmental_variables(node.id, node_label, env_var=env_var,
-                                                                       response=response)
-
-                    # Validate runtime components against specific node properties in component catalog
+                        self._validate_generic_node_properties(node=node,
+                                                               response=response,
+                                                               pipeline_runtime=pipeline_runtime
+                                                               )
+                    # Validate runtime components against specific node properties in component registry
                     else:
-                        # This is the full dict of properties for the operation e.g. current params, optionals etc
-                        property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
-                        cleaned_property_list = list(map(lambda x: str(x).replace('elyra_', ''),
-                                                         property_dict['current_parameters'].keys()))
+                        await self._validate_custom_component_node_properties(node=node,
+                                                                              response=response,
+                                                                              pipeline_runtime=pipeline_runtime,
+                                                                              pipeline_type=pipeline_type,
+                                                                              pipeline_definition=pipeline_definition)
 
-                        # Remove the non component_parameter jinja templated values we do not check against
-                        cleaned_property_list.remove('component_source')
-                        cleaned_property_list.remove('label')
+    def _validate_generic_node_properties(self,
+                                          node: Node,
+                                          response: ValidationResponse,
+                                          pipeline_runtime: str):
+        """
+        Validate properties of a generic node
+        :param node: the generic node to check
+        :param response: the validation response object to attach any error messages
+        :param pipeline_runtime: the pipeline runtime selected
+        :return:
+        """
+        node_label = node.label
+        image_name = node.get_component_parameter('runtime_image')
+        filename = node.get_component_parameter("filename")
+        dependencies = node.get_component_parameter("dependencies")
+        env_vars = node.get_component_parameter("env_vars")
 
-                        for node_property in cleaned_property_list:
-                            component_param = node.get_component_parameter(node_property)
-                            if not component_param:
-                                if self._is_required_property(property_dict, node_property):
-                                    response.add_message(severity=ValidationSeverity.Error,
-                                                         message_type="invalidNodeProperty",
-                                                         message="Node is missing required property.",
-                                                         data={"nodeID": node.id,
-                                                               "nodeName": node_label,
-                                                               "propertyName": node_property})
-                            elif self._get_component_type(property_dict, node_property) == 'inputpath':
-                                # Any component property with type `InputPath` will be a dictionary of two keys
-                                # "value": the node ID of the parent node containing the output
-                                # "option": the name of the key (which is an output) of the above referenced node
-                                if not isinstance(component_param, dict) or \
-                                        len(component_param) != 2 or \
-                                        set(component_param.keys()) != {'value', 'option'}:
-                                    response.add_message(severity=ValidationSeverity.Error,
-                                                         message_type="invalidNodeProperty",
-                                                         message="Node has malformed `InputPath` parameter structure",
-                                                         data={"nodeID": node.id,
-                                                               "nodeName": node_label})
+        self._validate_filepath(node_id=node.id, node_label=node_label, property_name='filename',
+                                filename=filename, response=response)
 
-                                node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
-                                parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
-                                if node.get_component_parameter(node_property)['value'] not in parent_list:
-                                    response.add_message(severity=ValidationSeverity.Error,
-                                                         message_type="invalidNodeProperty",
-                                                         message="Node contains an invalid inputpath reference. Please "
-                                                                 "check your node-to-node connections",
-                                                         data={"nodeID": node.id,
-                                                               "nodeName": node_label})
+        # If not running locally, we check resource and image name
+        if pipeline_runtime != 'local':
+            self._validate_container_image_name(node.id, node_label, image_name, response=response)
+            for resource_name in ['cpu', 'gpu', 'memory']:
+                resource_value = node.get_component_parameter(resource_name)
+                if resource_value:
+                    self._validate_resource_value(node.id, node_label, resource_name=resource_name,
+                                                  resource_value=resource_value,
+                                                  response=response)
+
+        self._validate_label(node_id=node.id, node_label=node_label, response=response)
+        if dependencies:
+            notebook_root_relative_path = os.path.dirname(filename)
+            for dependency in dependencies:
+                self._validate_filepath(node_id=node.id, node_label=node_label,
+                                        file_dir=os.path.join(self.root_dir,
+                                                              notebook_root_relative_path),
+                                        property_name='dependencies',
+                                        filename=dependency, response=response)
+        if env_vars:
+            for env_var in env_vars:
+                self._validate_environmental_variables(node.id, node_label, env_var=env_var,
+                                                       response=response)
+
+    async def _validate_custom_component_node_properties(self,
+                                                         node: Node,
+                                                         response: ValidationResponse,
+                                                         pipeline_type: str,
+                                                         pipeline_definition: PipelineDefinition,
+                                                         pipeline_runtime: str):
+        """
+        Validates the properties of the custom component node
+        :param node: the node to be validated
+        :param response: the validation response object to attach any error messages
+        :param pipeline_type: the pipeline type detected in the pipeline
+        :param pipeline_definition: the pipeline definition containing the node
+        :param pipeline_runtime: the pipeline runtime selected
+        :return:
+        """
+
+        component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
+        components = ComponentCatalog.to_canvas_palette(component_list)
+
+        # Full dict of properties for the operation e.g. current params, optionals etc
+        component_property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
+
+        # List of just the current parameters for the component
+        current_parameter_defaults_list = list(map(lambda x: str(x).replace('elyra_', ''),
+                                                   component_property_dict['current_parameters'].keys()))
+
+        # Remove the non component_parameter jinja templated values we do not check against
+        current_parameter_defaults_list.remove('component_source')
+        current_parameter_defaults_list.remove('label')
+
+        for default_parameter in current_parameter_defaults_list:
+            node_param_value = node.get_component_parameter(default_parameter)
+            if self._is_required_property(component_property_dict, default_parameter):
+                if not node_param_value:
+                    response.add_message(severity=ValidationSeverity.Error,
+                                         message_type="invalidNodeProperty",
+                                         message="Node is missing required property.",
+                                         data={"nodeID": node.id,
+                                               "nodeName": node.label,
+                                               "propertyName": default_parameter})
+                elif self._get_component_type(component_property_dict, default_parameter) == 'inputpath':
+                    # Any component property with type `InputPath` will be a dictionary of two keys
+                    # "value": the node ID of the parent node containing the output
+                    # "option": the name of the key (which is an output) of the above referenced node
+                    if not isinstance(node_param_value, dict) or \
+                            len(node_param_value) != 2 or \
+                            set(node_param_value.keys()) != {'value', 'option'}:
+                        response.add_message(severity=ValidationSeverity.Error,
+                                             message_type="invalidNodeProperty",
+                                             message="Node has malformed `InputPath` parameter structure",
+                                             data={"nodeID": node.id,
+                                                   "nodeName": node.label})
+                    node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
+                    parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
+                    if node_param_value.get('value') not in parent_list:
+                        response.add_message(severity=ValidationSeverity.Error,
+                                             message_type="invalidNodeProperty",
+                                             message="Node contains an invalid inputpath reference. Please "
+                                                     "check your node-to-node connections",
+                                             data={"nodeID": node.id,
+                                                   "nodeName": node.label})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:
@@ -572,7 +652,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                      message="Node is not connected to any other node.",
                                      data={"nodeID": isolate,
                                            "nodeName":
-                                           self._get_node_names(pipeline=pipeline, node_id_list=[isolate])[0],
+                                               self._get_node_names(pipeline=pipeline, node_id_list=[isolate])[0],
                                            "pipelineID": self._get_pipeline_id(pipeline, node_id=isolate)})
 
         cycles_detected = nx.simple_cycles(graph)
@@ -705,16 +785,20 @@ class PipelineValidationManager(SingletonConfigurable):
                 return parameter['data']['required']
         return False
 
-    def _get_component_type(self, property_dict: dict, node_property: str) -> str:
+    def _get_component_type(self, property_dict: dict, node_property: str, control_id: str = '') -> str:
         """
         Helper function to determine the type of a node property
         :param property_dict: a dictionary containing the full list of property parameters and descriptions
         :param node_property: the property to look for
+        :param control_id: when using OneOfControl, include the control_id to retrieve the correct format
         :return: the data type associated with node_property, defaults to 'string'
         """
         for prop in property_dict['uihints']['parameter_info']:
             if prop["parameter_ref"] == f"elyra_{node_property}":
-                return prop['data'].get('format', 'string')
+                if control_id:
+                    return prop['data']['controls'][control_id].get('format', 'string')
+                else:
+                    return prop['data'].get('format', 'string')
 
     def _get_parent_id_list(self, pipeline_definition: PipelineDefinition,
                             node_id_list: list, parent_list: list) -> List:
@@ -735,7 +819,7 @@ class PipelineValidationManager(SingletonConfigurable):
                         if pipeline_definition.get_node(nid).type == 'binding':
                             node_ids.remove(nid)
                             for super_node in pipeline_definition.get_supernodes():
-                                if super_node['inputs'][0]['subflow_node_ref'] == nid:
+                                if super_node.subflow_pipeline_id == nid:
                                     links = list(x.get('node_id_ref', None) for x in super_node.component_links)
                                     node_ids.append(links)
                     self._get_parent_id_list(pipeline_definition, node_ids, parent_list)

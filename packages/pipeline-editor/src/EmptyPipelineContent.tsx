@@ -20,23 +20,40 @@ import React from 'react';
 
 const HEADER_CLASS = 'empty-pipeline-header';
 
-const COMPONENT_EXAMPLES_URL =
-  'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
+export const EmptyGenericPipeline: React.FC = () => {
+  return (
+    <div>
+      <dragDropIcon.react
+        className="drag-drop-icon"
+        tag="div"
+        elementPosition="center"
+        height="120px"
+      />
+      <h3 className={HEADER_CLASS}>
+        Start your new pipeline by dragging files from the file browser pane
+      </h3>
+    </div>
+  );
+};
 
-export interface IEmptyPipelineContentProps {
-  openComponentCatalog?: () => void;
+export interface IEmptyPlatformSpecificPipelineProps {
+  onOpenCatalog: () => void;
 }
 
-export const EmptyPipelineContent: React.FC<IEmptyPipelineContentProps> = ({
-  openComponentCatalog
+export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipelineProps> = ({
+  onOpenCatalog
 }) => {
-  const componentCatalogGuide = (
+  const componentExamplesURL =
+    'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
+
+  return (
     <div>
-      <h3>
+      <EmptyGenericPipeline />
+      <h3 className={HEADER_CLASS}>
         or add custom components by clicking the{' '}
         <button
           className={'open-component-catalog-button'}
-          onClick={openComponentCatalog}
+          onClick={onOpenCatalog}
         >
           <componentCatalogIcon.react
             className="component-catalog-icon"
@@ -48,10 +65,10 @@ export const EmptyPipelineContent: React.FC<IEmptyPipelineContentProps> = ({
         <br />
         <br />
       </h3>
-      <h4>
+      <h4 className={HEADER_CLASS}>
         Refer to
         <a
-          href={COMPONENT_EXAMPLES_URL}
+          href={componentExamplesURL}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -60,23 +77,6 @@ export const EmptyPipelineContent: React.FC<IEmptyPipelineContentProps> = ({
         </a>
         for more details about adding custom components.
       </h4>
-    </div>
-  );
-
-  return (
-    <div>
-      <dragDropIcon.react
-        className="drag-drop-icon"
-        tag="div"
-        elementPosition="center"
-        height="120px"
-      />
-      <div className={HEADER_CLASS}>
-        <h3>
-          Start your new pipeline by dragging files from the file browser pane
-        </h3>
-        {openComponentCatalog ? componentCatalogGuide : null}
-      </div>
     </div>
   );
 };

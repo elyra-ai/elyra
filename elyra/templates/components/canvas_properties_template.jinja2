@@ -3,14 +3,23 @@
       {% if component.description %}"component_description": "{{ component.description }}",{% endif %}
       "label": "",
 {% for property in component.properties %}
+        "elyra_{{ property.ref }}":
+    {% if property.control_id == "OneOfControl" %}
+        {
+        "activeControl": "{{ property.default_control_type }}",
+        "{{ property.default_control_type }}":
+    {% endif %}
     {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
-      "elyra_{{ property.ref }}": {{ property.value|lower }}
+        {{ property.value|lower }}
     {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
-      "elyra_{{ property.ref }}": {{ property.value }}
-    {% elif property.type|lower == "dict" %}
-      "elyra_{{ property.ref }}": '{'{{ property.value }}'}'
+        {{ property.value }}
+    {% elif property.data_type|lower == "dict" or property.data_type|lower == "dictionary" %}
+        "{% raw %}{{% endraw %}{{ property.value }}{% raw %}}{% endraw %}"
     {% else %}
-      "elyra_{{ property.ref }}": "{{ property.value }}"
+        "{{ property.value }}"
+    {% endif %}
+    {% if property.control_id == "OneOfControl" %}
+        }
     {% endif %},
 {% endfor %}
       "component_source": "{{ component.component_source }}"
@@ -74,7 +83,25 @@
             "placement": "on_panel"
           },
           "data": {
+    {% if property.control_id == "OneOfControl" %}
+            "controls":{
+        {% for control, control_data_type, control_label in property.one_of_control_types %}
+                  "{{ control }}": {
+                    "label": "{{ control_label }}",
+                    "format": "{{ control_data_type }}"
+            {% if control == 'NestedEnumControl' %}
+                    ,
+                    "allownooptions": false
+            {% endif %}
+                  }
+            {% if loop.index != loop.length %}
+                  ,
+            {% endif %}
+        {%  endfor %}
+            },
+    {% else %}
             "format": "{{ property.data_type }}",
+    {% endif %}
             "required": {{ property.required|lower }}
             {% if property.control_id == "EnumControl" %}
             ,

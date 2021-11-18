@@ -52,6 +52,7 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
   className: string;
   schemas?: IDictionary<any>[];
   titleContext?: string;
+  appendToTitle?: boolean;
 }
 
 /**
@@ -126,7 +127,7 @@ export class RuntimesWidget extends MetadataWidget {
   }
 
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes(false).catch(error =>
+    return await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
   }
@@ -142,6 +143,15 @@ export class RuntimesWidget extends MetadataWidget {
 
     return 'runtime configuration';
   };
+
+  addMetadata(schema: string, titleContext?: string): void {
+    this.openMetadataEditor({
+      onSave: this.updateMetadata,
+      schemaspace: this.props.schemaspace,
+      schema: schema,
+      titleContext: titleContext
+    });
+  }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
     if (Array.isArray(metadata) && !metadata.length) {
@@ -167,6 +177,7 @@ export class RuntimesWidget extends MetadataWidget {
         className={RUNTIMES_METADATA_CLASS}
         labelName={this.getSchemaTitle}
         titleContext={this.props.titleContext}
+        appendToTitle={this.props.appendToTitle}
       />
     );
   }
