@@ -15,16 +15,8 @@
  */
 
 import { MetadataService, RequestHandler } from '@elyra/services';
-import {
-  pipelineIcon,
-  kubeflowIcon,
-  airflowIcon,
-  argoIcon,
-  pyIcon,
-  rIcon,
-  IconUtil
-} from '@elyra/ui-components';
-import { LabIcon, notebookIcon } from '@jupyterlab/ui-components';
+import { pyIcon, rIcon } from '@elyra/ui-components';
+import { notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
 import useSWR from 'swr';
 
@@ -86,6 +78,7 @@ export interface IRuntimeComponent {
     op: string;
     id: string;
     label: string;
+    image: string;
     runtime_type?: string;
     type: 'execution_node';
     inputs: { app_data: any }[];
@@ -147,12 +140,34 @@ export const sortPalette = (palette: {
   }
 };
 
+// TODO: This should be enabled through `extensions`
+const NodeIcons: Map<string, string> = new Map([
+  [
+    'execute-notebook-node',
+    'data:image/svg+xml;utf8,' + encodeURIComponent(notebookIcon.svgstr)
+  ],
+  [
+    'execute-python-node',
+    'data:image/svg+xml;utf8,' + encodeURIComponent(pyIcon.svgstr)
+  ],
+  [
+    'execute-r-node',
+    'data:image/svg+xml;utf8,' + encodeURIComponent(rIcon.svgstr)
+  ]
+]);
+
 // TODO: We should decouple components and properties to support lazy loading.
 // TODO: type this
 const componentFetcher = async (type: string): Promise<any> => {
-  const palette = await RequestHandler.makeGetRequest<
+  const palettePromise = RequestHandler.makeGetRequest<
     IRuntimeComponentsResponse
   >(`elyra/pipeline/components/${type}`);
+
+  const typesPromise = RequestHandler.makeGetRequest(
+    'elyra/pipeline/runtimes/types'
+  );
+
+  const [palette, types] = await Promise.all([palettePromise, typesPromise]);
 
   // Gather list of component IDs to fetch properties for.
   const componentList: string[] = [];
@@ -178,27 +193,29 @@ const componentFetcher = async (type: string): Promise<any> => {
   // inject properties
   for (const category of palette.categories) {
     // Use the runtime_type from the first node of the category to determine category
-    // icon.  TODO: Ideally, this would be included in the category.
+    // icon.
+    // TODO: Ideally, this would be included in the category.
     const category_runtime_type =
-      category.node_types?.[0]?.runtime_type ?? 'GENERIC';
-    switch (category_runtime_type) {
-      case 'KUBEFLOW_PIPELINES':
-        category.image = IconUtil.encode(kubeflowIcon);
-        break;
-      case 'APACHE_AIRFLOW':
-        category.image = IconUtil.encode(airflowIcon);
-        break;
-      case 'ARGO':
-        category.image = IconUtil.encode(argoIcon);
-        break;
-      default:
-        category.image = IconUtil.encode(
-          IconUtil.colorize(pipelineIcon, '#808080')
-        );
-        break;
-    }
+      category.node_types?.[0]?.runtime_type ?? 'LOCAL';
+
+    const type = types.runtime_types.find(
+      (t: any) => t.id === category_runtime_type
+    );
+
+    category.image = `/${type.icon}`;
 
     for (const node of category.node_types) {
+      // update icon
+      let nodeIcon = NodeIcons.get(node.op);
+      if (nodeIcon === undefined || nodeIcon === '') {
+        nodeIcon = `/${type.icon}`;
+      }
+
+      // Not sure which is needed...
+      node.image = nodeIcon;
+      node.app_data.image = nodeIcon;
+      node.app_data.ui_data.image = nodeIcon;
+
       const prop = properties.find(p => p.id === node.id);
       node.app_data.properties = prop?.properties;
     }
@@ -207,32 +224,6 @@ const componentFetcher = async (type: string): Promise<any> => {
   sortPalette(palette);
 
   return palette;
-};
-
-// TODO: This should be enabled through `extensions`
-const NodeIcons: Map<string, string> = new Map([
-  [
-    'execute-notebook-node',
-    'data:image/svg+xml;utf8,' + encodeURIComponent(notebookIcon.svgstr)
-  ],
-  [
-    'execute-python-node',
-    'data:image/svg+xml;utf8,' + encodeURIComponent(pyIcon.svgstr)
-  ],
-  [
-    'execute-r-node',
-    'data:image/svg+xml;utf8,' + encodeURIComponent(rIcon.svgstr)
-  ]
-]);
-
-export const getRuntimeIcon = (runtime_type?: string): LabIcon => {
-  const runtimeIcons = [kubeflowIcon, airflowIcon, argoIcon];
-  for (const runtimeIcon of runtimeIcons) {
-    if (`elyra:${runtime_type}` === runtimeIcon.name) {
-      return runtimeIcon;
-    }
-  }
-  return pipelineIcon;
 };
 
 export const usePalette = (type = 'local'): IReturn<any> => {
@@ -245,19 +236,6 @@ export const usePalette = (type = 'local'): IReturn<any> => {
     updatedPalette = produce(palette, (draft: any) => {
       for (const category of draft.categories) {
         for (const node of category.node_types) {
-          // update icon
-          let nodeIcon = NodeIcons.get(node.op);
-          if (nodeIcon === undefined || nodeIcon === '') {
-            nodeIcon =
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(getRuntimeIcon(node.runtime_type).svgstr);
-          }
-
-          // Not sure which is needed...
-          node.image = nodeIcon;
-          node.app_data.image = nodeIcon;
-          node.app_data.ui_data.image = nodeIcon;
-
           // update runtime images
           const runtimeImageIndex = node.app_data.properties.uihints.parameter_info.findIndex(
             (p: any) => p.parameter_ref === 'elyra_runtime_image'
