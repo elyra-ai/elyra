@@ -55,7 +55,24 @@ const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
   ['.r', ContentType.r]
 ]);
 
+export interface IRuntimeType {
+  id: string;
+  display_name: string;
+  icon: string;
+  export_file_types: { id: string; display_name: string }[];
+}
+
 export class PipelineService {
+  /**
+   * Returns a list of resources corresponding to each active runtime-type.
+   */
+  static async getRuntimeTypes(): Promise<IRuntimeType[]> {
+    const res = await RequestHandler.makeGetRequest(
+      'elyra/pipeline/runtimes/types'
+    );
+    return res.runtime_types;
+  }
+
   /**
    * Returns a list of external runtime configurations available as
    * `runtimes metadata`. This is used to submit the pipeline to be

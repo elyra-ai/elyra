@@ -16,10 +16,9 @@
 
 import json
 
+from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.tests.pipeline import resources
-
-# from jupyter_server.tests.utils import expected_http_error
-# from tornado.httpclient import HTTPClientError
 
 try:
     import importlib.resources as pkg_resources
@@ -44,3 +43,24 @@ async def test_get_component_properties_config(jp_fetch):
     payload = json.loads(response.body.decode())
     properties = json.loads(pkg_resources.read_text(resources, 'properties.json'))
     assert payload == properties
+
+
+async def test_runtime_types_resources(jp_fetch):
+    # Ensure appropriate runtime types resources can be fetched
+    response = await jp_fetch('elyra', 'pipeline', 'runtimes', 'types')
+    assert response.code == 200
+
+    resources = json.loads(response.body.decode())
+
+    runtime_types = resources['runtime_types']
+    assert len(runtime_types) >= 1  # We should have Local for sure
+    for runtime_type_resources in runtime_types:
+        assert runtime_type_resources.get('id') in ['LOCAL', 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW', 'ARGO']
+
+        # Acquire corresponding instance and compare that results are the same
+        runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_resources.get('id'))
+        resources_instance = RuntimeTypeResources.get_instance_by_type(runtime_type)
+
+        assert runtime_type_resources.get('display_name') == resources_instance.display_name
+        assert runtime_type_resources.get('export_file_types') == resources_instance.export_file_types
+        assert runtime_type_resources.get('icon') == resources_instance.icon_endpoint
