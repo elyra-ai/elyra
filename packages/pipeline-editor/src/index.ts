@@ -206,6 +206,10 @@ const extension: JupyterFrontEndPlugin<void> = {
             ext: '.pipeline'
           })
           .then(async model => {
+            const platformId = args.runtimeType?.id;
+            const runtime_type =
+              platformId === 'LOCAL' ? undefined : platformId;
+
             const pipelineJson = {
               doc_type: 'pipeline',
               version: '3.0',
@@ -222,7 +226,7 @@ const extension: JupyterFrontEndPlugin<void> = {
                       comments: []
                     },
                     version: PIPELINE_CURRENT_VERSION,
-                    runtime_type: args.runtimeType?.id
+                    runtime_type
                   },
                   runtime_ref: ''
                 }
