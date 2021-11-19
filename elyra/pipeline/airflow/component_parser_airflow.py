@@ -127,6 +127,10 @@ class AirflowComponentParser(ComponentParser):
             description = self._format_description(description=description, data_type=data_type)
 
             data_type_info = self.determine_type_information(data_type)
+
+            if 'xcom' in arg.lower() and data_type_info.data_type == 'boolean':
+                data_type_info.default_value = True
+
             if data_type_info.undetermined:
                 self.log.debug(f"Data type from parsed data ('{data_type}') could not be determined. "
                                f"Proceeding as if 'string' was detected.")
