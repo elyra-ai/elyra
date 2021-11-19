@@ -60,6 +60,10 @@ import Alert from '@material-ui/lab/Alert';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  EmptyGenericPipeline,
+  EmptyPlatformSpecificPipeline
+} from './EmptyPipelineContent';
 import { formDialogWidget } from './formDialogWidget';
 import {
   usePalette,
@@ -909,6 +913,10 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
+  const handleOpenCatalog = (): void => {
+    shell.activateById(`elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -934,7 +942,13 @@ const PipelineWrapper: React.FC<IProps> = ({
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
           leftPalette={true}
-        />
+        >
+          {type === undefined ? (
+            <EmptyGenericPipeline />
+          ) : (
+            <EmptyPlatformSpecificPipeline onOpenCatalog={handleOpenCatalog} />
+          )}
+        </PipelineEditor>
       </Dropzone>
     </ThemeProvider>
   );
