@@ -407,8 +407,6 @@ class PipelineValidationManager(SingletonConfigurable):
 
         for default_parameter in current_parameter_defaults_list:
             node_param = node.get_component_parameter(default_parameter)
-
-            print(node_param)
             if self._is_required_property(component_property_dict, default_parameter):
                 if not node_param:
                     response.add_message(severity=ValidationSeverity.Error,
