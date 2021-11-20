@@ -111,9 +111,15 @@ const getAllPaletteNodes = (palette: any): any[] => {
   return nodes;
 };
 
-const isRuntimeTypeAvailable = (data: IRuntimeData, type: string): boolean => {
-  const configs = data.platforms.find(p => p.id === type)?.configs ?? [];
-  return configs.length > 0;
+const isRuntimeTypeAvailable = (data: IRuntimeData, type?: string): boolean => {
+  for (const p of data.platforms) {
+    if (type === undefined || p.id === type) {
+      if (p.configs.length > 0) {
+        return true;
+      }
+    }
+  }
+  return false;
 };
 
 const getDisplayName = (
@@ -534,7 +540,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       });
 
       let title = `${actionType} pipeline`;
-      if (type !== undefined) {
+      if (actionType === 'export' || type !== undefined) {
         title = `${actionType} pipeline for ${runtimeDisplayName}`;
 
         if (!isRuntimeTypeAvailable(runtimeData, type)) {
