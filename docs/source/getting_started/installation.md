@@ -33,6 +33,16 @@ JupyterLab dependencies:
 
 The instructions below are installing the latest release.
 
+### Packaging
+
+Prior to version 3.1, the `elyra` package included all dependencies. Subsequent releases allow for selective dependency installation:
+
+- `elyra` - install the Elyra core features
+- `elyra[all]` - install core features and all dependencies
+- `elyra[kfp-tekton]` - install the Elyra core features and support for [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton)
+- `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
+- `elyra[airflow-examples]` - install the Elyra core features and [Apache Airflow custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
+
 ### pip
 
 **NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
@@ -42,9 +52,6 @@ If you use `pip`, install Elyra with:
 ```bash
 pip3 install --upgrade elyra[all] && jupyter lab build
 ```
-
-**NOTE:**
-The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton) dependency [is no longer installed by default](https://github.com/elyra-ai/elyra/pull/2043). To install this dependency, you must specify `elyra[all]` or `elyra[kfp-tekton]`.
 
 If desired, you can install these Elyra extensions independently:
 
