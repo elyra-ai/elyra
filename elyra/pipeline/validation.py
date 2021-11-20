@@ -442,7 +442,8 @@ class PipelineValidationManager(SingletonConfigurable):
                     # TODO: Update this hardcoded check for xcom_push. This parameter is specific to a runtime
                     # (Airflow). i.e. abstraction for byo validation?
                     node_param_value = node_param['NestedEnumControl'].get('value')
-                    xcom_param = pipeline_definition.get_node(node_param_value).get_component_parameter('xcom_push')
+                    xcom_node = pipeline_definition.get_node(node_param_value)
+                    xcom_param = xcom_node.get_component_parameter('xcom_push')
                     xcom_value = xcom_param.get('BooleanControl')
                     if not xcom_value:
                         response.add_message(severity=ValidationSeverity.Error,
@@ -451,7 +452,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                                      "node properties does not have xcom_push enabled",
                                              data={"nodeID": node.id,
                                                    "nodeName": node.label,
-                                                   "parentNodeID": pipeline_definition.get_node(node_param_value).label})
+                                                   "parentNodeID": xcom_node.label})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:
