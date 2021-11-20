@@ -16,6 +16,7 @@
 
 import os
 
+from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
@@ -574,3 +575,27 @@ async def test_pipeline_invalid_kfp_inputpath_missing_connection(validation_mana
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidNodeProperty'
     assert issues[0]['data']['nodeID'] == invalid_node_id
+
+
+@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+async def test_pipeline_aa_parent_node_missing_xcom_push(validation_manager,
+                                                         load_pipeline,
+                                                         component_cache_instance):
+
+    invalid_node_id = 'b863d458-21b5-4a46-8420-5a814b7bd525'
+    invalid_operator = 'BashOperator'
+
+    pipeline, response = load_pipeline('aa_parent_node_missing_xcom.pipeline')
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
+                                                       response=response,
+                                                       pipeline_type='APACHE_AIRFLOW',
+                                                       pipeline_runtime='airflow')
+
+    issues = response.to_json().get('issues')
+    assert len(issues) == 1
+    assert response.has_fatal
+    assert issues[0]['severity'] == 1
+    assert issues[0]['type'] == 'invalidNodeProperty'
+    assert issues[0]['data']['nodeID'] == invalid_node_id
+    assert issues[0]['data']['parentNodeID'] == invalid_operator
