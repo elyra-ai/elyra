@@ -31,6 +31,9 @@ npm install -g yarn
 # Build Elyra Distribution
 make release
 
+# install pipeline example components (but don't enable them)
+make install-examples
+
 # Updage dependencies and install Elyra wheel
 pip install --upgrade pip
 pip install --upgrade --use-deprecated=legacy-resolver tornado jupyter-core jupyter-server jupyterlab dist/*.whl
