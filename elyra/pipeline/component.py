@@ -324,12 +324,15 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 data_type = option
                 if data_type in ['dict', 'dictionary']:
                     data_type = "dictionary"
+                    default_value = {}
                 elif data_type in ['list', 'set', 'array', 'arr']:
                     data_type = "list"
+                    default_value = []
 
                 # Since we know the type, create our return value and bail
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type=data_type)
+                                                                       data_type=data_type,
+                                                                       default_value=default_value)
                 break
         else:  # None of the container types were found...
             # Standardize type names
