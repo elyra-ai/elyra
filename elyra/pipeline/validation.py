@@ -440,17 +440,18 @@ class PipelineValidationManager(SingletonConfigurable):
                     # TODO: Update this hardcoded check for xcom_push. This parameter is specific to a runtime
                     # (Airflow). i.e. abstraction for byo validation?
                     node_param_value = node_param['NestedEnumControl'].get('value')
-                    xcom_node = pipeline_definition.get_node(node_param_value)
-                    xcom_param = xcom_node.get_component_parameter('xcom_push')
-                    xcom_value = xcom_param.get('BooleanControl')
-                    if not xcom_value:
-                        response.add_message(severity=ValidationSeverity.Error,
-                                             message_type="invalidNodeProperty",
-                                             message="Node contains an invalid inputpath reference. The parent "
-                                                     "node properties does not have xcom_push enabled",
-                                             data={"nodeID": node.id,
-                                                   "nodeName": node.label,
-                                                   "parentNodeID": xcom_node.label})
+                    upstream_node = pipeline_definition.get_node(node_param_value)
+                    xcom_param = upstream_node.get_component_parameter('xcom_push')
+                    if xcom_param:
+                        xcom_value = xcom_param.get('BooleanControl')
+                        if not xcom_value:
+                            response.add_message(severity=ValidationSeverity.Error,
+                                                 message_type="invalidNodeProperty",
+                                                 message="Node contains an invalid input reference. The parent "
+                                                         "node does not have the xcom_push property enabled",
+                                                 data={"nodeID": node.id,
+                                                       "nodeName": node.label,
+                                                       "parentNodeID": upstream_node.label})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:
