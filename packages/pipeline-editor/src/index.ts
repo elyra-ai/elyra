@@ -16,6 +16,7 @@
 
 import { MetadataWidget } from '@elyra/metadata-common';
 import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
+import { RequestHandler } from '@elyra/services';
 import {
   containerIcon,
   pipelineIcon,
@@ -38,9 +39,8 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-import { addIcon } from '@jupyterlab/ui-components';
+import { addIcon, LabIcon } from '@jupyterlab/ui-components';
 
-import { getRuntimeIcon } from './pipeline-hooks';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 import {
@@ -56,6 +56,20 @@ const PIPELINE_EDITOR = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
 const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
+
+const createRemoteIcon = async ({
+  name,
+  url
+}: {
+  name: string;
+  url: string;
+}): Promise<LabIcon> => {
+  const svgstr = await RequestHandler.makeServerRequest<string>(url, {
+    method: 'GET',
+    type: 'text'
+  });
+  return new LabIcon({ name, svgstr });
+};
 
 /**
  * Initialization data for the pipeline-editor-extension extension.
@@ -151,30 +165,37 @@ const extension: JupyterFrontEndPlugin<void> = {
     const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
     app.commands.addCommand(openPipelineEditorCommand, {
       label: (args: any) => {
-        return args['isPalette']
-          ? `New ${PIPELINE_EDITOR}`
-          : args.runtime?.title
-          ? args.isMenu
-            ? `${args.runtime?.title} ${PIPELINE_EDITOR}`
-            : PIPELINE_EDITOR
-          : `Generic ${PIPELINE_EDITOR}`;
-      },
-      caption: (args: any) =>
-        args.runtime?.title
-          ? `${args.runtime?.title} ${PIPELINE_EDITOR}`
-          : `Generic ${PIPELINE_EDITOR}`,
-      iconLabel: (args: any) =>
-        args['isPalette']
-          ? ''
-          : args.runtime?.title
-          ? `${args.runtime?.title} ${PIPELINE_EDITOR}`
-          : `Generic ${PIPELINE_EDITOR}`,
-      icon: (args: any) => {
-        if (args['isPalette']) {
-          return undefined;
-        } else {
-          return getRuntimeIcon(args.runtime?.runtime_type);
+        if (args.isPalette) {
+          return `New ${PIPELINE_EDITOR}`;
         }
+        if (args.runtimeType?.id === 'LOCAL') {
+          return `Generic ${PIPELINE_EDITOR}`;
+        }
+        if (args.isMenu) {
+          return `${args.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
+        }
+        return PIPELINE_EDITOR;
+      },
+      caption: (args: any) => {
+        if (args.runtimeType?.id === 'LOCAL') {
+          return `Generic ${PIPELINE_EDITOR}`;
+        }
+        return `${args.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
+      },
+      iconLabel: (args: any) => {
+        if (args.isPalette) {
+          return '';
+        }
+        if (args.runtimeType?.id === 'LOCAL') {
+          return `Generic ${PIPELINE_EDITOR}`;
+        }
+        return `${args.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
+      },
+      icon: (args: any) => {
+        if (args.isPalette) {
+          return undefined;
+        }
+        return args.runtimeType?.icon;
       },
       execute: (args: any) => {
         // Creates blank file, then opens it in a new window
@@ -185,6 +206,10 @@ const extension: JupyterFrontEndPlugin<void> = {
             ext: '.pipeline'
           })
           .then(async model => {
+            const platformId = args.runtimeType?.id;
+            const runtime_type =
+              platformId === 'LOCAL' ? undefined : platformId;
+
             const pipelineJson = {
               doc_type: 'pipeline',
               version: '3.0',
@@ -201,7 +226,7 @@ const extension: JupyterFrontEndPlugin<void> = {
                       comments: []
                     },
                     version: PIPELINE_CURRENT_VERSION,
-                    runtime_type: args.runtime?.runtime_type
+                    runtime_type
                   },
                   runtime_ref: ''
                 }
@@ -231,50 +256,42 @@ const extension: JupyterFrontEndPlugin<void> = {
       category: 'Elyra'
     });
 
-    PipelineService.getRuntimesSchema().then(
-      (schema: any) => {
+    PipelineService.getRuntimeTypes()
+      .then(async types => {
+        const promises = types.map(async t => {
+          return {
+            ...t,
+            icon: await createRemoteIcon({
+              name: `elyra:platform:${t.id}`,
+              url: t.icon
+            })
+          };
+        });
+
+        const resolvedTypes = await Promise.all(promises);
+
         // Add the command to the launcher
         if (launcher) {
-          launcher.add({
-            command: openPipelineEditorCommand,
-            category: 'Elyra',
-            rank: 1
-          });
-          for (const runtime of schema) {
+          for (const t of resolvedTypes as any) {
             launcher.add({
               command: openPipelineEditorCommand,
               category: 'Elyra',
-              args: { runtime },
-              rank:
-                runtime.runtime_type === 'KUBEFLOW_PIPELINES'
-                  ? 2
-                  : runtime.runtime_type === 'APACHE_AIRFLOW'
-                  ? 3
-                  : 4
+              args: { runtimeType: t },
+              rank: t.id === 'LOCAL' ? 1 : 2
             });
             menu.fileMenu.newMenu.addGroup(
               [
                 {
                   command: openPipelineEditorCommand,
-                  args: { runtime, isMenu: true }
+                  args: { runtimeType: t, isMenu: true }
                 }
               ],
-              runtime.runtime_type === 'KUBEFLOW_PIPELINES'
-                ? 31
-                : runtime.runtime_type === 'APACHE_AIRFLOW'
-                ? 32
-                : 33
+              t.id === 'LOCAL' ? 30 : 31
             );
           }
         }
-        // Add new pipeline to the file menu
-        menu.fileMenu.newMenu.addGroup(
-          [{ command: openPipelineEditorCommand, args: { isMenu: true } }],
-          30
-        );
-      },
-      (error: any) => RequestErrors.serverError(error)
-    );
+      })
+      .catch(error => RequestErrors.serverError(error));
 
     // SubmitNotebookButtonExtension initialization code
     const notebookButtonExtension = new SubmitFileButtonExtension();

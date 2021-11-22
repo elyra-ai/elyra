@@ -33,9 +33,6 @@ import {
   Dropzone,
   RequestErrors,
   showFormDialog,
-  kubeflowIcon,
-  airflowIcon,
-  argoIcon,
   componentCatalogIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
@@ -60,6 +57,10 @@ import Alert from '@material-ui/lab/Alert';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  EmptyGenericPipeline,
+  EmptyPlatformSpecificPipeline
+} from './EmptyPipelineContent';
 import { formDialogWidget } from './formDialogWidget';
 import {
   usePalette,
@@ -83,12 +84,6 @@ import {
 import { theme } from './theme';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
-
-const ICON_MAP: any = {
-  KUBEFLOW_PIPELINES: kubeflowIcon,
-  APACHE_AIRFLOW: airflowIcon,
-  ARGO: argoIcon
-};
 
 export const commandIDs = {
   openPipelineEditor: 'pipeline-editor:open',
@@ -116,9 +111,15 @@ const getAllPaletteNodes = (palette: any): any[] => {
   return nodes;
 };
 
-const isRuntimeTypeAvailable = (data: IRuntimeData, type: string): boolean => {
-  const configs = data.platforms.find(p => p.id === type)?.configs ?? [];
-  return configs.length > 0;
+const isRuntimeTypeAvailable = (data: IRuntimeData, type?: string): boolean => {
+  for (const p of data.platforms) {
+    if (type === undefined || p.id === type) {
+      if (p.configs.length > 0) {
+        return true;
+      }
+    }
+  }
+  return false;
 };
 
 const getDisplayName = (
@@ -129,7 +130,7 @@ const getDisplayName = (
     return undefined;
   }
   const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
-  return schema?.display_name;
+  return schema?.title;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -523,12 +524,14 @@ const PipelineWrapper: React.FC<IProps> = ({
         PathExt.extname(contextRef.current.path)
       );
 
+      // TODO: Parallelize this
       const runtimes = await PipelineService.getRuntimes().catch(error =>
         RequestErrors.serverError(error)
       );
       const schema = await PipelineService.getRuntimesSchema().catch(error =>
         RequestErrors.serverError(error)
       );
+      const runtimeTypes = await PipelineService.getRuntimeTypes();
 
       const runtimeData = createRuntimeData({
         schema,
@@ -537,7 +540,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       });
 
       let title = `${actionType} pipeline`;
-      if (type !== undefined) {
+      if (actionType === 'export' || type !== undefined) {
         title = `${actionType} pipeline for ${runtimeDisplayName}`;
 
         if (!isRuntimeTypeAvailable(runtimeData, type)) {
@@ -581,6 +584,7 @@ const PipelineWrapper: React.FC<IProps> = ({
             body: formDialogWidget(
               <PipelineExportDialog
                 runtimeData={runtimeData}
+                runtimeTypeInfo={runtimeTypes}
                 pipelineType={type}
               />
             ),
@@ -801,8 +805,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         label: `Runtime: ${runtimeDisplayName}`,
         incLabelWithIcon: 'before',
         enable: false,
-        kind: 'tertiary',
-        iconEnabled: IconUtil.encode(ICON_MAP[type ?? ''] ?? pipelineIcon)
+        kind: 'tertiary'
+        // TODO: re-add icon
+        // iconEnabled: IconUtil.encode(ICON_MAP[type ?? ''] ?? pipelineIcon)
       },
       {
         action: 'toggleOpenPanel',
@@ -909,6 +914,10 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
+  const handleOpenCatalog = (): void => {
+    shell.activateById(`elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -934,7 +943,13 @@ const PipelineWrapper: React.FC<IProps> = ({
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
           leftPalette={true}
-        />
+        >
+          {type === undefined ? (
+            <EmptyGenericPipeline />
+          ) : (
+            <EmptyPlatformSpecificPipeline onOpenCatalog={handleOpenCatalog} />
+          )}
+        </PipelineEditor>
       </Dropzone>
     </ThemeProvider>
   );

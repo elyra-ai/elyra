@@ -16,42 +16,23 @@
 
 import * as React from 'react';
 
+import { IRuntimeType } from './PipelineService';
 import { IRuntimeData } from './runtime-utils';
 import RuntimeConfigSelect from './RuntimeConfigSelect';
 
-// TODO - these (xxx_FILE_TYPES) should eventually come from platform implementations
-const FILE_TYPE_MAP: Record<string, { displayName: string; id: string }[]> = {
-  KUBEFLOW_PIPELINES: [
-    {
-      displayName: 'KFP domain-specific language Python code',
-      id: 'py'
-    },
-    {
-      displayName: 'KFP static configuration file (YAML formatted)',
-      id: 'yaml'
-    }
-  ],
-  APACHE_AIRFLOW: [
-    {
-      displayName: 'Airflow domain-specific language Python code',
-      id: 'py'
-    }
-  ]
-};
-
 interface IFileTypeSelectProps {
-  platform: string;
+  fileTypes: { display_name: string; id: string }[];
   // TODO: remove this prop
   temporarilyDissablePythonDSLForKFPSpecificPipelines?: boolean;
 }
 
 const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({
-  platform,
+  fileTypes,
   temporarilyDissablePythonDSLForKFPSpecificPipelines
 }) => {
   // TODO: remove temporary workaround for KFP Python DSL export option
   // See https://github.com/elyra-ai/elyra/issues/1760 for context.
-  const fileTypes = FILE_TYPE_MAP[platform].filter(t => {
+  const _fileTypes = fileTypes.filter(t => {
     if (temporarilyDissablePythonDSLForKFPSpecificPipelines && t.id === 'py') {
       return false;
     }
@@ -68,9 +49,9 @@ const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({
         className="elyra-form-export-filetype"
         data-form-required
       >
-        {fileTypes.map(f => (
+        {_fileTypes.map(f => (
           <option key={f.id} value={f.id}>
-            {f.displayName}
+            {f.display_name}
           </option>
         ))}
       </select>
@@ -80,11 +61,13 @@ const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({
 
 interface IProps {
   runtimeData: IRuntimeData;
+  runtimeTypeInfo: IRuntimeType[];
   pipelineType?: string;
 }
 
 export const PipelineExportDialog: React.FC<IProps> = ({
   runtimeData,
+  runtimeTypeInfo,
   pipelineType
 }) => {
   return (
@@ -93,14 +76,17 @@ export const PipelineExportDialog: React.FC<IProps> = ({
         runtimeData={runtimeData}
         pipelineType={pipelineType}
       >
-        {(platform): JSX.Element => (
-          <FileTypeSelect
-            platform={platform}
-            temporarilyDissablePythonDSLForKFPSpecificPipelines={
-              pipelineType === 'KUBEFLOW_PIPELINES'
-            }
-          />
-        )}
+        {(platform): JSX.Element => {
+          const info = runtimeTypeInfo.find(i => i.id === platform);
+          return (
+            <FileTypeSelect
+              fileTypes={info?.export_file_types ?? []}
+              temporarilyDissablePythonDSLForKFPSpecificPipelines={
+                pipelineType === 'KUBEFLOW_PIPELINES'
+              }
+            />
+          );
+        }}
       </RuntimeConfigSelect>
       <input
         type="checkbox"

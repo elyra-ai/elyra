@@ -48,6 +48,7 @@ const createMockComponent = (name: string): Component => {
     op: 'string',
     label: name,
     id: 'string',
+    image: 'string',
     type: 'execution_node',
     inputs: [],
     outputs: [],
