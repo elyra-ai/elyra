@@ -540,7 +540,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       });
 
       let title = `${actionType} pipeline`;
-      if (actionType === 'export' || type !== undefined) {
+      if (type !== undefined) {
         title = `${actionType} pipeline for ${runtimeDisplayName}`;
 
         if (!isRuntimeTypeAvailable(runtimeData, type)) {
