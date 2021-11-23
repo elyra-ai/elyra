@@ -229,7 +229,7 @@ In this case, the `ComponentRegistry` module overrides the `post_save()` and `po
 It's inevitable that schemas will change over time.  When such changes occur, the existing instances may be impacted such that they no longer conform to the schema or should belong to a different schema entirely.  That is, the instances need to be migrated to adhere to the updated schema.  This section covers two migration strategies, _Implicit Migration_ and _Explicit Migration_.
 
 #### Implicit Migration
-Implicit migration occurs _on the fly_, requiring no user intervention.  This form of migration typically occurs when the schema is altered to include a new required property or a schema within the schemaspace has been deprecated and existing instances should be associated with a different schema.  With implicit migrations, the instances will typically remain in their current schemaspace,
+Implicit migration occurs _on the fly_, requiring no user intervention.  This form of migration typically occurs when the schema is altered to include a new required property or a schema within the schemaspace has been deprecated and existing instances should be associated with a different schema.  With implicit migrations, the instances will typically remain in their current schemaspace.
 
 The recommended approach in these scenarios is to leverage the `Metadata` subclass that can be associated with each instance.  By introducing a subclass via the `metadata_class_name` _meta-property_, applications can then use the `on_load()` method to hook the loading of instances, apply the necessary alterations, persist the updates, and return.
 
