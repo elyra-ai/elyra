@@ -560,8 +560,6 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.savePipeline();
 
-    cy.createRuntimeConfig({ type: 'kfp' });
-
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
     cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
@@ -600,12 +598,30 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.savePipeline();
 
-    cy.createRuntimeConfig();
-
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
     cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('generic pipeline should display expected export options', () => {
+    cy.createPipeline();
+    cy.savePipeline();
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Validate all export options are available for airflow
+    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
+    cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Validate all export options are available for kfp
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+    cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
+    cy.findByRole('option', { name: /python/i }).should('not.exist');
 
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();
