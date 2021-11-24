@@ -28,6 +28,7 @@ from typing import Optional
 
 from jupyter_server.gateway.managers import GatewayClient
 import papermill
+from traitlets import Bool
 from traitlets import log
 
 from elyra.pipeline.component_catalog import ComponentCatalog
@@ -53,6 +54,16 @@ class LocalPipelineProcessor(PipelineProcessor):
     _operation_processor_catalog: Dict
     _type = RuntimeProcessorType.LOCAL
     _name = 'local'
+
+    use_docker_image = Bool(config=True,
+                            default_value=(os.getenv('ELYRA_USE_DOCKER_IMAGE', 'false').lower() == 'true'),
+                            help="""Use the configured docker image for local processing
+                                  (default=False). (ELYRA_USE_DOCKER_IMAGE env var)""")
+
+    remove_container = Bool(config=True,
+                            default_value=(os.getenv('ELYRA_REMOVE_CONTAINER', 'true').lower() == 'true'),
+                            help="""Remove docker container following local processing
+                                  (default=True). (ELYRA_REMOVE_CONTAINER env var)""")
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, **kwargs)
@@ -95,8 +106,12 @@ class LocalPipelineProcessor(PipelineProcessor):
             assert isinstance(operation, GenericOperation)
             try:
                 t0 = time.time()
-                operation_processor = self._operation_processor_catalog[operation.classifier]
-                operation_processor.process(operation, elyra_run_name)
+                operation_processor: FileOperationProcessor = self._operation_processor_catalog[operation.classifier]
+                if self.use_docker_image:
+                    operation_processor.process_via_docker(operation, elyra_run_name,
+                                                           remove_container=self.remove_container)
+                else:
+                    operation_processor.process(operation, elyra_run_name)
                 self.log_pipeline_info(pipeline.name, f"completed {operation.filename}",
                                        operation_name=operation.name,
                                        duration=(time.time() - t0))
@@ -136,8 +151,9 @@ class OperationProcessor(ABC):
         raise NotImplementedError
 
     @staticmethod
-    def _collect_envs(operation: GenericOperation, elyra_run_name: str) -> Dict:
-        envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
+    def _collect_envs(operation: GenericOperation, elyra_run_name: str, for_docker: Optional[bool] = False) -> Dict:
+        # Make sure this process's env is "available" in the kernel subprocess when NOT using docker
+        envs = {} if for_docker else os.environ.copy()
         envs.update(operation.env_vars_as_dict())
         envs['ELYRA_RUNTIME_ENV'] = "local"  # Special case
         envs['ELYRA_RUN_NAME'] = elyra_run_name
@@ -147,6 +163,7 @@ class OperationProcessor(ABC):
 class FileOperationProcessor(OperationProcessor):
 
     MAX_ERROR_LEN: int = 80
+    _file_type: str = None
 
     def __init__(self, root_dir: str):
         super().__init__()
@@ -157,8 +174,45 @@ class FileOperationProcessor(OperationProcessor):
         return self._operation_name
 
     @abstractmethod
+    def get_docker_command(self, filepath) -> List[str]:
+        raise NotImplementedError
+
+    @abstractmethod
     def process(self, operation: GenericOperation, elyra_run_name: str):
         raise NotImplementedError
+
+    def process_via_docker(self, operation: GenericOperation, elyra_run_name: str, remove_container: bool = True):
+        image_name = operation.runtime_image
+
+        filepath = self.get_valid_filepath(operation.filename)
+
+        file_dir = os.path.dirname(filepath)
+        file_name = os.path.basename(filepath)
+
+        self.log.debug(f'Processing {self._file_type} via docker: {filepath}')
+
+        command = self.get_docker_command(filepath)
+        container_kwargs = dict()
+        container_kwargs["environment"] = OperationProcessor._collect_envs(operation, elyra_run_name, for_docker=True)
+        container_kwargs["volumes"] = {f"{self._root_dir}": {"bind": f"{self._root_dir}", "mode": "rw"}}
+        container_kwargs["working_dir"] = self._root_dir
+
+        data_capture_msg = f"Data capture for previous error:\n" \
+                           f" command: {' '.join(command)}\n" \
+                           f" working directory: {file_dir}\n" \
+                           f" environment variables: {container_kwargs['environment']}"
+
+        t0 = time.time()
+        try:
+            from docker.client import DockerClient
+            client = DockerClient.from_env()
+            client.containers.run(image_name, command=command, remove=remove_container, **container_kwargs)
+        except Exception as ex:
+            self.log_and_raise(file_name, ex, data_capture_msg)
+
+        t1 = time.time()
+        duration = (t1 - t0)
+        self.log.debug(f'Execution of {file_name} via docker took {duration:.3f} secs.')
 
     def get_valid_filepath(self, op_filename: str) -> str:
         filepath = get_absolute_path(self._root_dir, op_filename)
@@ -204,8 +258,10 @@ class FileOperationProcessor(OperationProcessor):
 
 class NotebookOperationProcessor(FileOperationProcessor):
     _operation_name = 'execute-notebook-node'
+    _file_type = 'Notebook'
 
     def process(self, operation: GenericOperation, elyra_run_name: str):
+
         filepath = self.get_valid_filepath(operation.filename)
 
         file_dir = os.path.dirname(filepath)
@@ -247,21 +303,25 @@ class NotebookOperationProcessor(FileOperationProcessor):
         duration = (t1 - t0)
         self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
 
+    def get_docker_command(self, filepath) -> List[str]:
+        file_dir = os.path.dirname(filepath)
+        command = ["bash", "-c", f"pip install papermill; papermill {filepath} {filepath} --cwd {file_dir}"]
+        return command
+
 
 class ScriptOperationProcessor(FileOperationProcessor):
-
-    _script_type: str = None
 
     def get_argv(self, filepath) -> List[str]:
         raise NotImplementedError
 
     def process(self, operation: GenericOperation, elyra_run_name: str):
+
         filepath = self.get_valid_filepath(operation.filename)
 
         file_dir = os.path.dirname(filepath)
         file_name = os.path.basename(filepath)
 
-        self.log.debug(f'Processing {self._script_type} script: {filepath}')
+        self.log.debug(f'Processing {self._file_type}: {filepath}')
 
         argv = self.get_argv(filepath)
         envs = OperationProcessor._collect_envs(operation, elyra_run_name)
@@ -293,15 +353,21 @@ class ScriptOperationProcessor(FileOperationProcessor):
 
 class PythonScriptOperationProcessor(ScriptOperationProcessor):
     _operation_name = 'execute-python-node'
-    _script_type = 'Python'
+    _file_type = 'Python script'
 
-    def get_argv(self, file_path) -> List[str]:
-        return [f"{sys.executable}", file_path]
+    def get_argv(self, filepath) -> List[str]:
+        return [f"{sys.executable}", filepath]
+
+    def get_docker_command(self, filepath) -> List[str]:
+        return ["python3", filepath]
 
 
 class RScriptOperationProcessor(ScriptOperationProcessor):
     _operation_name = 'execute-r-node'
-    _script_type = 'R'
+    _file_type = 'R script'
 
-    def get_argv(self, file_path) -> List[str]:
-        return ['Rscript', file_path]
+    def get_argv(self, filepath) -> List[str]:
+        return ['Rscript', filepath]
+
+    def get_docker_command(self, filepath) -> List[str]:
+        return self.get_argv(filepath)
