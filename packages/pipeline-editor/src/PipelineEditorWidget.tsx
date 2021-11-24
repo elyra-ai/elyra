@@ -387,24 +387,22 @@ const PipelineWrapper: React.FC<IProps> = ({
             } catch (migrationError) {
               if (migrationError instanceof ComponentNotFoundError) {
                 showDialog({
-                  title: 'Pipeline migration failed!',
+                  title: 'Pipeline migration aborted!',
                   body: (
                     <p>
                       {' '}
                       The pipeline you are trying to migrate uses example
-                      components. <br />
-                      Example components are no longer included in the base
-                      Elyra install. <br />
-                      Follow the{' '}
+                      components, which are not <br />
+                      enabled in your environment. Complete the setup
+                      instructions in{' '}
                       <a
                         href="https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#example-custom-components"
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Example Custom Components Documentation
+                        Example Custom Components
                       </a>{' '}
-                      to learn how to install the example components before
-                      migrating this pipeline. <br />
+                      and try again.
                     </p>
                   ),
                   buttons: [Dialog.okButton({ label: 'Close' })]
