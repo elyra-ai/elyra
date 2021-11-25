@@ -132,7 +132,7 @@ class AirflowComponentParser(ComponentParser):
                     value = value.replace("\n", " ")
 
             # Search for data type (':type [param]:') in class docstring
-            type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
+            type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n))")
             match = type_regex.search(class_definition)
             data_type = match.group(1).strip() if match else "string"
 
