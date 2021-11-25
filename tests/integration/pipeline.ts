@@ -445,6 +445,8 @@ describe('Pipeline Editor tests', () => {
     // try to export valid pipeline
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+
     cy.findByLabelText(/runtime configuration/i)
       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
       .should('have.value', 'test_runtime');
@@ -467,7 +469,7 @@ describe('Pipeline Editor tests', () => {
 
   it('should export pipeline as python dsl', () => {
     // Create runtime configuration
-    cy.createRuntimeConfig({ type: 'kfp' });
+    cy.createRuntimeConfig();
 
     // go back to file browser
     cy.findByRole('tab', { name: /file browser/i }).click();
@@ -477,13 +479,15 @@ describe('Pipeline Editor tests', () => {
     // try to export valid pipeline
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
+    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
+
     cy.findByLabelText(/runtime configuration/i)
       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
       .should('have.value', 'test_runtime');
 
     // overwrite existing helloworld.py file
     cy.findByLabelText(/export pipeline as/i)
-      .select('KFP domain-specific language Python code')
+      .select('Airflow domain-specific language Python code')
       .should('have.value', 'py');
 
     cy.findByLabelText(/replace if file already exists/i)
@@ -562,6 +566,7 @@ describe('Pipeline Editor tests', () => {
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
+    cy.wait(300);
     cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
     cy.findByRole('option', { name: /python/i }).should('not.exist');
 
@@ -600,6 +605,7 @@ describe('Pipeline Editor tests', () => {
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
+    cy.wait(300);
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
     cy.findByRole('option', { name: /yaml/i }).should('not.exist');
 
@@ -612,6 +618,7 @@ describe('Pipeline Editor tests', () => {
     cy.savePipeline();
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
+    cy.wait(300);
 
     // Validate all export options are available for airflow
     cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
