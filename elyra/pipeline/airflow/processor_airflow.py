@@ -290,7 +290,7 @@ be fully qualified (i.e., prefixed with their package names).
                     property_value = property_value_dict.get(active_property_name, None)
 
                     # If the value is not found, assign it the default value assigned in parser
-                    if not property_value:
+                    if property_value is None:
                         property_value = component_property.value
 
                     self.log.debug(f"Active property name : {active_property_name}, value : {property_value}")
