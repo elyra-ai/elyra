@@ -129,7 +129,9 @@ class AirflowComponentParser(ComponentParser):
             data_type_info = self.determine_type_information(data_type)
             if data_type_info.undetermined:
                 self.log.debug(f"Data type from parsed data ('{data_type}') could not be determined. "
-                               f"Proceeding as if 'string' was detected.")
+                               f"Proceeding as if '{data_type_info.data_type}' was detected.")
+            elif 'xcom' in arg.lower() and data_type_info.data_type == 'boolean':
+                data_type_info.default_value = True
 
             # Override control id since all input properties can take in an xcom
             control_id = "OneOfControl"

@@ -285,7 +285,7 @@ def test_parse_airflow_component_url():
     component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert get_parameter('elyra_bash_command') == ''
-    assert get_parameter('elyra_xcom_push') is False
+    assert get_parameter('elyra_xcom_push') is True
     assert get_parameter('elyra_env') == '{}'  # {}
     assert get_parameter('elyra_output_encoding') == 'utf-8'
 
