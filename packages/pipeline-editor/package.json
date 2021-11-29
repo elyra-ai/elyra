@@ -36,11 +36,11 @@
     "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
-    "@elyra/metadata-common": "^3.0.3-dev",
-    "@elyra/pipeline-editor": "^1.0.0",
-    "@elyra/pipeline-services": "^1.0.0",
-    "@elyra/services": "^3.0.3-dev",
-    "@elyra/ui-components": "^3.0.3-dev",
+    "@elyra/metadata-common": "3.0.3-dev",
+    "@elyra/pipeline-editor": "~1.0.0",
+    "@elyra/pipeline-services": "~1.0.0",
+    "@elyra/services": "3.0.3-dev",
+    "@elyra/ui-components": "3.0.3-dev",
     "@jupyterlab/application": "^3.0.0",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/coreutils": "^5.0.0",
