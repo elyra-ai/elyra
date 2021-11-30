@@ -324,13 +324,10 @@
         "ui_data": {
           "comments": []
         },
-        "version": 5,
+        "version": 6,
         "runtime": "airflow",
-        "runtime_type": "APACHE_AIRFLOW",
         "runtime_config": "kfp-yukked1",
-        "properties": {
-          "name": "untitled4"
-        }
+        "source": "aa_operator_same_name.json"
       },
       "runtime_ref": ""
     }
