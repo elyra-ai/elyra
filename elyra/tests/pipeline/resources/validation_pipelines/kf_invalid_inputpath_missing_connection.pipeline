@@ -172,8 +172,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 5,
-        "runtime": "kfp",
+        "version": 6,
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "name": "kf_invalid_inputpath_missing_connection"

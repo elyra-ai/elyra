@@ -324,8 +324,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 5,
-        "runtime": "airflow",
+        "version": 6,
         "runtime_type": "APACHE_AIRFLOW",
         "runtime_config": "kfp-yukked1",
         "properties": {
