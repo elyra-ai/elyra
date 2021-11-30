@@ -1,5 +1,19 @@
 # Changelog
 
+## Release 3.3.0rc1 - 11/30/2021
+
+- Update pipeline version to 6 and pin versions - [#2321](https://github.com/elyra-ai/elyra/pull/2321)
+- Set the default xcom_push for Airflow operators - [#2313](https://github.com/elyra-ai/elyra/pull/2313)
+- Fix export dialog title for generic pipelines - [#2320](https://github.com/elyra-ai/elyra/pull/2320)
+- Add error to Troubleshooting guide when on z shell - [#2326](https://github.com/elyra-ai/elyra/pull/2326)
+- Fix typo in overview documentation - [#2325](https://github.com/elyra-ai/elyra/pull/2325)
+- Document migration strategies for BYO schemas - [#2318](https://github.com/elyra-ai/elyra/pull/2318)
+- Update pipeline styles - [#2236](https://github.com/elyra-ai/elyra/pull/2236)
+- Add packaging section to installation documentation - [#2315](https://github.com/elyra-ai/elyra/pull/2315)
+- Fix generic export corner case - [#2314](https://github.com/elyra-ai/elyra/pull/2314)
+- Add support for runtime type resources - [#2305](https://github.com/elyra-ai/elyra/pull/2305)
+- Add component catalog guide to VPE - [#2304](https://github.com/elyra-ai/elyra/pull/2304)
+
 ## Release 3.3.0rc0 - 11/17/2021
 
 - Update hybrid runtime support topic in overview doc - [#2310](https://github.com/elyra-ai/elyra/pull/2310)
