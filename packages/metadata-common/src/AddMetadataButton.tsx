@@ -59,9 +59,9 @@ export const AddMetadataButton = (
   };
 
   const sortedSchema = props.schemas?.sort((a, b) => {
-    if (a.name > b.name) {
+    if (a.title > b.title) {
       return 1;
-    } else if (a.name < b.name) {
+    } else if (a.title < b.title) {
       return -1;
     } else {
       return 0;
