@@ -331,7 +331,6 @@ class PipelineValidationManager(SingletonConfigurable):
                         await self._validate_custom_component_node_properties(node=node,
                                                                               response=response,
                                                                               pipeline_runtime=pipeline_runtime,
-                                                                              pipeline_type=pipeline_type,
                                                                               pipeline_definition=pipeline_definition)
 
     def _validate_generic_node_properties(self,
@@ -381,14 +380,12 @@ class PipelineValidationManager(SingletonConfigurable):
     async def _validate_custom_component_node_properties(self,
                                                          node: Node,
                                                          response: ValidationResponse,
-                                                         pipeline_type: str,
                                                          pipeline_definition: PipelineDefinition,
                                                          pipeline_runtime: str):
         """
         Validates the properties of the custom component node
         :param node: the node to be validated
         :param response: the validation response object to attach any error messages
-        :param pipeline_type: the pipeline type detected in the pipeline
         :param pipeline_definition: the pipeline definition containing the node
         :param pipeline_runtime: the pipeline runtime selected
         :return:
@@ -409,9 +406,9 @@ class PipelineValidationManager(SingletonConfigurable):
         current_parameter_defaults_list.remove('label')
 
         for default_parameter in current_parameter_defaults_list:
-            node_param_value = node.get_component_parameter(default_parameter)
+            node_param = node.get_component_parameter(default_parameter)
             if self._is_required_property(component_property_dict, default_parameter):
-                if not node_param_value:
+                if not node_param:
                     response.add_message(severity=ValidationSeverity.Error,
                                          message_type="invalidNodeProperty",
                                          message="Node is missing required property.",
@@ -422,9 +419,8 @@ class PipelineValidationManager(SingletonConfigurable):
                     # Any component property with type `InputPath` will be a dictionary of two keys
                     # "value": the node ID of the parent node containing the output
                     # "option": the name of the key (which is an output) of the above referenced node
-                    if not isinstance(node_param_value, dict) or \
-                            len(node_param_value) != 2 or \
-                            set(node_param_value.keys()) != {'value', 'option'}:
+                    if not isinstance(node_param, dict) or len(node_param) != 2 or \
+                            set(node_param.keys()) != {'value', 'option'}:
                         response.add_message(severity=ValidationSeverity.Error,
                                              message_type="invalidNodeProperty",
                                              message="Node has malformed `InputPath` parameter structure",
@@ -432,13 +428,30 @@ class PipelineValidationManager(SingletonConfigurable):
                                                    "nodeName": node.label})
                     node_ids = list(x.get('node_id_ref', None) for x in node.component_links)
                     parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
-                    if node_param_value.get('value') not in parent_list:
+                    node_param_value = node_param.get('value')
+                    if node_param_value not in parent_list:
                         response.add_message(severity=ValidationSeverity.Error,
                                              message_type="invalidNodeProperty",
                                              message="Node contains an invalid inputpath reference. Please "
                                                      "check your node-to-node connections",
                                              data={"nodeID": node.id,
                                                    "nodeName": node.label})
+                elif isinstance(node_param, dict) and node_param.get('activeControl') == 'NestedEnumControl':
+                    # TODO: Update this hardcoded check for xcom_push. This parameter is specific to a runtime
+                    # (Airflow). i.e. abstraction for byo validation?
+                    node_param_value = node_param['NestedEnumControl'].get('value')
+                    upstream_node = pipeline_definition.get_node(node_param_value)
+                    xcom_param = upstream_node.get_component_parameter('xcom_push')
+                    if xcom_param:
+                        xcom_value = xcom_param.get('BooleanControl')
+                        if not xcom_value:
+                            response.add_message(severity=ValidationSeverity.Error,
+                                                 message_type="invalidNodeProperty",
+                                                 message="Node contains an invalid input reference. The parent "
+                                                         "node does not have the xcom_push property enabled",
+                                                 data={"nodeID": node.id,
+                                                       "nodeName": node.label,
+                                                       "parentNodeID": upstream_node.label})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:

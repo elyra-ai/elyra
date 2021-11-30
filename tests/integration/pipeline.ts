@@ -445,6 +445,9 @@ describe('Pipeline Editor tests', () => {
     // try to export valid pipeline
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
+    // check label for generic pipeline
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
+
     cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
 
     cy.findByLabelText(/runtime configuration/i)
@@ -478,6 +481,9 @@ describe('Pipeline Editor tests', () => {
 
     // try to export valid pipeline
     cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // check label for generic pipeline
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
 
     cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
 
@@ -634,22 +640,20 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  // TODO: Uncomment tests below once final values are in place
+  it('generic pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline();
+    cy.get('.toolbar-icon-label').contains(/runtime: generic/i);
+  });
 
-  // it('generic pipeline should display expected runtime', () => {
-  //   cy.createPipeline();
-  //   cy.get('.toolbar-icon-label').contains('Runtime: Generic');
-  // });
+  it('kfp pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline({ type: 'kfp' });
+    cy.get('.toolbar-icon-label').contains(/runtime: kubeflow pipelines/i);
+  });
 
-  // it('kfp pipeline should display expected runtime', () => {
-  //   cy.createPipeline({ type: 'kfp' });
-  //   cy.get('.toolbar-icon-label').contains('Runtime: Kubeflow Pipelines');
-  // });
-
-  // it('airflow pipeline should display expected runtime', () => {
-  //   cy.createPipeline({ type: 'airflow' });
-  //   cy.get('.toolbar-icon-label').contains('Runtime: Apache Airflow');
-  // });
+  it('airflow pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline({ type: 'airflow' });
+    cy.get('.toolbar-icon-label').contains(/runtime: apache airflow/i);
+  });
 });
 
 // ------------------------------
