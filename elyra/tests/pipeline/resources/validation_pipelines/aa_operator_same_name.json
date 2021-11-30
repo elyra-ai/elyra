@@ -325,11 +325,9 @@
           "comments": []
         },
         "version": 6,
-        "runtime_type": "APACHE_AIRFLOW",
+        "runtime": "kfp",
         "runtime_config": "kfp-yukked1",
-        "properties": {
-          "name": "untitled4"
-        }
+        "source": "aa_operator_same_name.json"
       },
       "runtime_ref": ""
     }
