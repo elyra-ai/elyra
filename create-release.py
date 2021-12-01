@@ -276,6 +276,8 @@ def checkout_code() -> None:
     os.makedirs(config.work_dir)
     print(f'Cloning : {config.git_url} to {config.work_dir}')
     check_run(['git', 'clone', config.git_url], cwd=config.work_dir)
+    print(f'Checking out branch : {config.git_branch} in {config.source_dir}')
+    check_run(['git', 'checkout', '-b', config.git_branch, f'origin/{config.git_branch}'], cwd=config.source_dir)
     check_run(['git', 'config', 'user.name', config.git_user_name], cwd=config.source_dir)
     check_run(['git', 'config', 'user.email', config.git_user_email], cwd=config.source_dir)
 
@@ -606,6 +608,7 @@ def initialize_config(args=None) -> SimpleNamespace:
 
     configuration = {
         'goal': args.goal,
+        'git_branch': 'v3.0.x',
         'git_url': DEFAULT_GIT_URL,
         'git_extension_package_url': DEFAULT_EXTENSION_PACKAGE_GIT_URL,
         'git_hash': 'HEAD',
