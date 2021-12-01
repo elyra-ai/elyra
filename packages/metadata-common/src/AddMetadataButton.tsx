@@ -58,15 +58,9 @@ export const AddMetadataButton = (
     setOpen((prevOpen: boolean) => !prevOpen);
   };
 
-  const sortedSchema = props.schemas?.sort((a, b) => {
-    if (a.title > b.title) {
-      return 1;
-    } else if (a.title < b.title) {
-      return -1;
-    } else {
-      return 0;
-    }
-  });
+  const sortedSchema = props.schemas?.sort((a, b) =>
+    a.title.localeCompare(b.title)
+  );
 
   const handleClose = (event: React.MouseEvent<Document, MouseEvent>): void => {
     if (
