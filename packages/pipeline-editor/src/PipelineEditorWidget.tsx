@@ -368,6 +368,7 @@ const PipelineWrapper: React.FC<IProps> = ({
             try {
               const migratedPipeline = migrate(
                 pipelineJSON,
+                migrationPalette,
                 pipeline => {
                   // function for updating to relative paths in v2
                   // uses location of filename as expected in v1
@@ -378,8 +379,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                     );
                   }
                   return pipeline;
-                },
-                migrationPalette
+                }
               );
               contextRef.current.model.fromString(
                 JSON.stringify(migratedPipeline, null, 2)
