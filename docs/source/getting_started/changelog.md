@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 3.1.3 - 12/01/2021
+
+- Update release script
+- Pin elyra dependencies to current version
+
 ## Release 3.1.2 - 10/21/2021
 
 - Pin elyra dependencies to current version
