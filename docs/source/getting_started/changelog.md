@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 3.0.4 - 12/01/2021
+
+- Update release script to use explicit package version
+- Pin elyra dependencies to current version
+
 ## Release 3.0.3 - 12/01/2021
 
 - Update correct directory and filename for notebook packages
