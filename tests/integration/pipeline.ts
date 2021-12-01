@@ -570,9 +570,10 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.savePipeline();
 
+    cy.createRuntimeConfig({ type: 'kfp' });
+
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
-    cy.wait(1000);
     cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
     cy.findByRole('option', { name: /python/i }).should('not.exist');
 
@@ -609,9 +610,10 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.savePipeline();
 
+    cy.createRuntimeConfig();
+
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
-    cy.wait(1000);
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
     cy.findByRole('option', { name: /yaml/i }).should('not.exist');
 
@@ -623,13 +625,29 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline();
     cy.savePipeline();
 
+    // Test Airflow export options
+    cy.createRuntimeConfig();
+
     cy.findByRole('button', { name: /export pipeline/i }).click();
-    cy.wait(1000);
 
     // Validate all export options are available for airflow
     cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
     cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Delete existing runtime configuration (test runtimes always use the same name)
+    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+      failOnNonZeroExit: false
+    });
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Test KFP export options
+    cy.findByRole('tab', { name: /runtimes/i }).click();
+    cy.createRuntimeConfig({ type: 'kfp' });
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
 
     // Validate all export options are available for kfp
     cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
