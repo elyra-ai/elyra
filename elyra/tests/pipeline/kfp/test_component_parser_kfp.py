@@ -206,7 +206,7 @@ def test_parse_kfp_component_file():
     assert properties_json['current_parameters']['elyra_test_int_non_zero'] == 1
 
     assert properties_json['current_parameters']['elyra_test_dict_default'] == '{}'  # {}
-    assert properties_json['current_parameters']['elyra_test_list_default'] == ''  # []
+    assert properties_json['current_parameters']['elyra_test_list_default'] == '[]'  # []
 
     # Ensure that the 'required' attribute was set correctly. KFP components default to required
     # unless explicitly marked otherwise in component YAML.
@@ -287,7 +287,7 @@ def test_parse_kfp_component_url():
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
     assert properties_json['current_parameters']['elyra_parameters'] == '{}'
-    assert properties_json['current_parameters']['elyra_packages_to_install'] == ''  # {}
+    assert properties_json['current_parameters']['elyra_packages_to_install'] == '[]'
     assert properties_json['current_parameters']['elyra_input_data'] == ''
 
 

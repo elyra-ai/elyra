@@ -23,17 +23,17 @@ import RuntimeConfigSelect from './RuntimeConfigSelect';
 interface IFileTypeSelectProps {
   fileTypes: { display_name: string; id: string }[];
   // TODO: remove this prop
-  temporarilyDissablePythonDSLForKFPSpecificPipelines?: boolean;
+  temporarilyDisablePythonDSLForKFPSpecificPipelines?: boolean;
 }
 
 const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({
   fileTypes,
-  temporarilyDissablePythonDSLForKFPSpecificPipelines
+  temporarilyDisablePythonDSLForKFPSpecificPipelines
 }) => {
   // TODO: remove temporary workaround for KFP Python DSL export option
   // See https://github.com/elyra-ai/elyra/issues/1760 for context.
   const _fileTypes = fileTypes.filter(t => {
-    if (temporarilyDissablePythonDSLForKFPSpecificPipelines && t.id === 'py') {
+    if (temporarilyDisablePythonDSLForKFPSpecificPipelines && t.id === 'py') {
       return false;
     }
     return true;
@@ -81,8 +81,8 @@ export const PipelineExportDialog: React.FC<IProps> = ({
           return (
             <FileTypeSelect
               fileTypes={info?.export_file_types ?? []}
-              temporarilyDissablePythonDSLForKFPSpecificPipelines={
-                pipelineType === 'KUBEFLOW_PIPELINES'
+              temporarilyDisablePythonDSLForKFPSpecificPipelines={
+                platform === 'KUBEFLOW_PIPELINES'
               }
             />
           );

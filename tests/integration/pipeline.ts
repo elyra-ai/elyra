@@ -472,7 +472,7 @@ describe('Pipeline Editor tests', () => {
 
   it('should export pipeline as python dsl', () => {
     // Create runtime configuration
-    cy.createRuntimeConfig({ type: 'kfp' });
+    cy.createRuntimeConfig();
 
     // go back to file browser
     cy.findByRole('tab', { name: /file browser/i }).click();
@@ -485,7 +485,7 @@ describe('Pipeline Editor tests', () => {
     // check label for generic pipeline
     cy.get('.jp-Dialog-header').contains('Export pipeline');
 
-    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
 
     cy.findByLabelText(/runtime configuration/i)
       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
@@ -493,7 +493,7 @@ describe('Pipeline Editor tests', () => {
 
     // overwrite existing helloworld.py file
     cy.findByLabelText(/export pipeline as/i)
-      .select('KFP domain-specific language Python code')
+      .select('Airflow domain-specific language Python code')
       .should('have.value', 'py');
 
     cy.findByLabelText(/replace if file already exists/i)
@@ -616,6 +616,43 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /export pipeline/i }).click();
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
     cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('generic pipeline should display expected export options', () => {
+    cy.createPipeline();
+    cy.savePipeline();
+
+    // Test Airflow export options
+    cy.createRuntimeConfig();
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Validate all export options are available for airflow
+    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
+    cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Delete existing runtime configuration (test runtimes always use the same name)
+    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+      failOnNonZeroExit: false
+    });
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Test KFP export options
+    cy.findByRole('tab', { name: /runtimes/i }).click();
+    cy.createRuntimeConfig({ type: 'kfp' });
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Validate all export options are available for kfp
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+    cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
+    cy.findByRole('option', { name: /python/i }).should('not.exist');
 
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();

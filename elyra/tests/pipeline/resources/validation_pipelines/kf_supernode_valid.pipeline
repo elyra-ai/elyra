@@ -177,12 +177,12 @@
         "ui_data": {
           "comments": []
         },
-        "version": 5,
-        "runtime": "kfp",
+        "version": 6,
         "properties": {
           "name": "untitled14",
           "runtime": "Kubeflow Pipelines"
-        }
+        },
+        "runtime_type": "KUBEFLOW_PIPELINES"
       },
       "runtime_ref": ""
     },

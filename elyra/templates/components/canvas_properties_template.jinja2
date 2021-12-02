@@ -13,8 +13,6 @@
         {{ property.value|lower }}
     {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
         {{ property.value }}
-    {% elif property.data_type|lower == "dict" or property.data_type|lower == "dictionary" %}
-        "{% raw %}{{% endraw %}{{ property.value }}{% raw %}}{% endraw %}"
     {% else %}
         "{{ property.value }}"
     {% endif %}

@@ -524,7 +524,7 @@ def test_process_dictionary_value_function(processor):
 
 
 @pytest.mark.parametrize('parsed_pipeline',
-                         ['resources/validation_pipelines/aa_operator_same_name.pipeline'],
+                         ['resources/validation_pipelines/aa_operator_same_name.json'],
                          indirect=True)
 @pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_same_name_operator_in_pipeline(monkeypatch, processor, parsed_pipeline, sample_metadata):

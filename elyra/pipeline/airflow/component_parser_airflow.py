@@ -20,11 +20,24 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+import astunparse
+
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ControllerMap
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+
+
+class TypeHintRemover(ast.NodeTransformer):
+    def visit_FunctionDef(self, node):
+        # remove the return type defintion
+        node.returns = None
+        # remove all argument annotations
+        if node.args.args:
+            for arg in node.args.args:
+                arg.annotation = None
+        return node
 
 
 class AirflowComponentParser(ComponentParser):
@@ -80,13 +93,18 @@ class AirflowComponentParser(ComponentParser):
 
         class_to_content.pop("no_class")
 
-        init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\*\s\#.\\\/:?]*)\):")
+        init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\[\]\{\}\*\s\#.\\\/:?]*)\):")
         for class_name, content in class_to_content.items():
             # Concatenate class body and search for __init__ function
-            class_content = self.get_class_def_as_string(content)
+            class_content = '\n'.join(content['lines'])
+            # remove type hint via TypeHintRemover with ast parse
+            parsed_source = ast.parse(class_content)
+            transformed = TypeHintRemover().visit(parsed_source)
+            class_content = astunparse.unparse(transformed)
+
             for match in init_regex.finditer(class_content):
                 # Get list of parameter:default-value pairs
-                class_to_content[class_name]['args'] = [x.strip() for x in match.group(1).split(',')]
+                class_to_content[class_name]['args'] = [x.strip() for x in match.group(1).split(',') if x.strip() != '']
 
         return class_to_content
 
@@ -114,7 +132,7 @@ class AirflowComponentParser(ComponentParser):
                     value = value.replace("\n", " ")
 
             # Search for data type (':type [param]:') in class docstring
-            type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
+            type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n))")
             match = type_regex.search(class_definition)
             data_type = match.group(1).strip() if match else "string"
 

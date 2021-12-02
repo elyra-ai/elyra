@@ -160,7 +160,7 @@ const NodeIcons: Map<string, string> = new Map([
 
 // TODO: We should decouple components and properties to support lazy loading.
 // TODO: type this
-const componentFetcher = async (type: string): Promise<any> => {
+export const componentFetcher = async (type: string): Promise<any> => {
   const palettePromise = RequestHandler.makeGetRequest<
     IRuntimeComponentsResponse
   >(`elyra/pipeline/components/${type}`);
