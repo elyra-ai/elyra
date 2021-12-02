@@ -34,8 +34,8 @@
     "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
-    "@elyra/metadata-common": "3.2.1",
-    "@elyra/services": "3.2.1",
+    "@elyra/metadata-common": "3.2.3-dev",
+    "@elyra/services": "3.2.3-dev",
     "@jupyterlab/application": "^3.0.0",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/codeeditor": "^3.0.0",
