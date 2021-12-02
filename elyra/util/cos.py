@@ -18,10 +18,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from minio.api import Minio
-from minio.error import BucketAlreadyExists
-from minio.error import BucketAlreadyOwnedByYou
-from minio.error import ResponseError
-from minio.error import SignatureDoesNotMatch
+from minio.error import S3Error
 from traitlets.config import LoggingConfigurable
 
 
@@ -57,17 +54,18 @@ class CosClient(LoggingConfigurable):
         try:
             if not self.client.bucket_exists(self.bucket):
                 self.client.make_bucket(self.bucket)
-        except BucketAlreadyOwnedByYou as ex:
-            self.log.warning("Object Storage bucket already owned by you", exc_info=True)
-            raise ex from ex
-        except BucketAlreadyExists as ex:
-            self.log.warning("Object Storage bucket already exists", exc_info=True)
-            raise ex from ex
-        except ResponseError as ex:
-            self.log.error("Object Storage error", exc_info=True)
-            raise ex from ex
-        except SignatureDoesNotMatch as ex:
-            self.log.error("Incorrect Object Storage credentials supplied")
+        except S3Error as ex:
+            # unpack the S3Error based off error codes
+            # https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html
+            if ex.code == "BucketAlreadyOwnedByYou":
+                self.log.warning("Object Storage bucket already owned by you", exc_info=True)
+            elif ex.code == "BucketAlreadyExists":
+                self.log.warning("Object Storage bucket already exists", exc_info=True)
+            elif ex.code == "SignatureDoesNotMatch":
+                self.log.error("Incorrect Object Storage credentials supplied")
+            else:
+                self.log.error("Object Storage error", exc_info=True)
+
             raise ex from ex
 
         return self.client

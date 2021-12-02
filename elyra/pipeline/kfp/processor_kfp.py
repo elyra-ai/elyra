@@ -510,15 +510,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
 
-        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-        cos_username = runtime_configuration.metadata['cos_username']
-        cos_password = runtime_configuration.metadata['cos_password']
+        cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+        cos_username = runtime_configuration.metadata.get('cos_username')
+        cos_password = runtime_configuration.metadata.get('cos_password')
         cos_secret = runtime_configuration.metadata.get('cos_secret')
-        engine = runtime_configuration.metadata['engine']
-
+        cos_bucket = runtime_configuration.metadata.get('cos_bucket')
         if cos_directory is None:
             cos_directory = pipeline_name
-        cos_bucket = runtime_configuration.metadata['cos_bucket']
+
+        engine = runtime_configuration.metadata['engine']
 
         self.log_pipeline_info(pipeline_name,
                                f"processing pipeline dependencies to: {cos_endpoint} "
