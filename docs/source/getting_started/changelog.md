@@ -1,5 +1,14 @@
 # Changelog
 
+## Release 3.3.0rc2 - 12/01/2021
+
+- Update release script - [#2334](https://github.com/elyra-ai/elyra/pull/2334)
+- Update pipeline-editor version to 1.4 - [#2331](https://github.com/elyra-ai/elyra/pull/2331)
+- Reintroduce error handling for pipeline export - [#2333](https://github.com/elyra-ai/elyra/pull/2333)
+- Fix export file type options for KFP platform - [#2327](https://github.com/elyra-ai/elyra/pull/2327)
+- support operators with type hints - [#2316](https://github.com/elyra-ai/elyra/pull/2316)
+- Fix component catalog UI sorting - [#2330](https://github.com/elyra-ai/elyra/pull/2330)
+
 ## Release 3.3.0rc1 - 11/30/2021
 
 - Update pipeline version to 6 and pin versions - [#2321](https://github.com/elyra-ai/elyra/pull/2321)
