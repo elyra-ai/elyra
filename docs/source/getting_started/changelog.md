@@ -1,5 +1,8 @@
 # Changelog
 
+## Release 3.2.3 - 12/01/2021
+
+
 ## Release 3.2.2 - 10/25/2021
 
 - Update release script
