@@ -587,15 +587,17 @@ const PipelineWrapper: React.FC<IProps> = ({
         allowLocal: actionType === 'run'
       });
 
-      let title = `${actionType} pipeline`;
-      if (type !== undefined) {
-        title = `${actionType} pipeline for ${runtimeDisplayName}`;
+      let title =
+        type !== undefined
+          ? `${actionType} pipeline for ${runtimeDisplayName}`
+          : `${actionType} pipeline`;
 
+      if (actionType === 'export' || type !== undefined) {
         if (!isRuntimeTypeAvailable(runtimeData, type)) {
           const res = await RequestErrors.noMetadataError(
             'runtime',
             `${actionType} pipeline.`,
-            runtimeDisplayName
+            type !== undefined ? runtimeDisplayName : undefined
           );
 
           if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {
