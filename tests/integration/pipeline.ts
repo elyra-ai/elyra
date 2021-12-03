@@ -46,6 +46,20 @@ describe('Pipeline Editor tests', () => {
     cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
       failOnNonZeroExit: false
     });
+
+    // delete example catalogs used for testing
+    cy.exec(
+      'elyra-metadata remove component-catalogs --name=example_components_-_kfp',
+      {
+        failOnNonZeroExit: false
+      }
+    );
+    cy.exec(
+      'elyra-metadata remove component-catalogs --name=example_components_-_airflow',
+      {
+        failOnNonZeroExit: false
+      }
+    );
   });
 
   // TODO: Fix Test is actually failing
