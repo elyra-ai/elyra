@@ -59,6 +59,22 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByRole('button', { name: /save/i }).click();
 });
 
+Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
+  cy.findByRole('tab', { name: /component catalogs/i }).click();
+  cy.findByRole('button', { name: /create new component catalog/i }).click();
+
+  if (type === 'kfp') {
+    cy.findByRole('menuitem', { name: /kubeflow pipelines/i }).click();
+  } else {
+    cy.findByRole('menuitem', { name: /apache airflow/i }).click();
+  }
+
+  cy.findByLabelText(/^name/i).type(`Example Components - ${type}`);
+
+  // save it
+  cy.findByRole('button', { name: /save/i }).click();
+});
+
 Cypress.Commands.add('deleteFile', (name: string): void => {
   cy.exec(`find build/cypress-tests/ -name "${name}" -delete`, {
     failOnNonZeroExit: false
@@ -157,18 +173,8 @@ Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
   cy.get('[aria-label="Canvas"]').click({ force: true });
 });
 
-Cypress.Commands.add('expandPaletteCategory', ({ type } = {}): void => {
-  switch (type) {
-    case 'kfp':
-      cy.get('.palette-flyout-category[value="Preloaded KFP"]').click();
-      break;
-    case 'airflow':
-      cy.get('.palette-flyout-category[value="Preloaded Airflow"]').click();
-      break;
-    default:
-      cy.get('.palette-flyout-category[value="Elyra"]').click();
-      break;
-  }
+Cypress.Commands.add('expandPaletteCategory', (): void => {
+  cy.get('.palette-flyout-category[value="examples"]').click();
 });
 
 Cypress.Commands.add('closeTab', (index: number): void => {
