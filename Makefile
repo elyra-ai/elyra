@@ -177,10 +177,10 @@ test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
 
-test-integration: # Run frontend cypress integration tests
+test-integration: install-examples # Run frontend cypress integration tests
 	yarn test:integration
 
-test-integration-debug: # Open cypress integration test debugger
+test-integration-debug: install-examples # Open cypress integration test debugger
 	yarn test:integration:debug
 
 test: test-server test-ui ## Run all tests (backend, frontend and cypress integration tests)
