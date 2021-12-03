@@ -35,9 +35,7 @@ describe('Script Editor tests', () => {
 
   // Python Tests
   it('opens blank Python file from launcher', () => {
-    cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"]'
-    ).click();
+    cy.createNewScriptFile('Python');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 
@@ -95,9 +93,7 @@ describe('Script Editor tests', () => {
 
   // R Tests
   it('opens blank R file from launcher', () => {
-    cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R file"]'
-    ).click();
+    cy.createNewScriptFile('R');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 

@@ -34,5 +34,6 @@ declare namespace Cypress {
       type?: 'kfp' | 'airflow' | 'generic';
     }): Chainable<void>;
     closeTab(index: number): Chainable<void>;
+    createNewScriptFile(language: string): Chainable<void>;
   }
 }

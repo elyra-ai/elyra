@@ -191,9 +191,7 @@ describe('Code Snippet tests', () => {
     createValidCodeSnippet(snippetName);
 
     // Open blank python file
-    cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"]:visible'
-    ).click();
+    cy.createNewScriptFile('Python');
 
     cy.wait(500);
 
@@ -209,9 +207,7 @@ describe('Code Snippet tests', () => {
     createValidCodeSnippet(snippetName, 'Java');
 
     // Open blank python file
-    cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"]:visible'
-    ).click();
+    cy.createNewScriptFile('Python');
 
     cy.wait(500);
 
@@ -260,50 +256,6 @@ describe('Code Snippet tests', () => {
   //   closeTabWithoutSaving();
   //   // NOTE: Save dialog isn't visible when this test runs on CI
   // });
-
-  //   it('Test inserting a code snippet into a python editor', () => {
-  //     openCodeSnippetExtension();
-  //     clickCreateNewSnippetButton();
-
-  //     const snippetName = 'test-code-snippet';
-  //     fillMetadaEditorForm(snippetName);
-
-  //     cy.wait(500);
-
-  //     // Open blank python file
-  //     cy.get(
-  //       '.jp-LauncherCard[title="Create a new python file"]:visible'
-  //     ).click();
-
-  //     cy.wait(500);
-
-  //     // Check widget is loaded
-  //     cy.get('.CodeMirror:visible');
-
-  //     insert(snippetName);
-
-  //     // Check if python editor has the new code
-  //     checkCodeMirror();
-
-  //     // Edit snippet language
-  //     getActionButtonsElement(snippetName).within(() => {
-  //       cy.get('button[title="Edit"]').click();
-  //     });
-  //     cy.wait(100);
-  //     editSnippetLanguage(snippetName, 'Java');
-  //     saveAndCloseMetadataEditor();
-
-  //     cy.wait(500);
-
-  //     insert(snippetName);
-
-  //     // Check for language mismatch warning
-  //     cy.get('.jp-Dialog-header').contains('Warning');
-  //     cy.get('button.jp-mod-accept').click();
-  //     cy.wait(100);
-
-  //     closeTabWithoutSaving();
-  //   });
 
   //   it('Test inserting a code snippet into a markdown file', () => {
   //     openCodeSnippetExtension();
@@ -382,7 +334,7 @@ const createValidCodeSnippet = (
   snippetName: string,
   language?: string
 ): any => {
-  populateCodeSnippetFields(snippetName);
+  populateCodeSnippetFields(snippetName, language);
 
   saveAndCloseMetadataEditor();
 
