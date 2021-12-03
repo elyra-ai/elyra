@@ -1,5 +1,8 @@
 # Changelog
 
+## Release 3.3.0 - 12/03/2021
+
+
 ## Release 3.3.0rc2 - 12/01/2021
 
 - Update release script - [#2334](https://github.com/elyra-ai/elyra/pull/2334)
