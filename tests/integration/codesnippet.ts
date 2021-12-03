@@ -187,6 +187,47 @@ describe('Code Snippet tests', () => {
     cy.wait(100);
   });
 
+  it('should insert a python code snippet into python file', () => {
+    createValidCodeSnippet(snippetName);
+
+    // Open blank python file
+    cy.get(
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"]:visible'
+    ).click();
+
+    cy.wait(500);
+
+    // Insert snippet into python editor
+    insert(snippetName);
+
+    // Check if editor has the new code
+    cy.get('.CodeMirror:visible');
+    cy.get('span.cm-string').contains(/test/i);
+  });
+
+  it('should fail to insert a java code snippet into python file', () => {
+    createValidCodeSnippet(snippetName, 'Java');
+
+    // Open blank python file
+    cy.get(
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"]:visible'
+    ).click();
+
+    cy.wait(500);
+
+    // Insert snippet into python editor
+    insert(snippetName);
+
+    // Check for language mismatch warning
+    cy.get('.jp-Dialog-header').contains(/warning/i);
+    // Dismiss the dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Check it did not insert the code
+    cy.get('.CodeMirror:visible');
+    cy.get('span.cm-string').should('not.exist');
+  });
+
   // DEV NOTE: Uncomment the tests below to run them locally
   // TODO: Investigate tests below only failing on CI
   // Steps: checkCodeMirror, closeTabWithoutSaving
@@ -319,14 +360,17 @@ const createInvalidCodeSnippet = (snippetName: string): any => {
   saveAndCloseMetadataEditor();
 };
 
-const populateCodeSnippetFields = (snippetName: string): any => {
+const populateCodeSnippetFields = (
+  snippetName: string,
+  language?: string
+): any => {
   clickCreateNewSnippetButton();
 
   // Name code snippet
   cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
 
   // Select python language from dropdown list
-  editSnippetLanguage(snippetName, 'Python');
+  editSnippetLanguage(snippetName, language ?? 'Python');
 
   // Add snippet code
   cy.get('.CodeMirror .CodeMirror-scroll:visible').type(
@@ -334,7 +378,10 @@ const populateCodeSnippetFields = (snippetName: string): any => {
   );
 };
 
-const createValidCodeSnippet = (snippetName: string): any => {
+const createValidCodeSnippet = (
+  snippetName: string,
+  language?: string
+): any => {
   populateCodeSnippetFields(snippetName);
 
   saveAndCloseMetadataEditor();
