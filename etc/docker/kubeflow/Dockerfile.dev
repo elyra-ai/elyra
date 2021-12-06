@@ -16,8 +16,8 @@
 #
 
 # Ubuntu 20.04.2 LTS (Focal Fossa)
-# Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
-FROM jupyterhub/k8s-singleuser-sample:1.2.0
+# Repository: https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.4
 
 ARG TAG="dev"
 
@@ -61,22 +61,11 @@ RUN cd /tmp/elyra \
  && rm -rf $HOME/.cache/yarn \
  && rm -rf /tmp/elyra/node_modules
 
-# Install example component catalogs
+# Install component examples catalog
 RUN pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
-    elyra-examples-airflow-catalog \
     elyra-examples-kfp-catalog \
  && elyra-metadata install component-catalogs \
-    --schema_name=elyra-airflow-examples-catalog \
-    --display_name="Apache Airflow examples" \
-    --runtime_type=APACHE_AIRFLOW \
-    --categories="['examples']" \
- && elyra-metadata install component-catalogs \
-    --schema_name=elyra-kfp-examples-catalog  \
+    --schema_name=elyra-kfp-examples-catalog \
     --display_name="Kubeflow Pipelines examples" \
     --runtime_type=KUBEFLOW_PIPELINES \
     --categories="['examples']"
-
-# Copy Elyra entrypoint
-COPY --chmod=0755 --chown=root:root start-elyra.sh /usr/local/bin/start-elyra.sh
-
-CMD ["/usr/local/bin/start-elyra.sh"]

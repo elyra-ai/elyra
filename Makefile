@@ -208,19 +208,47 @@ elyra-image: # Build Elyra stand-alone container image
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	@mkdir -p build/docker/elyra
 	if [ "$(TAG)" == "dev" ]; then \
-		cp etc/docker/elyra/Dockerfile.dev build/docker/Dockerfile && \
-	    rsync -av --delete --progress . build/docker/elyra --exclude dist --exclude build --exclude node_modules --exclude .git --exclude .github --exclude egg_info; \
+		cp etc/docker/elyra/Dockerfile.dev build/docker/Dockerfile; \
+		git -C ./ ls-files --exclude-standard -oi --directory > .git/ignores.tmp; \
+		rsync -ah --progress --delete --delete-excluded ./ build/docker/elyra/ \
+			 --exclude ".git" \
+			 --exclude ".github" \
+			 --exclude-from ".git/ignores.tmp"; \
+		rm -f .git/ignores.tmp; \
 	fi
-	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE) -t quay.io/$(ELYRA_IMAGE) build/docker/ --progress plain --build-arg TAG=$(TAG);
+	docker buildx build \
+        --progress=plain \
+        --output=type=docker \
+		--tag docker.io/$(ELYRA_IMAGE) \
+		--tag quay.io/$(ELYRA_IMAGE) \
+		--build-arg TAG=$(TAG) \
+		build/docker/;
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
-    # this is a privileged operation; a `docker login` might be required
+	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
-	DOCKER_BUILDKIT=1 docker build -t docker.io/$(KF_NOTEBOOK_IMAGE) -t quay.io/$(KF_NOTEBOOK_IMAGE) \
-	etc/docker/kubeflow/ --progress plain
+	@mkdir -p build/docker-kubeflow
+	cp etc/docker/kubeflow/Dockerfile build/docker-kubeflow/Dockerfile
+	@mkdir -p build/docker-kubeflow/elyra
+	if [ "$(TAG)" == "dev" ]; then \
+		cp etc/docker/kubeflow/Dockerfile.dev build/docker-kubeflow/Dockerfile; \
+		git -C ./ ls-files --exclude-standard -oi --directory > .git/ignores.tmp; \
+		rsync -ah --progress --delete --delete-excluded ./ build/docker-kubeflow/elyra/ \
+			 --exclude ".git" \
+			 --exclude ".github" \
+			 --exclude-from ".git/ignores.tmp"; \
+		rm -f .git/ignores.tmp; \
+	fi
+	docker buildx build \
+        --progress=plain \
+        --output=type=docker \
+		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
+		--tag quay.io/$(KF_NOTEBOOK_IMAGE) \
+		--build-arg TAG=$(TAG) \
+		build/docker-kubeflow;
 
 publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server
 	# this is a privileged operation; a `docker login` might be required
