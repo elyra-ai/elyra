@@ -309,10 +309,9 @@
         "ui_data": {
           "comments": []
         },
-        "version": 5,
+        "version": 6,
         "properties": {
-          "name": "producer-consumer",
-          "runtime": "Generic"
+          "name": "producer-consumer"
         }
       },
       "runtime_ref": ""

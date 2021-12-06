@@ -1,9 +1,10 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/runtime-image.json",
   "title": "Runtime Image",
   "name": "runtime-image",
-  "display_name": "Runtime Image",
-  "namespace": "runtime-images",
+  "schemaspace": "runtime-images",
+  "schemaspace_id": "119c9740-d73f-48c6-a97a-599d3acaf41d",
   "uihints": {
     "icon": "elyra:container",
     "title": "Runtime Images",
@@ -14,8 +15,7 @@
       "title": "Schema Name",
       "description": "The schema associated with this instance",
       "type": "string",
-      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
-      "minLength": 1
+      "const": "runtime-image"
     },
     "display_name": {
       "title": "Display Name",

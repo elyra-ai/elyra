@@ -26,7 +26,7 @@ import { IDictionary } from '@elyra/services';
 
 import React from 'react';
 
-export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
+export const RUNTIME_IMAGES_SCHEMASPACE = 'runtime-images';
 
 const RUNTIME_IMAGES_CLASS = 'elyra-metadata-runtime-images';
 
@@ -89,7 +89,7 @@ export class RuntimeImagesWidget extends MetadataWidget {
         metadata={metadata}
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
-        namespace={RUNTIME_IMAGES_NAMESPACE}
+        schemaspace={RUNTIME_IMAGES_SCHEMASPACE}
         sortMetadata={true}
         className={RUNTIME_IMAGES_CLASS}
         labelName={(): string => {

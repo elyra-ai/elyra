@@ -25,7 +25,7 @@ import { IDictionary } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import React from 'react';
 
-import { PipelineService, RUNTIMES_NAMESPACE } from './PipelineService';
+import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 
 const RUNTIMES_METADATA_CLASS = 'elyra-metadata-runtimes';
 
@@ -47,10 +47,12 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
   metadata: IMetadata[];
   openMetadataEditor: (args: any) => void;
   updateMetadata: () => void;
-  namespace: string;
+  schemaspace: string;
   sortMetadata: boolean;
   className: string;
   schemas?: IDictionary<any>[];
+  titleContext?: string;
+  appendToTitle?: boolean;
 }
 
 /**
@@ -125,7 +127,7 @@ export class RuntimesWidget extends MetadataWidget {
   }
 
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes(false).catch(error =>
+    return await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
   }
@@ -141,6 +143,15 @@ export class RuntimesWidget extends MetadataWidget {
 
     return 'runtime configuration';
   };
+
+  addMetadata(schema: string, titleContext?: string): void {
+    this.openMetadataEditor({
+      onSave: this.updateMetadata,
+      schemaspace: this.props.schemaspace,
+      schema: schema,
+      titleContext: titleContext
+    });
+  }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
     if (Array.isArray(metadata) && !metadata.length) {
@@ -160,11 +171,13 @@ export class RuntimesWidget extends MetadataWidget {
         metadata={metadata}
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
-        namespace={RUNTIMES_NAMESPACE}
+        schemaspace={RUNTIMES_SCHEMASPACE}
         sortMetadata={true}
         schemas={this.schemas}
         className={RUNTIMES_METADATA_CLASS}
         labelName={this.getSchemaTitle}
+        titleContext={this.props.titleContext}
+        appendToTitle={this.props.appendToTitle}
       />
     );
   }

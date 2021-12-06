@@ -24,9 +24,11 @@ from jupyter_server.utils import url_path_join
 from tornado import web
 
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_registry import ComponentRegistry
+from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.util.http import HttpErrorMixin
 
@@ -142,7 +144,7 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid processor name '{processor}'")
 
         components: List[Component] = await PipelineProcessorManager.instance().get_components(processor)
-        palette_json = ComponentRegistry.to_canvas_palette(components=components)
+        palette_json = ComponentCatalog.to_canvas_palette(components=components)
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
@@ -164,7 +166,7 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
 
         component: Optional[Component] = \
             await PipelineProcessorManager.instance().get_component(processor, component_id)
-        properties_json = ComponentRegistry.to_canvas_properties(component)
+        properties_json = ComponentCatalog.to_canvas_properties(component)
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
@@ -194,3 +196,20 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
         self.finish(json_msg)
+
+
+class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
+    """Handler to get static information relative to the set of configured runtime types"""
+
+    @web.authenticated
+    async def get(self):
+        self.log.debug("Retrieving active runtime information from PipelineProcessorRegistry...")
+        resources: List[RuntimeTypeResources] = PipelineProcessorRegistry.instance().get_runtime_types_resources()
+
+        runtime_types = []
+        for runtime_type in resources:
+            runtime_types.append(runtime_type.to_dict())
+
+        self.set_status(200)
+        self.set_header("Content-Type", 'application/json')
+        await self.finish({"runtime_types": runtime_types})

@@ -1,18 +1,17 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/metadata-test.json",
   "title": "Metadata Test",
   "name": "metadata-test",
-  "display_name": "Metadata Test",
-  "namespace": "metadata-tests",
-  "metadata_class_name": "elyra.metadata.tests.test_utils.MockMetadataTest",
-  "schema_filter_class_name": "elyra.metadata.tests.test_utils.TestSchemaFilter",
+  "schemaspace": "metadata-tests",
+  "schemaspace_id": "8182fc28-899a-4521-8342-1a0e218c3a4d",
+  "metadata_class_name": "elyra.tests.metadata.test_utils.MockMetadataTest",
   "properties": {
     "schema_name": {
       "title": "Schema Name",
       "description": "The schema associated with this instance",
       "type": "string",
-      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
-      "minLength": 1
+      "const": "metadata-test"
     },
     "display_name": {
       "title": "Display Name",

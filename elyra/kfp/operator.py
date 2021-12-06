@@ -21,6 +21,7 @@ from typing import List
 from typing import Optional
 
 from kfp.dsl import ContainerOp
+from kfp.dsl import RUN_ID_PLACEHOLDER
 from kubernetes.client.models import V1EmptyDirVolumeSource
 from kubernetes.client.models import V1EnvVar
 from kubernetes.client.models import V1EnvVarSource
@@ -253,7 +254,10 @@ class ExecuteFileOp(ContainerOp):
         if not workflow_engine:
             raise ValueError('workflow_engine is missing and needs to be specified.')
         if workflow_engine.lower() == 'argo':
-            run_name_placeholder = '{{workflow.annotations.pipelines.kubeflow.org/run_name}}'
+            # attach RUN_ID_PLACEHOLDER as run name
+            # '{{workflow.annotations.pipelines.kubeflow.org/run_name}}' variable
+            # cannot be resolved by Argo in KF 1.4
+            run_name_placeholder = RUN_ID_PLACEHOLDER
             self.container.add_env_variable(V1EnvVar(name='ELYRA_RUN_NAME',
                                                      value=run_name_placeholder))
         elif workflow_engine.lower() == 'tekton':

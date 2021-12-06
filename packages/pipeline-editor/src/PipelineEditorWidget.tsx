@@ -19,7 +19,11 @@ import {
   PipelineOutOfDateError,
   ThemeProvider
 } from '@elyra/pipeline-editor';
-import { migrate, validate } from '@elyra/pipeline-services';
+import {
+  migrate,
+  validate,
+  ComponentNotFoundError
+} from '@elyra/pipeline-services';
 import { ContentParser } from '@elyra/services';
 import {
   IconUtil,
@@ -33,10 +37,7 @@ import {
   Dropzone,
   RequestErrors,
   showFormDialog,
-  kubeflowIcon,
-  airflowIcon,
-  argoIcon,
-  pipelineComponentsIcon
+  componentCatalogIcon
 } from '@elyra/ui-components';
 import { ILabShell } from '@jupyterlab/application';
 import { Dialog, ReactWidget, showDialog } from '@jupyterlab/apputils';
@@ -60,8 +61,13 @@ import Alert from '@material-ui/lab/Alert';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  EmptyGenericPipeline,
+  EmptyPlatformSpecificPipeline
+} from './EmptyPipelineContent';
 import { formDialogWidget } from './formDialogWidget';
 import {
+  componentFetcher,
   usePalette,
   useRuntimeImages,
   useRuntimesSchema
@@ -69,16 +75,18 @@ import {
 import { PipelineExportDialog } from './PipelineExportDialog';
 import pipelineProperties from './pipelineProperties';
 import {
-  IRuntime,
-  ISchema,
   PipelineService,
-  RUNTIMES_NAMESPACE,
-  RUNTIME_IMAGES_NAMESPACE,
-  PIPELINE_COMPONENTS_NAMESPACE
+  RUNTIMES_SCHEMASPACE,
+  RUNTIME_IMAGES_SCHEMASPACE,
+  COMPONENT_CATALOGS_SCHEMASPACE
 } from './PipelineService';
 import { PipelineSubmissionDialog } from './PipelineSubmissionDialog';
+import {
+  createRuntimeData,
+  getConfigDetails,
+  IRuntimeData
+} from './runtime-utils';
 import { theme } from './theme';
-import Utils from './utils';
 
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
@@ -108,12 +116,26 @@ const getAllPaletteNodes = (palette: any): any[] => {
   return nodes;
 };
 
-const getRuntimeDisplayName = (
-  schemas: { name: string; display_name: string }[] | undefined,
-  runtime: string | undefined
+const isRuntimeTypeAvailable = (data: IRuntimeData, type?: string): boolean => {
+  for (const p of data.platforms) {
+    if (type === undefined || p.id === type) {
+      if (p.configs.length > 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const getDisplayName = (
+  runtimesSchema: any,
+  type?: string
 ): string | undefined => {
-  const schema = schemas?.find(s => s.name === runtime);
-  return schema?.display_name;
+  if (!type) {
+    return undefined;
+  }
+  const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
+  return schema?.title;
 };
 
 class PipelineEditorWidget extends ReactWidget {
@@ -169,23 +191,29 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [alert, setAlert] = React.useState('');
 
-  const pipelineRuntimeName = pipeline?.pipelines?.[0]?.app_data?.runtime;
-
-  const { data: palette, error: paletteError } = usePalette(
-    pipelineRuntimeName
-  );
-
-  const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
+  const type: string | undefined =
+    pipeline?.pipelines?.[0]?.app_data?.runtime_type;
 
   const {
     data: runtimesSchema,
     error: runtimesSchemaError
   } = useRuntimesSchema();
 
-  const pipelineRuntimeDisplayName = getRuntimeDisplayName(
-    runtimesSchema,
-    pipelineRuntimeName
+  const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
+
+  // TODO: DELETE THIS
+  const __doNotUseInFutureMapTypeToRandomProcessor__ = (():
+    | string
+    | undefined => {
+    const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
+    return schema?.name;
+  })();
+
+  const { data: palette, error: paletteError } = usePalette(
+    __doNotUseInFutureMapTypeToRandomProcessor__
   );
+
+  const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
 
   useEffect(() => {
     if (runtimeImages?.length === 0) {
@@ -256,8 +284,6 @@ const PipelineWrapper: React.FC<IProps> = ({
           PathExt.extname(pipeline_path)
         );
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
-        pipelineJson.pipelines[0].app_data.properties.runtime =
-          pipelineRuntimeDisplayName ?? 'Generic';
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -269,7 +295,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [pipelineRuntimeDisplayName, runtimeImages]);
+  }, [runtimeImages]);
 
   const onChange = useCallback(
     (pipelineJson: any): void => {
@@ -308,6 +334,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       if (isDialogAlreadyShowing.current) {
         return; // bail, we are already showing a dialog.
       }
+      isDialogAlreadyShowing.current = true;
       if (error instanceof PipelineOutOfDateError) {
         showDialog({
           title: 'Migrate pipeline?',
@@ -327,25 +354,71 @@ const PipelineWrapper: React.FC<IProps> = ({
             </p>
           ),
           buttons: [Dialog.cancelButton(), Dialog.okButton()]
-        }).then(result => {
+        }).then(async result => {
           isDialogAlreadyShowing.current = false;
           if (result.button.accept) {
             // proceed with migration
             console.log('migrating pipeline');
-            const migratedPipeline = migrate(pipeline, pipeline => {
-              // function for updating to relative paths in v2
-              // uses location of filename as expected in v1
-              for (const node of pipeline.nodes) {
-                node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                  contextRef.current.path,
-                  node.app_data.filename
-                );
+            let migrationPalette = palette;
+            const pipelineJSON: any = contextRef.current.model.toJSON();
+            const oldRuntime = pipelineJSON?.pipelines[0].app_data.runtime;
+            if (oldRuntime === 'kfp' || oldRuntime === 'airflow') {
+              migrationPalette = await componentFetcher(oldRuntime);
+            }
+            try {
+              const migratedPipeline = migrate(
+                pipelineJSON,
+                pipeline => {
+                  // function for updating to relative paths in v2
+                  // uses location of filename as expected in v1
+                  for (const node of pipeline.nodes) {
+                    node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                      contextRef.current.path,
+                      node.app_data.filename
+                    );
+                  }
+                  return pipeline;
+                },
+                migrationPalette
+              );
+              contextRef.current.model.fromString(
+                JSON.stringify(migratedPipeline, null, 2)
+              );
+            } catch (migrationError) {
+              if (migrationError instanceof ComponentNotFoundError) {
+                showDialog({
+                  title: 'Pipeline migration aborted!',
+                  body: (
+                    <p>
+                      {' '}
+                      The pipeline you are trying to migrate uses example
+                      components, which are not <br />
+                      enabled in your environment. Complete the setup
+                      instructions in{' '}
+                      <a
+                        href="https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#example-custom-components"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Example Custom Components
+                      </a>{' '}
+                      and try again.
+                    </p>
+                  ),
+                  buttons: [Dialog.okButton({ label: 'Close' })]
+                }).then(() => {
+                  shell.currentWidget?.close();
+                });
+              } else {
+                showDialog({
+                  title: 'Pipeline migration failed!',
+                  body: <p> {migrationError?.message || ''} </p>,
+                  buttons: [Dialog.okButton()]
+                }).then(() => {
+                  shell.currentWidget?.close();
+                });
               }
-              return pipeline;
-            });
-            contextRef.current.model.fromString(
-              JSON.stringify(migratedPipeline, null, 2)
-            );
+            }
           } else {
             shell.currentWidget?.close();
           }
@@ -353,7 +426,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       } else {
         showDialog({
           title: 'Load pipeline failed!',
-          body: <p> {error || ''} </p>,
+          body: <p> {error?.message || ''} </p>,
           buttons: [Dialog.okButton()]
         }).then(() => {
           isDialogAlreadyShowing.current = false;
@@ -361,7 +434,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [pipeline, shell.currentWidget]
+    [palette, shell.currentWidget]
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
@@ -460,325 +533,182 @@ const PipelineWrapper: React.FC<IProps> = ({
     }
   };
 
-  const cleanNullProperties = React.useCallback((): void => {
-    // Delete optional fields that have null value
-    for (const node of pipeline?.pipelines[0].nodes) {
-      if (node.app_data.component_parameters.cpu === null) {
-        delete node.app_data.component_parameters.cpu;
-      }
-      if (node.app_data.component_parameters.memory === null) {
-        delete node.app_data.component_parameters.memory;
-      }
-      if (node.app_data.component_parameters.gpu === null) {
-        delete node.app_data.component_parameters.gpu;
-      }
-    }
-  }, [pipeline?.pipelines]);
-
-  const handleExportPipeline = useCallback(async (): Promise<void> => {
-    const pipelineJson: any = context.model.toJSON();
-    // prepare pipeline submission details
-    // Warn user if the pipeline has invalid nodes
-    if (!pipelineJson) {
-      setAlert('Failed export: Cannot export empty pipelines.');
-      return;
-    }
-    const errorMessages = validate(
-      JSON.stringify(pipelineJson),
-      getAllPaletteNodes(palette)
-    );
-    if (errorMessages && errorMessages.length > 0) {
-      let errorMessage = '';
-      for (const error of errorMessages) {
-        errorMessage += error.message;
-      }
-      setAlert(`Failed export: ${errorMessage}`);
-      return;
-    }
-
-    if (contextRef.current.model.dirty) {
-      const dialogResult = await showDialog({
-        title:
-          'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
-        buttons: [
-          Dialog.cancelButton(),
-          Dialog.okButton({ label: 'Save and Submit' })
-        ]
-      });
-      if (dialogResult.button && dialogResult.button.accept === true) {
-        await contextRef.current.save();
-      } else {
-        // Don't proceed if cancel button pressed
+  const handleSubmission = useCallback(
+    async (actionType: 'run' | 'export'): Promise<void> => {
+      const pipelineJson: any = context.model.toJSON();
+      // Check that all nodes are valid
+      const errorMessages = validate(
+        JSON.stringify(pipelineJson),
+        getAllPaletteNodes(palette)
+      );
+      if (errorMessages && errorMessages.length > 0) {
+        let errorMessage = '';
+        for (const error of errorMessages) {
+          errorMessage += error.message;
+        }
+        setAlert(`Failed ${actionType}: ${errorMessage}`);
         return;
       }
-    }
 
-    const action = 'export pipeline';
-    const runtimes = await PipelineService.getRuntimes(
-      true,
-      action
-    ).catch(error => RequestErrors.serverError(error));
+      if (contextRef.current.model.dirty) {
+        const dialogResult = await showDialog({
+          title:
+            'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
+          buttons: [
+            Dialog.cancelButton(),
+            Dialog.okButton({ label: 'Save and Submit' })
+          ]
+        });
+        if (dialogResult.button && dialogResult.button.accept === true) {
+          await contextRef.current.save();
+        } else {
+          // Don't proceed if cancel button pressed
+          return;
+        }
+      }
 
-    if (Utils.isDialogResult(runtimes)) {
-      // Open the runtimes widget
-      runtimes.button.label.includes(RUNTIMES_NAMESPACE) &&
-        shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
-      return;
-    }
-
-    const schema = await PipelineService.getRuntimesSchema().catch(error =>
-      RequestErrors.serverError(error)
-    );
-
-    let title = 'Export pipeline';
-    if (
-      pipelineRuntimeDisplayName !== undefined &&
-      pipelineRuntimeName !== undefined
-    ) {
-      title = `Export pipeline for ${pipelineRuntimeDisplayName}`;
-      const filteredRuntimeOptions = PipelineService.filterRuntimes(
-        runtimes,
-        pipelineRuntimeName
+      const pipelineName = PathExt.basename(
+        contextRef.current.path,
+        PathExt.extname(contextRef.current.path)
       );
-      if (filteredRuntimeOptions.length === 0) {
-        const runtimes = await RequestErrors.noMetadataError(
-          'runtime',
-          'export pipeline.',
-          pipelineRuntimeDisplayName
-        );
-        if (Utils.isDialogResult(runtimes)) {
-          if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
+
+      // TODO: Parallelize this
+      const runtimes = await PipelineService.getRuntimes().catch(error =>
+        RequestErrors.serverError(error)
+      );
+      const schema = await PipelineService.getRuntimesSchema().catch(error =>
+        RequestErrors.serverError(error)
+      );
+      const runtimeTypes = await PipelineService.getRuntimeTypes();
+
+      const runtimeData = createRuntimeData({
+        schema,
+        runtimes,
+        allowLocal: actionType === 'run'
+      });
+
+      let title = `${actionType} pipeline`;
+      if (type !== undefined) {
+        title = `${actionType} pipeline for ${runtimeDisplayName}`;
+
+        if (!isRuntimeTypeAvailable(runtimeData, type)) {
+          const res = await RequestErrors.noMetadataError(
+            'runtime',
+            `${actionType} pipeline.`,
+            runtimeDisplayName
+          );
+
+          if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {
             // Open the runtimes widget
-            shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+            shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
           }
           return;
         }
+      }
+      // Capitalize
+      title = title.charAt(0).toUpperCase() + title.slice(1);
+
+      let dialogOptions: Partial<Dialog.IOptions<any>>;
+
+      switch (actionType) {
+        case 'run':
+          dialogOptions = {
+            title,
+            body: formDialogWidget(
+              <PipelineSubmissionDialog
+                name={pipelineName}
+                runtimeData={runtimeData}
+                pipelineType={type}
+              />
+            ),
+            buttons: [Dialog.cancelButton(), Dialog.okButton()],
+            defaultButton: 1,
+            focusNodeSelector: '#pipeline_name'
+          };
+          break;
+        case 'export':
+          dialogOptions = {
+            title,
+            body: formDialogWidget(
+              <PipelineExportDialog
+                runtimeData={runtimeData}
+                runtimeTypeInfo={runtimeTypes}
+                pipelineType={type}
+              />
+            ),
+            buttons: [Dialog.cancelButton(), Dialog.okButton()],
+            defaultButton: 1,
+            focusNodeSelector: '#runtime_config'
+          };
+          break;
+      }
+
+      const dialogResult = await showFormDialog(dialogOptions);
+
+      if (dialogResult.value == null) {
+        // When Cancel is clicked on the dialog, just return
         return;
       }
-    }
 
-    const dialogOptions: Partial<Dialog.IOptions<any>> = {
-      title,
-      body: formDialogWidget(
-        <PipelineExportDialog
-          runtimes={runtimes}
-          runtime={pipelineRuntimeName}
-          schema={schema}
-        />
-      ),
-      buttons: [Dialog.cancelButton(), Dialog.okButton()],
-      defaultButton: 1,
-      focusNodeSelector: '#runtime_config'
-    };
-    const dialogResult = await showFormDialog(dialogOptions);
-
-    if (dialogResult.value == null) {
-      // When Cancel is clicked on the dialog, just return
-      return;
-    }
-
-    // prepare pipeline submission details
-    const pipeline_path = contextRef.current.path;
-
-    const pipeline_dir = PathExt.dirname(pipeline_path);
-    const pipeline_name = PathExt.basename(
-      pipeline_path,
-      PathExt.extname(pipeline_path)
-    );
-    const pipeline_export_format = dialogResult.value.pipeline_filetype;
-
-    let pipeline_export_path = pipeline_name + '.' + pipeline_export_format;
-    // only prefix the '/' when pipeline_dir is non-empty
-    if (pipeline_dir) {
-      pipeline_export_path = pipeline_dir + '/' + pipeline_export_path;
-    }
-
-    const overwrite = dialogResult.value.overwrite;
-
-    const runtime_config = dialogResult.value.runtime_config;
-    const runtime = PipelineService.getRuntimeName(runtime_config, runtimes);
-
-    PipelineService.setNodePathsRelativeToWorkspace(
-      pipelineJson.pipelines[0],
-      contextRef.current.path
-    );
-
-    cleanNullProperties();
-
-    pipelineJson.pipelines[0].app_data.name = pipeline_name;
-    pipelineJson.pipelines[0].app_data.runtime = runtime;
-    pipelineJson.pipelines[0].app_data['runtime-config'] = runtime_config;
-    pipelineJson.pipelines[0].app_data.source = PathExt.basename(
-      contextRef.current.path
-    );
-
-    PipelineService.exportPipeline(
-      pipelineJson,
-      pipeline_export_format,
-      pipeline_export_path,
-      overwrite
-    ).catch(error => RequestErrors.serverError(error));
-
-    PipelineService.setNodePathsRelativeToPipeline(
-      pipelineJson.pipelines[0],
-      contextRef.current.path
-    );
-  }, [
-    cleanNullProperties,
-    context.model,
-    palette,
-    pipelineRuntimeDisplayName,
-    pipelineRuntimeName,
-    shell
-  ]);
-
-  const handleRunPipeline = useCallback(async (): Promise<void> => {
-    const pipelineJson: any = context.model.toJSON();
-    // Check that all nodes are valid
-    const errorMessages = validate(
-      JSON.stringify(pipelineJson),
-      getAllPaletteNodes(palette)
-    );
-    if (errorMessages && errorMessages.length > 0) {
-      let errorMessage = '';
-      for (const error of errorMessages) {
-        errorMessage += error.message;
-      }
-      setAlert(`Failed run: ${errorMessage}`);
-      return;
-    }
-
-    if (contextRef.current.model.dirty) {
-      const dialogResult = await showDialog({
-        title:
-          'This pipeline contains unsaved changes. To submit the pipeline the changes need to be saved.',
-        buttons: [
-          Dialog.cancelButton(),
-          Dialog.okButton({ label: 'Save and Submit' })
-        ]
-      });
-      if (dialogResult.button && dialogResult.button.accept === true) {
-        await contextRef.current.save();
-      } else {
-        // Don't proceed if cancel button pressed
-        return;
-      }
-    }
-
-    const pipelineName = PathExt.basename(
-      contextRef.current.path,
-      PathExt.extname(contextRef.current.path)
-    );
-
-    const action = 'run pipeline';
-    const runtimes = await PipelineService.getRuntimes(
-      false,
-      action
-    ).catch(error => RequestErrors.serverError(error));
-    const schema = await PipelineService.getRuntimesSchema().catch(error =>
-      RequestErrors.serverError(error)
-    );
-
-    const localRuntime: IRuntime = {
-      name: 'local',
-      display_name: 'Run in-place locally',
-      schema_name: 'local'
-    };
-    runtimes.unshift(JSON.parse(JSON.stringify(localRuntime)));
-
-    const localSchema: ISchema = {
-      name: 'local',
-      display_name: 'Local Runtime'
-    };
-    schema.unshift(JSON.parse(JSON.stringify(localSchema)));
-
-    let title = 'Run pipeline';
-    if (
-      pipelineRuntimeDisplayName !== undefined &&
-      pipelineRuntimeName !== undefined
-    ) {
-      title = `Run pipeline on ${pipelineRuntimeDisplayName}`;
-      const filteredRuntimeOptions = PipelineService.filterRuntimes(
-        runtimes,
-        pipelineRuntimeName
-      );
-      if (filteredRuntimeOptions.length === 0) {
-        const runtimes = await RequestErrors.noMetadataError(
-          'runtime',
-          'run pipeline.',
-          pipelineRuntimeDisplayName
-        );
-        if (Utils.isDialogResult(runtimes)) {
-          if (runtimes.button.label.includes(RUNTIMES_NAMESPACE)) {
-            // Open the runtimes widget
-            shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
-          }
-          return;
+      // Clean null properties
+      for (const node of pipelineJson.pipelines[0].nodes) {
+        if (node.app_data.component_parameters.cpu === null) {
+          delete node.app_data.component_parameters.cpu;
         }
-        return;
+        if (node.app_data.component_parameters.memory === null) {
+          delete node.app_data.component_parameters.memory;
+        }
+        if (node.app_data.component_parameters.gpu === null) {
+          delete node.app_data.component_parameters.gpu;
+        }
       }
-    }
 
-    const dialogOptions: Partial<Dialog.IOptions<any>> = {
-      title,
-      body: formDialogWidget(
-        <PipelineSubmissionDialog
-          name={pipelineName}
-          runtimes={runtimes}
-          runtime={pipelineRuntimeName}
-          schema={schema}
-        />
-      ),
-      buttons: [Dialog.cancelButton(), Dialog.okButton()],
-      defaultButton: 1,
-      focusNodeSelector: '#pipeline_name'
-    };
-    const dialogResult = await showFormDialog(dialogOptions);
+      const configDetails = getConfigDetails(
+        runtimeData,
+        dialogResult.value.runtime_config
+      );
 
-    if (dialogResult.value === null) {
-      // When Cancel is clicked on the dialog, just return
-      return;
-    }
+      PipelineService.setNodePathsRelativeToWorkspace(
+        pipelineJson.pipelines[0],
+        contextRef.current.path
+      );
 
-    const runtime_config = dialogResult.value.runtime_config;
-    const runtime =
-      PipelineService.getRuntimeName(runtime_config, runtimes) || 'local';
+      // Metadata
+      pipelineJson.pipelines[0].app_data.name =
+        dialogResult.value.pipeline_name ?? pipelineName;
+      pipelineJson.pipelines[0].app_data.source = PathExt.basename(
+        contextRef.current.path
+      );
 
-    PipelineService.setNodePathsRelativeToWorkspace(
-      pipelineJson.pipelines[0],
-      contextRef.current.path
-    );
+      // Runtime info
+      pipelineJson.pipelines[0].app_data.runtime_config =
+        configDetails?.id ?? 'local';
 
-    cleanNullProperties();
+      // Export info
+      const pipeline_dir = PathExt.dirname(contextRef.current.path);
+      const basePath = pipeline_dir ? `${pipeline_dir}/` : '';
+      const exportType = dialogResult.value.pipeline_filetype;
+      const exportPath = `${basePath}${pipelineName}.${exportType}`;
 
-    pipelineJson.pipelines[0]['app_data']['name'] =
-      dialogResult.value.pipeline_name;
-    pipelineJson.pipelines[0]['app_data']['runtime'] = runtime;
-    pipelineJson.pipelines[0]['app_data']['runtime-config'] = runtime_config;
-    pipelineJson.pipelines[0]['app_data']['source'] = PathExt.basename(
-      contextRef.current.path
-    );
-
-    PipelineService.submitPipeline(
-      pipelineJson,
-      PipelineService.getDisplayName(
-        dialogResult.value.runtime_config,
-        runtimes
-      )
-    ).catch(error => RequestErrors.serverError(error));
-
-    PipelineService.setNodePathsRelativeToPipeline(
-      pipelineJson.pipelines[0],
-      contextRef.current.path
-    );
-  }, [
-    cleanNullProperties,
-    context.model,
-    palette,
-    pipelineRuntimeDisplayName,
-    pipelineRuntimeName,
-    shell
-  ]);
+      switch (actionType) {
+        case 'run':
+          PipelineService.submitPipeline(
+            pipelineJson,
+            configDetails?.platform.displayName ?? ''
+          ).catch(error => RequestErrors.serverError(error));
+          break;
+        case 'export':
+          PipelineService.exportPipeline(
+            pipelineJson,
+            exportType,
+            exportPath,
+            dialogResult.value.overwrite
+          ).catch(error => RequestErrors.serverError(error));
+          break;
+      }
+    },
+    [context.model, palette, runtimeDisplayName, type, shell]
+  );
 
   const handleClearPipeline = useCallback(async (data: any): Promise<any> => {
     return showDialog({
@@ -812,13 +742,11 @@ const PipelineWrapper: React.FC<IProps> = ({
           contextRef.current.save();
           break;
         case 'run':
-          handleRunPipeline();
+        case 'export':
+          handleSubmission(args.type);
           break;
         case 'clear':
           handleClearPipeline(args.payload);
-          break;
-        case 'export':
-          handleExportPipeline();
           break;
         case 'toggleOpenPanel':
           setPanelOpen(!panelOpen);
@@ -827,13 +755,15 @@ const PipelineWrapper: React.FC<IProps> = ({
           setPanelOpen(true);
           break;
         case 'openRuntimes':
-          shell.activateById(`elyra-metadata:${RUNTIMES_NAMESPACE}`);
+          shell.activateById(`elyra-metadata:${RUNTIMES_SCHEMASPACE}`);
           break;
         case 'openRuntimeImages':
-          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_NAMESPACE}`);
+          shell.activateById(`elyra-metadata:${RUNTIME_IMAGES_SCHEMASPACE}`);
           break;
-        case 'openPipelineComponents':
-          shell.activateById(`elyra-metadata:${PIPELINE_COMPONENTS_NAMESPACE}`);
+        case 'openComponentCatalogs':
+          shell.activateById(
+            `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`
+          );
           break;
         case 'openFile':
           commands.execute(commandIDs.openDocManager, {
@@ -847,14 +777,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           break;
       }
     },
-    [
-      handleRunPipeline,
-      handleClearPipeline,
-      handleExportPipeline,
-      panelOpen,
-      shell,
-      commands
-    ]
+    [handleSubmission, handleClearPipeline, panelOpen, shell, commands]
   );
 
   const toolbar = {
@@ -900,11 +823,11 @@ const PipelineWrapper: React.FC<IProps> = ({
         iconDisabled: IconUtil.encode(containerIcon)
       },
       {
-        action: 'openPipelineComponents',
-        label: 'Open Pipeline Components',
+        action: 'openComponentCatalogs',
+        label: 'Open Component Catalogs',
         enable: true,
-        iconEnabled: IconUtil.encode(pipelineComponentsIcon),
-        iconDisabled: IconUtil.encode(pipelineComponentsIcon)
+        iconEnabled: IconUtil.encode(componentCatalogIcon),
+        iconDisabled: IconUtil.encode(componentCatalogIcon)
       },
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },
@@ -927,19 +850,12 @@ const PipelineWrapper: React.FC<IProps> = ({
     rightBar: [
       {
         action: '',
-        label: `Runtime: ${pipelineRuntimeDisplayName ?? 'Generic'}`,
+        label: `Runtime: ${runtimeDisplayName}`,
         incLabelWithIcon: 'before',
         enable: false,
-        kind: 'tertiary',
-        iconEnabled: IconUtil.encode(
-          pipelineRuntimeName === 'kfp'
-            ? kubeflowIcon
-            : pipelineRuntimeName === 'airflow'
-            ? airflowIcon
-            : pipelineRuntimeName === 'argo'
-            ? argoIcon
-            : pipelineIcon
-        )
+        kind: 'tertiary'
+        // TODO: re-add icon
+        // iconEnabled: IconUtil.encode(ICON_MAP[type ?? ''] ?? pipelineIcon)
       },
       {
         action: 'toggleOpenPanel',
@@ -1046,6 +962,10 @@ const PipelineWrapper: React.FC<IProps> = ({
     return <div className="elyra-loader"></div>;
   }
 
+  const handleOpenCatalog = (): void => {
+    shell.activateById(`elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -1071,7 +991,13 @@ const PipelineWrapper: React.FC<IProps> = ({
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
           leftPalette={true}
-        />
+        >
+          {type === undefined ? (
+            <EmptyGenericPipeline />
+          ) : (
+            <EmptyPlatformSpecificPipeline onOpenCatalog={handleOpenCatalog} />
+          )}
+        </PipelineEditor>
       </Dropzone>
     </ThemeProvider>
   );

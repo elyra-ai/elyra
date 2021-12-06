@@ -34,9 +34,9 @@ export const METADATA_HEADER_POPPER_CLASS = 'elyra-metadataHeader-popper';
 
 export interface IAddMetadataButtonProps {
   schemas?: IDictionary<any>[];
-  addMetadata: (schema: string) => void;
-  // Optional string to append to the schema display name
-  schemaType?: string;
+  addMetadata: (schema: string, titleContext?: string) => void;
+  titleContext?: string;
+  appendToTitle?: boolean;
 }
 
 const StyledButton = styled(Button)({
@@ -57,6 +57,16 @@ export const AddMetadataButton = (
   const handleToggle = (): void => {
     setOpen((prevOpen: boolean) => !prevOpen);
   };
+
+  const sortedSchema = props.schemas?.sort((a, b) => {
+    if (a.name > b.name) {
+      return 1;
+    } else if (a.name < b.name) {
+      return -1;
+    } else {
+      return 0;
+    }
+  });
 
   const handleClose = (event: React.MouseEvent<Document, MouseEvent>): void => {
     if (
@@ -80,11 +90,7 @@ export const AddMetadataButton = (
               ? (): void => props.addMetadata(props.schemas?.[0].name)
               : handleToggle
           }
-          title={`Create new ${
-            singleSchema
-              ? props.schemas?.[0].display_name
-              : props.schemas?.[0].namespace
-          }`}
+          title={`Create new ${props.titleContext}`}
         >
           <addIcon.react tag="span" elementPosition="center" width="16px" />
         </StyledButton>
@@ -98,16 +104,20 @@ export const AddMetadataButton = (
         <Paper>
           <ClickAwayListener onClickAway={handleClose}>
             <MenuList id="split-button-menu">
-              {props.schemas?.map((schema: IDictionary<any>) => (
+              {sortedSchema?.map((schema: IDictionary<any>) => (
                 <MenuItem
-                  key={schema.display_name}
-                  title={`New ${schema.display_name} ${props.schemaType ?? ''}`}
+                  key={schema.title}
+                  title={`New ${schema.title} ${
+                    props.appendToTitle ? props.titleContext : ''
+                  }`}
                   onClick={(event: any): void => {
-                    props.addMetadata(schema.name);
+                    props.addMetadata(schema.name, props.titleContext);
                     handleClose(event);
                   }}
                 >
-                  {`New ${schema.display_name} ${props.schemaType ?? ''}`}
+                  {`New ${schema.title} ${
+                    props.appendToTitle ? props.titleContext : ''
+                  }`}
                 </MenuItem>
               ))}
             </MenuList>

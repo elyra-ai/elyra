@@ -17,10 +17,11 @@ import json
 import os
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
 
 
-class AppDataBase():
+class AppDataBase(object):  # ABC
     """
     An abstraction for app_data based nodes
     """
@@ -83,44 +84,36 @@ class Pipeline(AppDataBase):
     @property
     def version(self) -> int:
         """
-        The pipelive version
+        The pipeline version
         :return: The version
         """
         return int(self._node['app_data'].get('version'))
 
     @property
     def runtime(self) -> str:
-        """
-        The runtime associated with the pipeline
+        """The runtime processor name associated with the pipeline.
+
+        NOTE: This value should really be derived from runtime_config.
         :return: The runtime keyword
         """
         return self._node['app_data'].get('runtime')
 
     @property
     def runtime_config(self) -> str:
-        """
-        The runtime configuration associated with the pipeline
+        """The runtime configuration associated with the pipeline.
+
         :return: The runtime configuration key. This should be a valid key from the Runtimes metadata
         """
-        return self._node['app_data'].get('runtime-config')
+        return self._node['app_data'].get('runtime_config')
 
     @property
     def type(self):
-        """
-        The pipeline type
-        :return: The runtime keyword associated with the pipeline or `generic`
-        """
-        type_description_to_type = {'Kubeflow Pipelines': 'kfp',
-                                    'Apache Airflow': 'airflow',
-                                    'Generic': 'generic'}
+        """The runtime type.
 
-        if 'properties' in self._node['app_data']:
-            pipeline_type_description = self._node['app_data']['properties'].get('runtime', 'Generic')
-            if pipeline_type_description not in type_description_to_type.keys():
-                raise ValueError(f'Unsupported pipeline runtime: {pipeline_type_description}')
-            return type_description_to_type[pipeline_type_description]
-        else:
-            return type_description_to_type['Generic']
+        NOTE: This value should really be derived from runtime_config.
+        :return: The runtime_type keyword associated with the pipeline.
+        """
+        return self._node['app_data'].get('runtime_type')
 
     @property
     def name(self) -> str:
@@ -128,7 +121,7 @@ class Pipeline(AppDataBase):
         The pipeline name
         :rtype: The pipeline name or `untitled`
         """
-        return self._node['app_data'].get('name') or 'untitled'
+        return self._node['app_data'].get('name', self._node['app_data'].get('properties', {}).get('name', 'untitled'))
 
     @property
     def source(self) -> str:
@@ -226,6 +219,27 @@ class Node(AppDataBase):
         else:
             return None
 
+    @property
+    def component_links(self) -> List:
+        """
+        Retrieve component links to other components.
+        :return: the list of links associated with this node or an empty list if none are found
+        """
+        if self.type in ['execution_node', 'super_node']:
+            return self._node['inputs'][0].get('links', [])
+        else:
+            #  binding nodes do not contain links
+            return []
+
+    @property
+    def component_source(self) -> Optional[str]:
+        """
+        Retrieve the component source path.
+        :return: None, if the node is a generic component, the component path otherwise.
+        """
+        if self.type == 'execution_node':
+            return self._node['app_data'].get('component_source', None)
+
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
         Retrieve component parameter values.
@@ -234,7 +248,8 @@ class Node(AppDataBase):
         :param default_value: a default value in case the key is not found
         :return: the value or the default value if the key is not found
         """
-        return self._node['app_data']['component_parameters'].get(key, default_value)
+        value = self._node['app_data']['component_parameters'].get(key, default_value)
+        return None if value == "None" else value
 
     def set_component_parameter(self, key: str, value: Any):
         """
@@ -408,7 +423,7 @@ class PipelineDefinition(object):
 
     def is_valid(self) -> bool:
         """
-        Represents wether or not the pipeline structure is valid
+        Represents whether or not the pipeline structure is valid
         :return: True for a valid pipeline definition
         """
         return len(self.validate()) == 0
@@ -420,7 +435,7 @@ class PipelineDefinition(object):
         """
         return self._pipeline_definition
 
-    def get_pipeline_definition(self, pipeline_id) -> Pipeline:
+    def get_pipeline_definition(self, pipeline_id) -> Any:
         """
         Retrieve a given pipeline from the pipeline definition
         :param pipeline_id: the pipeline unique identifier
@@ -432,3 +447,27 @@ class PipelineDefinition(object):
                     return Pipeline(pipeline)
 
         return None
+
+    def get_node(self, node_id: str):
+        """
+        Given a node id returns the associated node object in the pipeline
+        :param node_id: the node id
+        :return: the node object or None
+        """
+        for pipeline in self._pipelines:
+            for node in pipeline.nodes:
+                if node.id == node_id:
+                    return node
+        return None
+
+    def get_supernodes(self) -> List[Node]:
+        """
+        Returns a list of all supernodes in the pipeline
+        :return:
+        """
+        supernode_list = []
+        for pipeline in self._pipelines:
+            for node in pipeline.nodes:
+                if node.type == "super_node":
+                    supernode_list.append(node)
+        return supernode_list

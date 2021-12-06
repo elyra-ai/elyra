@@ -27,21 +27,26 @@ from typing import Union
 import autopep8
 from jinja2 import Environment
 from jinja2 import PackageLoader
+from traitlets import CUnicode
+from traitlets import List as ListTrait
 
 from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
-from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schemaspaces import RuntimeImages
+from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.git import GithubClient
 from elyra.util.path import get_absolute_path
 
 
 class AirflowPipelineProcessor(RuntimePipelineProcessor):
-    _type = 'airflow'
+    _type = RuntimeProcessorType.APACHE_AIRFLOW
+    _name = 'airflow'
 
     # Provide users with the ability to identify a writable directory in the
     # running container where the notebook | script is executed. The location
@@ -49,19 +54,41 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
     # Defaults to `/tmp`
     WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
 
-    @property
-    def type(self):
-        return self._type
+    # This specifies the default airflow operators included with Elyra.  Any Airflow-based
+    # custom connectors should create/extend the elyra configuration file to include
+    # those fully-qualified operator/class names.
+    available_airflow_operators = ListTrait(
+        CUnicode(),
+        ["airflow.operators.slack_operator.SlackAPIPostOperator",
+         "airflow.operators.bash_operator.BashOperator",
+         "airflow.operators.email_operator.EmailOperator",
+         "airflow.operators.http_operator.SimpleHttpOperator",
+         "airflow.contrib.operators.spark_sql_operator.SparkSqlOperator",
+         "airflow.contrib.operators.spark_submit_operator.SparkSubmitOperator"],
+        help="""List of available Apache Airflow operator names.
+
+Operators available for use within Apache Airflow pipelines.  These operators must
+be fully qualified (i.e., prefixed with their package names).
+       """,
+    ).tag(config=True)
+
+    # Contains mappings from class to import statement for each available Airflow operator
+    class_import_map = {}
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, component_parser=AirflowComponentParser(), **kwargs)
+        if not self.class_import_map:  # Only need to load once
+            for package in self.available_airflow_operators:
+                parts = package.rsplit(".", 1)
+                self.class_import_map[parts[1]] = f"from {parts[0]} import {parts[1]}"
+        self.log.debug(f"class_package_map = {self.class_import_map}")
 
     def process(self, pipeline):
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
         api_endpoint = runtime_configuration.metadata.get('api_endpoint')
         cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
@@ -136,16 +163,16 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
     def _cc_pipeline(self, pipeline, pipeline_name):
 
-        runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
-        image_namespace = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIME_IMAGES)
+        image_namespace = self._get_metadata_configuration(schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
 
-        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-        cos_username = runtime_configuration.metadata['cos_username']
-        cos_password = runtime_configuration.metadata['cos_password']
+        cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+        cos_username = runtime_configuration.metadata.get('cos_username')
+        cos_password = runtime_configuration.metadata.get('cos_password')
         cos_secret = runtime_configuration.metadata.get('cos_secret')
         cos_directory = pipeline_name
-        cos_bucket = runtime_configuration.metadata['cos_bucket']
+        cos_bucket = runtime_configuration.metadata.get('cos_bucket')
 
         # Create dictionary that maps component Id to its ContainerOp instance
         target_ops = []
@@ -242,7 +269,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
 
             else:
                 # Retrieve component from cache
-                component = self._component_registry.get_component(operation.classifier)
+                component = self._component_catalog.get_component(operation.classifier)
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
@@ -251,11 +278,35 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                         continue
 
                     # Get corresponding property's value from parsed pipeline
-                    property_value = operation.component_params.get(component_property.ref)
+                    property_value_dict = operation.component_params.get(component_property.ref)
 
+                    # The type and value of this property can vary depending on what the user chooses
+                    # in the pipeline editor. So we get the current active parameter (e.g. StringControl)
+                    # from the activeControl value
+                    active_property_name = property_value_dict['activeControl']
+
+                    # One we have the value (e.g. StringControl) we use can retrieve the value
+                    # assigned to it
+                    property_value = property_value_dict.get(active_property_name, None)
+
+                    # If the value is not found, assign it the default value assigned in parser
+                    if property_value is None:
+                        property_value = component_property.value
+
+                    self.log.debug(f"Active property name : {active_property_name}, value : {property_value}")
                     self.log.debug(f"Processing component parameter '{component_property.name}' "
                                    f"of type '{component_property.data_type}'")
-                    if component_property.data_type == "string":
+
+                    if property_value and str(property_value)[0] == '{' and str(property_value)[-1] == '}' and \
+                        isinstance(json.loads(json.dumps(property_value)), dict) and \
+                            set(json.loads(json.dumps(property_value)).keys()) == {'value', 'option'}:
+                        parent_node_name = self._get_node_name(target_ops,
+                                                               json.loads(json.dumps(property_value))['value'])
+                        processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
+                        operation.component_params[component_property.ref] = processed_value
+                    elif component_property.data_type == "boolean":
+                        operation.component_params[component_property.ref] = property_value
+                    elif component_property.data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
                         operation.component_params[component_property.ref] = json.dumps(property_value)
@@ -270,24 +321,37 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
                 operation.component_params_as_dict.pop("inputs")
                 operation.component_params_as_dict.pop("outputs")
 
-                # Get component class from operation name
-                component_class = operation.classifier.split('_')[-1]
-
                 unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
                                                                         operation_list=target_ops)
 
+                # Locate the import statement. If not found raise...
+                import_stmts = []
+                import_stmt = self.class_import_map.get(component.name)
+                if import_stmt:
+                    import_stmts.append(import_stmt)
+                else:
+                    # If we didn't find a mapping to the import statement, let's check if the component
+                    # name includes a package prefix.  If it does, log a warning, but proceed, otherwise
+                    # raise an exception.
+                    if len(component.name.split(".")) > 1:  # We (presumably) have a package prefix
+                        self.log.warning(f"Operator '{component.name}' of node '{operation.name}' is not configured "
+                                         f"in the list of available Airflow operators but appears to include a "
+                                         f"package prefix and processing will proceed.")
+                    else:
+                        raise ValueError(f"Operator '{component.name}' of node '{operation.name}' is not configured "
+                                         f"in the list of available operators.  Please add the fully-qualified "
+                                         f"package name for '{component.name}' to the "
+                                         f"AirflowPipelineProcessor.available_airflow_operators configuration.")
+
                 target_op = {'notebook': unique_operation_name,
                              'id': operation.id,
-                             'module_name': component.location.rsplit('/', 1)[-1].split('.')[0],
-                             'class_name': component_class,
+                             'imports': import_stmts,
+                             'class_name': component.name,
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,
-                             'operator_source': component.location,
+                             'operator_source': component.source_identifier,
                              'is_generic_operator': False
                              }
-                if operation.classifier in ['spark-submit-operator', 'spark-jdbc-operator',
-                                            'spark-sql-operator', 'ssh-operator']:
-                    target_op['is_contrib_operator'] = True
 
                 target_ops.append(target_op)
 
@@ -327,7 +391,7 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             template = template_env.get_template('airflow_template.jinja2')
 
             target_ops = self._cc_pipeline(pipeline, pipeline_name)
-            runtime_configuration = self._get_metadata_configuration(namespace=MetadataManager.NAMESPACE_RUNTIMES,
+            runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                      name=pipeline.runtime_config)
             user_namespace = runtime_configuration.metadata.get('user_namespace') or 'default'
             cos_secret = runtime_configuration.metadata.get('cos_secret')
@@ -387,18 +451,20 @@ class AirflowPipelineProcessor(RuntimePipelineProcessor):
             converted_value = json.dumps(converted_value)
         return converted_value
 
+    def _get_node_name(self, operations_list: list, node_id: str) -> str:
+        for operation in operations_list:
+            if operation['id'] == node_id:
+                return operation['notebook']
+
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
 
-    _type = 'airflow'
+    _type = RuntimeProcessorType.APACHE_AIRFLOW
+    _name = 'airflow'
 
     def __init__(self, git_url, run_url, object_storage_url, object_storage_path):
         super().__init__(run_url, object_storage_url, object_storage_path)
         self.git_url = git_url
-
-    @property
-    def type(self):
-        return self._type
 
     def to_json(self):
         response = super().to_json()

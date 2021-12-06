@@ -33,15 +33,21 @@ with open(os.path.join(here, 'elyra', '_version.py')) as f:
 npm_packages_path = "./dist/*.tgz"
 auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
 auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
-component_registry_path = './etc/config/components/*.json'
-components_kfp_path = './etc/config/components/kfp/*.yaml'
-components_airflow_path = './etc/config/components/airflow/*.py'
+component_catalog_path = './etc/config/components/*.json'  # deprecated
+components_kfp_path = './etc/config/components/kfp/*.yaml'  # deprecated
+components_airflow_path = './etc/config/components/airflow/*.py'  # deprecated
 metadata_path_runtime_image = './etc/config/metadata/runtime-images/*.json'
-metadata_path_registries = './etc/config/metadata/component-registries/*.json'
+metadata_path_catalogs = './etc/config/metadata/component-catalogs/*.json'  # deprecated
 settings_path = './etc/config/settings/*.json'
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=0.8.1',]
+    'kfp-tekton': ['kfp-tekton~=1.0.1', ],
+    # Kubeflow Pipelines example components
+    # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
+    'kfp-examples': ['elyra-examples-kfp-catalog'],
+    # Apache Airflow example components
+    # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
+    'airflow-examples': ['elyra-examples-airflow-catalog']
 }
 runtime_extras['all'] = list(set(sum(runtime_extras.values(), [])))
 
@@ -56,15 +62,15 @@ setup_args = dict(
     data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
                 ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
                 ('share/jupyter/metadata/runtime-images', glob(metadata_path_runtime_image)),
-                ('share/jupyter/metadata/component-registries', glob(metadata_path_registries)),
-                ('share/jupyter/components', glob(component_registry_path)),
-                ('share/jupyter/components/kfp/', glob(components_kfp_path)),
-                ('share/jupyter/components/airflow/', glob(components_airflow_path)),
+                ('share/jupyter/metadata/component-catalogs', glob(metadata_path_catalogs)),  # deprecated
+                ('share/jupyter/components', glob(component_catalog_path)),  # deprecated
+                ('share/jupyter/components/kfp/', glob(components_kfp_path)),  # deprecated
+                ('share/jupyter/components/airflow/', glob(components_airflow_path)),  # deprecated
                 ('share/jupyter/lab/settings', glob(settings_path))],
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
-        'click>=7.1.1,<8', #Required bykfp 1.6.3
+        'click>=7.1.1,<8',  # Required by kfp 1.6.3
         'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11',
@@ -94,13 +100,13 @@ setup_args = dict(
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp>=1.6.3<2.0',
+        'kfp>=1.6.3<2.0,!=1.7.2',
         # Airflow runtime dependencies
         'pygithub',
         'black',
     ],
     extras_require={
-        'test': ['pytest', 'pytest-tornasync'],
+        'test': ['elyra-examples-airflow-catalog', 'elyra-examples-kfp-catalog', 'pytest', 'pytest-tornasync'],
         **runtime_extras
     },
     include_package_data=True,
@@ -123,10 +129,31 @@ setup_args = dict(
             'elyra-pipeline = elyra.cli.pipeline_app:pipeline',
             'jupyter-elyra = elyra.elyra_app:launch_instance'
         ],
+        'metadata.schemaspaces': [
+            'runtimes = elyra.metadata.schemaspaces:Runtimes',
+            'runtimes-images = elyra.metadata.schemaspaces:RuntimeImages',
+            'code-snippets = elyra.metadata.schemaspaces:CodeSnippets',
+            'component-registries = elyra.metadata.schemaspaces:ComponentRegistries',
+            'component-catalogs = elyra.metadata.schemaspaces:ComponentCatalogs',
+            'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemaspace'
+        ],
+        'metadata.schemas_providers': [
+            'runtimes = elyra.metadata.schemasproviders:RuntimesSchemas',
+            'runtimes-images = elyra.metadata.schemasproviders:RuntimeImagesSchemas',
+            'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',
+            'component-registries = elyra.metadata.schemasproviders:ComponentRegistriesSchemas',
+            'component-catalogs = elyra.metadata.schemasproviders:ComponentCatalogsSchemas',
+            'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemasProvider'
+        ],
         'elyra.pipeline.processors': [
             'local = elyra.pipeline.local.processor_local:LocalPipelineProcessor',
             'airflow = elyra.pipeline.airflow.processor_airflow:AirflowPipelineProcessor',
             'kfp = elyra.pipeline.kfp.processor_kfp:KfpPipelineProcessor'
+        ],
+        'elyra.component.catalog_types': [
+            'url-catalog = elyra.pipeline.catalog_connector:UrlComponentCatalogConnector',
+            'local-file-catalog = elyra.pipeline.catalog_connector:FilesystemComponentCatalogConnector',
+            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector'
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',

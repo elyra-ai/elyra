@@ -14,12 +14,12 @@
 # limitations under the License.
 #
 
-.PHONY: help purge install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
+.PHONY: help purge install-all install-examples install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
 .PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image container-images publish-container-images
-
+.PHONY: build-dependencies
 SHELL:=/bin/bash
 
 TAG:=dev
@@ -70,6 +70,10 @@ uninstall:
 	- jupyter labextension uninstall @jupyter-server/resource-usage
 	pip uninstall -y elyra
 	- jupyter lab clean
+	# remove Kubeflow Pipelines example components
+	- pip uninstall -y elyra-examples-kfp-catalog
+	# remove Apache Airflow example components
+	- pip uninstall -y elyra-examples-airflow-catalog
 
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
@@ -77,7 +81,11 @@ test-dependencies:
 	python -m pip install --upgrade pip
 	@pip install -q -r test_requirements.txt
 
-lint-server: test-dependencies
+build-dependencies:
+	python -m pip install --upgrade pip
+	@pip install -q -r build_requirements.txt	
+
+lint-server: build-dependencies
 	flake8 elyra
 
 prettier-check-ui:
@@ -136,9 +144,20 @@ only-install-server: prepare-server build-server install-server-package
 install-server: lint-server only-install-server ## Build and install backend only
 
 install-server-package:
-	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[all]"
+	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install: install-server install-ui check-install ## Build and install
+
+install-all: install install-examples ## Build and install, including examples
+
+install-examples: ## Install example pipeline components 
+	# install Kubeflow Pipelines example components
+	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector
+	- pip install --upgrade elyra-examples-kfp-catalog
+	# install Apache Airflow example components
+	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector
+	- pip install --upgrade elyra-examples-airflow-catalog
+
 
 check-install:
 	jupyter serverextension list
@@ -187,7 +206,12 @@ elyra-image: # Build Elyra stand-alone container image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
-	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE) -t quay.io/$(ELYRA_IMAGE) build/docker/ --progress plain --build-arg TAG=$(TAG)
+	@mkdir -p build/docker/elyra
+	if [ "$(TAG)" == "dev" ]; then \
+		cp etc/docker/elyra/Dockerfile.dev build/docker/Dockerfile && \
+	    rsync -av --delete --progress . build/docker/elyra --exclude dist --exclude build --exclude node_modules --exclude .git --exclude .github --exclude egg_info; \
+	fi
+	DOCKER_BUILDKIT=1 docker build -t docker.io/$(ELYRA_IMAGE) -t quay.io/$(ELYRA_IMAGE) build/docker/ --progress plain --build-arg TAG=$(TAG);
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
     # this is a privileged operation; a `docker login` might be required

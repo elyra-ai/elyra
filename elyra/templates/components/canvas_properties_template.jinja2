@@ -1,33 +1,62 @@
 {
     "current_parameters": {
+      {% if component.description %}"component_description": "{{ component.description }}",{% endif %}
       "label": "",
-      "component_source": "{{ component.location }}"{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
+        "elyra_{{ property.ref }}":
+    {% if property.control_id == "OneOfControl" %}
+        {
+        "activeControl": "{{ property.default_control_type }}",
+        "{{ property.default_control_type }}":
+    {% endif %}
     {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
-      "elyra_{{ property.ref }}": {{ property.value|lower }}
+        {{ property.value|lower }}
     {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
-      "elyra_{{ property.ref }}": {{ property.value }}
+        {{ property.value }}
+    {% elif property.data_type|lower == "dict" or property.data_type|lower == "dictionary" %}
+        "{% raw %}{{% endraw %}{{ property.value }}{% raw %}}{% endraw %}"
     {% else %}
-      "elyra_{{ property.ref }}": "{{ property.value }}"
-    {% endif %}{% if loop.index != component.properties|length %},{% endif %}
+        "{{ property.value }}"
+    {% endif %}
+    {% if property.control_id == "OneOfControl" %}
+        }
+    {% endif %},
 {% endfor %}
+      "component_source": "{{ component.component_source }}"
     },
     "parameters": [
+      {% if component.description %}{
+        "id": "component_description"
+      },{% endif %}
       {
         "id": "label"
       },
-      {
-        "id": "component_source"
-      }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
       {
         "id": "elyra_{{ property.ref }}"
-      }{% if loop.index != component.properties|length %},{% endif %}
+      },
 {% endfor %}
+      {
+        "id": "component_source"
+      }
     ],
     "uihints": {
       "id": "nodeProperties",
       "parameter_info": [
+        {% if component.description %}{
+          "parameter_ref": "component_description",
+          "control": "readonly",
+          "label": {
+            "default": "Component Description"
+          },
+          "description": {
+            "default": " ",
+            "placement": "on_panel"
+          },
+          "data": {
+            "required": false
+          }
+        },{% endif %}
         {
           "parameter_ref": "label",
           "control": "custom",
@@ -41,18 +70,6 @@
           },
           "data": {}
         },
-        {
-          "parameter_ref": "component_source",
-          "control": "readonly",
-          "label": {
-            "default": "Component Source"
-          },
-          "description": {
-            "default": "The path to the component specification file.",
-            "placement": "on_panel"
-          },
-          "data": {}
-        }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
         {
           "parameter_ref": "elyra_{{ property.ref }}",
@@ -66,7 +83,25 @@
             "placement": "on_panel"
           },
           "data": {
+    {% if property.control_id == "OneOfControl" %}
+            "controls":{
+        {% for control, control_data_type, control_label in property.one_of_control_types %}
+                  "{{ control }}": {
+                    "label": "{{ control_label }}",
+                    "format": "{{ control_data_type }}"
+            {% if control == 'NestedEnumControl' %}
+                    ,
+                    "allownooptions": false
+            {% endif %}
+                  }
+            {% if loop.index != loop.length %}
+                  ,
+            {% endif %}
+        {%  endfor %}
+            },
+    {% else %}
             "format": "{{ property.data_type }}",
+    {% endif %}
             "required": {{ property.required|lower }}
             {% if property.control_id == "EnumControl" %}
             ,
@@ -80,31 +115,48 @@
               ]
             {% endif %}
           }
-        }{% if loop.index != component.properties|length %},{% endif %}
+        },
 {% endfor %}
+        {
+          "parameter_ref": "component_source",
+          "control": "readonly",
+          "label": {
+            "default": "Component Source"
+          },
+          "description": {
+            "default": "Unique information used to identify this component.",
+            "placement": "on_panel"
+          },
+          "data": {}
+        }
       ],
       "group_info": [
         {
           "id": "nodeGroupInfo",
           "type": "panels",
           "group_info": [
+            {% if component.description %}{
+              "id": "component_description",
+              "type": "controls",
+              "parameter_refs": ["component_description"]
+            },{% endif %}
             {
               "id": "label",
               "type": "controls",
               "parameter_refs": ["label"]
             },
-            {
-              "id": "component_source",
-              "type": "controls",
-              "parameter_refs": ["component_source"]
-            }{% if component.properties|length > 0 %},{% endif %}
 {% for property in component.properties %}
             {
               "id": "elyra_{{ property.ref }}",
               "type": "controls",
               "parameter_refs": ["elyra_{{ property.ref }}"]
-            }{% if loop.index != component.properties|length %},{% endif %}
+            },
 {% endfor %}
+            {
+              "id": "component_source",
+              "type": "controls",
+              "parameter_refs": ["component_source"]
+            }
           ]
         }
       ]

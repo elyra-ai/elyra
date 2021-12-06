@@ -57,12 +57,7 @@ describe('@elyra/services', () => {
         const schemaNames = schemas.map((schema: any) => {
           return schema.name;
         });
-        const knownSchemaNames = [
-          'code-snippet',
-          'runtime-image',
-          'kfp',
-          'airflow'
-        ];
+        const knownSchemaNames = ['code-snippet', 'runtime-image'];
         for (const schemaName of knownSchemaNames) {
           expect(schemaNames).toContain(schemaName);
         }

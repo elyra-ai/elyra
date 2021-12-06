@@ -23,20 +23,23 @@ import { PathExt } from '@jupyterlab/coreutils';
 import * as React from 'react';
 
 export const KFP_SCHEMA = 'kfp';
-export const RUNTIMES_NAMESPACE = 'runtimes';
-export const RUNTIME_IMAGES_NAMESPACE = 'runtime-images';
-export const PIPELINE_COMPONENTS_NAMESPACE = 'component-registries';
-export const COMPONENTS_NAMESPACE = 'components';
+export const RUNTIMES_SCHEMASPACE = 'runtimes';
+export const RUNTIME_IMAGES_SCHEMASPACE = 'runtime-images';
+export const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 
 export interface IRuntime {
   name: string;
   display_name: string;
   schema_name: string;
+  metadata: {
+    runtime_type: string;
+  };
 }
 
 export interface ISchema {
   name: string;
-  display_name: string;
+  title: string;
+  runtime_type: string;
 }
 
 enum ContentType {
@@ -52,54 +55,38 @@ const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
   ['.r', ContentType.r]
 ]);
 
+export interface IRuntimeType {
+  id: string;
+  display_name: string;
+  icon: string;
+  export_file_types: { id: string; display_name: string }[];
+}
+
 export class PipelineService {
+  /**
+   * Returns a list of resources corresponding to each active runtime-type.
+   */
+  static async getRuntimeTypes(): Promise<IRuntimeType[]> {
+    const res = await RequestHandler.makeGetRequest(
+      'elyra/pipeline/runtimes/types'
+    );
+    return res.runtime_types;
+  }
+
   /**
    * Returns a list of external runtime configurations available as
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(showError = true, action?: string): Promise<any> {
-    return MetadataService.getMetadata(RUNTIMES_NAMESPACE).then(runtimes => {
-      if (showError && Object.keys(runtimes).length === 0) {
-        return RequestErrors.noMetadataError('runtime', action);
-      }
-
-      return runtimes;
-    });
-  }
-
-  /**
-   * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
-   *
-   * @param pipeline
-   * @param runtimeName
-   */
-  static async getRuntimeComponents(runtimeName: string): Promise<any> {
-    return RequestHandler.makeGetRequest(
-      `elyra/pipeline/components/${runtimeName}`
-    );
-  }
-
-  /**
-   * Submit the pipeline to be executed on an external runtime (e.g. Kbeflow Pipelines)
-   *
-   * @param pipeline
-   * @param runtimeName
-   */
-  static async getComponentProperties(
-    runtimeName: string,
-    componentId: string
-  ): Promise<any> {
-    return RequestHandler.makeGetRequest(
-      `elyra/pipeline/components/${runtimeName}/${componentId}/properties`
-    );
+  static async getRuntimes(): Promise<any> {
+    return MetadataService.getMetadata(RUNTIMES_SCHEMASPACE);
   }
 
   /**
    * Returns a list of runtime schema
    */
   static async getRuntimesSchema(showError = true): Promise<any> {
-    return MetadataService.getSchema(RUNTIMES_NAMESPACE).then(schema => {
+    return MetadataService.getSchema(RUNTIMES_SCHEMASPACE).then(schema => {
       if (showError && Object.keys(schema).length === 0) {
         return RequestErrors.noMetadataError('schema');
       }
@@ -107,35 +94,6 @@ export class PipelineService {
       return schema;
     });
   }
-
-  /**
-   * Returns a list of external runtime configurations
-   * based on the runtimePlatform (Airflow or Kubeflow)
-   */
-  static filterRuntimes = (
-    runtimes: IRuntime[],
-    runtimePlatform: string
-  ): IRuntime[] =>
-    runtimes.filter(runtime => runtime.schema_name === runtimePlatform);
-
-  /**
-   * Returns a list of external schema configurations
-   * based a list of runtimes instances
-   */
-  static filterValidSchema = (
-    runtimes: IRuntime[],
-    schema: ISchema[]
-  ): ISchema[] =>
-    schema.filter(s =>
-      runtimes.some(runtime => runtime.schema_name === s.name)
-    );
-
-  /**
-   * Sorts given list of runtimes by the display_name property
-   */
-  static sortRuntimesByDisplayName = (runtimes: IRuntime[]): void => {
-    runtimes.sort((r1, r2) => r1.display_name.localeCompare(r2.display_name));
-  };
 
   /**
    * Return a list of configured docker images that are used as runtimes environments
@@ -163,19 +121,6 @@ export class PipelineService {
     } catch (error) {
       Promise.reject(error);
     }
-  }
-
-  static getDisplayName(name: string, metadataArr: IDictionary<any>[]): string {
-    return metadataArr.find(r => r['name'] === name)?.['display_name'];
-  }
-
-  /**
-   * The runtime name is currently based on the schema name (one schema per runtime)
-   * @param name
-   * @param metadataArr
-   */
-  static getRuntimeName(name: string, metadataArr: IDictionary<any>[]): string {
-    return metadataArr.find(r => r['name'] === name)?.['schema_name'];
   }
 
   /**
@@ -214,7 +159,7 @@ export class PipelineService {
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
           <p>
-            {response['platform'] == 'airflow' ? (
+            {response['platform'] == 'APACHE_AIRFLOW' ? (
               <p>
                 Apache Airflow DAG has been pushed to the{' '}
                 <a
@@ -348,25 +293,6 @@ export class PipelineService {
       nodePath
     );
     return workspacePath;
-  }
-
-  static setNodePathsRelativeToPipeline(
-    pipeline: any,
-    pipelinePath: string
-  ): any {
-    for (const node of pipeline.nodes) {
-      if (
-        node.op === 'execute-notebook-node' ||
-        node.op === 'execute-python-node' ||
-        node.op === 'execute-r-node'
-      ) {
-        node.app_data.component_parameters.filename = this.getPipelineRelativeNodePath(
-          pipelinePath,
-          node.app_data.component_parameters.filename
-        );
-      }
-    }
-    return pipeline;
   }
 
   static setNodePathsRelativeToWorkspace(

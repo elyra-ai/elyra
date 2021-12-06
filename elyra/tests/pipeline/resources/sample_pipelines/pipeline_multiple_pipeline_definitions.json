@@ -1,0 +1,218 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "582f2dd2-b329-4bfd-8326-3e0dc8c69744",
+  "primary_pipeline": "f757f14a-4494-46b5-bb27-aeaa8a065477",
+  "pipelines": [
+    {
+      "id": "f757f14a-4494-46b5-bb27-aeaa8a065477",
+      "nodes": [
+        {
+          "id": "db9f3f5b-b2e3-4824-aadd-c1c6bf652534",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "outputs": ["community_contributions.csv"],
+              "dependencies": ["contributors.csv"],
+              "filename": "elyra-pipelines/generate-contributions.ipynb",
+              "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+              "env_vars": []
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": 1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "f6584209-6f22-434f-9820-41327b6c749d",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "outputs": ["community_stats.csv"],
+              "dependencies": ["contributors.csv"],
+              "filename": "elyra-pipelines/generate-stats.ipynb",
+              "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+              "env_vars": []
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "079c0e12-eb5f-4fcc-983b-09e011869fee",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "filename": "elyra-pipelines/overview.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              },
+              "links": [
+                {
+                  "node_id_ref": "db9f3f5b-b2e3-4824-aadd-c1c6bf652534",
+                  "port_id_ref": "outPort"
+                },
+                {
+                  "node_id_ref": "f6584209-6f22-434f-9820-41327b6c749d",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        }
+      },
+      "runtime_ref": ""
+    },
+    {
+      "id": "9218f452-8722-455c-8a09-604d88c2a550",
+      "nodes": [
+        {
+          "id": "bc6b9f69-77ef-449b-99b6-b5ca930ac649",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "filename": "elyra-pipelines/overview.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3",
+              "env_vars": []
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": 1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "node_id_ref": "cf938e98-1a96-4cef-ad0f-d63f82388b94",
+                  "port_id_ref": "output_bc6b9f69-77ef-449b-99b6-b5ca930ac649_inPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "cf938e98-1a96-4cef-ad0f-d63f82388b94",
+          "type": "binding",
+          "app_data": {},
+          "outputs": [
+            {
+              "id": "output_bc6b9f69-77ef-449b-99b6-b5ca930ac649_inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": 1
+                  },
+                  "label": "Binding port for supernode"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "properties": {
+          "name": "test-definition"
+        },
+        "version": 5
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

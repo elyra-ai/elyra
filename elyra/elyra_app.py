@@ -23,15 +23,19 @@ from elyra.api.handlers import YamlSpecHandler
 from elyra.contents.handlers import ContentHandler
 from elyra.metadata.handlers import MetadataHandler
 from elyra.metadata.handlers import MetadataResourceHandler
-from elyra.metadata.handlers import NamespaceHandler
 from elyra.metadata.handlers import SchemaHandler
 from elyra.metadata.handlers import SchemaResourceHandler
+from elyra.metadata.handlers import SchemaspaceHandler
+from elyra.metadata.handlers import SchemaspaceResourceHandler
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
+from elyra.pipeline.catalog_connector import ComponentCatalogConnector
+from elyra.pipeline.component_catalog import ComponentCatalog
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
+from elyra.pipeline.handlers import PipelineRuntimeTypesHandler
 from elyra.pipeline.handlers import PipelineSchedulerHandler
 from elyra.pipeline.handlers import PipelineValidationHandler
 from elyra.pipeline.processor import PipelineProcessor
@@ -53,12 +57,12 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     extension_url = '/lab'
     load_other_extensions = True
 
-    classes = [FileMetadataCache, MetadataManager, PipelineProcessor]
+    classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentCatalogConnector, ComponentCatalog]
 
     # Local path to static files directory.
-    # static_paths = [
-    #     DEFAULT_STATIC_FILES_PATH
-    # ]
+    static_paths = [
+        os.path.join(DEFAULT_STATIC_FILES_PATH, "icons"),
+    ]
 
     # Local path to templates directory.
     # template_paths = [
@@ -68,26 +72,36 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     # Define ElyraApp configurables here..
 
     def initialize_handlers(self):
-        namespace_regex = r"(?P<namespace>[\w\.\-]+)"
+        schemaspace_regex = r"(?P<schemaspace>[\w\.\-]+)"
         resource_regex = r"(?P<resource>[\w\.\-]+)"
-        path_regex = r"(?P<path>[\w\.\/\-\%]+)"
+        path_regex = r"(?P<path>(?:(?:/[^/]+)+|/?))"  # same as jupyter server and will include a leading slash
         processor_regex = r"(?P<processor>[\w]+)"
-        component_regex = r"(?P<component_id>[\w\.\-]+)"
+        component_regex = r"(?P<component_id>[\w\.\-:]+)"
 
         self.handlers.extend([
+            # API
             (f'/{self.name}/{YamlSpecHandler.get_resource_metadata()[0]}', YamlSpecHandler),
-            (f'/{self.name}/metadata/{namespace_regex}', MetadataHandler),
-            (f'/{self.name}/metadata/{namespace_regex}/{resource_regex}', MetadataResourceHandler),
-            (f'/{self.name}/schema/{namespace_regex}', SchemaHandler),
-            (f'/{self.name}/schema/{namespace_regex}/{resource_regex}', SchemaResourceHandler),
-            (f'/{self.name}/namespace', NamespaceHandler),
-            (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
-            (f'/{self.name}/pipeline/export', PipelineExportHandler),
+
+            # Content
+            (f'/{self.name}/contents/properties{path_regex}', ContentHandler),
+
+            # Metadata
+            (f'/{self.name}/metadata/{schemaspace_regex}', MetadataHandler),
+            (f'/{self.name}/metadata/{schemaspace_regex}/{resource_regex}', MetadataResourceHandler),
+            (f'/{self.name}/schema/{schemaspace_regex}', SchemaHandler),
+            (f'/{self.name}/schema/{schemaspace_regex}/{resource_regex}', SchemaResourceHandler),
+            (f'/{self.name}/schemaspace', SchemaspaceHandler),
+            (f'/{self.name}/schemaspace/{schemaspace_regex}', SchemaspaceResourceHandler),
+
+            # Pipeline
             (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),
             (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
              PipelineComponentPropertiesHandler),
-            (f'/{self.name}/contents/properties/{path_regex}', ContentHandler),
-            (f'/{self.name}/elyra/pipeline/validate', PipelineValidationHandler),
+            (f'/{self.name}/pipeline/export', PipelineExportHandler),
+            (f'/{self.name}/pipeline/runtimes/types', PipelineRuntimeTypesHandler),
+            (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
+            (f'/{self.name}/pipeline/validate', PipelineValidationHandler),
+
         ])
 
     def initialize_settings(self):

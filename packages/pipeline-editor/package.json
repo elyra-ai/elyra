@@ -1,6 +1,6 @@
 {
   "name": "@elyra/pipeline-editor-extension",
-  "version": "3.2.0-dev",
+  "version": "3.4.0-dev",
   "description": "JupyterLab extension - Visual editor to build Notebook pipelines",
   "keywords": [
     "jupyter",
@@ -30,17 +30,17 @@
     "clean": "rimraf lib",
     "dist": "npm pack .",
     "prepare": "npm run build ",
-    "test": "jest --passWithNoTests",
+    "test": "FORCE_COLOR=true jest",
     "watch": "tsc -w",
     "lab:install": "jupyter labextension install --no-build",
     "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
-    "@elyra/metadata-common": "^3.2.0-dev",
-    "@elyra/pipeline-editor": "~1.2.0",
-    "@elyra/pipeline-services": "~1.2.0",
-    "@elyra/services": "^3.2.0-dev",
-    "@elyra/ui-components": "^3.2.0-dev",
+    "@elyra/metadata-common": "^3.4.0-dev",
+    "@elyra/pipeline-editor": "~1.4.0-rc.1",
+    "@elyra/pipeline-services": "~1.4.0-rc.1",
+    "@elyra/services": "^3.4.0-dev",
+    "@elyra/ui-components": "^3.4.0-dev",
     "@jupyterlab/application": "^3.0.0",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/coreutils": "^5.0.0",

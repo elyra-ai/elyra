@@ -16,7 +16,8 @@
 #
 
 # Ubuntu 18.04 LTS - Bionic
-FROM jupyterhub/k8s-singleuser-sample:0.10.6
+# Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
+FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
 ARG TAG="dev"
 
@@ -24,29 +25,16 @@ USER root
 
 ADD start-elyra.sh /usr/local/bin/start-elyra.sh
 
-RUN chmod ugo+x /usr/local/bin/start-elyra.sh && \
-    if [ "$TAG" == "dev" ] ; then \
-       apt-get update && apt-get install -y build-essential && \
-       rm -rf /var/lib/apt/lists/*; \
-    fi
+RUN chmod ugo+x /usr/local/bin/start-elyra.sh
 
 USER $NB_USER
 
-RUN conda remove --force -y terminado && \
-    python -m pip install --upgrade pip && \
-    python -m pip install --ignore-installed --upgrade setuptools pandas && \
-    npm config set scripts-prepend-node-path auto && \
-    npm config get prefix /home/jovyan/.npm-global && \
-    mkdir -p /home/jovyan/.npm-global && \
-    if [ "$TAG" == "dev" ] ; then \
-       npm install -g yarn && \
-       npm install -g npm && \
-       cd /tmp && git clone https://github.com/elyra-ai/elyra.git && \
-       cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra; \
-    else \
-        python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
-        jupyter lab build; \
-    fi
+RUN python -m pip install --upgrade pandas numpy && \
+    python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
+    jupyter lab build
+
+# Comment out to hide the component examples for Kubeflow Pipelines and Apache Airflow
+RUN elyra-metadata install component-catalogs --schema_name=elyra-airflow-examples-catalog --display_name="Apache Airflow examples" --runtime_type=APACHE_AIRFLOW --categories="['examples']" && \
+    elyra-metadata install component-catalogs --schema_name=elyra-kfp-examples-catalog --display_name="Kubeflow Pipelines examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']"
 
 CMD ["/usr/local/bin/start-elyra.sh"]
-

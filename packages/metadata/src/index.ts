@@ -57,9 +57,10 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const openMetadataEditor = (args: {
       schema: string;
-      namespace: string;
+      schemaspace: string;
       name?: string;
       onSave: () => void;
+      titleContext?: string;
     }): void => {
       let widgetLabel: string;
       if (args.name) {
@@ -67,7 +68,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       } else {
         widgetLabel = `New ${args.schema}`;
       }
-      const widgetId = `${METADATA_EDITOR_ID}:${args.namespace}:${
+      const widgetId = `${METADATA_EDITOR_ID}:${args.schemaspace}:${
         args.schema
       }:${args.name ? args.name : 'new'}`;
       const openWidget = find(
@@ -92,6 +93,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = textEditorIcon;
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
+      metadataEditorWidget.titleContext = args.titleContext;
       app.shell.add(metadataEditorWidget, 'main');
     };
 
@@ -103,16 +105,16 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const openMetadataWidget = (args: {
       display_name: string;
-      namespace: string;
+      schemaspace: string;
       icon: string;
     }): void => {
       const labIcon = LabIcon.resolve({ icon: args.icon });
-      const widgetId = `${METADATA_WIDGET_ID}:${args.namespace}`;
+      const widgetId = `${METADATA_WIDGET_ID}:${args.schemaspace}`;
       const metadataWidget = new MetadataWidget({
         app,
         themeManager,
         display_name: args.display_name,
-        namespace: args.namespace,
+        schemaspace: args.schemaspace,
         icon: labIcon
       });
       metadataWidget.id = widgetId;
@@ -184,7 +186,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           args: {
             label: `Manage ${title}`,
             display_name: schema.uihints.title,
-            namespace: schema.namespace,
+            schemaspace: schema.schemaspace,
             icon: icon
           },
           category: 'Elyra'

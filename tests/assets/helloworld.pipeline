@@ -120,10 +120,9 @@
         "ui_data": {
           "comments": []
         },
-        "version": 5,
+        "version": 6,
         "properties": {
-          "name": "helloworld",
-          "runtime": "Generic"
+          "name": "helloworld"
         }
       },
       "runtime_ref": ""

@@ -29,25 +29,26 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    :maxdepth: 1
    :caption: Getting Started
 
-   getting_started/overview
-   getting_started/installation
-   getting_started/starting
-   getting_started/tutorials
-   getting_started/getting-help
-   getting_started/changelog
+   getting_started/overview.md
+   getting_started/installation.md
+   getting_started/starting.md
+   getting_started/tutorials.md
+   getting_started/getting-help.md
+   getting_started/changelog.md
 
 .. toctree::
    :maxdepth: 1
    :caption: User Guide
 
-   user_guide/command-line-interface
-   user_guide/runtime-conf
-   user_guide/runtime-image-conf
-   user_guide/pipelines
-   user_guide/pipeline-components
-   user_guide/best-practices-file-based-nodes
-   user_guide/enhanced-script-support
-   user_guide/code-snippets
+   user_guide/command-line-interface.md
+   user_guide/runtime-conf.md
+   user_guide/runtime-image-conf.md
+   user_guide/pipelines.md
+   user_guide/pipeline-components.md
+   user_guide/best-practices-custom-pipeline-components
+   user_guide/best-practices-file-based-nodes.md
+   user_guide/enhanced-script-support.md
+   user_guide/code-snippets.md
 
 .. toctree::
    :maxdepth: 1
@@ -65,11 +66,13 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    :maxdepth: 1
    :caption: Developer Guide
 
-   developer_guide/contributing
-   developer_guide/development-workflow
-   developer_guide/logging
-   developer_guide/metadata
-   developer_guide/pipelines
-   developer_guide/trackers
-   developer_guide/troubleshooting
-   developer_guide/release
+   developer_guide/contributing.md
+   developer_guide/development-workflow.md
+   developer_guide/issue-management.md
+   developer_guide/logging.md
+   developer_guide/metadata.md
+   developer_guide/pipelines.md
+   developer_guide/pipeline-component-connectors.md
+   developer_guide/trackers.md
+   developer_guide/troubleshooting.md
+   developer_guide/release.md

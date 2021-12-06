@@ -24,11 +24,12 @@ import yaml
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
 class KfpComponentParser(ComponentParser):
-    _component_platform = "kfp"
-    _file_types = [".yaml"]
+    _component_platform: RuntimeProcessorType = RuntimeProcessorType.KUBEFLOW_PIPELINES
+    _file_types: List[str] = [".yaml"]
 
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         # Get YAML object from component definition
@@ -37,7 +38,6 @@ class KfpComponentParser(ComponentParser):
             return None
 
         # Assign component_id and description
-        component_id = self.get_component_id(registry_entry.location, component_yaml.get('name', ''))
         description = ""
         if component_yaml.get('description'):
             # Remove whitespace characters and replace with spaces
@@ -45,14 +45,17 @@ class KfpComponentParser(ComponentParser):
 
         component_properties = self._parse_properties(component_yaml)
 
-        component = Component(id=component_id,
-                              name=component_yaml.get('name'),
-                              description=description,
-                              runtime=self.component_platform,
-                              location_type=registry_entry.location_type,
-                              location=registry_entry.location,
-                              properties=component_properties,
-                              categories=registry_entry.categories)
+        component = Component(
+            id=registry_entry.component_id,
+            name=component_yaml.get('name'),
+            description=description,
+            catalog_type=registry_entry.catalog_type,
+            source_identifier=registry_entry.component_identifier,
+            definition=registry_entry.component_definition,
+            runtime_type=self.component_platform.name,
+            categories=registry_entry.categories,
+            properties=component_properties
+        )
 
         return [component]
 
@@ -63,40 +66,71 @@ class KfpComponentParser(ComponentParser):
         # properties.extend(self.get_runtime_specific_properties())
 
         # Then loop through and create custom properties
+        # Get parameter sub-dictionaries from YAML object
+
         input_params = component_yaml.get('inputs', [])
-        for param in input_params:
-            # KFP components default to being required unless otherwise stated.
-            # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
-            required = True
-            if "optional" in param and param.get('optional') is True:
-                required = False
+        output_params = component_yaml.get('outputs', [])
 
-            # Assign type, default to string
-            data_type = param.get('type', 'string')
+        all_params = {"inputs": input_params, "outputs": output_params}
 
-            # Set description and include parsed type information
-            description = self._format_description(description=param.get('description', ''),
-                                                   data_type=data_type)
+        # Loop through inputs and outputs and create custom properties
+        for param_type, params in all_params.items():
+            for param in params:
+                # KFP components default to being required unless otherwise stated.
+                # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
+                required = True
+                if param.get('optional') is True:
+                    required = False
 
-            # Change type to reflect the type of input (inputValue vs inputPath)
-            data_type = self._get_adjusted_parameter_fields(component_body=component_yaml,
-                                                            io_object_name=param.get('name'),
-                                                            io_object_type="input",
-                                                            parameter_type=data_type)
+                # Assign parsed data type (default to string)
+                data_type_parsed = param.get('type', 'string')
 
-            data_type, control_id, default_value = self.determine_type_information(data_type)
+                # # define adjusted type as either inputPath or outputPath
+                data_type_adjusted = data_type_parsed
+                if self._is_path_based_parameter(param.get('name'), component_yaml):
+                    data_type_adjusted = f"{param_type[:-1]}Path"
 
-            # Get value if provided
-            value = param.get('default', '')
+                data_type_info = self.determine_type_information(data_type_adjusted)
 
-            ref = param.get('name').lower().replace(' ', '_')
-            properties.append(ComponentParameter(id=ref,
-                                                 name=param.get('name'),
-                                                 data_type=data_type,
-                                                 value=(value or default_value),
-                                                 description=description,
-                                                 control_id=control_id,
-                                                 required=required))
+                if data_type_info.undetermined:
+                    self.log.debug(f"Data type from parsed data ('{data_type_parsed}') could not be determined. "
+                                   f"Proceeding as if 'string' was detected.")
+
+                if not data_type_info.required:
+                    required = data_type_info.required
+
+                # Get value if provided
+                value = param.get('default', '')
+
+                # Set parameter ref (id) and display name
+                ref_name = param.get('name').lower().replace(' ', '_')
+                display_name = param.get('name')
+
+                description = param.get('description', '')
+
+                if data_type_info.data_type != 'inputpath':
+                    # Add parsed data type hint to description in parenthesis
+                    description = self._format_description(description=description,
+                                                           data_type=data_type_parsed)
+
+                if data_type_info.data_type == 'outputpath':
+                    ref_name = f"output_{ref_name}"
+                    # Add sentence to description to clarify that parameter is an output
+                    description = f"This is an output of this component. {description}"
+
+                component_params = ComponentParameter(id=ref_name,
+                                                      name=display_name,
+                                                      data_type=data_type_info.data_type,
+                                                      value=(value or data_type_info.default_value),
+                                                      description=description,
+                                                      control=data_type_info.control,
+                                                      control_id=data_type_info.control_id,
+                                                      one_of_control_types=data_type_info.one_of_control_types,
+                                                      default_control_type=data_type_info.control_id,
+                                                      required=required)
+
+                properties.append(component_params)
+
         return properties
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
@@ -122,29 +156,59 @@ class KfpComponentParser(ComponentParser):
         try:
             return yaml.safe_load(registry_entry.component_definition)
         except Exception as e:
-            self.log.debug(f"Could not read definition for component at "
-                           f"location: '{registry_entry.location}' -> {str(e)}")
+            self.log.warning(f"Could not load YAML definition for component with identifying information: "
+                             f"'{str(registry_entry.component_identifier)}' -> {str(e)}")
             return None
 
-    def _get_adjusted_parameter_fields(self,
-                                       component_body: Dict[str, Any],
-                                       io_object_name: str,
-                                       io_object_type: str,
-                                       parameter_type: str) -> str:
+    def _is_path_based_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:
         """
-        Change the parameter ref according if it is a KFP path parameter (as opposed to a value parameter)
-        """
-        adjusted_type = parameter_type
-        if "implementation" in component_body and "container" in component_body['implementation']:
-            if "command" in component_body['implementation']['container']:
-                for command in component_body['implementation']['container']['command']:
-                    if isinstance(command, dict) and list(command.values())[0] == io_object_name and \
-                            list(command.keys())[0] == f"{io_object_type}Path":
-                        adjusted_type = "file"
-            if "args" in component_body['implementation']['container']:
-                for arg in component_body['implementation']['container']['args']:
-                    if isinstance(arg, dict) and list(arg.values())[0] == io_object_name and \
-                            list(arg.keys())[0] == f"{io_object_type}Path":
-                        adjusted_type = "file"
+        Check whether parameter is a KFP path parameter (as opposed to a value parameter)
 
-        return adjusted_type
+        :param parameter_name: the name of the parameter that will be checked
+        :param component_body: the component YAML contents
+        """
+        # Get component_body['implementation']['container'] sub-dictionary if it exists
+        component_impl = component_body.get('implementation', {}).get('container', {})
+
+        # Get list of component commands/arguments
+        commands_and_args = component_impl.get("command", []) + component_impl.get("args", [])
+
+        # Loop through dictionary-types only; parameter-based fields will
+        # always be of the format {'inputPath': 'parameter name'}
+        for param_dict in [c for c in commands_and_args if isinstance(c, dict)]:
+            # Check the (single-element) list of values for a
+            # match on the full parameter name given
+            if parameter_name in list(param_dict.values()):
+                # Check whether the first (and only) key contains the
+                # phrase "Path", e.g. inputPath or outputPath
+                if "Path" in list(param_dict.keys())[0]:
+                    return True
+                # Otherwise, assume inputValue for this parameter name
+                # and do not proceed to check other parameter dicts
+                break
+
+        return False
+
+    def determine_type_information(self, parsed_type: str) -> SimpleNamespace:
+        """
+        Takes the type information of a component parameter as parsed from the component
+        specification and returns a new type that is one of several standard options.
+
+        """
+        data_type_info = super().determine_type_information(parsed_type)
+        if data_type_info.undetermined:
+            if 'inputpath' in data_type_info.parsed_data:
+                data_type_info.data_type = 'inputpath'
+                data_type_info.control_id = "NestedEnumControl"
+                data_type_info.undetermined = False
+                data_type_info.default_value = None
+            elif 'inputvalue' in data_type_info.parsed_data:
+                data_type_info.data_type = 'inputvalue'
+                data_type_info.undetermined = False
+            elif 'outputpath' in data_type_info.parsed_data:
+                data_type_info.data_type = 'outputpath'
+                data_type_info.required = False
+                data_type_info.control = "readonly"
+                data_type_info.undetermined = False
+
+        return data_type_info

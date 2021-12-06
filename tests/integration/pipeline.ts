@@ -108,7 +108,7 @@ describe('Pipeline Editor tests', () => {
       /clear/i,
       /open runtimes/i,
       /open runtime images/i,
-      /open pipeline components/i,
+      /open component catalogs/i,
       /undo/i,
       /add comment/i,
       /arrange horizontally/i,
@@ -380,8 +380,10 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /run pipeline/i }).click();
 
     cy.findByLabelText(/pipeline name/i).should('have.value', 'untitled');
-    cy.findByLabelText(/runtime platform/i).should('have.value', 'local');
-    cy.findByLabelText(/runtime configuration/i).should('have.value', 'local');
+    cy.findByLabelText(/runtime platform/i).should(
+      'have.value',
+      '__elyra_local__'
+    );
 
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
@@ -400,7 +402,10 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /run pipeline/i }).click();
 
     cy.findByLabelText(/pipeline name/i).should('have.value', 'helloworld');
-    cy.findByLabelText(/runtime configuration/i).should('have.value', 'local');
+    cy.findByLabelText(/runtime platform/i).should(
+      'have.value',
+      '__elyra_local__'
+    );
 
     // execute
     cy.findByRole('button', { name: /ok/i }).click();
@@ -440,6 +445,11 @@ describe('Pipeline Editor tests', () => {
     // try to export valid pipeline
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
+    // check label for generic pipeline
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
+
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+
     cy.findByLabelText(/runtime configuration/i)
       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
       .should('have.value', 'test_runtime');
@@ -471,6 +481,11 @@ describe('Pipeline Editor tests', () => {
 
     // try to export valid pipeline
     cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // check label for generic pipeline
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
+
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
 
     cy.findByLabelText(/runtime configuration/i)
       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
@@ -529,19 +544,27 @@ describe('Pipeline Editor tests', () => {
     });
   });
 
+  /**
+   * Runtime-specific components are no longer included by default
+   * as of PR2286: https://github.com/elyra-ai/elyra/pull/2286.
+   *
+   * These tests will be revisited at a later time. See issue for
+   * more: https://github.com/elyra-ai/elyra/issues/2298
+   *
   it('kfp pipeline should display custom components', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.expandPaletteCategory({ type: 'kfp' });
 
     const kfpCustomComponents = [
-      'filter_text_using_shell_and_grep_Filtertext',
-      'run_notebook_using_papermill_Runnotebookusingpapermill'
+      'local-directory-catalog\\:737915b826e9', // filter text
+      'local-directory-catalog\\:61e6f4141f65' // run notebook using papermill
     ];
 
     kfpCustomComponents.forEach(component => {
       cy.get(`#${component}`).should('exist');
     });
   });
+  **/
 
   it('kfp pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'kfp' });
@@ -558,22 +581,30 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
+  /**
+   * Runtime-specific components are no longer included by default
+   * as of PR2286: https://github.com/elyra-ai/elyra/pull/2286.
+   *
+   * These tests will be revisited at a later time. See issue for
+   * more: https://github.com/elyra-ai/elyra/issues/2298
+   *
   it('airflow pipeline should display custom components', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.expandPaletteCategory({ type: 'airflow' });
 
     const airflowCustomComponents = [
-      'bash_operator_BashOperator',
-      'email_operator_EmailOperator',
-      'http_operator_SimpleHttpOperator',
-      'spark_sql_operator_SparkSqlOperator',
-      'spark_submit_operator_SparkSubmitOperator'
+      'url-catalog\\:49f8e61b78c3', // bash operator
+      'url-catalog\\:8bef428ea3cd', // email operator
+      'url-catalog\\:e97030fb448a', // http operator
+      'url-catalog\\:ff0d51b70719', // spark sql operator
+      'url-catalog\\:2756314f3ff5' // spark submit operator
     ];
 
     airflowCustomComponents.forEach(component => {
       cy.get(`#${component}`).should('exist');
     });
   });
+  **/
 
   it('airflow pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'airflow' });
@@ -588,6 +619,21 @@ describe('Pipeline Editor tests', () => {
 
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('generic pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline();
+    cy.get('.toolbar-icon-label').contains(/runtime: generic/i);
+  });
+
+  it('kfp pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline({ type: 'kfp' });
+    cy.get('.toolbar-icon-label').contains(/runtime: kubeflow pipelines/i);
+  });
+
+  it('airflow pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline({ type: 'airflow' });
+    cy.get('.toolbar-icon-label').contains(/runtime: apache airflow/i);
   });
 });
 

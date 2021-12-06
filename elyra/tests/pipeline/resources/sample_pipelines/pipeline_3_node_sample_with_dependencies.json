@@ -1,0 +1,170 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "c06ad0e7-8c86-462b-b3fc-a7d771f75707",
+  "primary_pipeline": "c06ad0e7-8c86-462b-b3fc-a7d771f75707",
+  "pipelines": [
+    {
+      "id": "c06ad0e7-8c86-462b-b3fc-a7d771f75707",
+      "nodes": [
+        {
+          "id": "d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "filename": "demo-pipelines/generate-contributions.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            },
+            "ui_data": {
+              "label": "{{label}}",
+              "x_pos": 112,
+              "y_pos": 97,
+              "description": "Notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": 1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "5ddfbd02-2f4e-462b-8349-ddd7ec7afb71",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "filename": "demo-pipelines/generate-stats.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            },
+            "ui_data": {
+              "label": "{{label}}",
+              "x_pos": 130,
+              "y_pos": 80,
+              "description": "Notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "acc4527d-7cc8-4c16-b520-5aa0f50a2e34",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "filename": "demo-pipelines/overview.ipynb",
+              "runtime_image": "elyra/tensorflow:1.15.2-py3"
+            },
+            "ui_data": {
+              "label": "{{label}}",
+              "x_pos": 148,
+              "y_pos": 62,
+              "description": "Notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              },
+              "links": [
+                {
+                  "node_id_ref": "d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c",
+                  "port_id_ref": "outPort"
+                },
+                {
+                  "node_id_ref": "5ddfbd02-2f4e-462b-8349-ddd7ec7afb71",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "label": ""
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "runtime": "kfp",
+        "runtime_config": "kfp-yukked1",
+        "ui_data": {
+          "comments": [
+            {
+              "id": "22a171e4-f12b-4a6b-9399-f48c81e0906a",
+              "x_pos": 30.2166748046875,
+              "y_pos": 13,
+              "width": 175,
+              "height": 66,
+              "class_name": "d3-comment-rect",
+              "content": "Generate community stats and then aggregate them on an overview dashboard",
+              "associated_id_refs": []
+            }
+          ]
+        },
+        "properties": {
+          "name": "pipeline-title"
+        },
+        "version": 5
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

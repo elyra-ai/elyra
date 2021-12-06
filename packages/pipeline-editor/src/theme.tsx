@@ -41,18 +41,19 @@ const SvgIcon: React.FC = ({ children }): any => {
 
 const theme: any = {
   palette: {
-    focus: 'var(--jp-border-color1)',
+    focus: 'var(--jp-brand-color0)',
     border: 'var(--jp-border-color0)',
     divider: 'var(--jp-border-color0)',
     hover: 'var(--jp-border-color1)',
     active: 'rgba(255, 255, 255, 0.18)',
+    inputBorder: 'var(--jp-border-color0)',
     primary: {
       main: 'var(--jp-inverse-layout-color4)',
-      hover: 'var(--jp-inverse-layout-color3)',
+      hover: 'transparent',
       contrastText: 'var(--jp-layout-color1)'
     },
     secondary: {
-      main: 'var(--jp-border-color2)',
+      main: 'transparent',
       contrastText: 'var(--jp-content-font-color1)'
     },
     error: {
@@ -70,7 +71,7 @@ const theme: any = {
     },
     text: {
       primary: 'var(--jp-content-font-color0)',
-      secondary: 'var(--jp-content-font-color1)',
+      secondary: 'var(--jp-ui-font-color1)',
       bold: 'var(--jp-inverse-layout-color2)',
       inactive: 'var(--jp-inverse-layout-color4)',
       disabled: 'var(--jp-content-font-color3)',
@@ -81,13 +82,16 @@ const theme: any = {
     background: {
       default: 'var(--jp-layout-color1)',
       secondary: 'var(--jp-border-color2)',
-      input: 'var(--jp-editor-selected-background)'
+      input: 'transparent'
     },
     highlight: {
-      border: 'rgba(0, 0, 0, 0.12)',
-      hover: 'rgba(128, 128, 128, 0.07)',
-      focus: 'rgba(128, 128, 128, 0.14)'
+      border: 'transparent',
+      hover: 'var(--jp-content-font-color0)',
+      focus: 'transparent'
     }
+  },
+  shape: {
+    borderRadius: '4px'
   },
   typography: {
     fontFamily: 'var(--jp-ui-font-family)',

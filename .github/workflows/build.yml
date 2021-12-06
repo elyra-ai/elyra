@@ -114,6 +114,8 @@ jobs:
         run: |
           make yarn-install
           make only-install-server
+      - name: Build
+        run: make build-ui
       - name: Test
         run: make test-ui-unit
 

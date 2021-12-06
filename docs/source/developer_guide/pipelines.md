@@ -186,9 +186,9 @@ This section outlines what is needed to introduce your own runtime for integrati
 ### Custom Runtime Schema
 The first requirement for introducing a new runtime for use in Elyra is to define the necessary metadata corresponding to the runtime.  This is accomplished via a JSON schema file describing the necessary metadata used to integrate with the targeted runtime platform.
 
-This file must reside in the `elyra/metadata/schemas` directory in which Elyra has been installed.  (This location will change to better accommodate custom runtimes in the future.)
+The schema will be made available to the application via a `SchemasProvider` (See [_Bring Your Own Schema_](../developer_guide/metadata.html#bring-your-own-schemas) in [_Metadata Services_](../developer_guide/metadata.html#metadata-services)) which implements a single method `get_schemas()`.
 
-The schema name, represented by the value of the top-level `name` property or, if absent, the file's basename, is what the pipeline engine uses to locate the appropriate pipeline processor implementation.  This value is also set into the pipeline definition's `runtime` property in Elyra's UI, thereby tying the pipeline to the appropriate processor.
+The schema name, represented by the value of the top-level `name` property is what the pipeline engine uses to locate the appropriate pipeline processor implementation.  This value is also set into the pipeline definition's `runtime` property in Elyra's UI, thereby tying the pipeline to the appropriate processor.
 
 The schema should minimally include property definitions for the Cloud Object Storage (cos) properties found in the built-in schema definitions for [Kubeflow Pipelines](https://github.com/elyra-ai/elyra/blob/62e1964244ec8ada3e63c9c6d39befd7c046df08/elyra/metadata/schemas/kfp.json#L83-L129) and [Apache Airflow](https://github.com/elyra-ai/elyra/blob/62e1964244ec8ada3e63c9c6d39befd7c046df08/elyra/metadata/schemas/airflow.json#L93-L139).
     
@@ -214,4 +214,4 @@ In this example, and corresponding to the criteria above, pipeline processor `ac
   
 - use a value of `my_runtime` for its `type` property value
   
-- place a `my_runtime.json` schema file into Elyra's installation's `metadata/schemas` directory
+- implement a `SchemasProvider` that will return the JSON schema for `my_runtime` via its `get_schemas()` method.

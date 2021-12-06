@@ -1,0 +1,272 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "fe08b42d-bd8c-4e97-8010-0503a3185427",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:61e6f4141f65",
+          "app_data": {
+            "component_parameters": {
+              "notebook": "../notebookA.ipynb",
+              "parameters": "{}",
+              "packages_to_install": "",
+              "input_data": ""
+            },
+            "label": "Run notebook using papermill",
+            "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/lib/python3.8/site-packages/elyra/pipeline/resources/kfp/run_notebook_using_papermill/component.yaml",
+            "ui_data": {
+              "label": "Run notebook using papermill",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20276.93%20274.55%22%3E%3Cg%20id%3D%22Layer_2%22%20data-name%3D%22Layer%202%22%3E%3Cg%20id%3D%22Layer_1-2%22%20data-name%3D%22Layer%201%22%3E%3Cpath%20d%3D%22M95.9%2C62.15%2C100%2C164.25l73.75-94.12a6.79%2C6.79%2C0%2C0%2C1%2C9.6-1.11l46%2C36.92-15-65.61Z%22%20fill%3D%22%234279f4%22%2F%3E%3Cpolygon%20points%3D%22102.55%20182.98%20167.97%20182.98%20127.8%20150.75%20102.55%20182.98%22%20fill%3D%22%230028aa%22%2F%3E%3Cpolygon%20points%3D%22180.18%2083.92%20136.18%20140.06%20183.06%20177.67%20227.53%20121.91%20180.18%2083.92%22%20fill%3D%22%23014bd1%22%2F%3E%3Cpolygon%20points%3D%2283.56%2052.3%2083.57%2052.29%20122.26%203.77%2059.87%2033.82%2044.46%20101.33%2083.56%2052.3%22%20fill%3D%22%23bedcff%22%2F%3E%3Cpolygon%20points%3D%2245.32%20122.05%2086.76%20174.01%2082.81%2075.03%2045.32%20122.05%22%20fill%3D%22%236ca1ff%22%2F%3E%3Cpolygon%20points%3D%22202.31%2028.73%20142.65%200%20105.52%2046.56%20202.31%2028.73%22%20fill%3D%22%23a1c3ff%22%2F%3E%3Cpath%20d%3D%22M1.6%2C272V227.22H7.34v23.41l20.48-23.41h6.4l-17.39%2C19.7%2C19%2C25.07H29.1l-15.92-20.8-5.84%2C6.65V272Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M41.62%2C262.21V240h5.43v22.39a4.67%2C4.67%2C0%2C0%2C0%2C2.35%2C4.19%2C11%2C11%2C0%2C0%2C0%2C11%2C0%2C4.69%2C4.69%2C0%2C0%2C0%2C2.33-4.19V240h5.43v22.19a9.08%2C9.08%2C0%2C0%2C1-4.1%2C7.87%2C16.2%2C16.2%2C0%2C0%2C1-18.37%2C0A9.07%2C9.07%2C0%2C0%2C1%2C41.62%2C262.21Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M77.46%2C272V224h5.43v16.81a29.29%2C29.29%2C0%2C0%2C1%2C9.32-1.73%2C13.1%2C13.1%2C0%2C0%2C1%2C6.2%2C1.41%2C10.71%2C10.71%2C0%2C0%2C1%2C4.18%2C3.74%2C18.07%2C18.07%2C0%2C0%2C1%2C2.23%2C5.06%2C21.26%2C21.26%2C0%2C0%2C1%2C.73%2C5.58q0%2C8.43-4.38%2C12.79T87.35%2C272Zm5.43-4.87h4.55q6.77%2C0%2C9.72-2.95t3-9.51a14.21%2C14.21%2C0%2C0%2C0-2-7.52%2C6.55%2C6.55%2C0%2C0%2C0-6-3.22%2C24.73%2C24.73%2C0%2C0%2C0-9.25%2C1.54Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M112.36%2C255.94q0-7.71%2C4.09-12.3a13.75%2C13.75%2C0%2C0%2C1%2C10.8-4.59q13.35%2C0%2C13.36%2C18.86H117.79a12.3%2C12.3%2C0%2C0%2C0%2C2.9%2C7.07q2.59%2C3.11%2C7.9%2C3.1a24.92%2C24.92%2C0%2C0%2C0%2C10.55-2v5a27.74%2C27.74%2C0%2C0%2C1-9.86%2C1.87%2C19.83%2C19.83%2C0%2C0%2C1-7.7-1.37%2C13.31%2C13.31%2C0%2C0%2C1-5.28-3.76%2C16.21%2C16.21%2C0%2C0%2C1-3-5.38A20.84%2C20.84%2C0%2C0%2C1%2C112.36%2C255.94Zm5.62-2.12h17.26a14.91%2C14.91%2C0%2C0%2C0-2.37-7.12%2C6.44%2C6.44%2C0%2C0%2C0-5.62-2.78%2C8.2%2C8.2%2C0%2C0%2C0-6.21%2C2.72A12.07%2C12.07%2C0%2C0%2C0%2C118%2C253.82Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M147.32%2C244.89V240h5v-7.59a8.14%2C8.14%2C0%2C0%2C1%2C2.31-6.05%2C7.79%2C7.79%2C0%2C0%2C1%2C5.69-2.28h7.86V229h-5c-2.21%2C0-3.67.45-4.37%2C1.34s-1.06%2C2.55-1.06%2C5V240h8.46v4.87h-8.46V272h-5.44v-27.1Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M175.26%2C272V224h5.43v48Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M194.41%2C268.05a17.86%2C17.86%2C0%2C1%2C1%2C12.33%2C4.9A16.57%2C16.57%2C0%2C0%2C1%2C194.41%2C268.05Zm3.84-20.65a13.16%2C13.16%2C0%2C0%2C0%2C0%2C17.2%2C12.07%2C12.07%2C0%2C0%2C0%2C17%2C0%2C13.09%2C13.09%2C0%2C0%2C0%2C0-17.2%2C12.07%2C12.07%2C0%2C0%2C0-17%2C0Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M228.45%2C240h5.75l7.3%2C25.32L248.93%2C240h5.36l7.34%2C25.34L269%2C240h5.74L264.7%2C272h-6.12l-6.83-24.58L245%2C272h-6.47Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E",
+              "x_pos": 145,
+              "y_pos": 119.5,
+              "description": "Run Jupyter notebook using papermill. The notebook will receive the parameter values passed to it as well as the INPUT_DATA_PATH and OUTPUT_DATA_PATH variables that will be set to the input data path (if provided) and directory for the optional output data.",
+              "decorations": [
+                {
+                  "id": "error",
+                  "image": "data:image/svg+xml;utf8,%3Csvg%20focusable%3D%22false%22%20preserveAspectRatio%3D%22xMidYMid%20meet%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23da1e28%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20aria-hidden%3D%22true%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%228%22%20fill%3D%22%23ffffff%22%3E%3C%2Fcircle%3E%3Cpath%20d%3D%22M8%2C1C4.2%2C1%2C1%2C4.2%2C1%2C8s3.2%2C7%2C7%2C7s7-3.1%2C7-7S11.9%2C1%2C8%2C1z%20M7.5%2C4h1v5h-1C7.5%2C9%2C7.5%2C4%2C7.5%2C4z%20M8%2C12.2%09c-0.4%2C0-0.8-0.4-0.8-0.8s0.3-0.8%2C0.8-0.8c0.4%2C0%2C0.8%2C0.4%2C0.8%2C0.8S8.4%2C12.2%2C8%2C12.2z%22%3E%3C%2Fpath%3E%3Cpath%20d%3D%22M7.5%2C4h1v5h-1C7.5%2C9%2C7.5%2C4%2C7.5%2C4z%20M8%2C12.2c-0.4%2C0-0.8-0.4-0.8-0.8s0.3-0.8%2C0.8-0.8%09c0.4%2C0%2C0.8%2C0.4%2C0.8%2C0.8S8.4%2C12.2%2C8%2C12.2z%22%20data-icon-path%3D%22inner-path%22%20opacity%3D%220%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E",
+                  "outline": false,
+                  "position": "topRight",
+                  "x_pos": -24,
+                  "y_pos": -8
+                }
+              ]
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "bfa62a7e-4f55-4fb5-b358-a6f70278ae62",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:737915b826e9",
+          "app_data": {
+            "component_parameters": {
+              "text": "../B.txt",
+              "pattern": ".*"
+            },
+            "label": "Filter text",
+            "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/lib/python3.8/site-packages/elyra/pipeline/resources/kfp/filter_text_using_shell_and_grep/component.yaml",
+            "ui_data": {
+              "label": "Filter text",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20276.93%20274.55%22%3E%3Cg%20id%3D%22Layer_2%22%20data-name%3D%22Layer%202%22%3E%3Cg%20id%3D%22Layer_1-2%22%20data-name%3D%22Layer%201%22%3E%3Cpath%20d%3D%22M95.9%2C62.15%2C100%2C164.25l73.75-94.12a6.79%2C6.79%2C0%2C0%2C1%2C9.6-1.11l46%2C36.92-15-65.61Z%22%20fill%3D%22%234279f4%22%2F%3E%3Cpolygon%20points%3D%22102.55%20182.98%20167.97%20182.98%20127.8%20150.75%20102.55%20182.98%22%20fill%3D%22%230028aa%22%2F%3E%3Cpolygon%20points%3D%22180.18%2083.92%20136.18%20140.06%20183.06%20177.67%20227.53%20121.91%20180.18%2083.92%22%20fill%3D%22%23014bd1%22%2F%3E%3Cpolygon%20points%3D%2283.56%2052.3%2083.57%2052.29%20122.26%203.77%2059.87%2033.82%2044.46%20101.33%2083.56%2052.3%22%20fill%3D%22%23bedcff%22%2F%3E%3Cpolygon%20points%3D%2245.32%20122.05%2086.76%20174.01%2082.81%2075.03%2045.32%20122.05%22%20fill%3D%22%236ca1ff%22%2F%3E%3Cpolygon%20points%3D%22202.31%2028.73%20142.65%200%20105.52%2046.56%20202.31%2028.73%22%20fill%3D%22%23a1c3ff%22%2F%3E%3Cpath%20d%3D%22M1.6%2C272V227.22H7.34v23.41l20.48-23.41h6.4l-17.39%2C19.7%2C19%2C25.07H29.1l-15.92-20.8-5.84%2C6.65V272Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M41.62%2C262.21V240h5.43v22.39a4.67%2C4.67%2C0%2C0%2C0%2C2.35%2C4.19%2C11%2C11%2C0%2C0%2C0%2C11%2C0%2C4.69%2C4.69%2C0%2C0%2C0%2C2.33-4.19V240h5.43v22.19a9.08%2C9.08%2C0%2C0%2C1-4.1%2C7.87%2C16.2%2C16.2%2C0%2C0%2C1-18.37%2C0A9.07%2C9.07%2C0%2C0%2C1%2C41.62%2C262.21Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M77.46%2C272V224h5.43v16.81a29.29%2C29.29%2C0%2C0%2C1%2C9.32-1.73%2C13.1%2C13.1%2C0%2C0%2C1%2C6.2%2C1.41%2C10.71%2C10.71%2C0%2C0%2C1%2C4.18%2C3.74%2C18.07%2C18.07%2C0%2C0%2C1%2C2.23%2C5.06%2C21.26%2C21.26%2C0%2C0%2C1%2C.73%2C5.58q0%2C8.43-4.38%2C12.79T87.35%2C272Zm5.43-4.87h4.55q6.77%2C0%2C9.72-2.95t3-9.51a14.21%2C14.21%2C0%2C0%2C0-2-7.52%2C6.55%2C6.55%2C0%2C0%2C0-6-3.22%2C24.73%2C24.73%2C0%2C0%2C0-9.25%2C1.54Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M112.36%2C255.94q0-7.71%2C4.09-12.3a13.75%2C13.75%2C0%2C0%2C1%2C10.8-4.59q13.35%2C0%2C13.36%2C18.86H117.79a12.3%2C12.3%2C0%2C0%2C0%2C2.9%2C7.07q2.59%2C3.11%2C7.9%2C3.1a24.92%2C24.92%2C0%2C0%2C0%2C10.55-2v5a27.74%2C27.74%2C0%2C0%2C1-9.86%2C1.87%2C19.83%2C19.83%2C0%2C0%2C1-7.7-1.37%2C13.31%2C13.31%2C0%2C0%2C1-5.28-3.76%2C16.21%2C16.21%2C0%2C0%2C1-3-5.38A20.84%2C20.84%2C0%2C0%2C1%2C112.36%2C255.94Zm5.62-2.12h17.26a14.91%2C14.91%2C0%2C0%2C0-2.37-7.12%2C6.44%2C6.44%2C0%2C0%2C0-5.62-2.78%2C8.2%2C8.2%2C0%2C0%2C0-6.21%2C2.72A12.07%2C12.07%2C0%2C0%2C0%2C118%2C253.82Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M147.32%2C244.89V240h5v-7.59a8.14%2C8.14%2C0%2C0%2C1%2C2.31-6.05%2C7.79%2C7.79%2C0%2C0%2C1%2C5.69-2.28h7.86V229h-5c-2.21%2C0-3.67.45-4.37%2C1.34s-1.06%2C2.55-1.06%2C5V240h8.46v4.87h-8.46V272h-5.44v-27.1Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M175.26%2C272V224h5.43v48Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M194.41%2C268.05a17.86%2C17.86%2C0%2C1%2C1%2C12.33%2C4.9A16.57%2C16.57%2C0%2C0%2C1%2C194.41%2C268.05Zm3.84-20.65a13.16%2C13.16%2C0%2C0%2C0%2C0%2C17.2%2C12.07%2C12.07%2C0%2C0%2C0%2C17%2C0%2C13.09%2C13.09%2C0%2C0%2C0%2C0-17.2%2C12.07%2C12.07%2C0%2C0%2C0-17%2C0Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M228.45%2C240h5.75l7.3%2C25.32L248.93%2C240h5.36l7.34%2C25.34L269%2C240h5.74L264.7%2C272h-6.12l-6.83-24.58L245%2C272h-6.47Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E",
+              "x_pos": 463,
+              "y_pos": 119.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "f252729a-8b17-4bb0-856a-a1026cc8fb52",
+                  "node_id_ref": "fe08b42d-bd8c-4e97-8010-0503a3185427",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "46fb60ec-a1da-4fe5-96fb-8df97f290642",
+          "type": "super_node",
+          "subflow_ref": {
+            "pipeline_id_ref": "00304a2b-dec4-4a73-ab4a-6830f97d7855"
+          },
+          "app_data": {
+            "label": "Supernode",
+            "component_parameters": {},
+            "ui_data": {
+              "label": "Supernode",
+              "image": "useDefaultIcon",
+              "x_pos": 452,
+              "y_pos": 247.5,
+              "description": "This supernode was created by common-canvas.",
+              "is_expanded": true,
+              "expanded_width": 300,
+              "expanded_height": 200
+            }
+          },
+          "inputs": [
+            {
+              "id": "18adcae5-7082-4cd2-a123-4db6cbda2ad0_inPort",
+              "subflow_node_ref": "e61e6ffa-8459-45e8-b1f2-dbd5e5146092",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Binding port for supernode"
+                }
+              },
+              "links": [
+                {
+                  "id": "1445ec97-5cc7-4521-ac6f-927e1f94f636",
+                  "node_id_ref": "fe08b42d-bd8c-4e97-8010-0503a3185427",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": []
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "runtime": {
+            "display_name": "Kubeflow Pipelines"
+          },
+          "comments": []
+        },
+        "version": 6,
+        "properties": {
+          "name": "kf_invalid_node_op_with_supernode",
+          "runtime": "Kubeflow Pipelines"
+        },
+        "runtime_type": "KUBEFLOW_PIPELINES"
+      },
+      "runtime_ref": ""
+    },
+    {
+      "id": "00304a2b-dec4-4a73-ab4a-6830f97d7855",
+      "nodes": [
+        {
+          "id": "98aa7270-639b-42a4-9a07-b31cd0fa3205",
+          "type": "execution_node",
+          "op": "invalid_node_op",
+          "app_data": {
+            "component_parameters": {
+              "text": "B.txt",
+              "pattern": ".*"
+            },
+            "label": "Filter text",
+            "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/lib/python3.8/site-packages/elyra/pipeline/resources/kfp/filter_text_using_shell_and_grep/component.yaml",
+            "ui_data": {
+              "label": "Filter text",
+              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20276.93%20274.55%22%3E%3Cg%20id%3D%22Layer_2%22%20data-name%3D%22Layer%202%22%3E%3Cg%20id%3D%22Layer_1-2%22%20data-name%3D%22Layer%201%22%3E%3Cpath%20d%3D%22M95.9%2C62.15%2C100%2C164.25l73.75-94.12a6.79%2C6.79%2C0%2C0%2C1%2C9.6-1.11l46%2C36.92-15-65.61Z%22%20fill%3D%22%234279f4%22%2F%3E%3Cpolygon%20points%3D%22102.55%20182.98%20167.97%20182.98%20127.8%20150.75%20102.55%20182.98%22%20fill%3D%22%230028aa%22%2F%3E%3Cpolygon%20points%3D%22180.18%2083.92%20136.18%20140.06%20183.06%20177.67%20227.53%20121.91%20180.18%2083.92%22%20fill%3D%22%23014bd1%22%2F%3E%3Cpolygon%20points%3D%2283.56%2052.3%2083.57%2052.29%20122.26%203.77%2059.87%2033.82%2044.46%20101.33%2083.56%2052.3%22%20fill%3D%22%23bedcff%22%2F%3E%3Cpolygon%20points%3D%2245.32%20122.05%2086.76%20174.01%2082.81%2075.03%2045.32%20122.05%22%20fill%3D%22%236ca1ff%22%2F%3E%3Cpolygon%20points%3D%22202.31%2028.73%20142.65%200%20105.52%2046.56%20202.31%2028.73%22%20fill%3D%22%23a1c3ff%22%2F%3E%3Cpath%20d%3D%22M1.6%2C272V227.22H7.34v23.41l20.48-23.41h6.4l-17.39%2C19.7%2C19%2C25.07H29.1l-15.92-20.8-5.84%2C6.65V272Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M41.62%2C262.21V240h5.43v22.39a4.67%2C4.67%2C0%2C0%2C0%2C2.35%2C4.19%2C11%2C11%2C0%2C0%2C0%2C11%2C0%2C4.69%2C4.69%2C0%2C0%2C0%2C2.33-4.19V240h5.43v22.19a9.08%2C9.08%2C0%2C0%2C1-4.1%2C7.87%2C16.2%2C16.2%2C0%2C0%2C1-18.37%2C0A9.07%2C9.07%2C0%2C0%2C1%2C41.62%2C262.21Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M77.46%2C272V224h5.43v16.81a29.29%2C29.29%2C0%2C0%2C1%2C9.32-1.73%2C13.1%2C13.1%2C0%2C0%2C1%2C6.2%2C1.41%2C10.71%2C10.71%2C0%2C0%2C1%2C4.18%2C3.74%2C18.07%2C18.07%2C0%2C0%2C1%2C2.23%2C5.06%2C21.26%2C21.26%2C0%2C0%2C1%2C.73%2C5.58q0%2C8.43-4.38%2C12.79T87.35%2C272Zm5.43-4.87h4.55q6.77%2C0%2C9.72-2.95t3-9.51a14.21%2C14.21%2C0%2C0%2C0-2-7.52%2C6.55%2C6.55%2C0%2C0%2C0-6-3.22%2C24.73%2C24.73%2C0%2C0%2C0-9.25%2C1.54Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M112.36%2C255.94q0-7.71%2C4.09-12.3a13.75%2C13.75%2C0%2C0%2C1%2C10.8-4.59q13.35%2C0%2C13.36%2C18.86H117.79a12.3%2C12.3%2C0%2C0%2C0%2C2.9%2C7.07q2.59%2C3.11%2C7.9%2C3.1a24.92%2C24.92%2C0%2C0%2C0%2C10.55-2v5a27.74%2C27.74%2C0%2C0%2C1-9.86%2C1.87%2C19.83%2C19.83%2C0%2C0%2C1-7.7-1.37%2C13.31%2C13.31%2C0%2C0%2C1-5.28-3.76%2C16.21%2C16.21%2C0%2C0%2C1-3-5.38A20.84%2C20.84%2C0%2C0%2C1%2C112.36%2C255.94Zm5.62-2.12h17.26a14.91%2C14.91%2C0%2C0%2C0-2.37-7.12%2C6.44%2C6.44%2C0%2C0%2C0-5.62-2.78%2C8.2%2C8.2%2C0%2C0%2C0-6.21%2C2.72A12.07%2C12.07%2C0%2C0%2C0%2C118%2C253.82Z%22%20fill%3D%22%234279f4%22%20stroke%3D%22%234279f4%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M147.32%2C244.89V240h5v-7.59a8.14%2C8.14%2C0%2C0%2C1%2C2.31-6.05%2C7.79%2C7.79%2C0%2C0%2C1%2C5.69-2.28h7.86V229h-5c-2.21%2C0-3.67.45-4.37%2C1.34s-1.06%2C2.55-1.06%2C5V240h8.46v4.87h-8.46V272h-5.44v-27.1Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M175.26%2C272V224h5.43v48Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M194.41%2C268.05a17.86%2C17.86%2C0%2C1%2C1%2C12.33%2C4.9A16.57%2C16.57%2C0%2C0%2C1%2C194.41%2C268.05Zm3.84-20.65a13.16%2C13.16%2C0%2C0%2C0%2C0%2C17.2%2C12.07%2C12.07%2C0%2C0%2C0%2C17%2C0%2C13.09%2C13.09%2C0%2C0%2C0%2C0-17.2%2C12.07%2C12.07%2C0%2C0%2C0-17%2C0Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3Cpath%20d%3D%22M228.45%2C240h5.75l7.3%2C25.32L248.93%2C240h5.36l7.34%2C25.34L269%2C240h5.74L264.7%2C272h-6.12l-6.83-24.58L245%2C272h-6.47Z%22%20fill%3D%22%230028aa%22%20stroke%3D%22%230028aa%22%20stroke-miterlimit%3D%2210%22%20stroke-width%3D%223.2%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E",
+              "x_pos": 694,
+              "y_pos": 246.50001525878906
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "e61e6ffa-8459-45e8-b1f2-dbd5e5146092",
+          "type": "binding",
+          "app_data": {
+            "ui_data": {
+              "label": "Binding",
+              "x_pos": 292,
+              "y_pos": 246.50001525878906,
+              "description": "Supernode binding node"
+            }
+          },
+          "outputs": [
+            {
+              "id": "output_18adcae5-7082-4cd2-a123-4db6cbda2ad0_inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Binding port for supernode"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

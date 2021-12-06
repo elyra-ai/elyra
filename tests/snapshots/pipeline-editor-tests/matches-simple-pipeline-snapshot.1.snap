@@ -8,12 +8,11 @@ Object {
       "app_data": Object {
         "properties": Object {
           "name": "simple",
-          "runtime": "Generic",
         },
         "ui_data": Object {
           "comments": Array [],
         },
-        "version": 5,
+        "version": 6,
       },
       "id": "primary",
       "nodes": Array [
@@ -30,7 +29,6 @@ Object {
               "outputs": Array [],
               "runtime_image": "",
             },
-            "invalidNodeError": "property \"Runtime Image\" is required",
             "label": "",
             "ui_data": Object {
               "decorations": Array [

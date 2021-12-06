@@ -102,7 +102,7 @@ export class RequestErrors {
   /**
    * Displays a dialog for error cases during metadata calls.
    *
-   * @param namespace - the metadata namespace that was being accessed when
+   * @param schemaspace - the metadata schemaspace that was being accessed when
    * the error occurred
    *
    * @param action (optional) - the pipeline action that required the metadata when
@@ -112,7 +112,7 @@ export class RequestErrors {
    * @returns A promise that resolves with whether the dialog was accepted.
    */
   static noMetadataError(
-    namespace: string,
+    schemaspace: string,
     action?: string,
     schemaName?: string
   ): Promise<Dialog.IResult<any>> {
@@ -121,14 +121,14 @@ export class RequestErrors {
       body: (
         <div>
           <p>
-            No {namespace} configuration{schemaName && ` for ${schemaName}`} is
-            defined.
+            No {schemaspace} configuration{schemaName && ` for ${schemaName}`}{' '}
+            is defined.
           </p>
           <p>Please create one and try again.</p>
         </div>
       ),
       buttons:
-        namespace === 'runtime'
+        schemaspace === 'runtime'
           ? [Dialog.cancelButton(), Dialog.okButton({ label: `Open runtimes` })]
           : [Dialog.okButton()]
     });

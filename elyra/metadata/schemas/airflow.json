@@ -1,9 +1,12 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Apache Airflow runtime configuration",
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/airflow.json",
+  "title": "Apache Airflow",
   "name": "airflow",
-  "display_name": "Apache Airflow",
-  "namespace": "runtimes",
+  "schemaspace": "runtimes",
+  "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
+  "metadata_class_name": "elyra.pipeline.runtimes_metadata.RuntimesMetadata",
+  "runtime_type": "APACHE_AIRFLOW",
   "uihints": {
     "title": "Apache Airflow runtimes",
     "icon": "elyra:runtimes",
@@ -14,8 +17,7 @@
       "title": "Schema Name",
       "description": "The schema associated with this instance",
       "type": "string",
-      "pattern": "^[a-z][a-z0-9-_]*[a-z0-9]$",
-      "minLength": 1
+      "const": "airflow"
     },
     "display_name": {
       "title": "Display Name",
@@ -27,6 +29,15 @@
       "description": "Additional data specific to this metadata",
       "type": "object",
       "properties": {
+        "runtime_type": {
+          "title": "Runtime Type",
+          "description": "The runtime associated with this instance",
+          "type": "string",
+          "const": "APACHE_AIRFLOW",
+          "uihints": {
+            "hidden": true
+          }
+        },
         "description": {
           "title": "Description",
           "description": "Description of this Apache Airflow configuration",

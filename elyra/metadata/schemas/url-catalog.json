@@ -1,0 +1,77 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/url-catalog.json",
+  "title": "URL Component Catalog",
+  "name": "url-catalog",
+  "display_name": "URL Component Catalog",
+  "schemaspace": "component-catalogs",
+  "schemaspace_id": "8dc89ca3-4b90-41fd-adb9-9510ad346620",
+  "metadata_class_name": "elyra.pipeline.component_metadata.UrlCatalogMetadata",
+  "uihints": {
+    "icon": "",
+    "reference_url": "https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "url-catalog"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "Display name of this Component Catalog",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this metadata",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "description": "Description of this Component Catalog",
+          "type": "string"
+        },
+        "runtime_type": {
+          "title": "Runtime Type",
+          "description": "The type of runtime associated with this Component Catalog",
+          "type": "string",
+          "enum": ["KUBEFLOW_PIPELINES", "APACHE_AIRFLOW"],
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Runtime"
+          }
+        },
+        "categories": {
+          "title": "Category Names",
+          "description": "Category names associated with this Component Catalog (the components defined in this registry will be organized in the component palette according to these categories)",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 18
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Component Categories"
+          }
+        },
+        "paths": {
+          "title": "URLs",
+          "description": "A list of URLs to individual component specification files",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "uihints": {
+            "field_type": "array",
+            "category": "Configuration"
+          }
+        }
+      },
+      "required": ["runtime_type", "paths"]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}

@@ -20,6 +20,7 @@ import {
   ThemeProvider,
   RequestErrors,
   TextInput,
+  BooleanInput,
   ArrayInput
 } from '@elyra/ui-components';
 
@@ -52,7 +53,7 @@ const DIRTY_CLASS = 'jp-mod-dirty';
 
 interface IMetadataEditorProps {
   schema: string;
-  namespace: string;
+  schemaspace: string;
   name?: string;
   code?: string[];
   onSave: () => void;
@@ -163,7 +164,7 @@ export class MetadataEditor extends ReactWidget {
   editorServices: IEditorServices | null;
   status: ILabStatus;
   schemaName: string;
-  namespace: string;
+  schemaspace: string;
   name?: string;
   code?: string[];
   allTags: string[];
@@ -176,6 +177,7 @@ export class MetadataEditor extends ReactWidget {
   displayName?: string;
   editor?: CodeEditor.IEditor;
   schemaDisplayName?: string;
+  titleContext?: string;
   dirty?: boolean;
   requiredFields?: string[];
   referenceURL?: string;
@@ -191,7 +193,7 @@ export class MetadataEditor extends ReactWidget {
     this.editorServices = props.editorServices;
     this.status = props.status;
     this.clearDirty = null;
-    this.namespace = props.namespace;
+    this.schemaspace = props.schemaspace;
     this.schemaName = props.schema;
     this.allTags = [];
     this.onSave = props.onSave;
@@ -204,6 +206,7 @@ export class MetadataEditor extends ReactWidget {
 
     this.handleTextInputChange = this.handleTextInputChange.bind(this);
     this.handleArrayInputChange = this.handleArrayInputChange.bind(this);
+    this.handleBooleanInputChange = this.handleBooleanInputChange.bind(this);
     this.handleChangeOnTag = this.handleChangeOnTag.bind(this);
     this.handleDropdownChange = this.handleDropdownChange.bind(this);
     this.renderField = this.renderField.bind(this);
@@ -217,7 +220,7 @@ export class MetadataEditor extends ReactWidget {
 
   async initializeMetadata(): Promise<void> {
     try {
-      const schemas = await MetadataService.getSchema(this.namespace);
+      const schemas = await MetadataService.getSchema(this.schemaspace);
       for (const schema of schemas) {
         if (this.schemaName === schema.name) {
           this.schema = schema.properties.metadata.properties;
@@ -251,7 +254,7 @@ export class MetadataEditor extends ReactWidget {
     }
 
     try {
-      this.allMetadata = await MetadataService.getMetadata(this.namespace);
+      this.allMetadata = await MetadataService.getMetadata(this.schemaspace);
     } catch (error) {
       RequestErrors.serverError(error);
     }
@@ -354,7 +357,10 @@ export class MetadataEditor extends ReactWidget {
     }
 
     if (!this.name) {
-      MetadataService.postMetadata(this.namespace, JSON.stringify(newMetadata))
+      MetadataService.postMetadata(
+        this.schemaspace,
+        JSON.stringify(newMetadata)
+      )
         .then((response: any): void => {
           this.handleDirtyState(false);
           this.onSave();
@@ -363,7 +369,7 @@ export class MetadataEditor extends ReactWidget {
         .catch(error => RequestErrors.serverError(error));
     } else {
       MetadataService.putMetadata(
-        this.namespace,
+        this.schemaspace,
         this.name,
         JSON.stringify(newMetadata)
       )
@@ -391,6 +397,11 @@ export class MetadataEditor extends ReactWidget {
   handleArrayInputChange(schemaField: string, values: string[]): void {
     this.handleDirtyState(true);
     this.metadata[schemaField] = values;
+  }
+
+  handleBooleanInputChange(schemaField: string, value: boolean): void {
+    this.handleDirtyState(true);
+    this.metadata[schemaField] = value;
   }
 
   handleDropdownChange = (schemaField: string, value: string): void => {
@@ -475,6 +486,9 @@ export class MetadataEditor extends ReactWidget {
     if (uihints === undefined) {
       uihints = {};
       this.schema[fieldName].uihints = uihints;
+    }
+    if (uihints.hidden) {
+      return <div />;
     }
     if (
       uihints.field_type === 'textinput' ||
@@ -577,6 +591,19 @@ export class MetadataEditor extends ReactWidget {
           }}
         />
       );
+    } else if (uihints.field_type === 'boolean') {
+      return (
+        <BooleanInput
+          label={this.schema[fieldName].title}
+          key={`${fieldName}BooleanInput`}
+          defaultValue={
+            this.metadata[fieldName] ?? this.schema[fieldName].default
+          }
+          onChange={(value): void => {
+            this.handleBooleanInputChange(fieldName, value);
+          }}
+        />
+      );
     } else {
       return null;
     }
@@ -607,7 +634,8 @@ export class MetadataEditor extends ReactWidget {
     }
     let headerText = `Edit "${this.displayName}"`;
     if (!this.name) {
-      headerText = `Add new ${this.schemaDisplayName}`;
+      headerText = `Add new ${this.schemaDisplayName} ${this.titleContext ??
+        ''}`;
     }
     const error = this.displayName === '' && this.invalidForm;
     const onKeyPress: React.KeyboardEventHandler = (

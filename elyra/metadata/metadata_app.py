@@ -28,12 +28,12 @@ from elyra.metadata.metadata_app_utils import SchemaProperty
 from elyra.metadata.schema import SchemaManager
 
 
-class NamespaceBase(AppBase):
-    """Simple attribute-only base class for the various namespace subcommand classes """
+class SchemaspaceBase(AppBase):
+    """Simple attribute-only base class for the various schemaspace subcommand classes """
 
-    # These will be set on class creation when subcommand creates the namespace-specific class
+    # These will be set on class creation when subcommand creates the schemaspace-specific class
     description = None
-    namespace = None
+    schemaspace = None
     schemas = None
     options = []
 
@@ -51,8 +51,8 @@ class NamespaceBase(AppBase):
         self.process_cli_options(self.options)
 
 
-class NamespaceList(NamespaceBase):
-    """Handles the 'list' subcommand functionality for a specific namespace."""
+class SchemaspaceList(SchemaspaceBase):
+    """Handles the 'list' subcommand functionality for a specific schemaspace."""
 
     json_flag = Flag("--json", name='json',
                      description='List complete instances as JSON', default_value=False)
@@ -66,7 +66,7 @@ class NamespaceList(NamespaceBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.metadata_manager = MetadataManager(namespace=self.namespace)
+        self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
 
     def start(self):
         self.process_cli_options(self.options)  # process options
@@ -83,11 +83,11 @@ class NamespaceList(NamespaceBase):
             print(metadata_instances)
         else:
             if not metadata_instances:
-                print("No metadata instances found for {}".format(self.namespace))
+                print("No metadata instances found for {}".format(self.schemaspace))
                 return
 
             validity_clause = "includes invalid" if include_invalid else "valid only"
-            print("Available metadata instances for {} ({}):".format(self.namespace, validity_clause))
+            print("Available metadata instances for {} ({}):".format(self.schemaspace, validity_clause))
 
             sorted_instances = sorted(metadata_instances, key=lambda inst: (inst.schema_name, inst.name))
             # pad to width of longest instance
@@ -116,8 +116,8 @@ class NamespaceList(NamespaceBase):
                                            invalid))
 
 
-class NamespaceRemove(NamespaceBase):
-    """Handles the 'remove' subcommand functionality for a specific namespace."""
+class SchemaspaceRemove(SchemaspaceBase):
+    """Handles the 'remove' subcommand functionality for a specific schemaspace."""
 
     name_option = CliOption("--name", name='name',
                             description='The name of the metadata instance to remove', required=True)
@@ -127,7 +127,7 @@ class NamespaceRemove(NamespaceBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.metadata_manager = MetadataManager(namespace=self.namespace)
+        self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
 
     def start(self):
         super().start()  # process options
@@ -141,11 +141,11 @@ class NamespaceRemove(NamespaceBase):
             pass
 
         self.metadata_manager.remove(name)
-        print("Metadata instance '{}' removed from namespace '{}'.".format(name, self.namespace))
+        print("Metadata instance '{}' removed from schemaspace '{}'.".format(name, self.schemaspace))
 
 
-class NamespaceInstall(NamespaceBase):
-    """Handles the 'install' subcommand functionality for a specific namespace."""
+class SchemaspaceInstall(SchemaspaceBase):
+    """Handles the 'install' subcommand functionality for a specific schemaspace."""
 
     # Known options, others will be derived from schema based on schema_name...
 
@@ -159,11 +159,11 @@ class NamespaceInstall(NamespaceBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.metadata_manager = MetadataManager(namespace=self.namespace)
+        self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
         # First, process the schema_name option so we can then load the appropriate schema
         # file to build the schema-based options.  If help is requested, give it to them.
 
-        # As an added benefit, if the namespace has one schema, got ahead and default that value.
+        # As an added benefit, if the schemaspace has one schema, got ahead and default that value.
         # If multiple, add the list so proper messaging can be applied.  As a result, we need to
         # to build the option here since this is where we have access to the schemas.
         schema_list = list(self.schemas.keys())
@@ -184,13 +184,13 @@ class NamespaceInstall(NamespaceBase):
         self.process_cli_option(self.schema_name_option, check_help=True)
         schema_name = self.schema_name_option.value
 
-        # If schema is not registered in the set of schemas for this namespace, bail.
+        # If schema is not registered in the set of schemas for this schemaspace, bail.
         if schema_name not in self.schemas:
-            self.log_and_exit("Schema name '{}' not found in {} schemas!".format(schema_name, self.namespace))
+            self.log_and_exit("Schema name '{}' not found in {} schemas!".format(schema_name, self.schemaspace))
 
         # Schema appears to be a valid name, convert its properties to options and continue
         schema = self.schemas[schema_name]
-        self.schema_options = NamespaceInstall.schema_to_options(schema)
+        self.schema_options = SchemaspaceInstall.schema_to_options(schema)
         self.options.extend(self.schema_options)
 
     def start(self):
@@ -243,35 +243,57 @@ class NamespaceInstall(NamespaceBase):
                                   .format(name, schema_name), display_help=True)
 
 
-class SubcommandBase(AppBase):
-    """Handles building the appropriate subcommands based on existing namespaces."""
+class SchemaspaceMigrate(SchemaspaceBase):
+    """Handles the 'migrate' subcommand functionality for a specific schemaspace."""
 
-    subcommand_desciption = None  # Overridden in subclass
-    namespace_base_class = None  # Overridden in subclass
+    # 'Migrate' options
+    options = []
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.namespace_schemas = kwargs['namespace_schemas']
 
-        # For each namespace in current schemas, add a corresponding subcommand
-        # This requires a new subclass of the NamespaceList class with an appropriate description
+    def start(self):
+        super().start()  # process options
+
+        # Regardless of schemaspace, call migrate.  If the schemaspace implementation doesn't
+        # require migration, an appropriate log statement will be produced.
+        schemaspace = SchemaManager.instance().get_schemaspace(self.schemaspace)
+        migrated = schemaspace.migrate()
+        if migrated:
+            print(f"The following {self.schemaspace} instances were migrated: {migrated}")
+        else:
+            print(f"No instances of schemaspace {self.schemaspace} were migrated.")
+
+
+class SubcommandBase(AppBase):
+    """Handles building the appropriate subcommands based on existing schemaspaces."""
+
+    subcommand_description = None  # Overridden in subclass
+    schemaspace_base_class = None  # Overridden in subclass
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.schemaspace_schemas = kwargs['schemaspace_schemas']
+
+        # For each schemaspace in current schemas, add a corresponding subcommand
+        # This requires a new subclass of the SchemaspaceList class with an appropriate description
         self.subcommands = {}
-        for namespace, schemas in self.namespace_schemas.items():
-            subcommand_desciption = self.subcommand_desciption.format(namespace=namespace)
-            # Create the appropriate namespace class, initialized with its description,
-            # namespace, and corresponding schemas as attributes,
-            namespace_class = type(namespace, (self.namespace_base_class,),
-                                   {'description': subcommand_desciption,
-                                    'namespace': namespace,
-                                    'schemas': schemas})
-            self.subcommands[namespace] = (namespace_class, namespace_class.description)
+        for schemaspace, schemas in self.schemaspace_schemas.items():
+            subcommand_description = self.subcommand_description.format(schemaspace=schemaspace)
+            # Create the appropriate schemaspace class, initialized with its description,
+            # schemaspace, and corresponding schemas as attributes,
+            schemaspace_class = type(schemaspace, (self.schemaspace_base_class,),
+                                     {'description': subcommand_description,
+                                      'schemaspace': schemaspace,
+                                      'schemas': schemas})
+            self.subcommands[schemaspace] = (schemaspace_class, schemaspace_class.description)
 
     def start(self):
         subcommand = self.get_subcommand()
         if subcommand is None:
             self.exit_no_subcommand()
 
-        subinstance = subcommand[0](argv=self.argv, namespace_schemas=self.namespace_schemas)
+        subinstance = subcommand[0](argv=self.argv, schemaspace_schemas=self.schemaspace_schemas)
         return subinstance.start()
 
     def print_help(self):
@@ -280,40 +302,51 @@ class SubcommandBase(AppBase):
 
 
 class List(SubcommandBase):
-    """Lists a metadata instances of a given namespace."""
+    """Lists a metadata instances of a given schemaspace."""
 
-    description = "List metadata instances for a given namespace."
-    subcommand_desciption = "List installed metadata for {namespace}."
-    namespace_base_class = NamespaceList
+    description = "List metadata instances for a given schemaspace."
+    subcommand_description = "List installed metadata for {schemaspace}."
+    schemaspace_base_class = SchemaspaceList
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
 class Remove(SubcommandBase):
-    """Removes a metadata instance from a given namespace."""
+    """Removes a metadata instance from a given schemaspace."""
 
-    description = "Remove a metadata instance from a given namespace."
-    subcommand_desciption = "Remove a metadata instance from namespace '{namespace}'."
-    namespace_base_class = NamespaceRemove
+    description = "Remove a metadata instance from a given schemaspace."
+    subcommand_description = "Remove a metadata instance from schemaspace '{schemaspace}'."
+    schemaspace_base_class = SchemaspaceRemove
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
 class Install(SubcommandBase):
-    """Installs a metadata instance into a given namespace."""
+    """Installs a metadata instance into a given schemaspace."""
 
-    description = "Install a metadata instance into a given namespace."
-    subcommand_desciption = "Install a metadata instance into namespace '{namespace}'."
-    namespace_base_class = NamespaceInstall
+    description = "Install a metadata instance into a given schemaspace."
+    subcommand_description = "Install a metadata instance into schemaspace '{schemaspace}'."
+    schemaspace_base_class = SchemaspaceInstall
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+class Migrate(SubcommandBase):
+    """Migrates metadata instances in a given schemaspace."""
+
+    description = "Migrate metadata instances in a given schemaspace."
+    subcommand_description = "Migrate metadata instance in schemaspace '{schemaspace}'."
+    schemaspace_base_class = SchemaspaceMigrate
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
 class MetadataApp(AppBase):
-    """Lists, installs and removes metadata for a given namespace."""
+    """Lists, installs and removes metadata for a given schemaspace."""
 
     name = "elyra-metadata"
     description = """Manage Elyra metadata."""
@@ -322,6 +355,7 @@ class MetadataApp(AppBase):
         'list': (List, List.description.splitlines()[0]),
         'install': (Install, Install.description.splitlines()[0]),
         'remove': (Remove, Remove.description.splitlines()[0]),
+        'migrate': (Migrate, Migrate.description.splitlines()[0]),
     }
 
     @classmethod
@@ -331,14 +365,23 @@ class MetadataApp(AppBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.namespace_schemas = SchemaManager.load_namespace_schemas()
+        self.schemaspace_schemas = {}
+        schema_mgr = SchemaManager.instance()
+        # Migration should include deprecated schemaspaces
+        include_deprecated = False
+        args = kwargs.get('argv', [])
+        if len(args) > 0:
+            include_deprecated = args[0] != 'install'  # Only install will not operate against a deprecated schemaspace
+        schemaspace_names = schema_mgr.get_schemaspace_names(include_deprecated=include_deprecated)
+        for name in schemaspace_names:
+            self.schemaspace_schemas[name] = schema_mgr.get_schemaspace_schemas(name)
 
     def start(self):
         subcommand = self.get_subcommand()
         if subcommand is None:
             self.exit_no_subcommand()
 
-        subinstance = subcommand[0](argv=self.argv, namespace_schemas=self.namespace_schemas)
+        subinstance = subcommand[0](argv=self.argv, schemaspace_schemas=self.schemaspace_schemas)
         return subinstance.start()
 
     def print_help(self):

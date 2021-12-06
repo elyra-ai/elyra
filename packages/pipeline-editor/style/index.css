@@ -760,3 +760,34 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 .lsp-completer-theme-vscode {
   letter-spacing: normal;
 }
+
+a {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.empty-pipeline-header {
+  color: #8897a2;
+  text-align: center;
+}
+
+.component-catalog-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.open-component-catalog-button {
+  display: inline-block;
+  vertical-align: middle;
+  pointer-events: auto;
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #8897a2;
+}
+
+.open-component-catalog-button:hover {
+  background-color: var(--jp-layout-color2);
+  cursor: pointer;
+}
