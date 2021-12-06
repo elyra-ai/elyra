@@ -17,7 +17,8 @@ import os
 from pathlib import Path
 from urllib.parse import urlparse
 
-from minio.api import Minio
+import minio
+from minio.credentials import providers
 from minio.error import S3Error
 from traitlets.config import LoggingConfigurable
 
@@ -29,26 +30,40 @@ class CosClient(LoggingConfigurable):
         super().__init__(**kwargs)
         if config:
             self.endpoint = urlparse(config.metadata['cos_endpoint'])
-            self.access_key = config.metadata['cos_username']
-            self.secret_key = config.metadata['cos_password']
+            self.access_key = config.metadata.get('cos_username')
+            self.secret_key = config.metadata.get('cos_password')
             self.bucket = config.metadata['cos_bucket']
         else:
             self.endpoint = urlparse(endpoint)
             self.access_key = access_key
             self.secret_key = secret_key
             self.bucket = bucket
+
         # Infer secure from the endpoint's scheme.
         self.secure = self.endpoint.scheme == 'https'
 
-        self.client = self.__initialize_object_store()
+        # get minio credentials provider
+        if self.access_key and self.secret_key:
+            cred_provider = providers.StaticProvider(
+                access_key=self.access_key,
+                secret_key=self.secret_key,
+            )
+        elif "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
+            cred_provider = providers.EnvAWSProvider()
+        elif "AWS_ROLE_ARN" in os.environ and "AWS_WEB_IDENTITY_TOKEN_FILE" in os.environ:
+            cred_provider = providers.IamAwsProvider()
+        else:
+            raise RuntimeError(
+                "No minio credentials provider can be initialised for current configs. "
+                "Please validate your runtime configuration details and retry."
+            )
 
-    def __initialize_object_store(self):
-
-        # Initialize minioClient with an endpoint and access/secret keys.
-        self.client = Minio(endpoint=self.endpoint.netloc,
-                            access_key=self.access_key,
-                            secret_key=self.secret_key,
-                            secure=self.secure)
+        # get minio client
+        self.client = minio.Minio(
+            self.endpoint.netloc,
+            secure=self.secure,
+            credentials=cred_provider
+        )
 
         # Make a bucket with the make_bucket API call.
         try:
@@ -67,8 +82,6 @@ class CosClient(LoggingConfigurable):
                 self.log.error("Object Storage error", exc_info=True)
 
             raise ex from ex
-
-        return self.client
 
     def upload_file(self, file_name, file_path):
         """
