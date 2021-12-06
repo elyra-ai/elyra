@@ -49,13 +49,7 @@ describe('Pipeline Editor tests', () => {
 
     // delete example catalogs used for testing
     cy.exec(
-      'elyra-metadata remove component-catalogs --name=example_components_-_kfp',
-      {
-        failOnNonZeroExit: false
-      }
-    );
-    cy.exec(
-      'elyra-metadata remove component-catalogs --name=example_components_-_airflow',
+      'elyra-metadata remove component-catalogs --name=example_components',
       {
         failOnNonZeroExit: false
       }
@@ -561,7 +555,7 @@ describe('Pipeline Editor tests', () => {
   it('kfp pipeline should display custom components', () => {
     cy.createExampleComponentCatalog({ type: 'kfp' });
     cy.createPipeline({ type: 'kfp' });
-    cy.expandPaletteCategory();
+    cy.get('.palette-flyout-category[value="examples"]').click();
 
     const kfpCustomComponents = [
       'elyra-kfp-examples-catalog\\:61e6f4141f65', // run notebook using papermill
@@ -593,7 +587,7 @@ describe('Pipeline Editor tests', () => {
   it('airflow pipeline should display custom components', () => {
     cy.createExampleComponentCatalog({ type: 'airflow' });
     cy.createPipeline({ type: 'airflow' });
-    cy.expandPaletteCategory();
+    cy.get('.palette-flyout-category[value="examples"]').click();
 
     const airflowCustomComponents = [
       'elyra-airflow-examples-catalog\\:3a55d015ea96', // bash operator

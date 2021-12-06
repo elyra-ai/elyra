@@ -69,7 +69,7 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
     cy.findByRole('menuitem', { name: /apache airflow/i }).click();
   }
 
-  cy.findByLabelText(/^name/i).type(`Example Components - ${type}`);
+  cy.findByLabelText(/^name/i).type('Example Components');
 
   // save it
   cy.findByRole('button', { name: /save/i }).click();
@@ -171,10 +171,6 @@ Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
   );
   //dismiss menu
   cy.get('[aria-label="Canvas"]').click({ force: true });
-});
-
-Cypress.Commands.add('expandPaletteCategory', (): void => {
-  cy.get('.palette-flyout-category[value="examples"]').click();
 });
 
 Cypress.Commands.add('closeTab', (index: number): void => {
