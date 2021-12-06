@@ -27,7 +27,8 @@ ARG TAG="dev"
 RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[kfp-tekton,kfp-examples]=="$TAG" \
  && jupyter lab build \
- && rm -rf $HOME/.cache/yarn
+ && rm -rf $HOME/.cache/yarn \
+ && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
 # Install component examples catalog
 #  - this wail fail if the 'kfp-examples' pip extra is not installed

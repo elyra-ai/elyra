@@ -25,7 +25,8 @@ ARG TAG="dev"
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[all]=="$TAG" \
  && jupyter lab build \
- && rm -rf $HOME/.cache/yarn
+ && rm -rf $HOME/.cache/yarn \
+ && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' and 'airflow-examples' pip extras are not installed

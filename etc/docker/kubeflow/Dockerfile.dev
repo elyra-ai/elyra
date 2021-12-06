@@ -59,7 +59,9 @@ COPY --chown=${NB_USER} --chmod=0755 elyra /tmp/elyra/
 RUN cd /tmp/elyra \
  && make install \
  && rm -rf $HOME/.cache/yarn \
- && rm -rf /tmp/elyra/node_modules
+ && rm -rf $HOME/.cache/Cypress \
+ && rm -rf /tmp/elyra/node_modules \
+ && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
 # Install component examples catalog
 RUN pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
