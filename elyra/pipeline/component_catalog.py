@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import json
+from threading import Thread
 from types import SimpleNamespace
 from typing import Dict
 from typing import List
@@ -78,27 +79,36 @@ class ComponentCatalog(SingletonConfigurable):
         """
         Reads through all catalog Metadata instances to build the initial component cache
         """
+
         all_catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
         for catalog in all_catalogs:
             self.update_cache_for_catalog(catalog)
 
     def update_cache_for_catalog(self, catalog: Metadata, operation: Optional[str] = None):
         """
-        Updates the component cache for the given catalog Metadata instance
+        Updates the component cache for the given catalog Metadata instance using a thread.
         """
-        platform_type = catalog.metadata['runtime_type']
 
-        # Add sub-dictionary for this platform type if not present
-        if not self._component_cache.get(platform_type):
-            self._component_cache[platform_type] = {}
-        catalog_components = self._read_component_catalog(catalog, platform_type)
+        def update_cache_with_thread():
+            platform_type = catalog.metadata['runtime_type']
 
-        if operation == 'delete':
-            # Remove only the components from this catalog
-            self._component_cache[platform_type].pop(catalog.name)
-        else:
-            # Replace all components for the given catalog
-            self._component_cache[platform_type][catalog.name] = catalog_components
+            # Add sub-dictionary for this platform type if not present
+            if not self._component_cache.get(platform_type):
+                self._component_cache[platform_type] = {}
+            catalog_components = self._read_component_catalog(catalog, platform_type)
+
+            if operation == 'delete':
+                # Remove only the components from this catalog
+                self._component_cache[platform_type].pop(catalog.name)
+            else:
+                # Replace all components for the given catalog
+                self._component_cache[platform_type][catalog.name] = catalog_components
+
+        # TODO should anything else use a thread?
+        updater_thread = Thread(target=update_cache_with_thread)
+
+        updater_thread.setDaemon(True)  # daemon thread will not block program exit
+        updater_thread.start()
 
     def get_all_components(self, platform_type: str) -> List[Component]:
         """
