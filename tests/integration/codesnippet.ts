@@ -193,7 +193,7 @@ describe('Code Snippet tests', () => {
     // Open blank python file
     cy.createNewScriptFile('Python');
 
-    cy.wait(500);
+    cy.wait(1500);
 
     // Insert snippet into python editor
     insert(snippetName);
