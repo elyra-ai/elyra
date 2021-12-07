@@ -103,7 +103,7 @@ class PipelineProcessorManager(SingletonConfigurable):
         super().__init__(**kwargs)
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
         self._registry = PipelineProcessorRegistry.instance()
-        self._component_catalog = ComponentCatalog().instance(parent=self.parent)
+        self._component_catalog = ComponentCatalog.instance(parent=self.parent)
 
     def _get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)
@@ -231,7 +231,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         components: List[Component] = ComponentCatalog.get_generic_components()
 
         # Retrieve runtime-specific components
-        components.extend(ComponentCatalog().instance().get_all_components(platform_type=self._type.name))
+        components.extend(ComponentCatalog.instance().get_all_components(platform_type=self._type.name))
 
         return components
 
@@ -241,7 +241,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
 
         if component_id not in ('notebook', 'python-script', 'r-script'):
-            return ComponentCatalog().instance().get_component(platform_type=self._type.name, component_id=component_id)
+            return ComponentCatalog.instance().get_component(platform_type=self._type.name, component_id=component_id)
 
         return ComponentCatalog.get_generic_component(component_id)
 

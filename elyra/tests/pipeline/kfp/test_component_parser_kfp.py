@@ -25,10 +25,12 @@ from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
+from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_catalog import ComponentCatalog
-from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
+RUNTIME_PROCESSOR_NAME = RuntimeProcessorType.KUBEFLOW_PIPELINES.name  # 'KUBEFLOW_PIPELINES'
 
 
 def _get_resource_path(filename):
@@ -41,18 +43,17 @@ def _get_resource_path(filename):
 
 @pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_component_catalog_can_load_components_from_registries(component_cache_instance):
-    component_parser = KfpComponentParser()
-    component_catalog = ComponentCatalog(component_parser)
-
-    components = component_catalog.get_all_components()
+    components = ComponentCatalog.instance(for_test=True)\
+        .get_all_components(RUNTIME_PROCESSOR_NAME)
     assert len(components) > 0
 
 
 def test_modify_component_catalogs():
+    ComponentCatalog.clear_instance()
+
     # Get initial set of components from the current active registries
-    parser = KfpComponentParser()
-    component_catalog = ComponentCatalog(parser, caching_enabled=False)
-    initial_components = component_catalog.get_all_components()
+    initial_components = ComponentCatalog.instance(for_test=True)\
+        .get_all_components(RUNTIME_PROCESSOR_NAME)
 
     # Components must be sorted by id for the equality comparison with later component lists
     initial_components = sorted(initial_components, key=lambda component: component.id)
@@ -82,7 +83,8 @@ def test_modify_component_catalogs():
     metadata_manager.create("new_registry", registry_instance)
 
     # Get new set of components from all active registries, including added test registry
-    added_components = component_catalog.get_all_components()
+    added_components = ComponentCatalog.instance(for_test=True)\
+        .get_all_components(RUNTIME_PROCESSOR_NAME)
     assert len(added_components) > len(initial_components)
 
     added_component_names = [component.name for component in added_components]
@@ -94,7 +96,8 @@ def test_modify_component_catalogs():
     metadata_manager.update("new_registry", registry_instance)
 
     # Get set of components from all active registries, including modified test registry
-    modified_components = component_catalog.get_all_components()
+    modified_components = ComponentCatalog.instance(for_test=True)\
+        .get_all_components(RUNTIME_PROCESSOR_NAME)
     assert len(modified_components) > len(added_components)
 
     modified_component_names = [component.name for component in modified_components]
@@ -103,7 +106,8 @@ def test_modify_component_catalogs():
 
     # Delete the test registry
     metadata_manager.remove("new_registry")
-    post_delete_components = component_catalog.get_all_components()
+    post_delete_components = ComponentCatalog.instance(for_test=True)\
+        .get_all_components(RUNTIME_PROCESSOR_NAME)
     post_delete_components = sorted(post_delete_components, key=lambda component: component.id)
     assert len(post_delete_components) == len(initial_components)
 
@@ -120,9 +124,8 @@ def test_modify_component_catalogs():
 
 def test_directory_based_component_catalog():
     # Get initial set of components from the current active registries
-    parser = KfpComponentParser()
-    component_catalog = ComponentCatalog(parser, caching_enabled=False)
-    initial_components = component_catalog.get_all_components()
+    initial_components = ComponentCatalog.instance(for_test=True)\
+        .get_all_components(RUNTIME_PROCESSOR_NAME)
 
     metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
@@ -148,7 +151,8 @@ def test_directory_based_component_catalog():
     metadata_manager.create("new_registry", registry_instance)
 
     # Get new set of components from all active registries, including added test registry
-    added_components = component_catalog.get_all_components()
+    added_components = ComponentCatalog.instance(for_test=True)\
+        .get_all_components(RUNTIME_PROCESSOR_NAME)
     assert len(added_components) > len(initial_components)
 
     # Check that all relevant components from the new registry have been added
@@ -184,7 +188,7 @@ def test_parse_kfp_component_file():
     component_entry = SimpleNamespace(**entry)
 
     # Parse the component entry
-    parser = KfpComponentParser()
+    parser = ComponentParser(platform_type=RUNTIME_PROCESSOR_NAME)
     component = parser.parse(component_entry)[0]
     properties_json = ComponentCatalog.to_canvas_properties(component)
 
@@ -276,7 +280,7 @@ def test_parse_kfp_component_url():
     component_entry = SimpleNamespace(**entry)
 
     # Parse the component entry
-    parser = KfpComponentParser()
+    parser = ComponentParser(platform_type=RUNTIME_PROCESSOR_NAME)
     component = parser.parse(component_entry)[0]
     properties_json = ComponentCatalog.to_canvas_properties(component)
 
@@ -314,7 +318,7 @@ def test_parse_kfp_component_file_no_inputs():
     component_entry = SimpleNamespace(**entry)
 
     # Parse the component entry
-    parser = KfpComponentParser()
+    parser = ComponentParser(platform_type=RUNTIME_PROCESSOR_NAME)
     component = parser.parse(component_entry)[0]
     properties_json = ComponentCatalog.to_canvas_properties(component)
 

@@ -72,6 +72,11 @@ class ComponentCatalog(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        # Indicate whether this is a test environment. This is relevant in
+        # update_cache_for_catalog() - we want to wait for the cache updater
+        # thread to finish in test envs
+        self._for_test = bool(kwargs.get('for_test'))
+
         if not self._component_cache:
             self._build_cache()
 
@@ -88,27 +93,29 @@ class ComponentCatalog(SingletonConfigurable):
         """
         Updates the component cache for the given catalog Metadata instance using a thread.
         """
+        platform_type = catalog.metadata['runtime_type']
+
+        # Add sub-dictionary for this platform type if not present
+        if not self._component_cache.get(platform_type):
+            self._component_cache[platform_type] = {}
 
         def update_cache_with_thread():
-            platform_type = catalog.metadata['runtime_type']
-
-            # Add sub-dictionary for this platform type if not present
-            if not self._component_cache.get(platform_type):
-                self._component_cache[platform_type] = {}
-            catalog_components = self._read_component_catalog(catalog, platform_type)
-
+            # TODO add protections against race conditions
+            catalog_components = self._read_component_catalog(catalog)
             if operation == 'delete':
                 # Remove only the components from this catalog
-                self._component_cache[platform_type].pop(catalog.name)
+                self._component_cache[platform_type].pop(catalog.name, None)
             else:
                 # Replace all components for the given catalog
                 self._component_cache[platform_type][catalog.name] = catalog_components
 
-        # TODO should anything else use a thread?
+        # Start thread to perform the cache update
         updater_thread = Thread(target=update_cache_with_thread)
-
-        updater_thread.setDaemon(True)  # daemon thread will not block program exit
         updater_thread.start()
+
+        # Wait for tests to finish if test environment was indicated
+        if self._for_test:
+            updater_thread.join()
 
     def get_all_components(self, platform_type: str) -> List[Component]:
         """
@@ -116,7 +123,7 @@ class ComponentCatalog(SingletonConfigurable):
         """
         components: List[Component] = []
 
-        platform_components_dict = ComponentCatalog._component_cache.get(platform_type, {})
+        platform_components_dict = self._component_cache.get(platform_type, {})
         for catalog_name, component_dict in platform_components_dict.items():
             components.extend(list(component_dict.values()))
 
@@ -131,7 +138,7 @@ class ComponentCatalog(SingletonConfigurable):
         """
         component: Optional[Component] = None
 
-        platform_components_dict = ComponentCatalog._component_cache.get(platform_type, {})
+        platform_components_dict = self._component_cache.get(platform_type, {})
         for catalog_name, component_dict in platform_components_dict.items():
             component = component_dict.get(component_id)
             if component:
@@ -142,7 +149,7 @@ class ComponentCatalog(SingletonConfigurable):
 
         return component
 
-    def _read_component_catalog(self, catalog: Metadata, platform_type) -> Dict[str, Component]:
+    def _read_component_catalog(self, catalog: Metadata) -> Dict[str, Component]:
         """
         Read a component catalog and return a dictionary of components indexed by component_id.
 
@@ -154,6 +161,7 @@ class ComponentCatalog(SingletonConfigurable):
 
         # Assign reader based on the type of the catalog (the 'schema_name')
         try:
+            platform_type = catalog.metadata['runtime_type']
             parser = ComponentParser(platform_type=platform_type)
 
             catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog.schema_name)
