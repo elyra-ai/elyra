@@ -70,9 +70,7 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
   });
 
   cy.findByRole('tab', { name: /component catalogs/i }).click();
-  cy.findByRole('button', { name: /create new component catalog/i })
-    .click()
-    .PinCustomMessage();
+  cy.findByRole('button', { name: /create new component catalog/i }).click();
 
   if (type === 'kfp') {
     cy.findByRole('menuitem', { name: /kubeflow pipelines/i }).click();
