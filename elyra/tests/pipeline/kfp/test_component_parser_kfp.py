@@ -211,20 +211,32 @@ def test_parse_kfp_component_file():
 
     component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
-    assert properties_json['current_parameters']['elyra_test_string_no_default'] == ''
-    assert properties_json['current_parameters']['elyra_test_string_default_value'] == 'default'
-    assert properties_json['current_parameters']['elyra_test_string_default_empty'] == ''
+    assert properties_json['current_parameters']['elyra_test_string_no_default'] == \
+           {'StringControl': '', 'activeControl': 'StringControl'}
 
-    assert properties_json['current_parameters']['elyra_test_bool_default'] is False
-    assert properties_json['current_parameters']['elyra_test_bool_false'] is False
-    assert properties_json['current_parameters']['elyra_test_bool_true'] is True
+    assert properties_json['current_parameters']['elyra_test_string_default_value'] == \
+           {'StringControl': 'default', 'activeControl': 'StringControl'}
+    assert properties_json['current_parameters']['elyra_test_string_default_empty'] == \
+           {'StringControl': '', 'activeControl': 'StringControl'}
 
-    assert properties_json['current_parameters']['elyra_test_int_default'] == 0
-    assert properties_json['current_parameters']['elyra_test_int_zero'] == 0
-    assert properties_json['current_parameters']['elyra_test_int_non_zero'] == 1
+    assert properties_json['current_parameters']['elyra_test_bool_default'] == \
+           {'BooleanControl': 'False', 'activeControl': 'BooleanControl'}
+    assert properties_json['current_parameters']['elyra_test_bool_false'] == \
+           {'BooleanControl': 'False', 'activeControl': 'BooleanControl'}
+    assert properties_json['current_parameters']['elyra_test_bool_true'] == \
+           {'BooleanControl': 'True', 'activeControl': 'BooleanControl'}
 
-    assert properties_json['current_parameters']['elyra_test_dict_default'] == '{}'  # {}
-    assert properties_json['current_parameters']['elyra_test_list_default'] == '[]'  # []
+    assert properties_json['current_parameters']['elyra_test_int_default'] == \
+           {'NumberControl': '0', 'activeControl': 'NumberControl'}
+    assert properties_json['current_parameters']['elyra_test_int_zero'] == \
+           {'NumberControl': '0', 'activeControl': 'NumberControl'}
+    assert properties_json['current_parameters']['elyra_test_int_non_zero'] == \
+           {'NumberControl': '1', 'activeControl': 'NumberControl'}
+
+    assert properties_json['current_parameters']['elyra_test_dict_default'] == \
+           {'StringControl': '{}', 'activeControl': 'StringControl'}  # {}
+    assert properties_json['current_parameters']['elyra_test_list_default'] == \
+           {'StringControl': '[]', 'activeControl': 'StringControl'}  # []
 
     # Ensure that the 'required' attribute was set correctly. KFP components default to required
     # unless explicitly marked otherwise in component YAML.
@@ -243,15 +255,15 @@ def test_parse_kfp_component_file():
     # Ensure that type information is inferred correctly
     unusual_dict_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_dict')
-    assert unusual_dict_property['data']['format'] == "dictionary"
+    assert unusual_dict_property['data']['controls']['StringControl']['format'] == "dictionary"
 
     unusual_list_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_list')
-    assert unusual_list_property['data']['format'] == "list"
+    assert unusual_list_property['data']['controls']['StringControl']['format'] == "list"
 
     unusual_string_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                    if prop.get('parameter_ref') == 'elyra_test_unusual_type_string')
-    assert unusual_string_property['data']['format'] == "string"
+    assert unusual_string_property['data']['controls']['StringControl']['format'] == "string"
 
     file_property = next(prop for prop in properties_json['uihints']['parameter_info']
                          if prop.get('parameter_ref') == 'elyra_test_unusual_type_file')
@@ -259,7 +271,7 @@ def test_parse_kfp_component_file():
 
     no_type_property = next(prop for prop in properties_json['uihints']['parameter_info']
                             if prop.get('parameter_ref') == 'elyra_test_unusual_type_notgiven')
-    assert no_type_property['data']['format'] == "string"
+    assert no_type_property['data']['controls']['StringControl']['format'] == "string"
 
     # Ensure descriptions are rendered properly with type hint in parentheses
     assert unusual_dict_property['description']['default'] == "The test command description " \
@@ -304,9 +316,12 @@ def test_parse_kfp_component_url():
     component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
-    assert properties_json['current_parameters']['elyra_parameters'] == '{}'
-    assert properties_json['current_parameters']['elyra_packages_to_install'] == '[]'
-    assert properties_json['current_parameters']['elyra_input_data'] == ''
+    assert properties_json['current_parameters']['elyra_parameters'] == \
+           {'StringControl': '{}', 'activeControl': 'StringControl'}
+    assert properties_json['current_parameters']['elyra_packages_to_install'] == \
+           {'StringControl': '[]', 'activeControl': 'StringControl'}
+    assert properties_json['current_parameters']['elyra_input_data'] == \
+           {'StringControl': '', 'activeControl': 'StringControl'}
 
 
 def test_parse_kfp_component_file_no_inputs():
