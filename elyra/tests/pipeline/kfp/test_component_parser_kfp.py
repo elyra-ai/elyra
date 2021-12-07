@@ -43,6 +43,7 @@ def _get_resource_path(filename):
 
 @pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_component_catalog_can_load_components_from_registries(component_cache_instance):
+    ComponentCatalog.clear_instance()
     components = ComponentCatalog.instance(for_test=True)\
         .get_all_components(RUNTIME_PROCESSOR_NAME)
     assert len(components) > 0

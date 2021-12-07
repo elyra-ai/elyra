@@ -46,6 +46,7 @@ def _get_resource_path(filename):
 
 
 def test_component_catalog_can_load_components_from_registries():
+    ComponentCatalog.clear_instance()
     components = ComponentCatalog.instance(for_test=True)\
         .get_all_components(RUNTIME_PROCESSOR_NAME)
     assert len(components) > 0
