@@ -60,8 +60,19 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
 });
 
 Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
+  cy.on('fail', e => {
+    console.error(
+      `Example catalog connectors do not appear to be installed.\n${e}`
+    );
+    throw new Error(
+      `Example catalog connectors do not appear to be installed.\n${e}`
+    );
+  });
+
   cy.findByRole('tab', { name: /component catalogs/i }).click();
-  cy.findByRole('button', { name: /create new component catalog/i }).click();
+  cy.findByRole('button', { name: /create new component catalog/i })
+    .click()
+    .PinCustomMessage();
 
   if (type === 'kfp') {
     cy.findByRole('menuitem', { name: /kubeflow pipelines/i }).click();
