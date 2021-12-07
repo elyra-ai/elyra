@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import json
-from threading import Thread
+import threading
 from types import SimpleNamespace
 from typing import Dict
 from typing import List
@@ -30,6 +30,7 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser  # noqa F401 - TODO
+from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser  # noqa F401 - TODO
@@ -77,6 +78,7 @@ class ComponentCatalog(SingletonConfigurable):
         # thread to finish in test envs
         self._for_test = bool(kwargs.get('for_test'))
 
+        self._cache_lock = threading.Lock()
         if not self._component_cache:
             self._build_cache()
 
@@ -100,17 +102,19 @@ class ComponentCatalog(SingletonConfigurable):
             self._component_cache[platform_type] = {}
 
         def update_cache_with_thread():
-            # TODO add protections against race conditions
             catalog_components = self._read_component_catalog(catalog)
-            if operation == 'delete':
-                # Remove only the components from this catalog
-                self._component_cache[platform_type].pop(catalog.name, None)
-            else:
-                # Replace all components for the given catalog
-                self._component_cache[platform_type][catalog.name] = catalog_components
+
+            # Acquire lock before accessing component cache
+            with self._cache_lock:
+                if operation == 'delete':
+                    # Remove only the components from this catalog
+                    self._component_cache[platform_type].pop(catalog.name, None)
+                else:
+                    # Replace all components for the given catalog
+                    self._component_cache[platform_type][catalog.name] = catalog_components
 
         # Start thread to perform the cache update
-        updater_thread = Thread(target=update_cache_with_thread)
+        updater_thread = threading.Thread(target=update_cache_with_thread)
         updater_thread.start()
 
         # Wait for tests to finish if test environment was indicated
@@ -149,6 +153,41 @@ class ComponentCatalog(SingletonConfigurable):
 
         return component
 
+    def _get_component_parser_class(self, platform_type: str) -> Optional[ComponentParser]:
+        """
+        Return the appropriate component parser based on the runtime platform type indicated
+        in the component catalog metadata instance
+        """
+        try:
+            parser = ComponentParser(platform_type=platform_type)
+        except Exception as e:
+            self.log.error(f"Could not get appropriate ComponentParser class: {e}. Skipping...")
+            return None
+
+        return parser
+
+    def _load_catalog_reader_class(self, catalog: Metadata, file_types: List[str]) \
+            -> Optional[ComponentCatalogConnector]:
+        """
+        Load the appropriate entrypoint class based on the schema name indicated in
+        the catalog Metadata instance and the file types associated with the component
+        parser in use
+        """
+        try:
+            catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog.schema_name)
+            if not catalog_reader:
+                self.log.error(f"No entrypoint with name '{catalog.schema_name}' was found in group "
+                               f"'elyra.component.catalog_types' to match the 'schema_name' given in catalog "
+                               f"'{catalog.display_name}'. Skipping...")
+                return None
+
+            catalog_reader = catalog_reader.load()(file_types, parent=self.parent)
+        except Exception as e:
+            self.log.error(f"Could not load appropriate ComponentCatalogConnector class: {e}. Skipping...")
+            return None
+
+        return catalog_reader
+
     def _read_component_catalog(self, catalog: Metadata) -> Dict[str, Component]:
         """
         Read a component catalog and return a dictionary of components indexed by component_id.
@@ -159,21 +198,14 @@ class ComponentCatalog(SingletonConfigurable):
         """
         component_dict: Dict[str, Component] = {}
 
+        # Assign component parser based on the runtime platform type
+        parser = self._get_component_parser_class(platform_type=catalog.metadata['runtime_type'])
+        if not parser:
+            return component_dict
+
         # Assign reader based on the type of the catalog (the 'schema_name')
-        try:
-            platform_type = catalog.metadata['runtime_type']
-            parser = ComponentParser(platform_type=platform_type)
-
-            catalog_reader = entrypoints.get_group_named('elyra.component.catalog_types').get(catalog.schema_name)
-            if not catalog_reader:
-                self.log.error(f"No entrypoint with name '{catalog.schema_name}' was found in group "
-                               f"'elyra.component.catalog_types' to match the 'schema_name' given in catalog "
-                               f"'{catalog.display_name}'. Skipping...")
-                return component_dict
-
-            catalog_reader = catalog_reader.load()(parser.file_types, parent=self.parent)
-        except Exception as e:
-            self.log.error(f"Could not load appropriate ComponentCatalogConnector class: {e}. Skipping...")
+        catalog_reader = self._load_catalog_reader_class(catalog, parser.file_types)
+        if not catalog_reader:
             return component_dict
 
         # Get content of component definition file for each component in this catalog
