@@ -142,6 +142,7 @@ jobs:
         run: |
           make yarn-install
           make only-install-server
+          make install-examples
       - name: Build
         run: make build-ui
       - name: Setup JupyterLab
