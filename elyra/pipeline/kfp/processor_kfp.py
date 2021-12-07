@@ -510,7 +510,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
 
-        cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
+        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
         cos_username = runtime_configuration.metadata.get('cos_username')
         cos_password = runtime_configuration.metadata.get('cos_password')
         cos_secret = runtime_configuration.metadata.get('cos_secret')
