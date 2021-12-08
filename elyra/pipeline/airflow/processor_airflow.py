@@ -269,7 +269,7 @@ be fully qualified (i.e., prefixed with their package names).
 
             else:
                 # Retrieve component from cache
-                component = ComponentCatalog.instance().get_component(self._type.name, operation.classifier)
+                component = ComponentCatalog.instance().get_component(self._type, operation.classifier)
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:

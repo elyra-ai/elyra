@@ -231,7 +231,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         components: List[Component] = ComponentCatalog.get_generic_components()
 
         # Retrieve runtime-specific components
-        components.extend(ComponentCatalog.instance().get_all_components(platform_type=self._type.name))
+        components.extend(ComponentCatalog.instance().get_all_components(platform=self._type))
 
         return components
 
@@ -241,7 +241,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
 
         if component_id not in ('notebook', 'python-script', 'r-script'):
-            return ComponentCatalog.instance().get_component(platform_type=self._type.name, component_id=component_id)
+            return ComponentCatalog.instance().get_component(platform=self._type, component_id=component_id)
 
         return ComponentCatalog.get_generic_component(component_id)
 

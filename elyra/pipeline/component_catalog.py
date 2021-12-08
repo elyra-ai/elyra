@@ -27,17 +27,22 @@ from jinja2 import Template
 from traitlets.config import SingletonConfigurable
 
 from elyra.metadata.manager import MetadataManager
-from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser  # noqa F401 - TODO
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.component_metadata import ComponentCatalogMetadata
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser  # noqa F401 - TODO
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
 class ComponentCatalog(SingletonConfigurable):
-    _component_cache: Dict[str, Dict] = {}
+    # The _component_cache is indexed at the top level by runtime type name, e.g. 'APACHE_AIRFLOW',
+    # and has as it's value another dictionary. At the second level, each sub-dictionary is indexed by
+    # a ComponentCatalogMetadata instance name and its value is also a sub-dictionary. This lowest
+    # level dictionary is indexed by component id and maps to the corresponding Component object.
+    _component_cache: Dict[str, Dict[str, Dict[str, Component]]] = {}
 
     @property
     def component_cache(self):
@@ -84,22 +89,22 @@ class ComponentCatalog(SingletonConfigurable):
 
     def _build_cache(self):
         """
-        Reads through all catalog Metadata instances to build the initial component cache
+        Reads through all ComponentCatalogMetadata instances to build the initial component cache
         """
 
         all_catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
         for catalog in all_catalogs:
-            self.update_cache_for_catalog(catalog)
+            self.update_cache_for_catalog(catalog)  # type: ignore
 
-    def update_cache_for_catalog(self, catalog: Metadata, operation: Optional[str] = None):
+    def update_cache_for_catalog(self, catalog: ComponentCatalogMetadata, operation: Optional[str] = None):
         """
-        Updates the component cache for the given catalog Metadata instance using a thread.
+        Updates the component cache for the given ComponentCatalogMetadata instance.
         """
-        platform_type = catalog.metadata['runtime_type']
+        platform_name = catalog.runtime_type.name
 
         # Add sub-dictionary for this platform type if not present
-        if not self._component_cache.get(platform_type):
-            self._component_cache[platform_type] = {}
+        if not self._component_cache.get(platform_name):
+            self._component_cache[platform_name] = {}
 
         def update_cache_with_thread():
             catalog_components = self._read_component_catalog(catalog)
@@ -108,10 +113,10 @@ class ComponentCatalog(SingletonConfigurable):
             with self._cache_lock:
                 if operation == 'delete':
                     # Remove only the components from this catalog
-                    self._component_cache[platform_type].pop(catalog.name, None)
+                    self._component_cache[platform_name].pop(catalog.name, None)
                 else:
                     # Replace all components for the given catalog
-                    self._component_cache[platform_type][catalog.name] = catalog_components
+                    self._component_cache[platform_name][catalog.name] = catalog_components
 
         # Start thread to perform the cache update
         updater_thread = threading.Thread(target=update_cache_with_thread)
@@ -121,30 +126,30 @@ class ComponentCatalog(SingletonConfigurable):
         if self._for_test:
             updater_thread.join()
 
-    def get_all_components(self, platform_type: str) -> List[Component]:
+    def get_all_components(self, platform: RuntimeProcessorType) -> List[Component]:
         """
         Retrieve all components from component catalog cache
         """
         components: List[Component] = []
 
-        platform_components_dict = self._component_cache.get(platform_type, {})
-        for catalog_name, component_dict in platform_components_dict.items():
-            components.extend(list(component_dict.values()))
+        platform_components = self._component_cache.get(platform.name, {})
+        for catalog_name, catalog_components in platform_components.items():
+            components.extend(list(catalog_components.values()))
 
         if not components:
-            self.log.error(f"No components could be found in any catalog for platform type '{platform_type}'.")
+            self.log.error(f"No components could be found in any catalog for platform type '{platform.name}'.")
 
         return components
 
-    def get_component(self, platform_type: str, component_id: str) -> Optional[Component]:
+    def get_component(self, platform: RuntimeProcessorType, component_id: str) -> Optional[Component]:
         """
         Retrieve the component with a given component_id from component catalog cache
         """
         component: Optional[Component] = None
 
-        platform_components_dict = self._component_cache.get(platform_type, {})
-        for catalog_name, component_dict in platform_components_dict.items():
-            component = component_dict.get(component_id)
+        platform_components = self._component_cache.get(platform.name, {})
+        for catalog_name, catalog_components in platform_components.items():
+            component = catalog_components.get(component_id)
             if component:
                 break
 
@@ -153,24 +158,11 @@ class ComponentCatalog(SingletonConfigurable):
 
         return component
 
-    def _get_component_parser_class(self, platform_type: str) -> Optional[ComponentParser]:
-        """
-        Return the appropriate component parser based on the runtime platform type indicated
-        in the component catalog metadata instance
-        """
-        try:
-            parser = ComponentParser(platform_type=platform_type)
-        except Exception as e:
-            self.log.error(f"Could not get appropriate ComponentParser class: {e}. Skipping...")
-            return None
-
-        return parser
-
-    def _load_catalog_reader_class(self, catalog: Metadata, file_types: List[str]) \
+    def _load_catalog_reader_class(self, catalog: ComponentCatalogMetadata, file_types: List[str]) \
             -> Optional[ComponentCatalogConnector]:
         """
         Load the appropriate entrypoint class based on the schema name indicated in
-        the catalog Metadata instance and the file types associated with the component
+        the ComponentCatalogMetadata instance and the file types associated with the component
         parser in use
         """
         try:
@@ -188,7 +180,7 @@ class ComponentCatalog(SingletonConfigurable):
 
         return catalog_reader
 
-    def _read_component_catalog(self, catalog: Metadata) -> Dict[str, Component]:
+    def _read_component_catalog(self, catalog: ComponentCatalogMetadata) -> Dict[str, Component]:
         """
         Read a component catalog and return a dictionary of components indexed by component_id.
 
@@ -196,23 +188,21 @@ class ComponentCatalog(SingletonConfigurable):
 
         :returns: a dictionary of component id to Component object for all read/parsed components
         """
-        component_dict: Dict[str, Component] = {}
+        components: Dict[str, Component] = {}
 
         # Assign component parser based on the runtime platform type
-        parser = self._get_component_parser_class(platform_type=catalog.metadata['runtime_type'])
-        if not parser:
-            return component_dict
+        parser = ComponentParser.create_instance(platform=catalog.runtime_type)
 
         # Assign reader based on the type of the catalog (the 'schema_name')
         catalog_reader = self._load_catalog_reader_class(catalog, parser.file_types)
         if not catalog_reader:
-            return component_dict
+            return components
 
         # Get content of component definition file for each component in this catalog
         self.log.debug(f"Processing components in catalog '{catalog.display_name}'")
         component_data_dict = catalog_reader.read_component_definitions(catalog)
         if not component_data_dict:
-            return component_dict
+            return components
 
         for component_id, component_data in component_data_dict.items():
             component_entry = {
@@ -224,11 +214,11 @@ class ComponentCatalog(SingletonConfigurable):
             }
 
             # Parse the component entry to get a fully qualified Component object
-            components = parser.parse(SimpleNamespace(**component_entry)) or []
-            for component in components:
-                component_dict[component.id] = component
+            parsed_components = parser.parse(SimpleNamespace(**component_entry)) or []
+            for component in parsed_components:
+                components[component.id] = component
 
-        return component_dict
+        return components
 
     @staticmethod
     def get_generic_components() -> List[Component]:
@@ -261,7 +251,7 @@ class ComponentCatalog(SingletonConfigurable):
 
         # Convert the list of all components into a dictionary of
         # component lists keyed by category
-        category_dict: Dict[str, List[Component]] = {}
+        category_to_components: Dict[str, List[Component]] = {}
         for component in components:
             categories = component.categories
 
@@ -271,14 +261,14 @@ class ComponentCatalog(SingletonConfigurable):
                 categories = [fallback_category_name]
 
             for category in categories:
-                if category not in category_dict.keys():
-                    category_dict[category] = []
+                if category not in category_to_components.keys():
+                    category_to_components[category] = []
 
-                if component.id not in [comp.id for comp in category_dict[category]]:
-                    category_dict[category].append(component)
+                if component.id not in [comp.id for comp in category_to_components[category]]:
+                    category_to_components[category].append(component)
 
         # Render template
-        canvas_palette = template.render(category_dict=category_dict)
+        canvas_palette = template.render(category_dict=category_to_components)
         return json.loads(canvas_palette)
 
     @staticmethod

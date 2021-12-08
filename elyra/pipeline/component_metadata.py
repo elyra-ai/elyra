@@ -16,7 +16,8 @@
 from typing import Any
 
 from elyra.metadata.metadata import Metadata
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline import component_catalog
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
 class ComponentRegistryMetadata(Metadata):
@@ -29,15 +30,19 @@ class ComponentCatalogMetadata(Metadata):
     and deletion of component catalog metadata instances.
     """
 
+    @property
+    def runtime_type(self) -> RuntimeProcessorType:
+        return RuntimeProcessorType.get_instance_by_name(self.metadata['runtime_type'])
+
     def post_save(self, **kwargs: Any) -> None:
         try:
-            ComponentCatalog.instance().update_cache_for_catalog(catalog=self, operation='modify')
+            component_catalog.ComponentCatalog.instance().update_cache_for_catalog(catalog=self, operation='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
         try:
-            ComponentCatalog.instance().update_cache_for_catalog(catalog=self, operation='delete')
+            component_catalog.ComponentCatalog.instance().update_cache_for_catalog(catalog=self, operation='delete')
         except Exception:
             pass
 
