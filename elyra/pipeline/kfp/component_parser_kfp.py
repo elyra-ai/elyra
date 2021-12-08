@@ -132,6 +132,7 @@ class KfpComponentParser(ComponentParser):
                 component_params = ComponentParameter(id=ref_name,
                                                       name=display_name,
                                                       data_type=data_type_info.data_type,
+                                                      default_data_type=data_type_info.default_data_type,
                                                       value=(value or data_type_info.default_value),
                                                       description=description,
                                                       control=data_type_info.control,

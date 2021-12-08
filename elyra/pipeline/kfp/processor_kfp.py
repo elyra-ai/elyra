@@ -641,12 +641,22 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
                         operation.component_params[component_property.ref] = \
                             target_ops[output_node_id].outputs[output_node_parameter_key]
-                    elif component_property.data_type == 'dictionary':
-                        processed_value = self._process_dictionary_value(property_value)
-                        operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == 'list':
-                        processed_value = self._process_list_value(property_value)
-                        operation.component_params[component_property.ref] = processed_value
+                    elif component_property.data_type == "inputvalue":
+                        active_property = property_value['activeControl']
+                        active_property_value = property_value[active_property]
+                        if isinstance(property_value, dict) and set(property_value.keys()) == {'value', 'option'}:
+                            output_node_id = property_value['value']
+                            output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
+                            operation.component_params[component_property.ref] = \
+                                target_ops[output_node_id].outputs[output_node_parameter_key]
+                        elif component_property.default_data_type == 'dictionary':
+                            processed_value = self._process_dictionary_value(active_property_value)
+                            operation.component_params[component_property.ref] = processed_value
+                        elif component_property.default_data_type == 'list':
+                            processed_value = self._process_list_value(active_property_value)
+                            operation.component_params[component_property.ref] = processed_value
+                        else:
+                            operation.component_params[component_property.ref] = active_property_value
 
                 # Build component task factory
                 try:

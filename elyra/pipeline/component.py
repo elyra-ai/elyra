@@ -44,6 +44,7 @@ class ComponentParameter(object):
                  control_id: str = "StringControl",
                  one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
                  default_control_type: str = "StringControl",
+                 default_data_type: str = "string",
                  items: Optional[List[str]] = None):
         """
         :param id: Unique identifier for a property
@@ -74,6 +75,7 @@ class ComponentParameter(object):
         self._control_id = control_id
         self._one_of_control_types = one_of_control_types
         self._default_control_type = default_control_type
+        self._default_data_type = default_data_type
         self._items = items or []
 
         # Check description for information about 'required' parameter
@@ -135,6 +137,14 @@ class ComponentParameter(object):
             first opening the component's parameters in the pipeline editor.
         """
         return self._default_control_type
+
+    @property
+    def default_data_type(self) -> str:
+        """
+            The `default_data_type` is the first data type that is assigned to this specific parameter
+            after parsing the component specification.
+        """
+        return self._default_data_type
 
     @property
     def items(self) -> List[str]:
@@ -375,6 +385,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
     @staticmethod
     def create_data_type_info(parsed_data: str,
                               data_type: str = 'string',
+                              default_data_type: str = 'string',
                               data_label: str = None,
                               default_value: Any = '',
                               required: bool = True,
@@ -395,6 +406,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         """
         dti = SimpleNamespace(parsed_data=parsed_data,
                               data_type=data_type,
+                              default_data_type=default_data_type,
                               data_label=data_label or ControllerMap[control_id].value,
                               default_value=default_value,
                               required=required,
