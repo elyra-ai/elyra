@@ -448,33 +448,6 @@ def test_process_metrics_method_invalid_metadata_file(monkeypatch, s3_setup, tmp
         assert False
 
 
-def test_fail_bad_endpoint_main_method(monkeypatch, tmpdir):
-    argument_dict = {'cos-endpoint': MINIO_HOST_PORT,
-                     'cos-bucket': 'test-bucket',
-                     'cos-directory': 'test-directory',
-                     'cos-dependencies-archive': 'test-archive.tgz',
-                     'filepath': 'elyra/tests/kfp/resources/test-notebookA.ipynb',
-                     'inputs': 'test-file.txt',
-                     'outputs': 'test-file/test-file-copy.txt',
-                     'user-volume-path': None}
-    monkeypatch.setattr(bootstrapper.OpUtil, "parse_arguments", lambda x: argument_dict)
-    monkeypatch.setattr(bootstrapper.OpUtil, 'package_install', mock.Mock(return_value=True))
-
-    mocked_func = mock.Mock(return_value="default", side_effect=['test-archive.tgz',
-                                                                 'test-file.txt',
-                                                                 'test-notebookA-output.ipynb',
-                                                                 'test-notebookA.html',
-                                                                 'test-file.txt'])
-    monkeypatch.setattr(bootstrapper.FileOpBase, "get_object_storage_filename", mocked_func)
-
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "minioadmin")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "minioadmin")
-
-    with tmpdir.as_cwd():
-        with pytest.raises(minio.error.InvalidEndpointError):
-            bootstrapper.main()
-
-
 def test_fail_bad_notebook_main_method(monkeypatch, s3_setup, tmpdir):
     argument_dict = {'cos-endpoint': 'http://' + MINIO_HOST_PORT,
                      'cos-bucket': 'test-bucket',
@@ -649,9 +622,10 @@ def test_fail_get_file_object_store(monkeypatch, s3_setup, tmpdir):
     file_to_get = "test-file.txt"
 
     with tmpdir.as_cwd():
-        with pytest.raises(minio.error.NoSuchKey):
+        with pytest.raises(minio.error.S3Error) as exc_info:
             op = _get_operation_instance(monkeypatch, s3_setup)
             op.get_file_from_object_storage(file_to_get=file_to_get)
+        assert exc_info.value.code == "NoSuchKey"
 
 
 def test_put_file_object_store(monkeypatch, s3_setup, tmpdir):
@@ -680,10 +654,11 @@ def test_fail_bucket_put_file_object_store(monkeypatch, s3_setup):
     bucket_name = "test-bucket-not-exist"
     file_to_put = "LICENSE"
 
-    with pytest.raises(minio.error.NoSuchBucket):
+    with pytest.raises(minio.error.S3Error) as exc_info:
         op = _get_operation_instance(monkeypatch, s3_setup)
         monkeypatch.setattr(op, "cos_bucket", bucket_name)
         op.put_file_to_object_storage(file_to_upload=file_to_put)
+    assert exc_info.value.code == "NoSuchBucket"
 
 
 def test_find_best_kernel_nb(tmpdir):

@@ -263,11 +263,13 @@ Example: `766f7c267519fee7c71d7f96bdf42e646dc65433`
 This section defines the settings for the cloud storage that you want to associate with this runtime configuration.
 
 ##### Cloud Object Storage endpoint (cos_endpoint)
+
 This should be the URL address of your S3-compatible Object Storage. If running an Object Storage Service within a Kubernetes cluster (Minio), you can use the Kubernetes local DNS address. This setting is required.
 
 Example: `https://minio-service.kubeflow:9000`
 
 ##### Cloud Object Storage Credentials Secret (cos_secret)
+
 (Optional) Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
 If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
 execute pipelines. This setting is optional but is recommended for use in shared environments to avoid exposing a user's 
@@ -291,16 +293,26 @@ data:
 ```
 
 ##### Cloud Object Storage username (cos_username)
-Username used to access the Object Storage. This setting is required.
+
+Username used to access the Object Storage. 
+This setting is optional, but if not specified, you must provide Minio/S3 credentials using another method.
 
 Example: `minio`
 
+When `cos_username` and `cos_password` are not specified, we try the following environment variables in order:
+
+1. `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` (could be set external to Elyra, or with `cos_secret`)
+1. `AWS_ROLE_ARN` and `AWS_WEB_IDENTITY_TOKEN_FILE` (usually set by AWS [IAM Roles for Service Accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html))
+
 ##### Cloud Object Storage password (cos_password)
-Password for cos_username. This setting is required.
+
+Password for cos_username. 
+This setting is optional, but if not specified, you must provide Minio/S3 credentials using another method (see `cos_username` for more information).
 
 Example: `minio123`
 
 ##### Cloud Object Storage bucket name (cos_bucket)
+
 Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
 
 Example: `test-bucket`

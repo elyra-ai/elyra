@@ -159,13 +159,7 @@
           }
         }
       },
-      "required": [
-        "api_endpoint",
-        "cos_endpoint",
-        "cos_username",
-        "cos_password",
-        "cos_bucket"
-      ]
+      "required": ["api_endpoint", "cos_endpoint", "cos_bucket"]
     }
   },
   "required": ["schema_name", "display_name", "metadata"]

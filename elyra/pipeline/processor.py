@@ -27,7 +27,7 @@ from typing import Set
 from typing import Union
 
 import entrypoints
-from minio.error import SignatureDoesNotMatch
+from minio.error import S3Error
 from traitlets.config import Bool
 from traitlets.config import LoggingConfigurable
 from traitlets.config import SingletonConfigurable
@@ -418,9 +418,12 @@ class RuntimePipelineProcessor(PipelineProcessor):
                            format(cos_endpoint), exc_info=True)
             raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
                                "check your object storage settings. ".format(cos_endpoint)) from ex
-        except SignatureDoesNotMatch as ex:
-            raise RuntimeError("Connection was refused due to incorrect Object Storage credentials. " +
-                               "Please validate your runtime configuration details and retry.") from ex
+        except S3Error as ex:
+            if ex.code == "SignatureDoesNotMatch":
+                raise RuntimeError("Connection was refused due to incorrect Object Storage credentials. " +
+                                   "Please validate your runtime configuration details and retry.") from ex
+            else:
+                raise RuntimeError("Please validate your runtime configuration details and retry.") from ex
         except BaseException as ex:
             self.log.error("Error uploading artifacts to object storage for operation: {}".
                            format(operation.name), exc_info=True)
@@ -449,17 +452,31 @@ class RuntimePipelineProcessor(PipelineProcessor):
         """
 
         envs: Dict = operation.env_vars_as_dict(logger=self.log)
-        envs['ELYRA_RUNTIME_ENV'] = self.name
+        envs["ELYRA_RUNTIME_ENV"] = self.name
 
-        if 'cos_secret' not in kwargs or not kwargs['cos_secret']:
-            envs['AWS_ACCESS_KEY_ID'] = kwargs['cos_username']
-            envs['AWS_SECRET_ACCESS_KEY'] = kwargs['cos_password']
-        else:  # ensure the "access-key" envs are NOT present...
-            envs.pop('AWS_ACCESS_KEY_ID', None)
-            envs.pop('AWS_SECRET_ACCESS_KEY', None)
+        # set environment variables for Minio/S3 access, in the following order of precedence:
+        #  1. use `cos_secret`
+        #  2. use `cos_username` and `cos_password`
+        if "cos_secret" in kwargs and kwargs["cos_secret"]:
+            # ensure the AWS_ACCESS_* envs are NOT set
+            envs.pop("AWS_ACCESS_KEY_ID", None)
+            envs.pop("AWS_SECRET_ACCESS_KEY", None)
+        else:
+            # set AWS_ACCESS_KEY_ID, if defined
+            if "cos_username" in kwargs and kwargs["cos_username"]:
+                envs["AWS_ACCESS_KEY_ID"] = kwargs["cos_username"]
+            else:
+                envs.pop("AWS_ACCESS_KEY_ID", None)
+
+            # set AWS_SECRET_ACCESS_KEY, if defined
+            if "cos_password" in kwargs and kwargs["cos_password"]:
+                envs["AWS_SECRET_ACCESS_KEY"] = kwargs["cos_password"]
+            else:
+                envs.pop("AWS_SECRET_ACCESS_KEY", None)
 
         # Convey pipeline logging enablement to operation
-        envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
+        envs["ELYRA_ENABLE_PIPELINE_INFO"] = str(self.enable_pipeline_info)
+
         return envs
 
     def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
