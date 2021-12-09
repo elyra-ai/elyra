@@ -28,35 +28,57 @@ class CosClient(LoggingConfigurable):
 
     def __init__(self, config=None, endpoint=None, access_key=None, secret_key=None, bucket=None, **kwargs):
         super().__init__(**kwargs)
-        if config:
-            self.endpoint = urlparse(config.metadata['cos_endpoint'])
-            self.access_key = config.metadata.get('cos_username')
-            self.secret_key = config.metadata.get('cos_password')
-            self.bucket = config.metadata['cos_bucket']
-        else:
-            self.endpoint = urlparse(endpoint)
-            self.access_key = access_key
-            self.secret_key = secret_key
+
+        cred_provider = None
+        if config is None:
+            # The client was invoked by an entity that does not utilize
+            # runtime configurations. Use the explicitly provided parameter
+            # values instead.
+            cred_provider = providers.StaticProvider(
+                access_key=access_key,
+                secret_key=secret_key,
+            )
+            self.endpoint = endpoint
             self.bucket = bucket
+        else:
+            auth_type = config.metadata['cos_auth_type']
+            self.endpoint = urlparse(config.metadata['cos_endpoint'])
+            self.bucket = config.metadata['cos_bucket']
+            if auth_type in ['USER_CREDENTIALS', 'KUBERNETES_SECRET']:
+                # TODO remove temporary validation checks after
+                # the 'cos_username' and 'cos_password' schema properties
+                # are marked as required.
+                if len(config.metadata.get('cos_username', '').strip()) == 0 or\
+                   len(config.metadata.get('cos_password', '').strip()) == 0:
+                    raise RuntimeError(f'Authentication provider \'{auth_type}\' requires '
+                                       'a username and password. Update runtime configuration '
+                                       f'\'{config.display_name}\' and try again.')
+                if auth_type == 'KUBERNETES_SECRET' and\
+                   len(config.metadata.get('cos_secret', '').strip()) == 0:
+                    raise RuntimeError(f'Authentication provider \'{auth_type}\' requires '
+                                       'a Kubernetes secret name. Update runtime configuration '
+                                       f'\'{config.display_name}\' and try again.')
+                cred_provider = providers.StaticProvider(
+                    access_key=config.metadata['cos_username'],
+                    secret_key=config.metadata['cos_password'],
+                )
+            elif auth_type == 'AWS_ENV_VARIABLES':
+                if os.environ.get('AWS_ACCESS_KEY_ID') is None or\
+                   os.environ.get('AWS_SECRET_ACCESS_KEY') is None:
+                    raise RuntimeError(f'Authentication provider \'{auth_type}\' requires '
+                                       'environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.')
+                cred_provider = providers.EnvAWSProvider()
+            elif auth_type == 'AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS':
+                if os.environ.get('AWS_ROLE_ARN') is None or\
+                   os.environ.get('AWS_WEB_IDENTITY_TOKEN_FILE') is None:
+                    raise RuntimeError(f'Authentication provider \'{auth_type}\' requires '
+                                       'environment variables AWS_ROLE_ARN and AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS.')
+                cred_provider = providers.IamAwsProvider()
+            else:
+                raise RuntimeError(f'Authentication provider \'{auth_type}\' is not supported.')
 
         # Infer secure from the endpoint's scheme.
         self.secure = self.endpoint.scheme == 'https'
-
-        # get minio credentials provider
-        if self.access_key and self.secret_key:
-            cred_provider = providers.StaticProvider(
-                access_key=self.access_key,
-                secret_key=self.secret_key,
-            )
-        elif "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
-            cred_provider = providers.EnvAWSProvider()
-        elif "AWS_ROLE_ARN" in os.environ and "AWS_WEB_IDENTITY_TOKEN_FILE" in os.environ:
-            cred_provider = providers.IamAwsProvider()
-        else:
-            raise RuntimeError(
-                "No minio credentials provider can be initialised for current configs. "
-                "Please validate your runtime configuration details and retry."
-            )
 
         # get minio client
         self.client = minio.Minio(

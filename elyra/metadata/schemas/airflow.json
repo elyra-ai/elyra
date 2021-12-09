@@ -5,7 +5,7 @@
   "name": "airflow",
   "schemaspace": "runtimes",
   "schemaspace_id": "130b8e00-de7c-4b32-b553-b4a52824a3b5",
-  "metadata_class_name": "elyra.pipeline.runtimes_metadata.RuntimesMetadata",
+  "metadata_class_name": "elyra.pipeline.airflow.airflow_metadata.AirflowMetadata",
   "runtime_type": "APACHE_AIRFLOW",
   "uihints": {
     "title": "Apache Airflow runtimes",
@@ -111,6 +111,32 @@
             "placeholder": "https://your-cos-service:port"
           }
         },
+        "cos_bucket": {
+          "title": "Cloud Object Storage Bucket Name",
+          "description": "The Cloud Object Storage bucket name",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
+          "minLength": 3,
+          "maxLength": 222,
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_auth_type": {
+          "title": "Cloud Object Storage Authentication Type",
+          "description": "Authentication type Elyra uses to authenticate with Cloud Object Storage",
+          "type": "string",
+          "enum": [
+            "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS",
+            "KUBERNETES_SECRET",
+            "USER_CREDENTIALS"
+          ],
+          "default": "USER_CREDENTIALS",
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Cloud Object Storage"
+          }
+        },
         "cos_secret": {
           "title": "Cloud Object Storage Credentials Secret",
           "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.",
@@ -138,17 +164,6 @@
             "category": "Cloud Object Storage"
           }
         },
-        "cos_bucket": {
-          "title": "Cloud Object Storage Bucket Name",
-          "description": "The Cloud Object Storage bucket name",
-          "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$",
-          "minLength": 3,
-          "maxLength": 222,
-          "uihints": {
-            "category": "Cloud Object Storage"
-          }
-        },
         "tags": {
           "title": "Tags",
           "description": "Tags for categorizing Apache Airflow",
@@ -161,6 +176,7 @@
       "required": [
         "api_endpoint",
         "cos_endpoint",
+        "cos_auth_type",
         "cos_bucket",
         "github_api_endpoint",
         "github_branch",
