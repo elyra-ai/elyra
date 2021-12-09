@@ -34,7 +34,7 @@ from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
@@ -269,7 +269,7 @@ be fully qualified (i.e., prefixed with their package names).
 
             else:
                 # Retrieve component from cache
-                component = ComponentCatalog.instance().get_component(self._type, operation.classifier)
+                component = ComponentCache.instance().get_component(self._type, operation.classifier)
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:

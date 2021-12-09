@@ -31,7 +31,7 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
@@ -57,7 +57,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     extension_url = '/lab'
     load_other_extensions = True
 
-    classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentCatalogConnector, ComponentCatalog]
+    classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentCatalogConnector, ComponentCache]
 
     # Local path to static files directory.
     static_paths = [
@@ -112,7 +112,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         PipelineProcessorManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
         PipelineValidationManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
         FileMetadataCache.instance(parent=self)
-        ComponentCatalog.instance(parent=self)
+        ComponentCache.instance(parent=self)
         SchemaManager.instance(parent=self)
 
     def initialize_templates(self):

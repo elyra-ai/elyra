@@ -36,13 +36,13 @@ class ComponentCatalogMetadata(Metadata):
 
     def post_save(self, **kwargs: Any) -> None:
         try:
-            component_catalog.ComponentCatalog.instance().update_cache_for_catalog(catalog=self, operation='modify')
+            component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
         try:
-            component_catalog.ComponentCatalog.instance().update_cache_for_catalog(catalog=self, operation='delete')
+            component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='delete')
         except Exception:
             pass
 

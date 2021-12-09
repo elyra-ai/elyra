@@ -14,12 +14,12 @@
 # limitations under the License.
 #
 import json
-import time
 from logging import Logger
 from queue import Empty
 from queue import Queue
 from threading import Event
 from threading import Thread
+import time
 from types import SimpleNamespace
 from typing import Dict
 from typing import List
@@ -141,12 +141,12 @@ class CacheUpdateThread(Thread):
         else:
             # Replace all components for the given catalog
             self._component_cache[self._catalog.runtime_type.name][self._catalog.name] = \
-                ComponentCatalog.instance().read_component_catalog(self._catalog)
+                ComponentCache.instance().read_component_catalog(self._catalog)
 
         self._queue.task_done()
 
 
-class ComponentCatalog(SingletonConfigurable):
+class ComponentCache(SingletonConfigurable):
     # The component_cache is indexed at the top level by runtime type name, e.g. 'APACHE_AIRFLOW',
     # and has as it's value another dictionary. At the second level, each sub-dictionary is indexed by
     # a ComponentCatalogMetadata instance name and its value is also a sub-dictionary. This lowest
@@ -310,11 +310,11 @@ class ComponentCatalog(SingletonConfigurable):
 
     @staticmethod
     def get_generic_components() -> List[Component]:
-        return list(ComponentCatalog._generic_components.values())
+        return list(ComponentCache._generic_components.values())
 
     @staticmethod
     def get_generic_component(component_id: str) -> Component:
-        return ComponentCatalog._generic_components.get(component_id)
+        return ComponentCache._generic_components.get(component_id)
 
     @staticmethod
     def load_jinja_template(template_name: str) -> Template:
@@ -332,7 +332,7 @@ class ComponentCatalog(SingletonConfigurable):
         """
         Converts catalog components into appropriate canvas palette format
         """
-        template = ComponentCatalog.load_jinja_template('canvas_palette_template.jinja2')
+        template = ComponentCache.load_jinja_template('canvas_palette_template.jinja2')
 
         # Define a fallback category for components with no given categories
         fallback_category_name = "No Category"
@@ -368,9 +368,9 @@ class ComponentCatalog(SingletonConfigurable):
         otherwise, the  runtime-specific property template is rendered
         """
         if component.id in ('notebook', 'python-script', 'r-script'):
-            template = ComponentCatalog.load_jinja_template('generic_properties_template.jinja2')
+            template = ComponentCache.load_jinja_template('generic_properties_template.jinja2')
         else:
-            template = ComponentCatalog.load_jinja_template('canvas_properties_template.jinja2')
+            template = ComponentCache.load_jinja_template('canvas_properties_template.jinja2')
 
         canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)

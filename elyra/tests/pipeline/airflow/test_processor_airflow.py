@@ -25,7 +25,7 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.runtime_type import RuntimeProcessorType
@@ -44,7 +44,7 @@ def processor(setup_factory_data, component_cache_instance):
 
 @pytest.fixture
 def parsed_pipeline(request):
-    ComponentCatalog.instance().wait_for_all_cache_updates()
+    ComponentCache.instance().wait_for_all_cache_updates()
     pipeline_resource = _read_pipeline_resource(request.param)
     return PipelineParser().parse(pipeline_json=pipeline_resource)
 

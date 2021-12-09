@@ -36,7 +36,7 @@ from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -227,10 +227,10 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
         Retrieve components common to all runtimes
         """
-        components: List[Component] = ComponentCatalog.get_generic_components()
+        components: List[Component] = ComponentCache.get_generic_components()
 
         # Retrieve runtime-specific components
-        components.extend(ComponentCatalog.instance().get_all_components(platform=self._type))
+        components.extend(ComponentCache.instance().get_all_components(platform=self._type))
 
         return components
 
@@ -240,9 +240,9 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
 
         if component_id not in ('notebook', 'python-script', 'r-script'):
-            return ComponentCatalog.instance().get_component(platform=self._type, component_id=component_id)
+            return ComponentCache.instance().get_component(platform=self._type, component_id=component_id)
 
-        return ComponentCatalog.get_generic_component(component_id)
+        return ComponentCache.get_generic_component(component_id)
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:

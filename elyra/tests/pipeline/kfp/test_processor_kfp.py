@@ -26,7 +26,7 @@ from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
@@ -43,7 +43,7 @@ def processor(setup_factory_data, component_cache_instance):
 
 @pytest.fixture
 def pipeline():
-    ComponentCatalog.instance().wait_for_all_cache_updates()
+    ComponentCache.instance().wait_for_all_cache_updates()
     pipeline_resource = _read_pipeline_resource(
         'resources/sample_pipelines/pipeline_3_node_sample.json')
     return PipelineParser.parse(pipeline_resource)
@@ -302,7 +302,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           properties=[])
 
     # Replace cached component registry with single url-based component for testing
-    ComponentCatalog.instance()._component_cache[processor._type.name]['some_catalog_name'] = {component_id: component}
+    ComponentCache.instance()._component_cache[processor._type.name]['some_catalog_name'] = {component_id: component}
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
@@ -380,7 +380,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           categories=[])
 
     # Replace cached component registry with single filename-based component for testing
-    ComponentCatalog.instance()._component_cache[processor._type.name]['some_catalog_name'] = {component_id: component}
+    ComponentCache.instance()._component_cache[processor._type.name]['some_catalog_name'] = {component_id: component}
 
     # Construct hypothetical operation for component
     operation_name = "Download data test"

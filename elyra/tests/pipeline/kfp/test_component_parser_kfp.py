@@ -16,9 +16,7 @@
 import os
 from types import SimpleNamespace
 
-from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import jupyter_core.paths
-import pytest
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
@@ -26,7 +24,7 @@ from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
@@ -42,16 +40,16 @@ def _get_resource_path(filename):
 
 
 def test_component_catalog_can_load_components_from_registries(component_cache_instance):
-    # Initialize a ComponentCatalog instance and wait for all worker threads to compete
-    component_catalog = ComponentCatalog.instance()
+    # Initialize a ComponentCache instance and wait for all worker threads to compete
+    component_catalog = ComponentCache.instance()
     component_catalog.wait_for_all_cache_updates()
     components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0
 
 
 def test_modify_component_catalogs():
-    # Initialize a ComponentCatalog instance and wait for all worker threads to compete
-    component_catalog = ComponentCatalog.instance()
+    # Initialize a ComponentCache instance and wait for all worker threads to compete
+    component_catalog = ComponentCache.instance()
     component_catalog.wait_for_all_cache_updates()
 
     # Get initial set of components from the current active registries
@@ -128,14 +126,14 @@ def test_modify_component_catalogs():
     assert post_delete_component_ids == initial_component_ids
 
     # Check that component palette is the same as before addition of the test registry
-    initial_palette = ComponentCatalog.to_canvas_palette(post_delete_components)
-    post_delete_palette = ComponentCatalog.to_canvas_palette(initial_components)
+    initial_palette = ComponentCache.to_canvas_palette(post_delete_components)
+    post_delete_palette = ComponentCache.to_canvas_palette(initial_components)
     assert initial_palette == post_delete_palette
 
 
 def test_directory_based_component_catalog():
-    # Initialize a ComponentCatalog instance and wait for all worker threads to compete
-    component_catalog = ComponentCatalog.instance()
+    # Initialize a ComponentCache instance and wait for all worker threads to compete
+    component_catalog = ComponentCache.instance()
     component_catalog.wait_for_all_cache_updates()
 
     # Get initial set of components from the current active registries
@@ -206,7 +204,7 @@ def test_parse_kfp_component_file():
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(component_entry)[0]
-    properties_json = ComponentCatalog.to_canvas_properties(component)
+    properties_json = ComponentCache.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
@@ -298,7 +296,7 @@ def test_parse_kfp_component_url():
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(component_entry)[0]
-    properties_json = ComponentCatalog.to_canvas_properties(component)
+    properties_json = ComponentCache.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
@@ -336,7 +334,7 @@ def test_parse_kfp_component_file_no_inputs():
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(component_entry)[0]
-    properties_json = ComponentCatalog.to_canvas_properties(component)
+    properties_json = ComponentCache.to_canvas_properties(component)
 
     # Properties JSON should only include the two parameters common to every
     # component:'label' and 'component_source', the component description if
