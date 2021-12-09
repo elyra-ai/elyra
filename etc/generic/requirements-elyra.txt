@@ -4,7 +4,7 @@ ipython==7.15.0
 ipython-genutils==0.2.0
 jupyter-client==6.1.6
 jupyter-core==4.6.3
-minio==6.0.2
+minio==7.1.2
 nbclient==0.4.1
 nbconvert==5.6.1
 nbformat==5.0.7

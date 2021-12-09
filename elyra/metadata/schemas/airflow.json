@@ -161,8 +161,6 @@
       "required": [
         "api_endpoint",
         "cos_endpoint",
-        "cos_username",
-        "cos_password",
         "cos_bucket",
         "github_api_endpoint",
         "github_branch",

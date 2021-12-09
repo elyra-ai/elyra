@@ -15,26 +15,33 @@
 # limitations under the License.
 #
 
-# Ubuntu 18.04 LTS - Bionic
+# Ubuntu 20.04.2 LTS (Focal Fossa)
 # Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
 FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
 ARG TAG="dev"
 
-USER root
+# Install Elyra
+RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
+    elyra[all]=="$TAG" \
+ && jupyter lab build \
+ && rm -rf $HOME/.cache/yarn \
+ && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
-ADD start-elyra.sh /usr/local/bin/start-elyra.sh
+# Install component examples catalogs
+#  - this wail fail if the 'kfp-examples' and 'airflow-examples' pip extras are not installed
+RUN elyra-metadata install component-catalogs \
+    --schema_name=elyra-airflow-examples-catalog \
+    --display_name="Apache Airflow examples" \
+    --runtime_type=APACHE_AIRFLOW \
+    --categories="['examples']" \
+ && elyra-metadata install component-catalogs \
+    --schema_name=elyra-kfp-examples-catalog  \
+    --display_name="Kubeflow Pipelines examples" \
+    --runtime_type=KUBEFLOW_PIPELINES \
+    --categories="['examples']"
 
-RUN chmod ugo+x /usr/local/bin/start-elyra.sh
-
-USER $NB_USER
-
-RUN python -m pip install --upgrade pandas numpy && \
-    python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
-    jupyter lab build
-
-# Comment out to hide the component examples for Kubeflow Pipelines and Apache Airflow
-RUN elyra-metadata install component-catalogs --schema_name=elyra-airflow-examples-catalog --display_name="Apache Airflow examples" --runtime_type=APACHE_AIRFLOW --categories="['examples']" && \
-    elyra-metadata install component-catalogs --schema_name=elyra-kfp-examples-catalog --display_name="Kubeflow Pipelines examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']"
+# Copy Elyra entrypoint
+COPY --chmod=0755 --chown=root:root start-elyra.sh /usr/local/bin/start-elyra.sh
 
 CMD ["/usr/local/bin/start-elyra.sh"]
