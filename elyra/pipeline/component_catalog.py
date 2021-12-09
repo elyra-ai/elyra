@@ -14,7 +14,12 @@
 # limitations under the License.
 #
 import json
-import threading
+import time
+from logging import Logger
+from queue import Empty
+from queue import Queue
+from threading import Event
+from threading import Thread
 from types import SimpleNamespace
 from typing import Dict
 from typing import List
@@ -28,25 +33,125 @@ from traitlets.config import SingletonConfigurable
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schemaspaces import ComponentCatalogs
-from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser  # noqa F401 - TODO
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
-from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser  # noqa F401 - TODO
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+
+BLOCKING_TIMEOUT = 5
+NONBLOCKING_TIMEOUT = 0.10
+CATALOG_UPDATE_TIMEOUT = 15
+
+
+class CacheUpdateManagerThread(Thread):
+    def __init__(self, log: Logger, component_cache: Dict[str, Dict], cache_task_queue: Queue):
+        super().__init__()
+
+        self.setDaemon(True)
+
+        self.log = log
+        self._component_cache = component_cache
+        self._cache_task_queue = cache_task_queue
+
+        self._threads: List[CacheUpdateThread] = []
+
+        self.stop_event = Event()
+
+    def run(self):
+        outstanding_threads = False
+
+        while not self.stop_event.is_set():
+            timeout = NONBLOCKING_TIMEOUT if outstanding_threads else BLOCKING_TIMEOUT
+            try:
+                # Get a task from the queue
+                catalog, operation = self._cache_task_queue.get(timeout=timeout)
+
+            except Empty:
+                # No task exists in the queue, proceed to check for thread execution
+                pass
+
+            else:
+                # Create and start a thread for the task
+                updater_thread = CacheUpdateThread(self._component_cache, self._cache_task_queue, catalog, operation)
+                updater_thread.start()
+
+                self._threads.append(updater_thread)
+
+            outstanding_threads = self.check_outstanding_threads()
+
+    def check_outstanding_threads(self) -> bool:
+        """
+        Join finished threads and report on long-running threads as needed.
+        """
+        outstanding_threads = False
+        for thread in self._threads:
+            try:
+                # Attempt to join thread within the given amount of time
+                thread.join(timeout=NONBLOCKING_TIMEOUT)
+
+            except Exception:
+                # Thread is still running (thread join timed out)
+                outstanding_threads = True
+                if time.time() - thread.task_start_time > CATALOG_UPDATE_TIMEOUT:
+                    self.log.warning(f"Thread {thread.name} is taking too long...")  # TODO Fix this message
+
+            else:
+                # Thread has been joined and can be removed from the list
+                self._threads.remove(thread)
+
+        return outstanding_threads
+
+    def stop(self):
+        """
+        Trigger completion of the manager thread.
+        """
+        self.stop_event.set()
+
+
+class CacheUpdateThread(Thread):
+    def __init__(self,
+                 component_cache: Dict[str, Dict],
+                 queue: Queue,
+                 catalog: ComponentCatalogMetadata,
+                 operation: Optional[str] = None):
+
+        super().__init__()
+
+        self.setDaemon(True)
+
+        self._component_cache = component_cache
+        self._queue = queue
+
+        # Task-specific properties
+        self._catalog = catalog
+        self._operation = operation
+
+        # Thread metadata
+        self.task_start_time = time.time()
+
+    def run(self):
+        # Add sub-dictionary for this platform type if not present
+        if not self._component_cache.get(self._catalog.runtime_type.name):
+            self._component_cache[self._catalog.runtime_type.name] = {}
+
+        if self._operation == 'delete':
+            # Remove only the components from this catalog
+            self._component_cache[self._catalog.runtime_type.name].pop(self._catalog.name, None)
+        else:
+            # Replace all components for the given catalog
+            self._component_cache[self._catalog.runtime_type.name][self._catalog.name] = \
+                ComponentCatalog.instance().read_component_catalog(self._catalog)
+
+        self._queue.task_done()
 
 
 class ComponentCatalog(SingletonConfigurable):
-    # The _component_cache is indexed at the top level by runtime type name, e.g. 'APACHE_AIRFLOW',
+    # The component_cache is indexed at the top level by runtime type name, e.g. 'APACHE_AIRFLOW',
     # and has as it's value another dictionary. At the second level, each sub-dictionary is indexed by
     # a ComponentCatalogMetadata instance name and its value is also a sub-dictionary. This lowest
     # level dictionary is indexed by component id and maps to the corresponding Component object.
     _component_cache: Dict[str, Dict[str, Dict[str, Component]]] = {}
-
-    @property
-    def component_cache(self):
-        return self._component_cache
 
     _generic_category_label = "Elyra"
     _generic_components: Dict[str, Component] = {
@@ -78,14 +183,14 @@ class ComponentCatalog(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # Indicate whether this is a test environment. This is relevant in
-        # update_cache_for_catalog() - we want to wait for the cache updater
-        # thread to finish in test envs
-        self._for_test = bool(kwargs.get('for_test'))
+        self._cache_task_queue = Queue()
 
-        self._cache_lock = threading.Lock()
-        if not self._component_cache:
-            self._build_cache()
+        # Start a thread to manage updates to the component cache
+        self._cache_manager = CacheUpdateManagerThread(self.log, self._component_cache, self._cache_task_queue)
+        self._cache_manager.name = "CacheUpdateManager"
+        self._cache_manager.start()
+
+        self._build_cache()
 
     def _build_cache(self):
         """
@@ -94,37 +199,20 @@ class ComponentCatalog(SingletonConfigurable):
 
         all_catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
         for catalog in all_catalogs:
-            self.update_cache_for_catalog(catalog)  # type: ignore
+            self.update_cache_for_catalog(catalog)
 
     def update_cache_for_catalog(self, catalog: ComponentCatalogMetadata, operation: Optional[str] = None):
         """
-        Updates the component cache for the given ComponentCatalogMetadata instance.
+        Triggers an update of the component cache for the given ComponentCatalogMetadata instance.
         """
-        platform_name = catalog.runtime_type.name
+        self._cache_task_queue.put((catalog, operation))
 
-        # Add sub-dictionary for this platform type if not present
-        if not self._component_cache.get(platform_name):
-            self._component_cache[platform_name] = {}
-
-        def update_cache_with_thread():
-            catalog_components = self._read_component_catalog(catalog)
-
-            # Acquire lock before accessing component cache
-            with self._cache_lock:
-                if operation == 'delete':
-                    # Remove only the components from this catalog
-                    self._component_cache[platform_name].pop(catalog.name, None)
-                else:
-                    # Replace all components for the given catalog
-                    self._component_cache[platform_name][catalog.name] = catalog_components
-
-        # Start thread to perform the cache update
-        updater_thread = threading.Thread(target=update_cache_with_thread)
-        updater_thread.start()
-
-        # Wait for tests to finish if test environment was indicated
-        if self._for_test:
-            updater_thread.join()
+    def wait_for_all_cache_updates(self):
+        """
+        Block execution and wait for all tasks in the cache task update queue to complete.
+        Primarily used for testing.
+        """
+        self._cache_task_queue.join()
 
     def get_all_components(self, platform: RuntimeProcessorType) -> List[Component]:
         """
@@ -180,7 +268,7 @@ class ComponentCatalog(SingletonConfigurable):
 
         return catalog_reader
 
-    def _read_component_catalog(self, catalog: ComponentCatalogMetadata) -> Dict[str, Component]:
+    def read_component_catalog(self, catalog: ComponentCatalogMetadata) -> Dict[str, Component]:
         """
         Read a component catalog and return a dictionary of components indexed by component_id.
 

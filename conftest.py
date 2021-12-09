@@ -44,9 +44,8 @@ AIRFLOW_COMPONENT_CACHE_INSTANCE = {
 def component_cache_instance(request):
     """Creates an instance of a component cache and removes after test."""
 
-    # Clear existing catalog if applicable and create new catalog, specifying test environment
-    ComponentCatalog.clear_instance()
-    ComponentCatalog.instance(for_test=True)
+    # Create a ComponentCatalog instance to handle the cache update on metadata instance creation
+    ComponentCatalog.instance()
 
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)

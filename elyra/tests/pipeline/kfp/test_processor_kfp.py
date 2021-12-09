@@ -43,6 +43,7 @@ def processor(setup_factory_data, component_cache_instance):
 
 @pytest.fixture
 def pipeline():
+    ComponentCatalog.instance().wait_for_all_cache_updates()
     pipeline_resource = _read_pipeline_resource(
         'resources/sample_pipelines/pipeline_3_node_sample.json')
     return PipelineParser.parse(pipeline_resource)
@@ -293,7 +294,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     component = Component(id=component_id,
                           name="Filter text",
                           description="",
-                          op="filter-text",  # TODO remove this??
+                          op="filter-text",
                           catalog_type="url-catalog",
                           source_identifier={"url": url},
                           definition=component_definition,
@@ -319,7 +320,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     # Build a mock runtime config for use in _cc_pipeline
     mocked_runtime = Metadata(name="test-metadata",
                               display_name="test",
-                              schema_name="airflow",
+                              schema_name="kfp",
                               metadata=sample_metadata)
 
     mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_metadata])
@@ -397,7 +398,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     # Build a mock runtime config for use in _cc_pipeline
     mocked_runtime = Metadata(name="test-metadata",
                               display_name="test",
-                              schema_name="airflow",
+                              schema_name="kfp",
                               metadata=sample_metadata)
 
     mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_metadata])

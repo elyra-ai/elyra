@@ -103,7 +103,6 @@ class PipelineProcessorManager(SingletonConfigurable):
         super().__init__(**kwargs)
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
         self._registry = PipelineProcessorRegistry.instance()
-        self._component_catalog = ComponentCatalog.instance(parent=self.parent)
 
     def _get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)

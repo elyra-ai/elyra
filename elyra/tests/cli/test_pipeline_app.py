@@ -25,6 +25,7 @@ from elyra.cli.pipeline_app import pipeline
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline.component_catalog import ComponentCatalog
 
 SUB_COMMANDS = ['run', 'submit', 'describe', 'validate']
 
@@ -321,13 +322,12 @@ def test_describe_with_kfp_components():
     assert result.exit_code == 0
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_validate_with_kfp_components(kfp_runtime_instance, component_cache_instance):
+    ComponentCatalog.instance().wait_for_all_cache_updates()
     runner = CliRunner()
     pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
 
     result = runner.invoke(pipeline, ['validate', pipeline_file_path, '--runtime-config', kfp_runtime_instance])
-
     assert "Validating pipeline..." in result.output
     assert result.exit_code == 0
 

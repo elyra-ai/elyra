@@ -112,6 +112,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         PipelineProcessorManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
         PipelineValidationManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
         FileMetadataCache.instance(parent=self)
+        ComponentCatalog.instance(parent=self)
         SchemaManager.instance(parent=self)
 
     def initialize_templates(self):
