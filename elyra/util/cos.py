@@ -46,16 +46,23 @@ class CosClient(LoggingConfigurable):
             self.bucket = config.metadata['cos_bucket']
             if auth_type in ['USER_CREDENTIALS', 'KUBERNETES_SECRET']:
                 # TODO remove temporary validation checks after
-                # the 'cos_username' and 'cos_password' schema properties
-                # are marked as required.
+                # metadata can properly enforce constraints
                 if len(config.metadata.get('cos_username', '').strip()) == 0 or\
                    len(config.metadata.get('cos_password', '').strip()) == 0:
-                    raise RuntimeError(f'Authentication provider \'{auth_type}\' requires '
+                    raise RuntimeError('Cannot connect to object storage. '
+                                       f'Authentication provider \'{auth_type}\' requires '
                                        'a username and password. Update runtime configuration '
+                                       f'\'{config.display_name}\' and try again.')
+                if auth_type == 'USER_CREDENTIALS' and\
+                   len(config.metadata.get('cos_secret', '').strip()) > 0:
+                    raise RuntimeError('Cannot connect to object storage. '
+                                       f'Authentication provider \'{auth_type}\' does not '
+                                       'support Kubernetes secrets. Update runtime configuration '
                                        f'\'{config.display_name}\' and try again.')
                 if auth_type == 'KUBERNETES_SECRET' and\
                    len(config.metadata.get('cos_secret', '').strip()) == 0:
-                    raise RuntimeError(f'Authentication provider \'{auth_type}\' requires '
+                    raise RuntimeError('Cannot connect to object storage. '
+                                       f'Authentication provider \'{auth_type}\' requires '
                                        'a Kubernetes secret name. Update runtime configuration '
                                        f'\'{config.display_name}\' and try again.')
                 cred_provider = providers.StaticProvider(
@@ -65,17 +72,36 @@ class CosClient(LoggingConfigurable):
             elif auth_type == 'AWS_ENV_VARIABLES':
                 if os.environ.get('AWS_ACCESS_KEY_ID') is None or\
                    os.environ.get('AWS_SECRET_ACCESS_KEY') is None:
-                    raise RuntimeError(f'Authentication provider \'{auth_type}\' requires '
+                    raise RuntimeError('Cannot connect to object storage. '
+                                       f'Authentication provider \'{auth_type}\' requires '
                                        'environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.')
                 cred_provider = providers.EnvAWSProvider()
             elif auth_type == 'AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS':
                 if os.environ.get('AWS_ROLE_ARN') is None or\
                    os.environ.get('AWS_WEB_IDENTITY_TOKEN_FILE') is None:
-                    raise RuntimeError(f'Authentication provider \'{auth_type}\' requires '
+                    raise RuntimeError('Cannot connect to object storage. '
+                                       f'Authentication provider \'{auth_type}\' requires '
                                        'environment variables AWS_ROLE_ARN and AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS.')
+                # Verify that AWS_WEB_IDENTITY_TOKEN_FILE exists
+                if Path(os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']).is_file() is False:
+                    raise RuntimeError('Cannot connect to object storage. The value of environment '
+                                       'variable AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS references '
+                                       f"'{os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']}', which is not a valid file.")
+
+                # TODO remove temporary validation checks after
+                # metadata can properly enforce constraints
+                if len(config.metadata.get('cos_username', '').strip()) > 0 or\
+                   len(config.metadata.get('cos_password', '').strip()) > 0 or\
+                   len(config.metadata.get('cos_secret', '').strip()) > 0:
+                    raise RuntimeError('Cannot connect to object storage. '
+                                       f'Authentication provider \'{auth_type}\' does not '
+                                       'support credentials or Kubernetes secrets. Update runtime configuration '
+                                       f'\'{config.display_name}\' and try again.')
+
                 cred_provider = providers.IamAwsProvider()
             else:
-                raise RuntimeError(f'Authentication provider \'{auth_type}\' is not supported.')
+                raise RuntimeError('Cannot connect to object storage. '
+                                   f'Authentication provider \'{auth_type}\' is not supported.')
 
         # Infer secure from the endpoint's scheme.
         self.secure = self.endpoint.scheme == 'https'
@@ -99,11 +125,21 @@ class CosClient(LoggingConfigurable):
             elif ex.code == "BucketAlreadyExists":
                 self.log.warning("Object Storage bucket already exists", exc_info=True)
             elif ex.code == "SignatureDoesNotMatch":
-                self.log.error("Incorrect Object Storage credentials supplied")
+                self.log.error("Incorrect Object Storage password supplied")
+            elif ex.code == "InvalidAccessKeyId":
+                self.log.error("Incorrect Object Storage username supplied")
             else:
-                self.log.error("Object Storage error", exc_info=True)
+                self.log.error(f"Object Storage error: {ex.code}", exc_info=True)
 
             raise ex from ex
+
+        except ValueError as ex:
+            # providers.IamAwsProvider raises this if if something bad happened
+            if isinstance(cred_provider, providers.IamAwsProvider):
+                raise RuntimeError(f'Cannot connect to object storage: {ex}. Verify that '
+                                   f'environment variable AWS_WEB_IDENTITY_TOKEN_FILE contains a valid value.')
+            else:
+                raise ex
 
     def upload_file(self, file_name, file_path):
         """
