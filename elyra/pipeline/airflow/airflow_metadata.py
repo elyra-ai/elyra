@@ -22,7 +22,7 @@ from elyra.pipeline.runtimes_metadata import RuntimesMetadata
 
 class AirflowMetadata(RuntimesMetadata):
     """
-    Applies changes specific to the kfp schema
+    Applies changes specific to the Airflow schema
     """
 
     def on_load(self, **kwargs: Any) -> None:
@@ -43,3 +43,36 @@ class AirflowMetadata(RuntimesMetadata):
             MetadataManager(schemaspace="runtimes").update(self.name, self, for_migration=True)
 
         return None
+
+    def pre_save(self, **kwargs: Any) -> None:
+        """
+        This method enforces conditional constraints related to
+        COS authentication type properties.
+        TODO: Remove after https://github.com/elyra-ai/elyra/issues/2338 was resolved.
+        """
+        super().pre_save(**kwargs)
+
+        if self.metadata.get('cos_auth_type') is None:
+            # nothing to do
+            return
+
+        if self.metadata['cos_auth_type'] == 'USER_CREDENTIALS':
+            if len(self.metadata.get('cos_username', '').strip()) == 0 or\
+               len(self.metadata.get('cos_password', '').strip()) == 0:
+                raise ValueError('A username and password are required '
+                                 'for the selected Object Storage authentication type.')
+            if len(self.metadata.get('cos_secret', '').strip()) > 0:
+                raise ValueError('Kubernetes secrets are not supported '
+                                 'for the selected Object Storage authentication type.')
+        elif self.metadata['cos_auth_type'] == 'KUBERNETES_SECRET':
+            if len(self.metadata.get('cos_username', '').strip()) == 0 or\
+               len(self.metadata.get('cos_password', '').strip()) == 0 or\
+               len(self.metadata.get('cos_secret', '').strip()) == 0:
+                raise ValueError('Username, password, and Kubernetes secret are required '
+                                 'for the selected Object Storage authentication type.')
+        elif self.metadata['cos_auth_type'] == 'AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS':
+            if len(self.metadata.get('cos_username', '').strip()) > 0 or\
+               len(self.metadata.get('cos_password', '').strip()) > 0 or\
+               len(self.metadata.get('cos_secret', '').strip()) > 0:
+                raise ValueError('Username, password, and Kubernetes secret are not supported '
+                                 'for the selected Object Storage authentication type.')

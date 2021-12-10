@@ -45,26 +45,6 @@ class CosClient(LoggingConfigurable):
             self.endpoint = urlparse(config.metadata['cos_endpoint'])
             self.bucket = config.metadata['cos_bucket']
             if auth_type in ['USER_CREDENTIALS', 'KUBERNETES_SECRET']:
-                # TODO remove temporary validation checks after
-                # metadata can properly enforce constraints
-                if len(config.metadata.get('cos_username', '').strip()) == 0 or\
-                   len(config.metadata.get('cos_password', '').strip()) == 0:
-                    raise RuntimeError('Cannot connect to object storage. '
-                                       f'Authentication provider \'{auth_type}\' requires '
-                                       'a username and password. Update runtime configuration '
-                                       f'\'{config.display_name}\' and try again.')
-                if auth_type == 'USER_CREDENTIALS' and\
-                   len(config.metadata.get('cos_secret', '').strip()) > 0:
-                    raise RuntimeError('Cannot connect to object storage. '
-                                       f'Authentication provider \'{auth_type}\' does not '
-                                       'support Kubernetes secrets. Update runtime configuration '
-                                       f'\'{config.display_name}\' and try again.')
-                if auth_type == 'KUBERNETES_SECRET' and\
-                   len(config.metadata.get('cos_secret', '').strip()) == 0:
-                    raise RuntimeError('Cannot connect to object storage. '
-                                       f'Authentication provider \'{auth_type}\' requires '
-                                       'a Kubernetes secret name. Update runtime configuration '
-                                       f'\'{config.display_name}\' and try again.')
                 cred_provider = providers.StaticProvider(
                     access_key=config.metadata['cos_username'],
                     secret_key=config.metadata['cos_password'],
@@ -87,17 +67,6 @@ class CosClient(LoggingConfigurable):
                     raise RuntimeError('Cannot connect to object storage. The value of environment '
                                        'variable AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS references '
                                        f"'{os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']}', which is not a valid file.")
-
-                # TODO remove temporary validation checks after
-                # metadata can properly enforce constraints
-                if len(config.metadata.get('cos_username', '').strip()) > 0 or\
-                   len(config.metadata.get('cos_password', '').strip()) > 0 or\
-                   len(config.metadata.get('cos_secret', '').strip()) > 0:
-                    raise RuntimeError('Cannot connect to object storage. '
-                                       f'Authentication provider \'{auth_type}\' does not '
-                                       'support credentials or Kubernetes secrets. Update runtime configuration '
-                                       f'\'{config.display_name}\' and try again.')
-
                 cred_provider = providers.IamAwsProvider()
             else:
                 raise RuntimeError('Cannot connect to object storage. '
@@ -134,7 +103,7 @@ class CosClient(LoggingConfigurable):
             raise ex from ex
 
         except ValueError as ex:
-            # providers.IamAwsProvider raises this if if something bad happened
+            # providers.IamAwsProvider raises this if something bad happened
             if isinstance(cred_provider, providers.IamAwsProvider):
                 raise RuntimeError(f'Cannot connect to object storage: {ex}. Verify that '
                                    f'environment variable AWS_WEB_IDENTITY_TOKEN_FILE contains a valid value.')

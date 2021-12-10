@@ -268,9 +268,26 @@ This should be the URL address of your S3-compatible Object Storage. If running 
 
 Example: `https://minio-service.kubeflow:9000`
 
+##### Cloud Object Storage bucket name (cos_bucket)
+
+Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
+
+Example: `test-bucket`
+
+> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
+and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
+Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
+
+##### Cloud Object Storage Authentication Type (cos_auth_type)
+
+Authentication type Elyra uses to gain access to Cloud Object Storage. This setting is required. Supported types are:
+- Username and password (`USER_CREDENTIALS`). This authentication type requires a username and password. Caution: this authentication mechanism exposes the credentials in plain text. When running Elyra on Kubernetes, it is highly recommended to use the `KUBERNETES_SECRET` authentication type instead.
+- Username, password, and Kubernetes secret (`KUBERNETES_SECRET`). This authentication type requires a username, password, and the name of an existing Kubernetes secret in the target runtime environment. Refer to section [Cloud Object Storage Credentials Secret](#cloud-object-storage-credentials-secret) for details.
+- IAM roles for service accounts (`AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS`). Supported for AWS only. Refer to the [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) for details.
+
 ##### Cloud Object Storage Credentials Secret (cos_secret)
 
-(Optional) Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
+Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
 If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
 execute pipelines. This setting is optional but is recommended for use in shared environments to avoid exposing a user's 
 Cloud Object Storage credentials. 
@@ -294,32 +311,16 @@ data:
 
 ##### Cloud Object Storage username (cos_username)
 
-Username used to access the Object Storage. 
-This setting is optional, but if not specified, you must provide Minio/S3 credentials using another method.
+Username used to connect to Object Storage, if credentials are required for the selected authentication type.
 
 Example: `minio`
 
-When `cos_username` and `cos_password` are not specified, we try the following environment variables in order:
-
-1. `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` (could be set external to Elyra, or with `cos_secret`)
-1. `AWS_ROLE_ARN` and `AWS_WEB_IDENTITY_TOKEN_FILE` (usually set by AWS [IAM Roles for Service Accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html))
-
 ##### Cloud Object Storage password (cos_password)
 
-Password for cos_username. 
-This setting is optional, but if not specified, you must provide Minio/S3 credentials using another method (see `cos_username` for more information).
+Password for cos_username, if credentials are required for the selected authentication type.
 
 Example: `minio123`
 
-##### Cloud Object Storage bucket name (cos_bucket)
-
-Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
-
-Example: `test-bucket`
-
-> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
-and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
-Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
 
 ### Verifying runtime configurations
 
