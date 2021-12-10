@@ -45,7 +45,7 @@ def component_cache_instance(request):
     """Creates an instance of a component cache and removes after test."""
 
     # Create a ComponentCache instance to handle the cache update on metadata instance creation
-    ComponentCache.instance()
+    component_catalog = ComponentCache.instance()
 
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
@@ -58,6 +58,10 @@ def component_cache_instance(request):
     # Attempt to create the instance
     try:
         component_cache_instance = md_mgr.create(instance_name, Metadata(**request.param))
+
+        # Wait for the cache update to complete
+        component_catalog.wait_for_all_cache_updates()
+
         yield component_cache_instance.name
         md_mgr.remove(component_cache_instance.name)
 
