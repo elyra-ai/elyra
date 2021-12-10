@@ -11,7 +11,8 @@
     {% endif %}
     {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
         {{ property.value|lower }}
-    {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
+    {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or
+            property.data_type|lower == "number" or property.data_type|lower == "float" %}
         {{ property.value }}
     {% else %}
         "{{ property.value }}"

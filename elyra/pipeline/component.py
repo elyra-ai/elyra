@@ -369,6 +369,12 @@ class ComponentParser(LoggingConfigurable):  # ABC
                                                                        control_id="NumberControl",
                                                                        default_control_type="NumberControl",
                                                                        default_value=0)
+            elif any(word in parsed_type_lowered for word in ['float']):
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="number",
+                                                                       control_id="NumberControl",
+                                                                       default_control_type="NumberControl",
+                                                                       default_value=0.0)
             elif any(word in parsed_type_lowered for word in ['bool', 'boolean']):
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
                                                                        data_type="boolean",

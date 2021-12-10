@@ -233,6 +233,13 @@ def test_parse_kfp_component_file():
     assert properties_json['current_parameters']['elyra_test_int_non_zero'] == \
            {'NumberControl': '1', 'activeControl': 'NumberControl'}
 
+    assert properties_json['current_parameters']['elyra_test_float_default'] == \
+           {'NumberControl': '0.0', 'activeControl': 'NumberControl'}
+    assert properties_json['current_parameters']['elyra_test_float_zero'] == \
+           {'NumberControl': '0.0', 'activeControl': 'NumberControl'}
+    assert properties_json['current_parameters']['elyra_test_float_non_zero'] == \
+           {'NumberControl': '1.0', 'activeControl': 'NumberControl'}
+
     assert properties_json['current_parameters']['elyra_test_dict_default'] == \
            {'StringControl': '{}', 'activeControl': 'StringControl'}  # {}
     assert properties_json['current_parameters']['elyra_test_list_default'] == \
@@ -377,3 +384,58 @@ async def test_parse_components_invalid_file():
     path = _get_resource_path('kfp_test_operator_invalid.yaml')
     component_definition = reader.read_catalog_entry({"path": path}, {})
     assert component_definition is None
+
+
+async def test_parse_components_additional_metatypes():
+    # Define the appropriate reader for a URL-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = UrlComponentCatalogConnector(kfp_supported_file_types)
+
+    url = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/keras/Train_classifier/from_CSV/component.yaml'  # noqa: E501
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    component_definition = reader.read_catalog_entry({"url": url}, {})
+
+    # Build entry for parsing
+    catalog_type = "url-catalog"
+    entry = {
+        "component_id": reader.get_unique_component_hash(catalog_type, {"url": url}, ["url"]),
+        "catalog_type": catalog_type,
+        "categories": ["Test"],
+        "component_definition": component_definition,
+        "component_identifier": {"url": url}
+    }
+    component_entry = SimpleNamespace(**entry)
+
+    # Parse the component entry
+    parser = KfpComponentParser()
+    component = parser.parse(component_entry)[0]
+    properties_json = ComponentCatalog.to_canvas_properties(component)
+
+    # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
+    assert properties_json['current_parameters']['label'] == ''
+
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    assert properties_json['current_parameters']['component_source'] == component_source
+    assert properties_json['current_parameters']['elyra_training_features'] == 'None'  # inputPath
+    assert properties_json['current_parameters']['elyra_training_labels'] == 'None'  # inputPath
+    assert properties_json['current_parameters']['elyra_network_json'] == 'None'  # inputPath
+    assert properties_json['current_parameters']['elyra_loss_name'] == {'StringControl': 'categorical_crossentropy',
+                                                                        'activeControl': 'StringControl'}
+    assert properties_json['current_parameters']['elyra_num_classes'] == {'NumberControl': '0',
+                                                                          'activeControl': 'NumberControl'}
+    assert properties_json['current_parameters']['elyra_optimizer'] == {'StringControl': 'rmsprop',
+                                                                        'activeControl': 'StringControl'}
+    assert properties_json['current_parameters']['elyra_optimizer_config'] == {'StringControl': '',
+                                                                               'activeControl': 'StringControl'}
+    assert properties_json['current_parameters']['elyra_learning_rate'] == {'NumberControl': '0.01',
+                                                                            'activeControl': 'NumberControl'}
+    assert properties_json['current_parameters']['elyra_num_epochs'] == {'NumberControl': '100',
+                                                                         'activeControl': 'NumberControl'}
+    assert properties_json['current_parameters']['elyra_batch_size'] == {'NumberControl': '32',
+                                                                         'activeControl': 'NumberControl'}
+    assert properties_json['current_parameters']['elyra_metrics'] == {'StringControl': "['accuracy']",
+                                                                      'activeControl': 'StringControl'}
+    assert properties_json['current_parameters']['elyra_random_seed'] == {'NumberControl': '0',
+                                                                          'activeControl': 'NumberControl'}

@@ -102,7 +102,10 @@ class KfpComponentParser(ComponentParser):
                     required = data_type_info.required
 
                 # Get value if provided
-                value = param.get('default', '')
+                raw_value = param.get('default', '')
+
+                # Adjust any double quoted default values to use single quotes to avoid json parsing errors
+                value = raw_value.replace('"', '\'')
 
                 # Set parameter ref (id) and display name
                 ref_name = param.get('name').lower().replace(' ', '_')
