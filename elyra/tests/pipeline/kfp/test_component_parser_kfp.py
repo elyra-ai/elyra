@@ -16,7 +16,9 @@
 import os
 from types import SimpleNamespace
 
+from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import jupyter_core.paths
+import pytest
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
@@ -39,11 +41,9 @@ def _get_resource_path(filename):
     return resource_path
 
 
+@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_component_catalog_can_load_components_from_registries(component_cache_instance):
-    # Initialize a ComponentCache instance and wait for all worker threads to compete
-    component_catalog = ComponentCache.instance()
-    component_catalog.wait_for_all_cache_updates()
-    components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
+    components = ComponentCache.instance().get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0
 
 

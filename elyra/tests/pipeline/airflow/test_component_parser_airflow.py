@@ -16,6 +16,7 @@
 import os
 from types import SimpleNamespace
 
+from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 import jupyter_core.paths
 import pytest
 
@@ -45,11 +46,9 @@ def _get_resource_path(filename):
     return resource_path
 
 
-def test_component_catalog_can_load_components_from_registries():
-    # Initialize a ComponentCache instance and wait for all worker threads to compete
-    component_catalog = ComponentCache.instance()
-    component_catalog.wait_for_all_cache_updates()
-    components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
+@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_component_catalog_can_load_components_from_registries(component_cache_instance):
+    components = ComponentCache.instance().get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0
 
 
