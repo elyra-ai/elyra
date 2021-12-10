@@ -32,12 +32,23 @@ class CosClient(LoggingConfigurable):
         cred_provider = None
         if config is None:
             # The client was invoked by an entity that does not utilize
-            # runtime configurations. Use the explicitly provided parameter
-            # values instead.
-            cred_provider = providers.StaticProvider(
-                access_key=access_key,
-                secret_key=secret_key,
-            )
+            # runtime configurations.
+            if access_key is None or secret_key is None:
+                # use env variables for authentication
+                if len(os.environ.get('AWS_ACCESS_KEY_ID', '').strip()) == 0 or\
+                   len(os.environ.get('AWS_SECRET_ACCESS_KEY', '').strip()) == 0:
+                    raise RuntimeError('Cannot connect to object storage. No credentials '
+                                       ' were provided and environment variables '
+                                       ' AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not '
+                                       ' properly defined.')
+                else:
+                    cred_provider = providers.EnvAWSProvider()
+            else:
+                # use provided username and password for authentication
+                cred_provider = providers.StaticProvider(
+                    access_key=access_key,
+                    secret_key=secret_key,
+                )
             self.endpoint = endpoint
             self.bucket = bucket
         else:
@@ -49,13 +60,6 @@ class CosClient(LoggingConfigurable):
                     access_key=config.metadata['cos_username'],
                     secret_key=config.metadata['cos_password'],
                 )
-            elif auth_type == 'AWS_ENV_VARIABLES':
-                if os.environ.get('AWS_ACCESS_KEY_ID') is None or\
-                   os.environ.get('AWS_SECRET_ACCESS_KEY') is None:
-                    raise RuntimeError('Cannot connect to object storage. '
-                                       f'Authentication provider \'{auth_type}\' requires '
-                                       'environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.')
-                cred_provider = providers.EnvAWSProvider()
             elif auth_type == 'AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS':
                 if os.environ.get('AWS_ROLE_ARN') is None or\
                    os.environ.get('AWS_WEB_IDENTITY_TOKEN_FILE') is None:
