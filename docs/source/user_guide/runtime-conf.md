@@ -97,6 +97,7 @@ elyra-metadata install runtimes \
        --api_password=mypassword \
        --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
+       --cos_auth_type="USER_CREDENTIALS" \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
@@ -121,6 +122,7 @@ elyra-metadata install runtimes \
        --api_password=mynewpassword \
        --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
+       --cos_auth_type="USER_CREDENTIALS" \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
