@@ -644,9 +644,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     elif component_property.data_type == "inputvalue":
                         active_property = property_value['activeControl']
                         active_property_value = property_value[active_property]
-                        if isinstance(property_value, dict) and set(property_value.keys()) == {'value', 'option'}:
-                            output_node_id = property_value['value']
-                            output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
+                        if isinstance(active_property_value, dict) and \
+                                set(active_property_value.keys()) == {'value', 'option'}:
+                            output_node_id = active_property_value['value']
+                            output_node_parameter_key = active_property_value['option'].replace("elyra_output_", "")
                             operation.component_params[component_property.ref] = \
                                 target_ops[output_node_id].outputs[output_node_parameter_key]
                         elif component_property.default_data_type == 'dictionary':
