@@ -86,15 +86,17 @@ class CacheUpdateManagerThread(Thread):
         """
         outstanding_threads = False
         for thread in self._threads:
-            try:
-                # Attempt to join thread within the given amount of time
-                thread.join(timeout=NONBLOCKING_TIMEOUT)
+            # Attempt to join thread within the given amount of time
+            thread.join(timeout=NONBLOCKING_TIMEOUT)
 
-            except Exception:
+            if thread.is_alive():
                 # Thread is still running (thread join timed out)
                 outstanding_threads = True
-                if time.time() - thread.task_start_time > CATALOG_UPDATE_TIMEOUT:
-                    self.log.warning(f"Thread {thread.name} is taking too long...")  # TODO Fix this message
+                duration = int(time.time() - thread.last_warn_time)
+                if duration > CATALOG_UPDATE_TIMEOUT:
+                    thread.last_warn_time = time.time()
+                    self.log.warning(f"Cache update for catalog '{thread.name}' is still "
+                                     f"processing after {duration} seconds ...")
 
             else:
                 # Thread has been joined and can be removed from the list
@@ -119,6 +121,7 @@ class CacheUpdateThread(Thread):
         super().__init__()
 
         self.setDaemon(True)
+        self.name = catalog.name
 
         self._component_cache = component_cache
         self._queue = queue
@@ -129,6 +132,7 @@ class CacheUpdateThread(Thread):
 
         # Thread metadata
         self.task_start_time = time.time()
+        self.last_warn_time = self.task_start_time
 
     def run(self):
         # Add sub-dictionary for this platform type if not present
