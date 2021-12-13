@@ -89,7 +89,6 @@ def test_basic_pipeline_structure(validation_manager, load_pipeline):
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     validation_manager._validate_pipeline_structure(pipeline_definition=pipeline_definition, response=response)
-    print(response.to_json().get('issues'))
     assert not response.has_fatal
     assert not response.to_json().get('issues')
 
