@@ -95,8 +95,8 @@ class CacheUpdateManagerThread(Thread):
                 duration = int(time.time() - thread.last_warn_time)
                 if duration > CATALOG_UPDATE_TIMEOUT:
                     thread.last_warn_time = time.time()
-                    self.log.warning(f"Cache update for catalog '{thread.name}' is still "
-                                     f"processing after {duration} seconds ...")
+                    self.log.warning(f"Cache update for catalog '{thread.name}' is still processing after "
+                                     f"{int(thread.last_warn_time - thread.task_start_time)} seconds ...")
 
             else:
                 # Thread has been joined and can be removed from the list
