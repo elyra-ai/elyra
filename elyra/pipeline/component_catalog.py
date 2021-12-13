@@ -89,7 +89,7 @@ class CacheUpdateManagerThread(Thread):
             # Attempt to join thread within the given amount of time
             thread.join(timeout=NONBLOCKING_TIMEOUT)
 
-            cumulative_run_time = int(thread.last_warn_time - thread.task_start_time)
+            cumulative_run_time = int(time.time() - thread.task_start_time)
             if thread.is_alive():
                 # Thread is still running (thread join timed out)
                 outstanding_threads = True
