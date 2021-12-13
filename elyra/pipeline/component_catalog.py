@@ -89,18 +89,27 @@ class CacheUpdateManagerThread(Thread):
             # Attempt to join thread within the given amount of time
             thread.join(timeout=NONBLOCKING_TIMEOUT)
 
+            cumulative_run_time = int(thread.last_warn_time - thread.task_start_time)
             if thread.is_alive():
                 # Thread is still running (thread join timed out)
                 outstanding_threads = True
-                duration = int(time.time() - thread.last_warn_time)
-                if duration > CATALOG_UPDATE_TIMEOUT:
+
+                # Report on a long-running thread if CATALOG_UPDATE_TIMEOUT is exceeded
+                time_since_last_check = int(time.time() - thread.last_warn_time)
+                if time_since_last_check > CATALOG_UPDATE_TIMEOUT:
                     thread.last_warn_time = time.time()
-                    self.log.warning(f"Cache update for catalog '{thread.name}' is still processing after "
-                                     f"{int(thread.last_warn_time - thread.task_start_time)} seconds ...")
+                    self.log.warning(f"Cache update for catalog '{thread.name}' is still processing "
+                                     f"after {cumulative_run_time} seconds ...")
 
             else:
                 # Thread has been joined and can be removed from the list
                 self._threads.remove(thread)
+
+                # Report successful join for threads that have previously logged a
+                # cache update duration warning
+                if thread.last_warn_time != thread.task_start_time:
+                    self.log.info(f"Cache update for catalog '{thread.name}' has"
+                                  f"completed after {cumulative_run_time} seconds")
 
         return outstanding_threads
 
