@@ -187,6 +187,43 @@ describe('Code Snippet tests', () => {
     cy.wait(100);
   });
 
+  it('should insert a python code snippet into python file', () => {
+    createValidCodeSnippet(snippetName);
+
+    // Open blank python file
+    cy.createNewScriptFile('Python');
+
+    cy.wait(1500);
+
+    // Insert snippet into python editor
+    insert(snippetName);
+
+    // Check if editor has the new code
+    cy.get('.CodeMirror:visible');
+    cy.get('span.cm-string').contains(/test/i);
+  });
+
+  it('should fail to insert a java code snippet into python file', () => {
+    createValidCodeSnippet(snippetName, 'Java');
+
+    // Open blank python file
+    cy.createNewScriptFile('Python');
+
+    cy.wait(500);
+
+    // Insert snippet into python editor
+    insert(snippetName);
+
+    // Check for language mismatch warning
+    cy.get('.jp-Dialog-header').contains(/warning/i);
+    // Dismiss the dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Check it did not insert the code
+    cy.get('.CodeMirror:visible');
+    cy.get('span.cm-string').should('not.exist');
+  });
+
   // DEV NOTE: Uncomment the tests below to run them locally
   // TODO: Investigate tests below only failing on CI
   // Steps: checkCodeMirror, closeTabWithoutSaving
@@ -219,50 +256,6 @@ describe('Code Snippet tests', () => {
   //   closeTabWithoutSaving();
   //   // NOTE: Save dialog isn't visible when this test runs on CI
   // });
-
-  //   it('Test inserting a code snippet into a python editor', () => {
-  //     openCodeSnippetExtension();
-  //     clickCreateNewSnippetButton();
-
-  //     const snippetName = 'test-code-snippet';
-  //     fillMetadaEditorForm(snippetName);
-
-  //     cy.wait(500);
-
-  //     // Open blank python file
-  //     cy.get(
-  //       '.jp-LauncherCard[title="Create a new python file"]:visible'
-  //     ).click();
-
-  //     cy.wait(500);
-
-  //     // Check widget is loaded
-  //     cy.get('.CodeMirror:visible');
-
-  //     insert(snippetName);
-
-  //     // Check if python editor has the new code
-  //     checkCodeMirror();
-
-  //     // Edit snippet language
-  //     getActionButtonsElement(snippetName).within(() => {
-  //       cy.get('button[title="Edit"]').click();
-  //     });
-  //     cy.wait(100);
-  //     editSnippetLanguage(snippetName, 'Java');
-  //     saveAndCloseMetadataEditor();
-
-  //     cy.wait(500);
-
-  //     insert(snippetName);
-
-  //     // Check for language mismatch warning
-  //     cy.get('.jp-Dialog-header').contains('Warning');
-  //     cy.get('button.jp-mod-accept').click();
-  //     cy.wait(100);
-
-  //     closeTabWithoutSaving();
-  //   });
 
   //   it('Test inserting a code snippet into a markdown file', () => {
   //     openCodeSnippetExtension();
@@ -319,14 +312,17 @@ const createInvalidCodeSnippet = (snippetName: string): any => {
   saveAndCloseMetadataEditor();
 };
 
-const populateCodeSnippetFields = (snippetName: string): any => {
+const populateCodeSnippetFields = (
+  snippetName: string,
+  language?: string
+): any => {
   clickCreateNewSnippetButton();
 
   // Name code snippet
   cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
 
   // Select python language from dropdown list
-  editSnippetLanguage(snippetName, 'Python');
+  editSnippetLanguage(snippetName, language ?? 'Python');
 
   // Add snippet code
   cy.get('.CodeMirror .CodeMirror-scroll:visible').type(
@@ -334,8 +330,11 @@ const populateCodeSnippetFields = (snippetName: string): any => {
   );
 };
 
-const createValidCodeSnippet = (snippetName: string): any => {
-  populateCodeSnippetFields(snippetName);
+const createValidCodeSnippet = (
+  snippetName: string,
+  language?: string
+): any => {
+  populateCodeSnippetFields(snippetName, language);
 
   saveAndCloseMetadataEditor();
 

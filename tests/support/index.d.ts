@@ -34,5 +34,6 @@ declare namespace Cypress {
     resetJupyterLab(): Chainable<void>;
     checkTabMenuOptions(fileType: string): Chainable<void>;
     closeTab(index: number): Chainable<void>;
+    createNewScriptFile(language: string): Chainable<void>;
   }
 }
