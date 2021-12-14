@@ -186,6 +186,12 @@ be fully qualified (i.e., prefixed with their package names).
         # Sort operations based on dependency graph (topological order)
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
 
+        # Determine whether access to cloud storage is required and check connectivity
+        for operation in sorted_operations:
+            if isinstance(operation, GenericOperation):
+                self._verify_cos_connectivity(runtime_configuration)
+                break
+
         # All previous operation outputs should be propagated throughout the pipeline.
         # In order to process this recursively, the current operation's inputs should be combined
         # from its parent's inputs (which, themselves are derived from the outputs of their parent)

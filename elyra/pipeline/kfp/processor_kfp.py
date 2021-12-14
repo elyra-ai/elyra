@@ -249,6 +249,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         pipeline_path,
                         pipeline_conf=pipeline_conf
                     )
+            except RuntimeError:
+                raise
             except Exception as ex:
                 raise RuntimeError(
                     f"Failed to compile pipeline '{pipeline_name}' with engine '{engine}' to: '{pipeline_path}'"
@@ -422,6 +424,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 else:
                     self.log.info("Compiling pipeline for Argo engine")
                     kfp_argo_compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
+            except RuntimeError:
+                raise
             except Exception as ex:
                 if ex.__cause__:
                     raise RuntimeError(str(ex)) from ex
@@ -535,6 +539,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # Sort operations based on dependency graph (topological order)
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
+
+        # Determine whether access to cloud storage is required
+        for operation in sorted_operations:
+            if isinstance(operation, GenericOperation):
+                self._verify_cos_connectivity(runtime_configuration)
+                break
 
         # All previous operation outputs should be propagated throughout the pipeline.
         # In order to process this recursively, the current operation's inputs should be combined

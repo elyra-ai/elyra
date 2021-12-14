@@ -404,6 +404,15 @@ class RuntimePipelineProcessor(PipelineProcessor):
                            format(operation.name), exc_info=True)
             raise ex from ex
 
+    def _verify_cos_connectivity(self, runtime_configuration) -> None:
+        self.log.debug('Verifying cloud storage connectivity using runtime configuration '
+                       f"'{runtime_configuration.display_name}'.")
+        try:
+            CosClient(runtime_configuration)
+        except Exception as ex:
+            raise RuntimeError(f'Error connecting to cloud storage: {ex}. Update runtime configuration '
+                               f'\'{runtime_configuration.display_name}\' and try again.')
+
     def _get_metadata_configuration(self, schemaspace, name=None):
         """
         Retrieve associated metadata configuration based on schemaspace provided and optional instance name
