@@ -53,7 +53,6 @@ from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.runtime_type import RuntimeProcessorType
-from elyra.util.cos import CosClient
 from elyra.util.path import get_absolute_path
 
 
