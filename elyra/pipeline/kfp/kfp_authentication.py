@@ -29,6 +29,7 @@ from urllib.parse import urlsplit
 
 from kfp.auth import KF_PIPELINES_SA_TOKEN_ENV
 from kfp.auth import KF_PIPELINES_SA_TOKEN_PATH
+from kfp.auth import ServiceAccountTokenVolumeCredentials
 import requests
 
 
@@ -226,6 +227,7 @@ class KFPAuthenticator():
             'auth_type': None,        # Authentication type, source: runtime config
             'kf_secured': False,      # Indicates whether KF API is secured
             'cookies': None,          # passed to KFP SDK client as "cookies" param value
+            'credentials': None,      # passed to KFP SDK client as "credentials" param value
             'existing_token': None    # passed to KFP SDK client as "existing_token" param value
         }
 
@@ -277,9 +279,11 @@ class KFPAuthenticator():
                 if auth_info.get('cookies') is not None:
                     auth_info['kf_secured'] = True
             elif auth_type == SupportedAuthProviders.KUBERNETES_SERVICE_ACCOUNT_TOKEN:
-                # see implementation for details; the authenticator returns None
-                K8sServiceAccountTokenAuthenticator().authenticate(kf_url,
-                                                                   runtime_config_name)
+                # see implementation for details; the authenticator returns
+                # a ServiceAccountTokenVolumeCredentials
+                auth_info['credentials'] =\
+                    K8sServiceAccountTokenAuthenticator().authenticate(kf_url,
+                                                                       runtime_config_name)
                 auth_info['kf_secured'] = True
             else:
                 # SupportedAuthProviders contains a member that is not yet
@@ -628,7 +632,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
 
     def authenticate(self,
                      kf_endpoint: str,
-                     runtime_config_name: str) -> None:
+                     runtime_config_name: str) -> ServiceAccountTokenVolumeCredentials:
         """
         Verify that service account token authentication can be performed.
         An AuthenticationError is raised if a problem is encountered that
@@ -640,6 +644,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
         :type runtime_config_name: str
         :raises AuthenticationError: A potential issue was detected that will
         likely cause a KFP client failure.
+        :return: ServiceAccountTokenVolumeCredentials
         """
 
         request_history = []
@@ -687,8 +692,9 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
                                       provider=self._type,
                                       request_history=request_history)
 
-        # Nothing needs to be passed to the KFP client
-        return None
+        # return a ServiceAccountTokenVolumeCredentials to be passed as the "credentials"
+        # argument of a `kfp.Client()` constructor
+        return ServiceAccountTokenVolumeCredentials(path=service_account_token_path)
 
 
 class DEXLegacyAuthenticator(AbstractAuthenticator):

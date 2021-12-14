@@ -101,7 +101,7 @@ setup_args = dict(
         'yaspin',
         'astunparse>=1.6.3',
         # KFP runtime dependencies
-        'kfp>=1.6.3,<2.0,!=1.7.2',
+        'kfp>=1.7.0,<2.0,!=1.7.2',
         # Airflow runtime dependencies
         'pygithub',
         'black',

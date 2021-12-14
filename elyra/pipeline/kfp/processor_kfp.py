@@ -127,6 +127,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 client = TektonClient(
                     host=api_endpoint,
                     cookies=auth_info.get('cookies', None),
+                    credentials=auth_info.get('credentials', None),
                     existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
@@ -134,6 +135,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 client = ArgoClient(
                     host=api_endpoint,
                     cookies=auth_info.get('cookies', None),
+                    credentials=auth_info.get('credentials', None),
                     existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
