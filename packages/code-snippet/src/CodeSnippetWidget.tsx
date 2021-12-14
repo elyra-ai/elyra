@@ -107,7 +107,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
   // Handle code snippet insertion into an editor
   private insertCodeSnippet = async (snippet: IMetadata): Promise<void> => {
     const widget = this.props.getCurrentWidget();
-    const snippetStr = snippet.metadata.code.join('\n');
+    const codeSnippet = snippet.metadata.code.join('\n');
+    const snippetLanguage = snippet.metadata.language;
 
     if (widget === null) {
       return;
@@ -116,19 +117,19 @@ class CodeSnippetDisplay extends MetadataDisplay<
     if (this.isFileEditor(widget)) {
       const fileEditor = widget.content.editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
+      const editorLanguage = this.getEditorLanguage(widget);
+
       if (
         PathExt.extname(widget.context.path).match(markdownRegex) !== null &&
-        snippet.metadata.language.toLowerCase() !== 'markdown'
+        snippetLanguage.toLowerCase() !== 'markdown'
       ) {
         fileEditor.replaceSelection?.(
-          this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
+          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet)
         );
-      } else if (widget.constructor.name === 'ScriptEditor') {
-        const editorLanguage =
-          widget.context.sessionContext.kernelPreference.language;
-        this.verifyLanguageAndInsert(snippet, editorLanguage ?? '', fileEditor);
+      } else if (editorLanguage) {
+        this.verifyLanguageAndInsert(snippet, editorLanguage, fileEditor);
       } else {
-        fileEditor.replaceSelection?.(snippetStr);
+        fileEditor.replaceSelection?.(codeSnippet);
       }
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
@@ -153,13 +154,13 @@ class CodeSnippetDisplay extends MetadataDisplay<
         );
       } else if (
         notebookCell instanceof MarkdownCell &&
-        snippet.metadata.language.toLowerCase() !== 'markdown'
+        snippetLanguage.toLowerCase() !== 'markdown'
       ) {
         notebookCellEditor.replaceSelection?.(
-          this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
+          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet)
         );
       } else {
-        notebookCellEditor.replaceSelection?.(snippetStr);
+        notebookCellEditor.replaceSelection?.(codeSnippet);
       }
       const cell = notebookWidget.model?.contentFactory.createCodeCell({});
       if (cell === undefined) {
@@ -178,6 +179,15 @@ class CodeSnippetDisplay extends MetadataDisplay<
     return (widget as DocumentWidget).content instanceof FileEditor;
   };
 
+  // Return the language of the editor or empty string
+  private getEditorLanguage = (
+    widget: DocumentWidget<FileEditor>
+  ): string | undefined => {
+    const editorLanguage =
+      widget.context.sessionContext.kernelPreference.language;
+    return editorLanguage === 'null' ? '' : editorLanguage;
+  };
+
   // Return the given code wrapped in a markdown code block
   private addMarkdownCodeBlock = (language: string, code: string): string => {
     return '```' + language + '\n' + code + '\n```';
@@ -189,21 +199,22 @@ class CodeSnippetDisplay extends MetadataDisplay<
     editorLanguage: string,
     editor: CodeEditor.IEditor
   ): Promise<void> => {
-    const snippetStr: string = snippet.metadata.code.join('\n');
+    const codeSnippet: string = snippet.metadata.code.join('\n');
+    const snippetLanguage = snippet.metadata.language;
     if (
       editorLanguage &&
-      snippet.metadata.language.toLowerCase() !== editorLanguage.toLowerCase()
+      snippetLanguage.toLowerCase() !== editorLanguage.toLowerCase()
     ) {
       const result = await this.showWarnDialog(
         editorLanguage,
         snippet.display_name
       );
       if (result.button.accept) {
-        editor.replaceSelection?.(snippetStr);
+        editor.replaceSelection?.(codeSnippet);
       }
     } else {
       // Language match or editorLanguage is unavailable
-      editor.replaceSelection?.(snippetStr);
+      editor.replaceSelection?.(codeSnippet);
     }
   };
 

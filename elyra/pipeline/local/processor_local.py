@@ -30,7 +30,7 @@ from jupyter_server.gateway.managers import GatewayClient
 import papermill
 from traitlets import log
 
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
@@ -66,7 +66,7 @@ class LocalPipelineProcessor(PipelineProcessor):
         }
 
     def get_components(self):
-        return ComponentCatalog.get_generic_components()
+        return ComponentCache.get_generic_components()
 
     def process(self, pipeline):
         """
