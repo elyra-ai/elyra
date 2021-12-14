@@ -540,21 +540,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
 
         # Determine whether access to cloud storage is required
-        requires_cos = False
         for operation in sorted_operations:
             if isinstance(operation, GenericOperation):
-                requires_cos = True
+                self._verify_cos_connectivity(runtime_configuration)
                 break
-
-        # Verify cloud storage connectivity
-        if requires_cos:
-            self.log.debug('Verifying cloud storage connectivity using runtime configuration '
-                           f"'{runtime_configuration.display_name}'.")
-            try:
-                CosClient(runtime_configuration)
-            except Exception as ex:
-                raise RuntimeError(f'Error connecting to cloud storage: {ex}. Update runtime configuration '
-                                   f'\'{runtime_configuration.display_name}\' and try again.')
 
         # All previous operation outputs should be propagated throughout the pipeline.
         # In order to process this recursively, the current operation's inputs should be combined
