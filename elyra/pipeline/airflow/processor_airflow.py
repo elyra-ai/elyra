@@ -34,7 +34,7 @@ from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
-from elyra.pipeline.airflow.component_parser_airflow import AirflowComponentParser
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
@@ -76,7 +76,7 @@ be fully qualified (i.e., prefixed with their package names).
     class_import_map = {}
 
     def __init__(self, root_dir, **kwargs):
-        super().__init__(root_dir, component_parser=AirflowComponentParser(), **kwargs)
+        super().__init__(root_dir, **kwargs)
         if not self.class_import_map:  # Only need to load once
             for package in self.available_airflow_operators:
                 parts = package.rsplit(".", 1)
@@ -269,7 +269,7 @@ be fully qualified (i.e., prefixed with their package names).
 
             else:
                 # Retrieve component from cache
-                component = self._component_catalog.get_component(operation.classifier)
+                component = ComponentCache.instance().get_component(self._type, operation.classifier)
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:

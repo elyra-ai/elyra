@@ -18,6 +18,7 @@ import pytest
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.metadata.manager import MetadataManager
+from elyra.pipeline.component_catalog import ComponentCache
 
 pytest_plugins = ["jupyter_server.pytest_plugin"]
 
@@ -42,6 +43,10 @@ AIRFLOW_COMPONENT_CACHE_INSTANCE = {
 @pytest.fixture
 def component_cache_instance(request):
     """Creates an instance of a component cache and removes after test."""
+
+    # Create a ComponentCache instance to handle the cache update on metadata instance creation
+    component_catalog = ComponentCache.instance()
+
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
     # clean possible orphaned instance...
@@ -53,6 +58,10 @@ def component_cache_instance(request):
     # Attempt to create the instance
     try:
         component_cache_instance = md_mgr.create(instance_name, Metadata(**request.param))
+
+        # Wait for the cache update to complete
+        component_catalog.wait_for_all_cache_updates()
+
         yield component_cache_instance.name
         md_mgr.remove(component_cache_instance.name)
 

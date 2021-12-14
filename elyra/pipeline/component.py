@@ -15,9 +15,11 @@
 #
 from abc import abstractmethod
 from enum import Enum
+from importlib import import_module
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -277,12 +279,24 @@ class Component(object):
 
 
 class ComponentParser(LoggingConfigurable):  # ABC
-    _component_platform: RuntimeProcessorType = None
+    component_platform: RuntimeProcessorType = None
     _file_types: List[str] = None
+    _parser_class_map: Dict[str, str] = {
+        'APACHE_AIRFLOW': 'elyra.pipeline.airflow.component_parser_airflow:AirflowComponentParser',
+        'KUBEFLOW_PIPELINES': 'elyra.pipeline.kfp.component_parser_kfp:KfpComponentParser'
+    }
 
-    @property
-    def component_platform(self) -> RuntimeProcessorType:
-        return self._component_platform
+    @classmethod
+    def create_instance(cls, platform: RuntimeProcessorType) -> 'ComponentParser':
+        """
+        Class method that creates the appropriate instance of ComponentParser based on platform type name.
+        """
+        try:
+            module_name, class_name = cls._parser_class_map[platform.name].split(':')
+            module = import_module(module_name)
+            return getattr(module, class_name)()
+        except Exception as e:
+            raise RuntimeError(f"Could not get appropriate ComponentParser class: {e}")
 
     @property
     def file_types(self) -> List[str]:
