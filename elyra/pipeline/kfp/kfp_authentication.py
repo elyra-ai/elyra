@@ -30,7 +30,6 @@ from urllib.parse import urlsplit
 from kfp.auth import KF_PIPELINES_SA_TOKEN_ENV
 from kfp.auth import KF_PIPELINES_SA_TOKEN_PATH
 from kfp.auth import ServiceAccountTokenVolumeCredentials
-from kfp.auth import TokenCredentialsBase
 import requests
 
 
@@ -281,7 +280,7 @@ class KFPAuthenticator():
                     auth_info['kf_secured'] = True
             elif auth_type == SupportedAuthProviders.KUBERNETES_SERVICE_ACCOUNT_TOKEN:
                 # see implementation for details; the authenticator returns
-                # an implementation of TokenCredentialsBase
+                # a ServiceAccountTokenVolumeCredentials
                 auth_info['credentials'] =\
                     K8sServiceAccountTokenAuthenticator().authenticate(kf_url,
                                                                        runtime_config_name)
@@ -633,7 +632,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
 
     def authenticate(self,
                      kf_endpoint: str,
-                     runtime_config_name: str) -> TokenCredentialsBase:
+                     runtime_config_name: str) -> ServiceAccountTokenVolumeCredentials:
         """
         Verify that service account token authentication can be performed.
         An AuthenticationError is raised if a problem is encountered that
@@ -645,6 +644,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
         :type runtime_config_name: str
         :raises AuthenticationError: A potential issue was detected that will
         likely cause a KFP client failure.
+        :return: ServiceAccountTokenVolumeCredentials
         """
 
         request_history = []
@@ -692,7 +692,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
                                       provider=self._type,
                                       request_history=request_history)
 
-        # return an instance of TokenCredentialsBase to be passed as the "credentials"
+        # return a ServiceAccountTokenVolumeCredentials to be passed as the "credentials"
         # argument of a `kfp.Client()` constructor
         return ServiceAccountTokenVolumeCredentials(path=service_account_token_path)
 
