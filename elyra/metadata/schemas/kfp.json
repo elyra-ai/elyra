@@ -140,7 +140,7 @@
         },
         "cos_secret": {
           "title": "Cloud Object Storage Credentials Secret",
-          "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.",
+          "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
           "type": "string",
           "uihints": {
             "secure": true,
@@ -149,7 +149,7 @@
         },
         "cos_username": {
           "title": "Cloud Object Storage Username",
-          "description": "The Cloud Object Storage username",
+          "description": "The Cloud Object Storage username. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
           "type": "string",
           "uihints": {
             "category": "Cloud Object Storage"
@@ -157,7 +157,7 @@
         },
         "cos_password": {
           "title": "Cloud Object Storage Password",
-          "description": "The Cloud Object Storage password",
+          "description": "The Cloud Object Storage password. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
           "type": "string",
           "minLength": 8,
           "uihints": {
