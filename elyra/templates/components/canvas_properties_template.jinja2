@@ -90,7 +90,12 @@
                     "format": "{{ control_data_type }}"
             {% if control == 'NestedEnumControl' %}
                     ,
-                    "allownooptions": {{ property.allow_no_options }}
+                    "allownooptions":
+                {% if property.allow_no_options %}
+                    true
+                {% else %}
+                    false
+                {% endif %}
             {% endif %}
                   }
             {% if loop.index != loop.length %}

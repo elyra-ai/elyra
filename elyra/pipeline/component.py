@@ -149,8 +149,8 @@ class ComponentParameter(object):
         return self._default_data_type
 
     @property
-    def allow_no_options(self) -> str:
-        return "true" if self._allow_no_options else "false"
+    def allow_no_options(self) -> bool:
+        return self._allow_no_options
 
     @property
     def items(self) -> List[str]:
