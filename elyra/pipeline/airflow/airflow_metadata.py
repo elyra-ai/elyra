@@ -17,27 +17,16 @@
 from typing import Any
 
 from elyra.metadata.manager import MetadataManager
-from elyra.pipeline.kfp.kfp_authentication import SupportedAuthProviders
 from elyra.pipeline.runtimes_metadata import RuntimesMetadata
 
 
-class KfpMetadata(RuntimesMetadata):
+class AirflowMetadata(RuntimesMetadata):
     """
-    Applies changes specific to the kfp schema
+    Applies changes specific to the Airflow schema
     """
 
     def on_load(self, **kwargs: Any) -> None:
         super().on_load(**kwargs)
-
-        if self.metadata.get('auth_type') is None:
-            # Inject auth_type property for metadata persisted using Elyra < 3.3:
-            # - api_username and api_password present -> use DEX Legacy
-            # - otherwise -> use no authentication type
-            if len(self.metadata.get('api_username', '').strip()) == 0 or\
-               len(self.metadata.get('api_password', '').strip()) == 0:
-                self.metadata['auth_type'] = SupportedAuthProviders.NO_AUTHENTICATION.name
-            else:
-                self.metadata['auth_type'] = SupportedAuthProviders.DEX_LEGACY.name
 
         if self.metadata.get('cos_auth_type') is None:
             # Inject cos_auth_type property for metadata persisted using Elyra < 3.4:
@@ -45,7 +34,7 @@ class KfpMetadata(RuntimesMetadata):
             # - cos_secret may be present (above statement also applies in this case)
             if self.metadata.get('cos_username') and\
                self.metadata.get('cos_password'):
-                if len(self.metadata.get('cos_secret', '').strip()) == 0:
+                if len(self.metadata.get('cos_secret', '')) == 0:
                     self.metadata['cos_auth_type'] = 'USER_CREDENTIALS'
                 else:
                     self.metadata['cos_auth_type'] = 'KUBERNETES_SECRET'
@@ -59,8 +48,7 @@ class KfpMetadata(RuntimesMetadata):
         """
         This method enforces conditional constraints related to
         COS authentication type properties.
-        TODO: Remove after https://github.com/elyra-ai/elyra/issues/2338
-        was resolved.
+        TODO: Remove after https://github.com/elyra-ai/elyra/issues/2338 was resolved.
         """
         super().pre_save(**kwargs)
 
