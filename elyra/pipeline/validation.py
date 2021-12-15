@@ -29,7 +29,7 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
@@ -392,7 +392,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
 
         component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-        components = ComponentCatalog.to_canvas_palette(component_list)
+        components = ComponentCache.to_canvas_palette(component_list)
 
         # Full dict of properties for the operation e.g. current params, optionals etc
         component_property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
@@ -709,7 +709,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 if node_op == node_type['op']:
                     component: Component = \
                         await PipelineProcessorManager.instance().get_component(pipeline_runtime, node_op)
-                    component_properties = ComponentCatalog.to_canvas_properties(component)
+                    component_properties = ComponentCache.to_canvas_properties(component)
                     return component_properties
 
         return {}

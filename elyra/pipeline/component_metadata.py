@@ -16,7 +16,11 @@
 from typing import Any
 
 from elyra.metadata.metadata import Metadata
-from elyra.pipeline.processor import PipelineProcessorRegistry
+# Rather than importing only the ComponentCache class needed in the post_save and
+# post_delete hooks below, the component_catalog module must be imported in its
+# entirety in order to avoid a circular reference issue
+from elyra.pipeline import component_catalog
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
 class ComponentRegistryMetadata(Metadata):
@@ -29,25 +33,19 @@ class ComponentCatalogMetadata(Metadata):
     and deletion of component catalog metadata instances.
     """
 
-    def post_save(self, **kwargs: Any) -> None:
-        processor_type = self.metadata.get('runtime_type')
+    @property
+    def runtime_type(self) -> RuntimeProcessorType:
+        return RuntimeProcessorType.get_instance_by_name(self.metadata['runtime_type'])
 
-        # Get component catalog and update its cache
-        try:  # TODO: This should move to ComponentCatalog once made a singleton
-            component_catalog = PipelineProcessorRegistry.instance().get_catalog(processor_type)
-            if component_catalog.caching_enabled:
-                component_catalog.update_cache(catalog=self, operation='modify')
+    def post_save(self, **kwargs: Any) -> None:
+        try:
+            component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
-        processor_type = self.metadata.get('runtime_type')
-
-        # Get component catalog and update its cache
-        try:  # TODO: This should move to ComponentCatalog once made a singleton
-            component_catalog = PipelineProcessorRegistry.instance().get_catalog(processor_type)
-            if component_catalog.caching_enabled:
-                component_catalog.update_cache(catalog=self, operation='delete')
+        try:
+            component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='delete')
         except Exception:
             pass
 

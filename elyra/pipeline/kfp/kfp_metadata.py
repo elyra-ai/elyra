@@ -58,7 +58,7 @@ class KfpMetadata(RuntimesMetadata):
     def pre_save(self, **kwargs: Any) -> None:
         """
         This method enforces conditional constraints related to
-        authentication type properties.
+        KFP and COS authentication type properties.
         TODO: Remove after https://github.com/elyra-ai/elyra/issues/2338
         was resolved.
         """

@@ -44,7 +44,7 @@ from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
-from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
@@ -67,7 +67,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
 
     def __init__(self, root_dir, **kwargs):
-        super().__init__(root_dir, component_parser=KfpComponentParser(), **kwargs)
+        super().__init__(root_dir, **kwargs)
 
     def process(self, pipeline):
         """
@@ -127,6 +127,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 client = TektonClient(
                     host=api_endpoint,
                     cookies=auth_info.get('cookies', None),
+                    credentials=auth_info.get('credentials', None),
                     existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
@@ -134,6 +135,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 client = ArgoClient(
                     host=api_endpoint,
                     cookies=auth_info.get('cookies', None),
+                    credentials=auth_info.get('credentials', None),
                     existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
@@ -247,6 +249,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         pipeline_path,
                         pipeline_conf=pipeline_conf
                     )
+            except RuntimeError:
+                raise
             except Exception as ex:
                 raise RuntimeError(
                     f"Failed to compile pipeline '{pipeline_name}' with engine '{engine}' to: '{pipeline_path}'"
@@ -420,6 +424,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 else:
                     self.log.info("Compiling pipeline for Argo engine")
                     kfp_argo_compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
+            except RuntimeError:
+                raise
             except Exception as ex:
                 if ex.__cause__:
                     raise RuntimeError(str(ex)) from ex
@@ -534,6 +540,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Sort operations based on dependency graph (topological order)
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
 
+        # Determine whether access to cloud storage is required
+        for operation in sorted_operations:
+            if isinstance(operation, GenericOperation):
+                self._verify_cos_connectivity(runtime_configuration)
+                break
+
         # All previous operation outputs should be propagated throughout the pipeline.
         # In order to process this recursively, the current operation's inputs should be combined
         # from its parent's inputs (which, themselves are derived from the outputs of their parent)
@@ -614,7 +626,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # If operation is a "non-standard" component, load it's spec and create operation with factory function
             else:
                 # Retrieve component from cache
-                component = self._component_catalog.get_component(operation.classifier)
+                component = ComponentCache.instance().get_component(self._type, operation.classifier)
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
