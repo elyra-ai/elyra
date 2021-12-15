@@ -45,6 +45,7 @@ class ComponentParameter(object):
                  one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
                  default_control_type: str = "StringControl",
                  default_data_type: str = "string",
+                 allow_no_options: Optional[bool] = False,
                  items: Optional[List[str]] = None):
         """
         :param id: Unique identifier for a property
@@ -76,6 +77,7 @@ class ComponentParameter(object):
         self._one_of_control_types = one_of_control_types
         self._default_control_type = default_control_type
         self._default_data_type = default_data_type
+        self._allow_no_options = allow_no_options
         self._items = items or []
 
         # Check description for information about 'required' parameter
@@ -145,6 +147,10 @@ class ComponentParameter(object):
             after parsing the component specification.
         """
         return self._default_data_type
+
+    @property
+    def allow_no_options(self) -> str:
+        return "true" if self._allow_no_options else "false"
 
     @property
     def items(self) -> List[str]:
@@ -398,6 +404,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
                               one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
                               control_id: str = 'StringControl',
                               default_control_type: str = 'StringControl',
+                              allow_no_options: Optional[bool] = False,
                               control: str = 'custom',
                               undetermined: bool = False) -> SimpleNamespace:
         """Returns a SimpleNamespace instance that contains the current state of data-type parsing.
@@ -419,6 +426,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
                               default_control_type=default_control_type,
                               one_of_control_types=one_of_control_types,
                               control_id=control_id,
+                              allow_no_options=allow_no_options,
                               control=control,
                               undetermined=undetermined)
         return dti
