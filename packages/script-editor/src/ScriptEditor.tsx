@@ -184,9 +184,15 @@ export class ScriptEditor extends DocumentWidget<
    * Function: Initializes debug features.
    */
   protected initializeDebugger = async (): Promise<void> => {
+    if (this.isConsoleDebuggerEnabled()) {
+      this.hideButton(this.runAndDebugButton, true);
+      return;
+    }
+
     const debuggerIsAvailable = await this.controller.isDebuggerAvailable(
       this.kernelName || ''
     );
+    console.log('is debugger available:? ' + debuggerIsAvailable);
 
     if (this.getCurrentWidget) {
       const widget = this.getCurrentWidget();
@@ -206,6 +212,24 @@ export class ScriptEditor extends DocumentWidget<
         console.log(EditorHandler);
       }
     }
+  };
+
+  private isConsoleDebuggerEnabled = (): boolean => {
+    // TODO: Also check for running kernels
+    // Check the toolbar
+    const layout = this.toolbar.layout as PanelLayout;
+    const labDebuggerButton =
+      layout &&
+      layout.widgets?.filter(
+        w =>
+          w instanceof ToolbarButton &&
+          w.node.firstElementChild?.className.includes('jp-DebuggerBugButton')
+      );
+    return labDebuggerButton.length !== 0;
+  };
+
+  private hideButton = (button: ToolbarButton, hide: boolean): void => {
+    button.setHidden(hide);
   };
 
   private createEditorDebugHandler = (): EditorHandler => {
