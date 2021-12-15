@@ -25,8 +25,8 @@ from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
-from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
@@ -202,7 +202,7 @@ def test_parse_kfp_component_file():
     component_entry = SimpleNamespace(**entry)
 
     # Parse the component entry
-    parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
+    parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(component_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
@@ -313,7 +313,7 @@ def test_parse_kfp_component_url():
     component_entry = SimpleNamespace(**entry)
 
     # Parse the component entry
-    parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
+    parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(component_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
@@ -354,7 +354,7 @@ def test_parse_kfp_component_file_no_inputs():
     component_entry = SimpleNamespace(**entry)
 
     # Parse the component entry
-    parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
+    parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(component_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
@@ -411,7 +411,7 @@ async def test_parse_components_additional_metatypes():
     # Parse the component entry
     parser = KfpComponentParser()
     component = parser.parse(component_entry)[0]
-    properties_json = ComponentCatalog.to_canvas_properties(component)
+    properties_json = ComponentCache.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
