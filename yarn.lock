@@ -1393,13 +1393,12 @@
     seedrandom "3.0.5"
     uuid "8.3.0"
 
-"@elyra/pipeline-editor@~1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.4.0.tgz#1c4d1258145ff6c7488bf7f232fefcd73baa2054"
-  integrity sha512-/piB4Aoj5kAqdeGXaEQqL02Ee+qdEoCv+z9ZVST9+Op3N4u+x02oxxrkoYs0JtAsrD3TRXz91D090fCS3Zo5dQ==
+"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/7a94610d/@elyra/pipeline-editor":
+  version "1.5.0-rc.0"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/7a94610d/@elyra/pipeline-editor#36a6ba7e160b1bf128316c56c6f3b88e586f5ac0"
   dependencies:
     "@elyra/canvas" "11.0.0"
-    "@elyra/pipeline-services" "^1.4.0"
+    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/7a94610d/@elyra/pipeline-services"
     downshift "^6.1.2"
     immer "^9.0.6"
     nanoid "^3.1.20"
@@ -1414,10 +1413,9 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.42.tgz#d1e681022cd033234a8e0fe4febb0e58d8a7683e"
   integrity sha512-DF34KqUocckJWTJBUqS0diKgqgqAbCWljx3O5v1ZKHYoiz5UvSz5/67U/5oaJXIlPqwbmL47rWvIA/u6M7DCZw==
 
-"@elyra/pipeline-services@^1.4.0", "@elyra/pipeline-services@~1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.4.0.tgz#6bb01041b240e0fdd4464ba639d431a4fecb75a5"
-  integrity sha512-3Z4Kst1oyHVZ2uP9ai5MSq55akyJowdl0p/RFIJBp3L3FyquCKpQGtlAVMJ7c87MO4cc0BsYJk86x/jV3+cI+g==
+"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/7a94610d/@elyra/pipeline-services":
+  version "1.5.0-rc.0"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/7a94610d/@elyra/pipeline-services#dbe1e339f3be3ca897e25693c6cdc5561f1a159b"
   dependencies:
     immer "^9.0.6"
     jsonc-parser "^3.0.0"
@@ -11621,11 +11619,6 @@ json5@^1.0.1:
   integrity sha512-aKS4WQjPenRxiQsC93MNfjx+nbF4PAdYzmd/1JIj8HYzqfbu86beTuNgXDzPknWk0n0uARlyewZo4s++ES36Ow==
   dependencies:
     minimist "^1.2.0"
-
-jsonc-parser@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.0.0.tgz#abdd785701c7e7eaca8a9ec8cf070ca51a745a22"
-  integrity sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==
 
 jsonfile@^4.0.0:
   version "4.0.0"

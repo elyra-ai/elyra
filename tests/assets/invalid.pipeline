@@ -135,7 +135,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 6,
+        "version": 7,
         "properties": {
           "name": "invalid"
         }
