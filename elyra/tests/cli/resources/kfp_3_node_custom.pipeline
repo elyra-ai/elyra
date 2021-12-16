@@ -14,7 +14,10 @@
           "op": "elyra-kfp-examples-catalog:d68ec7fcdf46",
           "app_data": {
             "component_parameters": {
-              "hash_algorithm": "SHA256",
+              "hash_algorithm": {
+                "activeControl": "StringControl",
+                "StringControl": "SHA256"
+              },
               "output_hash": "",
               "data": {
                 "value": "b7d9fe00-2a2d-4bd8-8fc4-73a9d8917052",
@@ -25,6 +28,7 @@
             "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml",
             "ui_data": {
               "label": "Calculate data hash",
+              "image": "/static/elyra/kubeflow.svg",
               "x_pos": 90,
               "y_pos": 238.5
             }
@@ -71,14 +75,21 @@
           "op": "elyra-kfp-examples-catalog:a08014f9252f",
           "app_data": {
             "component_parameters": {
-              "url": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/error.py",
-              "curl_options": "--location",
+              "url": {
+                "activeControl": "StringControl",
+                "StringControl": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/error.py"
+              },
+              "curl_options": {
+                "activeControl": "StringControl",
+                "StringControl": "--location"
+              },
               "output_data": ""
             },
             "label": "",
             "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
             "ui_data": {
               "label": "Download data",
+              "image": "/static/elyra/kubeflow.svg",
               "x_pos": 30,
               "y_pos": 10.5
             }
@@ -119,7 +130,10 @@
           "app_data": {
             "component_parameters": {
               "component_description": "Filter input text according to the given regex pattern using shell and grep.",
-              "pattern": "*Error",
+              "pattern": {
+                "activeControl": "StringControl",
+                "StringControl": "*Error"
+              },
               "output_filtered_text": "",
               "text": {
                 "value": "321b18d9-1585-4a08-9ca7-9128ee3df527",
@@ -129,6 +143,7 @@
             "component_source": "/opt/anaconda3/envs/elyra-dev/share/jupyter/components/kfp/filter_text_using_shell_and_grep.yaml",
             "ui_data": {
               "label": "Filter text",
+              "image": "/static/elyra/kubeflow.svg",
               "x_pos": 33,
               "y_pos": 89.5,
               "description": "Filter input text according to the given regex pattern using shell and grep."
@@ -175,10 +190,10 @@
         "ui_data": {
           "comments": []
         },
-        "version": 6,
+        "version": 7,
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
-          "name": "kfp_custom",
+          "name": "kfp_3_node_custom",
           "description": "3-node custom component pipeline"
         }
       },

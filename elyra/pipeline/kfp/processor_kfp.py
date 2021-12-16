@@ -127,6 +127,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 client = TektonClient(
                     host=api_endpoint,
                     cookies=auth_info.get('cookies', None),
+                    credentials=auth_info.get('credentials', None),
                     existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
@@ -134,6 +135,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 client = ArgoClient(
                     host=api_endpoint,
                     cookies=auth_info.get('cookies', None),
+                    credentials=auth_info.get('credentials', None),
                     existing_token=auth_info.get('existing_token', None),
                     namespace=user_namespace
                 )
@@ -247,6 +249,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         pipeline_path,
                         pipeline_conf=pipeline_conf
                     )
+            except RuntimeError:
+                raise
             except Exception as ex:
                 raise RuntimeError(
                     f"Failed to compile pipeline '{pipeline_name}' with engine '{engine}' to: '{pipeline_path}'"
@@ -420,6 +424,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 else:
                     self.log.info("Compiling pipeline for Argo engine")
                     kfp_argo_compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
+            except RuntimeError:
+                raise
             except Exception as ex:
                 if ex.__cause__:
                     raise RuntimeError(str(ex)) from ex
@@ -534,6 +540,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Sort operations based on dependency graph (topological order)
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
 
+        # Determine whether access to cloud storage is required
+        for operation in sorted_operations:
+            if isinstance(operation, GenericOperation):
+                self._verify_cos_connectivity(runtime_configuration)
+                break
+
         # All previous operation outputs should be propagated throughout the pipeline.
         # In order to process this recursively, the current operation's inputs should be combined
         # from its parent's inputs (which, themselves are derived from the outputs of their parent)
@@ -629,12 +641,23 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
                         operation.component_params[component_property.ref] = \
                             target_ops[output_node_id].outputs[output_node_parameter_key]
-                    elif component_property.data_type == 'dictionary':
-                        processed_value = self._process_dictionary_value(property_value)
-                        operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == 'list':
-                        processed_value = self._process_list_value(property_value)
-                        operation.component_params[component_property.ref] = processed_value
+                    elif component_property.data_type == "inputvalue":
+                        active_property = property_value['activeControl']
+                        active_property_value = property_value[active_property]
+                        if isinstance(active_property_value, dict) and \
+                                set(active_property_value.keys()) == {'value', 'option'}:
+                            output_node_id = active_property_value['value']
+                            output_node_parameter_key = active_property_value['option'].replace("elyra_output_", "")
+                            operation.component_params[component_property.ref] = \
+                                target_ops[output_node_id].outputs[output_node_parameter_key]
+                        elif component_property.default_data_type == 'dictionary':
+                            processed_value = self._process_dictionary_value(active_property_value)
+                            operation.component_params[component_property.ref] = processed_value
+                        elif component_property.default_data_type == 'list':
+                            processed_value = self._process_list_value(active_property_value)
+                            operation.component_params[component_property.ref] = processed_value
+                        else:
+                            operation.component_params[component_property.ref] = active_property_value
 
                 # Build component task factory
                 try:

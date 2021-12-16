@@ -1,5 +1,25 @@
 # Changelog
 
+## Release 3.4.0rc0 - 12/15/2021
+
+- Update pipeline editor package to 1.5.0rc1 - [#2364](https://github.com/elyra-ai/elyra/pull/2364)
+- Allow Kubeflow node inputValues to consume outputPath outputs - [#2350](https://github.com/elyra-ai/elyra/pull/2350)
+- Enforce authentication type constraints in KFP RTCs - [#2356](https://github.com/elyra-ai/elyra/pull/2356)
+- Add explicit support for COS authentication types to runtime configurations - [#2354](https://github.com/elyra-ai/elyra/pull/2354)
+- Catch cloud storage connectivity issues before processing pipeline - [#2362](https://github.com/elyra-ai/elyra/pull/2362)
+- Fix KUBERNETES_SERVICE_ACCOUNT_TOKEN auth - [#2358](https://github.com/elyra-ai/elyra/pull/2358)
+- Fix version references in installation documentation - [#2359](https://github.com/elyra-ai/elyra/pull/2359)
+- Enable async component cache updates using SingletonConfigurable - [#2349](https://github.com/elyra-ai/elyra/pull/2349)
+- Fix code snippet language check - [#2346](https://github.com/elyra-ai/elyra/pull/2346)
+- Add support for AWS IRSA - [#2335](https://github.com/elyra-ai/elyra/pull/2335)
+- Rework docker image build - [#2344](https://github.com/elyra-ai/elyra/pull/2344)
+- Add Elyra 3.3 blog post to resources topic - [#2351](https://github.com/elyra-ai/elyra/pull/2351)
+- Fix typo in Kubeflow auth type setting name - [#2353](https://github.com/elyra-ai/elyra/pull/2353)
+- Re-add integration test for runtime specific components in the palette - [#2340](https://github.com/elyra-ai/elyra/pull/2340)
+- Add resources topic to overview - [#2345](https://github.com/elyra-ai/elyra/pull/2345)
+- Update Setup.py to Fix KFP requirements - [#2342](https://github.com/elyra-ai/elyra/pull/2342)
+- Add catalog type information to DAG for custom components - [#2336](https://github.com/elyra-ai/elyra/pull/2336)
+
 ## Release 3.3.0 - 12/03/2021
 
 

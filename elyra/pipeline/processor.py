@@ -394,15 +394,34 @@ class RuntimePipelineProcessor(PipelineProcessor):
             raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
                                "check your object storage settings. ".format(cos_endpoint)) from ex
         except S3Error as ex:
+            msg_prefix = f'Error connecting to object storage: {ex.code}.'
             if ex.code == "SignatureDoesNotMatch":
-                raise RuntimeError("Connection was refused due to incorrect Object Storage credentials. " +
-                                   "Please validate your runtime configuration details and retry.") from ex
+                # likely cause: incorrect password
+                raise RuntimeError(f"{msg_prefix} Verify the password "
+                                   f"in runtime configuration '{runtime_configuration.display_name}' "
+                                   "and try again.") from ex
+            elif ex.code == 'InvalidAccessKeyId':
+                # likely cause: incorrect user id
+                raise RuntimeError(f"{msg_prefix} Verify the username "
+                                   f"in runtime configuration '{runtime_configuration.display_name}' "
+                                   "and try again.") from ex
             else:
-                raise RuntimeError("Please validate your runtime configuration details and retry.") from ex
+                raise RuntimeError(f"{msg_prefix} Verify "
+                                   f"runtime configuration '{runtime_configuration.display_name}' "
+                                   "and try again.") from ex
         except BaseException as ex:
             self.log.error("Error uploading artifacts to object storage for operation: {}".
                            format(operation.name), exc_info=True)
             raise ex from ex
+
+    def _verify_cos_connectivity(self, runtime_configuration) -> None:
+        self.log.debug('Verifying cloud storage connectivity using runtime configuration '
+                       f"'{runtime_configuration.display_name}'.")
+        try:
+            CosClient(runtime_configuration)
+        except Exception as ex:
+            raise RuntimeError(f'Error connecting to cloud storage: {ex}. Update runtime configuration '
+                               f'\'{runtime_configuration.display_name}\' and try again.')
 
     def _get_metadata_configuration(self, schemaspace, name=None):
         """

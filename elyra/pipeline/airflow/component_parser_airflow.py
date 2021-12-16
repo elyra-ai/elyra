@@ -172,6 +172,7 @@ class AirflowComponentParser(ComponentParser):
                                                   default_control_type=default_control_type,
                                                   control_id=control_id,
                                                   one_of_control_types=one_of_control_types,
+                                                  allow_no_options=True,
                                                   required=required)
             properties.append(component_params)
 

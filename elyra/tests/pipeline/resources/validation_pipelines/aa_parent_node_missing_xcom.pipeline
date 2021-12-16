@@ -166,8 +166,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 5,
-        "runtime_type": "APACHE_AIRFLOW",
+        "version": 7,
         "properties": {
           "name": "untitled8"
         }

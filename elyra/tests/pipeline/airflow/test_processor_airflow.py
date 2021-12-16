@@ -113,6 +113,7 @@ def parsed_ordered_dict(monkeypatch, processor, parsed_pipeline,
     monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
     monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
     return processor._cc_pipeline(parsed_pipeline, pipeline_name="some-name")
 
