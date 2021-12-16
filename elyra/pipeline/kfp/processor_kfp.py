@@ -643,7 +643,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             target_ops[output_node_id].outputs[output_node_parameter_key]
                     elif component_property.data_type == "inputvalue":
                         active_property = property_value['activeControl']
-                        active_property_value = property_value[active_property]
+                        active_property_value = property_value.get(active_property, None)
+
+                        # If the value is not found, assign it the default value assigned in parser
+                        if active_property_value is None:
+                            active_property_value = component_property.value
+
                         if isinstance(active_property_value, dict) and \
                                 set(active_property_value.keys()) == {'value', 'option'}:
                             output_node_id = active_property_value['value']
