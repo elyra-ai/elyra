@@ -58,12 +58,50 @@ class KfpMetadata(RuntimesMetadata):
     def pre_save(self, **kwargs: Any) -> None:
         """
         This method enforces conditional constraints related to
-        COS authentication type properties.
+        KFP and COS authentication type properties.
         TODO: Remove after https://github.com/elyra-ai/elyra/issues/2338
         was resolved.
         """
         super().pre_save(**kwargs)
 
+        # validation of Kubeflow authentication constraints
+        if self.metadata.get('auth_type') is not None:
+            try:
+                kfp_auth_provider = SupportedAuthProviders.get_instance_by_name(self.metadata['auth_type'])
+            except Exception:
+                kfp_auth_provider = None
+
+            if kfp_auth_provider == SupportedAuthProviders.NO_AUTHENTICATION:
+                if len(self.metadata.get('api_username', '').strip()) > 0 or\
+                   len(self.metadata.get('api_password', '').strip()) > 0:
+                    raise ValueError('Username and password are not supported '
+                                     'for the selected Kubeflow authentication type.')
+            elif kfp_auth_provider == SupportedAuthProviders.DEX_STATIC_PASSWORDS:
+                if len(self.metadata.get('api_username', '').strip()) == 0 or\
+                   len(self.metadata.get('api_password', '').strip()) == 0:
+                    raise ValueError('A username and password are required '
+                                     'for the selected Kubeflow authentication type.')
+            elif kfp_auth_provider == SupportedAuthProviders.DEX_LDAP:
+                if len(self.metadata.get('api_username', '').strip()) == 0 or\
+                   len(self.metadata.get('api_password', '').strip()) == 0:
+                    raise ValueError('A username and password are required '
+                                     'for the selected Kubeflow authentication type.')
+            elif kfp_auth_provider == SupportedAuthProviders.DEX_LEGACY:
+                is_empty_api_username = len(self.metadata.get('api_username', '').strip()) == 0
+                is_empty_api_password = len(self.metadata.get('api_password', '').strip()) == 0
+                if is_empty_api_username is False and is_empty_api_password:
+                    raise ValueError('A username requires a password '
+                                     'for the selected Kubeflow authentication type.')
+                if is_empty_api_password is False and is_empty_api_username:
+                    raise ValueError('A password requires a username '
+                                     'for the selected Kubeflow authentication type.')
+            elif kfp_auth_provider == SupportedAuthProviders.KUBERNETES_SERVICE_ACCOUNT_TOKEN:
+                if len(self.metadata.get('api_username', '').strip()) > 0 or\
+                   len(self.metadata.get('api_password', '').strip()) > 0:
+                    raise ValueError('Username and password are not supported '
+                                     'for the selected Kubeflow authentication type.')
+
+        # validation of Object Storage authentication constraints
         if self.metadata.get('cos_auth_type') is None:
             # nothing to do
             return

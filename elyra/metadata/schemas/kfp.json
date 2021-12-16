@@ -87,7 +87,7 @@
         },
         "api_username": {
           "title": "Kubeflow Pipelines API Endpoint Username",
-          "description": "The Kubeflow Pipelines API endpoint username",
+          "description": "The Kubeflow Pipelines API endpoint username. This property is required for all authentication types, except NO_AUTHENTICATION and KUBERNETES_SERVICE_ACCOUNT_TOKEN.",
           "type": "string",
           "uihints": {
             "category": "Kubeflow Pipelines"
@@ -95,7 +95,7 @@
         },
         "api_password": {
           "title": "Kubeflow Pipelines API Endpoint Password",
-          "description": "Password for the specified username",
+          "description": "Password for the specified username. This property is required for all authentication types, except NO_AUTHENTICATION and KUBERNETES_SERVICE_ACCOUNT_TOKEN.",
           "type": "string",
           "uihints": {
             "secure": true,
