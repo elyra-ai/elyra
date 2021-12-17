@@ -40,7 +40,12 @@ from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.runtime_type import RuntimeProcessorType
-from elyra.util.git import GithubClient
+from elyra.util.github import GithubClient
+try:
+    from elyra.util.gitlab import GitLabClient
+except ImportError:
+    pass
+from elyra.util.gitutil import SupportedGitTypes
 from elyra.util.path import get_absolute_path
 
 
@@ -94,6 +99,15 @@ be fully qualified (i.e., prefixed with their package names).
         cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
         cos_bucket = runtime_configuration.metadata.get('cos_bucket')
 
+        git_type = SupportedGitTypes.get_instance_by_name(
+            runtime_configuration.metadata.get('git_type',
+                                               SupportedGitTypes.GITHUB.name))
+        if git_type == SupportedGitTypes.GITLAB and SupportedGitTypes.is_enabled(SupportedGitTypes.GITLAB) is False:
+            raise ValueError(
+                "Python package `python-gitlab` is not installed. "
+                "Please install using `elyra[gitlab]` to use GitLab as DAG repository."
+            )
+
         github_api_endpoint = runtime_configuration.metadata.get('github_api_endpoint')
         github_repo_token = runtime_configuration.metadata.get('github_repo_token')
         github_repo = runtime_configuration.metadata.get('github_repo')
@@ -113,28 +127,34 @@ be fully qualified (i.e., prefixed with their package names).
             self.log.debug("Uploading pipeline file: %s", pipeline_filepath)
 
             try:
-                github_client = GithubClient(server_url=github_api_endpoint,
-                                             token=github_repo_token,
-                                             repo=github_repo,
-                                             branch=github_branch)
+                if git_type == SupportedGitTypes.GITHUB:
+                    git_client = GithubClient(server_url=github_api_endpoint,
+                                              token=github_repo_token,
+                                              repo=github_repo,
+                                              branch=github_branch)
+                else:
+                    git_client = GitLabClient(server_url=github_api_endpoint,
+                                              token=github_repo_token,
+                                              project=github_repo,
+                                              branch=github_branch)
 
-            except BaseException as e:
-                raise RuntimeError(f'Unable to create a connection to {github_api_endpoint}: {str(e)}') from e
+            except BaseException as be:
+                raise RuntimeError(f'Unable to create a connection to {github_api_endpoint}: {str(be)}') from be
 
-            github_client.upload_dag(pipeline_filepath, pipeline_name)
+            git_client.upload_dag(pipeline_filepath, pipeline_name)
 
             self.log.info('Waiting for Airflow Scheduler to process and start the pipeline')
 
-            github_url = github_client.get_github_url(api_url=github_api_endpoint,
-                                                      repository_name=github_repo,
-                                                      repository_branch=github_branch)
+            download_url = git_client.get_git_url(api_url=github_api_endpoint,
+                                                  repository_name=github_repo,
+                                                  repository_branch=github_branch)
 
             self.log_pipeline_info(pipeline_name,
-                                   f"pipeline pushed to git: {github_url}",
+                                   f"pipeline pushed to git: {download_url}",
                                    duration=(time.time() - t0_all))
 
             return AirflowPipelineProcessorResponse(
-                git_url=f'{github_url}',
+                git_url=f'{download_url}',
                 run_url=f'{api_endpoint}',
                 object_storage_url=f'{cos_endpoint}',
                 object_storage_path=f'/{cos_bucket}/{pipeline_name}',

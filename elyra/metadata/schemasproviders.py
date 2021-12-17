@@ -37,6 +37,7 @@ from elyra.metadata.schemaspaces import ComponentRegistries  # TODO: deprecated,
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.kfp.kfp_authentication import SupportedAuthProviders
+from elyra.util.gitutil import SupportedGitTypes
 
 
 class ElyraSchemasProvider(SchemasProvider, metaclass=ABCMeta):
@@ -77,6 +78,7 @@ class RuntimesSchemas(ElyraSchemasProvider):
     def get_schemas(self) -> List[Dict]:
 
         kfp_needed = False
+        airflow_schema_present = False
         # determine if both airflow and kfp are needed and note if kfp is needed for later
         runtime_schemas = []
         schemas = self.get_local_schemas_by_schemaspace(Runtimes.RUNTIMES_SCHEMASPACE_ID)
@@ -85,6 +87,8 @@ class RuntimesSchemas(ElyraSchemasProvider):
                 runtime_schemas.append(schema)
                 if schema['name'] == 'kfp':
                     kfp_needed = True
+                elif schema['name'] == 'airflow':
+                    airflow_schema_present = True
             else:
                 self.log.error(f"No entrypoint with name '{schema['name']}' was found in group "
                                f"'elyra.pipeline.processor' to match the schema with the same name. Skipping...")
@@ -112,6 +116,18 @@ class RuntimesSchemas(ElyraSchemasProvider):
                     if schema['properties']['metadata']['properties'].get('auth_type') is not None:
                         schema['properties']['metadata']['properties']['auth_type']['enum'] = auth_type_enum
                         schema['properties']['metadata']['properties']['auth_type']['default'] = auth_type_default
+
+        if airflow_schema_present and\
+           SupportedGitTypes.is_enabled(SupportedGitTypes.GITLAB) is False:
+            # One or more Airflow schema instances exist, which require patching because
+            # GitLab support is not enabled. Remove GitLab from the git_type list enum
+            for schema in runtime_schemas:
+                if schema['name'] == 'airflow':
+                    if schema['properties']['metadata']['properties'].get('git_type') is not None:
+                        git_type_enum: list = schema['properties']['metadata']['properties']['git_type']['enum']
+                        if SupportedGitTypes.GITLAB.name in git_type_enum:
+                            git_type_enum.remove(SupportedGitTypes.GITLAB.name)
+                            schema['properties']['metadata']['properties']['git_type']['enum'] = git_type_enum
 
         return runtime_schemas
 

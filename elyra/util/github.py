@@ -88,9 +88,9 @@ class GithubClient(LoggingConfigurable):
                                'Please validate your runtime configuration details and retry.') from e
 
     @staticmethod
-    def get_github_url(api_url: str,
-                       repository_name: str,
-                       repository_branch: str) -> str:
+    def get_git_url(api_url: str,
+                    repository_name: str,
+                    repository_branch: str) -> str:
         """
         Generates the URL to the location of the pushed DAG
         :param api_url: url of the GitHub API
