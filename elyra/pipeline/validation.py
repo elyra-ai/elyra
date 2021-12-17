@@ -29,7 +29,7 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
@@ -392,7 +392,7 @@ class PipelineValidationManager(SingletonConfigurable):
         """
 
         component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-        components = ComponentCatalog.to_canvas_palette(component_list)
+        components = ComponentCache.to_canvas_palette(component_list)
 
         # Full dict of properties for the operation e.g. current params, optionals etc
         component_property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
@@ -437,21 +437,29 @@ class PipelineValidationManager(SingletonConfigurable):
                                              data={"nodeID": node.id,
                                                    "nodeName": node.label})
                 elif isinstance(node_param, dict) and node_param.get('activeControl') == 'NestedEnumControl':
-                    # TODO: Update this hardcoded check for xcom_push. This parameter is specific to a runtime
-                    # (Airflow). i.e. abstraction for byo validation?
-                    node_param_value = node_param['NestedEnumControl'].get('value')
-                    upstream_node = pipeline_definition.get_node(node_param_value)
-                    xcom_param = upstream_node.get_component_parameter('xcom_push')
-                    if xcom_param:
-                        xcom_value = xcom_param.get('BooleanControl')
-                        if not xcom_value:
-                            response.add_message(severity=ValidationSeverity.Error,
-                                                 message_type="invalidNodeProperty",
-                                                 message="Node contains an invalid input reference. The parent "
-                                                         "node does not have the xcom_push property enabled",
-                                                 data={"nodeID": node.id,
-                                                       "nodeName": node.label,
-                                                       "parentNodeID": upstream_node.label})
+                    if not node_param.get('NestedEnumControl'):
+                        response.add_message(severity=ValidationSeverity.Error,
+                                             message_type="invalidNodeProperty",
+                                             message="Node contains an invalid reference to an node output. Please "
+                                                     "check the node properties are configured properly",
+                                             data={"nodeID": node.id,
+                                                   "nodeName": node.label})
+                    else:
+                        # TODO: Update this hardcoded check for xcom_push. This parameter is specific to a runtime
+                        # (Airflow). i.e. abstraction for byo validation?
+                        node_param_value = node_param['NestedEnumControl'].get('value')
+                        upstream_node = pipeline_definition.get_node(node_param_value)
+                        xcom_param = upstream_node.get_component_parameter('xcom_push')
+                        if xcom_param:
+                            xcom_value = xcom_param.get('BooleanControl')
+                            if not xcom_value:
+                                response.add_message(severity=ValidationSeverity.Error,
+                                                     message_type="invalidNodeProperty",
+                                                     message="Node contains an invalid input reference. The parent "
+                                                             "node does not have the xcom_push property enabled",
+                                                     data={"nodeID": node.id,
+                                                           "nodeName": node.label,
+                                                           "parentNodeID": upstream_node.label})
 
     def _validate_container_image_name(self, node_id: str, node_label: str, image_name: str,
                                        response: ValidationResponse) -> None:
@@ -709,7 +717,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 if node_op == node_type['op']:
                     component: Component = \
                         await PipelineProcessorManager.instance().get_component(pipeline_runtime, node_op)
-                    component_properties = ComponentCatalog.to_canvas_properties(component)
+                    component_properties = ComponentCache.to_canvas_properties(component)
                     return component_properties
 
         return {}

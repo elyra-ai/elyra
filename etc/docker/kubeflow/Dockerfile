@@ -19,19 +19,21 @@
 # Repository: https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter
 FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.4
 
-# Install Elyra with Tekton support ('kfp-tekton') and component examples ('kfp-examples')
-# Customize the extras list as desired
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated legacy-resolver \
-    elyra[kfp-tekton,kfp-examples]==3.3.0
+ARG TAG="dev"
 
-# build jupyter plugins
-RUN jupyter lab build
+# Install Elyra
+# - with KFP Tekton support ('kfp-tekton')
+# - with component examples ('kfp-examples')
+RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
+    elyra[kfp-tekton,kfp-examples]==3.4.0rc1
+ && jupyter lab build \
+ && rm -rf $HOME/.cache/yarn \
+ && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
-# Enable Kubeflow Pipelines examples catalog; this wail fail if 'kfp-examples' extra is not installed
-# Comment out the line below to hide the examples by default
-RUN elyra-metadata install component-catalogs --schema_name=elyra-kfp-examples-catalog --display_name="KFP examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']"
-
-# install - requirements.txt
-COPY --chown=jovyan:users requirements.txt /tmp/requirements.txt
-RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir --use-deprecated=legacy-resolver \
- && rm -f /tmp/requirements.txt
+# Install component examples catalog
+#  - this wail fail if the 'kfp-examples' pip extra is not installed
+RUN elyra-metadata install component-catalogs \
+    --schema_name=elyra-kfp-examples-catalog \
+    --display_name="Kubeflow Pipelines examples" \
+    --runtime_type=KUBEFLOW_PIPELINES \
+    --categories="['examples']"

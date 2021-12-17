@@ -41,8 +41,9 @@ class TypeHintRemover(ast.NodeTransformer):
 
 
 class AirflowComponentParser(ComponentParser):
-    _component_platform: RuntimeProcessorType = RuntimeProcessorType.APACHE_AIRFLOW
     _file_types: List[str] = [".py"]
+
+    component_platform: RuntimeProcessorType = RuntimeProcessorType.APACHE_AIRFLOW
 
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         components: List[Component] = list()
@@ -171,6 +172,7 @@ class AirflowComponentParser(ComponentParser):
                                                   default_control_type=default_control_type,
                                                   control_id=control_id,
                                                   one_of_control_types=one_of_control_types,
+                                                  allow_no_options=True,
                                                   required=required)
             properties.append(component_params)
 

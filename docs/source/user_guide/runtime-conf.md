@@ -97,6 +97,7 @@ elyra-metadata install runtimes \
        --api_password=mypassword \
        --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
+       --cos_auth_type="USER_CREDENTIALS" \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
@@ -121,6 +122,7 @@ elyra-metadata install runtimes \
        --api_password=mynewpassword \
        --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
+       --cos_auth_type="USER_CREDENTIALS" \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
@@ -186,7 +188,7 @@ Example: `anonymous`
 ##### Kubeflow authentication type (auth_type)
 Authentication type Elyra uses to gain access to Kubeflow Pipelines. This setting is required. Supported types are:
 - No authentication (`NO_AUTHENTICATION`).
-- Kubernetes service account token (`KUBERNETES_SERVICE _ACCOUNT_TOKEN`). This authentication type is only supported if Elyra runs as a pod in Kubernetes, e.g. as a Kubeflow notebook server. You must configure a service account token in Kubernetes, as outlined [here](https://www.kubeflow.org/docs/components/pipelines/sdk/connect-api/#multi-user-mode).
+- Kubernetes service account token (`KUBERNETES_SERVICE_ACCOUNT_TOKEN`). This authentication type is only supported if Elyra runs as a pod in Kubernetes, e.g. as a Kubeflow notebook server. You must configure a service account token in Kubernetes, as outlined [here](https://www.kubeflow.org/docs/components/pipelines/sdk/connect-api/#multi-user-mode).
 - DEX configured for static password authentication (`DEX_STATIC_PASSWORDS`). This authentication requires a username and a password.
 - DEX configured for LDAP authentication (`DEX_LDAP`). This authentication requires a username and a  password.
 - DEX (`DEX_LEGACY`). Use this type only if none of the other authentication types applies or if your Kubeflow deployment is not configured for any other listed type. This authentication requires a username and a password.
@@ -263,12 +265,31 @@ Example: `766f7c267519fee7c71d7f96bdf42e646dc65433`
 This section defines the settings for the cloud storage that you want to associate with this runtime configuration.
 
 ##### Cloud Object Storage endpoint (cos_endpoint)
+
 This should be the URL address of your S3-compatible Object Storage. If running an Object Storage Service within a Kubernetes cluster (Minio), you can use the Kubernetes local DNS address. This setting is required.
 
 Example: `https://minio-service.kubeflow:9000`
 
+##### Cloud Object Storage bucket name (cos_bucket)
+
+Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
+
+Example: `test-bucket`
+
+> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
+and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
+Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
+
+##### Cloud Object Storage Authentication Type (cos_auth_type)
+
+Authentication type Elyra uses to gain access to Cloud Object Storage. This setting is required. Supported types are:
+- Username and password (`USER_CREDENTIALS`). This authentication type requires a username and password. Caution: this authentication mechanism exposes the credentials in plain text. When running Elyra on Kubernetes, it is highly recommended to use the `KUBERNETES_SECRET` authentication type instead.
+- Username, password, and Kubernetes secret (`KUBERNETES_SECRET`). This authentication type requires a username, password, and the name of an existing Kubernetes secret in the target runtime environment. Refer to section [Cloud Object Storage Credentials Secret](#cloud-object-storage-credentials-secret) for details.
+- IAM roles for service accounts (`AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS`). Supported for AWS only. Refer to the [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) for details.
+
 ##### Cloud Object Storage Credentials Secret (cos_secret)
-(Optional) Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
+
+Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
 If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
 execute pipelines. This setting is optional but is recommended for use in shared environments to avoid exposing a user's 
 Cloud Object Storage credentials. 
@@ -291,23 +312,17 @@ data:
 ```
 
 ##### Cloud Object Storage username (cos_username)
-Username used to access the Object Storage. This setting is required.
+
+Username used to connect to Object Storage, if credentials are required for the selected authentication type.
 
 Example: `minio`
 
 ##### Cloud Object Storage password (cos_password)
-Password for cos_username. This setting is required.
+
+Password for cos_username, if credentials are required for the selected authentication type.
 
 Example: `minio123`
 
-##### Cloud Object Storage bucket name (cos_bucket)
-Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
-
-Example: `test-bucket`
-
-> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
-and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
-Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
 
 ### Verifying runtime configurations
 

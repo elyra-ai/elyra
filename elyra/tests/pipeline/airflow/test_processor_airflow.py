@@ -25,6 +25,7 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.runtime_type import RuntimeProcessorType
@@ -43,6 +44,7 @@ def processor(setup_factory_data, component_cache_instance):
 
 @pytest.fixture
 def parsed_pipeline(request):
+    ComponentCache.instance().wait_for_all_cache_updates()
     pipeline_resource = _read_pipeline_resource(request.param)
     return PipelineParser().parse(pipeline_json=pipeline_resource)
 
@@ -111,6 +113,7 @@ def parsed_ordered_dict(monkeypatch, processor, parsed_pipeline,
     monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
     monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
     return processor._cc_pipeline(parsed_pipeline, pipeline_name="some-name")
 
