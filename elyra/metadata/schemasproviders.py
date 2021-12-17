@@ -117,17 +117,15 @@ class RuntimesSchemas(ElyraSchemasProvider):
                         schema['properties']['metadata']['properties']['auth_type']['enum'] = auth_type_enum
                         schema['properties']['metadata']['properties']['auth_type']['default'] = auth_type_default
 
-        if airflow_schema_present and\
-           SupportedGitTypes.is_enabled(SupportedGitTypes.GITLAB) is False:
-            # One or more Airflow schema instances exist, which require patching because
-            # GitLab support is not enabled. Remove GitLab from the git_type list enum
+        if airflow_schema_present:
+            # Replace Git Type placeholders
+            git_type_enum = SupportedGitTypes.get_enabled_types()
+            git_type_default = SupportedGitTypes().get_default_type()
             for schema in runtime_schemas:
                 if schema['name'] == 'airflow':
                     if schema['properties']['metadata']['properties'].get('git_type') is not None:
-                        git_type_enum: list = schema['properties']['metadata']['properties']['git_type']['enum']
-                        if SupportedGitTypes.GITLAB.name in git_type_enum:
-                            git_type_enum.remove(SupportedGitTypes.GITLAB.name)
-                            schema['properties']['metadata']['properties']['git_type']['enum'] = git_type_enum
+                        schema['properties']['metadata']['properties']['git_type']['enum'] = git_type_enum
+                        schema['properties']['metadata']['properties']['git_type']['default'] = git_type_default
 
         return runtime_schemas
 
