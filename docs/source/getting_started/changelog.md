@@ -1,5 +1,8 @@
 # Changelog
 
+## Release 3.4.0 - 12/17/2021
+
+
 ## Release 3.4.0rc1 - 12/16/2021
 
 - Update pipeline editor package to 1.5.0 - [#2367](https://github.com/elyra-ai/elyra/pull/2367)
