@@ -46,6 +46,14 @@ describe('Pipeline Editor tests', () => {
     cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
       failOnNonZeroExit: false
     });
+
+    // delete example catalogs used for testing
+    cy.exec(
+      'elyra-metadata remove component-catalogs --name=example_components',
+      {
+        failOnNonZeroExit: false
+      }
+    );
   });
 
   // TODO: Fix Test is actually failing
@@ -472,7 +480,7 @@ describe('Pipeline Editor tests', () => {
 
   it('should export pipeline as python dsl', () => {
     // Create runtime configuration
-    cy.createRuntimeConfig({ type: 'kfp' });
+    cy.createRuntimeConfig();
 
     // go back to file browser
     cy.findByRole('tab', { name: /file browser/i }).click();
@@ -485,7 +493,7 @@ describe('Pipeline Editor tests', () => {
     // check label for generic pipeline
     cy.get('.jp-Dialog-header').contains('Export pipeline');
 
-    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
 
     cy.findByLabelText(/runtime configuration/i)
       .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
@@ -493,7 +501,7 @@ describe('Pipeline Editor tests', () => {
 
     // overwrite existing helloworld.py file
     cy.findByLabelText(/export pipeline as/i)
-      .select('KFP domain-specific language Python code')
+      .select('Airflow domain-specific language Python code')
       .should('have.value', 'py');
 
     cy.findByLabelText(/replace if file already exists/i)
@@ -544,27 +552,22 @@ describe('Pipeline Editor tests', () => {
     });
   });
 
-  /**
-   * Runtime-specific components are no longer included by default
-   * as of PR2286: https://github.com/elyra-ai/elyra/pull/2286.
-   *
-   * These tests will be revisited at a later time. See issue for
-   * more: https://github.com/elyra-ai/elyra/issues/2298
-   *
   it('kfp pipeline should display custom components', () => {
+    cy.createExampleComponentCatalog({ type: 'kfp' });
     cy.createPipeline({ type: 'kfp' });
-    cy.expandPaletteCategory({ type: 'kfp' });
+    cy.get('.palette-flyout-category[value="examples"]').click();
 
     const kfpCustomComponents = [
-      'local-directory-catalog\\:737915b826e9', // filter text
-      'local-directory-catalog\\:61e6f4141f65' // run notebook using papermill
+      'elyra-kfp-examples-catalog\\:61e6f4141f65', // run notebook using papermill
+      'elyra-kfp-examples-catalog\\:737915b826e9', // filter text
+      'elyra-kfp-examples-catalog\\:a08014f9252f', // download data
+      'elyra-kfp-examples-catalog\\:d68ec7fcdf46' // calculate data hash
     ];
 
     kfpCustomComponents.forEach(component => {
       cy.get(`#${component}`).should('exist');
     });
   });
-  **/
 
   it('kfp pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'kfp' });
@@ -581,30 +584,24 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  /**
-   * Runtime-specific components are no longer included by default
-   * as of PR2286: https://github.com/elyra-ai/elyra/pull/2286.
-   *
-   * These tests will be revisited at a later time. See issue for
-   * more: https://github.com/elyra-ai/elyra/issues/2298
-   *
   it('airflow pipeline should display custom components', () => {
+    cy.createExampleComponentCatalog({ type: 'airflow' });
     cy.createPipeline({ type: 'airflow' });
-    cy.expandPaletteCategory({ type: 'airflow' });
+    cy.get('.palette-flyout-category[value="examples"]').click();
 
     const airflowCustomComponents = [
-      'url-catalog\\:49f8e61b78c3', // bash operator
-      'url-catalog\\:8bef428ea3cd', // email operator
-      'url-catalog\\:e97030fb448a', // http operator
-      'url-catalog\\:ff0d51b70719', // spark sql operator
-      'url-catalog\\:2756314f3ff5' // spark submit operator
+      'elyra-airflow-examples-catalog\\:3a55d015ea96', // bash operator
+      'elyra-airflow-examples-catalog\\:a043648d3897', // email operator
+      'elyra-airflow-examples-catalog\\:b94cd49692e2', // http operator
+      'elyra-airflow-examples-catalog\\:3b639742748f', // spark sql operator
+      'elyra-airflow-examples-catalog\\:b29c25ec8bd6', // spark submit operator
+      'elyra-airflow-examples-catalog\\:16a204f716a2' // slack post operator
     ];
 
     airflowCustomComponents.forEach(component => {
       cy.get(`#${component}`).should('exist');
     });
   });
-  **/
 
   it('airflow pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'airflow' });
@@ -616,6 +613,43 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /export pipeline/i }).click();
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
     cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('generic pipeline should display expected export options', () => {
+    cy.createPipeline();
+    cy.savePipeline();
+
+    // Test Airflow export options
+    cy.createRuntimeConfig();
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Validate all export options are available for airflow
+    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
+    cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Delete existing runtime configuration (test runtimes always use the same name)
+    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+      failOnNonZeroExit: false
+    });
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Test KFP export options
+    cy.findByRole('tab', { name: /runtimes/i }).click();
+    cy.createRuntimeConfig({ type: 'kfp' });
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Validate all export options are available for kfp
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+    cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
+    cy.findByRole('option', { name: /python/i }).should('not.exist');
 
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();

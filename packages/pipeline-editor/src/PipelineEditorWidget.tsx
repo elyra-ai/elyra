@@ -284,6 +284,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           PathExt.extname(pipeline_path)
         );
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
+        pipelineJson.pipelines[0].app_data.properties.runtime = runtimeDisplayName;
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -295,7 +296,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [runtimeImages]);
+  }, [runtimeImages, runtimeDisplayName]);
 
   const onChange = useCallback(
     (pipelineJson: any): void => {
@@ -368,6 +369,7 @@ const PipelineWrapper: React.FC<IProps> = ({
             try {
               const migratedPipeline = migrate(
                 pipelineJSON,
+                migrationPalette,
                 pipeline => {
                   // function for updating to relative paths in v2
                   // uses location of filename as expected in v1
@@ -378,8 +380,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                     );
                   }
                   return pipeline;
-                },
-                migrationPalette
+                }
               );
               contextRef.current.model.fromString(
                 JSON.stringify(migratedPipeline, null, 2)
@@ -587,15 +588,17 @@ const PipelineWrapper: React.FC<IProps> = ({
         allowLocal: actionType === 'run'
       });
 
-      let title = `${actionType} pipeline`;
-      if (type !== undefined) {
-        title = `${actionType} pipeline for ${runtimeDisplayName}`;
+      let title =
+        type !== undefined
+          ? `${actionType} pipeline for ${runtimeDisplayName}`
+          : `${actionType} pipeline`;
 
+      if (actionType === 'export' || type !== undefined) {
         if (!isRuntimeTypeAvailable(runtimeData, type)) {
           const res = await RequestErrors.noMetadataError(
             'runtime',
             `${actionType} pipeline.`,
-            runtimeDisplayName
+            type !== undefined ? runtimeDisplayName : undefined
           );
 
           if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {

@@ -15,7 +15,10 @@
           "app_data": {
             "component_parameters": {
               "component_description": "Filter input text according to the given regex pattern using shell and grep.",
-              "pattern": ".*",
+              "pattern": {
+                "activeControl": "StringControl",
+                "StringControl": ".*"
+              },
               "output_filtered_text": "",
               "text": {
                 "value": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
@@ -74,9 +77,15 @@
           "op": "elyra-kfp-examples-catalog:a08014f9252f",
           "app_data": {
             "component_parameters": {
-              "curl_options": "--location",
+              "curl_options": {
+                "activeControl": "StringControl",
+                "StringControl": "--location"
+              },
               "output_data": "",
-              "url": "https://raw.githubusercontent.com/elyra-ai/examples/master/pipelines/kubeflow_pipelines_component_examples/filter_file_component/data.csv"
+              "url": {
+                "activeControl": "StringControl",
+                "StringControl": "https://raw.githubusercontent.com/elyra-ai/examples/master/pipelines/kubeflow_pipelines_component_examples/filter_file_component/data.csv"
+              }
             },
             "label": "",
             "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
@@ -122,7 +131,10 @@
           "op": "elyra-kfp-examples-catalog:d68ec7fcdf46",
           "app_data": {
             "component_parameters": {
-              "hash_algorithm": "SHA256",
+              "hash_algorithm": {
+                "activeControl": "StringControl",
+                "StringControl": "SHA256"
+              },
               "output_hash": "",
               "data": {
                 "value": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
@@ -172,7 +184,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 6,
+        "version": 7,
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "name": "kf_invalid_inputpath_missing_connection"

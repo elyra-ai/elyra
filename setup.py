@@ -82,7 +82,7 @@ setup_args = dict(
         'jupyterlab-git~=0.32',
         'jupyterlab-lsp>=3.8.0',
         'jupyter-resource-usage>=0.5.1',
-        'minio>=5.0.7,<7.0.0',
+        'minio>=7.0.0,<8.0.0',
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1',
         'nbdime~=3.1',
@@ -99,8 +99,9 @@ setup_args = dict(
         'watchdog>=2.1.3',
         'websocket-client',
         'yaspin',
+        'astunparse>=1.6.3',
         # KFP runtime dependencies
-        'kfp>=1.6.3<2.0,!=1.7.2',
+        'kfp>=1.7.0,<2.0,!=1.7.2',
         # Airflow runtime dependencies
         'pygithub',
         'black',

@@ -24,12 +24,14 @@ import yaml
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.component import ControllerMap
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
 class KfpComponentParser(ComponentParser):
-    _component_platform: RuntimeProcessorType = RuntimeProcessorType.KUBEFLOW_PIPELINES
     _file_types: List[str] = [".yaml"]
+
+    component_platform: RuntimeProcessorType = RuntimeProcessorType.KUBEFLOW_PIPELINES
 
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         # Get YAML object from component definition
@@ -100,7 +102,10 @@ class KfpComponentParser(ComponentParser):
                     required = data_type_info.required
 
                 # Get value if provided
-                value = param.get('default', '')
+                raw_value = param.get('default', '')
+
+                # Adjust any double quoted default values to use single quotes to avoid json parsing errors
+                value = raw_value.replace('"', '\'')
 
                 # Set parameter ref (id) and display name
                 ref_name = param.get('name').lower().replace(' ', '_')
@@ -118,15 +123,25 @@ class KfpComponentParser(ComponentParser):
                     # Add sentence to description to clarify that parameter is an output
                     description = f"This is an output of this component. {description}"
 
+                one_of_control_types = data_type_info.one_of_control_types
+                default_control_type = data_type_info.control_id
+                if data_type_info.data_type == 'inputvalue':
+                    data_type_info.control_id = "OneOfControl"
+                    one_of_control_types = [(default_control_type, data_type_info.default_data_type,
+                                             ControllerMap[default_control_type].value),
+                                            ("NestedEnumControl", "inputpath",
+                                             ControllerMap["NestedEnumControl"].value)]
+
                 component_params = ComponentParameter(id=ref_name,
                                                       name=display_name,
                                                       data_type=data_type_info.data_type,
+                                                      default_data_type=data_type_info.default_data_type,
                                                       value=(value or data_type_info.default_value),
                                                       description=description,
                                                       control=data_type_info.control,
                                                       control_id=data_type_info.control_id,
-                                                      one_of_control_types=data_type_info.one_of_control_types,
-                                                      default_control_type=data_type_info.control_id,
+                                                      one_of_control_types=one_of_control_types,
+                                                      default_control_type=default_control_type,
                                                       required=required)
 
                 properties.append(component_params)
@@ -193,18 +208,22 @@ class KfpComponentParser(ComponentParser):
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.
-
         """
         data_type_info = super().determine_type_information(parsed_type)
+
+        # By default, original data type(determined by parent) is stored as the `default_data_type`
+        # and then overridden with Kubeflow Pipeline's meta-type, in this case, all values are
+        # considered as `inputValues` unless the parent method is unable to determine the
+        # type e.g. kfp path-based types
+        data_type_info.default_data_type = data_type_info.data_type
+        data_type_info.data_type = 'inputvalue'
+
         if data_type_info.undetermined:
             if 'inputpath' in data_type_info.parsed_data:
                 data_type_info.data_type = 'inputpath'
                 data_type_info.control_id = "NestedEnumControl"
                 data_type_info.undetermined = False
                 data_type_info.default_value = None
-            elif 'inputvalue' in data_type_info.parsed_data:
-                data_type_info.data_type = 'inputvalue'
-                data_type_info.undetermined = False
             elif 'outputpath' in data_type_info.parsed_data:
                 data_type_info.data_type = 'outputpath'
                 data_type_info.required = False

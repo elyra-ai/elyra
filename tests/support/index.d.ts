@@ -17,6 +17,9 @@ declare namespace Cypress {
   // eslint-disable-next-line @typescript-eslint/interface-name-prefix
   interface Chainable {
     createRuntimeConfig(options?: { type?: 'kfp' }): Chainable<void>;
+    createExampleComponentCatalog(options?: {
+      type?: 'kfp' | 'airflow';
+    }): Chainable<void>;
     deleteFile(fileName: string): Chainable<void>;
     openDirectory(fileName: string): Chainable<void>;
     addFileToPipeline(fileName: string): Chainable<void>;
@@ -30,9 +33,7 @@ declare namespace Cypress {
     bootstrapFile(fileName: string): Chainable<void>;
     resetJupyterLab(): Chainable<void>;
     checkTabMenuOptions(fileType: string): Chainable<void>;
-    expandPaletteCategory(options?: {
-      type?: 'kfp' | 'airflow' | 'generic';
-    }): Chainable<void>;
     closeTab(index: number): Chainable<void>;
+    createNewScriptFile(language: string): Chainable<void>;
   }
 }

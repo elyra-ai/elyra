@@ -172,7 +172,7 @@ def update_version_to_release() -> None:
             r"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/")
 
-        check_run(["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes"], cwd=config.source_dir)
+        check_run(["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"], cwd=config.source_dir)
         check_run(["yarn", "version", "--new-version", new_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
 
     except Exception as ex:
@@ -248,7 +248,7 @@ def update_version_to_dev() -> None:
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
             rf"https://elyra.readthedocs.io/en/latest/")
 
-        check_run(["lerna", "version", dev_npm_version, "--no-git-tag-version", "--no-push", "--yes"], cwd=config.source_dir)
+        check_run(["lerna", "version", dev_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"], cwd=config.source_dir)
         check_run(["yarn", "version", "--new-version", dev_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
 
     except Exception as ex:

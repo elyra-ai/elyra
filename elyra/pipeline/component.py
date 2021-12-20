@@ -15,9 +15,11 @@
 #
 from abc import abstractmethod
 from enum import Enum
+from importlib import import_module
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -42,6 +44,8 @@ class ComponentParameter(object):
                  control_id: str = "StringControl",
                  one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
                  default_control_type: str = "StringControl",
+                 default_data_type: str = "string",
+                 allow_no_options: Optional[bool] = False,
                  items: Optional[List[str]] = None):
         """
         :param id: Unique identifier for a property
@@ -72,6 +76,8 @@ class ComponentParameter(object):
         self._control_id = control_id
         self._one_of_control_types = one_of_control_types
         self._default_control_type = default_control_type
+        self._default_data_type = default_data_type
+        self._allow_no_options = allow_no_options
         self._items = items or []
 
         # Check description for information about 'required' parameter
@@ -133,6 +139,18 @@ class ComponentParameter(object):
             first opening the component's parameters in the pipeline editor.
         """
         return self._default_control_type
+
+    @property
+    def default_data_type(self) -> str:
+        """
+            The `default_data_type` is the first data type that is assigned to this specific parameter
+            after parsing the component specification.
+        """
+        return self._default_data_type
+
+    @property
+    def allow_no_options(self) -> bool:
+        return self._allow_no_options
 
     @property
     def items(self) -> List[str]:
@@ -277,12 +295,24 @@ class Component(object):
 
 
 class ComponentParser(LoggingConfigurable):  # ABC
-    _component_platform: RuntimeProcessorType = None
+    component_platform: RuntimeProcessorType = None
     _file_types: List[str] = None
+    _parser_class_map: Dict[str, str] = {
+        'APACHE_AIRFLOW': 'elyra.pipeline.airflow.component_parser_airflow:AirflowComponentParser',
+        'KUBEFLOW_PIPELINES': 'elyra.pipeline.kfp.component_parser_kfp:KfpComponentParser'
+    }
 
-    @property
-    def component_platform(self) -> RuntimeProcessorType:
-        return self._component_platform
+    @classmethod
+    def create_instance(cls, platform: RuntimeProcessorType) -> 'ComponentParser':
+        """
+        Class method that creates the appropriate instance of ComponentParser based on platform type name.
+        """
+        try:
+            module_name, class_name = cls._parser_class_map[platform.name].split(':')
+            module = import_module(module_name)
+            return getattr(module, class_name)()
+        except Exception as e:
+            raise RuntimeError(f"Could not get appropriate ComponentParser class: {e}")
 
     @property
     def file_types(self) -> List[str]:
@@ -324,12 +354,15 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 data_type = option
                 if data_type in ['dict', 'dictionary']:
                     data_type = "dictionary"
+                    default_value = {}
                 elif data_type in ['list', 'set', 'array', 'arr']:
                     data_type = "list"
+                    default_value = []
 
                 # Since we know the type, create our return value and bail
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type=data_type)
+                                                                       data_type=data_type,
+                                                                       default_value=default_value)
                 break
         else:  # None of the container types were found...
             # Standardize type names
@@ -342,6 +375,12 @@ class ComponentParser(LoggingConfigurable):  # ABC
                                                                        control_id="NumberControl",
                                                                        default_control_type="NumberControl",
                                                                        default_value=0)
+            elif any(word in parsed_type_lowered for word in ['float']):
+                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
+                                                                       data_type="number",
+                                                                       control_id="NumberControl",
+                                                                       default_control_type="NumberControl",
+                                                                       default_value=0.0)
             elif any(word in parsed_type_lowered for word in ['bool', 'boolean']):
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
                                                                        data_type="boolean",
@@ -358,12 +397,14 @@ class ComponentParser(LoggingConfigurable):  # ABC
     @staticmethod
     def create_data_type_info(parsed_data: str,
                               data_type: str = 'string',
+                              default_data_type: str = 'string',
                               data_label: str = None,
                               default_value: Any = '',
                               required: bool = True,
                               one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
                               control_id: str = 'StringControl',
                               default_control_type: str = 'StringControl',
+                              allow_no_options: Optional[bool] = False,
                               control: str = 'custom',
                               undetermined: bool = False) -> SimpleNamespace:
         """Returns a SimpleNamespace instance that contains the current state of data-type parsing.
@@ -378,12 +419,14 @@ class ComponentParser(LoggingConfigurable):  # ABC
         """
         dti = SimpleNamespace(parsed_data=parsed_data,
                               data_type=data_type,
+                              default_data_type=default_data_type,
                               data_label=data_label or ControllerMap[control_id].value,
                               default_value=default_value,
                               required=required,
                               default_control_type=default_control_type,
                               one_of_control_types=one_of_control_types,
                               control_id=control_id,
+                              allow_no_options=allow_no_options,
                               control=control,
                               undetermined=undetermined)
         return dti

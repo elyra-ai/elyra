@@ -17,7 +17,7 @@ limitations under the License.
 -->
 ## Tutorials and examples
 
-The community maintains a set of official tutorials and examples for many Elyra features.
+The community maintains a set of official tutorials and examples for many Elyra features. [Articles, blog posts, and other resources that are not part of the Elyra documentation are located here](published-resources.md).
 
 ### Tutorials
 

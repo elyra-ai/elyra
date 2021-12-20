@@ -19,15 +19,46 @@
 # Repository: https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter
 FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.4
 
-ARG TAG="dev"
+USER root
 
-# Install Elyra
-# - with KFP Tekton support ('kfp-tekton')
-# - with component examples ('kfp-examples')
-RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
-    elyra[kfp-tekton,kfp-examples]==3.4.0
- && jupyter lab build \
+# Install build dependencies
+RUN apt-get -yq update \
+ && apt-get -yq install --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    sudo \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install NodeJS
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
+ && apt-get -yq update \
+ && apt-get -yq install --no-install-recommends \
+    nodejs \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install Yarn
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+ && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
+ && apt-get -yq update \
+ && apt-get -yq install --no-install-recommends \
+    yarn \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+USER ${NB_USER}
+
+# Copy Elyra source code
+COPY --chown=${NB_USER} --chmod=0755 elyra /tmp/elyra/
+
+# Install Elyra from source
+RUN cd /tmp/elyra \
+ && make install-all \
  && rm -rf $HOME/.cache/yarn \
+ && rm -rf $HOME/.cache/Cypress \
+ && rm -rf /tmp/elyra/node_modules \
  && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
 # Install component examples catalog

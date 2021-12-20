@@ -11,10 +11,9 @@
     {% endif %}
     {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
         {{ property.value|lower }}
-    {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
+    {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or
+            property.data_type|lower == "number" or property.data_type|lower == "float" %}
         {{ property.value }}
-    {% elif property.data_type|lower == "dict" or property.data_type|lower == "dictionary" %}
-        "{% raw %}{{% endraw %}{{ property.value }}{% raw %}}{% endraw %}"
     {% else %}
         "{{ property.value }}"
     {% endif %}
@@ -91,7 +90,12 @@
                     "format": "{{ control_data_type }}"
             {% if control == 'NestedEnumControl' %}
                     ,
-                    "allownooptions": false
+                    "allownooptions":
+                {% if property.allow_no_options %}
+                    true
+                {% else %}
+                    false
+                {% endif %}
             {% endif %}
                   }
             {% if loop.index != loop.length %}

@@ -27,7 +27,7 @@ from typing import Set
 from typing import Union
 
 import entrypoints
-from minio.error import SignatureDoesNotMatch
+from minio.error import S3Error
 from traitlets.config import Bool
 from traitlets.config import LoggingConfigurable
 from traitlets.config import SingletonConfigurable
@@ -36,8 +36,7 @@ from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -78,18 +77,6 @@ class PipelineProcessorRegistry(SingletonConfigurable):
             return self._processors[processor_name]
         else:
             raise RuntimeError(f"Could not find pipeline processor '{processor_name}'")
-
-    # TODO: This should move to ComponentCatalog once made a singleton
-    def get_catalog(self, processor_type: str):
-        # This should be updated when we decouple the catalog from the processors.  For now
-        # (and because there will be few processors) we will just walk the list until we find
-        # a processor with a matching type, then confirm the instances is RuntimePipelineProcessor.
-        for name, processor in self._processors.items():
-            if processor.type.name == processor_type and isinstance(processor, RuntimePipelineProcessor):
-                runtime_processor: RuntimePipelineProcessor = processor
-                return runtime_processor.component_catalog
-        else:
-            raise RuntimeError(f"Could not find component catalog associated with type '{processor_type}'!")
 
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
@@ -213,8 +200,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     _type: RuntimeProcessorType = None
     _name: str = None
 
-    _component_catalog: ComponentCatalog = None
-
     root_dir = Unicode(allow_none=True)
 
     enable_pipeline_info = Bool(config=True,
@@ -242,11 +227,10 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
         Retrieve components common to all runtimes
         """
-        components: List[Component] = ComponentCatalog.get_generic_components()
+        components: List[Component] = ComponentCache.get_generic_components()
 
         # Retrieve runtime-specific components
-        if self._component_catalog:
-            components.extend(self._component_catalog.get_all_components())
+        components.extend(ComponentCache.instance().get_all_components(platform=self._type))
 
         return components
 
@@ -256,9 +240,9 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         """
 
         if component_id not in ('notebook', 'python-script', 'r-script'):
-            return self._component_catalog.get_component(component_id=component_id)
+            return ComponentCache.instance().get_component(platform=self._type, component_id=component_id)
 
-        return ComponentCatalog.get_generic_component(component_id)
+        return ComponentCache.get_generic_component(component_id)
 
     @abstractmethod
     def process(self, pipeline) -> PipelineProcessorResponse:
@@ -349,17 +333,8 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
 class RuntimePipelineProcessor(PipelineProcessor):
 
-    @property
-    def component_catalog(self) -> ComponentCatalog:
-        return self._component_catalog
-
-    def __init__(self, root_dir: str, component_parser: ComponentParser, **kwargs):
+    def __init__(self, root_dir: str, **kwargs):
         super().__init__(root_dir, **kwargs)
-
-        # TODO - we should look into decoupling the catalog/parser from the proessor
-        # TODO - make ComponentCatalog a singleton that loads all component catalogs
-        # associated with the types corresponding to each registered runtime processor.
-        self._component_catalog = ComponentCatalog(component_parser, parent=self.parent)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)
@@ -418,13 +393,35 @@ class RuntimePipelineProcessor(PipelineProcessor):
                            format(cos_endpoint), exc_info=True)
             raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
                                "check your object storage settings. ".format(cos_endpoint)) from ex
-        except SignatureDoesNotMatch as ex:
-            raise RuntimeError("Connection was refused due to incorrect Object Storage credentials. " +
-                               "Please validate your runtime configuration details and retry.") from ex
+        except S3Error as ex:
+            msg_prefix = f'Error connecting to object storage: {ex.code}.'
+            if ex.code == "SignatureDoesNotMatch":
+                # likely cause: incorrect password
+                raise RuntimeError(f"{msg_prefix} Verify the password "
+                                   f"in runtime configuration '{runtime_configuration.display_name}' "
+                                   "and try again.") from ex
+            elif ex.code == 'InvalidAccessKeyId':
+                # likely cause: incorrect user id
+                raise RuntimeError(f"{msg_prefix} Verify the username "
+                                   f"in runtime configuration '{runtime_configuration.display_name}' "
+                                   "and try again.") from ex
+            else:
+                raise RuntimeError(f"{msg_prefix} Verify "
+                                   f"runtime configuration '{runtime_configuration.display_name}' "
+                                   "and try again.") from ex
         except BaseException as ex:
             self.log.error("Error uploading artifacts to object storage for operation: {}".
                            format(operation.name), exc_info=True)
             raise ex from ex
+
+    def _verify_cos_connectivity(self, runtime_configuration) -> None:
+        self.log.debug('Verifying cloud storage connectivity using runtime configuration '
+                       f"'{runtime_configuration.display_name}'.")
+        try:
+            CosClient(runtime_configuration)
+        except Exception as ex:
+            raise RuntimeError(f'Error connecting to cloud storage: {ex}. Update runtime configuration '
+                               f'\'{runtime_configuration.display_name}\' and try again.')
 
     def _get_metadata_configuration(self, schemaspace, name=None):
         """
@@ -449,17 +446,31 @@ class RuntimePipelineProcessor(PipelineProcessor):
         """
 
         envs: Dict = operation.env_vars_as_dict(logger=self.log)
-        envs['ELYRA_RUNTIME_ENV'] = self.name
+        envs["ELYRA_RUNTIME_ENV"] = self.name
 
-        if 'cos_secret' not in kwargs or not kwargs['cos_secret']:
-            envs['AWS_ACCESS_KEY_ID'] = kwargs['cos_username']
-            envs['AWS_SECRET_ACCESS_KEY'] = kwargs['cos_password']
-        else:  # ensure the "access-key" envs are NOT present...
-            envs.pop('AWS_ACCESS_KEY_ID', None)
-            envs.pop('AWS_SECRET_ACCESS_KEY', None)
+        # set environment variables for Minio/S3 access, in the following order of precedence:
+        #  1. use `cos_secret`
+        #  2. use `cos_username` and `cos_password`
+        if "cos_secret" in kwargs and kwargs["cos_secret"]:
+            # ensure the AWS_ACCESS_* envs are NOT set
+            envs.pop("AWS_ACCESS_KEY_ID", None)
+            envs.pop("AWS_SECRET_ACCESS_KEY", None)
+        else:
+            # set AWS_ACCESS_KEY_ID, if defined
+            if "cos_username" in kwargs and kwargs["cos_username"]:
+                envs["AWS_ACCESS_KEY_ID"] = kwargs["cos_username"]
+            else:
+                envs.pop("AWS_ACCESS_KEY_ID", None)
+
+            # set AWS_SECRET_ACCESS_KEY, if defined
+            if "cos_password" in kwargs and kwargs["cos_password"]:
+                envs["AWS_SECRET_ACCESS_KEY"] = kwargs["cos_password"]
+            else:
+                envs.pop("AWS_SECRET_ACCESS_KEY", None)
 
         # Convey pipeline logging enablement to operation
-        envs['ELYRA_ENABLE_PIPELINE_INFO'] = str(self.enable_pipeline_info)
+        envs["ELYRA_ENABLE_PIPELINE_INFO"] = str(self.enable_pipeline_info)
+
         return envs
 
     def _process_dictionary_value(self, value: str) -> Union[Dict, str]:

@@ -65,6 +65,7 @@ class FileOpBase(ABC):
     def __init__(self, **kwargs: Any) -> None:
         """Initializes the FileOpBase instance"""
         import minio
+        from minio.credentials import providers
 
         self.filepath = kwargs['filepath']
         self.input_params = kwargs or []
@@ -74,10 +75,28 @@ class FileOpBase(ABC):
         # Infer secure from the endpoint's scheme.
         self.secure = self.cos_endpoint.scheme == 'https'
 
-        self.cos_client = minio.Minio(self.cos_endpoint.netloc,
-                                      access_key=os.getenv('AWS_ACCESS_KEY_ID'),
-                                      secret_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-                                      secure=self.secure)
+        # get minio credentials provider
+        if "cos-user" in self.input_params and "cos-password" in self.input_params:
+            cred_provider = providers.StaticProvider(
+                access_key=self.input_params.get("cos-user"),
+                secret_key=self.input_params.get("cos-password"),
+            )
+        elif "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ:
+            cred_provider = providers.EnvAWSProvider()
+        elif "AWS_ROLE_ARN" in os.environ and "AWS_WEB_IDENTITY_TOKEN_FILE" in os.environ:
+            cred_provider = providers.IamAwsProvider()
+        else:
+            raise RuntimeError(
+                "No minio credentials provider can be initialised for current configs. "
+                "Please validate your runtime configuration details and retry."
+            )
+
+        # get minio client
+        self.cos_client = minio.Minio(
+            self.cos_endpoint.netloc,
+            secure=self.secure,
+            credentials=cred_provider
+        )
 
     @abstractmethod
     def execute(self) -> None:

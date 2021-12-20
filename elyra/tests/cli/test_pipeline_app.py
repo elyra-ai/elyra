@@ -327,7 +327,6 @@ def test_validate_with_kfp_components(kfp_runtime_instance, component_cache_inst
     pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
 
     result = runner.invoke(pipeline, ['validate', pipeline_file_path, '--runtime-config', kfp_runtime_instance])
-
     assert "Validating pipeline..." in result.output
     assert result.exit_code == 0
 
