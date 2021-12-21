@@ -18,9 +18,15 @@ const pipelineProperties = {
   current_parameters: {
     name: '',
     runtime: '',
+    schedule_interval: '',
     description: ''
   },
-  parameters: [{ id: 'name' }, { id: 'runtime' }, { id: 'description' }],
+  parameters: [
+    { id: 'name' },
+    { id: 'runtime' },
+    { id: 'schedule_interval' },
+    { id: 'description' }
+  ],
   uihints: {
     id: 'nodeProperties',
     parameter_info: [
@@ -35,6 +41,19 @@ const pipelineProperties = {
         custom_control_id: 'DisplayControl',
         parameter_ref: 'runtime',
         label: { default: 'Pipeline Runtime' }
+      },
+      {
+        control: 'custom',
+        custom_control_id: 'StringControl',
+        parameter_ref: 'schedule_interval',
+        label: {
+          default:
+            'Pipeline Schedule Interval(CRON expression, once if left empty)'
+        },
+        data: {
+          placeholder: '0 0 * * *',
+          format: 'multiline'
+        }
       },
       {
         control: 'custom',
@@ -61,6 +80,11 @@ const pipelineProperties = {
             id: 'runtime',
             type: 'controls',
             parameter_refs: ['runtime']
+          },
+          {
+            id: 'schedule_interval',
+            type: 'controls',
+            parameter_refs: ['schedule_interval']
           },
           {
             id: 'description',

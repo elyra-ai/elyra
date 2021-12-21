@@ -57,11 +57,14 @@ class PipelineParser(LoggingConfigurable):
 
         description = primary_pipeline.get_property('description')
 
+        schedule_interval = primary_pipeline.get_property('schedule_interval')
+
         pipeline_object = Pipeline(id=primary_pipeline.id,
                                    name=primary_pipeline.name,
                                    runtime=runtime,
                                    runtime_config=runtime_config,
                                    source=source,
+                                   schedule_interval=schedule_interval,
                                    description=description)
         self._nodes_to_operations(pipeline_definition, pipeline_object, primary_pipeline.nodes)
         return pipeline_object

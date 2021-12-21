@@ -318,6 +318,7 @@ class Pipeline(object):
                  runtime: str,
                  runtime_config: str,
                  source: Optional[str] = None,
+                 schedule_interval: Optional[str] = None,
                  description: Optional[str] = None):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -328,7 +329,8 @@ class Pipeline(object):
                         e.g. kfp OR airflow
         :param runtime_config: Runtime configuration that should be used to submit the pipeline to execution
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
-        :description: Pipeline description
+        :param schedule_interval: The pipeline schedule interval
+        :param description: Pipeline description
         """
 
         if not name:
@@ -340,6 +342,7 @@ class Pipeline(object):
 
         self._id = id
         self._name = name
+        self._schedule_interval = schedule_interval
         self._description = description
         self._source = source
         self._runtime = runtime
@@ -383,11 +386,19 @@ class Pipeline(object):
         """
         return self._description
 
+    @property
+    def schedule_interval(self) -> Optional[str]:
+        """
+        Pipeline schedule interval
+        """
+        return self._schedule_interval
+
     def __eq__(self, other: 'Pipeline') -> bool:
         if isinstance(self, other.__class__):
             return self.id == other.id and \
                 self.name == other.name and \
                 self.source == other.source and \
+                self.schedule_interval == other.schedule_interval and \
                 self.description == other.description and \
                 self.runtime == other.runtime and \
                 self.runtime_config == other.runtime_config and \
