@@ -69,12 +69,7 @@ export const showFormDialog = async (
         };
 
         // Get dialog default action button
-        const defaultButtonIndex =
-          options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
-        const defaultButton = dialog.node
-          .querySelector('.jp-Dialog-footer')
-          ?.getElementsByTagName('button')[defaultButtonIndex]!;
-
+        const defaultButton = getDefaultActionButton(options, dialog.node);
         defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
 
         requiredFields.forEach((element: any) => {
@@ -108,6 +103,30 @@ export const showFormDialog = async (
           requiredFields,
           defaultButton
         );
+      } else {
+        // Validate numeric input fields
+        const inputElements = Array.from(
+          dialogBody.node.getElementsByTagName('input')
+        );
+
+        inputElements.length &&
+          inputElements.forEach((element: any) => {
+            if (element.type === 'number') {
+              const defaultButton = getDefaultActionButton(
+                options,
+                dialog.node
+              );
+              defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+
+              element.addEventListener('keyup', (event: Event) => {
+                Number(element.value.trim()) < 0
+                  ? disableDialogButton(defaultButton)
+                  : enableDialogButton(defaultButton);
+              });
+
+              // TODO: handle case of pre-populated field with invalid value
+            }
+          });
       }
     }
   }
@@ -141,4 +160,15 @@ const handleAllFieldsValidation = (
   fieldsValidated.size === requiredFields.length
     ? enableDialogButton(button)
     : disableDialogButton(button);
+};
+
+const getDefaultActionButton = (
+  options: Partial<Dialog.IOptions<any>>,
+  node: HTMLElement
+): HTMLButtonElement => {
+  const defaultButtonIndex =
+    options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
+  return node
+    .querySelector('.jp-Dialog-footer')
+    ?.getElementsByTagName('button')[defaultButtonIndex]!;
 };
