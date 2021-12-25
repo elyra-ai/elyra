@@ -284,6 +284,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           PathExt.extname(pipeline_path)
         );
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
+        pipelineJson.pipelines[0].app_data.properties.runtime = runtimeDisplayName;
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -295,7 +296,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [runtimeImages]);
+  }, [runtimeImages, runtimeDisplayName]);
 
   const onChange = useCallback(
     (pipelineJson: any): void => {

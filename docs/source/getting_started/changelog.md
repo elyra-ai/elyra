@@ -1,5 +1,14 @@
 # Changelog
 
+## Release 3.4.0 - 12/17/2021
+
+
+## Release 3.4.0rc1 - 12/16/2021
+
+- Update pipeline editor package to 1.5.0 - [#2367](https://github.com/elyra-ai/elyra/pull/2367)
+- Fix runtime property display in pipeline editor UI - [#2363](https://github.com/elyra-ai/elyra/pull/2363)
+- Set default value for kfp component property - [#2365](https://github.com/elyra-ai/elyra/pull/2365)
+
 ## Release 3.4.0rc0 - 12/15/2021
 
 - Update pipeline editor package to 1.5.0rc1 - [#2364](https://github.com/elyra-ai/elyra/pull/2364)
