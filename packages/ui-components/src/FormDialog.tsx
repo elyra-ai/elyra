@@ -39,6 +39,10 @@ export const showFormDialog = async (
   const dialogBody = options.body;
   const dialog = new Dialog(options);
 
+  // Get dialog default action button
+  const defaultButton = getDefaultActionButton(options, dialog.node);
+  defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+
   if (formValidationFunction) {
     formValidationFunction(dialog);
   } else {
@@ -67,10 +71,6 @@ export const showFormDialog = async (
             dialogHandleEvent.call(dialog, event);
           }
         };
-
-        // Get dialog default action button
-        const defaultButton = getDefaultActionButton(options, dialog.node);
-        defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
 
         requiredFields.forEach((element: any) => {
           // First deal with the case the field has already been pre-populated
@@ -112,19 +112,15 @@ export const showFormDialog = async (
         inputElements.length &&
           inputElements.forEach((element: any) => {
             if (element.type === 'number') {
-              const defaultButton = getDefaultActionButton(
-                options,
-                dialog.node
-              );
-              defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+              // Handle case of pre-populated field with invalid value
+              handleNumericFieldValidation(element, defaultButton);
 
+              // Handle keyboard input
               element.addEventListener('keyup', (event: Event) => {
-                Number(element.value.trim()) < 0
-                  ? disableDialogButton(defaultButton)
-                  : enableDialogButton(defaultButton);
+                handleNumericFieldValidation(element, defaultButton);
               });
 
-              // TODO: handle case of pre-populated field with invalid value
+              // TODO: handle clicking the up/down arrows
             }
           });
       }
@@ -171,4 +167,14 @@ const getDefaultActionButton = (
   return node
     .querySelector('.jp-Dialog-footer')
     ?.getElementsByTagName('button')[defaultButtonIndex]!;
+};
+
+// Only enable dialog button if numeric field value is positive
+const handleNumericFieldValidation = (
+  element: any,
+  button: HTMLButtonElement
+): void => {
+  Number(element.value.trim()) < 0
+    ? disableDialogButton(button)
+    : enableDialogButton(button);
 };
