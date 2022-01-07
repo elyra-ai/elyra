@@ -13,10 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 import ast
+import json
 import logging
+import os.path
 import sys
 from typing import Any
+from typing import Dict
+from typing import List
+
+from elyra.metadata.manager import MetadataManager
 
 """Utility functions and classes used for metadata applications and classes."""
 
@@ -36,14 +43,14 @@ class Option(object):
     processed = False
     bad_value = None  # Contains error message string when bad value is encountered
 
-    def __init__(self, cli_option, name=None, description=None, default_value=None, one_of=None,
+    def __init__(self, cli_option, name=None, description=None, default_value=None, enum=None,
                  required=False, type="string"):
         self.cli_option = cli_option
         self.name = name
         self.description = description
         self.default_value = default_value
         self.value = default_value
-        self.one_of = one_of
+        self.enum = enum
         self.required = required
         self.type = type
         self.bad_value = None  # All options start as 'good'.  set_value() can set this to an error message
@@ -105,8 +112,8 @@ class Option(object):
         return "a"
 
     def get_format_hint(self) -> str:
-        if self.one_of:
-            msg = f"must be one of: {self.one_of}"
+        if self.enum:
+            msg = f"must be one of: {self.enum}"
         elif self.type == 'array':
             msg = "\"['item1', 'item2']\" or \"item1,item2\""
         elif self.type == 'object':
@@ -126,7 +133,7 @@ class Option(object):
 
     def handle_value_error(self, value: Any) -> None:
         pre_amble = f"Parameter '{self.cli_option}' requires {Option.get_article(self.type)} {self.type} with format:"
-        post_amble = f"and \"{value}\" was given.  Please try again with an appropriate value."
+        post_amble = f"and \"{value}\" was given.  Try again with an appropriate value."
         self.bad_value = f"{pre_amble} {self.get_format_hint()} {post_amble}"
 
     def print_help(self):
@@ -151,6 +158,129 @@ class CliOption(Option):
     """Represents a command-line option."""
     def __init__(self, cli_option, **kwargs):
         super().__init__(cli_option, **kwargs)
+
+
+class JSONBasedOption(CliOption):
+    """Represents a command-line option representing a JSON string."""
+    def __init__(self, cli_option, **kwargs):
+        super().__init__(cli_option, **kwargs)
+        self.json = None
+        self._schema_name_arg = None
+        self._display_name_arg = None
+        self._name_arg = None
+        self._metadata = None
+
+    @property
+    def schema_name_arg(self) -> str:
+        if self._schema_name_arg is None:
+            if self.json is not None:
+                self._schema_name_arg = self.json.get("schema_name")
+        return self._schema_name_arg
+
+    @property
+    def display_name_arg(self) -> str:
+        if self._display_name_arg is None:
+            if self.json is not None:
+                self._display_name_arg = self.json.get("display_name")
+        return self._display_name_arg
+
+    @property
+    def name_arg(self) -> str:  # Overridden in base class
+        return self._name_arg
+
+    @property
+    def metadata(self) -> Dict:
+        """Returns the metadata stanza in the JSON.  If not present, it considers
+           the complete JSON to be the "metadata stanza", allowing applications to
+           create instances more easily.
+        """
+        if self._metadata is None:
+            if self.json is not None:
+                self._metadata = self.json.get("metadata")
+                # This stanza may not be present.  If not, set to the
+                # entire json since this could be the actual user data (feature)
+                if self._metadata is None:
+                    self._metadata = self.json
+            if self._metadata is None:
+                self._metadata = {}
+
+        return self._metadata
+
+    def transfer_names_to_argvs(self, argv: List[str], argv_mappings: Dict[str, str]):
+        """Transfers the values for schema_name, display_name and name to the argv sets if not currently set
+           via command line.  This can simplify the command line when already specified in the JSON.  It also
+           enables a way for these values to override the values in the JSON by setting them on the command line.
+        """
+        for option in ['schema_name', 'display_name', 'name']:
+            arg: str = f"--{option}"
+            if arg not in argv_mappings.keys():
+                if option == 'schema_name':
+                    value = self.schema_name_arg
+                elif option == 'display_name':
+                    value = self.display_name_arg
+                else:
+                    value = self.name_arg
+                if value is not None:  # Only include if we have a value
+                    argv_mappings[arg] = value
+                    argv.append(f"{arg}={value}")
+
+
+class JSONOption(JSONBasedOption):
+    """Represents a command-line option representing a JSON string."""
+
+    @property
+    def name_arg(self):
+        # Name can be derived from display_name using normalization method.
+        if self._name_arg is None:
+            if self.json is not None and self.display_name_arg is not None:
+                self._name_arg = MetadataManager.get_normalized_name(self.display_name_arg)
+        return self._name_arg
+
+    def get_format_hint(self) -> str:
+        return "A JSON-formatted string.  Properties and string values must be double-quoted and " \
+               "escaped (e.g., --json=\"{\\\"prop1\\\": \\\"str1\\\", \\\"prop2\\\": 42}\")"
+
+    def set_value(self, value):
+        """Take the given value and load it into a dictionary to ensure it parses as JSON."""
+        super().set_value(value)
+        try:
+            self.json = json.loads(value)
+        except Exception as ex:
+            self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted string and the following " \
+                             f"error occurred attempting to load the string as JSON: '{ex}'.  " \
+                             f"Try again with an appropriate value."
+
+
+class FileOption(JSONBasedOption):
+    """Represents a command-line option representing a file containing JSON."""
+
+    @property
+    def name_arg(self):
+        # Name can be derived from the filename
+        if self._name_arg is None:
+            if self.json is not None:
+                self._name_arg = os.path.splitext(os.path.basename(self.value))[0]
+        return self._name_arg
+
+    def get_format_hint(self) -> str:
+        return "An existing file containing valid JSON"
+
+    def set_value(self, value):
+        """Take the given value (file), open the file and load it into a dictionary to ensure it parses as JSON."""
+        super().set_value(value)
+        try:
+            with open(value) as json_file:
+                try:
+                    self.json = json.load(json_file)
+                except Exception as ex1:
+                    self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted file and the " \
+                                     f"following error occurred attempting to load its contents as JSON: '{ex1}'.  " \
+                                     f"Try again with an appropriately formatted file."
+        except Exception as ex:
+            if self.bad_value is None:  # Error is file-related
+                self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted file and the " \
+                                 f"following error occurred attempting to open the file: '{ex}'.  " \
+                                 f"Try again with an appropriately formatted file."
 
 
 class Flag(Option):
@@ -184,7 +314,7 @@ class SchemaProperty(CliOption):
                          name=name,
                          description=schema_property.get('description'),
                          default_value=schema_property.get('default'),
-                         one_of=schema_property.get('enum'),
+                         enum=schema_property.get('enum'),
                          type=type)
 
     def print_description(self):
@@ -284,7 +414,7 @@ class AppBase(object):
         self.exit(1)
 
     @staticmethod
-    def schema_to_options(schema):
+    def schema_to_options(schema: Dict, skip_metadata_stanza: bool = False):
         """Takes a JSON schema and builds a list of SchemaProperty instances corresponding to each
            property in the schema.  There are two sections of properties, one that includes
            schema_name and display_name and another within the metadata container - which
@@ -297,21 +427,20 @@ class AppBase(object):
                 continue
             if name != 'metadata':
                 options[name] = SchemaProperty(name, value)
-            else:  # process metadata properties...
+            elif not skip_metadata_stanza:  # process metadata properties...
                 metadata_properties = properties['metadata']['properties']
                 for md_name, md_value in metadata_properties.items():
                     options[md_name] = MetadataSchemaProperty(md_name, md_value)
 
-        # Now set required-ness on MetadataProperties and top-level Properties
-        required_props = properties['metadata'].get('required')
+        # Now set required-ness on MetadataProperties and top-level (schema) Properties
+        if not skip_metadata_stanza:
+            required_props = properties['metadata'].get('required')
+            for required in required_props:
+                options.get(required).required = True
+
+        required_props = set(schema.get('required')) - {'schema_name', 'metadata'}  # skip schema_name & metadata
         for required in required_props:
             options.get(required).required = True
-
-        required_props = schema.get('required')
-        for required in required_props:
-            # skip schema_name & metadata, already required, and metadata is not an option to be presented
-            if required not in ['schema_name', 'metadata']:
-                options.get(required).required = True
         return list(options.values())
 
     def process_cli_option(self, cli_option, check_help=False):
@@ -339,18 +468,18 @@ class AppBase(object):
                     if not cli_option.value:
                         self.log_and_exit("Parameter '{}' requires a value.".
                                           format(cli_option.cli_option), display_help=True)
-                    elif cli_option.one_of:  # ensure value is in set
-                        if cli_option.value not in cli_option.one_of:
+                    elif cli_option.enum:  # ensure value is in set
+                        if cli_option.value not in cli_option.enum:
                             self.log_and_exit("Parameter '{}' requires one of the following values: {}".
-                                              format(cli_option.cli_option, cli_option.one_of), display_help=True)
+                                              format(cli_option.cli_option, cli_option.enum), display_help=True)
             self._remove_argv_entry(option)
         elif cli_option.required and cli_option.value is None:
-            if cli_option.one_of is None:
+            if cli_option.enum is None:
                 self.log_and_exit("'{}' is a required parameter.".
                                   format(cli_option.cli_option), display_help=True)
             else:
                 self.log_and_exit("'{}' is a required parameter and must be one of the following values: {}.".
-                                  format(cli_option.cli_option, cli_option.one_of), display_help=True)
+                                  format(cli_option.cli_option, cli_option.enum), display_help=True)
 
         cli_option.processed = True
 

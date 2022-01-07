@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import sys
+from typing import List
 
 from jsonschema import ValidationError
 
@@ -22,8 +23,12 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.metadata_app_utils import AppBase
 from elyra.metadata.metadata_app_utils import CliOption
+from elyra.metadata.metadata_app_utils import FileOption
 from elyra.metadata.metadata_app_utils import Flag
+from elyra.metadata.metadata_app_utils import JSONBasedOption
+from elyra.metadata.metadata_app_utils import JSONOption
 from elyra.metadata.metadata_app_utils import MetadataSchemaProperty
+from elyra.metadata.metadata_app_utils import Option
 from elyra.metadata.metadata_app_utils import SchemaProperty
 from elyra.metadata.schema import SchemaManager
 
@@ -47,7 +52,7 @@ class SchemaspaceBase(AppBase):
             option.print_help()
 
     def start(self):
-        # Process client options since all subclasses are option processer
+        # Process client options since all subclasses are option processor
         self.process_cli_options(self.options)
 
 
@@ -69,7 +74,7 @@ class SchemaspaceList(SchemaspaceBase):
         self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
 
     def start(self):
-        self.process_cli_options(self.options)  # process options
+        super().start()  # process options
 
         include_invalid = not self.valid_only_flag.value
         try:
@@ -153,12 +158,18 @@ class SchemaspaceInstall(SchemaspaceBase):
                         description='Replace existing instance', default_value=False)
     name_option = CliOption("--name", name='name',
                             description='The name of the metadata instance to install')
-
+    file_option = FileOption("--file", name='file',
+                             description='The filename containing the metadata instance to install. '
+                                         'Can be used to bypass individual property arguments.')
+    json_option = JSONOption("--json", name='json',
+                             description='The JSON string containing the metadata instance to install. '
+                                         'Can be used to bypass individual property arguments.')
     # 'Install' options
-    options = [replace_flag]  # defer name_option until after schema_option
+    options: List[Option] = [replace_flag, file_option, json_option]  # defer name option until after schema
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
         self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
         # First, process the schema_name option so we can then load the appropriate schema
         # file to build the schema-based options.  If help is requested, give it to them.
@@ -174,23 +185,25 @@ class SchemaspaceInstall(SchemaspaceBase):
                                                             "install (defaults to '{}')".format(schema_list[0]),
                                                 required=True)
         else:
-            one_of = schema_list
-            self.schema_name_option = CliOption("--schema_name", name='schema_name', one_of=one_of,
+            enum = schema_list
+            self.schema_name_option = CliOption("--schema_name", name='schema_name', enum=enum,
                                                 description='The schema_name of the metadata instance to install.  '
-                                                            'Must be one of: {}'.format(one_of),
+                                                            'Must be one of: {}'.format(enum),
                                                 required=True)
 
         self.options.extend([self.schema_name_option, self.name_option])
-        self.process_cli_option(self.schema_name_option, check_help=True)
-        schema_name = self.schema_name_option.value
 
-        # If schema is not registered in the set of schemas for this schemaspace, bail.
-        if schema_name not in self.schemas:
-            self.log_and_exit("Schema name '{}' not found in {} schemas!".format(schema_name, self.schemaspace))
+        # Determine if --json or --file is in use
+        skip_metadata_stanza = self._process_json_based_options()
+
+        # This needs to occur following json-based options since they may add it as an option
+        self.process_cli_option(self.schema_name_option, check_help=True)
 
         # Schema appears to be a valid name, convert its properties to options and continue
-        schema = self.schemas[schema_name]
-        self.schema_options = SchemaspaceInstall.schema_to_options(schema)
+        schema = self.schemas[self.schema_name_option.value]
+
+        # Convert schema properties to options, potentially bypassing metadata stanza
+        self.schema_options = SchemaspaceInstall.schema_to_options(schema, skip_metadata_stanza)
         self.options.extend(self.schema_options)
 
     def start(self):
@@ -214,6 +227,8 @@ class SchemaspaceInstall(SchemaspaceBase):
                 if not option.required and not option.value and option.type != 'null':
                     continue
                 metadata[option.name] = option.value
+            elif isinstance(option, JSONBasedOption):
+                metadata.update(option.metadata)
 
         if display_name is None:
             self.log_and_exit("Could not determine display_name from schema '{}'".format(schema_name))
@@ -241,6 +256,32 @@ class SchemaspaceInstall(SchemaspaceBase):
             else:
                 self.log_and_exit("A failure occurred saving metadata instance '{}' for schema '{}'."
                                   .format(name, schema_name), display_help=True)
+
+    def _process_json_based_options(self) -> bool:
+        """Process the file and json options to see if they have values (and those values can be loaded as JSON)
+           Then check payloads for schema_name, display_name and derive name options and add to argv mappings
+           if currently not specified.
+
+           If either option is set, indicate that the metadata stanza should be skipped (return True)
+        """
+        skip_metadata_stanza = False
+
+        self.process_cli_option(self.file_option, check_help=True)
+        self.process_cli_option(self.json_option, check_help=True)
+
+        # if both are set, raise error
+        if self.json_option.value is not None and self.file_option.value is not None:
+            self.log_and_exit("At most one of '--json' or '--file' can be set at a time.", display_help=True)
+        elif self.json_option.value is not None:
+            skip_metadata_stanza = True
+            self.json_option.transfer_names_to_argvs(self.argv, self.argv_mappings)
+        elif self.file_option.value is not None:
+            skip_metadata_stanza = True
+            self.file_option.transfer_names_to_argvs(self.argv, self.argv_mappings)
+
+        # else, neither is set so metadata stanza will be considered
+
+        return skip_metadata_stanza
 
 
 class SchemaspaceMigrate(SchemaspaceBase):
