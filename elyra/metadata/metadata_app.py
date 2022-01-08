@@ -194,7 +194,7 @@ class SchemaspaceInstall(SchemaspaceBase):
         self.options.extend([self.schema_name_option, self.name_option])
 
         # Determine if --json or --file is in use
-        skip_metadata_stanza = self._process_json_based_options()
+        bulk_metadata = self._process_json_based_options()
 
         # This needs to occur following json-based options since they may add it as an option
         self.process_cli_option(self.schema_name_option, check_help=True)
@@ -203,7 +203,7 @@ class SchemaspaceInstall(SchemaspaceBase):
         schema = self.schemas[self.schema_name_option.value]
 
         # Convert schema properties to options, potentially bypassing metadata stanza
-        self.schema_options = SchemaspaceInstall.schema_to_options(schema, skip_metadata_stanza)
+        self.schema_options = SchemaspaceInstall.schema_to_options(schema, bulk_metadata)
         self.options.extend(self.schema_options)
 
     def start(self):
@@ -216,17 +216,19 @@ class SchemaspaceInstall(SchemaspaceBase):
 
         metadata = {}
         # Walk the options looking for SchemaProperty instances. Any MetadataSchemaProperty instances go
-        # into the metadata dict.
+        # into the metadata dict.  Note that we process JSONBasedOptions (--json or --file) prior to
+        # MetadataSchemaProperty types since the former will set the base metadata stanza and individual
+        # values can be used to override the former's content (like BYO authentication OVPs, for example).
         for option in self.options:
-            if isinstance(option, SchemaProperty):
-                if option.name == 'display_name':  # Be sure we have a display_name
-                    display_name = option.value
-                    continue
             if isinstance(option, MetadataSchemaProperty):
                 # skip adding any non required properties that have no value (unless its a null type).
                 if not option.required and not option.value and option.type != 'null':
                     continue
                 metadata[option.name] = option.value
+            elif isinstance(option, SchemaProperty):
+                if option.name == 'display_name':  # Be sure we have a display_name
+                    display_name = option.value
+                    continue
             elif isinstance(option, JSONBasedOption):
                 metadata.update(option.metadata)
 
@@ -264,7 +266,7 @@ class SchemaspaceInstall(SchemaspaceBase):
 
            If either option is set, indicate that the metadata stanza should be skipped (return True)
         """
-        skip_metadata_stanza = False
+        bulk_metadata = False
 
         self.process_cli_option(self.file_option, check_help=True)
         self.process_cli_option(self.json_option, check_help=True)
@@ -273,15 +275,14 @@ class SchemaspaceInstall(SchemaspaceBase):
         if self.json_option.value is not None and self.file_option.value is not None:
             self.log_and_exit("At most one of '--json' or '--file' can be set at a time.", display_help=True)
         elif self.json_option.value is not None:
-            skip_metadata_stanza = True
+            bulk_metadata = True
             self.json_option.transfer_names_to_argvs(self.argv, self.argv_mappings)
         elif self.file_option.value is not None:
-            skip_metadata_stanza = True
+            bulk_metadata = True
             self.file_option.transfer_names_to_argvs(self.argv, self.argv_mappings)
 
         # else, neither is set so metadata stanza will be considered
-
-        return skip_metadata_stanza
+        return bulk_metadata
 
 
 class SchemaspaceMigrate(SchemaspaceBase):

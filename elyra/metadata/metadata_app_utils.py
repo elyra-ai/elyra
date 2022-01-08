@@ -22,6 +22,7 @@ import sys
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Optional
 
 from elyra.metadata.manager import MetadataManager
 
@@ -60,7 +61,7 @@ class Option(object):
             if self.type == 'array':
                 self.value = Option.coerce_array_value(value)
             elif self.type == 'object':
-                self.value = ast.literal_eval(value)
+                self.value = self._get_object_value(value)
             elif self.type == 'integer':
                 self.value = int(value)
             elif self.type == 'number':
@@ -86,6 +87,40 @@ class Option(object):
                 self.value = value
         except (ValueError, SyntaxError):
             self.handle_value_error(value)
+
+    def _get_object_value(self, value: str) -> Dict:
+        """Checks if value is an existing filename, if so, it reads the file and loads its JSON,
+           otherwise, it evaluates the string and ensures its evaluated as a dictionary.
+        """
+        object_value: Optional[Dict] = None
+        if os.path.isfile(value):
+            try:
+                with open(value) as json_file:
+                    try:
+                        object_value = json.load(json_file)
+                    except Exception as ex1:
+                        self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted file or string " \
+                                         f"and the following error occurred attempting to load {value}'s contents " \
+                                         f"as JSON: '{ex1}'.  Try again with an appropriately formatted file."
+            except Exception as ex:
+                if self.bad_value is None:  # Error is file-related
+                    self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted file or string " \
+                                     f"and the following error occurred attempting to open file '{value}': '{ex}'.  " \
+                                     f"Try again with an appropriately formatted file."
+
+        else:  # not a file, so evaluate and ensure its of the right type
+            try:
+                object_value = ast.literal_eval(value)  # use ast over json.loads as its more forgiving
+            except Exception as ex:
+                self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted file or string and " \
+                                 f"the following error occurred attempting to interpret the string as JSON: '{ex}'.  " \
+                                 f"Try again with an appropriate value."
+
+            if type(object_value) is not dict:
+                self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted file or string and " \
+                                 f"could not interpret the string as a dictionary and got a {type(object_value)} " \
+                                 f"instead.  Try again with an appropriate value."
+        return object_value
 
     @staticmethod
     def coerce_array_value(value):
@@ -117,7 +152,7 @@ class Option(object):
         elif self.type == 'array':
             msg = "\"['item1', 'item2']\" or \"item1,item2\""
         elif self.type == 'object':
-            msg = "\"{'key1': 'value1', 'key2': 'value2'}\""
+            msg = "\"{'str1': 'value1', 'int2': 2}\" or file containing JSON"
         elif self.type == 'integer':
             msg = "'n' where 'n' is an integer"
         elif self.type == 'number':
@@ -163,8 +198,7 @@ class CliOption(Option):
 class JSONBasedOption(CliOption):
     """Represents a command-line option representing a JSON string."""
     def __init__(self, cli_option, **kwargs):
-        super().__init__(cli_option, **kwargs)
-        self.json = None
+        super().__init__(cli_option, type="object", **kwargs)
         self._schema_name_arg = None
         self._display_name_arg = None
         self._name_arg = None
@@ -173,15 +207,15 @@ class JSONBasedOption(CliOption):
     @property
     def schema_name_arg(self) -> str:
         if self._schema_name_arg is None:
-            if self.json is not None:
-                self._schema_name_arg = self.json.get("schema_name")
+            if self.value is not None:
+                self._schema_name_arg = self.value.get("schema_name")
         return self._schema_name_arg
 
     @property
     def display_name_arg(self) -> str:
         if self._display_name_arg is None:
-            if self.json is not None:
-                self._display_name_arg = self.json.get("display_name")
+            if self.value is not None:
+                self._display_name_arg = self.value.get("display_name")
         return self._display_name_arg
 
     @property
@@ -195,12 +229,12 @@ class JSONBasedOption(CliOption):
            create instances more easily.
         """
         if self._metadata is None:
-            if self.json is not None:
-                self._metadata = self.json.get("metadata")
+            if self.value is not None:
+                self._metadata = self.value.get("metadata")
                 # This stanza may not be present.  If not, set to the
                 # entire json since this could be the actual user data (feature)
                 if self._metadata is None:
-                    self._metadata = self.json
+                    self._metadata = self.value
             if self._metadata is None:
                 self._metadata = {}
 
@@ -215,14 +249,14 @@ class JSONBasedOption(CliOption):
             arg: str = f"--{option}"
             if arg not in argv_mappings.keys():
                 if option == 'schema_name':
-                    value = self.schema_name_arg
+                    name = self.schema_name_arg
                 elif option == 'display_name':
-                    value = self.display_name_arg
+                    name = self.display_name_arg
                 else:
-                    value = self.name_arg
-                if value is not None:  # Only include if we have a value
-                    argv_mappings[arg] = value
-                    argv.append(f"{arg}={value}")
+                    name = self.name_arg
+                if name is not None:  # Only include if we have a value
+                    argv_mappings[arg] = name
+                    argv.append(f"{arg}={name}")
 
 
 class JSONOption(JSONBasedOption):
@@ -232,7 +266,7 @@ class JSONOption(JSONBasedOption):
     def name_arg(self):
         # Name can be derived from display_name using normalization method.
         if self._name_arg is None:
-            if self.json is not None and self.display_name_arg is not None:
+            if self.value is not None and self.display_name_arg is not None:
                 self._name_arg = MetadataManager.get_normalized_name(self.display_name_arg)
         return self._name_arg
 
@@ -240,26 +274,20 @@ class JSONOption(JSONBasedOption):
         return "A JSON-formatted string.  Properties and string values must be double-quoted and " \
                "escaped (e.g., --json=\"{\\\"prop1\\\": \\\"str1\\\", \\\"prop2\\\": 42}\")"
 
-    def set_value(self, value):
-        """Take the given value and load it into a dictionary to ensure it parses as JSON."""
-        super().set_value(value)
-        try:
-            self.json = json.loads(value)
-        except Exception as ex:
-            self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted string and the following " \
-                             f"error occurred attempting to load the string as JSON: '{ex}'.  " \
-                             f"Try again with an appropriate value."
-
 
 class FileOption(JSONBasedOption):
     """Represents a command-line option representing a file containing JSON."""
+
+    def __init__(self, cli_option, **kwargs):
+        super().__init__(cli_option, **kwargs)
+        self.filename = ""
 
     @property
     def name_arg(self):
         # Name can be derived from the filename
         if self._name_arg is None:
-            if self.json is not None:
-                self._name_arg = os.path.splitext(os.path.basename(self.value))[0]
+            if self.value is not None:
+                self._name_arg = os.path.splitext(os.path.basename(self.filename))[0]
         return self._name_arg
 
     def get_format_hint(self) -> str:
@@ -267,20 +295,8 @@ class FileOption(JSONBasedOption):
 
     def set_value(self, value):
         """Take the given value (file), open the file and load it into a dictionary to ensure it parses as JSON."""
+        self.filename = value
         super().set_value(value)
-        try:
-            with open(value) as json_file:
-                try:
-                    self.json = json.load(json_file)
-                except Exception as ex1:
-                    self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted file and the " \
-                                     f"following error occurred attempting to load its contents as JSON: '{ex1}'.  " \
-                                     f"Try again with an appropriately formatted file."
-        except Exception as ex:
-            if self.bad_value is None:  # Error is file-related
-                self.bad_value = f"Parameter '{self.cli_option}' requires a JSON-formatted file and the " \
-                                 f"following error occurred attempting to open the file: '{ex}'.  " \
-                                 f"Try again with an appropriately formatted file."
 
 
 class Flag(Option):
@@ -414,11 +430,16 @@ class AppBase(object):
         self.exit(1)
 
     @staticmethod
-    def schema_to_options(schema: Dict, skip_metadata_stanza: bool = False):
+    def schema_to_options(schema: Dict, bulk_metadata: bool = False):
         """Takes a JSON schema and builds a list of SchemaProperty instances corresponding to each
            property in the schema.  There are two sections of properties, one that includes
            schema_name and display_name and another within the metadata container - which
            will be separated by class type - SchemaProperty vs. MetadataSchemaProperty.
+
+           if bulk_metadata is true, a --json or --file option is in use and the primary metadata
+           comes from those options.  In such cases, skip setting required values since most will
+           come from the JSON-based option.  However, some metadata properties can also be used to
+           override the bulk entries.
         """
         options = {}
         properties = schema['properties']
@@ -427,17 +448,18 @@ class AppBase(object):
                 continue
             if name != 'metadata':
                 options[name] = SchemaProperty(name, value)
-            elif not skip_metadata_stanza:  # process metadata properties...
+            else:  # convert first-level metadata properties to options...
                 metadata_properties = properties['metadata']['properties']
                 for md_name, md_value in metadata_properties.items():
                     options[md_name] = MetadataSchemaProperty(md_name, md_value)
 
-        # Now set required-ness on MetadataProperties and top-level (schema) Properties
-        if not skip_metadata_stanza:
+        # Now set required-ness on MetadataProperties, but only when creation is using fine-grained property options
+        if not bulk_metadata:
             required_props = properties['metadata'].get('required')
             for required in required_props:
                 options.get(required).required = True
 
+        # ...  and top-level (schema) Properties
         required_props = set(schema.get('required')) - {'schema_name', 'metadata'}  # skip schema_name & metadata
         for required in required_props:
             options.get(required).required = True
