@@ -32,7 +32,7 @@ class AirflowMetadata(RuntimesMetadata):
         update_required = False
 
         if self.metadata.get('git_type') is None:
-            # Inject auth_type property for metadata persisted using Elyra < 3.3:
+            # Inject git_type property for metadata persisted using Elyra < 3.5:
             self.metadata['git_type'] = SupportedGitTypes.GITHUB.name
             update_required = True
 
