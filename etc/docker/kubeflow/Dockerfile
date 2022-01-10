@@ -25,10 +25,10 @@ ARG TAG="dev"
 # - with KFP Tekton support ('kfp-tekton')
 # - with component examples ('kfp-examples')
 RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
-    elyra[kfp-tekton,kfp-examples]==3.4.0
- && jupyter lab build \
- && rm -rf $HOME/.cache/yarn \
- && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
+    elyra[kfp-tekton,kfp-examples]==3.4.1
+    && jupyter lab build \
+    && rm -rf $HOME/.cache/yarn \
+    && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
 # Install component examples catalog
 #  - this wail fail if the 'kfp-examples' pip extra is not installed
