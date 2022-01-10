@@ -77,7 +77,7 @@ kubectl port-forward $(kubectl get pods -n kubeflow | grep ml-pipeline-ui | cut 
 ```
 - Add minio-service to your local hosts file
 ```bash
-echo '127.0.0.1  minio-service' | sudo tee -a /etc/hosts
+echo '127.0.0.1  minio-service.kubeflow.svc.cluster.local' | sudo tee -a /etc/hosts
 ```
 - Setup port forwarding to use the Minio Object Service with Kubeflow
 ```bash
@@ -87,7 +87,7 @@ kubectl port-forward $(kubectl get pods -n kubeflow | grep minio | cut -d' ' -f1
 ```bash
 UI Endpoint: http://localhost:31380
 API Endpoint: http://localhost:31380/pipeline
-Object Storage Endpoint: http://minio-service:9000
+Object Storage Endpoint: http://minio-service.kubeflow.svc.cluster.local:9000
 ```
 
 These endpoints will be used to configure your Elyra metadata runtime with the
@@ -99,7 +99,7 @@ elyra-metadata install runtimes --replace=true \
        --name=kfp-local \
        --display_name="Kubeflow Pipeline (local)" \
        --api_endpoint=http://localhost:31380/pipeline \
-       --cos_endpoint=http://minio-service:9000 \
+       --cos_endpoint=http://minio-service.kubeflow.svc.cluster.local:9000 \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=covid
