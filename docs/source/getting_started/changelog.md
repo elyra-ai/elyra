@@ -1,5 +1,11 @@
 # Changelog
 
+## Release 3.4.1 - 01/07/2022
+
+- Update pipeline editor package to 1.5.1 - [#2377](https://github.com/elyra-ai/elyra/pull/2377)
+- Fix incorrect Elyra version syntax in kubeflow Dockerfile - [#2368](https://github.com/elyra-ai/elyra/pull/2368)
+- Properly process GPU parameter in pipeline parser - [#2370](https://github.com/elyra-ai/elyra/pull/2370)
+
 ## Release 3.4.0 - 12/17/2021
 
 
