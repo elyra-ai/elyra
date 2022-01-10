@@ -78,15 +78,15 @@ uninstall:
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
 test-dependencies:
-	- python -m pip install --upgrade pip
+	python -m pip install --upgrade pip
 	@pip install -q -r test_requirements.txt
 
 build-dependencies:
-	- python -m pip install --upgrade pip
-	- @pip install -q -r build_requirements.txt	
+	python -m pip install --upgrade pip
+	@pip install -q -r build_requirements.txt	
 
 lint-server: build-dependencies
-	- flake8 elyra
+	flake8 elyra
 
 prettier-check-ui:
 	yarn prettier:check
