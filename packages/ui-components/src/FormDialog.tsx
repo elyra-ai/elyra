@@ -115,12 +115,13 @@ export const showFormDialog = async (
               // Handle case of pre-populated field with invalid value
               handleNumericFieldValidation(element, defaultButton);
 
-              // Handle keyboard input
-              element.addEventListener('keyup', (event: Event) => {
-                handleNumericFieldValidation(element, defaultButton);
-              });
-
-              // TODO: handle clicking the up/down arrows
+              // Handle keyboard and element arrows input
+              element.addEventListener('change', (event: Event) =>
+                handleNumericFieldValidation(element, defaultButton)
+              );
+              element.addEventListener('keyup', (event: Event) =>
+                handleNumericFieldValidation(element, defaultButton)
+              );
             }
           });
       }
