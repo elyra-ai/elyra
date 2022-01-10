@@ -187,7 +187,7 @@ def test_install_and_replace(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
                             '--display_name=display_name', '--required_test=required_value', '--replace')
     assert ret.success is False
-    assert "Name of metadata was not provided" in ret.stdout
+    assert "The 'name' parameter requires a value" in ret.stdout
 
     # Re-attempt with replace flag - success expected
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
