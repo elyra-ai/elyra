@@ -430,16 +430,18 @@ class AppBase(object):
         self.exit(1)
 
     @staticmethod
-    def schema_to_options(schema: Dict, bulk_metadata: bool = False):
+    def schema_to_options(schema: Dict, relax_required: bool = False):
         """Takes a JSON schema and builds a list of SchemaProperty instances corresponding to each
            property in the schema.  There are two sections of properties, one that includes
            schema_name and display_name and another within the metadata container - which
            will be separated by class type - SchemaProperty vs. MetadataSchemaProperty.
 
-           if bulk_metadata is true, a --json or --file option is in use and the primary metadata
-           comes from those options.  In such cases, skip setting required values since most will
-           come from the JSON-based option.  However, some metadata properties can also be used to
-           override the bulk entries.
+           If relax_required is true, a --json or --file option is in use and the primary metadata
+           comes from those options or the --replace option is in use, in which case the primary
+           metadata comes from the existing instance (being replaced).  In such cases, skip setting
+           required values since most will come from the JSON-based option or already be present
+           (in the case of replace).  This allows CLI-specified metadata properties to override the
+           primary metadata (either in the JSON options or from the existing instance).
         """
         options = {}
         properties = schema['properties']
@@ -454,7 +456,7 @@ class AppBase(object):
                     options[md_name] = MetadataSchemaProperty(md_name, md_value)
 
         # Now set required-ness on MetadataProperties, but only when creation is using fine-grained property options
-        if not bulk_metadata:
+        if not relax_required:
             required_props = properties['metadata'].get('required')
             for required in required_props:
                 options.get(required).required = True

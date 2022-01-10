@@ -193,8 +193,13 @@ class SchemaspaceInstall(SchemaspaceBase):
 
         self.options.extend([self.schema_name_option, self.name_option])
 
-        # Determine if --json or --file is in use
-        bulk_metadata = self._process_json_based_options()
+        # Since we need to know if the replace option is in use prior to normal option processing,
+        # go ahead and check for its existence on the command-line and process if present.
+        if self.replace_flag.cli_option in self.argv_mappings.keys():
+            self.process_cli_option(self.replace_flag)
+
+        # Determine if --json, --file, or --replace are in use and relax required properties if so.
+        relax_required = self._process_json_based_options() or self.replace_flag.value
 
         # This needs to occur following json-based options since they may add it as an option
         self.process_cli_option(self.schema_name_option, check_help=True)
@@ -203,7 +208,7 @@ class SchemaspaceInstall(SchemaspaceBase):
         schema = self.schemas[self.schema_name_option.value]
 
         # Convert schema properties to options, potentially bypassing metadata stanza
-        self.schema_options = SchemaspaceInstall.schema_to_options(schema, bulk_metadata)
+        self.schema_options = SchemaspaceInstall.schema_to_options(schema, relax_required)
         self.options.extend(self.schema_options)
 
     def start(self):
@@ -235,15 +240,16 @@ class SchemaspaceInstall(SchemaspaceBase):
         if display_name is None:
             self.log_and_exit("Could not determine display_name from schema '{}'".format(schema_name))
 
-        instance = Metadata(schema_name=schema_name, name=name,
-                            display_name=display_name, metadata=metadata)
-
         ex_msg = None
         new_instance = None
         try:
             if self.replace_flag.value:
-                new_instance = self.metadata_manager.update(name, instance)
+                updated_instance = self.metadata_manager.get(name)
+                updated_instance.metadata.update(metadata)
+                new_instance = self.metadata_manager.update(name, updated_instance)
             else:
+                instance = Metadata(schema_name=schema_name, name=name,
+                                    display_name=display_name, metadata=metadata)
                 new_instance = self.metadata_manager.create(name, instance)
         except Exception as ex:
             ex_msg = str(ex)
