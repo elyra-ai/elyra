@@ -119,8 +119,8 @@ class RuntimesSchemas(ElyraSchemasProvider):
 
         if airflow_schema_present:
             # Replace Git Type placeholders
-            git_type_enum = SupportedGitTypes.get_enabled_types()
-            git_type_default = SupportedGitTypes().get_default_type()
+            git_type_enum = list(map(lambda c: c.name, SupportedGitTypes.get_enabled_types()))
+            git_type_default = SupportedGitTypes.get_default_type().name
             for schema in runtime_schemas:
                 if schema['name'] == 'airflow':
                     if schema['properties']['metadata']['properties'].get('git_type') is not None:

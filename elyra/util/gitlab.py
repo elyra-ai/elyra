@@ -78,7 +78,6 @@ class GitLabClient(LoggingConfigurable):
                 self.gitlab_project.files.create({'file_path': git_file_name,
                                                   'branch': self.branch,
                                                   'content': content,
-                                                  'encoding': 'text',
                                                   'commit_message': f'Pushed DAG {pipeline_name}'})
 
             self.log.info(f'DAG file {git_file_name} was successfully uploaded to branch {self.branch}.')
@@ -93,8 +92,8 @@ class GitLabClient(LoggingConfigurable):
 
     @staticmethod
     def get_git_url(api_url: str,
-                    project_name: str,
-                    project_branch: str) -> str:
+                    repository_name: str,
+                    repository_branch: str) -> str:
         """
         Generates the URL to the location of the pushed DAG
         :param api_url: git API endpoint URL
@@ -113,4 +112,4 @@ class GitLabClient(LoggingConfigurable):
         if parsed_url.port:
             port = ':' + parsed_url.port
 
-        return "/".join([scheme, host + port, project_name, 'tree', project_branch])
+        return "/".join([scheme, host + port, repository_name, 'tree', repository_branch])

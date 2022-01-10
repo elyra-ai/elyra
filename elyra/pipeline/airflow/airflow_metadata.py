@@ -18,7 +18,7 @@ from typing import Any
 
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.runtimes_metadata import RuntimesMetadata
-from elyra.util import SupportedGitTypes
+from elyra.util.gitutil import SupportedGitTypes
 
 
 class AirflowMetadata(RuntimesMetadata):
@@ -29,9 +29,12 @@ class AirflowMetadata(RuntimesMetadata):
     def on_load(self, **kwargs: Any) -> None:
         super().on_load(**kwargs)
 
+        update_required = False
+
         if self.metadata.get('git_type') is None:
             # Inject auth_type property for metadata persisted using Elyra < 3.3:
             self.metadata['git_type'] = SupportedGitTypes.GITHUB.name
+            update_required = True
 
         if self.metadata.get('cos_auth_type') is None:
             # Inject cos_auth_type property for metadata persisted using Elyra < 3.4:
@@ -43,7 +46,9 @@ class AirflowMetadata(RuntimesMetadata):
                     self.metadata['cos_auth_type'] = 'USER_CREDENTIALS'
                 else:
                     self.metadata['cos_auth_type'] = 'KUBERNETES_SECRET'
+                update_required = True
 
+        if update_required:
             # save changes
             MetadataManager(schemaspace="runtimes").update(self.name, self, for_migration=True)
 
