@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 from datetime import datetime
-import logging
 import os
 import re
 import tempfile
@@ -22,9 +21,6 @@ import time
 from typing import Dict
 from urllib.parse import urlsplit
 
-import autopep8
-from jinja2 import Environment
-from jinja2 import PackageLoader
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
@@ -373,18 +369,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         )
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        if pipeline_export_format not in ["yaml", "py"]:
+        if pipeline_export_format not in ["yaml"]:
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = pipeline.name
-        pipeline_description = pipeline.description
-        pipeline_version_name = f'{pipeline_name}-{timestamp}'
-        # work around https://github.com/kubeflow/pipelines/issues/5172
-        experiment_name = pipeline_name.lower()
-        # Unique identifier for the pipeline run
-        job_name = f'{pipeline_name}-{timestamp}'
         # Unique location on COS where the pipeline run artifacts
         # will be stored
         cos_directory = f'{pipeline_name}-{timestamp}'
@@ -395,98 +385,36 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
                                                                  name=pipeline.runtime_config)
-        api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
-        namespace = runtime_configuration.metadata.get('user_namespace')
-        engine = runtime_configuration.metadata.get('engine')
-        cos_secret = runtime_configuration.metadata.get('cos_secret')
-        kf_secured = runtime_configuration.metadata.get('api_username') is not None and \
-            runtime_configuration.metadata.get('api_password') is not None
 
+        engine = runtime_configuration.metadata.get('engine')
         if engine == 'Tekton' and not TektonClient:
             raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
 
-        self.log_pipeline_info(pipeline_name, f"exporting pipeline as a .{pipeline_export_format} file")
-        if pipeline_export_format != "py":
-            # Export pipeline as static configuration file (YAML formatted)
-            try:
-                # Exported pipeline is not associated with an experiment
-                # or a version. The association is established when the
-                # pipeline is imported into KFP by the user.
-                pipeline_function = lambda: self._cc_pipeline(pipeline,
-                                                              pipeline_name,
-                                                              cos_directory=cos_directory)  # nopep8
-                if engine == 'Tekton':
-                    self.log.info("Compiling pipeline for Tekton engine")
-                    kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
-                else:
-                    self.log.info("Compiling pipeline for Argo engine")
-                    kfp_argo_compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
-            except RuntimeError:
-                raise
-            except Exception as ex:
-                if ex.__cause__:
-                    raise RuntimeError(str(ex)) from ex
-                raise RuntimeError('Error pre-processing pipeline {} for export at {}'.
-                                   format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
-        else:
-            # Export pipeline as Python DSL
-            # Load template from installed elyra package
-
-            loader = PackageLoader('elyra', 'templates/kfp')
-            template_env = Environment(loader=loader, trim_blocks=True)
-
-            template_env.filters['to_basename'] = lambda path: os.path.basename(path)
-
-            template = template_env.get_template('kfp_template.jinja2')
-
-            defined_pipeline = self._cc_pipeline(pipeline,
-                                                 pipeline_name,
-                                                 pipeline_version=pipeline_version_name,
-                                                 experiment_name=experiment_name,
-                                                 cos_directory=cos_directory,
-                                                 export=True)
-
-            if pipeline_description is None:
-                pipeline_description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
-
-            if self.log.isEnabledFor(logging.DEBUG):
-                self.log.debug(f"Exporting pipeline {pipeline_name} with components: \n")
-                for key, operation in defined_pipeline.items():
-                    self.log.debug("component:\n "
-                                   f"operation name : {operation.name} \n "
-                                   f"inputs : {operation.inputs} \n "
-                                   f"outputs : {operation.outputs} \n ")
-
-            # The exported pipeline is by default associated with
-            # an experiment.
-            # The user can manually customize the generated code
-            # and change the associations as desired.
-
-            python_output = template.render(operations_list=defined_pipeline,
-                                            pipeline_name=pipeline_name,
-                                            pipeline_version=pipeline_version_name,
-                                            experiment_name=experiment_name,
-                                            run_name=job_name,
-                                            engine=engine,
-                                            cos_secret=cos_secret,
-                                            namespace=namespace,
-                                            api_endpoint=api_endpoint,
-                                            pipeline_description=pipeline_description,
-                                            writable_container_dir=self.WCD,
-                                            kf_secured=kf_secured)
-
-            # Write to Python file and fix formatting
-            with open(absolute_pipeline_export_path, "w") as fh:
-                # Defer the import to postpone logger messages: https://github.com/psf/black/issues/2058
-                import black
-                autopep_output = autopep8.fix_code(python_output)
-                output_to_file = black.format_str(autopep_output, mode=black.FileMode())
-                fh.write(output_to_file)
-
-            self.log_pipeline_info(pipeline_name, "pipeline rendered", duration=(time.time() - t0_all))
+        self.log_pipeline_info(pipeline_name, f"Exporting pipeline as a .{pipeline_export_format} file")
+        # Export pipeline as static configuration file (YAML formatted)
+        try:
+            # Exported pipeline is not associated with an experiment
+            # or a version. The association is established when the
+            # pipeline is imported into KFP by the user.
+            pipeline_function = lambda: self._cc_pipeline(pipeline,
+                                                          pipeline_name,
+                                                          cos_directory=cos_directory)  # nopep8
+            if engine == 'Tekton':
+                self.log.info("Compiling pipeline for Tekton engine")
+                kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
+            else:
+                self.log.info("Compiling pipeline for Argo engine")
+                kfp_argo_compiler.Compiler().compile(pipeline_function, absolute_pipeline_export_path)
+        except RuntimeError:
+            raise
+        except Exception as ex:
+            if ex.__cause__:
+                raise RuntimeError(str(ex)) from ex
+            raise RuntimeError('Error pre-processing pipeline {} for export at {}'.
+                               format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
 
         self.log_pipeline_info(pipeline_name,
                                f"pipeline exported: {pipeline_export_path}",
