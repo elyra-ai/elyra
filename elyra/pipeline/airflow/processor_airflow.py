@@ -145,7 +145,6 @@ be fully qualified (i.e., prefixed with their package names).
         export_file_types = [
             file_type['id'] for file_type in RuntimeTypeResources.get_instance_by_type(self._type).export_file_types
         ]
-        # export_file_types = [file_type['id'] for file_type in ApacheAirflowResources.export_file_types]
         if pipeline_export_format not in export_file_types:
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
