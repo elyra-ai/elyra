@@ -478,47 +478,6 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/helloworld.yaml');
   });
 
-  it('should export pipeline as python dsl', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig();
-
-    // go back to file browser
-    cy.findByRole('tab', { name: /file browser/i }).click();
-
-    cy.openFile('helloworld.pipeline');
-
-    // try to export valid pipeline
-    cy.findByRole('button', { name: /export pipeline/i }).click();
-
-    // check label for generic pipeline
-    cy.get('.jp-Dialog-header').contains('Export pipeline');
-
-    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
-
-    cy.findByLabelText(/runtime configuration/i)
-      .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
-      .should('have.value', 'test_runtime');
-
-    // overwrite existing helloworld.py file
-    cy.findByLabelText(/export pipeline as/i)
-      .select('Airflow domain-specific language Python code')
-      .should('have.value', 'py');
-
-    cy.findByLabelText(/replace if file already exists/i)
-      .check()
-      .should('be.checked');
-
-    // actual export requires minio
-    cy.findByRole('button', { name: /ok/i }).click();
-
-    // validate job was executed successfully, this can take a while in ci
-    cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
-      'be.visible'
-    );
-
-    cy.readFile('build/cypress-tests/helloworld.py');
-  });
-
   it('should not leak properties when switching between nodes', () => {
     cy.openFile('helloworld.pipeline');
 
