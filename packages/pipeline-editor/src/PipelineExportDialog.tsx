@@ -22,15 +22,9 @@ import RuntimeConfigSelect from './RuntimeConfigSelect';
 
 interface IFileTypeSelectProps {
   fileTypes: { display_name: string; id: string }[];
-  // TODO: remove this prop
-  temporarilyDisablePythonDSLForKFPSpecificPipelines?: boolean;
 }
 
 const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({ fileTypes }) => {
-  const _fileTypes = fileTypes.filter(t => {
-    return true;
-  });
-
   return (
     <>
       <label htmlFor="pipeline_filetype">Export Pipeline as:</label>
@@ -41,7 +35,7 @@ const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({ fileTypes }) => {
         className="elyra-form-export-filetype"
         data-form-required
       >
-        {_fileTypes.map(f => (
+        {fileTypes.map(f => (
           <option key={f.id} value={f.id}>
             {f.display_name}
           </option>
