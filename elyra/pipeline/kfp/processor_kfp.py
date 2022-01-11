@@ -49,6 +49,7 @@ from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.util.path import get_absolute_path
 
 
@@ -369,7 +370,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         )
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        if pipeline_export_format not in ["yaml"]:
+        export_file_types = [
+            file_type['id'] for file_type in RuntimeTypeResources.get_instance_by_type(self._type).export_file_types
+        ]
+        if pipeline_export_format not in export_file_types:
             raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
 
         t0_all = time.time()
