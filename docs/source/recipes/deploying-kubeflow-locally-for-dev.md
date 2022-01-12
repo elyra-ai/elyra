@@ -23,7 +23,7 @@ we will be deploying Kubeflow Pipelines on Kubernetes using Docker Desktop. Note
 ONLY install the Kubeflow Pipelines component.
 
 ## Requirements
-- Docker Desktop v4.1.0 and undder
+- Docker Desktop v4.1.0 and under
     - Available for [MacOS](https://docs.docker.com/desktop/mac/release-notes/#docker-desktop-410) and 
                     [Windows](https://docs.docker.com/desktop/windows/release-notes/#docker-desktop-410)
 - kubectl
