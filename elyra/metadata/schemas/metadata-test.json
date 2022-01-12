@@ -152,7 +152,7 @@
             }
           ]
         },
-        "defs_test": { "$ref":  "#/$defs/defs_entry"}
+        "defs_test": { "$ref": "#/$defs/defs_entry" }
       },
       "required": ["required_test"]
     }
