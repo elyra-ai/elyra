@@ -168,7 +168,7 @@ Note: Refer to the [Managing runtime configurations using the Elyra CLI](runtime
 ### Exporting a pipeline
 
 When you export a pipeline Elyra only prepares it for later execution, but does not upload it to the Kubeflow Pipelines or Apache Airflow server. Export performs two tasks. 
-It packages dependencies for generic components and uploads them to cloud storage and it generates pipeline code for the target runtime. 
+It packages dependencies for generic components and uploads them to cloud storage, and it generates pipeline code for the target runtime. 
 
 Before you can export a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
 
