@@ -53,7 +53,6 @@ const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-ScriptEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-ScriptEditor-OutputArea-prompt';
 const RUN_BUTTON_CLASS = 'elyra-ScriptEditor-Run';
 const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
-// const R = 'R';
 
 /**
  * A widget for script editors.
@@ -85,7 +84,7 @@ export class ScriptEditor extends DocumentWidget<
     this.model = this.content.model;
     this.runner = new ScriptRunner(this.disableRun);
     this.kernelSelectorRef = null;
-    this.kernelName = options.context.sessionContext.kernelPreference.language;
+    this.kernelName = '';
     this.emptyOutput = true;
     this.runDisabled = false;
     this.controller = new ScriptEditorController();
@@ -121,8 +120,6 @@ export class ScriptEditor extends DocumentWidget<
 
     // Create output area widget
     this.createOutputAreaWidget();
-
-    this.initializeKernelSpecs();
   }
 
   initializeKernelSpecs = async (): Promise<void> => {

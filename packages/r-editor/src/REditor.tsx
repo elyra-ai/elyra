@@ -15,8 +15,6 @@
  */
 import { ScriptEditor } from '@elyra/script-editor';
 
-import { pyIcon } from '@elyra/ui-components';
-
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
   ABCWidgetFactory,
@@ -25,18 +23,18 @@ import {
 } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 
-export class PythonEditor extends ScriptEditor {
+export class REditor extends ScriptEditor {
   /**
-   * Construct a new Python Editor widget.
+   * Construct a new R Editor widget.
    */
   constructor(
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
-    this.editorLanguage = 'python';
+    this.editorLanguage = 'R';
 
     // Add icon to main tab
-    this.title.icon = pyIcon;
+    this.title.icon = 'rIcon';
 
     this.context.ready.then(() => {
       this.initializeKernelSpecs();
@@ -45,16 +43,16 @@ export class PythonEditor extends ScriptEditor {
 }
 
 /**
- * A widget factory for Python Editors.
+ * A widget factory for R Editors.
  */
-export class PythonEditorFactory extends ABCWidgetFactory<
-  PythonEditor,
+export class REditorFactory extends ABCWidgetFactory<
+  REditor,
   DocumentRegistry.ICodeModel
 > {
   /**
    * Construct a new editor widget factory.
    */
-  constructor(options: PythonEditorFactory.IOptions) {
+  constructor(options: REditorFactory.IOptions) {
     super(options.factoryOptions);
     this._services = options.editorServices;
   }
@@ -62,9 +60,7 @@ export class PythonEditorFactory extends ABCWidgetFactory<
   /**
    * Create a new widget given a context.
    */
-  protected createNewWidget(
-    context: DocumentRegistry.CodeContext
-  ): PythonEditor {
+  protected createNewWidget(context: DocumentRegistry.CodeContext): REditor {
     const newDocumentEditor = this._services.factoryService.newDocumentEditor;
     const factory: CodeEditor.Factory = options => {
       return newDocumentEditor(options);
@@ -74,16 +70,16 @@ export class PythonEditorFactory extends ABCWidgetFactory<
       context,
       mimeTypeService: this._services.mimeTypeService
     });
-    return new PythonEditor({ content, context });
+    return new REditor({ content, context });
   }
 
   private _services: IEditorServices;
 }
 
 /**
- * The namespace for `PythonEditorFactory` class statics.
+ * The namespace for `REditorFactory` class statics.
  */
-export namespace PythonEditorFactory {
+export namespace REditorFactory {
   /**
    * The options used to create an editor widget factory.
    */
@@ -96,6 +92,6 @@ export namespace PythonEditorFactory {
     /**
      * The factory options associated with the factory.
      */
-    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<PythonEditor>;
+    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<REditor>;
   }
 }
