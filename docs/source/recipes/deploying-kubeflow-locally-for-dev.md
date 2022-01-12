@@ -23,9 +23,9 @@ we will be deploying Kubeflow Pipelines on Kubernetes using Docker Desktop. Note
 ONLY install the Kubeflow Pipelines component.
 
 ## Requirements
-- Docker Desktop
-    - Available for [MacOS](https://hub.docker.com/editions/community/docker-ce-desktop-mac) and 
-                    [Windows](https://hub.docker.com/editions/community/docker-ce-desktop-windows)
+- Docker Desktop v4.1.0 and undder
+    - Available for [MacOS](https://docs.docker.com/desktop/mac/release-notes/#docker-desktop-410) and 
+                    [Windows](https://docs.docker.com/desktop/windows/release-notes/#docker-desktop-410)
 - kubectl
     - Available for [MacOS](https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-macos)
     - Note: Windows users should skip this step since Docker Desktop adds its own version of `kubectl` to `PATH`
@@ -48,9 +48,7 @@ In this example, we will be performing the steps on a MacOS system
 ![Elyra](../images/docker-desktop-k8s-menu.png)  
   
 4. `Docker Desktop` should now install a single node deployment of Kubernetes  
- on your system and configure your `kubectl` to the correct local kubernetes cluster  
-![Elyra](../images/docker-desktop-in-progress.png)  
-![Elyra](../images/docker-desktop-complete.png)  
+ on your system and configure your `kubectl` to the correct local kubernetes cluster
   
 5. Verify that your cluster is up and running and configured correctly by running  
 `kubectl get all --all-namespaces` and verifying that the Docker Desktop pods are present and in `Running` state   
@@ -61,10 +59,10 @@ In this example, we will be performing the steps on a MacOS system
 - Deploy Kubeflow  
 
 ```bash
-export PIPELINE_VERSION=1.4.0
+export PIPELINE_VERSION=1.7.1
 kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
 kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.io
-kubectl apply -k "github.com/elyra-ai/elyra/etc/kubernetes/kubeflow-pipelines?ref=master"
+kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/env/dev?ref=$PIPELINE_VERSION"
 ```
 - Get status of the Kubeflow deployment and ensure all pods are running before proceeding.  
 Deployment times vary from system to system so please be patient when the pods are starting up.
