@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { ScriptEditorFactory, ScriptEditor } from '@elyra/script-editor';
 import { pyIcon } from '@elyra/ui-components';
 
 import {
@@ -32,6 +31,8 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
+
+import { PythonEditorFactory, PythonEditor } from './PythonEditor';
 
 const PYTHON_FACTORY = 'Python Editor';
 const PYTHON = 'python';
@@ -70,7 +71,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - python-editor extension is activated!');
 
-    const factory = new ScriptEditorFactory({
+    const factory = new PythonEditorFactory({
       editorServices,
       factoryOptions: {
         name: PYTHON_FACTORY,
@@ -91,9 +92,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     const { restored } = app;
 
     /**
-     * Track ScriptEditor widget on page refresh
+     * Track PythonEditor widget on page refresh
      */
-    const tracker = new WidgetTracker<ScriptEditor>({
+    const tracker = new WidgetTracker<PythonEditor>({
       namespace: PYTHON_EDITOR_NAMESPACE
     });
 
@@ -136,7 +137,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    const updateWidget = (widget: ScriptEditor): void => {
+    const updateWidget = (widget: PythonEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
           widget
