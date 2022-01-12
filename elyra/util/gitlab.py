@@ -19,7 +19,7 @@ from typing import Optional
 # this may raise an ImportError if the python-gitlab package is not installed
 from gitlab import Gitlab
 # this may raise an ImportError if the python-gitlab package is not installed
-from gitlab.exceptions import GitlabError
+from gitlab.exceptions import GitlabError # noqa H306
 from traitlets.config import LoggingConfigurable
 from urllib3.util import parse_url
 
