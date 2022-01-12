@@ -117,10 +117,52 @@
           "title": "Null Test",
           "description": "Property used to test null types",
           "type": "null"
-        }
+        },
+        "oneOf_test": {
+          "type": "object",
+          "description": "Property used to test behavior when a oneOf construct exists",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "user": { "type": "string" },
+                "password": { "type": "string" },
+                "auth_type": { "enum": ["auth_1"] }
+              },
+              "required": ["auth_type", "user", "password"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "token": { "type": "string" },
+                "auth_type": { "enum": ["auth_2"] }
+              },
+              "required": ["auth_type", "token"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "user": { "type": "string" },
+                "auth_type": { "enum": ["auth_3"] }
+              },
+              "required": ["auth_type", "user"],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "defs_test": { "$ref":  "#/$defs/defs_entry"}
       },
       "required": ["required_test"]
     }
   },
-  "required": ["schema_name", "display_name", "metadata"]
+  "required": ["schema_name", "display_name", "metadata"],
+  "$defs": {
+    "defs_entry": {
+      "title": "Defs Test",
+      "description": "Property used to test $defs elements",
+      "type": "integer"
+    }
+  }
 }
