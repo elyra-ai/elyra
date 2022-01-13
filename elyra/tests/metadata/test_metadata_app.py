@@ -19,6 +19,7 @@ import json
 import os
 import shutil
 from tempfile import mkdtemp
+from typing import Optional
 
 import pytest
 
@@ -26,11 +27,13 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE
 from elyra.metadata.schema import METADATA_TEST_SCHEMASPACE_ID
+from elyra.tests.metadata.test_utils import all_of_json
 from elyra.tests.metadata.test_utils import another_metadata_json
 from elyra.tests.metadata.test_utils import create_json_file
 from elyra.tests.metadata.test_utils import invalid_metadata_json
 from elyra.tests.metadata.test_utils import invalid_no_display_name_json
 from elyra.tests.metadata.test_utils import invalid_schema_name_json
+from elyra.tests.metadata.test_utils import one_of_json
 from elyra.tests.metadata.test_utils import PropertyTester
 from elyra.tests.metadata.test_utils import valid_metadata_json
 
@@ -111,6 +114,15 @@ def test_install_no_name(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test')
     assert ret.success is False
     assert ret.stdout.startswith("'--display_name' is a required parameter.")
+
+
+def test_install_complex_usage(script_runner, mock_data_dir):
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test')
+    assert ret.success is False
+    assert 'Note: The following properties in this schema contain JSON keywords that are not supported' in ret.stdout
+    assert '*** References unsupported keywords: {\'oneOf\'}' in ret.stdout
+    assert '*** References unsupported keywords: {\'allOf\'}' in ret.stdout
+    assert '*** References unsupported keywords: {\'$ref\'}' in ret.stdout
 
 
 def test_install_only_display_name(script_runner, mock_data_dir):
@@ -205,6 +217,112 @@ def test_install_and_replace(script_runner, mock_data_dir):
         assert instance_json["display_name"] == 'display_name'
         assert instance_json["metadata"]["required_test"] == 'required_value'
         assert instance_json["metadata"]["number_default_test"] == 42  # defaults will always persist
+
+
+@pytest.mark.parametrize("complex_keyword", ["defs", "oneOf", "allOf"])
+def test_install_and_replace_complex(script_runner, mock_data_dir, complex_keyword):
+
+    test_file: Optional[str] = None
+    name: str = f"test-complex-{complex_keyword}".lower()
+
+    if complex_keyword == "defs":
+        option = "--json"
+        value = "{ \"defs_test\": 42 }"
+
+    elif complex_keyword == "oneOf":
+        option = "--file"
+        # Build the file...
+        test_file = os.path.join(mock_data_dir, f'{complex_keyword}.json')
+        with open(test_file, mode='w') as one_of_fd:
+            json.dump(one_of_json, one_of_fd)
+        value = test_file
+    else:  # allOf
+        option = "--allOf_test"  # Use "ovp-from-file" approach
+        # Build the file...
+        test_file = os.path.join(mock_data_dir, f'{complex_keyword}.json')
+        with open(test_file, mode='w') as all_of_fd:
+            json.dump(all_of_json, all_of_fd)
+        value = test_file
+
+    expected_file = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_SCHEMASPACE, f'{name}.json')
+    # Cleanup from any potential previous failures (should be rare)
+    if os.path.exists(expected_file):
+        os.remove(expected_file)
+
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
+                            f'--name={name}', f'--display_name=Test Complex {complex_keyword}',
+                            '--required_test=required_value', f'{option}={value}')
+    assert ret.success
+    assert f"Metadata instance '{name}' for schema 'metadata-test' has been written" in ret.stdout
+    assert expected_file in ret.stdout
+    assert os.path.exists(expected_file)
+
+    with open(expected_file) as fd:
+        json_results = json.load(fd)
+
+    # Verify common stuff
+    assert json_results['display_name'] == f'Test Complex {complex_keyword}'
+    assert json_results['metadata']['required_test'] == 'required_value'
+
+    # Verify result and prepare for replace...
+    if complex_keyword == "defs":
+        assert json_results['metadata']['defs_test'] == 42
+        value = "{ \"defs_test\": 24 }"
+    elif complex_keyword == "oneOf":
+        assert json_results['metadata']['oneOf_test']['obj_switch'] == "obj2"
+        assert json_results['metadata']['oneOf_test']['obj2_prop1'] == 42
+        one_of_json['metadata']['oneOf_test']['obj2_prop1'] = 24
+        with open(test_file, mode='w+') as one_of_fd:
+            json.dump(one_of_json, one_of_fd)
+    elif complex_keyword == "allOf":
+        assert len(json_results['metadata']['allOf_test']) == 9
+        assert json_results['metadata']['allOf_test']['obj1_switch'] == "obj1"
+        assert json_results['metadata']['allOf_test']['obj1_prop1'] == "allOf-test-val1"
+        assert json_results['metadata']['allOf_test']['obj1_prop2'] == "allOf-test-val2"
+        all_of_json['obj1_prop1'] = "allOf-test-val1-replace"
+        assert json_results['metadata']['allOf_test']['obj2_switch'] == "obj2"
+        assert json_results['metadata']['allOf_test']['obj2_prop1'] == 42
+        assert json_results['metadata']['allOf_test']['obj2_prop2'] == 24
+        all_of_json['obj2_prop1'] = 24
+        assert json_results['metadata']['allOf_test']['obj3_switch'] == "obj3"
+        assert json_results['metadata']['allOf_test']['obj3_prop1'] == 42.7
+        assert json_results['metadata']['allOf_test']['obj3_prop2'] is True
+        all_of_json['obj3_prop1'] = 7.24
+
+        with open(test_file, mode='w+') as all_of_fd:
+            json.dump(all_of_json, all_of_fd)
+
+    # Replace the previously-created instance
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
+                            f'--name={name}', f'--display_name=Test Complex {complex_keyword}2',
+                            '--required_test=required_value', f'{option}={value}', '--replace')
+    assert ret.success
+    assert f"Metadata instance '{name}' for schema 'metadata-test' has been written" in ret.stdout
+    assert expected_file in ret.stdout
+    assert os.path.exists(expected_file)
+
+    with open(expected_file) as fd:
+        json_results = json.load(fd)
+
+    # Verify common stuff
+    assert json_results['display_name'] == f'Test Complex {complex_keyword}2'
+    assert json_results['metadata']['required_test'] == 'required_value'
+
+    # Verify result following replace...
+    if complex_keyword == "defs":
+        assert json_results['metadata']['defs_test'] == 24
+    elif complex_keyword == "oneOf":
+        assert json_results['metadata']['oneOf_test']['obj_switch'] == "obj2"
+        assert json_results['metadata']['oneOf_test']['obj2_prop1'] == 24
+        assert json_results['metadata']['oneOf_test']['obj2_prop2'] == 24
+    elif complex_keyword == "allOf":
+        assert len(json_results['metadata']['allOf_test']) == 9
+        assert json_results['metadata']['allOf_test']['obj1_prop1'] == "allOf-test-val1-replace"
+        assert json_results['metadata']['allOf_test']['obj1_prop2'] == "allOf-test-val2"
+        assert json_results['metadata']['allOf_test']['obj2_prop1'] == 24
+        assert json_results['metadata']['allOf_test']['obj2_prop2'] == 24
+        assert json_results['metadata']['allOf_test']['obj3_prop1'] == 7.24
+        assert json_results['metadata']['allOf_test']['obj3_prop2'] is True
 
 
 def test_list_help(script_runner):

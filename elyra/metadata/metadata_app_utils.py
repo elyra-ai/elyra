@@ -360,8 +360,8 @@ class JSONOption(JSONBasedOption):
         return self._name_arg
 
     def get_format_hint(self) -> str:
-        return "A JSON-formatted string.  Properties and string values must be double-quoted and " \
-               "escaped (e.g., --json=\"{\\\"prop1\\\": \\\"str1\\\", \\\"prop2\\\": 42}\")"
+        return "A JSON-formatted string consisting of at least the 'metadata' stanza " \
+               "(e.g., --json=\"{'metadata': { 'value1', 'int2': 2 }}\""
 
 
 class FileOption(JSONBasedOption):
@@ -380,7 +380,7 @@ class FileOption(JSONBasedOption):
         return self._name_arg
 
     def get_format_hint(self) -> str:
-        return "An existing file containing valid JSON"
+        return "An existing file containing valid JSON consisting of at least the 'metadata' stanza"
 
     def set_value(self, value: str):
         """Take the given value (file), open the file and load it into a dictionary to ensure it parses as JSON."""

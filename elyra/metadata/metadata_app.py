@@ -170,7 +170,7 @@ class SchemaspaceInstall(SchemaspaceBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
+        self.complex_properties: List[str] = []
         self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
         # First, process the schema_name option so we can then load the appropriate schema
         # file to build the schema-based options.  If help is requested, give it to them.
@@ -210,7 +210,6 @@ class SchemaspaceInstall(SchemaspaceBase):
         schema = self.schemas[self.schema_name_option.value]
 
         # Convert schema properties to options, gathering complex property names
-        self.complex_properties: List[str] = []
         schema_options = self._schema_to_options(schema, relax_required)
         self.options.extend(schema_options)
 
@@ -248,6 +247,8 @@ class SchemaspaceInstall(SchemaspaceBase):
         try:
             if self.replace_flag.value:  # if replacing, fetch the instance so it can be updated
                 updated_instance = self.metadata_manager.get(name)
+                updated_instance.schema_name = schema_name
+                updated_instance.display_name = display_name
                 updated_instance.metadata.update(metadata)
                 new_instance = self.metadata_manager.update(name, updated_instance)
             else:  # create a new instance
@@ -344,7 +345,7 @@ class SchemaspaceInstall(SchemaspaceBase):
                   "the schema or indirectly using `--file` or `--json` options.")
             print("If the property is of type \"object\" it can be set using a file containing only that property's "
                   "JSON.")
-            print(f"Here is the current set of unsupported keywords: {SchemaProperty.unsupported_keywords}")
+            print(f"The following are considered unsupported keywords: {SchemaProperty.unsupported_keywords}")
 
 
 class SchemaspaceMigrate(SchemaspaceBase):

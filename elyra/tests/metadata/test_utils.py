@@ -161,6 +161,35 @@ byo_metadata_json = {
     }
 }
 
+# Used in test_install_and_replace_complex to test --file option
+one_of_json = {
+    "schema_name": "metadata-test",
+    "display_name": "oneOf Testing",
+    "metadata": {
+        "required_test": "required_value",
+        "oneOf_test": {
+            "obj2_prop1": 42,
+            "obj2_prop2": 24,
+            "obj_switch": "obj2"
+        }
+    }
+}
+
+# Used in test_install_and_replace_complex to test --allOf_test option (i.e., ovp option)
+all_of_json = {
+    "obj1_prop1": "allOf-test-val1",
+    "obj1_prop2": "allOf-test-val2",
+    "obj1_switch": "obj1",
+
+    "obj2_prop1": 42,
+    "obj2_prop2": 24,
+    "obj2_switch": "obj2",
+
+    "obj3_prop1": 42.7,
+    "obj3_prop2": True,
+    "obj3_switch": "obj3"
+}
+
 
 def create_json_file(location, file_name, content):
     create_file(location, file_name, json.dumps(content))
