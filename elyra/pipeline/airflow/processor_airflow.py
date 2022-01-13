@@ -141,8 +141,8 @@ be fully qualified (i.e., prefixed with their package names).
             )
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        if pipeline_export_format not in ["py"]:
-            raise ValueError("Pipeline export format {} not recognized.".format(pipeline_export_format))
+        # Verify that the AirflowPipelineProcessor supports the given export format
+        self._verify_export_format(pipeline_export_format)
 
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = f'{pipeline.name}-{timestamp}'
