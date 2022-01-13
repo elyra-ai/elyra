@@ -243,7 +243,7 @@ Identifies which git type shall be used to stote DAGs. Supported types are `GitH
 
 ##### GitHub API Endpoint (github_api_endpoint)
 
-The GitHub, GitHub Enterprise, GitLab, or GitLab Enterprose API endpoint where the git client will attempt to connect. This setting is required. Keep the default `https://api.github.com` for github.com or use `https://gitlab.com` for gitlab.com.
+The GitHub, GitHub Enterprise, GitLab, or GitLab Enterprise API endpoint where the git client will attempt to connect. This setting is required. Keep the default `https://api.github.com` for github.com or use `https://gitlab.com` for gitlab.com.
 
 Example: `https://api.private.githubenterprise.com`
 
