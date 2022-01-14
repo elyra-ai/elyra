@@ -82,47 +82,58 @@ The `elyra-metadata` application derives its command-line options (aside from a 
 
 Application-level properties within a schema reside as top-level proeprties within the schema's `metadata` stanza.  For example, here's the `code-snippet` schema for the `code-snippets` schemaspace:
 
-```JSON
-    "metadata": {
-      "description": "Additional data specific to this Code Snippet",
-      "type": "object",
-      "properties": {
-        "description": {
-          "title": "Description",
-          "description": "Code snippet description",
-          "type": "string"
-        },
-        "tags": {
-          "title": "Tags",
-          "description": "Tags for categorizing snippets",
-          "type": "array",
-          "uihints": {
-            "field_type": "tags"
-          }
-        },
-        "language": {
-          "title": "Language",
-          "description": "Code snippet implementation language",
-          "type": "string",
-          "uihints": {
-            "field_type": "dropdown",
-            "default_choices": ["Python", "Java", "R", "Scala", "Markdown"],
-            "category": "Source"
-          },
-          "minLength": 1
-        },
-        "code": {
-          "title": "Code",
-          "description": "Code snippet code lines",
-          "type": "array",
-          "uihints": {
-            "field_type": "code",
-            "category": "Source"
-          }
+```json
+{
+  "metadata": {
+    "description": "Additional data specific to this Code Snippet",
+    "type": "object",
+    "properties": {
+      "description": {
+        "title": "Description",
+        "description": "Code snippet description",
+        "type": "string"
+      },
+      "tags": {
+        "title": "Tags",
+        "description": "Tags for categorizing snippets",
+        "type": "array",
+        "uihints": {
+          "field_type": "tags"
         }
       },
-      "required": ["language", "code"]
-    }
+      "language": {
+        "title": "Language",
+        "description": "Code snippet implementation language",
+        "type": "string",
+        "uihints": {
+          "field_type": "dropdown",
+          "default_choices": [
+            "Python",
+            "Java",
+            "R",
+            "Scala",
+            "Markdown"
+          ],
+          "category": "Source"
+        },
+        "minLength": 1
+      },
+      "code": {
+        "title": "Code",
+        "description": "Code snippet code lines",
+        "type": "array",
+        "uihints": {
+          "field_type": "code",
+          "category": "Source"
+        }
+      }
+    },
+    "required": [
+      "language",
+      "code"
+    ]
+  }
+}
 ```
 and `elyra-metadata` generates options corresponding to each of the `metadata` properties and including helpful tips like whether the property is required and a hint as to how its value should be entered:
 ```
