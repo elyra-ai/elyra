@@ -437,6 +437,15 @@ class RuntimePipelineProcessor(PipelineProcessor):
             self.log.error(f'Error retrieving metadata configuration for {name}', exc_info=True)
             raise RuntimeError(f'Error retrieving metadata configuration for {name}', err) from err
 
+    def _verify_export_format(self, pipeline_export_format: str) -> None:
+        """
+        Check that the given pipeline_export_format is supported by the runtime type;
+        otherwise, raise a ValueError
+        """
+        export_extensions = RuntimeTypeResources.get_instance_by_type(self._type).get_export_extensions()
+        if pipeline_export_format not in export_extensions:
+            raise ValueError(f"Pipeline export format '{pipeline_export_format}' not recognized.")
+
     def _collect_envs(self, operation: GenericOperation, **kwargs) -> Dict:
         """
         Collect the envs stored on the Operation and set the system-defined ELYRA_RUNTIME_ENV

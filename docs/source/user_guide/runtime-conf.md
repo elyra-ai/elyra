@@ -237,15 +237,19 @@ The default namespace is `default`.
 
 Example: `anonymous`
 
+##### Git Type (git_type)
+
+Identifies which git type shall be used to stote DAGs. Supported types are `GitHub` and `GitLab`. `GitLab` is only supported if the [`gitlab` dependency is installed](../getting_started/installation.html#packaging). This setting is required.
+
 ##### GitHub API Endpoint (github_api_endpoint)
 
-The GitHub (or GitHub Enterprise) API endpoint where the git client will attempt to connect. This setting is required. Keep the default  `https://api.github.com` for github.com
+The GitHub, GitHub Enterprise, GitLab, or GitLab Enterprise API endpoint where the git client will attempt to connect. This setting is required. Keep the default `https://api.github.com` for github.com or use `https://gitlab.com` for gitlab.com.
 
 Example: `https://api.private.githubenterprise.com`
 
 ##### GitHub DAG Repository (github_repo)
 
-The GitHub repository that Apache Airflow utilizes to store DAGs. This setting is required and the repository must exist.
+The GitHub repository or GitLab project that Apache Airflow utilizes to store DAGs. This setting is required. The specified repository/project must exist.
 
 Example: `user-or-org/dag-repo-name`
 
@@ -256,7 +260,7 @@ This setting is required and the branch must exist.
 Example: `dag-branch`
 
 ##### GitHub Personal Access Token (github_repo_token)
-A [GitHub personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. This setting is required. 
+For GitHub and GitHub Enterprise: [Personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. For GitLab and GitLab Enterprise: [Personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html), which has been granted `api` access to the project. This setting is required. 
 
 Example: `766f7c267519fee7c71d7f96bdf42e646dc65433`
 

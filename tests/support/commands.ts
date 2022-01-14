@@ -42,7 +42,7 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
     );
     cy.findByLabelText(/github .* repository \*/i).type('akchinstc/test-repo');
     cy.findByLabelText(/github .* branch/i).type('main');
-    cy.findByLabelText(/github .* token/i).type('xxxxxxxx');
+    cy.findByLabelText(/personal access token/i).type('xxxxxxxx');
     // Check the default value is displayed on github api endpoint field
     cy.findByLabelText(/github .* endpoint/i).should(
       'have.value',

@@ -29,7 +29,7 @@ This guide assumes a general working knowledge of and administration of a Kubern
 
 ## Prerequisites
   
-- A private repository on github.com or GitHub Enterprise that is used to store DAGs.
+- A private git repository on github.com, GitHub Enterprise, gitlab.com, or GitLab Enterprise that is used to store DAGs.
 - S3-based cloud object storage e.g. IBM Cloud Object Storage, Amazon S3, MinIO
 
 AND  
@@ -46,23 +46,27 @@ OR
     - Apache Airflow is configured to use the Kubernetes Executor.
     - Ensure the KubernetesPodOperator is installed and available in the Apache Airflow deployment
     
-## Setting up a DAG repository on GitHub
+## Setting up a DAG repository on Git
 
-In order to use Apache Airflow with Elyra, it must be configured to use a GitHub repository to store DAGs.
+In order to use Apache Airflow with Elyra, it must be configured to use a Git repository to store DAGs.
 
-- Create a private repository on github.com or GitHub Enterprise. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.)
-- [Generate a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with push access to the repository. This token is used by Elyra to upload DAGs.
-- [Generate an SSH key](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account) with read access for the repository. Apache Airflow uses a git-sync container to keep its collection of DAGs in synch with the content of the GitHub Repository and the SSH key is used to authenticate.
+- Create a private repository on github.com, GitHub Enterprise, gitlab.com, or GitLab Enterprise. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.)
+- Generate a personal access token with push access to the repository. This token is used by Elyra to upload DAGs.
+   - [Instructions for GitHub](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
+   - [Instructions for GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
+- Generate an SSH key with read access for the repository. Apache Airflow uses a git-sync container to keep its collection of DAGs in synch with the content of the Git Repository and the SSH key is used to authenticate.
+   - [Instructions for GitHub](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
+   - [Instructions for GitLab](https://docs.gitlab.com/ee/ssh/)
 
 Take note of the following information:
- - GitHub API endpoint (e.g. `https://api.github.com` if the repository is hosted on github.com)
+ - Git API endpoint (e.g. `https://api.github.com` for github.com or `https://gitlab.com` for gitlab.com)
  - Repository name (e.g. `your-git-org/your-dag-repo`)
  - Repository branch name (e.g. `main`)
  - Personal access token (e.g. `4d79206e616d6520697320426f6e642e204a616d657320426f6e64`)
 
 You need to provide this information in addition to your cloud object storage credentials when you [create a runtime configuration](../user_guide/runtime-conf) in Elyra for the Apache Airflow deployment.
 
-![Example Apache Airflow runtime configuration](../images/airflow-runtime-config-sample.png)
+![Example Apache Airflow runtime configuration](../images/recipes/configure-airflow-as-a-runtime/airflow-runtime-config-sample.png)
 
 ## Deploying Airflow on a new Kubernetes cluster
   
