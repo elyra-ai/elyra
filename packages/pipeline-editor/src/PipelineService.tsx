@@ -167,7 +167,7 @@ export class PipelineService {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  GitHub Repository.
+                  Git repository.
                 </a>
                 <br />
               </p>
