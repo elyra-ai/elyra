@@ -90,6 +90,7 @@ To create a runtime configuration for a Kubeflow Pipelines deployment:
 
 ```bash
 elyra-metadata install runtimes \
+       --schema_name=kfp
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --auth_type="DEX_STATIC_PASSWORDS" \
@@ -101,36 +102,25 @@ elyra-metadata install runtimes \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.0']" \
-       --schema_name=kfp
+       --tags="['kfp', 'v1.0']"
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters.
 
 #### Modifying a runtime configuration
 
-To edit a runtime configuration:
+To edit a runtime configuration, use the `--replace` option along with `--name` and `--schema_name` (to locate the instance), followed by the modified property values.  In this case, we're updating the `api_password` and `tags` properties:
 
 ```bash
 elyra-metadata install runtimes \
        --replace \
        --name="my_kubeflow_pipelines_runtime" \
-       --display_name="My Kubeflow Pipelines Runtime" \
-       --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
-       --auth_type="DEX_STATIC_PASSWORDS" \
-       --api_username=username@email.com \
+       --schema_name=kfp \
        --api_password=mynewpassword \
-       --engine=Argo \
-       --cos_endpoint=http://minio-service.kubeflow:9000 \
-       --cos_auth_type="USER_CREDENTIALS" \
-       --cos_username=minio \
-       --cos_password=minio123 \
-       --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.1']" \
-       --schema_name=kfp
+       --tags="['kfp', 'v1.1']"
 ```
 
-Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 
+Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. 
 
 #### Deleting a runtime configuration
 

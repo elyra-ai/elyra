@@ -239,7 +239,7 @@ class SchemaspaceInstall(SchemaspaceBase):
             elif isinstance(option, JSONBasedOption):
                 metadata.update(option.metadata)
 
-        if display_name is None:
+        if display_name is None and self.replace_flag.value is False:  # Only require
             self.log_and_exit("Could not determine display_name from schema '{}'".format(schema_name))
 
         ex_msg = None
@@ -248,7 +248,8 @@ class SchemaspaceInstall(SchemaspaceBase):
             if self.replace_flag.value:  # if replacing, fetch the instance so it can be updated
                 updated_instance = self.metadata_manager.get(name)
                 updated_instance.schema_name = schema_name
-                updated_instance.display_name = display_name
+                if display_name:
+                    updated_instance.display_name = display_name
                 updated_instance.metadata.update(metadata)
                 new_instance = self.metadata_manager.update(name, updated_instance)
             else:  # create a new instance
@@ -327,10 +328,11 @@ class SchemaspaceInstall(SchemaspaceBase):
             for required in required_props:
                 options.get(required).required = True
 
-        # ...  and top-level (schema) Properties
-        required_props = set(schema.get('required')) - {'schema_name', 'metadata'}  # skip schema_name & metadata
-        for required in required_props:
-            options.get(required).required = True
+        # ...  and top-level (schema) Properties if we're not replacing (updating)
+        if self.replace_flag.value is False:
+            required_props = set(schema.get('required')) - {'schema_name', 'metadata'}  # skip schema_name & metadata
+            for required in required_props:
+                options.get(required).required = True
         return list(options.values())
 
     def print_help(self):

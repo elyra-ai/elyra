@@ -574,10 +574,9 @@ def test_number_default(script_runner, mock_data_dir):
         assert instance_json["display_name"] == name
         assert instance_json["metadata"]["number_default_test"] == 42
 
+    # Note that we only include the properties that are changed, along with "identifiers" like name ans schema_name.
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
-                            '--name=' + name, '--display_name=' + name,
-                            '--required_test=required_value', '--replace',
-                            '--number_default_test=7.2')
+                            '--name=' + name, '--replace', '--number_default_test=7.2')
 
     assert ret.success
     assert "Metadata instance '" + name + "' for schema 'metadata-test' has been written" in ret.stdout
