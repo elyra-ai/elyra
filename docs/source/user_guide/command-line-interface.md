@@ -82,7 +82,7 @@ The `elyra-metadata` application derives its command-line options (aside from a 
 
 Application-level properties within a schema reside as top-level proeprties within the schema's `metadata` stanza.  For example, here's the `code-snippet` schema for the `code-snippets` schemaspace:
 
-```json
+```JSON
     "metadata": {
       "description": "Additional data specific to this Code Snippet",
       "type": "object",
