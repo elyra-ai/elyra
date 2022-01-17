@@ -33,7 +33,8 @@ import {
   DockPanelSvg,
   runIcon,
   saveIcon,
-  stopIcon
+  stopIcon,
+  LabIcon
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
@@ -57,7 +58,7 @@ const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
 /**
  * A widget for script editors.
  */
-export class ScriptEditor extends DocumentWidget<
+export abstract class ScriptEditor extends DocumentWidget<
   FileEditor,
   DocumentRegistry.ICodeModel
 > {
@@ -71,7 +72,8 @@ export class ScriptEditor extends DocumentWidget<
   private runDisabled: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
-  protected editorLanguage: string;
+  abstract getLanguage(): string;
+  abstract getIcon(): LabIcon | string;
 
   /**
    * Construct a new editor widget.
@@ -88,7 +90,9 @@ export class ScriptEditor extends DocumentWidget<
     this.emptyOutput = true;
     this.runDisabled = false;
     this.controller = new ScriptEditorController();
-    this.editorLanguage = '';
+
+    // Add icon to main tab
+    this.title.icon = this.getIcon();
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -120,11 +124,15 @@ export class ScriptEditor extends DocumentWidget<
 
     // Create output area widget
     this.createOutputAreaWidget();
+
+    this.context.ready.then(() => {
+      this.initializeKernelSpecs();
+    });
   }
 
   initializeKernelSpecs = async (): Promise<void> => {
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
-      this.editorLanguage
+      this.getLanguage()
     );
 
     this.kernelName = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;

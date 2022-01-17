@@ -31,14 +31,13 @@ export class REditor extends ScriptEditor {
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
-    this.editorLanguage = 'R';
+  }
+  getLanguage(): string {
+    return 'R';
+  }
 
-    // Add icon to main tab
-    this.title.icon = 'rIcon';
-
-    this.context.ready.then(() => {
-      this.initializeKernelSpecs();
-    });
+  getIcon(): string {
+    return 'rIcon';
   }
 }
 

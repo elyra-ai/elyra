@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ScriptEditor } from '@elyra/script-editor';
-
 import { pyIcon } from '@elyra/ui-components';
 
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
@@ -24,6 +23,7 @@ import {
   DocumentWidget
 } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
+import { LabIcon } from '@jupyterlab/ui-components';
 
 export class PythonEditor extends ScriptEditor {
   /**
@@ -33,14 +33,13 @@ export class PythonEditor extends ScriptEditor {
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
-    this.editorLanguage = 'python';
+  }
+  getLanguage(): string {
+    return 'python';
+  }
 
-    // Add icon to main tab
-    this.title.icon = pyIcon;
-
-    this.context.ready.then(() => {
-      this.initializeKernelSpecs();
-    });
+  getIcon(): LabIcon {
+    return pyIcon;
   }
 }
 

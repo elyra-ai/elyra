@@ -45,6 +45,7 @@
     "@jupyterlab/launcher": "^3.0.0",
     "@jupyterlab/mainmenu": "^3.0.0",
     "@jupyterlab/settingregistry": "^3.0.0",
+    "@jupyterlab/ui-components": "^3.0.0",
     "@lumino/coreutils": "^1.5.3"
   },
   "devDependencies": {
