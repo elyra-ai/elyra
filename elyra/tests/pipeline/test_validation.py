@@ -47,7 +47,8 @@ def validation_manager(setup_factory_data):
 
 async def test_invalid_lower_pipeline_version(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
-    pipeline['pipelines'][0]['app_data']['version'] = -1
+    pipeline_version = PIPELINE_CURRENT_VERSION - 1
+    pipeline['pipelines'][0]['app_data']['version'] = pipeline_version
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     validation_manager._validate_pipeline_structure(pipeline_definition=pipeline_definition, response=response)
@@ -55,12 +56,14 @@ async def test_invalid_lower_pipeline_version(validation_manager, load_pipeline)
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidPipeline'
-    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value.'
+    assert issues[0]['message'] == f'Pipeline version {pipeline_version} is out of date '\
+                                   'and needs to be migrated using the Elyra pipeline editor.'
 
 
 def test_invalid_upper_pipeline_version(validation_manager, load_pipeline):
     pipeline, response = load_pipeline('generic_basic_pipeline_only_notebook.pipeline')
-    pipeline['pipelines'][0]['app_data']['version'] = PIPELINE_CURRENT_VERSION + 1
+    pipeline_version = PIPELINE_CURRENT_VERSION + 1
+    pipeline['pipelines'][0]['app_data']['version'] = pipeline_version
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     validation_manager._validate_pipeline_structure(pipeline_definition=pipeline_definition, response=response)
@@ -68,7 +71,8 @@ def test_invalid_upper_pipeline_version(validation_manager, load_pipeline):
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidPipeline'
-    assert issues[0]['message'] == 'Primary pipeline version field has an invalid value.'
+    assert issues[0]['message'] == 'Pipeline was last edited in a newer version of Elyra. '\
+                                   'Update Elyra to use this pipeline.'
 
 
 def test_invalid_pipeline_version_that_needs_migration(validation_manager, load_pipeline):
