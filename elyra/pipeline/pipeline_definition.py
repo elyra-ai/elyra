@@ -149,6 +149,14 @@ class Pipeline(AppDataBase):
 
         return self._nodes
 
+    @property
+    def comments(self) -> list:
+        """
+        The list of user comments in the pipeline
+        :rtype: list of comments
+        """
+        return self._node['app_data']['ui_data'].get("comments", [])
+
     def get_property(self, key: str, default_value=None) -> Any:
         """
         Retrieve pipeline values for a given key.
@@ -459,6 +467,27 @@ class PipelineDefinition(object):
                 if node.id == node_id:
                     return node
         return None
+
+    def get_node_comments(self, node_id: str) -> Optional[str]:
+        """
+        Given a node id returns the assoicated comments in the pipeline
+        :param node_id: the node id
+        :return: the comments or None
+        """
+        comments = []
+
+        for pipeline in self.pipelines:
+            comment_list = pipeline.comments
+            for comment in comment_list:
+                assoicated_node_id_list = comment.get("associated_id_refs", [])
+                for ref in assoicated_node_id_list:
+                    if ref['node_ref'] == node_id:
+                        comments.append(comment.get("content", ""))
+
+        if not comments:
+            return None
+        else:
+            return "\n\n".join(comments)
 
     def get_supernodes(self) -> List[Node]:
         """

@@ -532,6 +532,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                                  .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])  # noqa
                                                          })
 
+                if operation.doc:
+                    target_ops[operation.id].add_pod_annotation('elyra/user-doc', operation.doc)
+
                 # TODO Can we move all of this to apply to non-standard components as well? Test when servers are up
                 if cos_secret and not export:
                     target_ops[operation.id].apply(use_aws_secret(cos_secret))

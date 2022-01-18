@@ -84,6 +84,12 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
         op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
     {% endif %}
 
+    {% if operation.doc %}
+        op_{{ operation.id|regex_replace }}.doc = """
+        {{ operation.doc }}
+        """
+    {% endif %}
+
     {% if operation.parent_operation_ids %}
         {% for parent_operation_id in operation.parent_operation_ids %}
             op_{{ operation.id|regex_replace }} << op_{{ parent_operation_id|regex_replace }}
