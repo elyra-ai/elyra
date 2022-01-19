@@ -66,7 +66,8 @@ def test_modify_component_catalogs():
     metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
-    urls = ["https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/"
+    urls = ["https://raw.githubusercontent.com/elyra-ai/elyra/"
+            "133e74732517d39accced6840485c9603c1b79f7/elyra/tests/pipeline/resources/components/"
             "airflow_test_operator.py"]
 
     instance_metadata = {
