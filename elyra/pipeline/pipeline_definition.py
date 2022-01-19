@@ -480,7 +480,7 @@ class PipelineDefinition(object):
             comment_list = pipeline.comments
             for comment in comment_list:
                 associated_node_id_list = comment.get("associated_id_refs", [])
-                for ref in assoicated_node_id_list:
+                for ref in associated_node_id_list:
                     if ref['node_ref'] == node_id:
                         comments.append(comment.get("content", ""))
 
