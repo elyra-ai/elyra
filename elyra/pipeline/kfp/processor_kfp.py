@@ -533,7 +533,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                                          })
 
                 if operation.doc:
-                    target_ops[operation.id].add_pod_annotation('elyra/user-node-doc', operation.doc)
+                    target_ops[operation.id].add_pod_annotation('elyra/node-user-doc', operation.doc)
 
                 # TODO Can we move all of this to apply to non-standard components as well? Test when servers are up
                 if cos_secret and not export:
