@@ -53,16 +53,24 @@ class AirflowComponentParser(ComponentParser):
             return None
 
         # Parse the component definition for all defined classes
-        component_classes = self._get_all_classes(component_definition)
+        # component_classes = self._get_all_classes(component_definition)
 
-        for component_class, component_content in component_classes.items():
+        component_definition = self._remove_inline_comments(component_definition)
+        class_defs = self._get_all_class_defs(component_definition)
+
+        # for component_class, component_content in component_classes.items():
+        for class_def in class_defs:
+            component_class = class_def.name
+            component_content = self._get_content_for_class(class_def, component_definition)
+
             # Create a Component object for each class
-            component_properties = self._parse_properties(component_content)
+            # component_properties = self._parse_properties(component_content)
+            component_properties = self._parse_properties_for_class(class_def, component_content)
 
             component_id = registry_entry.component_id
             # If this file contains more than one operator, adjust name to avoid
             # overwriting components with same id
-            if len(component_classes) > 1:
+            if len(class_defs) > 1:
                 component_id += f":{component_class}"
 
             new_component = Component(
@@ -71,7 +79,7 @@ class AirflowComponentParser(ComponentParser):
                 description='',
                 catalog_type=registry_entry.catalog_type,
                 source_identifier=registry_entry.component_identifier,
-                definition=self.get_class_def_as_string(component_content),
+                definition=component_content,
                 runtime_type=self.component_platform.name,
                 categories=registry_entry.categories,
                 properties=component_properties
@@ -81,12 +89,135 @@ class AirflowComponentParser(ComponentParser):
 
         return components
 
+    def _remove_inline_comments(self, component_definition: str) -> str:
+        # Remove any inline comments. Must follow the '2 preceding spaces and one following space' rule
+        # (this avoids skipping the case where the default value of an __init__ arg contains '#')
+        return re.sub(r"  # .*\n?", "", component_definition)
+
+    def _get_all_class_defs(self, component_definition: str) -> List[ast.ClassDef]:
+        parsed_content = ast.parse(component_definition)
+
+        class_defs = []
+        import_defs = []
+        for body_element in parsed_content.body:
+            if isinstance(body_element, ast.ClassDef):
+                class_defs.append(body_element)
+            elif isinstance(body_element, (ast.Import, ast.ImportFrom)):
+                import_defs.append(body_element)
+
+        class_names = [class_def.name for class_def in class_defs]
+        import_names = [import_name.name for import_def in import_defs for import_name in import_def.names]
+        for class_def in class_defs:
+            for base_class in class_def.bases:
+                base_class_name = base_class.id
+                if base_class_name == 'BaseOperator' or \
+                        base_class_name in class_names or \
+                        (base_class_name.endswith('Operator') and base_class_name in import_names):
+                    continue
+
+            class_defs.remove(class_def)
+
+        return class_defs
+
+    def _get_content_for_class(self, class_def: ast.ClassDef, component_definition: str) -> str:
+        component_def_as_lines = component_definition.split('\n')
+        return '\n'.join(component_def_as_lines[class_def.lineno:class_def.end_lineno])
+
+    def _parse_properties_for_class(self, class_def: ast.ClassDef, class_definition: str):
+        properties = []
+        args_to_defaults = None
+        for item in class_def.body:
+            if isinstance(item, ast.FunctionDef) and "init" in item.name:
+                args = [arg.arg for arg in item.args.kwonlyargs]
+                types = []
+                required_flags = []
+                default_values = [arg.value or None for arg in item.args.kw_defaults]
+                args_to_defaults = zip(
+                    [arg.arg for arg in item.args.kwonlyargs],
+                    [arg.value or None for arg in item.args.kw_defaults],
+                    [],
+                    [arg.annotation.value.id if id for arg in item.args.kwonlyargs]
+                )
+
+        if not args_to_defaults:
+            return properties
+
+        for arg, default in args_to_defaults:
+            # Component parameter to be required to function correctly
+            required = True
+            value = default
+
+            # Search for data type (':type [param]:') in class docstring
+            type_regex = re.compile(f":type {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n))")
+            match = type_regex.search(class_definition)
+            data_type = match.group(1).strip() if match else "string"
+
+            # Search for description (':param [param]:') in class docstring
+            param_regex = re.compile(f":param {arg}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
+            match = param_regex.search(class_definition)
+            description = match.group(1).strip().replace("\"", "'") if match else ""
+
+            # Amend description to include type information
+            description = self._format_description(description=description, data_type=data_type)
+
+            data_type_info = self.determine_type_information(data_type)
+            if data_type_info.undetermined:
+                self.log.debug(f"Data type from parsed data ('{data_type}') could not be determined. "
+                               f"Proceeding as if '{data_type_info.data_type}' was detected.")
+            elif 'xcom' in arg.lower() and data_type_info.data_type == 'boolean':
+                data_type_info.default_value = True
+
+            # Override control id since all input properties can take in an xcom
+            control_id = "OneOfControl"
+
+            # Set the default control type
+            default_control_type = data_type_info.control_id
+
+            # Create Dict of control ids that this property can use
+            one_of_control_types = [(default_control_type, data_type_info.data_type,
+                                     ControllerMap[default_control_type].value),
+                                    ("NestedEnumControl", "inputpath",
+                                     ControllerMap["NestedEnumControl"].value)]
+
+            component_params = ComponentParameter(id=arg,
+                                                  name=arg,
+                                                  data_type=data_type_info.data_type,
+                                                  value=(value or data_type_info.default_value),
+                                                  description=description,
+                                                  default_control_type=default_control_type,
+                                                  control_id=control_id,
+                                                  one_of_control_types=one_of_control_types,
+                                                  allow_no_options=True,
+                                                  required=required)
+            properties.append(component_params)
+
+        return properties
+
+
     def _get_all_classes(self, component_definition: str) -> Dict[str, Dict]:
         # Organize lines and arguments according to the class to which they belong
-        class_to_content = {
-            "no_class": {"lines": [], "args": []}
-        }
+        class_to_content = {}
 
+        # Remove any inline comments. Must follow the '2 preceding spaces and one following space' rule
+        # (this avoids skipping the case where the default value of an __init__ arg contains '#')
+        component_def_as_lines = component_definition.split('\n')
+        for line_num, line in enumerate(component_def_as_lines):
+            component_def_as_lines[line_num] = re.sub(r"  # .*\n?", "", line)
+
+        parsed_content = ast.parse(component_definition)
+        for element in parsed_content.body:
+            if isinstance(element, ast.ClassDef):
+                # get args
+                '''
+                args = []
+                for item in element.body:
+                    if isinstance(item, ast.FunctionDef) and "init" in item.name:
+                        args = [arg.arg for arg in item.args.kwonlyargs]
+                '''
+
+                class_to_content[element.name] = component_def_as_lines[element.end_col_offset:element.end_lineno]
+
+        '''
         class_name = "no_class"
         class_regex = re.compile(r"class ([\w]+[.\w]*)\(\w*\):")
         for line in component_definition.split('\n'):
@@ -100,6 +231,7 @@ class AirflowComponentParser(ComponentParser):
             class_to_content[class_name]['lines'].append(line)
 
         class_to_content.pop("no_class")
+        '''
 
         init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\[\]\{\}\*\s\#.\\\/:?]*)\):")
         for class_name, content in class_to_content.items():
