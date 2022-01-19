@@ -83,11 +83,9 @@ class AirflowComponentParser(ComponentParser):
 
     def _get_all_classes(self, component_definition: str) -> Dict[str, Dict]:
         # Organize lines and arguments according to the class to which they belong
-        class_to_content = {
-            "no_class": {"lines": [], "args": []}
-        }
+        class_to_content = {}
 
-        class_name = "no_class"
+        class_name = None
         class_regex = re.compile(r"class ([\w]+[.\w]*)\(\w*\):")
         for line in component_definition.split('\n'):
             # Remove any inline comments (must follow the '2 preceding spaces and one following space'
@@ -95,14 +93,13 @@ class AirflowComponentParser(ComponentParser):
             line = re.sub(r"  # .*\n?", "", line)
             match = class_regex.search(line)
             if match:
-                # Do not include any non-Operator classes
-                if not line.strip().endswith("Operator):"):
-                    continue
-                class_name = match.group(1)
-                class_to_content[class_name] = {"lines": [], "args": []}
-            class_to_content[class_name]['lines'].append(line)
-
-        class_to_content.pop("no_class")
+                if line.strip().endswith("Operator):"):
+                    class_name = match.group(1)
+                    class_to_content[class_name] = {"lines": [], "args": []}
+                else:
+                    class_name = None
+            if class_name:
+                class_to_content[class_name]['lines'].append(line)
 
         init_regex = re.compile(r"def __init__\(([\s\d\w,=\-\'\"\[\]\{\}\*\s\#.\\\/:?]*)\):")
         for class_name, content in class_to_content.items():

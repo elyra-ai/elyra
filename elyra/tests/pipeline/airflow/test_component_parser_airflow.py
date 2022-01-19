@@ -97,7 +97,8 @@ def test_modify_component_catalogs():
     assert len(added_components) > len(initial_components)
 
     added_component_names = [component.name for component in added_components]
-    assert 'TestOperator' in added_component_names
+    assert 'TestOperator' and 'TestUnusualTypesOperator' in added_component_names
+    assert 'HelperClass' not in added_component_names
     assert 'TestOperatorNoInputs' not in added_component_names
 
     # Modify the test registry to add an additional path to
@@ -114,7 +115,7 @@ def test_modify_component_catalogs():
     assert len(modified_components) > len(added_components)
 
     modified_component_names = [component.name for component in modified_components]
-    assert 'TestOperator' in modified_component_names
+    assert 'TestOperator' and 'TestUnusualTypesOperator' in added_component_names
     assert 'TestOperatorNoInputs' in modified_component_names
 
     # Delete the test registry
@@ -209,8 +210,14 @@ def test_parse_airflow_component_file():
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    component = parser.parse(component_entry)[0]
-    properties_json = ComponentCache.to_canvas_properties(component)
+    components = parser.parse(component_entry)
+
+    # Ensure that the helper class was not returned as a Component object
+    assert len(components) == 2
+    test_component, test_unusual_types_component = components[0], components[1]
+
+    # Request properties for first component
+    properties_json = ComponentCache.to_canvas_properties(test_component)
 
     # Ensure component parameters are prefixed (and system parameters are not), and hold correct values
     assert properties_json['current_parameters']['label'] == ''
@@ -238,7 +245,9 @@ def test_parse_airflow_component_file():
     assert get_parameter('elyra_test_dict_default') == '{}'  # {}
     assert get_parameter('elyra_test_list_default') == '[]'  # []
 
-    # Ensure that type information is inferred correctly
+    # Request properties for second component and ensure that type information is inferred correctly
+    properties_json = ComponentCache.to_canvas_properties(test_unusual_types_component)
+
     unusual_dict_property = next(prop for prop in properties_json['uihints']['parameter_info']
                                  if prop.get('parameter_ref') == 'elyra_test_unusual_type_dict')
     assert unusual_dict_property['data']['controls']['StringControl']['format'] == "dictionary"
@@ -252,7 +261,7 @@ def test_parse_airflow_component_file():
     assert unusual_string_property['data']['controls']['StringControl']['format'] == "string"
 
     no_type_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                            if prop.get('parameter_ref') == 'elyra_test_unusual_type_notgiven')
+                            if prop.get('parameter_ref') == 'elyra_test_unusual_type_not_given')
     assert no_type_property['data']['controls']['StringControl']['format'] == "string"
 
     # Ensure descriptions are rendered properly with type hint in parentheses

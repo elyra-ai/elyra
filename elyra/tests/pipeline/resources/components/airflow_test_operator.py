@@ -18,7 +18,7 @@ from airflow.utils.decorators import apply_defaults
 
 
 class TestOperator(BaseOperator):
-    r"""
+    """
     Execute a test script.
 
     :param test_string_no_default: The test command description
@@ -43,13 +43,6 @@ class TestOperator(BaseOperator):
     :type test_int_zero: int
     :param test_int_non_zero: The test command int description
     :type test_int_non_zero: int
-    :param test_unusual_type_dict: The test command description
-    :type test_unusual_type_dict: a dictionary of arrays
-    :param test_unusual_type_list: The test command description
-    :type test_unusual_type_list: a list of strings
-    :param test_unusual_type_string: The test command description
-    :type test_unusual_type_string: a string
-    :param test_unusual_type_notgiven: The test command description
     """
 
     @apply_defaults
@@ -65,10 +58,38 @@ class TestOperator(BaseOperator):
                  test_bool_true=True,
                  test_int_zero=0,
                  test_int_non_zero=1,
+                 *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+
+class TestUnusualTypesOperator(BaseOperator):
+    """
+    A second operator defined within the same file.
+
+    :param test_unusual_type_dict: The test command description
+    :type test_unusual_type_dict: a dictionary of arrays
+    :param test_unusual_type_list: The test command description
+    :type test_unusual_type_list: a list of strings
+    :param test_unusual_type_string: The test command description
+    :type test_unusual_type_string: a string
+    :param test_unusual_type_not_given: The test command description
+    """
+
+    def __init__(self,
                  test_unusual_type_dict=None,
                  test_unusual_type_list=None,
                  test_unusual_type_string="",
-                 test_unusual_type_notgiven="",
+                 test_unusual_type_not_given="",
                  *args, **kwargs):
 
+        super().__init__(*args, **kwargs)
+
+
+class HelperClass(object):
+    """
+    A class that should not be parsed as an operator.
+    """
+
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
