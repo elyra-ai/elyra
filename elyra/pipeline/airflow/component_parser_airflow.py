@@ -95,6 +95,9 @@ class AirflowComponentParser(ComponentParser):
             line = re.sub(r"  # .*\n?", "", line)
             match = class_regex.search(line)
             if match:
+                # Do not include any non-Operator classes
+                if not line.strip().endswith("Operator):"):
+                    continue
                 class_name = match.group(1)
                 class_to_content[class_name] = {"lines": [], "args": []}
             class_to_content[class_name]['lines'].append(line)
