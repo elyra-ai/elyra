@@ -484,10 +484,13 @@ class PipelineDefinition(object):
                     if ref['node_ref'] == node_id:
                         comments.append(comment.get("content", ""))
 
-        if not comments:
+        # remove empty (or whitespace-only) comment strings
+        comments = [c for c in comments if c.strip()]
+        comment_str = "\n\n".join(comments)
+        if not comment_str:
             return None
-        else:
-            return "\n\n".join(comments)
+
+        return comment_str
 
     def get_supernodes(self) -> List[Node]:
         """
