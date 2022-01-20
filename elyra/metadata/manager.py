@@ -84,8 +84,9 @@ class MetadataManager(LoggingConfigurable):
                 # Since we may not have a metadata instance due to a failure during `from_dict()`,
                 # instantiate a bad instance directly to use in the message and invalid result.
                 invalid_instance = Metadata(**metadata_dict)
-                self.log.debug("Fetch of instance '{}' of schemaspace '{}' encountered an exception: {}".
-                               format(invalid_instance.name, self.schemaspace, ex))
+                self.log.warning(f"Fetch of instance '{invalid_instance.name}' "
+                                 f"of schemaspace '{self.schemaspace}' "
+                                 f"encountered an exception: {ex}")
                 if include_invalid:
                     invalid_instance.reason = ex.__class__.__name__
                     instances.append(invalid_instance)

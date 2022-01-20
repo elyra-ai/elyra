@@ -37,6 +37,7 @@ from elyra.metadata.schemaspaces import ComponentRegistries  # TODO: deprecated,
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.kfp.kfp_authentication import SupportedAuthProviders
+from elyra.util.gitutil import SupportedGitTypes
 
 
 class ElyraSchemasProvider(SchemasProvider, metaclass=ABCMeta):
@@ -76,7 +77,8 @@ class RuntimesSchemas(ElyraSchemasProvider):
 
     def get_schemas(self) -> List[Dict]:
 
-        kfp_needed = False
+        kfp_schema_present = False
+        airflow_schema_present = False
         # determine if both airflow and kfp are needed and note if kfp is needed for later
         runtime_schemas = []
         schemas = self.get_local_schemas_by_schemaspace(Runtimes.RUNTIMES_SCHEMASPACE_ID)
@@ -84,12 +86,14 @@ class RuntimesSchemas(ElyraSchemasProvider):
             if schema['name'] in self._runtime_processor_names:
                 runtime_schemas.append(schema)
                 if schema['name'] == 'kfp':
-                    kfp_needed = True
+                    kfp_schema_present = True
+                elif schema['name'] == 'airflow':
+                    airflow_schema_present = True
             else:
                 self.log.error(f"No entrypoint with name '{schema['name']}' was found in group "
                                f"'elyra.pipeline.processor' to match the schema with the same name. Skipping...")
 
-        if kfp_needed:  # Update the kfp engine enum to reflect current packages...
+        if kfp_schema_present:  # Update the kfp engine enum to reflect current packages...
             # If TektonClient package is missing, navigate to the engine property
             # and remove 'tekton' entry if present and return updated result.
             if not TektonClient:
@@ -112,6 +116,16 @@ class RuntimesSchemas(ElyraSchemasProvider):
                     if schema['properties']['metadata']['properties'].get('auth_type') is not None:
                         schema['properties']['metadata']['properties']['auth_type']['enum'] = auth_type_enum
                         schema['properties']['metadata']['properties']['auth_type']['default'] = auth_type_default
+
+        if airflow_schema_present:
+            # Replace Git Type placeholders
+            git_type_enum = list(map(lambda c: c.name, SupportedGitTypes.get_enabled_types()))
+            git_type_default = SupportedGitTypes.get_default_type().name
+            for schema in runtime_schemas:
+                if schema['name'] == 'airflow':
+                    if schema['properties']['metadata']['properties'].get('git_type') is not None:
+                        schema['properties']['metadata']['properties']['git_type']['enum'] = git_type_enum
+                        schema['properties']['metadata']['properties']['git_type']['default'] = git_type_default
 
         return runtime_schemas
 
