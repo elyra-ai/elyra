@@ -64,19 +64,30 @@
             "category": "Apache Airflow"
           }
         },
+        "git_type": {
+          "title": "Git type",
+          "description": "Git provider",
+          "type": "string",
+          "enum": ["{GIT_TYPES_PLACEHOLDER}"],
+          "default": "{GIT_DEFAULT_TYPE_PLACEHOLDER}",
+          "uihints": {
+            "field_type": "dropdown",
+            "category": "Apache Airflow"
+          }
+        },
         "github_api_endpoint": {
-          "title": "GitHub API Endpoint",
-          "description": "The GitHub Server URL / API endpoint - Public or Enterprise",
+          "title": "GitHub or GitLab server API Endpoint",
+          "description": "The GitHub or GitLab server URL / API endpoint - Public or Enterprise",
           "type": "string",
           "format": "uri",
           "default": "https://api.github.com",
           "uihints": {
             "category": "Apache Airflow",
-            "placeholder": "https://your-github-endpoint"
+            "placeholder": "https://your-github-or-gitlab-endpoint"
           }
         },
         "github_repo": {
-          "title": "GitHub DAG Repository",
+          "title": "GitHub or GitLab DAG Repository",
           "description": "Existing repository where DAGs are stored",
           "type": "string",
           "uihints": {
@@ -85,16 +96,16 @@
           }
         },
         "github_branch": {
-          "title": "GitHub DAG Repository Branch",
-          "description": "Existing branch in the GitHub repository where DAGs are stored",
+          "title": "GitHub or GitLab DAG Repository Branch",
+          "description": "Existing branch in the repository where DAGs are stored",
           "type": "string",
           "uihints": {
             "category": "Apache Airflow"
           }
         },
         "github_repo_token": {
-          "title": "GitHub Personal Access Token",
-          "description": "GitHub token with push access for the DAG repository",
+          "title": "Personal Access Token",
+          "description": "Token that has permission to push to the DAG repository",
           "type": "string",
           "uihints": {
             "secure": true,

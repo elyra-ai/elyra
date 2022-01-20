@@ -1,6 +1,6 @@
   <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 - `elyra` - install the Elyra core features
 - `elyra[all]` - install core features and all dependencies
 - `elyra[kfp-tekton]` - install the Elyra core features and support for [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton)
+- `elyra[gitlab]` - install the Elyra core features and GitLab support for Apache Airflow pipelines
 - `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
 - `elyra[airflow-examples]` - install the Elyra core features and [Apache Airflow custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
 

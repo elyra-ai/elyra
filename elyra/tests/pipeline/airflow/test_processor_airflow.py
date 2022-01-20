@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
-from elyra.util import git
+from elyra.util.github import GithubClient
 
 PIPELINE_FILE_COMPLEX = 'resources/sample_pipelines/pipeline_dependency_complex.json'
 PIPELINE_FILE_CUSTOM_COMPONENTS = 'resources/sample_pipelines/pipeline_with_airflow_components.json'
@@ -151,7 +151,7 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
                         lambda pipeline, pipeline_export_format, pipeline_export_path, pipeline_name: mocked_path)
 
     monkeypatch.setattr(github.Github, "get_repo", lambda x, y: True)
-    monkeypatch.setattr(git.GithubClient, "upload_dag", lambda x, y, z: True)
+    monkeypatch.setattr(GithubClient, "upload_dag", lambda x, y, z: True)
 
     response = processor.process(pipeline=parsed_pipeline)
 

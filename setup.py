@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,7 +47,9 @@ runtime_extras = {
     'kfp-examples': ['elyra-examples-kfp-catalog'],
     # Apache Airflow example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
-    'airflow-examples': ['elyra-examples-airflow-catalog']
+    'airflow-examples': ['elyra-examples-airflow-catalog'],
+    # Use gitlab as Airflow DAG repository
+    'gitlab': ['python-gitlab']
 }
 runtime_extras['all'] = list(set(sum(runtime_extras.values(), [])))
 

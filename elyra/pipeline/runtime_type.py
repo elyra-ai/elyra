@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -91,6 +91,13 @@ class RuntimeTypeResources(object):
                  export_file_types=self.export_file_types)
         return d
 
+    def get_export_extensions(self) -> List[str]:
+        """
+        Return a list of supported export file extensions (as represented by the 'id'
+        key of each dictionary in the export_file_types list).
+        """
+        return [file_type.get('id') for file_type in self.export_file_types]
+
 
 class ArgoResources(RuntimeTypeResources):
     """Holds static information relative to Argo processors """
@@ -110,10 +117,7 @@ class KubeflowPipelinesResources(RuntimeTypeResources):
     """Holds static information relative to Kubeflow Pipelines processors """
     type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     icon_endpoint = "static/elyra/kubeflow.svg"
-    export_file_types = [
-        {'id': 'py', 'display_name': 'KFP domain-specific language Python code'},
-        {'id': 'yaml', 'display_name': 'KFP static configuration file (YAML formatted)'}
-    ]
+    export_file_types = [{'id': 'yaml', 'display_name': 'KFP static configuration file (YAML formatted)'}]
 
 
 class LocalResources(RuntimeTypeResources):
