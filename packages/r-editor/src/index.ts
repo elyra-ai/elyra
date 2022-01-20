@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { ScriptEditorWidgetFactory, ScriptEditor } from '@elyra/script-editor';
 import { rIcon } from '@elyra/ui-components';
 
 import {
@@ -23,7 +24,11 @@ import {
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
+import {
+  IDocumentWidget,
+  DocumentRegistry,
+  DocumentWidget
+} from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -32,7 +37,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
 
-import { REditorFactory, REditor } from './REditor';
+import { REditor } from './REditor';
 
 const R_FACTORY = 'R Editor';
 const R = 'r';
@@ -71,13 +76,19 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - r-editor extension is activated!');
 
-    const factory = new REditorFactory({
+    const factory = new ScriptEditorWidgetFactory({
       editorServices,
       factoryOptions: {
         name: R_FACTORY,
         fileTypes: [R],
         defaultFor: [R]
-      }
+      },
+      instanceCreator: (
+        options: DocumentWidget.IOptions<
+          FileEditor,
+          DocumentRegistry.ICodeModel
+        >
+      ): ScriptEditor => new REditor(options)
     });
 
     app.docRegistry.addFileType({
@@ -94,7 +105,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Track REditor widget on page refresh
      */
-    const tracker = new WidgetTracker<REditor>({
+    const tracker = new WidgetTracker<ScriptEditor>({
       namespace: R_EDITOR_NAMESPACE
     });
 
@@ -137,7 +148,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    const updateWidget = (widget: REditor): void => {
+    const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
           widget

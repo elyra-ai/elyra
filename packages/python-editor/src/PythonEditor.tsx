@@ -16,12 +16,7 @@
 import { ScriptEditor } from '@elyra/script-editor';
 import { pyIcon } from '@elyra/ui-components';
 
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import {
-  ABCWidgetFactory,
-  DocumentRegistry,
-  DocumentWidget
-} from '@jupyterlab/docregistry';
+import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { LabIcon } from '@jupyterlab/ui-components';
 
@@ -40,61 +35,5 @@ export class PythonEditor extends ScriptEditor {
 
   getIcon(): LabIcon {
     return pyIcon;
-  }
-}
-
-/**
- * A widget factory for Python Editors.
- */
-export class PythonEditorFactory extends ABCWidgetFactory<
-  PythonEditor,
-  DocumentRegistry.ICodeModel
-> {
-  /**
-   * Construct a new editor widget factory.
-   */
-  constructor(options: PythonEditorFactory.IOptions) {
-    super(options.factoryOptions);
-    this._services = options.editorServices;
-  }
-
-  /**
-   * Create a new widget given a context.
-   */
-  protected createNewWidget(
-    context: DocumentRegistry.CodeContext
-  ): PythonEditor {
-    const newDocumentEditor = this._services.factoryService.newDocumentEditor;
-    const factory: CodeEditor.Factory = options => {
-      return newDocumentEditor(options);
-    };
-    const content = new FileEditor({
-      factory,
-      context,
-      mimeTypeService: this._services.mimeTypeService
-    });
-    return new PythonEditor({ content, context });
-  }
-
-  private _services: IEditorServices;
-}
-
-/**
- * The namespace for `PythonEditorFactory` class statics.
- */
-export namespace PythonEditorFactory {
-  /**
-   * The options used to create an editor widget factory.
-   */
-  export interface IOptions {
-    /**
-     * The editor services used by the factory.
-     */
-    editorServices: IEditorServices;
-
-    /**
-     * The factory options associated with the factory.
-     */
-    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<PythonEditor>;
   }
 }

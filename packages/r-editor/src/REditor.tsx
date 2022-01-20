@@ -15,12 +15,7 @@
  */
 import { ScriptEditor } from '@elyra/script-editor';
 
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import {
-  ABCWidgetFactory,
-  DocumentRegistry,
-  DocumentWidget
-} from '@jupyterlab/docregistry';
+import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 
 export class REditor extends ScriptEditor {
@@ -38,59 +33,5 @@ export class REditor extends ScriptEditor {
 
   getIcon(): string {
     return 'rIcon';
-  }
-}
-
-/**
- * A widget factory for R Editors.
- */
-export class REditorFactory extends ABCWidgetFactory<
-  REditor,
-  DocumentRegistry.ICodeModel
-> {
-  /**
-   * Construct a new editor widget factory.
-   */
-  constructor(options: REditorFactory.IOptions) {
-    super(options.factoryOptions);
-    this._services = options.editorServices;
-  }
-
-  /**
-   * Create a new widget given a context.
-   */
-  protected createNewWidget(context: DocumentRegistry.CodeContext): REditor {
-    const newDocumentEditor = this._services.factoryService.newDocumentEditor;
-    const factory: CodeEditor.Factory = options => {
-      return newDocumentEditor(options);
-    };
-    const content = new FileEditor({
-      factory,
-      context,
-      mimeTypeService: this._services.mimeTypeService
-    });
-    return new REditor({ content, context });
-  }
-
-  private _services: IEditorServices;
-}
-
-/**
- * The namespace for `REditorFactory` class statics.
- */
-export namespace REditorFactory {
-  /**
-   * The options used to create an editor widget factory.
-   */
-  export interface IOptions {
-    /**
-     * The editor services used by the factory.
-     */
-    editorServices: IEditorServices;
-
-    /**
-     * The factory options associated with the factory.
-     */
-    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<REditor>;
   }
 }

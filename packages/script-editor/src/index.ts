@@ -20,3 +20,4 @@ export * from './KernelDropdown';
 export * from './ScriptEditor';
 export * from './ScriptEditorController';
 export * from './ScriptRunner';
+export * from './ScriptEditorWidgetFactory';
