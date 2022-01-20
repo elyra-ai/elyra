@@ -182,10 +182,16 @@ def test_install_and_replace(script_runner, mock_data_dir):
 
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
-                            '--required_test=required_value')
+                            '--required_test=required_value', '--number_default_test=24')
     assert ret.success
     assert "Metadata instance 'test-metadata_42_valid-name' for schema 'metadata-test' has been written" in ret.stdout
     assert expected_file in ret.stdout
+    assert os.path.isdir(os.path.join(mock_data_dir, 'metadata', METADATA_TEST_SCHEMASPACE))
+    assert os.path.isfile(expected_file)
+
+    with open(expected_file, "r") as fd:
+        instance_json = json.load(fd)
+        assert instance_json["metadata"]["number_default_test"] == 24  # ensure CLI value is used over default
 
     # Re-attempt w/o replace flag - failure expected
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
@@ -216,7 +222,7 @@ def test_install_and_replace(script_runner, mock_data_dir):
         assert instance_json["schema_name"] == 'metadata-test'
         assert instance_json["display_name"] == 'display_name'
         assert instance_json["metadata"]["required_test"] == 'required_value'
-        assert instance_json["metadata"]["number_default_test"] == 42  # defaults will always persist
+        assert instance_json["metadata"]["number_default_test"] == 24  # ensure original value is used over default
 
 
 @pytest.mark.parametrize("complex_keyword", ["defs", "oneOf", "allOf"])

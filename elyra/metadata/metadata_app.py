@@ -318,9 +318,13 @@ class SchemaspaceInstall(SchemaspaceBase):
             else:  # convert first-level metadata properties to options...
                 metadata_properties = properties['metadata']['properties']
                 for md_name, md_value in metadata_properties.items():
-                    options[md_name] = MetadataSchemaProperty(md_name, md_value)
-                    if options[md_name].unsupported_meta_props:
+                    msp = MetadataSchemaProperty(md_name, md_value)
+                    # skip if this property was not specified on the command line and its a replace/bulk op
+                    if msp.cli_option not in self.argv_mappings and relax_required:
+                        continue
+                    if msp.unsupported_meta_props:  # if this option includes complex meta-props, note that.
                         self.complex_properties.append(md_name)
+                    options[md_name] = msp
 
         # Now set required-ness on MetadataProperties, but only when creation is using fine-grained property options
         if not relax_required:
