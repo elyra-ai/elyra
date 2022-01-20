@@ -80,7 +80,7 @@ Refer to the topics below for detailed information on how to use `elyra-metadata
 #### Creating and updating metadata with complex properties
 The `elyra-metadata` application derives its command-line options (aside from a handful of system options) directly from the schema associated with the referenced schemaspace. In most cases, the schema properties are straightforward and easily determined.  However, JSON schemas can also contain complex properties and references that are not within the scope of `elyra-metadata`.  This section presents ways to create and update instances built from complex schemas.
 
-Application-level properties within a schema reside as top-level proeprties within the schema's `metadata` stanza.  For example, here's the `code-snippet` schema for the `code-snippets` schemaspace:
+Application-level properties within a schema reside as top-level properties within the schema's `metadata` stanza. For example, here's the `code-snippet` schema for the `code-snippets` schemaspace:
 
 ```json
 {
