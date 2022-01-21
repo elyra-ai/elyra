@@ -117,10 +117,87 @@
           "title": "Null Test",
           "description": "Property used to test null types",
           "type": "null"
-        }
+        },
+        "oneOf_test": {
+          "type": "object",
+          "description": "Property used to test behavior when a oneOf construct exists",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "obj1_prop1": { "type": "string" },
+                "obj1_prop2": { "type": "string" },
+                "obj_switch": { "enum": ["obj1"] }
+              },
+              "required": ["obj_switch", "obj1_prop1", "obj1_prop2"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "obj2_prop1": { "type": "integer" },
+                "obj2_prop2": { "type": "integer" },
+                "obj_switch": { "enum": ["obj2"] }
+              },
+              "required": ["obj_switch", "obj2_prop1", "obj2_prop2"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "obj3_prop1": { "type": "number" },
+                "obj3_prop2": { "type": "boolean" },
+                "obj_switch": { "enum": ["obj3"] }
+              },
+              "required": ["obj_switch", "obj3_prop1"],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "allOf_test": {
+          "type": "object",
+          "description": "Property used to test behavior when an allOf construct exists",
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "obj1_prop1": { "type": "string" },
+                "obj1_prop2": { "type": "string" },
+                "obj1_switch": { "enum": ["obj1"] }
+              },
+              "required": ["obj1_switch", "obj1_prop1", "obj1_prop2"]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "obj2_prop1": { "type": "integer" },
+                "obj2_prop2": { "type": "integer" },
+                "obj2_switch": { "enum": ["obj2"] }
+              },
+              "required": ["obj2_switch", "obj2_prop1", "obj2_prop2"]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "obj3_prop1": { "type": "number" },
+                "obj3_prop2": { "type": "boolean" },
+                "obj3_switch": { "enum": ["obj3"] }
+              },
+              "required": ["obj3_switch", "obj3_prop1"]
+            }
+          ]
+        },
+        "defs_test": { "$ref": "#/$defs/defs_entry" }
       },
       "required": ["required_test"]
     }
   },
-  "required": ["schema_name", "display_name", "metadata"]
+  "required": ["schema_name", "display_name", "metadata"],
+  "$defs": {
+    "defs_entry": {
+      "title": "Defs Test",
+      "description": "Property used to test $defs elements",
+      "type": "integer"
+    }
+  }
 }

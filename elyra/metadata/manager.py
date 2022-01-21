@@ -159,7 +159,7 @@ class MetadataManager(LoggingConfigurable):
             raise ValidationError(msg) from ve
 
     @staticmethod
-    def _get_normalized_name(name: str) -> str:
+    def get_normalized_name(name: str) -> str:
         # lowercase and replaces spaces with underscore
         name = re.sub('\\s+', '_', name.lower())
         # remove all invalid characters
@@ -195,7 +195,7 @@ class MetadataManager(LoggingConfigurable):
 
         if not name and not for_update:  # name is derived from display_name only on creates
             if metadata.display_name:
-                name = self._get_normalized_name(metadata.display_name)
+                name = MetadataManager.get_normalized_name(metadata.display_name)
                 metadata.name = name
 
         if not name:  # At this point, name must be set
