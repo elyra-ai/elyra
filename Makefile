@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help purge install-all install-examples install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
+.PHONY: help purge install-all install-examples install uninstall clean test-dependencies lint-server lint-ui lint-connectors lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
 .PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
@@ -90,6 +90,9 @@ build-dependencies:
 lint-server: build-dependencies
 	flake8 elyra
 
+lint-connectors: build-dependencies
+	flake8 catalog-connectors
+
 prettier-check-ui:
 	yarn prettier:check
 
@@ -104,7 +107,7 @@ eslint-ui:
 
 lint-ui: prettier-ui eslint-ui
 
-lint: lint-ui prettier-ui lint-server ## Run linters
+lint: lint-ui prettier-ui lint-server lint-connectors ## Run linters
 
 dev-link:
 	yarn link @elyra/pipeline-services
