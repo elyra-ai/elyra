@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ScriptEditorFactory, ScriptEditor } from '@elyra/script-editor';
+import { ScriptEditorWidgetFactory, ScriptEditor } from '@elyra/script-editor';
 import { rIcon } from '@elyra/ui-components';
 
 import {
@@ -24,7 +24,11 @@ import {
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
+import {
+  IDocumentWidget,
+  DocumentRegistry,
+  DocumentWidget
+} from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -32,6 +36,8 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
+
+import { REditor } from './REditor';
 
 const R_FACTORY = 'R Editor';
 const R = 'r';
@@ -70,13 +76,19 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - r-editor extension is activated!');
 
-    const factory = new ScriptEditorFactory({
+    const factory = new ScriptEditorWidgetFactory({
       editorServices,
       factoryOptions: {
         name: R_FACTORY,
         fileTypes: [R],
         defaultFor: [R]
-      }
+      },
+      instanceCreator: (
+        options: DocumentWidget.IOptions<
+          FileEditor,
+          DocumentRegistry.ICodeModel
+        >
+      ): ScriptEditor => new REditor(options)
     });
 
     app.docRegistry.addFileType({
@@ -91,7 +103,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const { restored } = app;
 
     /**
-     * Track ScriptEditor widget on page refresh
+     * Track REditor widget on page refresh
      */
     const tracker = new WidgetTracker<ScriptEditor>({
       namespace: R_EDITOR_NAMESPACE
