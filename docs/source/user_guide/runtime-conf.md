@@ -90,7 +90,7 @@ To create a runtime configuration for a Kubeflow Pipelines deployment:
 
 ```bash
 elyra-metadata install runtimes \
-       --schema_name=kfp
+       --schema_name=kfp \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --auth_type="DEX_STATIC_PASSWORDS" \
