@@ -150,13 +150,30 @@
               "type": "controls",
               "parameter_refs": ["label"]
             },
-{% for property in component.properties %}
             {
-              "id": "elyra_{{ property.ref }}",
+              "id": "elyra_inputs",
+              "label": {
+                "default": "Inputs"
+              },
               "type": "controls",
-              "parameter_refs": ["elyra_{{ property.ref }}"]
-            },
+              "parameter_refs": [
+{% for property in component.input_properties %}
+                 "elyra_{{ property.ref }}"{% if not loop.last%},{% endif %}
 {% endfor %}
+              ]
+            },
+            {
+              "id": "elyra_outputs",
+              "label": {
+                "default": "Outputs"
+              },
+              "type": "controls",
+              "parameter_refs": [
+{% for property in component.output_properties %}
+                 "elyra_{{ property.ref }}"{% if not loop.last%},{% endif %}
+{% endfor %}
+              ]
+            },
             {
               "id": "component_source",
               "type": "controls",
