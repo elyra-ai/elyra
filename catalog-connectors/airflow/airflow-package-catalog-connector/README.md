@@ -31,7 +31,7 @@ You can install this catalog connector from PyPI or source code. Note that a **r
 1. [Open the '`Manage Components`' panel](
 https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html#managing-custom-components-using-the-jupyterlab-ui).
 1. Add a new Airflow package component catalog ('`+`' > '`New Apache Airflow package operator catalog`').
-1. Specify a catalog name, e.g. '`Airflow 2.2.3 package`'.
+1. Specify a catalog name, e.g. '`Airflow 1.10.15 package`'.
 1. (Optional) Specify a category under which the catalog's components will be organized in the palette.
 1. Configure the `Airflow package download URL`. The URL must reference a location that Elyra can access using an HTTP GET request, without the need to authenticate. If the Airflow package is stored on PyPI:
    1. Search for the desired package version on PyPI.
