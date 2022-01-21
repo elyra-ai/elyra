@@ -129,7 +129,7 @@
             "default": "Component Source"
           },
           "description": {
-            "default": "Unique information used to identify this component.",
+            "default": " ",
             "placement": "on_panel"
           },
           "data": {}
@@ -150,6 +150,7 @@
               "type": "controls",
               "parameter_refs": ["label"]
             },
+{% if component.input_properties|length > 0 %}
             {
               "id": "elyra_inputCategoryHeader",
               "class_name": "elyra_categoryHeader",
@@ -158,15 +159,15 @@
                 "default": "Inputs"
               }
             },
+    {% for property in component.input_properties %}
             {
-              "id": "elyra_inputs",
+              "id": "elyra_{{ property.ref }}",
               "type": "controls",
-              "parameter_refs": [
-{% for property in component.input_properties %}
-                 "elyra_{{ property.ref }}"{% if not loop.last%},{% endif %}
-{% endfor %}
-              ]
+              "parameter_refs": ["elyra_{{ property.ref }}"]
             },
+    {% endfor %}
+{% endif %}
+{% if component.output_properties|length > 0 %}
             {
               "id": "elyra_outputCategoryHeader",
               "type": "textPanel",
@@ -175,14 +176,21 @@
                 "default": "Outputs"
               }
             },
+    {% for property in component.output_properties %}
             {
-              "id": "elyra_outputs",
+              "id": "elyra_{{ property.ref }}",
               "type": "controls",
-              "parameter_refs": [
-{% for property in component.output_properties %}
-                 "elyra_{{ property.ref }}"{% if not loop.last%},{% endif %}
-{% endfor %}
-              ]
+              "parameter_refs": ["elyra_{{ property.ref }}"]
+            },
+    {% endfor %}
+{% endif %}
+            {
+              "id": "elyra_component_sourceCategoryHeader",
+              "type": "textPanel",
+              "class_name": "elyra_categoryHeader",
+              "label": {
+                "default": "Component Source"
+              }
             },
             {
               "id": "component_source",

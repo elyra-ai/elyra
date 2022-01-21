@@ -288,11 +288,11 @@ class Component(object):
 
     @property
     def input_properties(self) -> List[ComponentParameter]:
-        return [prop for prop in self._properties if not prop.ref.startswith("output_")]
+        return [prop for prop in self._properties if prop.data_type != 'outputpath']
 
     @property
     def output_properties(self) -> List[ComponentParameter]:
-        return [prop for prop in self._properties if prop.ref.startswith("output_")]
+        return [prop for prop in self._properties if prop.data_type == 'outputpath']
 
     @staticmethod
     def _log_warning(msg: str, logger: Optional[Logger] = None):
