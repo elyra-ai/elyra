@@ -277,7 +277,8 @@ be fully qualified (i.e., prefixed with their package names).
                              'mem_request': operation.memory,
                              'gpu_limit': operation.gpu,
                              'operator_source': operation.component_params['filename'],
-                             'is_generic_operator': True
+                             'is_generic_operator': True,
+                             'doc': operation.doc
                              }
 
                 if runtime_image_pull_secret is not None:
