@@ -151,10 +151,15 @@
               "parameter_refs": ["label"]
             },
             {
-              "id": "elyra_inputs",
+              "id": "elyra_inputCategoryHeader",
+              "class_name": "elyra_categoryHeader",
+              "type": "textPanel",
               "label": {
                 "default": "Inputs"
-              },
+              }
+            },
+            {
+              "id": "elyra_inputs",
               "type": "controls",
               "parameter_refs": [
 {% for property in component.input_properties %}
@@ -163,10 +168,15 @@
               ]
             },
             {
-              "id": "elyra_outputs",
+              "id": "elyra_outputCategoryHeader",
+              "type": "textPanel",
+              "class_name": "elyra_categoryHeader",
               "label": {
                 "default": "Outputs"
-              },
+              }
+            },
+            {
+              "id": "elyra_outputs",
               "type": "controls",
               "parameter_refs": [
 {% for property in component.output_properties %}
