@@ -30,12 +30,11 @@ with open(os.path.join(here, 'airflow_package_catalog_connector', '_version.py')
 setup_args = dict(
     name="airflow-package-catalog-connector",
     version=version_ns['__version__'],
-    url="https://github.com/elyra-ai/examples/tree/master/"
-        "component-catalog-connectors/airflow-package-catalog",
+    url="https://github.com/elyra-ai/elyra/tree/master/"
+        "catalog-connectors/airflow/airflow-package-catalog-connector",
     description="Elyra catalog connector for Airflow packages",
     long_description=long_desc,
-    author="Patrick Titzler",
-    author_email="ptitzler@us.ibm.com",
+    author="Elyra Maintainers",
     license="Apache License Version 2.0",
     packages=find_packages(),
     install_requires=[

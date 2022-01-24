@@ -1,15 +1,15 @@
 {
   "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
-  "$id": "https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/airflow-package-catalog-connector/airflow-package-catalog.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/catalog-connectors/airflow/airflow-package-catalog-connector/airflow-package-catalog.json",
   "title": "Apache Airflow package operator catalog",
   "name": "airflow-package-catalog",
   "schemaspace": "component-catalogs",
   "schemaspace_id": "8dc89ca3-4b90-41fd-adb9-9510ad346620",
   "metadata_class_name": "elyra.pipeline.component_metadata.ComponentCatalogMetadata",
   "uihints": {
-    "title": "Apache Airflow provider component catalog",
+    "title": "Apache Airflow core operator catalog",
     "icon": "",
-    "reference_url": "https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-provider-catalog"
+    "reference_url": "https://github.com/elyra-ai/elyra/tree/master/catalog-connectors/airflow/airflow-package-catalog-connector"
   },
   "properties": {
     "schema_name": {
@@ -32,7 +32,7 @@
           "title": "Description",
           "description": "Description of this Component Catalog",
           "type": "string",
-          "default": "Airflow package component catalog"
+          "default": "Airflow package operator catalog"
         },
         "runtime_type": {
           "title": "Runtime",
