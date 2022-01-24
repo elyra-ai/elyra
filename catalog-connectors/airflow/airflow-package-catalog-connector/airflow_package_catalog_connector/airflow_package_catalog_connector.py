@@ -62,7 +62,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
         self.tmp_archive_dir = Path(mkdtemp())
 
         try:
-            self.log.warning(f'Downloading Apache Airflow package from \'{airflow_package_download_url}\' ...')
+            self.log.debug(f'Downloading Apache Airflow package from \'{airflow_package_download_url}\' ...')
 
             # download archive; abort after 30 seconds
             response = requests.get(airflow_package_download_url,
@@ -76,12 +76,12 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             # save downloaded archive
             archive = str(self.tmp_archive_dir / airflow_package_name)
-            self.log.warning(f'Saving downloaded archive in \'{archive}\' ...')
+            self.log.debug(f'Saving downloaded archive in \'{archive}\' ...')
             with open(archive, 'wb') as archive_fh:
                 archive_fh.write(response.content)
 
             # extract archive
-            self.log.warning(f'Extracting Airflow archive \'{archive}\' ...')
+            self.log.debug(f'Extracting Airflow archive \'{archive}\' ...')
             with zipfile.ZipFile(archive, 'r') as zip_ref:
                 zip_ref.extractall(self.tmp_archive_dir)
 
@@ -105,7 +105,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                 if script_id == 'airflow/operators/__init__.py':
                     continue
                 script_count += 1
-                self.log.warning(f'Parsing \'{script}\' ...')
+                self.log.debug(f'Parsing \'{script}\' ...')
                 with open(script, 'r') as source_code:
                     # parse source code
                     tree = ast.parse(source_code.read())
@@ -114,18 +114,18 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                         if isinstance(node, ast.Import):
                             pass
                             # for name in node.names:
-                            #    self.log.warning(f'Detected an IMPORT: {name.name}')
+                            #    self.log.debug(f'Detected an IMPORT: {name.name}')
                         elif isinstance(node, ast.ImportFrom):
                             node_module = node.module
                             for name in node.names:
-                                # self.log.warning(f'Detected an IMPORT FROM: {node_module} -> {name.name}')
+                                # self.log.debug(f'Detected an IMPORT FROM: {node_module} -> {name.name}')
                                 if 'airflow.models' == node_module and name.name == 'BaseOperator':
                                     imported_operator_classes.append(name.name)
                         elif isinstance(node, ast.ClassDef):
                             # determine whether this class extends the BaseOperator class
                             class_count += 1
-                            self.log.warning(f'Analyzing class \'{node.name}\' in {script} ...')
-                            self.log.warning(f' Class {node.name} extends {[n.id for n in node.bases]}')
+                            self.log.debug(f'Analyzing class \'{node.name}\' in {script} ...')
+                            self.log.debug(f' Class {node.name} extends {[n.id for n in node.bases]}')
                             # determine whether class extends one of the imported operator classes
                             if len(node.bases) == 0:
                                 # class does not extend other classes; it therefore does
@@ -161,8 +161,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                 # assume that analysis is complete until proven otherwise
                 analysis_complete = True
                 for class_name in list(classes_to_analyze.keys()):
-                    self.log.warning(f'Re-analyzing class \'{class_name}\' in '
-                                     f"'{classes_to_analyze[class_name]['file']}\'... ")
+                    self.log.debug(f'Re-analyzing class \'{class_name}\' in '
+                                   f"'{classes_to_analyze[class_name]['file']}\'... ")
                     for base in classes_to_analyze[class_name]['node'].bases:
                         if base.id in extends_baseoperator:
                             # this class extends BaseOperator
@@ -185,11 +185,11 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                           f'Located {operator_class_count} operator classes '
                           f'in {script_count} Python scripts.')
             # Dump results for debugging
-            self.log.warning(f'{len(classes_to_analyze)} classes don\'t implement BaseOperator: '
-                             f'{list(classes_to_analyze.keys())}. Note that some of these '
-                             ' might be false negatives if they extend classes that are not in '
-                             'the airflow.operator module.  ')
-            self.log.warning(f'Operator key list: {operator_key_list}')
+            self.log.debug(f'{len(classes_to_analyze)} classes don\'t implement BaseOperator: '
+                           f'{list(classes_to_analyze.keys())}. Note that some of these '
+                           ' might be false negatives if they extend classes that are not in '
+                           'the airflow.operator module.  ')
+            self.log.debug(f'Operator key list: {operator_key_list}')
         except Exception as ex:
             self.log.error('Error retrieving operator list from Airflow package '
                            f'{airflow_package_download_url}: {ex}')
@@ -221,7 +221,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
         # load component source using the provided key
         component_source = self.tmp_archive_dir / operator_file_name
-        self.log.warning(f'Reading operator source \'{component_source}\' ...')
+        self.log.debug(f'Reading operator source \'{component_source}\' ...')
         with open(component_source, 'r') as source:
             return source.read()
 
