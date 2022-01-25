@@ -58,14 +58,14 @@ class AirflowComponentParser(ComponentParser):
                 component_id += f":{component_class}"
 
             if not content.get('init_function'):
-                # TODO need to ensure this is the desired functionality
+                # TODO add a useful log message
                 continue
 
             # Get the properties for this Operator class
             component_properties: List[ComponentParameter] = self._parse_properties_from_init(**content)
 
             if not component_properties:
-                # TODO need to ensure this is the desired functionality
+                # TODO add a useful log message
                 continue
 
             new_component = Component(
@@ -74,7 +74,7 @@ class AirflowComponentParser(ComponentParser):
                 description=DEFAULT_DESCRIPTION,
                 catalog_type=registry_entry.catalog_type,
                 source_identifier=registry_entry.component_identifier,
-                definition=component_definition,  # TODO discuss using full file contents vs only the given class here
+                definition=component_definition,  # TODO use full file contents or only the class contents?
                 runtime_type=self.component_platform.name,
                 categories=registry_entry.categories,
                 properties=component_properties
@@ -92,7 +92,7 @@ class AirflowComponentParser(ComponentParser):
         parsed_content = ast.parse(file_contents)
         ast_classes = [node for node in parsed_content.body if isinstance(node, ast.ClassDef)]
 
-        # TODO the below is used to satisfy the temporary workaround mentioned in _filter_operator_classes
+        # TODO the below is used to satisfy the temporary workaround mentioned in _filter_operator_classes()
         ast_imports = [node for node in parsed_content.body if isinstance(node, ast.ImportFrom)]
         import_module_names = [module.name for import_module in ast_imports for module in import_module.names]
 
@@ -205,7 +205,7 @@ class AirflowComponentParser(ComponentParser):
             data_type_parsed = self._parse_data_type_from_docstring(arg_name, docstring)
 
             # Amend description to include type information as parsed, if available.
-            # Otherwise, include the type information determined from AST parse
+            # Otherwise, include the type information determined from the AST parse
             description = self._format_description(
                 description=description,
                 data_type=(data_type_parsed or data_type_from_ast)
@@ -245,9 +245,12 @@ class AirflowComponentParser(ComponentParser):
 
     def _get_init_arguments(self, init_function: ast.FunctionDef) -> Dict[str, Dict]:
         """
-        TODO
+        Build a dictionary keyed by init argument names, with values corresponding
+        to the information parsed in the AST including default values, data types,
+        and whether a value for the argument is required or not.
         """
-        # Retrieve positional arguments (not including 'self', 'args', and 'kwargs') and any default values
+        # Retrieve positional arguments (not including 'self', 'args', and 'kwargs')
+        # and any default values given
         args_to_skip = ['self', '*', '*args', '**kwargs']
         args = [argument for argument in init_function.args.args if argument.arg not in args_to_skip]
         arg_defaults = init_function.args.defaults
@@ -256,18 +259,21 @@ class AirflowComponentParser(ComponentParser):
         if len_diff:
             # Pad arg_defaults array with 'None' to match the length of the arg array
             for _ in range(len_diff):
+                # Values are prepended to this array, since in Python arguments that
+                # specify default values must come after arguments that do not
                 arg_defaults.insert(0, DEFAULT_VALUE)
 
         if init_function.args.kwonlyargs:
             # Extend the argument list to include keyword-only arguments and default values
             args.extend(init_function.args.kwonlyargs)
-            arg_defaults.extend(init_function.args.kw_defaults)  # No need to pad
+            arg_defaults.extend(init_function.args.kw_defaults)  # No need to pad: None is always the default
 
+        # Assemble dictionary of arguments and their associated attributes
         init_arg_dict = {}
         for arg, default in zip(args, arg_defaults):
             arg_name = arg.arg
 
-            # Set defaults for attributes in question
+            # Set default value for attribute in question
             default_value = getattr(default, 'value', DEFAULT_VALUE)
             if isinstance(default_value, str):
                 # Standardize default string values to remove newline characters
@@ -279,8 +285,10 @@ class AirflowComponentParser(ComponentParser):
                 # Get data from type hint if available
                 data_type = DEFAULT_DATA_TYPE
                 if hasattr(arg.annotation, 'id'):
+                    # Argument has a type hint
                     data_type = arg.annotation.id
                 elif hasattr(arg.annotation, 'slice'):
+                    # Argument has a type hint of the form 'Optional[<type>]'
                     data_type = arg.annotation.slice.id
 
             required = DEFAULT_REQUIRED
@@ -305,7 +313,7 @@ class AirflowComponentParser(ComponentParser):
         param_regex = re.compile(f":param {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
         match = param_regex.search(class_definition)
         if match:
-            # Remove quotation marks and newline characters
+            # Remove quotation marks and newline characters in preparation for eventual json.loads()
             return match.group(1).strip().replace("\"", "'").replace("\n", " ")
         return DEFAULT_DESCRIPTION
 
@@ -313,7 +321,7 @@ class AirflowComponentParser(ComponentParser):
         """
         Parse for parameter data type in class docstring (':type [arg_name]:')
 
-        :returns: the data type as parsed, if found
+        :returns: the data type as parsed, if found, otherwise returns the default type
         """
         type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n))")
         match = type_regex.search(class_definition)
@@ -326,7 +334,7 @@ class AirflowComponentParser(ComponentParser):
         Define properties that are common to the Airflow runtime.
         """
 
-        # TODO add args and kwargs as rts-properties here?
+        # TODO add args and kwargs as RTS-properties here?
         return [
             ComponentParameter(
                 id="runtime_image",
@@ -342,7 +350,7 @@ class AirflowComponentParser(ComponentParser):
 
     def _get_content_between_lines(self, start_line: int, end_line: int, content: str) -> str:
         """
-        Returns the portion of the definition file that corresponds to the given Operator class
+        Returns the portion of a file between the given line numbers
         """
         # Convert component definition to list of lines
         component_def_as_lines = content.split('\n')
