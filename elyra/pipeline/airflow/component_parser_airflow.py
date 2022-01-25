@@ -185,7 +185,7 @@ class AirflowComponentParser(ComponentParser):
         return None
 
     def _parse_properties_from_init(self,
-                                    init_function: str,
+                                    init_function: ast.FunctionDef,
                                     docstring: str) -> List[ComponentParameter]:
         """
         Parse the init function and docstring of single operator class to create a list
