@@ -46,7 +46,7 @@ setup_args = dict(
             'airflow-provider-package-catalog-schema = airflow_provider_package_catalog_connector.airflow_provider_package_schema_provider:AirflowProviderPackageSchemasProvider'  # noqa: E501
         ],
         'elyra.component.catalog_types': [
-            'airflow-provider-package-catalog = airflow_provider_package_catalog_connector.airflow_airflow_provider_package_catalog_connector:AirflowProviderPackageCatalogConnector'  # noqa: E501
+            'airflow-provider-package-catalog = airflow_provider_package_catalog_connector.airflow_provider_package_catalog_connector:AirflowProviderPackageCatalogConnector'  # noqa: E501
         ],
     },
     classifiers=[

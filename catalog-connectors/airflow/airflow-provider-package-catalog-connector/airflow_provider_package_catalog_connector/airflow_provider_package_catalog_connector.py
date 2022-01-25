@@ -37,6 +37,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
     Read component definitions from an Apache Airflow provider package archive
     """
 
+    REQUEST_TIMEOUT = 30
+
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         """
@@ -56,6 +58,12 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         airflow_provider_package_download_url = catalog_metadata['airflow_provider_package_download_url']
         # extract the package name, e.g. 'apache_airflow_providers_amazon-2.6.0-py3-none-any.whl'
         airflow_provider_package_name = Path(urlparse(airflow_provider_package_download_url).path).name
+        # extract the provider name, e.g. 'apache_airflow_providers_amazon'
+        m = re.match('[^-]+', airflow_provider_package_name)
+        if m:
+            airflow_provider_name = m.group(0)
+        else:
+            airflow_provider_name = airflow_provider_package_name
 
         # tmp_archive_dir is used to store the downloaded archive and as working directory
         if hasattr(self, 'tmp_archive_dir'):
@@ -68,7 +76,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
             # download archive
             response = requests.get(airflow_provider_package_download_url,
-                                    timeout=30,
+                                    timeout=AirflowProviderPackageCatalogConnector.REQUEST_TIMEOUT,
                                     allow_redirects=True)
 
             if response.status_code != 200:
@@ -79,12 +87,12 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
             # save downloaded archive
             archive = str(self.tmp_archive_dir / airflow_provider_package_name)
-            self.log.debug(f'Saving downloaded archive in \'{archive}\' ...')
+            self.log.warning(f'Saving downloaded archive in \'{archive}\' ...')
             with open(archive, 'wb') as archive_fh:
                 archive_fh.write(response.content)
 
             # extract archive
-            self.log.debug(f'Extracting Airflow provider archive \'{archive}\' ...')
+            self.log.warning(f'Extracting Airflow provider archive \'{archive}\' ...')
             with zipfile.ZipFile(archive, 'r') as zip_ref:
                 zip_ref.extractall(self.tmp_archive_dir)
 
@@ -114,96 +122,132 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                                f'in \'{get_provider_info_file_location}\'.')
                 return operator_key_list
 
-            module_list = []
+            python_scripts = []
             for operator_entry in return_dict.get('operators', []):
                 for m in operator_entry['python-modules']:
-                    module_list.append(f'{m.replace(".", sep)}.py')
-            if len(module_list) == 0:
+                    python_scripts.append(f'{m.replace(".", sep)}.py')
+            if len(python_scripts) == 0:
                 self.log.info(f'Airflow provider package \'{airflow_provider_package_name}\' '
                               'does not include any operator definitions.')
                 return operator_key_list
 
-            # TODO from HERE
-
-                # Locate Python files in module_list that extend the
-                # Airflow BaseOperator class
-                extends_baseoperator = []  # list of str, containing classes that extend BaseOperator
-                classes_to_analyze = {}
-                imported_operator_classes = []  # list of str, identifying imported operator classes
-                for module in module_list:
-                    with open(self.tmp_archive_dir / module, 'r') as mf:
-                        # parse module
-                        tree = ast.parse(mf.read())
-                        for node in ast.walk(tree):
-                            # analyze imports
-                            if isinstance(node, ast.Import):
-                                for name in node.names:
-                                    self.log.warning(f'Detected an IMPORT: {name.name}')
-                            elif isinstance(node, ast.ImportFrom):
-                                node_module = node.module
-                                for name in node.names:
-                                    self.log.warning(f'Detected an IMPORT FROM: {node_module} -> {name.name}')
-                                    if 'airflow.models' == node_module and name.name == 'BaseOperator':
-                                        imported_operator_classes.append(name.name)
-                                    else:
-                                        # Look for package imports that match one of the following patters:
-                                        # airflow.providers.*.operators.
-                                        # airflow.operators.*
-                                        patterns = [r'airflow\.providers\.[a-z_]+\.operators',
-                                                    r'airflow\.operators\.']
-                                        for pattern in patterns:
-                                            match = re.match(pattern, node_module)
-                                            if match:
-                                                imported_operator_classes.append(name.name)
-                                                break
-
-                            # analyze classes
-                            elif isinstance(node, ast.ClassDef):
-                                # self.log.warning(f'{module} {node.name}')
-                                # determine whether class extends one of the imported operator classes
-                                if len(node.bases) == 0:
-                                    # class does not extend other classes; nothing to do
-                                    continue
-                                for base in node.bases:
-                                    extends = False
-                                    if base.id in imported_operator_classes:
-                                        extends = True
-                                        extends_baseoperator.append(node.name)
-                                        operator_key_list.append(
-                                            {'provider_package': airflow_provider_package_name,
-                                             'file': module,
-                                             'class': node.name})
-                                        continue
-                                if extends is False:
-                                    classes_to_analyze[node.name] = {
-                                        'node': node,
-                                        'file': module
-                                    }
-
-                # identify classes that indirectly extend BaseOperator
-                analysis_complete = len(classes_to_analyze.keys()) == 0
-                while analysis_complete is False:
-                    analysis_complete = True
-                    for class_name in list(classes_to_analyze.keys()):
-                        self.log.warning(f'Analyzing {class_name} from '
-                                         f"'{classes_to_analyze[class_name]['file']}\'... ")
-                        for base in classes_to_analyze[class_name]['node'].bases:
-                            if base.id in extends_baseoperator:
-                                extends_baseoperator.append(class_name)
-                                operator_key_list.append({
-                                    'provider_package': airflow_provider_package_name,
-                                    'file': classes_to_analyze[class_name]['file'],
-                                    'class': class_name})
-                                del classes_to_analyze[class_name]
-                                analysis_complete = False
+            #
+            # Identify Python scripts that define classes that extend the
+            # airflow.models.BaseOperator class
+            #
+            extends_baseoperator = []  # list of str, containing classes that extend BaseOperator
+            classes_to_analyze = {}
+            imported_operator_classes = []  # list of str, identifying imported operator classes
+            script_count = 0  # used for stats collection
+            class_count = 0   # used for stats collection
+            operator_class_count = 0  # used for stats collection
+            # process each Python script ...
+            for script in python_scripts:
+                script_count += 1
+                self.log.warning(f'Parsing \'{script}\' ...')
+                with open(self.tmp_archive_dir / script, 'r') as source_code:
+                    # parse source code
+                    tree = ast.parse(source_code.read())
+                    # identify imports and class definitions
+                    for node in ast.walk(tree):
+                        if isinstance(node, ast.Import):
+                            pass
+                            # for name in node.names:
+                            #    self.log.warning(f'Detected an IMPORT: {name.name}')
+                        elif isinstance(node, ast.ImportFrom):
+                            node_module = node.module
+                            for name in node.names:
+                                self.log.warning(f'Detected an IMPORT FROM: {node_module} -> {name.name}')
+                                if 'airflow.models' == node_module and name.name == 'BaseOperator':
+                                    imported_operator_classes.append(name.name)
+                                else:
+                                    # Look for package imports that match one of the following patters:
+                                    # airflow.providers.*.operators.
+                                    # airflow.operators.*
+                                    patterns = [r'airflow\.providers\.[a-z_]+\.operators',
+                                                r'airflow\.operators\.']
+                                    for pattern in patterns:
+                                        match = re.match(pattern, node_module)
+                                        if match:
+                                            imported_operator_classes.append(name.name)
+                                            break
+                        elif isinstance(node, ast.ClassDef):
+                            # determine whether this class extends the BaseOperator class
+                            class_count += 1
+                            self.log.warning(f'Analyzing class \'{node.name}\' in {script} ...')
+                            self.log.warning(f' Class {node.name} extends {[n.id for n in node.bases]}')
+                            # determine whether class extends one of the imported operator classes
+                            if len(node.bases) == 0:
+                                # class does not extend other classes; it therefore does
+                                # not extend the Airflow BaseOperator; proceed with next class
                                 continue
+                            for base in node.bases:
+                                extends = False
+                                if base.id in imported_operator_classes:
+                                    # class extends Airflow BaseOperator
+                                    operator_class_count += 1
+                                    extends = True
+                                    extends_baseoperator.append(node.name)
+                                    operator_key_list.append(
+                                        {'provider_package': airflow_provider_package_name,
+                                         'provider': airflow_provider_name,
+                                         'file': script,
+                                         'class': node.name})
+                                    break
+                            if extends is False:
+                                # need to further analyze whether this class
+                                # extends Airflow BaseOperator
+                                classes_to_analyze[node.name] = {
+                                    'node': node,
+                                    'file': script
+                                }
+
+            # Identify classes that extend BaseOperator by extending
+            # classes that were identified as extending BaseOperator
+            # Example:
+            #  class MyBaseOperator(BaseOperator)
+            #  class MyOperator(MyBaseOperator)
+            analysis_complete = len(classes_to_analyze) == 0
+            while analysis_complete is False:
+                # assume that analysis is complete until proven otherwise
+                analysis_complete = True
+                for class_name in list(classes_to_analyze.keys()):
+                    self.log.warning(f'Re-analyzing class \'{class_name}\' in '
+                                     f"'{classes_to_analyze[class_name]['file']}\'... ")
+                    for base in classes_to_analyze[class_name]['node'].bases:
+                        if base.id in extends_baseoperator:
+                            # this class extends BaseOperator
+                            operator_class_count += 1
+                            extends_baseoperator.append(class_name)
+                            operator_key_list.append({
+                                'provider_package': airflow_provider_package_name,
+                                'provider': airflow_provider_name,
+                                'file': classes_to_analyze[class_name]['file'],
+                                'class': class_name})
+                            # remove class from todo list
+                            del classes_to_analyze[class_name]
+                            # A new class was discovered that implements
+                            # BaseOperator. Analysis needs to be repeated because
+                            # OTHER classes might extend THIS class.
+                            analysis_complete = False
+                            break
+
+            # Dump stats
+            self.log.info(f'Analysis of \'{airflow_provider_package_download_url}\' completed. '
+                          f'Located {operator_class_count} operator classes '
+                          f'in {script_count} Python scripts.')
+            # Dump results for debugging
+            if len(classes_to_analyze) > 0:
+                self.log.warning(f'{len(classes_to_analyze)} classes don\'t implement BaseOperator: '
+                                 f'{list(classes_to_analyze.keys())}. Note that some of these '
+                                 ' might be false negatives if they extend classes that are not '
+                                 ' defined in the analyzed archive. ')
+            self.log.warning(f'Operator key list: {operator_key_list}')
+
         except Exception as ex:
-            self.log.error('Error retrieving operator list from provider package '
+            self.log.error('Error retrieving operator list from Airflow provider package '
                            f'{airflow_provider_package_download_url}: {ex}')
 
-        self.log.info(f'Identified {len(operator_key_list)} operators in '
-                      f'provider package \'{airflow_provider_package_download_url}\'.')
-        self.log.warning(f'Operator key list: {operator_key_list}')
         return operator_key_list
 
     def read_catalog_entry(self,
@@ -232,7 +276,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
         # load operator source using the provided key
         operator_source = self.tmp_archive_dir / operator_file_name
-        self.log.debug(f'Reading operator source \'{operator_source}\' ...')
+        self.log.warning(f'Reading operator source \'{operator_source}\' ...')
         with open(operator_source, 'r') as source:
             return source.read()
 
@@ -246,6 +290,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         :returns: a list of keys
       """
         # Example key values:
-        # - file: operators/bash_operator.py
-        # - class: BashOperator
-        return ['file', 'class']
+        # - provider: 'apache_airflow_providers_ssh'
+        # - file: 'airflow/providers/ssh/operators/ssh.py'
+        # - class: 'SSHOperator'
+        return ['provider', 'file', 'class']

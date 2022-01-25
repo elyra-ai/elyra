@@ -58,16 +58,16 @@
             "category": "Component Categories"
           }
         },
-        "provider_package_download_url": {
+        "airflow_provider_package_download_url": {
           "title": "Provider package download URL",
-          "description": "URL where the provider package wheel can be downloaded.",
+          "description": "URL where the Airflow provider package wheel can be downloaded.",
           "type": "string",
           "uihints": {
             "category": "Source"
           }
-        }      
+        }
       },
-      "required": ["runtime_type", "provider_package_download_url"]
+      "required": ["runtime_type", "airflow_provider_package_download_url"]
     }
   },
   "required": ["schema_name", "display_name", "metadata"]
