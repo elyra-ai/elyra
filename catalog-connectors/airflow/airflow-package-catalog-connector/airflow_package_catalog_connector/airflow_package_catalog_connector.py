@@ -15,6 +15,7 @@
 #
 
 import ast
+import os
 from pathlib import Path
 import shutil
 from tempfile import mkdtemp
@@ -44,8 +45,12 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
         :param catalog_metadata: contains information needed to download the archive using an HTTP GET request
         """
 
-        # Return data structure contains a list of operators that are defined
-        # in the referenced Apache Airflow wheel
+        # Return data structure contains a list of Python scripts in the referenced
+        # Apache Airflow wheel that appear to implement at least one operator
+        # Each entry defines two keys:
+        #  - 'airflow_package': The name of the Airflow package the user specified.
+        #    This is included for informational purposes only.
+        #  - 'file': Python script name
         operator_key_list = []
 
         # Read the user-supplied 'airflow_package_download_url', which is a required
@@ -85,6 +90,10 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             with zipfile.ZipFile(archive, 'r') as zip_ref:
                 zip_ref.extractall(self.tmp_archive_dir)
 
+            # delete archive
+            self.log.debug(f'Deleting downloaded Airflow archive \'{archive}\' ...')
+            os.remove(archive)
+
             # Locate Python scripts that are stored in the 'airflow/operators' directory
             python_scripts = [str(s) for s in self.tmp_archive_dir.glob('airflow/operators/*.py')]
 
@@ -92,6 +101,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             # Identify Python scripts that define classes that extend the
             # airflow.models.BaseOperator class
             #
+            scripts_with_operator_class = []  # list of str, containing Python script names with operator definitions
             extends_baseoperator = []  # list of str, containing classes that extend BaseOperator
             classes_to_analyze = {}
             imported_operator_classes = []  # list of str, identifying imported operator classes
@@ -124,7 +134,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                         elif isinstance(node, ast.ClassDef):
                             # determine whether this class extends the BaseOperator class
                             class_count += 1
-                            self.log.debug(f'Analyzing class \'{node.name}\' in {script} ...')
+                            self.log.debug(f'Analyzing class \'{node.name}\' in {script_id} ...')
                             self.log.debug(f' Class {node.name} extends {[n.id for n in node.bases]}')
                             # determine whether class extends one of the imported operator classes
                             if len(node.bases) == 0:
@@ -138,10 +148,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                                     operator_class_count += 1
                                     extends = True
                                     extends_baseoperator.append(node.name)
-                                    operator_key_list.append(
-                                        {'airflow_package': airflow_package_name,
-                                         'file': script_id,
-                                         'class': node.name})
+                                    if script_id not in scripts_with_operator_class:
+                                        scripts_with_operator_class.append(script_id)
                                     break
                             if extends is False:
                                 # need to further analyze whether this class
@@ -168,10 +176,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                             # this class extends BaseOperator
                             operator_class_count += 1
                             extends_baseoperator.append(class_name)
-                            operator_key_list.append({
-                                'airflow_package': airflow_package_name,
-                                'file': classes_to_analyze[class_name]['file'],
-                                'class': class_name})
+                            if classes_to_analyze[class_name]['file'] not in scripts_with_operator_class:
+                                scripts_with_operator_class.append(classes_to_analyze[class_name]['file'])
                             # remove class from todo list
                             del classes_to_analyze[class_name]
                             # A new class was discovered that implements
@@ -180,15 +186,16 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                             analysis_complete = False
                             break
 
+            # Populate return data structure
+            for script in scripts_with_operator_class:
+                operator_key_list.append({
+                    'airflow_package': airflow_package_name,
+                    'file': script})
+
             # Dump stats
             self.log.info(f'Analysis of \'{airflow_package_download_url}\' completed. '
                           f'Located {operator_class_count} operator classes '
-                          f'in {script_count} Python scripts.')
-            # Dump results for debugging
-            self.log.debug(f'{len(classes_to_analyze)} classes don\'t implement BaseOperator: '
-                           f'{list(classes_to_analyze.keys())}. Note that some of these '
-                           ' might be false negatives if they extend classes that are not in '
-                           'the airflow.operator module.  ')
+                          f'in {len(scripts_with_operator_class)} Python scripts.')
             self.log.debug(f'Operator key list: {operator_key_list}')
         except Exception as ex:
             self.log.error('Error retrieving operator list from Airflow package '
@@ -235,5 +242,4 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
       """
         # Example key values:
         # - file: operators/bash_operator.py
-        # - class: BashOperator
-        return ['file', 'class']
+        return ['file']
