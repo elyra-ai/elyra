@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 3.5.1 - 01/25/2022
+
+- Update release script for 3.5.x branch
+- Update pipeline-editor package to 1.5.2 - [#2419](https://github.com/elyra-ai/elyra/pull/2419)
+
 ## Release 3.5.0 - 01/21/2022
 
 - Update release script
