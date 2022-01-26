@@ -107,13 +107,10 @@ class AirflowComponentParser(ComponentParser):
         """
         parsed_content = ast.parse(file_contents)
         ast_classes = [node for node in parsed_content.body if isinstance(node, ast.ClassDef)]
-
-        # TODO the below is used to satisfy the temporary workaround mentioned in _filter_operator_classes()
         ast_imports = [node for node in parsed_content.body if isinstance(node, ast.ImportFrom)]
-        import_module_names = [module.name for import_module in ast_imports for module in import_module.names]
 
         # Filter the list of classes to only include confirmed Operator classes
-        operator_classes = self._filter_operator_classes(ast_classes, import_module_names)
+        operator_classes = self._filter_operator_classes(ast_classes, ast_imports)
 
         return {
             operator.name: {
@@ -124,19 +121,31 @@ class AirflowComponentParser(ComponentParser):
 
     def _filter_operator_classes(self,
                                  class_def_nodes: List[ast.ClassDef],
-                                 import_module_names: List[str]) -> List[ast.ClassDef]:
+                                 import_from_nodes: List[ast.ImportFrom]) -> List[ast.ClassDef]:
         """
         Analyze each ast.ClassDef object to determine whether it directly or indirectly
         extends the BaseOperator.
 
         :param class_def_nodes: a list of all ast.ClassDef objects in a file
-        :param import_module_names: a list of all ast.ImportFrom objects in a file (only used to satisfy
-                                    the temporary workaround called out below)
+        :param import_from_nodes: a list of all ast.ImportFrom objects in a file (only used to satisfy
+                                  the temporary workaround called out below)
 
         :returns: a filtered list of ast.ClassDef objects that can be considered 'Operators'
         """
         operator_classes = []
         classes_to_analyze = []
+
+        # Get class names for package imports that match one of the following patterns,
+        # indicating that this class does match a known Operator class as defined in
+        # a provider package or core Airflow package
+        regex_patterns = [
+            re.compile(r'airflow\.providers\.[a-z_]+\.operators'),  # airflow.providers.*.operators. (provider package)
+            re.compile(r'airflow\.operators\.')  # airflow.operators.* (core Airflow package)
+        ]
+        operator_bases = ['BaseOperator']
+        for module in import_from_nodes:
+            if any(regex.match(module.module) for regex in regex_patterns):
+                operator_bases.extend([name.name for name in module.names])
 
         # Determine whether each class directly extends the BaseOperator or whether it
         # must be further analyzed for indirect extension
@@ -144,13 +153,13 @@ class AirflowComponentParser(ComponentParser):
             if len(node.bases) == 0:
                 # Class does not extend other classes; do not add to Operator list
                 continue
-            if any(base.id == 'BaseOperator' for base in node.bases):
-                # At least one base class is the 'BaseOperator', and this class can
-                # therefore be considered an Operator itself
+            if any(base.id in operator_bases for base in node.bases):
+                # At least one base class either directly extends the BaseOperator or
+                # indirectly extends it from an Operator class imported from another package
                 operator_classes.append(node)
                 continue
-            # This class doesn't directly extend the BaseOperator and must be further
-            # analyzed to determine indirect extension
+            # This class doesn't extend the BaseOperator directly or from an imported module
+            # and must be further analyzed to determine indirect extension
             classes_to_analyze.append(node)
 
         # Identify classes that indirectly extend the BaseOperator from Operator classes
@@ -159,25 +168,14 @@ class AirflowComponentParser(ComponentParser):
         while analysis_incomplete:
             analysis_incomplete = False
             for node in classes_to_analyze:
-                for base in node.bases:
-                    if base.id in [op_class.name for op_class in operator_classes]:
-                        # This class directly extends a confirmed Operator class
-                        operator_classes.append(node)
-                        classes_to_analyze.remove(node)
-
-                        # The classes still present in classes_to_analyze must be
-                        # re-analyzed with the addition of the new Operator class
-                        analysis_incomplete = True
-                        continue
-
-        # Identify classes that indirectly extend the BaseOperator from Operator classes
-        # that are defined in other files
-        # TODO (the below is a temporarily workaround)
-        for node in classes_to_analyze:
-            for base_class in node.bases:
-                base_class_name = base_class.id
-                if base_class_name.endswith('Operator') and base_class_name in import_module_names:
+                if any(base.id in [op_class.name for op_class in operator_classes] for base in node.bases):
+                    # This class directly extends an Operator class defined in this file
                     operator_classes.append(node)
+                    classes_to_analyze.remove(node)
+
+                    # The classes still present in classes_to_analyze must be
+                    # re-analyzed with the addition of the new Operator class
+                    analysis_incomplete = True
                     continue
 
         return operator_classes
