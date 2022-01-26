@@ -39,33 +39,48 @@ class AirflowComponentParser(ComponentParser):
     component_platform: RuntimeProcessorType = RuntimeProcessorType.APACHE_AIRFLOW
 
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
-        components: List[Component] = list()
+        components: List[Component] = []
 
         component_definition = registry_entry.component_definition
         if not component_definition:
             return None
 
         # Parse the component definition for all defined Operator classes
-        parsed_class_nodes = self._parse_all_classes(component_definition)
-        num_operator_classes = len(parsed_class_nodes)
+        try:
+            parsed_class_nodes = self._parse_all_classes(component_definition)
+            num_operator_classes = len(parsed_class_nodes)
+        except Exception as e:
+            self.log.error(f"Content associated with identifier '{registry_entry.identifier}' "
+                           f"could not be parsed: {e}. Skipping...")
+            return None
 
         for component_class, content in parsed_class_nodes.items():
-            # Assign name and unique id
+            if not content.get('init_function'):
+                # Without the init function, class can't be parsed for properties
+                self.log.warning(f"Operator '{component_class}' associated with identifier "
+                                 f"'{registry_entry.identifier}' does not have an __init__ "
+                                 f"function. Skipping...")
+                continue
+
+            # Assign component name and unique id
             component_id = registry_entry.component_id
             if num_operator_classes > 1:
                 # This file contains more than one operator and id must be adjusted
                 # to include the Operator class name as well
                 component_id += f":{component_class}"
 
-            if not content.get('init_function'):
-                # TODO add a useful log message
-                continue
-
             # Get the properties for this Operator class
-            component_properties: List[ComponentParameter] = self._parse_properties_from_init(**content)
-
+            try:
+                component_properties: List[ComponentParameter] = self._parse_properties_from_init(**content)
+            except Exception as e:
+                self.log.error(f"Properties of operator '{component_class}' associated with "
+                               f"identifier '{registry_entry.identifier}' could not be "
+                               f"parsed: {e}. Skipping...")
+                continue
             if not component_properties:
-                # TODO add a useful log message
+                self.log.warning(f"Operator '{component_class}' associated with identifier "
+                                 f"'{registry_entry.identifier}' does not have any properties. "
+                                 f"Skipping...")
                 continue
 
             new_component = Component(
