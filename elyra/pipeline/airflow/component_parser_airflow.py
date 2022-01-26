@@ -50,15 +50,16 @@ class AirflowComponentParser(ComponentParser):
             parsed_class_nodes = self._parse_all_classes(component_definition)
             num_operator_classes = len(parsed_class_nodes)
         except Exception as e:
-            self.log.error(f"Content associated with identifier '{registry_entry.identifier}' "
+            self.log.error(f"Content associated with identifier '{registry_entry.component_identifier}' "
                            f"could not be parsed: {e}. Skipping...")
             return None
 
         for component_class, content in parsed_class_nodes.items():
             if not content.get('init_function'):
                 # Without the init function, class can't be parsed for properties
+                # TODO is this the correct functionality? see classes that derive from PythonOperator
                 self.log.warning(f"Operator '{component_class}' associated with identifier "
-                                 f"'{registry_entry.identifier}' does not have an __init__ "
+                                 f"'{registry_entry.component_identifier}' does not have an __init__ "
                                  f"function. Skipping...")
                 continue
 
@@ -74,12 +75,12 @@ class AirflowComponentParser(ComponentParser):
                 component_properties: List[ComponentParameter] = self._parse_properties_from_init(**content)
             except Exception as e:
                 self.log.error(f"Properties of operator '{component_class}' associated with "
-                               f"identifier '{registry_entry.identifier}' could not be "
+                               f"identifier '{registry_entry.component_identifier}' could not be "
                                f"parsed: {e}. Skipping...")
                 continue
             if not component_properties:
                 self.log.warning(f"Operator '{component_class}' associated with identifier "
-                                 f"'{registry_entry.identifier}' does not have any properties. "
+                                 f"'{registry_entry.component_identifier}' does not have any properties. "
                                  f"Skipping...")
                 continue
 
