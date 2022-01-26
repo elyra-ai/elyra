@@ -17,6 +17,7 @@ import os
 from types import SimpleNamespace
 
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
+from conftest import TEST_CATALOG_NAME
 import jupyter_core.paths
 import pytest
 
@@ -47,6 +48,7 @@ def test_component_catalog_can_load_components_from_registries(component_cache_i
     assert len(components) > 0
 
 
+@pytest.mark.usefixtures('teardown_test_catalog')
 def test_modify_component_catalogs():
     # Initialize a ComponentCache instance and wait for all worker threads to compete
     component_catalog = ComponentCache.instance()
@@ -70,17 +72,11 @@ def test_modify_component_catalogs():
         "paths": paths
     }
     registry_instance = Metadata(schema_name="local-file-catalog",
-                                 name="new_test_registry",
+                                 name=TEST_CATALOG_NAME,
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    try:
-        if metadata_manager.get("new_test_registry"):
-            metadata_manager.remove("new_test_registry")
-    except Exception:
-        pass
-
-    metadata_manager.create("new_test_registry", registry_instance)
+    metadata_manager.create(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -96,7 +92,7 @@ def test_modify_component_catalogs():
 
     # Modify the test registry to add an additional path to
     paths.append(_get_resource_path('kfp_test_operator_no_inputs.yaml'))
-    metadata_manager.update("new_test_registry", registry_instance)
+    metadata_manager.update(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -111,7 +107,7 @@ def test_modify_component_catalogs():
     assert 'Test Operator No Inputs' in modified_component_names
 
     # Delete the test registry
-    metadata_manager.remove("new_test_registry")
+    metadata_manager.remove(TEST_CATALOG_NAME)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -131,6 +127,7 @@ def test_modify_component_catalogs():
     assert initial_palette == post_delete_palette
 
 
+@pytest.mark.usefixtures('teardown_test_catalog')
 def test_directory_based_component_catalog():
     # Initialize a ComponentCache instance and wait for all worker threads to compete
     component_catalog = ComponentCache.instance()
@@ -150,17 +147,11 @@ def test_directory_based_component_catalog():
         "paths": [registry_path]
     }
     registry_instance = Metadata(schema_name="local-directory-catalog",
-                                 name="new_test_registry",
+                                 name=TEST_CATALOG_NAME,
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    try:
-        if metadata_manager.get("new_test_registry"):
-            metadata_manager.remove("new_test_registry")
-    except Exception:
-        pass
-
-    metadata_manager.create("new_test_registry", registry_instance)
+    metadata_manager.create(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -174,9 +165,6 @@ def test_directory_based_component_catalog():
     assert 'Filter text' in added_component_names
     assert 'Test Operator' in added_component_names
     assert 'Test Operator No Inputs' in added_component_names
-
-    # Remove the test instance
-    metadata_manager.remove("new_test_registry")
 
 
 def test_parse_kfp_component_file():
