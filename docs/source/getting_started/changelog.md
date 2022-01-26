@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 3.5.2 - 01/26/2022
+
+- Fix git branch URL - [#2421](https://github.com/elyra-ai/elyra/pull/2421)
+
 ## Release 3.5.1 - 01/25/2022
 
 - Update release script for 3.5.x branch
