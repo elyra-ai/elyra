@@ -337,10 +337,10 @@ class AirflowComponentParser(ComponentParser):
 
         :returns: the data type as parsed, if found, otherwise returns the default type
         """
-        type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n))")
+        type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
         match = type_regex.search(class_definition)
         if match:
-            return match.group(1).strip()
+            return match.group(1).strip().replace("\n", " ")
         return DEFAULT_DATA_TYPE
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
