@@ -27,7 +27,7 @@ from elyra.pipeline.component import ControllerMap
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 CONTROL_ID = 'OneOfControl'
-DEFAULT_DATA_TYPE = str.__name__
+DEFAULT_DATA_TYPE = "str"
 DEFAULT_REQUIRED = True
 DEFAULT_VALUE = None
 DEFAULT_DESCRIPTION = ''
@@ -150,7 +150,7 @@ class AirflowComponentParser(ComponentParser):
         # Determine whether each class directly extends the BaseOperator or whether it
         # must be further analyzed for indirect extension
         for node in class_def_nodes:
-            if len(node.bases) == 0:
+            if not hasattr(node, 'bases') or len(node.bases) == 0:
                 # Class does not extend other classes; do not add to Operator list
                 continue
             if any(base.id in operator_bases for base in node.bases):
@@ -228,8 +228,9 @@ class AirflowComponentParser(ComponentParser):
             # Standardize data type information
             data_type_info = self.determine_type_information(data_type_parsed or data_type_from_ast)
             if data_type_info.undetermined:
-                self.log.debug(f"Data type from parsed data ('{data_type_parsed}') could not be determined. "
-                               f"Proceeding as if '{data_type_info.data_type}' was detected.")
+                self.log.debug(f"Data type from parsed data ('{(data_type_parsed or data_type_from_ast)}') "
+                               f"could not be determined. Proceeding as if "
+                               f"'{data_type_info.data_type}' was detected.")
             elif 'xcom' in arg_name.lower() and data_type_info.data_type == 'boolean':
                 # Override a default of False for xcom push
                 data_type_info.default_value = True
@@ -306,7 +307,11 @@ class AirflowComponentParser(ComponentParser):
                     data_type = arg.annotation.slice.id
 
             required = DEFAULT_REQUIRED
-            if hasattr(arg.annotation, 'value') and getattr(arg.annotation.value, 'id', '') == 'Optional':
+            # `required` will be False if the type hint specifies 'Optional'
+            # Additionally, if a default value is provided in the argument list, the
+            # processor can use this value if the user doesn't supply their own
+            if (hasattr(arg.annotation, 'value') and getattr(arg.annotation.value, 'id', '') == 'Optional') or \
+                    hasattr(default, 'value'):
                 required = False
 
             # Insert AST-parsed (or default) values into dictionary
@@ -348,7 +353,6 @@ class AirflowComponentParser(ComponentParser):
         Define properties that are common to the Airflow runtime.
         """
 
-        # TODO add args and kwargs as RTS-properties here?
         return [
             ComponentParameter(
                 id="runtime_image",
