@@ -70,6 +70,8 @@ class AirflowComponentParser(ComponentParser):
                 # to include the Operator class name as well
                 component_id += f":{component_class}"
 
+            self.log.error(f"AST dump for {component_class} init: {ast.dump(content.get('init_function'))}")
+
             # Get the properties for this Operator class
             try:
                 component_properties: List[ComponentParameter] = self._parse_properties_from_init(**content)
@@ -217,6 +219,10 @@ class AirflowComponentParser(ComponentParser):
 
             description = self._parse_description_from_docstring(arg_name, docstring)
             data_type_parsed = self._parse_data_type_from_docstring(arg_name, docstring)
+
+            self.log.error(f"Data types for argument '{arg_name}:'\n"
+                             f"\tdata_type_from_ast: {data_type_from_ast}\n"
+                             f"\tdata_type_from_docstring: {data_type_parsed}")
 
             # Amend description to include type information as parsed, if available.
             # Otherwise, include the type information determined from the AST parse
