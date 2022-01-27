@@ -178,7 +178,7 @@ class AirflowComponentParser(ComponentParser):
                     # The classes still present in classes_to_analyze must be
                     # re-analyzed with the addition of the new Operator class
                     analysis_incomplete = True
-                    continue
+                    break
 
         return operator_classes
 
