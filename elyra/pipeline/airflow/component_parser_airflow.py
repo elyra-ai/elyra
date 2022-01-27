@@ -221,8 +221,8 @@ class AirflowComponentParser(ComponentParser):
             data_type_parsed = self._parse_data_type_from_docstring(arg_name, docstring)
 
             self.log.error(f"Data types for argument '{arg_name}:'\n"
-                             f"\tdata_type_from_ast: {data_type_from_ast}\n"
-                             f"\tdata_type_from_docstring: {data_type_parsed}")
+                           f"\tdata_type_from_ast: {data_type_from_ast}\n"
+                           f"\tdata_type_from_docstring: {data_type_parsed}")
 
             # Amend description to include type information as parsed, if available.
             # Otherwise, include the type information determined from the AST parse
