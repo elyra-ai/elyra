@@ -101,7 +101,6 @@ setup_args = dict(
         'watchdog>=2.1.3',
         'websocket-client',
         'yaspin',
-        'astunparse>=1.6.3',
         # KFP runtime dependencies
         'kfp>=1.7.0,<2.0,!=1.7.2',
         # Airflow runtime dependencies
