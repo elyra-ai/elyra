@@ -197,11 +197,14 @@ class AirflowComponentParser(ComponentParser):
         Get the docstring for the given ClassDef object
         """
         for body_item in operator_class.body:
-            if isinstance(body_item, ast.Expr) and isinstance(body_item.value, ast.Constant):
+            if isinstance(body_item, ast.Expr):
                 # ast.Expr objects value attributes are ast.Constant objects in Python 3.8+,
                 # but are ast.Str objects in Python 3.7 and lower, and each store the string
                 # value under different attributes ('value' or 's', respectively)
-                return getattr(body_item.value, 'value', body_item.value.s)
+                if isinstance(body_item.value, ast.Constant):
+                    return body_item.value.value
+                elif isinstance(body_item.value, ast.Str):
+                    return body_item.value.s
         return None
 
     def _parse_properties_from_init(self,
