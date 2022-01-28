@@ -16,6 +16,7 @@
 import ast
 import re
 from types import SimpleNamespace
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -220,8 +221,8 @@ class AirflowComponentParser(ComponentParser):
         for arg_name, arg_attributes in init_arguments.items():
             data_type_from_ast = arg_attributes.get('data_type')
 
-            description = self._parse_description_from_docstring(arg_name, docstring)
-            data_type_parsed = self._parse_data_type_from_docstring(arg_name, docstring)
+            description = self._parse_from_docstring("param", arg_name, docstring, DEFAULT_DESCRIPTION)
+            data_type_parsed = self._parse_from_docstring("type", arg_name, docstring, DEFAULT_DATA_TYPE)
 
             self.log.error(f"Data types for argument '{arg_name}:'\n"
                            f"\tdata_type_from_ast: {data_type_from_ast}\n"
@@ -359,30 +360,18 @@ class AirflowComponentParser(ComponentParser):
 
         return init_arg_dict
 
-    def _parse_description_from_docstring(self, parameter_name: str, class_definition: str) -> str:
+    def _parse_from_docstring(self, phrase: str, param: str, class_def: str, default_value: Any) -> Optional[str]:
         """
-        Parse for parameter description in class docstring (':param [arg_name]:')
+        Parse for a phrase in class docstring (e.g., ':type [arg_name]:')
 
-        :returns: the description as parsed, if found, or an empty string
+        :returns: the phrase match, if found, otherwise returns the default type
         """
-        param_regex = re.compile(f":param {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
-        match = param_regex.search(class_definition)
+        regex = re.compile(f":{phrase} {param}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n\s*\n))")
+        match = regex.search(class_def)
         if match:
             # Remove quotation marks and newline characters in preparation for eventual json.loads()
             return match.group(1).strip().replace("\"", "'").replace("\n", " ")
-        return DEFAULT_DESCRIPTION
-
-    def _parse_data_type_from_docstring(self, parameter_name: str, class_definition: str) -> Optional[str]:
-        """
-        Parse for parameter data type in class docstring (':type [arg_name]:')
-
-        :returns: the data type as parsed, if found, otherwise returns the default type
-        """
-        type_regex = re.compile(f":type {parameter_name}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.))")
-        match = type_regex.search(class_definition)
-        if match:
-            return match.group(1).strip().replace("\n", " ")
-        return DEFAULT_DATA_TYPE
+        return default_value
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
         """
