@@ -303,25 +303,52 @@ class AirflowComponentParser(ComponentParser):
                 # Standardize default string values to remove newline characters
                 default_value = default_value.strip().replace("\n", "")
 
+            required = DEFAULT_REQUIRED
+            # `required` will be False if the type hint specifies 'Optional'
+            # Additionally, if a default value is provided in the argument list, the
+            # processor can use this value if the user doesn't supply their own
+            if hasattr(default, 'value'):
+                required = False
+
             # Get data type directly from default value
             data_type = type(default_value).__name__
             if data_type == 'NoneType':
                 # Get data from type hint if available
                 data_type = DEFAULT_DATA_TYPE
-                if hasattr(arg.annotation, 'id'):
-                    # Argument has a type hint
+                if isinstance(arg.annotation, ast.Name):
+                    # arg is of the form `<arg>: <single-valued_type>`
+                    # e.g. `env: str` or `env: bool`
                     data_type = arg.annotation.id
-                elif hasattr(arg.annotation, 'slice'):
-                    # Argument has a type hint of the form 'Optional[<type>]'
-                    data_type = arg.annotation.slice.id
 
-            required = DEFAULT_REQUIRED
-            # `required` will be False if the type hint specifies 'Optional'
-            # Additionally, if a default value is provided in the argument list, the
-            # processor can use this value if the user doesn't supply their own
-            if (hasattr(arg.annotation, 'value') and getattr(arg.annotation.value, 'id', '') == 'Optional') or \
-                    hasattr(default, 'value'):
-                required = False
+                elif isinstance(arg.annotation, ast.Subscript):
+                    # arg is more complex
+                    if isinstance(arg.annotation.slice, ast.Name):
+                        # arg is of the form `<arg>: Optional[<single-valued_type>]`
+                        # e.g. `env: Optional[str]` or `env: Optional[int]`
+                        data_type = arg.annotation.slice.id
+
+                    elif (
+                            isinstance(arg.annotation.slice, ast.Tuple) and
+                            isinstance(arg.annotation.value, ast.Name)
+                    ):
+                        # arg is of the form `<arg>: <multi-valued_type>`
+                        # e.g. `env: Dict[str, str]` or `env: List[bool]`
+                        data_type = arg.annotation.value.id
+
+                    elif (
+                            isinstance(arg.annotation.slice, ast.Subscript) and
+                            isinstance(arg.annotation.slice.value, ast.Name)
+                    ):
+                        # arg is of the form `<arg>: Optional[<multi-valued_type>]`
+                        # e.g. `env = Optional[Dict[str, str]]` or `env = Optional[List[int]]`
+                        data_type = arg.annotation.slice.value.id
+
+                    if (
+                            isinstance(arg.annotation.value, ast.Name) and
+                            arg.annotation.value.id == 'Optional'
+                    ):
+                        # arg typehint includes the phrase 'Optional'
+                        required = False
 
             # Insert AST-parsed (or default) values into dictionary
             init_arg_dict[arg_name] = {
