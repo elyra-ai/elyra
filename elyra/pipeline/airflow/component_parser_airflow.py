@@ -301,18 +301,25 @@ class AirflowComponentParser(ComponentParser):
         for arg, default in zip(args, arg_defaults):
             arg_name = arg.arg
 
-            # Set default value for attribute in question
-            default_value = getattr(default, 'value', DEFAULT_VALUE)
-            if isinstance(default_value, str):
-                # Standardize default string values to remove newline characters
-                default_value = default_value.strip().replace("\n", "")
-
             required = DEFAULT_REQUIRED
-            # `required` will be False if the type hint specifies 'Optional'
-            # Additionally, if a default value is provided in the argument list, the
-            # processor can use this value if the user doesn't supply their own
-            if hasattr(default, 'value'):
+            # Set default value for attribute in question: note that arg.default
+            # object attributes are ast.Constant objects (or None) in Python 3.8+,
+            # but are ast.NameConstants or ast.Str objects (or None) in Python 3.7
+            # and lower. ast.Constant and ast.NameConstant store the value of interest
+            # here in the 'value' attribute
+            default_value = getattr(default, 'value', DEFAULT_VALUE)
+            if default is not None:
+                if isinstance(default, ast.Str):
+                    # The value of interest in this case is accessed by the 's' attribute
+                    default_value = default.s
+
+                # If a default value is provided in the argument list, the processor
+                # can use this value if the user doesn't supply their own
                 required = False
+
+                if isinstance(default_value, str):
+                    # Standardize default string values to remove newline characters
+                    default_value = default_value.strip().replace("\n", "")
 
             # Get data type directly from default value
             data_type = type(default_value).__name__
@@ -332,24 +339,38 @@ class AirflowComponentParser(ComponentParser):
                         data_type = arg.annotation.slice.id
 
                     elif (
-                            isinstance(arg.annotation.slice, ast.Tuple) and
-                            isinstance(arg.annotation.value, ast.Name)
+                        isinstance(arg.annotation.slice, (ast.Tuple, ast.Index)) and
+                        isinstance(arg.annotation.value, ast.Name) and
+                        arg.annotation.value.id != 'Optional'
                     ):
                         # arg is of the form `<arg>: <multi-valued_type>`
-                        # e.g. `env: Dict[str, str]` or `env: List[bool]`
+                        # e.g. `env: Dict[str, str]` or `env: List[bool]`**
+                        # (arg.annotation.slice is of type ast.Tuple in
+                        # python 3.8+ and ast.Index in python 3.7 and lower)
                         data_type = arg.annotation.value.id
 
                     elif (
-                            isinstance(arg.annotation.slice, ast.Subscript) and
-                            isinstance(arg.annotation.slice.value, ast.Name)
+                        isinstance(arg.annotation.slice, ast.Subscript) and
+                        isinstance(arg.annotation.slice.value, ast.Name)
                     ):
                         # arg is of the form `<arg>: Optional[<multi-valued_type>]`
                         # e.g. `env = Optional[Dict[str, str]]` or `env = Optional[List[int]]`
+                        # In Python 3.8+
                         data_type = arg.annotation.slice.value.id
 
+                    elif (
+                        isinstance(arg.annotation.slice, ast.Index) and
+                        isinstance(arg.annotation.slice.value, ast.Subscript) and
+                        isinstance(arg.annotation.slice.value.value, ast.Name)
+                    ):
+                        # arg is of the form `<arg>: Optional[<multi-valued_type>]`
+                        # e.g. `env = Optional[Dict[str, str]]` or `env = Optional[List[int]]`
+                        # In Python 3.7 and lower
+                        data_type = arg.annotation.slice.value.value.id
+
                     if (
-                            isinstance(arg.annotation.value, ast.Name) and
-                            arg.annotation.value.id == 'Optional'
+                        isinstance(arg.annotation.value, ast.Name) and
+                        arg.annotation.value.id == 'Optional'
                     ):
                         # arg typehint includes the phrase 'Optional'
                         required = False
