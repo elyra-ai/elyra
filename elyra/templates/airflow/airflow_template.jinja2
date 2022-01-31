@@ -68,7 +68,7 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                                        'request_memory': '{{ operation.mem_request }}',
             {% endif %}
             {% if operation.gpu_limit %}
-                                                                       'limit_gpu': '{{ operation.cpu_request }}',
+                                                                       'limit_gpu': '{{ operation.gpu_limit }}',
             {% endif %}
         },
 
@@ -82,6 +82,12 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                           dag=dag)
     {% if operation.image_pull_policy %}
         op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
+    {% endif %}
+
+    {% if operation.doc %}
+        op_{{ operation.id|regex_replace }}.doc = """
+        {{ operation.doc }}
+    """
     {% endif %}
 
     {% if operation.parent_operation_ids %}

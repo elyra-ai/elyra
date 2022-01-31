@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ class Operation(object):
         self._name = name
         self._parent_operation_ids = parent_operation_ids or []
         self._component_params = component_params
+        self._doc = None
 
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get('inputs', []))
@@ -96,6 +97,14 @@ class Operation(object):
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def doc(self) -> str:
+        return self._doc
+
+    @doc.setter
+    def doc(self, value: str):
+        self._doc = value
 
     @property
     def parent_operation_ids(self) -> List[str]:

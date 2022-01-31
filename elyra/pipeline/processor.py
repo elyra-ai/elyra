@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -436,6 +436,15 @@ class RuntimePipelineProcessor(PipelineProcessor):
         except BaseException as err:
             self.log.error(f'Error retrieving metadata configuration for {name}', exc_info=True)
             raise RuntimeError(f'Error retrieving metadata configuration for {name}', err) from err
+
+    def _verify_export_format(self, pipeline_export_format: str) -> None:
+        """
+        Check that the given pipeline_export_format is supported by the runtime type;
+        otherwise, raise a ValueError
+        """
+        export_extensions = RuntimeTypeResources.get_instance_by_type(self._type).get_export_extensions()
+        if pipeline_export_format not in export_extensions:
+            raise ValueError(f"Pipeline export format '{pipeline_export_format}' not recognized.")
 
     def _collect_envs(self, operation: GenericOperation, **kwargs) -> Dict:
         """

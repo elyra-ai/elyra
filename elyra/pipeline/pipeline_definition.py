@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -148,6 +148,14 @@ class Pipeline(AppDataBase):
             self._nodes = nodes
 
         return self._nodes
+
+    @property
+    def comments(self) -> list:
+        """
+        The list of user comments in the pipeline
+        :rtype: list of comments
+        """
+        return self._node['app_data']['ui_data'].get("comments", [])
 
     def get_property(self, key: str, default_value=None) -> Any:
         """
@@ -459,6 +467,30 @@ class PipelineDefinition(object):
                 if node.id == node_id:
                     return node
         return None
+
+    def get_node_comments(self, node_id: str) -> Optional[str]:
+        """
+        Given a node id returns the assoicated comments in the pipeline
+        :param node_id: the node id
+        :return: the comments or None
+        """
+        comments = []
+
+        for pipeline in self.pipelines:
+            comment_list = pipeline.comments
+            for comment in comment_list:
+                associated_node_id_list = comment.get("associated_id_refs", [])
+                for ref in associated_node_id_list:
+                    if ref['node_ref'] == node_id:
+                        comments.append(comment.get("content", ""))
+
+        # remove empty (or whitespace-only) comment strings
+        comments = [c for c in comments if c.strip()]
+        comment_str = "\n\n".join(comments)
+        if not comment_str:
+            return None
+
+        return comment_str
 
     def get_supernodes(self) -> List[Node]:
         """

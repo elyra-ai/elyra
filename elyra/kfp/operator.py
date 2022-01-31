@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -230,7 +230,7 @@ class ExecuteFileOp(ContainerOp):
             self.add_volume(V1Volume(empty_dir=V1EmptyDirVolumeSource(
                                      medium="",
                                      size_limit=self.emptydir_volume_size),
-                            name=self.emptydir_volume_name))
+                                     name=self.emptydir_volume_name))
 
             self.container.add_volume_mount(V1VolumeMount(mount_path=self.container_work_dir_root_path,
                                                           name=self.emptydir_volume_name))
@@ -316,7 +316,6 @@ class ExecuteFileOp(ContainerOp):
 
     @staticmethod
     def _normalize_label_value(value):
-
         """Produce a Kubernetes-compliant label from value
 
         Valid label values must be 63 characters or less and

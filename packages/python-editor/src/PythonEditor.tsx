@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 import { ScriptEditor } from '@elyra/script-editor';
-
 import { pyIcon } from '@elyra/ui-components';
 
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import {
-  ABCWidgetFactory,
-  DocumentRegistry,
-  DocumentWidget
-} from '@jupyterlab/docregistry';
+import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
-
+import { LabIcon } from '@jupyterlab/ui-components';
 import { Widget } from '@lumino/widgets';
 
 export class PythonEditor extends ScriptEditor {
@@ -35,69 +29,13 @@ export class PythonEditor extends ScriptEditor {
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
     getCurrentWidget: () => Widget | null
   ) {
-    super(options, 'python', getCurrentWidget);
-
-    // Add icon to main tab
-    this.title.icon = pyIcon;
+    super(options, getCurrentWidget);
   }
-}
-
-/**
- * A widget factory for Python Editors.
- */
-export class PythonEditorFactory extends ABCWidgetFactory<
-  PythonEditor,
-  DocumentRegistry.ICodeModel
-> {
-  /**
-   * Construct a new editor widget factory.
-   */
-  constructor(options: PythonEditorFactory.IOptions) {
-    super(options.factoryOptions);
-    this._services = options.editorServices;
-    this.getCurrentWidget = options.getCurrentWidget;
+  getLanguage(): string {
+    return 'python';
   }
 
-  /**
-   * Create a new widget given a context.
-   */
-  protected createNewWidget(
-    context: DocumentRegistry.CodeContext
-  ): PythonEditor {
-    const newDocumentEditor = this._services.factoryService.newDocumentEditor;
-    const factory: CodeEditor.Factory = options => {
-      return newDocumentEditor(options);
-    };
-    const content = new FileEditor({
-      factory,
-      context,
-      mimeTypeService: this._services.mimeTypeService
-    });
-    return new PythonEditor({ content, context }, this.getCurrentWidget);
-  }
-
-  private _services: IEditorServices;
-  private getCurrentWidget: () => Widget | null;
-}
-
-/**
- * The namespace for `PythonEditorFactory` class statics.
- */
-export namespace PythonEditorFactory {
-  /**
-   * The options used to create an editor widget factory.
-   */
-  export interface IOptions {
-    /**
-     * The editor services used by the factory.
-     */
-    editorServices: IEditorServices;
-
-    /**
-     * The factory options associated with the factory.
-     */
-    factoryOptions: DocumentRegistry.IWidgetFactoryOptions<PythonEditor>;
-
-    getCurrentWidget: () => Widget | null;
+  getIcon(): LabIcon {
+    return pyIcon;
   }
 }

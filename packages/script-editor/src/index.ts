@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,3 +21,4 @@ export * from './ScriptEditor';
 export * from './ScriptEditorController';
 export * from './ScriptRunner';
 export * from './ScriptDebugger';
+export * from './ScriptEditorWidgetFactory';

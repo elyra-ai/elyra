@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ import {
   DockPanelSvg,
   runIcon,
   saveIcon,
-  stopIcon
+  stopIcon,
+  LabIcon
 } from '@jupyterlab/ui-components';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
@@ -61,7 +62,7 @@ const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
 /**
  * A widget for script editors.
  */
-export class ScriptEditor extends DocumentWidget<
+export abstract class ScriptEditor extends DocumentWidget<
   FileEditor,
   DocumentRegistry.ICodeModel
 > {
@@ -74,20 +75,20 @@ export class ScriptEditor extends DocumentWidget<
   private emptyOutput: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
-  protected editorLanguage: string;
   protected debugger: ScriptDebugger;
   protected getCurrentWidget?: () => Widget | null;
   private runDisabled: boolean;
   private debugDisabled: boolean;
   protected runButton: ToolbarButton;
   protected runAndDebugButton: ToolbarButton;
+  abstract getLanguage(): string;
+  abstract getIcon(): LabIcon | string;
 
   /**
    * Construct a new editor widget.
    */
   constructor(
     options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
-    language: string,
     getCurrentWidget?: () => Widget | null
   ) {
     super(options);
@@ -98,11 +99,13 @@ export class ScriptEditor extends DocumentWidget<
     this.kernelName = '';
     this.emptyOutput = true;
     this.controller = new ScriptEditorController();
-    this.editorLanguage = language;
     this.debugger = new ScriptDebugger(this.disableButton);
     this.getCurrentWidget = getCurrentWidget;
     this.runDisabled = false;
     this.debugDisabled = true;
+
+    // Add icon to main tab
+    this.title.icon = this.getIcon();
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -148,7 +151,9 @@ export class ScriptEditor extends DocumentWidget<
     // Create output area widget
     this.createOutputAreaWidget();
 
-    this.initializeKernelSpecs().then(() => this.initializeDebugger());
+    this.context.ready.then(() => {
+      this.initializeKernelSpecs().then(() => this.initializeDebugger());
+    });
   }
 
   /**
@@ -157,7 +162,7 @@ export class ScriptEditor extends DocumentWidget<
    */
   protected initializeKernelSpecs = async (): Promise<void> => {
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
-      this.editorLanguage
+      this.getLanguage()
     );
 
     // this.kernelName = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;

@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -84,8 +84,9 @@ class MetadataManager(LoggingConfigurable):
                 # Since we may not have a metadata instance due to a failure during `from_dict()`,
                 # instantiate a bad instance directly to use in the message and invalid result.
                 invalid_instance = Metadata(**metadata_dict)
-                self.log.debug("Fetch of instance '{}' of schemaspace '{}' encountered an exception: {}".
-                               format(invalid_instance.name, self.schemaspace, ex))
+                self.log.warning(f"Fetch of instance '{invalid_instance.name}' "
+                                 f"of schemaspace '{self.schemaspace}' "
+                                 f"encountered an exception: {ex}")
                 if include_invalid:
                     invalid_instance.reason = ex.__class__.__name__
                     instances.append(invalid_instance)
@@ -158,7 +159,7 @@ class MetadataManager(LoggingConfigurable):
             raise ValidationError(msg) from ve
 
     @staticmethod
-    def _get_normalized_name(name: str) -> str:
+    def get_normalized_name(name: str) -> str:
         # lowercase and replaces spaces with underscore
         name = re.sub('\\s+', '_', name.lower())
         # remove all invalid characters
@@ -194,7 +195,7 @@ class MetadataManager(LoggingConfigurable):
 
         if not name and not for_update:  # name is derived from display_name only on creates
             if metadata.display_name:
-                name = self._get_normalized_name(metadata.display_name)
+                name = MetadataManager.get_normalized_name(metadata.display_name)
                 metadata.name = name
 
         if not name:  # At this point, name must be set

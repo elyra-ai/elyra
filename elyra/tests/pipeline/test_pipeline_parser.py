@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -131,6 +131,14 @@ def test_pipeline_with_dependencies():
     pipeline = PipelineParser().parse(pipeline_json)
 
     assert len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].parent_operation_ids) == 2
+
+
+def test_pipeline_with_comments():
+    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/'
+                                            'pipeline_3_node_sample_with_comments.json')
+    pipeline = PipelineParser().parse(pipeline_json)
+    assert pipeline.operations['d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c'].doc \
+        == "Generate community stats and then aggregate them on an overview dashboard"
 
 
 def test_pipeline_global_attributes():

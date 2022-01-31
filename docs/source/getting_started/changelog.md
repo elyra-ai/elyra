@@ -1,5 +1,29 @@
 # Changelog
 
+## Release 3.5.0 - 01/21/2022
+
+- Update release script
+- Fix kubeflow image dockerfile syntax
+- Add Script Editor language-specific subclasses - [#2388](https://github.com/elyra-ai/elyra/pull/2388)
+- Add support for CLI metadata and OVPs using JSON or file contents - [#2378](https://github.com/elyra-ai/elyra/pull/2378)
+- Render user comments as docs of nodes in pipeline - [#2396](https://github.com/elyra-ai/elyra/pull/2396)
+- Bump trim-off-newlines from 1.0.1 to 1.0.3 - [#2403](https://github.com/elyra-ai/elyra/pull/2403)
+- Update Copyright headers with current year - [#2390](https://github.com/elyra-ai/elyra/pull/2390)
+- Update pipeline processor hierarchy diagram screenshot - [#2402](https://github.com/elyra-ai/elyra/pull/2402)
+- Bump follow-redirects from 1.14.5 to 1.14.7 - [#2395](https://github.com/elyra-ai/elyra/pull/2395)
+- Validation: improve detection of invalid pipeline version values - [#2391](https://github.com/elyra-ai/elyra/pull/2391)
+- Support GitLab as DAG repository for Apache Airflow - [#2380](https://github.com/elyra-ai/elyra/pull/2380)
+- Fix documentation for kubeflow local dev deployment - [#2381](https://github.com/elyra-ai/elyra/pull/2381)
+- Add flag to hide label for description field - [#2394](https://github.com/elyra-ai/elyra/pull/2394)
+- Remove KFP DSL export option from all pipeline types - [#2382](https://github.com/elyra-ai/elyra/pull/2382)
+- Promote validation error debug message to simplify troubleshooting - [#2385](https://github.com/elyra-ai/elyra/pull/2385)
+
+## Release 3.4.1 - 01/07/2022
+
+- Update pipeline editor package to 1.5.1 - [#2377](https://github.com/elyra-ai/elyra/pull/2377)
+- Fix incorrect Elyra version syntax in kubeflow Dockerfile - [#2368](https://github.com/elyra-ai/elyra/pull/2368)
+- Properly process GPU parameter in pipeline parser - [#2370](https://github.com/elyra-ai/elyra/pull/2370)
+
 ## Release 3.4.0 - 12/17/2021
 
 

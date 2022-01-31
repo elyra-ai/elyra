@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -217,25 +217,27 @@ class PipelineValidationManager(SingletonConfigurable):
                                        "detected_schema_version": float(pipeline_definition.schema_version)})
 
         # validate pipeline version compatibility
-        pipeline_version = int(pipeline_definition.primary_pipeline.version)
-        if pipeline_version not in range(PIPELINE_CURRENT_VERSION + 1):
-            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message="Primary pipeline version field has an invalid value.",
-                                 data={"supported_version": PIPELINE_CURRENT_VERSION,
-                                       "detected_version": pipeline_version})
-
-        elif pipeline_version < PIPELINE_CURRENT_VERSION:
-            # Pipeline needs to be migrated
-            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message=f'Pipeline version {pipeline_version} is out of date and needs to be migrated '
-                                         f'using the Elyra pipeline editor.')
-        elif pipeline_version > PIPELINE_CURRENT_VERSION:
-            # New version of Elyra is needed
-            response.add_message(severity=ValidationSeverity.Error, message_type="invalidPipeline",
-                                 message='Pipeline was last edited in a newer version of Elyra. '
-                                         'Update Elyra to use this pipeline.',
-                                 data={"supported_version": PIPELINE_CURRENT_VERSION,
-                                       "detected_version": pipeline_version})
+        try:
+            pipeline_version = pipeline_definition.primary_pipeline.version
+            if pipeline_version < PIPELINE_CURRENT_VERSION:
+                # Pipeline needs to be migrated
+                response.add_message(severity=ValidationSeverity.Error,
+                                     message_type="invalidPipeline",
+                                     message=f'Pipeline version {pipeline_version} is '
+                                             'out of date and needs to be migrated '
+                                             f'using the Elyra pipeline editor.')
+            elif pipeline_version > PIPELINE_CURRENT_VERSION:
+                # New version of Elyra is needed
+                response.add_message(severity=ValidationSeverity.Error,
+                                     message_type="invalidPipeline",
+                                     message='Pipeline was last edited in a newer version of Elyra. '
+                                             'Update Elyra to use this pipeline.',
+                                     data={"supported_version": PIPELINE_CURRENT_VERSION,
+                                           "detected_version": pipeline_version})
+        except ValueError:
+            response.add_message(severity=ValidationSeverity.Error,
+                                 message_type="invalidPipeline",
+                                 message='Pipeline version is not a numeric value.')
 
     @staticmethod
     def _is_compatible_pipeline(runtime_name: str, runtime_type: str):

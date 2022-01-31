@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -155,7 +155,7 @@ def update_version_to_release() -> None:
 
         sed(_source('etc/docker/kubeflow/Dockerfile'),
             r"elyra\[kfp-tekton,kfp-examples\]==.*",
-            f"elyra\[kfp-tekton,kfp-examples\]=={new_version}")
+            f"elyra\[kfp-tekton,kfp-examples\]=={new_version} \\\\")
         sed(_source('etc/docker/elyra/Dockerfile'),
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
             f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra")

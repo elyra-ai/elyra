@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -95,9 +95,15 @@ class PipelineParser(LoggingConfigurable):
                 raise NotImplementedError("Node type '{}' is currently not supported!".format(node.type))
             elif node.type != "execution_node":
                 raise ValueError("Node type '{}' is invalid!".format(node.type))
-
             # parse each node as a pipeline operation
+
             operation = self._create_pipeline_operation(node, super_node)
+
+            # assoicate user comment as docs to operations
+            comment = pipeline_definition.get_node_comments(node.id)
+            if comment:
+                operation.doc = comment
+
             self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.name, pipeline_object.name))
             pipeline_object.operations[operation.id] = operation
 

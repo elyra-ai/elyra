@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 .PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image container-images publish-container-images
-.PHONY: build-dependencies
+.PHONY: build-dependencies install-gitlab-dependency
 SHELL:=/bin/bash
 
 TAG:=dev
@@ -74,6 +74,8 @@ uninstall:
 	- pip uninstall -y elyra-examples-kfp-catalog
 	# remove Apache Airflow example components
 	- pip uninstall -y elyra-examples-airflow-catalog
+	# remove GitLab dependency
+	- pip uninstall -y python-gitlab
 
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
@@ -148,7 +150,7 @@ install-server-package:
 
 install: install-server install-ui check-install ## Build and install
 
-install-all: install install-examples ## Build and install, including examples
+install-all: install install-examples install-gitlab-dependency ## Build and install, including examples
 
 install-examples: ## Install example pipeline components 
 	# install Kubeflow Pipelines example components
@@ -158,6 +160,9 @@ install-examples: ## Install example pipeline components
 	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector
 	- pip install --upgrade elyra-examples-airflow-catalog
 
+install-gitlab-dependency:
+	# install GitLab support for Airflow
+	- pip install --upgrade python-gitlab
 
 check-install:
 	jupyter serverextension list

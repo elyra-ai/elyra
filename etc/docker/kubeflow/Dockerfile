@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:experimental
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ ARG TAG="dev"
 # - with KFP Tekton support ('kfp-tekton')
 # - with component examples ('kfp-examples')
 RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
-    elyra[kfp-tekton,kfp-examples]==3.4.0
- && jupyter lab build \
- && rm -rf $HOME/.cache/yarn \
- && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
+    elyra[kfp-tekton,kfp-examples]==3.5.0 \
+    && jupyter lab build \
+    && rm -rf $HOME/.cache/yarn \
+    && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
 # Install component examples catalog
 #  - this wail fail if the 'kfp-examples' pip extra is not installed

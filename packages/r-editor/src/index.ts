@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { ScriptEditorWidgetFactory, ScriptEditor } from '@elyra/script-editor';
 import { rIcon } from '@elyra/ui-components';
 
 import {
@@ -23,7 +24,11 @@ import {
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
+import {
+  IDocumentWidget,
+  DocumentRegistry,
+  DocumentWidget
+} from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -33,7 +38,7 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { JSONObject } from '@lumino/coreutils';
 import { Widget } from '@lumino/widgets';
 
-import { REditorFactory, REditor } from './REditor';
+import { REditor } from './REditor';
 
 const R_FACTORY = 'R Editor';
 const R = 'r';
@@ -72,18 +77,23 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - r-editor extension is activated!');
 
-    const getCurrentWidget = (): Widget | null => {
-      return app.shell.currentWidget;
-    };
-
-    const factory = new REditorFactory({
+    const factory = new ScriptEditorWidgetFactory({
       editorServices,
       factoryOptions: {
         name: R_FACTORY,
         fileTypes: [R],
         defaultFor: [R]
       },
-      getCurrentWidget
+      getCurrentWidget: (): Widget | null => {
+        return app.shell.currentWidget;
+      },
+      instanceCreator: (
+        options: DocumentWidget.IOptions<
+          FileEditor,
+          DocumentRegistry.ICodeModel
+        >,
+        getCurrentWidget: () => Widget | null
+      ): ScriptEditor => new REditor(options, getCurrentWidget)
     });
 
     app.docRegistry.addFileType({
@@ -100,7 +110,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Track REditor widget on page refresh
      */
-    const tracker = new WidgetTracker<REditor>({
+    const tracker = new WidgetTracker<ScriptEditor>({
       namespace: R_EDITOR_NAMESPACE
     });
 
@@ -143,7 +153,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Update the settings of a widget. Adapted from fileeditor-extension.
      */
-    const updateWidget = (widget: REditor): void => {
+    const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
           widget

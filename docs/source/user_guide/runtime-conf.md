@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -90,6 +90,7 @@ To create a runtime configuration for a Kubeflow Pipelines deployment:
 
 ```bash
 elyra-metadata install runtimes \
+       --schema_name=kfp \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --auth_type="DEX_STATIC_PASSWORDS" \
@@ -101,36 +102,25 @@ elyra-metadata install runtimes \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.0']" \
-       --schema_name=kfp
+       --tags="['kfp', 'v1.0']"
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters.
 
 #### Modifying a runtime configuration
 
-To edit a runtime configuration:
+To edit a runtime configuration, use the `--replace` option along with `--name` and `--schema_name` (to locate the instance), followed by the modified property values.  In this case, we're updating the `api_password` and `tags` properties:
 
 ```bash
 elyra-metadata install runtimes \
        --replace \
        --name="my_kubeflow_pipelines_runtime" \
-       --display_name="My Kubeflow Pipelines Runtime" \
-       --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
-       --auth_type="DEX_STATIC_PASSWORDS" \
-       --api_username=username@email.com \
+       --schema_name=kfp \
        --api_password=mynewpassword \
-       --engine=Argo \
-       --cos_endpoint=http://minio-service.kubeflow:9000 \
-       --cos_auth_type="USER_CREDENTIALS" \
-       --cos_username=minio \
-       --cos_password=minio123 \
-       --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.1']" \
-       --schema_name=kfp
+       --tags="['kfp', 'v1.1']"
 ```
 
-Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 
+Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. 
 
 #### Deleting a runtime configuration
 
@@ -237,15 +227,19 @@ The default namespace is `default`.
 
 Example: `anonymous`
 
+##### Git Type (git_type)
+
+Identifies which git type shall be used to store DAGs. Supported types are `GitHub` and `GitLab`. `GitLab` is only supported if the [`gitlab` dependency is installed](../getting_started/installation.html#packaging). This setting is required.
+
 ##### GitHub API Endpoint (github_api_endpoint)
 
-The GitHub (or GitHub Enterprise) API endpoint where the git client will attempt to connect. This setting is required. Keep the default  `https://api.github.com` for github.com
+The GitHub, GitHub Enterprise, GitLab, or GitLab Enterprise API endpoint where the git client will attempt to connect. This setting is required. Keep the default `https://api.github.com` for github.com or use `https://gitlab.com` for gitlab.com.
 
 Example: `https://api.private.githubenterprise.com`
 
 ##### GitHub DAG Repository (github_repo)
 
-The GitHub repository that Apache Airflow utilizes to store DAGs. This setting is required and the repository must exist.
+The GitHub repository or GitLab project that Apache Airflow utilizes to store DAGs. This setting is required. The specified repository/project must exist.
 
 Example: `user-or-org/dag-repo-name`
 
@@ -256,7 +250,7 @@ This setting is required and the branch must exist.
 Example: `dag-branch`
 
 ##### GitHub Personal Access Token (github_repo_token)
-A [GitHub personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. This setting is required. 
+For GitHub and GitHub Enterprise: [Personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. For GitLab and GitLab Enterprise: [Personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html), which has been granted `api` access to the project. This setting is required. 
 
 Example: `766f7c267519fee7c71d7f96bdf42e646dc65433`
 
