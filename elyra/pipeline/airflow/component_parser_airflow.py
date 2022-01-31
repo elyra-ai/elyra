@@ -202,9 +202,9 @@ class AirflowComponentParser(ComponentParser):
                 # but are ast.Str objects in Python 3.7 and lower, and each store the string
                 # value under different attributes ('value' or 's', respectively)
                 if isinstance(body_item.value, ast.Constant):
-                    return body_item.value.value
+                    return body_item.value.value.strip()
                 elif isinstance(body_item.value, ast.Str):
-                    return body_item.value.s
+                    return body_item.value.s.strip()
         return None
 
     def _parse_properties_from_init(self,
@@ -225,7 +225,7 @@ class AirflowComponentParser(ComponentParser):
             data_type_from_ast = arg_attributes.get('data_type')
 
             description = self._parse_from_docstring("param", arg_name, docstring, DEFAULT_DESCRIPTION)
-            data_type_parsed = self._parse_from_docstring("type", arg_name, docstring, DEFAULT_DATA_TYPE)
+            data_type_parsed = self._parse_from_docstring("type", arg_name, docstring)
 
             self.log.error(f"Data types for argument '{arg_name}:'\n"
                            f"\tdata_type_from_ast: {data_type_from_ast}\n"
@@ -384,18 +384,18 @@ class AirflowComponentParser(ComponentParser):
 
         return init_arg_dict
 
-    def _parse_from_docstring(self, phrase: str, param: str, class_def: str, default_value: Any) -> Optional[str]:
+    def _parse_from_docstring(self, phrase: str, param: str, class_def: str, default: Any = None) -> Optional[str]:
         """
         Parse for a phrase in class docstring (e.g., ':type [arg_name]:')
 
         :returns: the phrase match, if found, otherwise returns the default type
         """
-        regex = re.compile(f":{phrase} {param}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n\s*\n))")
+        regex = re.compile(f":{phrase} {param}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n\s*\n|$))")
         match = regex.search(class_def)
         if match:
             # Remove quotation marks and newline characters in preparation for eventual json.loads()
             return match.group(1).strip().replace("\"", "'").replace("\n", " ").replace("\t", " ")
-        return default_value
+        return default
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
         """
