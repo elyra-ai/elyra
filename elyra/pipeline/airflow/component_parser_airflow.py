@@ -93,7 +93,7 @@ class AirflowComponentParser(ComponentParser):
                 description=DEFAULT_DESCRIPTION,
                 catalog_type=registry_entry.catalog_type,
                 source_identifier=registry_entry.component_identifier,
-                definition=component_definition,  # TODO use full file contents or only the class contents?
+                definition=component_definition,
                 runtime_type=self.component_platform.name,
                 categories=registry_entry.categories,
                 properties=component_properties
@@ -319,7 +319,7 @@ class AirflowComponentParser(ComponentParser):
 
                 if isinstance(default_value, str):
                     # Standardize default string values to remove newline characters
-                    default_value = default_value.strip().replace("\n", "")
+                    default_value = default_value.strip().replace("\n", " ")
 
             # Get data type directly from default value
             data_type = type(default_value).__name__
@@ -394,7 +394,7 @@ class AirflowComponentParser(ComponentParser):
         match = regex.search(class_def)
         if match:
             # Remove quotation marks and newline characters in preparation for eventual json.loads()
-            return match.group(1).strip().replace("\"", "'").replace("\n", " ")
+            return match.group(1).strip().replace("\"", "'").replace("\n", " ").replace("\t", " ")
         return default_value
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
