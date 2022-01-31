@@ -42,7 +42,8 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 - `elyra[kfp-tekton]` - install the Elyra core features and support for [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton)
 - `elyra[gitlab]` - install the Elyra core features and GitLab support for Apache Airflow pipelines
 - `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
-- `elyra[airflow-examples]` - install the Elyra core features and [Apache Airflow custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
+- `elyra[airflow-examples]` - install the Elyra core features and [Apache Airflow operator examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
+- `elyra[airflow-catalog-connectors]` - install the Elyra core features and [Apache Airflow operator catalog connectors](https://github.com/elyra-ai/elyra/tree/master/catalog-connectors/airflow)
 
 ### pip
 
