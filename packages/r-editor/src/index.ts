@@ -36,7 +36,6 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
-import { Widget } from '@lumino/widgets';
 
 import { REditor } from './REditor';
 
@@ -84,16 +83,12 @@ const extension: JupyterFrontEndPlugin<void> = {
         fileTypes: [R],
         defaultFor: [R]
       },
-      getCurrentWidget: (): Widget | null => {
-        return app.shell.currentWidget;
-      },
       instanceCreator: (
         options: DocumentWidget.IOptions<
           FileEditor,
           DocumentRegistry.ICodeModel
-        >,
-        getCurrentWidget: () => Widget | null
-      ): ScriptEditor => new REditor(options, getCurrentWidget)
+        >
+      ): ScriptEditor => new REditor(options)
     });
 
     app.docRegistry.addFileType({

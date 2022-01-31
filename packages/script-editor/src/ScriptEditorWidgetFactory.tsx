@@ -22,8 +22,6 @@ import {
 } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 
-import { Widget } from '@lumino/widgets';
-
 import { ScriptEditor } from './ScriptEditor';
 
 /**
@@ -41,7 +39,6 @@ export class ScriptEditorWidgetFactory extends ABCWidgetFactory<
     super(options.factoryOptions);
     this._services = options.editorServices;
     this.options = options;
-    this.getCurrentWidget = options.getCurrentWidget;
   }
 
   /**
@@ -60,14 +57,10 @@ export class ScriptEditorWidgetFactory extends ABCWidgetFactory<
       mimeTypeService: this._services.mimeTypeService
     });
 
-    return this.options.instanceCreator(
-      { content, context },
-      this.getCurrentWidget
-    );
+    return this.options.instanceCreator({ content, context });
   }
 
   private _services: IEditorServices;
-  private getCurrentWidget: () => Widget | null;
 }
 
 /**
@@ -88,13 +81,11 @@ export namespace ScriptEditorWidgetFactory {
      */
     factoryOptions: DocumentRegistry.IWidgetFactoryOptions<ScriptEditor>;
 
-    getCurrentWidget: () => Widget | null;
     /**
      * The function that creates ScriptEditor instances.
      */
     instanceCreator: (
-      options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
-      getCurrentWidget: () => Widget | null
+      options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
     ) => ScriptEditor;
   }
 }

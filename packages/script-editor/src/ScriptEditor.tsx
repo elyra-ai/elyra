@@ -76,7 +76,6 @@ export abstract class ScriptEditor extends DocumentWidget<
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
   protected debugger: ScriptDebugger;
-  protected getCurrentWidget?: () => Widget | null;
   private runDisabled: boolean;
   private debugDisabled: boolean;
   protected runButton: ToolbarButton;
@@ -88,8 +87,7 @@ export abstract class ScriptEditor extends DocumentWidget<
    * Construct a new editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
-    getCurrentWidget?: () => Widget | null
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
     this.addClass(SCRIPT_EDITOR_CLASS);
@@ -100,7 +98,6 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.emptyOutput = true;
     this.controller = new ScriptEditorController();
     this.debugger = new ScriptDebugger(this.disableButton);
-    this.getCurrentWidget = getCurrentWidget;
     this.runDisabled = false;
     this.debugDisabled = true;
 
@@ -199,23 +196,12 @@ export abstract class ScriptEditor extends DocumentWidget<
     );
     console.log('is debugger available:? ' + debuggerIsAvailable);
 
-    if (this.getCurrentWidget) {
-      const widget = this.getCurrentWidget();
-
-      if (!widget) {
-        return;
-      }
-
-      if (
-        debuggerIsAvailable &&
-        this.context.path === (widget as DocumentWidget).context.path
-      ) {
-        this.disableButton(false, 'debug');
-        // Enable setting breakpoints
-        // this.setupEditor();
-        const EditorHandler = this.createEditorDebugHandler();
-        console.log(EditorHandler);
-      }
+    if (debuggerIsAvailable) {
+      this.disableButton(false, 'debug');
+      // Enable setting breakpoints
+      // this.setupEditor();
+      const EditorHandler = this.createEditorDebugHandler();
+      console.log(EditorHandler);
     }
   };
 

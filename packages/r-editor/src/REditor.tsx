@@ -17,17 +17,15 @@ import { ScriptEditor } from '@elyra/script-editor';
 
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
-import { Widget } from '@lumino/widgets';
 
 export class REditor extends ScriptEditor {
   /**
    * Construct a new R Editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
-    getCurrentWidget: () => Widget | null
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
-    super(options, getCurrentWidget);
+    super(options);
   }
   getLanguage(): string {
     return 'R';
