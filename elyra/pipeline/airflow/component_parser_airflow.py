@@ -81,11 +81,6 @@ class AirflowComponentParser(ComponentParser):
                                f"identifier '{registry_entry.component_identifier}' could not be "
                                f"parsed: {e}. Skipping...")
                 continue
-            if not component_properties:
-                self.log.warning(f"Operator '{component_class}' associated with identifier "
-                                 f"'{registry_entry.component_identifier}' does not have any properties. "
-                                 f"Skipping...")
-                continue
 
             new_component = Component(
                 id=component_id,
@@ -333,10 +328,18 @@ class AirflowComponentParser(ComponentParser):
 
                 elif isinstance(arg.annotation, ast.Subscript):
                     # arg is more complex
-                    if isinstance(arg.annotation.slice, ast.Name):
-                        # arg is of the form `<arg>: Optional[<single-valued_type>]`
-                        # e.g. `env: Optional[str]` or `env: Optional[int]`
-                        data_type = arg.annotation.slice.id
+                    if (
+                        isinstance(arg.annotation.slice, ast.Name) and
+                        isinstance(arg.annotation.value, ast.Name)
+                    ):
+                        if arg.annotation.value.id == "Optional":
+                            # arg is of the form `<arg>: Optional[<single-valued_type>]`
+                            # e.g. `env: Optional[str]` or `env: Optional[int]`
+                            data_type = arg.annotation.slice.id
+                        else:
+                            # arg is of the form `<arg>: <multi-valued_type>[<single-valued_type>]`
+                            # e.g. `env: List[str]` or `env: List[int]`
+                            data_type = arg.annotation.value.id
 
                     elif (
                         isinstance(arg.annotation.slice, (ast.Tuple, ast.Index)) and
@@ -390,7 +393,7 @@ class AirflowComponentParser(ComponentParser):
 
         :returns: the phrase match, if found, otherwise returns the default type
         """
-        regex = re.compile(f":{phrase} {param}:" + r"([\s\S]*?(?=:type|:param|\"\"\"|'''|\.\.|\n\s*\n|$))")
+        regex = re.compile(f":{phrase} {param}:" + r"([\s\S]*?(?=:type|:param|\.\.|\n\s*\n|$))")
         match = regex.search(class_def)
         if match:
             # Remove quotation marks and newline characters in preparation for eventual json.loads()

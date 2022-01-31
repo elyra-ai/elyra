@@ -197,8 +197,14 @@ def test_parse_airflow_component_file():
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    component = parser.parse(component_entry)[0]
-    properties_json = ComponentCache.to_canvas_properties(component)
+    components = parser.parse(component_entry)
+    assert len(components) == 3
+
+    components = sorted(components, key=lambda component: component.id)
+
+    import_test_op, derive_test_op, test_op = components[0], components[1], components[2]
+
+    properties_json = ComponentCache.to_canvas_properties(test_op)
 
     # Ensure component parameters are prefixed (and system parameters are not), and hold correct values
     assert properties_json['current_parameters']['label'] == ''
@@ -207,48 +213,113 @@ def test_parse_airflow_component_file():
     assert properties_json['current_parameters']['component_source'] == component_source
 
     # Helper method to retrieve the requested parameter value from the dictionary
-    def get_parameter(param_name):
+    def get_parameter_value(param_name):
         property_dict = properties_json['current_parameters'][param_name]
         return property_dict[property_dict['activeControl']]
 
-    assert get_parameter('elyra_test_string_no_default') == ''
-    assert get_parameter('elyra_test_string_default_value') == 'default'
-    assert get_parameter('elyra_test_string_default_empty') == ''
+    assert get_parameter_value('elyra_str_no_default') == ''
+    assert get_parameter_value('elyra_str_default') == 'default'
+    assert get_parameter_value('elyra_str_empty') == ''
+    assert get_parameter_value('elyra_str_not_in_docstring') == ''
 
-    assert get_parameter('elyra_test_bool_default') is False
-    assert get_parameter('elyra_test_bool_false') is False
-    assert get_parameter('elyra_test_bool_true') is True
+    assert get_parameter_value('elyra_bool_no_default') is False
+    assert get_parameter_value('elyra_bool_default_false') is False
+    assert get_parameter_value('elyra_bool_default_true') is True
+    assert get_parameter_value('elyra_bool_not_in_docstring') is False
 
-    assert get_parameter('elyra_test_int_default') == 0
-    assert get_parameter('elyra_test_int_zero') == 0
-    assert get_parameter('elyra_test_int_non_zero') == 1
+    assert get_parameter_value('elyra_int_no_default') == 0
+    assert get_parameter_value('elyra_int_default_zero') == 0
+    assert get_parameter_value('elyra_int_default_non_zero') == 2
+    assert get_parameter_value('elyra_int_not_in_docstring') == 3
 
-    assert get_parameter('elyra_test_dict_default') == '{}'  # {}
-    assert get_parameter('elyra_test_list_default') == '[]'  # []
+    assert get_parameter_value('elyra_dict_default_is_none') == '{}'  # {}
+    assert get_parameter_value('elyra_list_default_is_none') == '[]'  # []
+
+    # Helper method to retrieve the requested parameter info from the dictionary
+    def get_parameter_format(param_name, control_id='StringControl'):
+        param_info = None
+        for prop_info in properties_json['uihints']['parameter_info']:
+            if prop_info.get('parameter_ref') == param_name:
+                param_info = prop_info['data']['controls'][control_id]['format']
+                break
+
+        return param_info
 
     # Ensure that type information is inferred correctly
-    unusual_dict_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                                 if prop.get('parameter_ref') == 'elyra_test_unusual_type_dict')
-    assert unusual_dict_property['data']['controls']['StringControl']['format'] == "dictionary"
+    assert get_parameter_format('elyra_unusual_type_dict') == 'dictionary'
+    assert get_parameter_format('elyra_unusual_type_list') == 'list'
+    assert get_parameter_format('elyra_fallback_type') == 'string'
 
-    unusual_list_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                                 if prop.get('parameter_ref') == 'elyra_test_unusual_type_list')
-    assert unusual_list_property['data']['controls']['StringControl']['format'] == "list"
+    # Helper method to retrieve the requested parameter description from the dictionary
+    def get_parameter_description(param_name):
+        param_desc = None
+        for prop_info in properties_json['uihints']['parameter_info']:
+            if prop_info.get('parameter_ref') == param_name:
+                param_desc = prop_info['description']['default']
+                break
 
-    unusual_string_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                                   if prop.get('parameter_ref') == 'elyra_test_unusual_type_string')
-    assert unusual_string_property['data']['controls']['StringControl']['format'] == "string"
-
-    no_type_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                            if prop.get('parameter_ref') == 'elyra_test_unusual_type_notgiven')
-    assert no_type_property['data']['controls']['StringControl']['format'] == "string"
+        return param_desc
 
     # Ensure descriptions are rendered properly with type hint in parentheses
-    assert unusual_dict_property['description']['default'] == "The test command description "\
-                                                              "(type: a dictionary of arrays)"
-    assert unusual_list_property['description']['default'] == "The test command description (type: a list of strings)"
-    assert unusual_string_property['description']['default'] == "The test command description (type: a string)"
-    assert no_type_property['description']['default'] == "The test command description (type: string)"
+    assert get_parameter_description('elyra_unusual_type_dict') == "a dictionary parameter with the " \
+                                                                   "phrase 'list' in type description "\
+                                                                   "(type: a dictionary of arrays)"
+    assert get_parameter_description('elyra_unusual_type_list') == "a list parameter with the phrase " \
+                                                                   "'string' in type description " \
+                                                                   "(type: a list of strings)"
+    assert get_parameter_description('elyra_fallback_type') == "(type: str)"
+
+    # Test second operator (DeriveFromTestOperator)
+    properties_json = ComponentCache.to_canvas_properties(derive_test_op)
+    assert get_parameter_format('elyra_str_no_default') == 'string'
+    assert get_parameter_format('elyra_str_default') == 'string'
+    assert get_parameter_format('elyra_str_optional_default') == 'string'
+    assert get_parameter_format('elyra_str_not_in_docstring') == 'string'
+
+    assert get_parameter_format('elyra_bool_no_default', 'BooleanControl') == 'boolean'
+    assert get_parameter_format('elyra_bool_default', 'BooleanControl') == 'boolean'
+    assert get_parameter_format('elyra_bool_not_in_docstring', 'BooleanControl') == 'boolean'
+
+    assert get_parameter_format('elyra_int_no_default', 'NumberControl') == 'number'
+    assert get_parameter_format('elyra_int_default', 'NumberControl') == 'number'
+    assert get_parameter_format('elyra_int_not_in_docstring', 'NumberControl') == 'number'
+
+    assert get_parameter_format('elyra_list_optional_default') == 'list'
+
+    # Helper method to retrieve whether the requested parameter is required
+    def get_parameter_required(param_name):
+        param_info = None
+        for prop_info in properties_json['uihints']['parameter_info']:
+            if prop_info.get('parameter_ref') == param_name:
+                param_info = prop_info['data']['required']
+                break
+
+        return param_info
+
+    assert get_parameter_required('elyra_str_no_default') is True
+    assert get_parameter_required('elyra_str_default') is False
+    assert get_parameter_required('elyra_str_optional_default') is False
+    assert get_parameter_required('elyra_str_not_in_docstring') is True
+
+    assert get_parameter_value('elyra_str_default') == 'default'
+    assert get_parameter_value('elyra_bool_default') is True
+    assert get_parameter_value('elyra_int_default') == 2
+
+    # Test third operator (DeriveFromImportedOperator)
+    properties_json = ComponentCache.to_canvas_properties(import_test_op)
+    assert get_parameter_format('elyra_dict_no_default') == "dictionary"
+    assert get_parameter_format('elyra_dict_optional_no_default') == "dictionary"
+    assert get_parameter_format('elyra_nested_dict_default') == "dictionary"
+    assert get_parameter_format('elyra_dict_not_in_docstring') == "dictionary"
+
+    assert get_parameter_format('elyra_list_no_default') == "list"
+    assert get_parameter_format('elyra_list_optional_no_default') == "list"
+    assert get_parameter_format('elyra_list_default') == "list"
+    assert get_parameter_format('elyra_list_optional_default') == "list"
+    assert get_parameter_format('elyra_list_not_in_docstring') == "list"
+
+    assert get_parameter_value('elyra_dict_no_default') == "{}"
+    assert get_parameter_value('elyra_list_no_default') == "[]"
 
 
 def test_parse_airflow_component_url():
@@ -318,8 +389,8 @@ def test_parse_airflow_component_file_no_inputs():
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    component = parser.parse(component_entry)[0]
-    properties_json = ComponentCache.to_canvas_properties(component)
+    no_input_op = parser.parse(component_entry)[0]
+    properties_json = ComponentCache.to_canvas_properties(no_input_op)
 
     # Properties JSON should only include the two parameters common to every
     # component:'label' and 'component_source'
@@ -334,84 +405,6 @@ def test_parse_airflow_component_file_no_inputs():
 
     component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
-
-
-def test_parse_airflow_component_file_type_hints():
-    # Define the appropriate reader for a filesystem-type component definition
-    airflow_supported_file_types = [".py"]
-    reader = FilesystemComponentCatalogConnector(airflow_supported_file_types)
-
-    path = _get_resource_path('airflow_test_operator_type_hints.py')
-
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"path": path}, {})
-
-    # Build entry for parsing
-    catalog_type = "local-file-catalog"
-    entry = {
-        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
-        "catalog_type": catalog_type,
-        "categories": ["Test"],
-        "component_definition": component_definition,
-        "component_identifier": {"path": path}
-    }
-    component_entry = SimpleNamespace(**entry)
-
-    # Parse the component entry
-    parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    component = parser.parse(component_entry)[0]
-    properties_json = ComponentCache.to_canvas_properties(component)
-
-    # Ensure component parameters are prefixed (and system parameters are not), and hold correct values
-    assert properties_json['current_parameters']['label'] == ''
-
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
-    assert properties_json['current_parameters']['component_source'] == component_source
-
-    # Helper method to retrieve the requested parameter value from the dictionary
-    def get_parameter(param_name):
-        property_dict = properties_json['current_parameters'][param_name]
-        return property_dict[property_dict['activeControl']]
-
-    assert get_parameter('elyra_test_string_default') == ''
-    assert get_parameter('elyra_test_bool_default') is False
-    assert get_parameter('elyra_test_int_default') == 0
-    assert get_parameter('elyra_test_str_list_default') == '[]'
-    assert get_parameter('elyra_test_str_dict_default') == '{}'
-
-    assert get_parameter('elyra_test_string_value') == 'default'
-    assert get_parameter('elyra_test_string_empty') == ''
-
-    assert get_parameter('elyra_test_bool_false') is False
-    assert get_parameter('elyra_test_bool_true') is True
-
-    assert get_parameter('elyra_test_int_zero') == 0
-    assert get_parameter('elyra_test_int_non_zero') == 1
-
-    assert get_parameter('elyra_test_str_list_value') == "['test']"
-    assert get_parameter('elyra_test_str_list_empty') == "[]"
-
-    assert get_parameter('elyra_test_str_dict_value') == "{'test': 'test'}"
-    assert get_parameter('elyra_test_str_dict_empty') == '{}'
-
-    # Ensure that type information is inferred correctly
-    str_list_default_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                                     if prop.get('parameter_ref') == 'elyra_test_str_list_default')
-    assert str_list_default_property['data']['controls']['StringControl']['format'] == "list"
-
-    str_dict_default_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                                     if prop.get('parameter_ref') == 'elyra_test_str_dict_default')
-    assert str_dict_default_property['data']['controls']['StringControl']['format'] == "dictionary"
-
-    string_default_property = next(prop for prop in properties_json['uihints']['parameter_info']
-                                   if prop.get('parameter_ref') == 'elyra_test_string_default')
-    assert string_default_property['data']['controls']['StringControl']['format'] == "string"
-
-    # Ensure descriptions are rendered properly with type hint in parentheses
-    assert str_list_default_property['description']['default'] == "The test command description (type: list)"
-    assert str_dict_default_property['description']['default'] == "The test command description (type: dict)"
-    assert string_default_property['description']['default'] == "The test command description (type: str)"
 
 
 @pytest.mark.parametrize('invalid_url', [
