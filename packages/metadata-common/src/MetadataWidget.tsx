@@ -31,7 +31,7 @@ import {
   showDialog,
   UseSignal
 } from '@jupyterlab/apputils';
-import { editIcon, LabIcon } from '@jupyterlab/ui-components';
+import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 
@@ -129,6 +129,24 @@ export class MetadataDisplay<
 
   actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
     return [
+      {
+        title: 'Clone',
+        icon: copyIcon,
+        onClick: (): void => {
+          // Clone metadata instance
+          const cloned_metadata = JSON.parse(JSON.stringify(metadata));
+          cloned_metadata.display_name = `Copy of ${metadata.display_name}`;
+          cloned_metadata.name = `copy_of_${metadata.name}`;
+          MetadataService.postMetadata(
+            this.props.schemaspace,
+            JSON.stringify(cloned_metadata)
+          )
+            .then((response: any): void => {
+              this.props.updateMetadata();
+            })
+            .catch(error => RequestErrors.serverError(error));
+        }
+      },
       {
         title: 'Edit',
         icon: editIcon,
