@@ -16,7 +16,7 @@
 import os
 import sys
 
-from glob import glob
+from jupyter_packaging import create_cmdclass
 from setuptools import setup, find_packages
 
 long_desc = """
@@ -30,15 +30,17 @@ version_ns = {}
 with open(os.path.join(here, 'elyra', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
-npm_packages_path = "./dist/*.tgz"
-auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
-auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
-component_catalog_path = './etc/config/components/*.json'  # deprecated
-components_kfp_path = './etc/config/components/kfp/*.yaml'  # deprecated
-components_airflow_path = './etc/config/components/airflow/*.py'  # deprecated
-metadata_path_runtime_image = './etc/config/metadata/runtime-images/*.json'
-metadata_path_catalogs = './etc/config/metadata/component-catalogs/*.json'  # deprecated
-settings_path = './etc/config/settings/*.json'
+data_files_spec = [
+    ('etc/jupyter/jupyter_notebook_config.d', 'etc/config/jupyter_notebook_config.d', '*.json'),
+    ('etc/jupyter/jupyter_server_config.d', 'etc/config/jupyter_server_config.d', '*.json'),
+    ('share/jupyter/metadata/runtime-images', 'etc/config/metadata/runtime-images', '*.json'),
+    ('share/jupyter/metadata/component-catalogs', 'etc/config/metadata/component-catalogs', '*.json'),  # deprecated
+    ('share/jupyter/components', 'etc/config/components', '*.json'),  # deprecated
+    ('share/jupyter/components/kfp/', 'etc/config/components/kfp', '*.yaml'),  # deprecated
+    ('share/jupyter/components/airflow/', 'etc/config/components/airflow', '*.py'),  # deprecated
+    ('share/jupyter/lab/settings', 'etc/config/settings', '*.json'),
+    ('share/jupyter/labextensions', 'dist/labextensions', '**')
+]
 
 runtime_extras = {
     'kfp-tekton': ['kfp-tekton~=1.0.1', ],
@@ -61,14 +63,7 @@ setup_args = dict(
     long_description=long_desc,
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
-    data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
-                ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
-                ('share/jupyter/metadata/runtime-images', glob(metadata_path_runtime_image)),
-                ('share/jupyter/metadata/component-catalogs', glob(metadata_path_catalogs)),  # deprecated
-                ('share/jupyter/components', glob(component_catalog_path)),  # deprecated
-                ('share/jupyter/components/kfp/', glob(components_kfp_path)),  # deprecated
-                ('share/jupyter/components/airflow/', glob(components_airflow_path)),  # deprecated
-                ('share/jupyter/lab/settings', glob(settings_path))],
+    cmdclass=create_cmdclass(data_files_spec=data_files_spec),
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
@@ -79,6 +74,7 @@ setup_args = dict(
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0',
         'jupyter_client>=6.1.7',
+        'jupyter-packaging>=0.10,<2',
         'jupyter_server>=1.7.0',
         'jupyterlab>=3.0.17',
         'jupyterlab-git~=0.32',
@@ -163,12 +159,6 @@ setup_args = dict(
         ]
     },
 )
-
-
-if "--dev" not in sys.argv:
-    setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
-else:
-    sys.argv.remove("--dev")
 
 if __name__ == '__main__':
     setup(**setup_args)

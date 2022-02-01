@@ -20,6 +20,7 @@
 .PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
 .PHONY: publish-kf-notebook-image container-images publish-container-images
 .PHONY: build-dependencies install-gitlab-dependency
+.PHONY: install-pb install-ui-pb
 SHELL:=/bin/bash
 
 TAG:=dev
@@ -41,6 +42,7 @@ purge:
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
 	rm -rf $$(find packages -name dist -type d)
 	rm -rf $$(find packages -name lib -type d)
+	rm -rf $$(find packages -name *.egg-info -type d)
 	rm -rf $$(find . -name __pycache__ -type d)
 	rm -rf $$(find . -name tsconfig.tsbuildinfo)
 	rm -rf $$(find . -name package-lock.json)
@@ -132,6 +134,12 @@ build: build-server build-ui
 
 install-ui: yarn-install lint-ui build-ui install-extensions build-jupyterlab # Install packages
 
+dev-ui:
+	yarn lerna run --scope @elyra/*-extension lab:dev
+
+install-ui-pb: yarn-install lint-ui build-ui
+	pip install -e .
+
 install-extensions:
 	yarn lerna run lab:install --stream
 
@@ -149,6 +157,8 @@ install-server-package:
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install: install-server install-ui check-install ## Build and install
+
+install-pb: install-server install-ui-pb install-examples install-gitlab-dependency check-install
 
 install-all: install install-examples install-gitlab-dependency ## Build and install, including examples
 

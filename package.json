@@ -5,6 +5,9 @@
   "workspaces": {
     "packages": [
       "packages/*"
+    ],
+    "nohoist": [
+      "**/@jupyterlab/builder"
     ]
   },
   "scripts": {
