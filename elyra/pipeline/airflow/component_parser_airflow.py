@@ -293,7 +293,7 @@ class AirflowComponentParser(ComponentParser):
             required = DEFAULT_REQUIRED
             # Set default value for attribute in question: note that arg.default
             # object attributes are ast.Constant objects (or None) in Python 3.8+,
-            # but are ast.NameConstants or ast.Str objects (or None) in Python 3.7
+            # but are ast.NameConstants or ast.Str/ast.Num objects (or None) in Python 3.7
             # and lower. ast.Constant and ast.NameConstant store the value of interest
             # here in the 'value' attribute
             default_value = getattr(default, 'value', DEFAULT_VALUE)
@@ -301,6 +301,9 @@ class AirflowComponentParser(ComponentParser):
                 if isinstance(default, ast.Str):
                     # The value of interest in this case is accessed by the 's' attribute
                     default_value = default.s
+                elif isinstance(default, ast.Num):
+                    # The value of interest in this case is accessed by the 'n' attribute
+                    default_value = default.n
 
                 # If a default value is provided in the argument list, the processor
                 # can use this value if the user doesn't supply their own
