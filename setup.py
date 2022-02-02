@@ -48,6 +48,9 @@ runtime_extras = {
     # Apache Airflow example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
     'airflow-examples': ['elyra-examples-airflow-catalog'],
+    # Apache Airflow catalog connectors
+    # (https://github.com/elyra-ai/elyra/tree/master/catalog-connectors/airflow)
+    'airflow-catalog-connectors': ['airflow-package-catalog-connector'],
     # Use gitlab as Airflow DAG repository
     'gitlab': ['python-gitlab']
 }

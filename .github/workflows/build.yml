@@ -73,6 +73,15 @@ jobs:
       - name: Check format
         run: make prettier-check-ui
 
+  lint-connectors:
+    name: Lint Connectors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Lint
+        run: make lint-connectors
+
+
   test-server:
     name: Test Server
     runs-on: ubuntu-latest
