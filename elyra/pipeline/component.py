@@ -286,6 +286,14 @@ class Component(object):
     def parameter_refs(self) -> dict:
         return self._parameter_refs
 
+    @property
+    def input_properties(self) -> List[ComponentParameter]:
+        return [prop for prop in self._properties if prop.data_type != 'outputpath']
+
+    @property
+    def output_properties(self) -> List[ComponentParameter]:
+        return [prop for prop in self._properties if prop.data_type == 'outputpath']
+
     @staticmethod
     def _log_warning(msg: str, logger: Optional[Logger] = None):
         if logger:
