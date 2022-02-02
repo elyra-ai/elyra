@@ -108,7 +108,13 @@ describe('Code Snippet tests', () => {
     createValidCodeSnippet(snippetName);
 
     const actionButtons = getActionButtonsElement(snippetName);
-    const buttonTitles = ['Copy', 'Insert', 'Edit', 'Delete'];
+    const buttonTitles = [
+      'Copy to clipboard',
+      'Insert',
+      'Edit',
+      'Duplicate',
+      'Delete'
+    ];
 
     // Check expected buttons to be visible
     buttonTitles.forEach((title: string) => {
