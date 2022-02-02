@@ -58,7 +58,6 @@ class AirflowComponentParser(ComponentParser):
         for component_class, content in parsed_class_nodes.items():
             if not content.get('init_function'):
                 # Without the init function, class can't be parsed for properties
-                # TODO is this the correct functionality? see classes that derive from PythonOperator
                 self.log.warning(f"Operator '{component_class}' associated with identifier "
                                  f"'{registry_entry.component_identifier}' does not have an __init__ "
                                  f"function. Skipping...")
