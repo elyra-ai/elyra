@@ -31,14 +31,14 @@ Note: Elyra is only tested with Kubeflow v1.2.x and v1.3.x and Apache Airflow v1
 
 ### Managing runtime configurations using the JupyterLab UI
 
-To create, edit, or delete runtime configurations using the UI select the `Runtimes` tab from the JupyterLab sidebar, or click the `Runtimes` button in the Pipeline Editor.
+To create, edit, clone, or delete runtime configurations using the UI select the `Runtimes` panel from the JupyterLab sidebar, or click the `Runtimes` button in the Pipeline Editor.
 
   ![Access runtime configurations](../images/access-runtime-configurations.png)
 
 #### Creating a runtime configuration
 
 To create a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click `+` to add a new runtime configuration and choose the desired runtime configuration type, e.g. Kubeflow Pipelines or Apache Airflow. 
    ![Create runtime configuration](../images/runtime-create-config.png)
 1. Provide a runtime configuration display name, an optional description, and tag the configuration to make it more easily discoverable. 
@@ -51,14 +51,22 @@ To create a runtime configuration:
 #### Modifying a runtime configuration
 
 To edit a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click the pencil next to the runtime configuration.
+
+#### Cloning a runtime configuration
+
+To clone a runtime configuration:
+1. Open the `Runtimes` panel.
+1. Click the clone icon next to the runtime configuration.
+1. Follow the steps in '[_Modifying a runtime image configuration_](#modifying-a-runtime-configuration)' to customize the cloned configuration.
 
 #### Deleting a runtime configuration
 
 To delete a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click the trash can next to the runtime configuration.
+1. Confirm deletion.
 
 ### Managing runtime configurations using the Elyra CLI
 
