@@ -19,6 +19,7 @@ import json
 import os
 import shutil
 from tempfile import mkdtemp
+from tempfile import TemporaryDirectory
 from typing import Optional
 
 import pytest
@@ -35,6 +36,7 @@ from elyra.tests.metadata.test_utils import invalid_no_display_name_json
 from elyra.tests.metadata.test_utils import invalid_schema_name_json
 from elyra.tests.metadata.test_utils import one_of_json
 from elyra.tests.metadata.test_utils import PropertyTester
+from elyra.tests.metadata.test_utils import valid_metadata2_json
 from elyra.tests.metadata.test_utils import valid_metadata_json
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
@@ -56,14 +58,16 @@ def mock_data_dir():
 def test_no_opts(script_runner):
     ret = script_runner.run('elyra-metadata')
     assert ret.success is False
-    assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove', 'migrate']" in ret.stdout
+    message = "No subcommand specified. Must specify one of: ['list', 'install', 'remove', 'migrate', 'export']"
+    assert message in ret.stdout
 
 
 def test_bad_subcommand(script_runner):
     ret = script_runner.run('elyra-metadata', 'bogus-subcommand')
     assert ret.success is False
     assert ret.stdout.startswith("Subcommand 'bogus-subcommand' is invalid.")
-    assert "No subcommand specified. Must specify one of: ['list', 'install', 'remove', 'migrate']" in ret.stdout
+    message = "No subcommand specified. Must specify one of: ['list', 'install', 'remove', 'migrate', 'export']"
+    assert message in ret.stdout
 
 
 def test_install_bad_argument(script_runner):
@@ -520,7 +524,278 @@ def test_remove_instance(script_runner, mock_data_dir):
     assert instances[1].name.endswith('2')
 
 
+def test_export_help(script_runner):
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--help')
+    assert ret.success is False
+    assert ret.stdout.startswith("\nExport installed metadata in schemaspace {}.".format(METADATA_TEST_SCHEMASPACE))
+
+
+def test_export_no_directory(script_runner):
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE)
+    assert ret.success is False
+    assert ret.stdout.startswith("'--directory' is a required parameter.")
+
+
+def test_export_bad_argument(script_runner):
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            '--directory=dummy-directory', '--bogus-argument')
+    assert ret.success is False
+    assert ret.stdout.startswith("The following arguments were unexpected: ['--bogus-argument']")
+
+
+def test_export_bad_schemaspace(script_runner):
+    ret = script_runner.run('elyra-metadata', 'export', 'bogus-schemaspace')
+    assert ret.success is False
+    assert ret.stdout.startswith("Subcommand 'bogus-schemaspace' is invalid.")
+
+
+def test_export_no_schema_no_instances(script_runner, mock_data_dir):
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--directory=dummy-directory')
+    assert ret.success
+    assert ret.stdout.startswith("No metadata instances found for schemaspace " + METADATA_TEST_SCHEMASPACE)
+    assert "Nothing exported to dummy-directory" in ret.stdout
+
+
+def test_export_with_schema_no_instances(script_runner, mock_data_dir):
+    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+
+    # create metadata in a different schema
+    valid = Metadata(**valid_metadata_json)
+    resource = metadata_manager.create('valid', valid)
+    assert resource is not None
+
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            '--schema_name=metadata-empty', '--directory=dummy-directory')
+    assert ret.success
+    assert ret.stdout.startswith("No metadata instances found for schemaspace " +
+                                 METADATA_TEST_SCHEMASPACE + " and schema metadata-empty")
+    assert "Nothing exported to dummy-directory" in ret.stdout
+
+
+def test_export_no_schema_with_instances(script_runner, mock_data_dir):
+    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+
+    # create valid metadata
+    valid = Metadata(**valid_metadata_json)
+    resource = metadata_manager.create('valid', valid)
+    assert resource is not None
+
+    # create invalid metadata
+    metadata_dir = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_SCHEMASPACE)
+    create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
+
+    # test for valid and invalid
+    temp_dir = TemporaryDirectory()
+    directory_parameter = temp_dir.name
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            '--directory={}'.format(directory_parameter))
+    assert ret.success
+    export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
+    assert ret.stdout.startswith("Creating directory structure for {}".format(export_directory))
+    assert "Exporting metadata instances for schemaspace {} to {}".format(METADATA_TEST_SCHEMASPACE,
+                                                                          export_directory) in ret.stdout
+
+    exported_metadata = sorted(os.listdir(export_directory), key=str.casefold)
+    assert len(exported_metadata) == 2
+    assert exported_metadata[0] == "invalid.json"
+    assert exported_metadata[1] == "valid.json"
+
+    # test for valid only
+    temp_dir = TemporaryDirectory()
+    directory_parameter = temp_dir.name
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            '--valid-only', '--directory={}'.format(directory_parameter))
+    assert ret.success
+    export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
+    assert "Creating directory structure for {}".format(export_directory) in ret.stdout
+    assert "Exporting metadata instances for schemaspace {} to {}".format(METADATA_TEST_SCHEMASPACE,
+                                                                          export_directory) in ret.stdout
+    exported_metadata = os.listdir(export_directory)
+    assert len(exported_metadata) == 1
+    assert exported_metadata[0] == "valid.json"
+
+
+def test_export_with_schema_with_instances(script_runner, mock_data_dir):
+    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+
+    # create valid metadata
+    valid = Metadata(**valid_metadata_json)
+    resource = metadata_manager.create('valid', valid)
+    assert resource is not None
+    valid = Metadata(**valid_metadata2_json)
+    resource = metadata_manager.create('valid2', valid)
+    assert resource is not None
+
+    # create invalid metadata
+    metadata_dir = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_SCHEMASPACE)
+    create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
+
+    # create export directory
+    temp_dir = TemporaryDirectory()
+    directory_parameter = temp_dir.name
+
+    # test for valid and invalid
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+    assert ret.success
+    export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
+    assert "Creating directory structure for {}".format(export_directory) in ret.stdout
+    assert "Exporting metadata instances for schemaspace {}".format(METADATA_TEST_SCHEMASPACE) + \
+           " and schema metadata-test to {}".format(export_directory) in ret.stdout
+    exported_metadata = sorted(os.listdir(export_directory), key=str.casefold)
+    assert len(exported_metadata) == 2
+    assert exported_metadata[0] == "invalid.json"
+    assert exported_metadata[1] == "valid.json"
+
+    # create export directory
+    temp_dir = TemporaryDirectory()
+    directory_parameter = temp_dir.name
+
+    # test for valid only
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
+                            '--valid-only', '--directory={}'.format(directory_parameter))
+    assert ret.success
+    export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
+    assert "Creating directory structure for {}".format(export_directory) in ret.stdout
+    assert "Exporting metadata instances for schemaspace {}".format(METADATA_TEST_SCHEMASPACE) + \
+           " and schema metadata-test to {}".format(export_directory) in ret.stdout
+    exported_metadata = os.listdir(export_directory)
+    assert len(exported_metadata) == 1
+    assert exported_metadata[0] == "valid.json"
+
+
+def test_export_without_clean(script_runner, mock_data_dir):
+    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+
+    # create valid metadata
+    valid = Metadata(**valid_metadata_json)
+    resource = metadata_manager.create('valid', valid)
+    assert resource is not None
+
+    # create export directory
+    temp_dir = TemporaryDirectory()
+    directory_parameter = temp_dir.name
+    export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
+    os.mkdir(export_directory)
+
+    # create metadata file with dummy data and verify its contents
+    dummy_json = {
+        "required_test": "required_value"
+    }
+    metadata_filename = "valid.json"
+    create_json_file(export_directory, metadata_filename, dummy_json)
+    metadata_file_path = os.path.join(export_directory, metadata_filename)
+    assert os.path.exists(metadata_file_path)
+    assert json.loads(open(metadata_file_path).read()) == dummy_json
+
+    # create additional dummy file with a different name and verify its contents
+    dummy_filename = "dummy.json"
+    create_json_file(export_directory, dummy_filename, dummy_json)
+    dummy_file_path = os.path.join(export_directory, dummy_filename)
+    assert os.path.exists(dummy_file_path)
+    assert json.loads(open(dummy_file_path).read()) == dummy_json
+
+    # create dummy file under different folder (different schema) and verify its contents
+    export_directory_other = os.path.join(directory_parameter, "runtimes")
+    os.mkdir(export_directory_other)
+    dummy_filename_other = "dummy.json"
+    create_json_file(export_directory_other, dummy_filename_other, dummy_json)
+    dummy_file_path_other = os.path.join(export_directory_other, dummy_filename_other)
+    assert os.path.exists(dummy_file_path_other)
+    assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+
+    # export metadata without --clean flag
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+    assert ret.success
+    assert "Creating directory structure for {}".format(export_directory) not in ret.stdout
+    assert "Exporting metadata instances for schemaspace {}".format(METADATA_TEST_SCHEMASPACE) + \
+           " and schema metadata-test to {}".format(export_directory) in ret.stdout
+
+    # verify that the metadata file was overwritten while botth the dummy files were left as is
+    export_directory_files = sorted(os.listdir(export_directory), key=str.casefold)
+    assert len(export_directory_files) == 2
+
+    assert export_directory_files[0] == dummy_filename
+    assert json.loads(open(dummy_file_path).read()) == dummy_json
+
+    assert export_directory_files[1] == metadata_filename
+    exported_metadata = json.loads(open(metadata_file_path).read())
+    assert "schema_name" in exported_metadata
+    assert exported_metadata.get("schema_name") == valid_metadata_json.get("schema_name")
+
+    export_directory_other_files = sorted(os.listdir(export_directory_other), key=str.casefold)
+    assert len(export_directory_other_files) == 1
+    assert export_directory_other_files[0] == dummy_filename_other
+    assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+
+
+def test_export_clean(script_runner, mock_data_dir):
+    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+
+    # create valid metadata
+    valid = Metadata(**valid_metadata_json)
+    resource = metadata_manager.create('valid', valid)
+    assert resource is not None
+
+    # create export directory
+    temp_dir = TemporaryDirectory()
+    directory_parameter = temp_dir.name
+    export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
+    os.mkdir(export_directory)
+
+    # create metadata file with dummy data and verify its contents
+    dummy_json = {
+        "required_test": "required_value"
+    }
+    metadata_filename = "valid.json"
+    create_json_file(export_directory, metadata_filename, dummy_json)
+    metadata_file_path = os.path.join(export_directory, metadata_filename)
+    assert os.path.exists(metadata_file_path)
+    assert json.loads(open(metadata_file_path).read()) == dummy_json
+
+    # create additional dummy file with a different name and verify its contents
+    dummy_filename = "dummy.json"
+    create_json_file(export_directory, dummy_filename, dummy_json)
+    dummy_file_path = os.path.join(export_directory, dummy_filename)
+    assert os.path.exists(dummy_file_path)
+    assert json.loads(open(dummy_file_path).read()) == dummy_json
+
+    # create dummy file under different folder (different schema) and verify its contents
+    export_directory_other = os.path.join(directory_parameter, "runtimes")
+    os.mkdir(export_directory_other)
+    dummy_filename_other = "dummy.json"
+    create_json_file(export_directory_other, dummy_filename_other, dummy_json)
+    dummy_file_path_other = os.path.join(export_directory_other, dummy_filename_other)
+    assert os.path.exists(dummy_file_path_other)
+    assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+
+    # export metadata with --clean flag
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--clean',
+                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+    assert ret.success
+    assert "Creating directory structure for {}".format(export_directory) not in ret.stdout
+    assert "Cleaning out all files in {}".format(export_directory) in ret.stdout
+    assert "Exporting metadata instances for schemaspace {}".format(METADATA_TEST_SCHEMASPACE) + \
+           " and schema metadata-test to {}".format(export_directory) in ret.stdout
+
+    # verify that the metadata file was overwritten and dummy file within the same schema folder was deleted
+    # whereas the dummy file within the other schema folder was left as is
+    export_directory_files = os.listdir(export_directory)
+    assert len(export_directory_files) == 1
+
+    assert export_directory_files[0] == metadata_filename
+    exported_metadata = json.loads(open(metadata_file_path).read())
+    assert "schema_name" in exported_metadata
+    assert exported_metadata.get("schema_name") == valid_metadata_json.get("schema_name")
+
+    export_directory_other_files = sorted(os.listdir(export_directory_other), key=str.casefold)
+    assert len(export_directory_other_files) == 1
+    assert export_directory_other_files[0] == dummy_filename_other
+    assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+
 # Begin property tests...
+
 
 def test_required(script_runner, mock_data_dir):
     # Doesn't use PropertyTester due to its unique test since all other tests require this property
