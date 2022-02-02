@@ -423,7 +423,11 @@ def test_parse_airflow_component_file_no_inputs():
     assert len(properties_json['current_parameters'].keys()) == num_common_params
     assert len(properties_json['parameters']) == num_common_params
     assert len(properties_json['uihints']['parameter_info']) == num_common_params
-    assert len(properties_json['uihints']['group_info'][0]['group_info']) == num_common_params
+
+    # Total number of groups includes one for each parameter, plus 1 for the component_source header
+    # (Airflow does not include an output header since there are no formally defined outputs)
+    num_groups = num_common_params + 1
+    assert len(properties_json['uihints']['group_info'][0]['group_info']) == num_groups
 
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
