@@ -31,7 +31,7 @@ import {
   showDialog,
   UseSignal
 } from '@jupyterlab/apputils';
-import { editIcon, LabIcon } from '@jupyterlab/ui-components';
+import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 
@@ -139,6 +139,24 @@ export class MetadataDisplay<
             schema: metadata.schema_name,
             name: metadata.name
           });
+        }
+      },
+      {
+        title: 'Duplicate',
+        icon: copyIcon,
+        onClick: (): void => {
+          // Duplicate metadata instance
+          const duplicated_metadata = JSON.parse(JSON.stringify(metadata));
+          duplicated_metadata.display_name = `Copy of ${metadata.display_name}`;
+          duplicated_metadata.name = `copy_of_${metadata.name}`;
+          MetadataService.postMetadata(
+            this.props.schemaspace,
+            JSON.stringify(duplicated_metadata)
+          )
+            .then((response: any): void => {
+              this.props.updateMetadata();
+            })
+            .catch(error => RequestErrors.serverError(error));
         }
       },
       {

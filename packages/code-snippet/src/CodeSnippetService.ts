@@ -70,4 +70,22 @@ export class CodeSnippetService {
       }
     });
   }
+
+  /**
+   *  Duplicates an existing code snippet, which is named
+   *  'Copy of <original-name>'.
+   *
+   * @param codeSnippet: code snippet to be duplicated
+   *
+   * @returns A promise
+   */
+  static duplicateCodeSnippet(codeSnippet: IMetadata): Promise<boolean> {
+    const duplicated_metadata = JSON.parse(JSON.stringify(codeSnippet));
+    duplicated_metadata.display_name = `Copy of ${codeSnippet.display_name}`;
+    duplicated_metadata.name = `copy_of_${codeSnippet.name}`;
+    return MetadataService.postMetadata(
+      CODE_SNIPPET_SCHEMASPACE,
+      JSON.stringify(duplicated_metadata)
+    );
+  }
 }
