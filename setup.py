@@ -72,7 +72,7 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
-        'click>=7.1.1,<8',  # Required by kfp 1.6.3
+        'click>=7.1.1',
         'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11',
