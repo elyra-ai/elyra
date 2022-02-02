@@ -13,11 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ScriptEditor } from '@elyra/script-editor';
 
-import '../style/index.css';
+import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
+import { FileEditor } from '@jupyterlab/fileeditor';
 
-export * from './KernelDropdown';
-export * from './ScriptEditor';
-export * from './ScriptEditorController';
-export * from './ScriptRunner';
-export * from './ScriptEditorWidgetFactory';
+export class REditor extends ScriptEditor {
+  /**
+   * Construct a new R Editor widget.
+   */
+  constructor(
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+  ) {
+    super(options);
+  }
+  getLanguage(): string {
+    return 'R';
+  }
+
+  getIcon(): string {
+    return 'rIcon';
+  }
+}

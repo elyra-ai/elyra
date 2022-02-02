@@ -781,6 +781,11 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   cursor: initial;
 }
 
+.elyra-PipelineEditor .elyra_categoryHeader .panel-label {
+  font-size: var(--jp-content-font-size2);
+  padding-left: 33px;
+}
+
 /* fix font ligatures */
 .lsp-completer-theme-vscode {
   letter-spacing: normal;
