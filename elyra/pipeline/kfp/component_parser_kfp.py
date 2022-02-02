@@ -120,8 +120,6 @@ class KfpComponentParser(ComponentParser):
 
                 if data_type_info.data_type == 'outputpath':
                     ref_name = f"output_{ref_name}"
-                    # Add sentence to description to clarify that parameter is an output
-                    description = f"This is an output of this component. {description}"
 
                 one_of_control_types = data_type_info.one_of_control_types
                 default_control_type = data_type_info.control_id
