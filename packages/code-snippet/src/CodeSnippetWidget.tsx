@@ -42,7 +42,12 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import * as nbformat from '@jupyterlab/nbformat';
 import { Notebook, NotebookModel, NotebookPanel } from '@jupyterlab/notebook';
-import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
+import {
+  copyIcon,
+  editIcon,
+  pasteIcon,
+  LabIcon
+} from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { MimeData } from '@lumino/coreutils';
@@ -383,8 +388,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
   actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
     return [
       {
-        title: 'Copy',
-        icon: copyIcon,
+        title: 'Copy to clipboard',
+        icon: pasteIcon,
         feedback: 'Copied!',
         onClick: (): void => {
           Clipboard.copyToSystem(metadata.metadata.code.join('\n'));
@@ -407,6 +412,17 @@ class CodeSnippetDisplay extends MetadataDisplay<
             schema: CODE_SNIPPET_SCHEMA,
             name: metadata.name
           });
+        }
+      },
+      {
+        title: 'Clone',
+        icon: copyIcon,
+        onClick: (): void => {
+          CodeSnippetService.cloneCodeSnippet(metadata)
+            .then((response: any): void => {
+              this.props.updateMetadata();
+            })
+            .catch(error => RequestErrors.serverError(error));
         }
       },
       {

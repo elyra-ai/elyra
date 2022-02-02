@@ -70,4 +70,21 @@ export class CodeSnippetService {
       }
     });
   }
+
+  /**
+   *  Sends a clone request to the metadata server.
+   *
+   * @param codeSnippet: code snippet to be cloned
+   *
+   * @returns A promise
+   */
+  static cloneCodeSnippet(codeSnippet: IMetadata): Promise<boolean> {
+    const cloned_metadata = JSON.parse(JSON.stringify(codeSnippet));
+    cloned_metadata.display_name = `Copy of ${codeSnippet.display_name}`;
+    cloned_metadata.name = `copy_of_${codeSnippet.name}`;
+    return MetadataService.postMetadata(
+      CODE_SNIPPET_SCHEMASPACE,
+      JSON.stringify(cloned_metadata)
+    );
+  }
 }

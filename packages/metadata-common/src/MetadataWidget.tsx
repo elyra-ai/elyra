@@ -130,6 +130,18 @@ export class MetadataDisplay<
   actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
     return [
       {
+        title: 'Edit',
+        icon: editIcon,
+        onClick: (): void => {
+          this.props.openMetadataEditor({
+            onSave: this.props.updateMetadata,
+            schemaspace: this.props.schemaspace,
+            schema: metadata.schema_name,
+            name: metadata.name
+          });
+        }
+      },
+      {
         title: 'Clone',
         icon: copyIcon,
         onClick: (): void => {
@@ -145,18 +157,6 @@ export class MetadataDisplay<
               this.props.updateMetadata();
             })
             .catch(error => RequestErrors.serverError(error));
-        }
-      },
-      {
-        title: 'Edit',
-        icon: editIcon,
-        onClick: (): void => {
-          this.props.openMetadataEditor({
-            onSave: this.props.updateMetadata,
-            schemaspace: this.props.schemaspace,
-            schema: metadata.schema_name,
-            name: metadata.name
-          });
         }
       },
       {

@@ -25,43 +25,63 @@ You can manage code snippets using the [JupyterLab UI](#managing-code-snippets-u
 
 ### Managing code snippets using the JupyterLab UI
 
-To list, create, edit, delete, or insert code snippets using the UI select the `Code Snippets` tab from the JupyterLab sidebar.
+Code snippets can be listed, added, modified, cloned, inserted, and removed in the _Code Snippets_ panel.
 
-![Code Snippets](../images/code-snippets.png)
+![Code Snippets](../images/user_guide/code-snippets/code-snippets-panel.png)
+
+To access the panel in JupyterLab:
+
+- Select the `Code Snippets` panel from the JupyterLab sidebar.
+
+  ![Open panel from sidebar](../images/user_guide/code-snippets/sidebar-button.png)     
+
+  OR
+
+- Open the JupyterLab command palette (`Cmd/Ctrl + Shift + C`) and search for `manage code snippets`.
+
+  ![Open panel from command palette](../images/user_guide/code-snippets/cmd-palette.png)
 
 #### Creating a code snippet
 
 To create a code snippet:
-1. Select the `Code Snippets` tab from the JupyterLab sidebar and click `+`. You can also highlight the desired text in the editor, right click, and choose `Save As Code Snippet` from the context menu.
-   ![Add code snippet from text](../images/add-code-snippet-from-text.png)
+1. Open the `Code Snippets` panel.
+1. Click `+`. You can also highlight the desired text in the editor, right click, and choose `Save As Code Snippet` from the context menu.
+   ![Add code snippet from text](../images/user_guide/code-snippets/add-code-snippet-from-text.png)
 
 1. Enter a code snippet display name, an optional description, and tag the code snippet to make it more easily discoverable.
 1. Define the code snippet. Refer to the [Code snippet properties](#code-snippet-properties) for details.
-   ![Add Code Snippets](../images/add-code-snippet.png)
+   ![Add Code Snippets](../images/user_guide/code-snippets/add-code-snippet.png)
 1. Save the code snippet. The new code snippet entry is displayed in the list. 
-1. Expand the entry to preview the snippet content
+1. Expand the entry to preview the snippet content.
 
 #### Modifying a code snippet
 
 To edit a code snippet:
-1. Select the `Code Snippets` tab from the JupyterLab sidebar.
+1. Open the `Code Snippets` panel.
 1. Click the pencil next to the code snippet entry.
+
+#### Cloning a code snippet
+
+To clone a code snippet:
+1. Open the `Code Snippets` panel.
+1. Click the clone icon next to the code snippet entry.
+1. Follow the steps in '[_Modifying a code snippet_](#modifying-a-code-snippet)' to customize the cloned code snippet.
 
 #### Deleting a code snippet
 
 To delete a code snippet:
-1. Select the `Code Snippets` tab from the JupyterLab sidebar.
+1. Open the `Code Snippets` panel.
 1. Click the trash can next to the code snippet entry.
 
 #### Using code snippets
 
 To search for a code snippet, type a keyword in the search bar or select one or more tags.
 
-  ![Search Code Snippets](../images/search-code-snippets.png)
+  ![Search Code Snippets](../images/user_guide/code-snippets/search-code-snippets.png)
 
 To insert the code snippet content into an open editor, click the insert button or use drag and drop. 
 
-  ![Insert Code Snippet](../images/insert-code-snippet.png)
+  ![Insert Code Snippet](../images/user_guide/code-snippets/insert-code-snippet.png)
 
 Code snippets are automatically added as code blocks in markdown files and notebook markdown cells.
 When inserting snippets into executable editors (e.g. a notebook code cell or a Python/R file editor), the extension will verify kernel language compatibility, warning the user when a mismatch is detected.
