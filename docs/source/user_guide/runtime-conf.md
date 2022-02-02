@@ -229,7 +229,7 @@ Example: `anonymous`
 
 ##### Git Type (git_type)
 
-Identifies which git type shall be used to stote DAGs. Supported types are `GitHub` and `GitLab`. `GitLab` is only supported if the [`gitlab` dependency is installed](../getting_started/installation.html#packaging). This setting is required.
+Identifies which git type shall be used to store DAGs. Supported types are `GitHub` and `GitLab`. `GitLab` is only supported if the [`gitlab` dependency is installed](../getting_started/installation.html#packaging). This setting is required.
 
 ##### GitHub API Endpoint (github_api_endpoint)
 
