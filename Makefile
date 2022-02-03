@@ -22,7 +22,7 @@
 .PHONY: build-dependencies install-gitlab-dependency
 SHELL:=/bin/bash
 
-TAG:=dev
+TAG:=3.5.3
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 
