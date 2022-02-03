@@ -119,7 +119,7 @@ describe('Code Snippet tests', () => {
     // Check expected buttons to be visible
     buttonTitles.forEach((title: string) => {
       actionButtons.within(() => {
-        cy.get(`button[title=${title}]`).should('be.visible');
+        cy.get(`button[title="${title}"]`).should('be.visible');
       });
     });
   });

@@ -145,10 +145,28 @@ export class MetadataDisplay<
         title: 'Duplicate',
         icon: copyIcon,
         onClick: (): void => {
-          // Duplicate metadata instance
+          // iterate through the list of currently defined
+          // instance names and find the next available one
+          // using '<source-instance-name>-Copy<N>'
+          let base_name = metadata.display_name;
+          const match = metadata.display_name.match(/([^-]+)-Copy\d+$/);
+          if (match !== null) {
+            base_name = match[1];
+          }
+          let count = 1;
+
+          while (
+            this.props.metadata.find(
+              element => element.display_name === `${base_name}-Copy${count}`
+            ) !== undefined
+          ) {
+            count += 1;
+          }
+
+          // Create a duplicate metadata instance using the derived name
           const duplicated_metadata = JSON.parse(JSON.stringify(metadata));
-          duplicated_metadata.display_name = `Copy of ${metadata.display_name}`;
-          duplicated_metadata.name = `copy_of_${metadata.name}`;
+          duplicated_metadata.display_name = `${base_name}-Copy${count}`;
+          delete duplicated_metadata.name;
           MetadataService.postMetadata(
             this.props.schemaspace,
             JSON.stringify(duplicated_metadata)

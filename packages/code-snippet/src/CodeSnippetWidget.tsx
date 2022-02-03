@@ -418,7 +418,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         title: 'Duplicate',
         icon: copyIcon,
         onClick: (): void => {
-          CodeSnippetService.duplicateCodeSnippet(metadata)
+          CodeSnippetService.duplicateCodeSnippet(metadata, this.props.metadata)
             .then((response: any): void => {
               this.props.updateMetadata();
             })
