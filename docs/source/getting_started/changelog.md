@@ -1,5 +1,12 @@
 # Changelog
 
+## Release 3.5.3 - 02/03/2022
+
+- Restore dependency cap on click and pin black - [#2446](https://github.com/elyra-ai/elyra/pull/2446)
+- Revert removal of dependency caps - [#2445](https://github.com/elyra-ai/elyra/pull/2445)
+- Fix inconsistent dependency version caps - [#2431](https://github.com/elyra-ai/elyra/pull/2431)
+- Unpin click dependency - [#2429](https://github.com/elyra-ai/elyra/pull/2429)
+
 ## Release 3.5.2 - 01/26/2022
 
 - Fix git branch URL - [#2421](https://github.com/elyra-ai/elyra/pull/2421)
