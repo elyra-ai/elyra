@@ -72,7 +72,7 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
-        'click>=7.1.1',
+        'click>=7.1.1,<8',
         'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11',
@@ -106,7 +106,7 @@ setup_args = dict(
         'kfp>=1.7.0,<2.0,!=1.7.2',
         # Airflow runtime dependencies
         'pygithub',
-        'black',
+        'black<=21.12b0',
     ],
     extras_require={
         'test': ['elyra-examples-airflow-catalog', 'elyra-examples-kfp-catalog', 'pytest', 'pytest-tornasync'],
