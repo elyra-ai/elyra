@@ -51,14 +51,6 @@ jobs:
       - name: Lint
         run: make lint-server
 
-  lint-connectors:
-    name: Lint Connectors
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Lint
-        run: make lint-connectors
-
   lint-ui:
     name: Lint UI
     needs: prepare-yarn-cache

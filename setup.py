@@ -48,9 +48,6 @@ runtime_extras = {
     # Apache Airflow example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
     'airflow-examples': ['elyra-examples-airflow-catalog'],
-    # Apache Airflow catalog connectors
-    # (https://github.com/elyra-ai/elyra/tree/master/catalog-connectors/airflow)
-    'airflow-catalog-connectors': ['airflow-package-catalog-connector', 'airflow-provider-package-catalog-connector'],
     # Use gitlab as Airflow DAG repository
     'gitlab': ['python-gitlab']
 }
@@ -149,6 +146,7 @@ setup_args = dict(
             'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',
             'component-registries = elyra.metadata.schemasproviders:ComponentRegistriesSchemas',
             'component-catalogs = elyra.metadata.schemasproviders:ComponentCatalogsSchemas',
+            'airflow-provider-package-catalog-schema = elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_schema_provider:AirflowProviderPackageSchemasProvider',  # noqa: E501
             'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemasProvider'
         ],
         'elyra.pipeline.processors': [
@@ -159,7 +157,8 @@ setup_args = dict(
         'elyra.component.catalog_types': [
             'url-catalog = elyra.pipeline.catalog_connector:UrlComponentCatalogConnector',
             'local-file-catalog = elyra.pipeline.catalog_connector:FilesystemComponentCatalogConnector',
-            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector'
+            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector',
+            'airflow-provider-package-catalog = elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_catalog_connector:AirflowProviderPackageCatalogConnector'  # noqa: E501
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',
