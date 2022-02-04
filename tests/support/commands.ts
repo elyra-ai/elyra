@@ -20,7 +20,7 @@ import './../utils/snapshots/add-commands';
 
 // TODO: we shouldn't have to fill out the form for any test that isn't specifically
 // testing filling out forms.
-Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
+Cypress.Commands.add('  ', ({ type } = {}): void => {
   cy.findByRole('tab', { name: /runtimes/i }).click();
   cy.findByRole('button', { name: /create new runtime/i }).click();
 
@@ -73,9 +73,13 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
   cy.findByRole('button', { name: /create new component catalog/i }).click();
 
   if (type === 'kfp') {
-    cy.findByRole('menuitem', { name: /kubeflow pipelines/i }).click();
+    cy.findByRole('menuitem', {
+      name: /new kubeflow pipelines example components catalog/i
+    }).click();
   } else {
-    cy.findByRole('menuitem', { name: /apache airflow/i }).click();
+    cy.findByRole('menuitem', {
+      name: /new apache airflow example components catalog/i
+    }).click();
   }
 
   cy.findByLabelText(/^name/i).type('Example Components');
