@@ -60,6 +60,12 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
         # extract the package name, e.g. 'apache_airflow-1.10.15-py2.py3-none-any.whl'
         airflow_package_name = Path(urlparse(airflow_package_download_url).path).name
 
+        if not airflow_package_name:
+            self.log.error('Error. The Airflow package connector is not configured properly. '
+                           f'The package download URL \'{airflow_package_download_url}\' '
+                           'does not include a file name.')
+            return operator_key_list
+
         # tmp_archive_dir is used to store the downloaded archive and as working directory
         if hasattr(self, 'tmp_archive_dir'):
             # if the directory exists remove it in case the archive content has changed
@@ -75,8 +81,9 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                                     allow_redirects=True)
             if response.status_code != 200:
                 # download failed. Log error and abort processing
-                self.log.error(f'Download of archive \'{airflow_package_download_url}\' '
-                               'failed. HTTP response code: {response.status_code}')
+                self.log.error('Error. The Airflow package connector is not configured properly. '
+                               f'Download of archive \'{airflow_package_download_url}\' '
+                               f'failed. HTTP response code: {response.status_code}')
                 return operator_key_list
 
             # save downloaded archive
@@ -87,8 +94,15 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             # extract archive
             self.log.debug(f'Extracting Airflow archive \'{archive}\' ...')
-            with zipfile.ZipFile(archive, 'r') as zip_ref:
-                zip_ref.extractall(self.tmp_archive_dir)
+            try:
+                with zipfile.ZipFile(archive, 'r') as zip_ref:
+                    zip_ref.extractall(self.tmp_archive_dir)
+            except Exception as ex:
+                self.log.error('Error. The Airflow package connector is not configured properly. '
+                               f'Error extracting downloaded Airflow archive \'{archive}\': '
+                               f'{ex}')
+                os.remove(archive)
+                return operator_key_list
 
             # delete archive
             self.log.debug(f'Deleting downloaded Airflow archive \'{archive}\' ...')
@@ -101,14 +115,12 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             # Identify Python scripts that define classes that extend the
             # airflow.models.BaseOperator class
             #
-            scripts_with_operator_class = []  # list of str, containing Python script names with operator definitions
-            extends_baseoperator = []  # list of str, containing classes that extend BaseOperator
+            scripts_with_operator_class: List[str] = []  # Python scripts that contain operator definitions
+            extends_baseoperator: List[str] = []  # Classes that extend BaseOperator
             classes_to_analyze = {}
-            imported_operator_classes = []  # list of str, identifying imported operator classes
+            imported_operator_classes: List[str] = []  # Imported operator classes
             offset = len(str(self.tmp_archive_dir)) + 1
             script_count = 0  # used for stats collection
-            class_count = 0   # used for stats collection
-            operator_class_count = 0  # used for stats collection
             # process each Python script ...
             for script in python_scripts:
                 script_id = script[offset:]
@@ -132,7 +144,6 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                                     imported_operator_classes.append(name.name)
                         elif isinstance(node, ast.ClassDef):
                             # determine whether this class extends the BaseOperator class
-                            class_count += 1
                             self.log.debug(f'Analyzing class \'{node.name}\' in {script_id} ...')
                             self.log.debug(f' Class {node.name} extends {[n.id for n in node.bases]}')
                             # determine whether class extends one of the imported operator classes
@@ -144,7 +155,6 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                                 extends = False
                                 if base.id in imported_operator_classes:
                                     # class extends Airflow BaseOperator
-                                    operator_class_count += 1
                                     extends = True
                                     extends_baseoperator.append(node.name)
                                     if script_id not in scripts_with_operator_class:
@@ -173,7 +183,6 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                     for base in classes_to_analyze[class_name]['node'].bases:
                         if base.id in extends_baseoperator:
                             # this class extends BaseOperator
-                            operator_class_count += 1
                             extends_baseoperator.append(class_name)
                             if classes_to_analyze[class_name]['file'] not in scripts_with_operator_class:
                                 scripts_with_operator_class.append(classes_to_analyze[class_name]['file'])
@@ -193,7 +202,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             # Dump stats
             self.log.info(f'Analysis of \'{airflow_package_download_url}\' completed. '
-                          f'Located {operator_class_count} operator classes '
+                          f'Located {len(extends_baseoperator)} operator classes '
                           f'in {len(scripts_with_operator_class)} Python scripts.')
             self.log.debug(f'Operator key list: {operator_key_list}')
         except Exception as ex:
@@ -225,11 +234,14 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                            ' downloaded Airflow package archive was not found.')
             return None
 
-        # load component source using the provided key
-        component_source = self.tmp_archive_dir / operator_file_name
-        self.log.debug(f'Reading operator source \'{component_source}\' ...')
-        with open(component_source, 'r') as source:
-            return source.read()
+        # load operator source using the provided key
+        operator_source = self.tmp_archive_dir / operator_file_name
+        self.log.debug(f'Reading operator source \'{operator_source}\' ...')
+        try:
+            with open(operator_source, 'r') as source:
+                return source.read()
+        except Exception as ex:
+            self.log.error(f'Error reading operator source \'{operator_source}\': {ex}')
 
         return None
 
