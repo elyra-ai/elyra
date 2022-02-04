@@ -122,6 +122,24 @@ elyra-metadata install code-snippets \
 
 Refer to the [Code snippet properties](#code-snippet-properties) section for an explanation of the parameters. Note that you must specify the `--name` parameter and the `--replace` parameter. 
 
+#### Exporting code snippets
+
+To export code snippets:
+
+```bash
+elyra-metadata export code-snippets \
+	--schema-name="code-snippet" \
+	--directory="/tmp/foo"
+```
+
+The above example will export all code snippets in the "code-snippet" schema to the "/tmp/foo/code-snippets" directory.
+
+Note that you must specify the `--directory` option. If the `--schema-name` option is not specified, code snippets across all schemas will be exported. 
+
+There are two additional flags that can be specified when exporting metadata:
+1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/code-snippets" directory before exporting the metadata.
+
 #### Deleting a code snippet
 
 To delete a code snippet run the following command, replacing the code snippet name as appropriate.

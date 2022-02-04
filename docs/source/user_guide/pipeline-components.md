@@ -192,6 +192,24 @@ Note: You must specify all property values, not only the ones that you want to m
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
+#### Exporting component catalogs
+
+To export component catalogs:
+
+```bash
+elyra-metadata export component-catalogs \
+	--schema-name="url-catalog" \
+	--directory="/tmp/foo"
+```
+
+The above example will export all component catalogs in the "url-catalog" schema to the "/tmp/foo/component-catalogs" directory.
+
+Note that you must specify the `--directory` option. If the `--schema-name` option is not specified, component catalogs across all schemas will be exported. 
+
+There are two additional flags that can be specified when exporting metadata:
+1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the metadata.
+
 #### Removing a component catalog entry
 
 To remove a component catalog entry and its component definitions from the Visual Pipeline Editor palette:

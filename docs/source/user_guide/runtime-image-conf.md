@@ -118,6 +118,24 @@ $ elyra-metadata install runtime-images --schema_name=runtime-image \
        --replace
 ```
 
+#### Exporting runtime image configurations
+
+To export runtime image configurations:
+
+```bash
+elyra-metadata export runtime-images \
+	--schema-name="runtime-image" \
+	--directory="/tmp/foo"
+```
+
+The above example will export all runtime image configurations in the "runtime-image" schema to the "/tmp/foo/runtime-images" directory.
+
+Note that you must specify the `--directory` option. If the `--schema-name` option is not specified, runtime image configurations across all schemas will be exported. 
+
+There are two additional flags that can be specified when exporting metadata:
+1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtime-images" directory before exporting the metadata.
+
 #### Deleting a runtime configuration
 
 To delete a runtime image configuration:
