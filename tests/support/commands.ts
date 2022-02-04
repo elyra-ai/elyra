@@ -20,7 +20,7 @@ import './../utils/snapshots/add-commands';
 
 // TODO: we shouldn't have to fill out the form for any test that isn't specifically
 // testing filling out forms.
-Cypress.Commands.add('  ', ({ type } = {}): void => {
+Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByRole('tab', { name: /runtimes/i }).click();
   cy.findByRole('button', { name: /create new runtime/i }).click();
 
