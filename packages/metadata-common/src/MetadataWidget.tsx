@@ -39,6 +39,7 @@ import React from 'react';
 
 import { AddMetadataButton } from './AddMetadataButton';
 import { FilterTools } from './FilterTools';
+import { MetadataCommonService } from './MetadataCommonService';
 
 /**
  * The CSS class added to metadata widgets.
@@ -145,31 +146,10 @@ export class MetadataDisplay<
         title: 'Duplicate',
         icon: copyIcon,
         onClick: (): void => {
-          // iterate through the list of currently defined
-          // instance names and find the next available one
-          // using '<source-instance-name>-Copy<N>'
-          let base_name = metadata.display_name;
-          const match = metadata.display_name.match(/([^-]+)-Copy\d+$/);
-          if (match !== null) {
-            base_name = match[1];
-          }
-          let count = 1;
-
-          while (
-            this.props.metadata.find(
-              element => element.display_name === `${base_name}-Copy${count}`
-            ) !== undefined
-          ) {
-            count += 1;
-          }
-
-          // Create a duplicate metadata instance using the derived name
-          const duplicated_metadata = JSON.parse(JSON.stringify(metadata));
-          duplicated_metadata.display_name = `${base_name}-Copy${count}`;
-          delete duplicated_metadata.name;
-          MetadataService.postMetadata(
+          MetadataCommonService.duplicateMetadataInstance(
             this.props.schemaspace,
-            JSON.stringify(duplicated_metadata)
+            metadata,
+            this.props.metadata
           )
             .then((response: any): void => {
               this.props.updateMetadata();

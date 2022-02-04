@@ -70,44 +70,4 @@ export class CodeSnippetService {
       }
     });
   }
-
-  /**
-   *  Duplicates an existing code snippet, which is named
-   *  'Copy of <original-name>'.
-   *
-   * @param codeSnippet: code snippet to be duplicated
-   *
-   * @returns A promise
-   */
-  static duplicateCodeSnippet(
-    codeSnippet: IMetadata,
-    codeSnippets: IMetadata[]
-  ): Promise<boolean> {
-    // iterate through the list of currently defined
-    // instance names and find the next available one
-    // using '<source-instance-name>-Copy<N>'
-    let base_name = codeSnippet.display_name;
-    const match = codeSnippet.display_name.match(/([^-]+)-Copy\d+$/);
-    if (match !== null) {
-      base_name = match[1];
-    }
-    let count = 1;
-
-    while (
-      codeSnippets.find(
-        element => element.display_name === `${base_name}-Copy${count}`
-      ) !== undefined
-    ) {
-      count += 1;
-    }
-
-    // Create a duplicate metadata instance using the derived name
-    const duplicated_metadata = JSON.parse(JSON.stringify(codeSnippet));
-    duplicated_metadata.display_name = `${base_name}-Copy${count}`;
-    delete duplicated_metadata.name;
-    return MetadataService.postMetadata(
-      CODE_SNIPPET_SCHEMASPACE,
-      JSON.stringify(duplicated_metadata)
-    );
-  }
 }

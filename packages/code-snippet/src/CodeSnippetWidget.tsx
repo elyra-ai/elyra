@@ -22,6 +22,7 @@ import {
   IMetadataDisplayProps,
   IMetadataDisplayState,
   IMetadataWidgetProps,
+  MetadataCommonService,
   MetadataDisplay,
   MetadataWidget,
   METADATA_ITEM
@@ -418,7 +419,11 @@ class CodeSnippetDisplay extends MetadataDisplay<
         title: 'Duplicate',
         icon: copyIcon,
         onClick: (): void => {
-          CodeSnippetService.duplicateCodeSnippet(metadata, this.props.metadata)
+          MetadataCommonService.duplicateMetadataInstance(
+            CODE_SNIPPET_SCHEMASPACE,
+            metadata,
+            this.props.metadata
+          )
             .then((response: any): void => {
               this.props.updateMetadata();
             })
