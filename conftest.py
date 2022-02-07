@@ -74,15 +74,15 @@ def component_cache_instance(request):
 
 
 @pytest.fixture
-def teardown_test_catalog():
+def metadata_manager_with_teardown():
     """
-    This fixture is run after certain tests that modify the component catalog.
-    This way, the catalog instance will be removed even when the test fails
+    This fixture provides a MetadataManager instance for certain tests that modify the component
+    catalog. This ensures the catalog instance is removed even when the test fails
     """
     metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
-    # Run test
-    yield
+    # Run test with provided metadata manager
+    yield metadata_manager
 
     # Remove test catalog
     try:

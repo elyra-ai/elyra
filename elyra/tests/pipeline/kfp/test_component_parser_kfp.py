@@ -21,9 +21,7 @@ from conftest import TEST_CATALOG_NAME
 import jupyter_core.paths
 import pytest
 
-from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
-from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
@@ -48,8 +46,7 @@ def test_component_catalog_can_load_components_from_registries(component_cache_i
     assert len(components) > 0
 
 
-@pytest.mark.usefixtures('teardown_test_catalog')
-def test_modify_component_catalogs():
+def test_modify_component_catalogs(metadata_manager_with_teardown):
     # Initialize a ComponentCache instance and wait for all worker threads to compete
     component_catalog = ComponentCache.instance()
     component_catalog.wait_for_all_cache_updates()
@@ -59,8 +56,6 @@ def test_modify_component_catalogs():
 
     # Components must be sorted by id for the equality comparison with later component lists
     initial_components = sorted(initial_components, key=lambda component: component.id)
-
-    metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
     paths = [_get_resource_path('kfp_test_operator.yaml')]
@@ -76,7 +71,7 @@ def test_modify_component_catalogs():
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    metadata_manager.create(TEST_CATALOG_NAME, registry_instance)
+    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -92,7 +87,7 @@ def test_modify_component_catalogs():
 
     # Modify the test registry to add an additional path to
     paths.append(_get_resource_path('kfp_test_operator_no_inputs.yaml'))
-    metadata_manager.update(TEST_CATALOG_NAME, registry_instance)
+    metadata_manager_with_teardown.update(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -107,7 +102,7 @@ def test_modify_component_catalogs():
     assert 'Test Operator No Inputs' in modified_component_names
 
     # Delete the test registry
-    metadata_manager.remove(TEST_CATALOG_NAME)
+    metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -127,16 +122,13 @@ def test_modify_component_catalogs():
     assert initial_palette == post_delete_palette
 
 
-@pytest.mark.usefixtures('teardown_test_catalog')
-def test_directory_based_component_catalog():
+def test_directory_based_component_catalog(metadata_manager_with_teardown):
     # Initialize a ComponentCache instance and wait for all worker threads to compete
     component_catalog = ComponentCache.instance()
     component_catalog.wait_for_all_cache_updates()
 
     # Get initial set of components from the current active registries
     initial_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-
-    metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')
@@ -151,7 +143,7 @@ def test_directory_based_component_catalog():
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    metadata_manager.create(TEST_CATALOG_NAME, registry_instance)
+    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
