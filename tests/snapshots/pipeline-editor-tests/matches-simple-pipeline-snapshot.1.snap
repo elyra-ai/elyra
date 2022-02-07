@@ -28,7 +28,6 @@ Object {
               "filename": "helloworld.ipynb",
               "include_subdirectories": false,
               "outputs": Array [],
-              "runtime_image": "",
             },
             "label": "",
             "ui_data": Object {
