@@ -91,7 +91,7 @@ Components are managed in Elyra using the [JupyterLab UI](#managing-custom-compo
 
 ### Managing custom components using the JupyterLab UI
 
-Custom components can be added, modified, and removed in the _Pipeline Components_ panel.
+Custom components can be added, modified, duplicated, and removed in the _Pipeline Components_ panel.
 
 ![Pipeline components UI](../images/user_guide/pipeline-components/component-catalogs-ui.png)
 
@@ -103,7 +103,7 @@ To access the panel in JupyterLab:
 
   OR     
 
-- Select the `Pipeline Components` tab from the JupyterLab sidebar.
+- Select the `Pipeline Components` panel from the JupyterLab sidebar.
 
   ![Open panel from sidebar](../images/user_guide/pipeline-components/sidebar-button.png)     
 
@@ -117,6 +117,7 @@ To access the panel in JupyterLab:
 
 To add components from a catalog:
 
+1. Open the `Pipeline Components` panel.
 1. Click `+` in the _Pipeline Components_ panel.
 1. Select a component catalog type from the list of available options.
 1. Enter the catalog information. Refer to section [Configuration properties](#configuration-properties) for a description of each property.
@@ -128,13 +129,22 @@ To add components from a catalog:
 
 #### Modifying a component catalog entry
 
+1. Open the `Pipeline Components` panel.
 1. Click the `edit` (pencil) icon next to the entry name.
 1. Modify the catalog entry as desired.
+
+#### Duplicating a component catalog entry
+
+To duplicate a component catalog entry:
+1. Open the `Pipeline Components` panel.
+1. Click the duplicate icon next to the entry name.
+1. Follow the steps in '[_Modifying a component catalog entry_](#modifying-a-component-catalog-entry)' to customize the duplicated entry.
 
 #### Removing a component catalog entry
 
 To remove a component catalog entry and its referenced component(s) from the Visual Pipeline Editor palette:
 
+1. Open the `Pipeline Components` panel.
 1. Click the `delete` (trash) icon next to the entry name.
 1. Confirm deletion.
 
