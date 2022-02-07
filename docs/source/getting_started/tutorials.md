@@ -41,7 +41,8 @@ Learn how to [run generic pipelines on Apache Airflow](https://github.com/elyra-
 
 #### Run runtime-specific pipelines on Apache Airflow
 
-Runtime-specific pipelines for Apache Airflow is under development.
+Learn how to [run runtime-specific pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/master/pipelines/run-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
+
 
 #### Examples
 
