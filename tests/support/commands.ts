@@ -73,9 +73,13 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
   cy.findByRole('button', { name: /create new component catalog/i }).click();
 
   if (type === 'kfp') {
-    cy.findByRole('menuitem', { name: /kubeflow pipelines/i }).click();
+    cy.findByRole('menuitem', {
+      name: /new kubeflow pipelines example components catalog/i
+    }).click();
   } else {
-    cy.findByRole('menuitem', { name: /apache airflow/i }).click();
+    cy.findByRole('menuitem', {
+      name: /new apache airflow example components catalog/i
+    }).click();
   }
 
   cy.findByLabelText(/^name/i).type('Example Components');

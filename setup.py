@@ -145,6 +145,7 @@ setup_args = dict(
             'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',
             'component-registries = elyra.metadata.schemasproviders:ComponentRegistriesSchemas',
             'component-catalogs = elyra.metadata.schemasproviders:ComponentCatalogsSchemas',
+            'airflow-package-catalog-schema = elyra.pipeline.airflow.package_catalog_connector.airflow_package_schema_provider:AirflowPackageSchemasProvider',  # noqa: E501
             'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemasProvider'
         ],
         'elyra.pipeline.processors': [
@@ -155,7 +156,8 @@ setup_args = dict(
         'elyra.component.catalog_types': [
             'url-catalog = elyra.pipeline.catalog_connector:UrlComponentCatalogConnector',
             'local-file-catalog = elyra.pipeline.catalog_connector:FilesystemComponentCatalogConnector',
-            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector'
+            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector',
+            'airflow-package-catalog = elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector:AirflowPackageCatalogConnector'  # noqa: E501
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',
