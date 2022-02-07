@@ -17,7 +17,7 @@ import {
   IRuntimeComponent,
   GENERIC_CATEGORY_ID,
   sortPalette
-} from './pipeline-hooks';
+} from '../pipeline-hooks';
 
 const GENERIC_CATEGORY = {
   label: 'ZZZZ should not matter',
