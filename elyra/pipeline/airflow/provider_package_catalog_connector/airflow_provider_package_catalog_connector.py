@@ -43,17 +43,18 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         """
-        Returns a list of component_metadata instances, one per component found in the given registry.
-        The form that component_metadata takes is determined by requirements of the reader class.
+        Download the user-defined Apache Airflow provider package and search for Python
+        scripts that contain one or more operator definitions.
 
-        :param registry_metadata: the dictionary-form of the Metadata instance for a single registry
+        :param catalog_metadata: Contains the catalog connector configuration information.
+        :returns: List of Python scripts that contain one or more operator definitions.
         """
 
         # Return data structure contains a list of operators that are defined
         # in the referenced Apache Airflow provider package wheel
         operator_key_list = []
 
-        # Read the user-supplied 'airflow_provider_package_download_url', which is a required
+        # Read the user-defined 'airflow_provider_package_download_url', which is a required
         # input defined in the 'airflow-provider-package-catalog-catalog.json' schema file.
         # Example value: https://files.pythonhosted.org/packages/a3/57/443a4fb0a52dcfc93bcd410e5c661d5683a8a651914934e490613460713f/apache_airflow_providers_amazon-2.6.0-py3-none-any.whl # noqa: E501
         airflow_provider_package_download_url = catalog_metadata['airflow_provider_package_download_url'].strip()
