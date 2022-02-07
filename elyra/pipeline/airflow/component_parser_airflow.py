@@ -134,7 +134,7 @@ class AirflowComponentParser(ComponentParser):
         # indicating that this class does match a known Operator class as defined in
         # a provider package or core Airflow package
         regex_patterns = [
-            re.compile(r'airflow\.providers\.[a-zA-Z0-9_]+\.operators'),  # airflow.providers.*.operators. (provider package)
+            re.compile(r'airflow\.providers\.[a-zA-Z0-9_]+\.operators'),  # airflow.providers.*.operators (provider)
             re.compile(r'airflow\.operators\.')  # airflow.operators.* (core Airflow package)
         ]
         operator_bases = ['BaseOperator']
