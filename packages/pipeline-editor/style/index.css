@@ -272,10 +272,12 @@ span.bx--list-box__label {
 .elyra-resourcesWrapper {
   display: flex;
   flex-direction: row;
+  position: relative;
+  height: 110px;
 }
 
 .elyra-resourceInput {
-  width: 12%;
+  width: 22%;
   display: flex;
   flex-direction: column;
   padding-right: 9px;
@@ -671,8 +673,31 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   height: auto;
 }
 
+.elyra-dialog-form {
+  max-width: 700px;
+}
+
 .elyra-dialog-form input[type='text'] {
   width: 100%;
+}
+
+.elyra-dialog-form input,
+.elyra-dialog-form select.jp-mod-styled {
+  border-radius: 4px;
+}
+
+.elyra-resourceInputDescription {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#cpu,
+#gpu,
+#memory {
+  position: absolute;
+  vertical-align: baseline;
+  bottom: 0;
+  width: 20%;
 }
 
 /* fix a Safari bug where button margins default to 2px */

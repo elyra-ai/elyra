@@ -13,21 +13,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Any
-
-from airflow.models import BaseOperator
-
-
-class TestOperatorNoInputs(BaseOperator):
-    r"""
-    An Operator class with no init function parameters (and hence no
-    properties when rendered as a component)
-    """
-
-    def __init__(self,
-                 *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-    def execute(self, context: Any):
-        pass

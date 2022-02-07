@@ -47,3 +47,4 @@ recursive-include etc/config/settings/ *.json
 
 # Include Airflow catalog connector schemas
 include elyra/pipeline/airflow/provider_package_catalog_connector/airflow-provider-package-catalog.json
+include elyra/pipeline/airflow/package_catalog_connector/airflow-package-catalog.json
