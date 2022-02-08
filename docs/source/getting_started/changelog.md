@@ -1,5 +1,28 @@
 # Changelog
 
+## Release 3.6.0rc0 - 02/07/2022
+
+- Add Airflow provider package catalog connector - [#2438](https://github.com/elyra-ai/elyra/pull/2438)
+- Update pipeline editor node pkg to 1.6.0 - [#2454](https://github.com/elyra-ai/elyra/pull/2454)
+- Move unit test file to proper test directory - [#2452](https://github.com/elyra-ai/elyra/pull/2452)
+- Add test for code snippet cloning - [#2451](https://github.com/elyra-ai/elyra/pull/2451)
+- Add airflow package catalog connector - [#2437](https://github.com/elyra-ai/elyra/pull/2437)
+- Improve Airflow parser functionality - [#2418](https://github.com/elyra-ai/elyra/pull/2418)
+- Add link to Apache Airflow tutorial - [#2450](https://github.com/elyra-ai/elyra/pull/2450)
+- Set 'EnumControl' property values to 'null' in properties JSON - [#2432](https://github.com/elyra-ai/elyra/pull/2432)
+- Add GUI support for metadata instance duplication - [#2436](https://github.com/elyra-ai/elyra/pull/2436)
+- Validate numeric fields in submit file dialog - [#2383](https://github.com/elyra-ai/elyra/pull/2383)
+- Restore dependency cap on click and pin black - [#2446](https://github.com/elyra-ai/elyra/pull/2446)
+- Revert removal of dependency caps - [#2445](https://github.com/elyra-ai/elyra/pull/2445)
+- Bump node-fetch from 2.6.1 to 2.6.7 - [#2434](https://github.com/elyra-ai/elyra/pull/2434)
+- Fix inconsistent dependency version caps - [#2431](https://github.com/elyra-ai/elyra/pull/2431)
+- Unpin click dependency - [#2429](https://github.com/elyra-ai/elyra/pull/2429)
+- Group component properties by inputs and outputs - [#2407](https://github.com/elyra-ai/elyra/pull/2407)
+- Fix git branch URL - [#2421](https://github.com/elyra-ai/elyra/pull/2421)
+- Fix typo in RTC documentation topic - [#2412](https://github.com/elyra-ai/elyra/pull/2412)
+- Bump ipython from 7.15.0 to 7.16.3 in /etc/generic - [#2408](https://github.com/elyra-ai/elyra/pull/2408)
+- Bump nanoid from 3.1.22 to 3.2.0 - [#2411](https://github.com/elyra-ai/elyra/pull/2411)
+
 ## Release 3.5.0 - 01/21/2022
 
 - Update release script
