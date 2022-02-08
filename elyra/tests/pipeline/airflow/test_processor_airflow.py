@@ -16,6 +16,7 @@
 import os
 from pathlib import Path
 import re
+import string
 import tempfile
 from unittest import mock
 
@@ -556,3 +557,13 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, parsed_pipeline,
     operation_parameter_endpoint = operation_parameters['endpoint']
 
     assert operation_parameter_endpoint == '"{{ ti.xcom_pull(task_ids=\'BashOperator_2\') }}"'
+
+
+def test_scrub_invalid_characters(processor):
+    invalid_character_list_string = '[-!@#$%^&*(){};:,/<>?|`~=+ ]'
+    valid_character_list_string = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
+    for character in invalid_character_list_string:
+        assert processor._scrub_invalid_characters(character) == '_'
+
+    for character in valid_character_list_string:
+        assert processor._scrub_invalid_characters(character) == character

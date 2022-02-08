@@ -18,6 +18,7 @@ from datetime import datetime
 import json
 import os
 import re
+import string
 import tempfile
 import time
 from typing import Dict
@@ -329,7 +330,8 @@ be fully qualified (i.e., prefixed with their package names).
                             set(json.loads(json.dumps(property_value)).keys()) == {'value', 'option'}:
                         parent_node_name = self._get_node_name(target_ops,
                                                                json.loads(json.dumps(property_value))['value'])
-                        processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
+                        processed_parent_node_name = self._scrub_invalid_characters(parent_node_name)
+                        processed_value = "\"{{ ti.xcom_pull(task_ids='" + processed_parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
                     elif component_property.data_type == "boolean":
                         operation.component_params[component_property.ref] = property_value
@@ -411,9 +413,7 @@ be fully qualified (i.e., prefixed with their package names).
             loader = PackageLoader('elyra', 'templates/airflow')
             template_env = Environment(loader=loader)
 
-            template_env.filters['regex_replace'] = lambda string: re.sub("[-!@#$%^&*(){};:,/<>?|`~=+ ]",
-                                                                          "_",
-                                                                          string)  # nopep8 E731
+            template_env.filters['regex_replace'] = lambda string: self._scrub_invalid_characters(string)
 
             template = template_env.get_template('airflow_template.jinja2')
 
@@ -482,6 +482,10 @@ be fully qualified (i.e., prefixed with their package names).
         for operation in operations_list:
             if operation['id'] == node_id:
                 return operation['notebook']
+
+    def _scrub_invalid_characters(self, node_name) -> str:
+        chars = re.escape(string.punctuation)
+        return re.sub(r'['+chars+'\\s]', '_', node_name)  # noqa E226
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
