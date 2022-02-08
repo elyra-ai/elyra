@@ -347,6 +347,34 @@ input.elyra-inputTag {
   height: 15px;
 }
 
+.form-group input {
+  padding: 8px;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 4px;
+  font-size: var(--jp-content-font-size2);
+  margin-top: 10px;
+}
+
+.form-group.field {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel.panel-danger.errors,
+p#root__description,
+button.btn[type='submit'] {
+  display: none;
+}
+
+li.text-danger {
+  color: var(--jp-error-color1);
+}
+
+form.rjsf {
+  width: 90%;
+}
+
 /* Cell tag styling */
 @import url('~@jupyterlab/celltags/style/base.css');
 
