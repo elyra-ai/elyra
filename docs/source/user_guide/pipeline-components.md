@@ -47,17 +47,21 @@ Elyra does not include its own component repository. Instead you can configure i
 ![component catalogs](../images/user_guide/pipeline-components/component-catalogs.png)
 
 Elyra includes connectors for the following component catalog types:
- - _Filesystem component catalogs_ provide access to components that are stored in a filesystem that is readable by JupyterLab/Elyra.
+ - [_Filesystem component catalogs_](#filesystem-component-catalog) provide access to components that are stored in a filesystem that is readable by JupyterLab/Elyra.
 
    Example: A filesystem component catalog that is configured using the `/users/jdoe/kubeflow_components/dev/my_component.yaml` path makes `my_component.yaml` available to Elyra.
 
- - _Directory component catalogs_ provide access to components that are stored in a directory.
+ - [_Directory component catalogs_](#directory-component-catalog) provide access to components that are stored in a directory.
 
    Example: A directory component catalog that is configured using the `/users/jdoe/kubeflow_components/test` path makes all component files in that directory available to Elyra.
 
- - _URL component catalogs_ provide access to components that are stored on the web and can be retrieved using anonymous HTTP `GET` requests.
+ - [_URL component catalogs_](#url-component-catalog) provide access to components that are stored on the web and can be retrieved using anonymous HTTP `GET` requests.
 
     Example: A URL component catalog that is configured using the `http://myserver:myport/mypath/my_component.yaml` URL makes the `my_component.yaml` component file available to Elyra.
+
+ - [_Apache Airflow package catalogs_](#apache-airflow-package-catalog) provide access to Apache Airflow operators that are stored in Apache Airflow built distributions.
+
+ - [_Apache Airflow provider package catalogs_](#apache-airflow-provider-package-catalog) provide access to Apache Airflow operators that are stored in Apache Airflow provider packages.  
 
 Refer to section [Built-in catalog connector reference](#built-in-catalog-connector-reference) for details about these connectors. 
 
@@ -353,3 +357,27 @@ Examples (GUI):
 Examples (CLI):
  - `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
  - `['<URL_1>','<URL_2>']`
+
+
+#### Apache Airflow package catalog
+
+The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra/tree/master/elyra/pipeline/airflow/package_catalog_connector) provides access to operators that are stored in Apache Airflow [built distributions](https://packaging.python.org/en/latest/glossary/#term-built-distribution):
+- Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
+- The specified URL must be retrievable using an anonymous HTTP `GET` request.
+
+Examples:
+ - [Apache Airflow](https://pypi.org/project/apache-airflow/) (v1.10.15): 
+   ```
+   https://files.pythonhosted.org/packages/f0/3a/f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/apache_airflow-1.10.15-py2.py3-none-any.whl
+   ``` 
+
+#### Apache Airflow provider package catalog
+The [Apache Airflow provider package catalog connector](https://github.com/elyra-ai/elyra/tree/master/elyra/pipeline/airflow/provider_package_catalog_connector) provides access to operators that are stored in [Apache Airflow provider packages](https://airflow.apache.org/docs/apache-airflow-providers/):
+- Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
+- The specified URL must be retrievable using an anonymous HTTP `GET` request.
+
+Examples:
+ - [apache-airflow-providers-http](https://airflow.apache.org/docs/apache-airflow-providers-http/stable/index.html) (v2.0.2): 
+   ```
+   https://files.pythonhosted.org/packages/a1/08/91653e9f394cbefe356ac07db809be7e69cc89b094379ad91d6cef3d2bc9/apache_airflow_providers_http-2.0.2-py3-none-any.whl
+   ```
