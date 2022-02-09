@@ -1,6 +1,6 @@
 {
     "current_parameters": {
-      {% if component.description %}"component_description": "{{ component.description }}",{% endif %}
+      {% if component.description %}"component_description": {{ component.description|tojson|safe }},{% endif %}
       "label": "",
 {% for property in component.properties %}
         "elyra_{{ property.ref }}":
@@ -81,7 +81,7 @@
             "default": "{{ property.name }}"
           },
           "description": {
-            "default": "{{ property.description }}",
+            "default": {{ property.description|tojson|safe }},
             "placement": "on_panel"
           },
           "data": {
