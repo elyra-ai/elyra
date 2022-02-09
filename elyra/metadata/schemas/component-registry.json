@@ -52,7 +52,6 @@
           "type": "string",
           "enum": ["kfp", "airflow"],
           "uihints": {
-            "field_type": "dropdown",
             "category": "Source"
           }
         },
@@ -62,7 +61,6 @@
           "type": "string",
           "enum": ["URL", "Filename", "Directory"],
           "uihints": {
-            "field_type": "dropdown",
             "category": "Source"
           }
         },

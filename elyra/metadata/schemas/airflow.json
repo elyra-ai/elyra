@@ -71,7 +71,6 @@
           "enum": ["{GIT_TYPES_PLACEHOLDER}"],
           "default": "{GIT_DEFAULT_TYPE_PLACEHOLDER}",
           "uihints": {
-            "field_type": "dropdown",
             "category": "Apache Airflow"
           }
         },
@@ -144,7 +143,6 @@
           ],
           "default": "USER_CREDENTIALS",
           "uihints": {
-            "field_type": "dropdown",
             "category": "Cloud Object Storage"
           }
         },

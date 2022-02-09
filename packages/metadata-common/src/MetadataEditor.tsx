@@ -73,6 +73,7 @@ export class MetadataEditor extends ReactWidget {
   showSecure: IDictionary<boolean>;
   widgetClass: string;
   themeManager?: IThemeManager;
+  loading: boolean;
 
   displayName?: string;
   editor?: CodeEditor.IEditor;
@@ -92,12 +93,12 @@ export class MetadataEditor extends ReactWidget {
     this.editorServices = props.editorServices;
     this.status = props.status;
     this.clearDirty = null;
+    this.loading = true;
     this.schemaspace = props.schemaspace;
     this.schemaName = props.schema;
     this.allTags = [];
     this.onSave = props.onSave;
     this.name = props.name;
-    this.code = props.code;
     this.themeManager = props.themeManager;
 
     this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : 'new'}`;
@@ -157,20 +158,8 @@ export class MetadataEditor extends ReactWidget {
       this.displayName = '';
     }
 
+    this.loading = false;
     this.update();
-  }
-
-  private isValueEmpty(schemaValue: any): boolean {
-    return (
-      schemaValue === undefined ||
-      schemaValue === null ||
-      schemaValue === '' ||
-      (Array.isArray(schemaValue) && schemaValue.length === 0) ||
-      (Array.isArray(schemaValue) &&
-        schemaValue.length === 1 &&
-        schemaValue[0] === '') ||
-      schemaValue === '(No selection)'
-    );
   }
 
   onCloseRequest(msg: Message): void {
@@ -255,10 +244,16 @@ export class MetadataEditor extends ReactWidget {
   }
 
   getDefaultChoices(fieldName: string): any[] {
-    let defaultChoices = this.schema[fieldName].enum;
+    if (!this.schema.properties?.[fieldName]) {
+      return [];
+    }
+    let defaultChoices = this.schema.properties[fieldName].enum;
     if (!defaultChoices) {
       defaultChoices =
-        Object.assign([], this.schema[fieldName].uihints.default_choices) || [];
+        Object.assign(
+          [],
+          this.schema.properties[fieldName].uihints.default_choices
+        ) || [];
       for (const otherMetadata of this.allMetadata) {
         if (
           // Don't include the current metadata
@@ -309,6 +304,10 @@ export class MetadataEditor extends ReactWidget {
     if (!this.name) {
       headerText = `Add new ${this.schemaDisplayName} ${this.titleContext ??
         ''}`;
+    }
+
+    if (this.loading) {
+      return <p> Loading... </p>;
     }
     const error = this.displayName === '' && this.invalidForm;
     const onKeyPress: React.KeyboardEventHandler = (
@@ -361,6 +360,7 @@ export class MetadataEditor extends ReactWidget {
             editorServices={this.editorServices}
             originalData={this.metadata}
             allTags={this.allTags}
+            languageOptions={this.getDefaultChoices('language')}
           />
           <div
             className={

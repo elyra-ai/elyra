@@ -39,10 +39,7 @@
           "description": "List of runtime types this catalog supports",
           "type": "string",
           "enum": ["APACHE_AIRFLOW"],
-          "default": "APACHE_AIRFLOW",
-          "uihints": {
-            "field_type": "dropdown"
-          }
+          "default": "APACHE_AIRFLOW"
         },
         "categories": {
           "title": "Category Names",

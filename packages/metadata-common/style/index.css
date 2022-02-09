@@ -356,9 +356,13 @@ input.elyra-inputTag {
 }
 
 .form-group.field {
-  padding: 15px;
+  padding: 15px 15px 15px 0px;
   display: flex;
   flex-direction: column;
+}
+
+.elyra-metadataEditor datalist {
+  display: none;
 }
 
 .panel.panel-danger.errors,

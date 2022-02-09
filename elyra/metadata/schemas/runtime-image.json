@@ -56,7 +56,6 @@
           "type": "string",
           "enum": ["Always", "IfNotPresent", "Never"],
           "uihints": {
-            "field_type": "dropdown",
             "category": "Source"
           }
         },

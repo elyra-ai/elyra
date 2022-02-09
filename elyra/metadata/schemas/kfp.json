@@ -70,7 +70,6 @@
           "enum": ["Argo", "Tekton"],
           "default": "Argo",
           "uihints": {
-            "field_type": "dropdown",
             "category": "Kubeflow Pipelines"
           }
         },
@@ -81,7 +80,6 @@
           "enum": ["{AUTH_PROVIDER_PLACEHOLDERS}"],
           "default": "{DEFAULT_AUTH_PROVIDER_PLACEHOLDER}",
           "uihints": {
-            "field_type": "dropdown",
             "category": "Kubeflow Pipelines"
           }
         },
@@ -134,7 +132,6 @@
           ],
           "default": "USER_CREDENTIALS",
           "uihints": {
-            "field_type": "dropdown",
             "category": "Cloud Object Storage"
           }
         },

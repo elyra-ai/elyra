@@ -14,132 +14,56 @@
  * limitations under the License.
  */
 
-import {
-  TextField,
-  FormHelperText,
-  Tooltip,
-  withStyles,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl
-} from '@material-ui/core';
-import { Autocomplete } from '@material-ui/lab';
+import { Widget } from '@rjsf/core';
 
 import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
-export interface IDropDownProps {
-  defaultError: boolean;
-  defaultValue?: string;
-  options?: string[];
-  label: string;
-  description?: string;
-  required?: boolean;
-  onChange: (value: string) => any;
-  placeholder?: string;
-  initialValue?: string;
-  readonly?: boolean;
-}
+export const DropDown: Widget = props => {
+  const {
+    defaultValue,
+    formContext,
+    label,
+    required,
+    onChange,
+    placeholder,
+    value
+  } = props;
+  const [current, setValue] = React.useState(value ?? defaultValue);
 
-const CustomTooltip = withStyles(_theme => ({
-  tooltip: {
-    fontSize: 13
-  }
-}))(Tooltip);
-
-export const DropDown: React.FC<IDropDownProps> = ({
-  defaultError,
-  defaultValue,
-  options,
-  label,
-  description,
-  required,
-  onChange,
-  placeholder,
-  initialValue,
-  readonly
-}) => {
-  const [error, setError] = React.useState(defaultError);
-  const [value, setValue] = React.useState(initialValue || defaultValue);
-
-  // This is necessary to rerender with error when clicking the save button.
   React.useEffect(() => {
-    setError(defaultError);
-  }, [defaultError]);
+    setValue(value);
+  }, [value]);
 
   const handleChange = (newValue: string): void => {
     setValue(newValue);
-    setError(!!(required && newValue === ''));
     onChange(newValue);
   };
 
   return (
-    <div className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}>
-      <CustomTooltip title={description ?? ''} placement="top">
-        {readonly ? (
-          <FormControl variant="outlined">
-            <InputLabel error={error}>{label}</InputLabel>
-            <Select
-              value={value}
-              id={`${label}DropDown`}
-              label={label}
-              error={error}
-              onChange={(event: any): void => {
-                handleChange(event.target.value);
-              }}
-            >
-              {options?.map((option: string) => {
-                return (
-                  <MenuItem
-                    key={`${option}MenuItem`}
-                    value={option}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'flex-start',
-                      padding: '18.5px 14px'
-                    }}
-                  >
-                    {option}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-        ) : (
-          <Autocomplete
-            id="combo-box-demo"
-            freeSolo
-            key="elyra-DropDown"
-            options={options ?? []}
-            style={{ width: 300 }}
-            value={value ?? ''}
-            onChange={(event: any, newValue: string | null): void => {
-              handleChange(newValue ?? '');
-            }}
-            renderInput={(params): React.ReactNode => (
-              <TextField
-                {...params}
-                label={label}
-                required={required}
-                error={error}
-                onChange={(event: any): void => {
-                  handleChange(event.target.value);
-                }}
-                placeholder={
-                  placeholder || `Create or select ${label.toLocaleLowerCase()}`
-                }
-                variant="outlined"
-              />
-            )}
-          />
-        )}
-      </CustomTooltip>
-      {error === true && (
-        <FormHelperText error>This field is required.</FormHelperText>
-      )}
+    <div>
+      <input
+        required={required}
+        onChange={(event: any): void => {
+          handleChange(event.target.value);
+        }}
+        value={current ?? ''}
+        list={`${label}-dataList`}
+        placeholder={
+          placeholder || `Create or select ${label.toLocaleLowerCase()}`
+        }
+      />
+      <datalist
+        id={`${label}-dataList`}
+        className={`elyra-metadataEditor-formInput ${DROPDOWN_ITEM_CLASS}`}
+        key="elyra-DropDown"
+        style={{ width: 300 }}
+      >
+        {formContext.languageOptions.map((language: string) => {
+          return <option value={language} />;
+        })}
+      </datalist>
     </div>
   );
 };
