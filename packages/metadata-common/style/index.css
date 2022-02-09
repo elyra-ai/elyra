@@ -183,6 +183,7 @@
 .elyra-metadataEditor .elyra-metadataEditor-saveButton {
   flex-basis: 100%;
   display: flex;
+  flex-direction: column;
 }
 
 /* Code Snippet Filter CSS */
@@ -347,7 +348,8 @@ input.elyra-inputTag {
   height: 15px;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   padding: 8px;
   border: 1px solid var(--jp-border-color1);
   border-radius: 4px;
@@ -355,10 +357,20 @@ input.elyra-inputTag {
   margin-top: 10px;
 }
 
+.elyra-metadataEditor-saveButton button {
+  background: none;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 3px;
+  padding: 10px;
+  font-size: var(--jp-content-font-size2);
+  width: fit-content;
+}
+
 .form-group.field {
   padding: 15px 15px 15px 0px;
   display: flex;
   flex-direction: column;
+  width: 45%;
 }
 
 .elyra-metadataEditor datalist {
@@ -377,6 +389,32 @@ li.text-danger {
 
 form.rjsf {
   width: 90%;
+}
+
+label.control-label {
+  font-size: var(--jp-content-font-size2);
+}
+
+fieldset#root {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.rjsf > .form-group.field,
+.form-group.field.tagsField,
+.form-group.field.languageField {
+  width: 100%;
+}
+
+.elyra-metadataEditor-saveButton.errorForm {
+  color: var(--jp-content-font-color3);
+}
+
+.elyra-metadataEditor-saveButton.errorForm button {
+  border-color: var(--jp-content-font-color3);
+  cursor: not-allowed;
 }
 
 /* Cell tag styling */

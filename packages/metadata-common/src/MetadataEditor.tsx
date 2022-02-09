@@ -15,7 +15,7 @@
  */
 
 import { MetadataService } from '@elyra/services';
-import { ThemeProvider, RequestErrors, TextInput } from '@elyra/ui-components';
+import { ThemeProvider, RequestErrors } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
 import {
@@ -28,9 +28,9 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 
 import { find } from '@lumino/algorithm';
 import { Message } from '@lumino/messaging';
-import { Button, Link, styled } from '@material-ui/core';
 
 import * as React from 'react';
+
 import { FormEditor } from './FormEditor';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
@@ -56,14 +56,6 @@ interface IMetadataEditorComponentProps extends IMetadataEditorProps {
   getDefaultChoices: (fieldName: string) => string[];
 }
 
-const SaveButton = styled(Button)({
-  borderColor: 'var(--jp-border-color0)',
-  color: 'var(--jp-ui-font-color1)',
-  '&:hover': {
-    borderColor: ' var(--jp-ui-font-color1)'
-  }
-});
-
 /**
  * Metadata editor widget
  */
@@ -81,9 +73,8 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   allTags,
   getDefaultChoices
 }: IMetadataEditorComponentProps) => {
-  const [invalidForm, setInvalidForm] = React.useState(false);
+  const [invalidForm, setInvalidForm] = React.useState(name === undefined);
 
-  const schemaDisplayName = schemaTop.title;
   const schema = {
     ...schemaTop.properties.metadata,
     properties: {
@@ -107,15 +98,15 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   const displayName = initialMetadata?.['display_name'];
   const referenceURL = schemaTop.uihints?.reference_url;
   const saveMetadata = (): void => {
-    const newMetadata: any = {
-      schema_name: schemaName,
-      display_name: metadata['display_name'],
-      metadata: metadata
-    };
-
     if (invalidForm) {
       return;
     }
+
+    const newMetadata: any = {
+      schema_name: schemaName,
+      display_name: metadata?.['display_name'],
+      metadata: metadata
+    };
 
     if (!name) {
       MetadataService.postMetadata(schemaspace, JSON.stringify(newMetadata))
@@ -142,7 +133,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
 
   let headerText = `Edit "${displayName}"`;
   if (!name) {
-    headerText = `Add new ${schemaDisplayName}`;
+    headerText = `Add new ${schemaTop.title}`;
   }
 
   const onKeyPress: React.KeyboardEventHandler = (
@@ -160,18 +151,18 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
         <p style={{ width: '100%', marginBottom: '10px' }}>
           All fields marked with an asterisk are required.&nbsp;
           {referenceURL ? (
-            <Link href={referenceURL} target="_blank" rel="noreferrer noopener">
+            <a href={referenceURL} target="_blank" rel="noreferrer noopener">
               [Learn more ...]
-            </Link>
+            </a>
           ) : null}
         </p>
         <FormEditor
           schema={schema}
-          onChange={formData => {
+          onChange={(formData: any): void => {
             setMetadata(formData);
             setDirty(true);
           }}
-          setInvalid={(invalid: boolean) => {
+          setInvalid={(invalid: boolean): void => {
             setInvalidForm(invalid);
           }}
           editorServices={editorServices}
@@ -180,20 +171,23 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
           languageOptions={getDefaultChoices('language')}
         />
         <div
-          className={
-            'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
-          }
+          className={`elyra-metadataEditor-formInput elyra-metadataEditor-saveButton ${
+            invalidForm ? 'errorForm' : ''
+          }`}
           key={'SaveButton'}
         >
-          <SaveButton
-            variant="outlined"
-            color="primary"
+          {invalidForm ? (
+            <p className="formError">Cannot save invalid form.</p>
+          ) : (
+            <div />
+          )}
+          <button
             onClick={(): void => {
               saveMetadata();
             }}
           >
             Save & Close
-          </SaveButton>
+          </button>
         </div>
       </div>
     </ThemeProvider>
@@ -205,8 +199,8 @@ export class MetadataEditorWidget extends ReactWidget {
   widgetClass: string;
   schema: any = {};
   metadata: any = {};
-  loading: boolean = true;
-  dirty: boolean = false;
+  loading = true;
+  dirty = false;
   clearDirty: any;
   allTags: string[] = [];
   allMetadata: any;
@@ -243,6 +237,7 @@ export class MetadataEditorWidget extends ReactWidget {
         allSchema.find((s: any) => {
           return s.name === this.props.schemaName;
         }) ?? {};
+      this.title.label = `New ${this.schema.title}`;
       this.metadata = allMetadata.find((m: any) => m.name === this.props.name);
       this.loading = false;
       this.update();
@@ -258,7 +253,7 @@ export class MetadataEditorWidget extends ReactWidget {
 
     if (!isFocused) {
       const input = document.querySelector(
-        `.${this.widgetClass} .elyra-metadataEditor-form-display_name input`
+        `.${this.widgetClass} .display_nameField input`
       ) as HTMLInputElement;
       if (input) {
         input.focus();
@@ -341,7 +336,7 @@ export class MetadataEditorWidget extends ReactWidget {
     return defaultChoices;
   }
 
-  render() {
+  render(): React.ReactElement {
     if (this.loading) {
       return <p>Loading...</p>;
     }

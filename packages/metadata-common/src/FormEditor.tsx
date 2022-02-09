@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import * as React from 'react';
-import Form, { Field, IChangeEvent } from '@rjsf/core';
-import { IEditorServices } from '@jupyterlab/codeeditor';
-import { MetadataEditorTags } from './MetadataEditorTags';
 import { DropDown } from '@elyra/ui-components';
+import { IEditorServices } from '@jupyterlab/codeeditor';
+import Form, { Field, IChangeEvent } from '@rjsf/core';
+import * as React from 'react';
+
 import { CodeBlock } from './CodeBlock';
+import { MetadataEditorTags } from './MetadataEditorTags';
 
 interface IFormEditorProps {
   schema: any;
@@ -52,7 +53,7 @@ const CustomArray: Field = props => {
       <MetadataEditorTags
         selectedTags={props.formData ?? []}
         tags={props.formContext.allTags ?? []}
-        handleChange={(selectedTags: string[], allTags: string[]) => {
+        handleChange={(selectedTags: string[], allTags: string[]): void => {
           props.onChange(selectedTags);
           props.formContext.updateAllTags?.(allTags);
         }}
@@ -79,6 +80,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   for (const field in schema?.properties) {
     uiSchema[field] = schema.properties[field].uihints ?? {};
     uiSchema[field]['ui:widget'] = uiSchema[field]['field_type'];
+    uiSchema[field].classNames = `${field}Field`;
   }
 
   return (
@@ -89,7 +91,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         editorServices: editorServices,
         language: formData?.language ?? '',
         allTags: tags,
-        updateAllTags: (updatedTags: string[]) => {
+        updateAllTags: (updatedTags: string[]): void => {
           setTags(updatedTags);
         },
         languageOptions: languageOptions
@@ -98,7 +100,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         dropdown: DropDown
       }}
       uiSchema={uiSchema}
-      onChange={(e: IChangeEvent<any>) => {
+      onChange={(e: IChangeEvent<any>): void => {
         setFormData(e.formData);
         onChange(e.formData);
         setInvalid(e.errors.length > 0 || false);
