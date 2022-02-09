@@ -75,10 +75,6 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   const [formData, setFormData] = React.useState(originalData ?? ({} as any));
   const [tags, setTags] = React.useState(allTags);
 
-  React.useEffect(() => {
-    setFormData(originalData);
-  }, [originalData]);
-
   const uiSchema: any = {};
   for (const field in schema?.properties) {
     uiSchema[field] = schema.properties[field].uihints ?? {};
@@ -91,7 +87,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       formData={formData}
       formContext={{
         editorServices: editorServices,
-        language: formData.language ?? '',
+        language: formData?.language ?? '',
         allTags: tags,
         updateAllTags: (updatedTags: string[]) => {
           setTags(updatedTags);

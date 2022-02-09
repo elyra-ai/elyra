@@ -48,10 +48,12 @@ interface IMetadataEditorProps {
 }
 
 interface IMetadataEditorComponentProps extends IMetadataEditorProps {
-  allSchema: any[];
-  allMetadata: any[];
+  schemaTop: any;
+  initialMetadata: any;
   setDirty: (dirty: boolean) => void;
   close: () => void;
+  allTags: string[];
+  getDefaultChoices: (fieldName: string) => string[];
 }
 
 const SaveButton = styled(Button)({
@@ -70,40 +72,44 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   schemaspace,
   onSave,
   schemaName,
-  allSchema,
-  allMetadata,
+  schemaTop,
+  initialMetadata,
   name,
   themeManager,
   setDirty,
-  close
+  close,
+  allTags,
+  getDefaultChoices
 }: IMetadataEditorComponentProps) => {
   const [invalidForm, setInvalidForm] = React.useState(false);
 
-  const schemaTop =
-    allSchema.find(s => {
-      return s.name === schemaName;
-    }) ?? {};
-  const referenceURL = schemaTop.uihints?.reference_url;
   const schemaDisplayName = schemaTop.title;
-  const schema = schemaTop.properties.metadata;
-  const allTags = allMetadata.reduce((acc: string[], metadata) => {
-    acc.push(
-      ...metadata.metadata.tags.filter((tag: string) => {
-        return !acc.includes(tag);
-      })
-    );
-    return acc;
-  }, []);
-  const metadataTop = allMetadata.find(m => m.name === name);
-  const [metadata, setMetadata] = React.useState(metadataTop?.metadata);
-  const [displayName, setDisplayName] = React.useState(
-    metadataTop?.['display_name']
-  );
+  const schema = {
+    ...schemaTop.properties.metadata,
+    properties: {
+      display_name: {
+        type: 'string',
+        title: 'Name'
+      },
+      ...schemaTop.properties.metadata.properties
+    },
+    required: ['display_name', ...schemaTop.properties.metadata.required]
+  };
 
+  React.useEffect(() => {
+    if (initialMetadata?.metadata) {
+      initialMetadata.metadata['display_name'] =
+        initialMetadata['display_name'];
+    }
+    setMetadata(initialMetadata);
+  }, [initialMetadata]);
+  const [metadata, setMetadata] = React.useState(initialMetadata?.metadata);
+  const displayName = initialMetadata?.['display_name'];
+  const referenceURL = schemaTop.uihints?.reference_url;
   const saveMetadata = (): void => {
     const newMetadata: any = {
       schema_name: schemaName,
-      display_name: displayName,
+      display_name: metadata['display_name'],
       metadata: metadata
     };
 
@@ -134,48 +140,11 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
     }
   };
 
-  const handleDisplayNameChange = (value: string): void => {
-    setDirty(true);
-    setDisplayName(value);
-  };
-
-  const getDefaultChoices = (fieldName: string): any[] => {
-    if (!schema.properties?.[fieldName]) {
-      return [];
-    }
-    let defaultChoices = schema.properties[fieldName].enum;
-    if (!defaultChoices) {
-      defaultChoices =
-        Object.assign(
-          [],
-          schema.properties[fieldName].uihints.default_choices
-        ) || [];
-      for (const otherMetadata of allMetadata) {
-        if (
-          // Don't include the current metadata
-          otherMetadata !== metadata &&
-          // Don't add if otherMetadata hasn't defined field
-          otherMetadata.metadata[fieldName] &&
-          !find(defaultChoices, (choice: string) => {
-            return (
-              choice.toLowerCase() ===
-              otherMetadata.metadata[fieldName].toLowerCase()
-            );
-          })
-        ) {
-          defaultChoices.push(otherMetadata.metadata[fieldName]);
-        }
-      }
-    }
-    return defaultChoices;
-  };
-
   let headerText = `Edit "${displayName}"`;
   if (!name) {
     headerText = `Add new ${schemaDisplayName}`;
   }
 
-  const error = displayName === '' && invalidForm;
   const onKeyPress: React.KeyboardEventHandler = (
     event: React.KeyboardEvent
   ) => {
@@ -196,20 +165,6 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
             </Link>
           ) : null}
         </p>
-        {displayName !== undefined ? (
-          <TextInput
-            label="Name"
-            key="displayNameTextInput"
-            fieldName="display_name"
-            defaultValue={displayName}
-            required={true}
-            secure={false}
-            defaultError={error}
-            onChange={(value): void => {
-              handleDisplayNameChange(value);
-            }}
-          />
-        ) : null}
         <FormEditor
           schema={schema}
           onChange={formData => {
@@ -248,11 +203,13 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
 export class MetadataEditorWidget extends ReactWidget {
   props: IMetadataEditorProps;
   widgetClass: string;
-  allSchema: any[] = [];
-  allMetadata: any[] = [];
+  schema: any = {};
+  metadata: any = {};
   loading: boolean = true;
   dirty: boolean = false;
   clearDirty: any;
+  allTags: string[] = [];
+  allMetadata: any;
 
   constructor(props: IMetadataEditorProps) {
     super();
@@ -260,6 +217,7 @@ export class MetadataEditorWidget extends ReactWidget {
     this.widgetClass = `elyra-metadataEditor-${props.name ?? 'new'}`;
     this.addClass(this.widgetClass);
 
+    this.getDefaultChoices = this.getDefaultChoices.bind(this);
     this.handleDirtyState = this.handleDirtyState.bind(this);
     this.close = this.close.bind(this);
     void this.loadSchemaAndMetadata();
@@ -267,10 +225,25 @@ export class MetadataEditorWidget extends ReactWidget {
 
   async loadSchemaAndMetadata(): Promise<void> {
     try {
-      this.allSchema = await MetadataService.getSchema(this.props.schemaspace);
-      this.allMetadata = await MetadataService.getMetadata(
+      const allSchema = await MetadataService.getSchema(this.props.schemaspace);
+      const allMetadata = (this.allMetadata = await MetadataService.getMetadata(
         this.props.schemaspace
-      );
+      ));
+      this.allTags = allMetadata.reduce((acc: string[], metadata: any) => {
+        if (metadata.metadata.tags) {
+          acc.push(
+            ...metadata.metadata.tags.filter((tag: string) => {
+              return !acc.includes(tag);
+            })
+          );
+        }
+        return acc;
+      }, []);
+      this.schema =
+        allSchema.find((s: any) => {
+          return s.name === this.props.schemaName;
+        }) ?? {};
+      this.metadata = allMetadata.find((m: any) => m.name === this.props.name);
       this.loading = false;
       this.update();
     } catch (error) {
@@ -336,6 +309,38 @@ export class MetadataEditorWidget extends ReactWidget {
     }
   };
 
+  getDefaultChoices(fieldName: string): any[] {
+    const schema = this.schema.properties.metadata;
+    if (!schema.properties?.[fieldName]) {
+      return [];
+    }
+    let defaultChoices = schema.properties[fieldName].enum;
+    if (!defaultChoices) {
+      defaultChoices =
+        Object.assign(
+          [],
+          schema.properties[fieldName].uihints.default_choices
+        ) || [];
+      for (const otherMetadata of this.allMetadata) {
+        if (
+          // Don't include the current metadata
+          otherMetadata !== this.metadata?.metadata &&
+          // Don't add if otherMetadata hasn't defined field
+          otherMetadata.metadata[fieldName] &&
+          !find(defaultChoices, (choice: string) => {
+            return (
+              choice.toLowerCase() ===
+              otherMetadata.metadata[fieldName].toLowerCase()
+            );
+          })
+        ) {
+          defaultChoices.push(otherMetadata.metadata[fieldName]);
+        }
+      }
+    }
+    return defaultChoices;
+  }
+
   render() {
     if (this.loading) {
       return <p>Loading...</p>;
@@ -343,10 +348,12 @@ export class MetadataEditorWidget extends ReactWidget {
     return (
       <MetadataEditor
         {...this.props}
-        allSchema={this.allSchema}
-        allMetadata={this.allMetadata}
+        schemaTop={this.schema}
+        initialMetadata={this.metadata}
         setDirty={this.handleDirtyState}
         close={this.close}
+        allTags={this.allTags}
+        getDefaultChoices={this.getDefaultChoices}
       />
     );
   }

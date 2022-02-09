@@ -28,7 +28,8 @@ export const DropDown: Widget = props => {
     required,
     onChange,
     placeholder,
-    value
+    value,
+    id
   } = props;
   const [current, setValue] = React.useState(value ?? defaultValue);
 
@@ -61,7 +62,7 @@ export const DropDown: Widget = props => {
         style={{ width: 300 }}
       >
         {formContext.languageOptions.map((language: string) => {
-          return <option value={language} />;
+          return <option key={`${language}-${id}-option`} value={language} />;
         })}
       </datalist>
     </div>
