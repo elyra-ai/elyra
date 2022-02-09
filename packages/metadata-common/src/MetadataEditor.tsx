@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { MetadataService, IDictionary } from '@elyra/services';
+import { MetadataService } from '@elyra/services';
 import { ThemeProvider, RequestErrors, TextInput } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
@@ -24,10 +24,9 @@ import {
   Dialog,
   IThemeManager
 } from '@jupyterlab/apputils';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+import { IEditorServices } from '@jupyterlab/codeeditor';
 
 import { find } from '@lumino/algorithm';
-import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 import { Button, Link, styled } from '@material-ui/core';
 
@@ -38,7 +37,7 @@ const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
 interface IMetadataEditorProps {
-  schema: string;
+  schemaName: string;
   schemaspace: string;
   name?: string;
   code?: string[];
@@ -46,6 +45,13 @@ interface IMetadataEditorProps {
   editorServices: IEditorServices | null;
   status: ILabStatus;
   themeManager?: IThemeManager;
+}
+
+interface IMetadataEditorComponentProps extends IMetadataEditorProps {
+  allSchema: any[];
+  allMetadata: any[];
+  setDirty: (dirty: boolean) => void;
+  close: () => void;
 }
 
 const SaveButton = styled(Button)({
@@ -59,205 +65,95 @@ const SaveButton = styled(Button)({
 /**
  * Metadata editor widget
  */
-export class MetadataEditor extends ReactWidget {
-  onSave: () => void;
-  editorServices: IEditorServices | null;
-  status: ILabStatus;
-  schemaName: string;
-  schemaspace: string;
-  name?: string;
-  code?: string[];
-  allTags: string[];
-  clearDirty: IDisposable | null;
-  invalidForm: boolean;
-  showSecure: IDictionary<boolean>;
-  widgetClass: string;
-  themeManager?: IThemeManager;
-  loading: boolean;
+const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
+  editorServices,
+  schemaspace,
+  onSave,
+  schemaName,
+  allSchema,
+  allMetadata,
+  name,
+  themeManager,
+  setDirty,
+  close
+}: IMetadataEditorComponentProps) => {
+  const [invalidForm, setInvalidForm] = React.useState(false);
 
-  displayName?: string;
-  editor?: CodeEditor.IEditor;
-  schemaDisplayName?: string;
-  titleContext?: string;
-  dirty?: boolean;
-  requiredFields?: string[];
-  referenceURL?: string;
-  language?: string;
+  const schemaTop =
+    allSchema.find(s => {
+      return s.name === schemaName;
+    }) ?? {};
+  const referenceURL = schemaTop.uihints?.reference_url;
+  const schemaDisplayName = schemaTop.title;
+  const schema = schemaTop.properties.metadata;
+  const allTags = allMetadata.reduce((acc: string[], metadata) => {
+    acc.push(
+      ...metadata.metadata.tags.filter((tag: string) => {
+        return !acc.includes(tag);
+      })
+    );
+    return acc;
+  }, []);
+  const metadataTop = allMetadata.find(m => m.name === name);
+  const [metadata, setMetadata] = React.useState(metadataTop?.metadata);
+  const [displayName, setDisplayName] = React.useState(
+    metadataTop?.['display_name']
+  );
 
-  schema: IDictionary<any> = {};
-  allMetadata: IDictionary<any>[] = [];
-  metadata: IDictionary<any> = {};
-
-  constructor(props: IMetadataEditorProps) {
-    super();
-    this.editorServices = props.editorServices;
-    this.status = props.status;
-    this.clearDirty = null;
-    this.loading = true;
-    this.schemaspace = props.schemaspace;
-    this.schemaName = props.schema;
-    this.allTags = [];
-    this.onSave = props.onSave;
-    this.name = props.name;
-    this.themeManager = props.themeManager;
-
-    this.widgetClass = `elyra-metadataEditor-${this.name ? this.name : 'new'}`;
-    this.addClass(this.widgetClass);
-
-    this.handleDisplayNameChange = this.handleDisplayNameChange.bind(this);
-
-    this.invalidForm = false;
-
-    this.showSecure = {};
-
-    this.initializeMetadata();
-  }
-
-  async initializeMetadata(): Promise<void> {
-    try {
-      const schemas = await MetadataService.getSchema(this.schemaspace);
-      for (const schema of schemas) {
-        if (this.schemaName === schema.name) {
-          this.schema = schema.properties.metadata;
-          this.referenceURL = schema.uihints?.reference_url;
-          this.schemaDisplayName = schema.title;
-          this.requiredFields = schema.properties.metadata.required;
-          if (!this.name) {
-            this.title.label = `New ${this.schemaDisplayName}`;
-          }
-          break;
-        }
-      }
-    } catch (error) {
-      RequestErrors.serverError(error);
-    }
-
-    try {
-      this.allMetadata = await MetadataService.getMetadata(this.schemaspace);
-    } catch (error) {
-      RequestErrors.serverError(error);
-    }
-    if (this.name) {
-      for (const metadata of this.allMetadata) {
-        if (metadata.metadata.tags) {
-          for (const tag of metadata.metadata.tags) {
-            if (!this.allTags.includes(tag)) {
-              this.allTags.push(tag);
-            }
-          }
-        } else {
-          metadata.metadata.tags = [];
-        }
-        if (this.name === metadata.name) {
-          this.metadata = metadata['metadata'];
-          this.displayName = metadata['display_name'];
-          this.title.label = this.displayName ?? '';
-        }
-      }
-    } else {
-      this.displayName = '';
-    }
-
-    this.loading = false;
-    this.update();
-  }
-
-  onCloseRequest(msg: Message): void {
-    if (this.dirty) {
-      showDialog({
-        title: 'Close without saving?',
-        body: (
-          <p>
-            {' '}
-            {`"${this.displayName}" has unsaved changes, close without saving?`}{' '}
-          </p>
-        ),
-        buttons: [Dialog.cancelButton(), Dialog.okButton()]
-      }).then((response: any): void => {
-        if (response.button.accept) {
-          this.dispose();
-          super.onCloseRequest(msg);
-        }
-      });
-    } else {
-      this.dispose();
-      super.onCloseRequest(msg);
-    }
-  }
-
-  saveMetadata(): void {
+  const saveMetadata = (): void => {
     const newMetadata: any = {
-      schema_name: this.schemaName,
-      display_name: this.displayName,
-      metadata: this.metadata
+      schema_name: schemaName,
+      display_name: displayName,
+      metadata: metadata
     };
 
-    if (this.invalidForm) {
-      this.update();
+    if (invalidForm) {
       return;
     }
 
-    if (!this.name) {
-      MetadataService.postMetadata(
-        this.schemaspace,
-        JSON.stringify(newMetadata)
-      )
+    if (!name) {
+      MetadataService.postMetadata(schemaspace, JSON.stringify(newMetadata))
         .then((response: any): void => {
-          this.handleDirtyState(false);
-          this.onSave();
-          this.close();
+          setDirty(false);
+          onSave();
+          close();
         })
         .catch(error => RequestErrors.serverError(error));
     } else {
       MetadataService.putMetadata(
-        this.schemaspace,
-        this.name,
+        schemaspace,
+        name,
         JSON.stringify(newMetadata)
       )
         .then((response: any): void => {
-          this.handleDirtyState(false);
-          this.onSave();
-          this.close();
+          setDirty(false);
+          onSave();
+          close();
         })
         .catch(error => RequestErrors.serverError(error));
     }
-  }
+  };
 
-  handleDisplayNameChange(value: string): void {
-    this.handleDirtyState(true);
-    this.displayName = value;
-  }
+  const handleDisplayNameChange = (value: string): void => {
+    setDirty(true);
+    setDisplayName(value);
+  };
 
-  handleDirtyState(dirty: boolean): void {
-    this.dirty = dirty;
-    if (this.dirty && !this.clearDirty) {
-      this.clearDirty = this.status.setDirty();
-    } else if (!this.dirty && this.clearDirty) {
-      this.clearDirty.dispose();
-      this.clearDirty = null;
-    }
-    if (this.dirty && !this.title.className.includes(DIRTY_CLASS)) {
-      this.title.className += DIRTY_CLASS;
-    } else if (!this.dirty) {
-      this.title.className = this.title.className.replace(DIRTY_CLASS, '');
-    }
-  }
-
-  getDefaultChoices(fieldName: string): any[] {
-    if (!this.schema.properties?.[fieldName]) {
+  const getDefaultChoices = (fieldName: string): any[] => {
+    if (!schema.properties?.[fieldName]) {
       return [];
     }
-    let defaultChoices = this.schema.properties[fieldName].enum;
+    let defaultChoices = schema.properties[fieldName].enum;
     if (!defaultChoices) {
       defaultChoices =
         Object.assign(
           [],
-          this.schema.properties[fieldName].uihints.default_choices
+          schema.properties[fieldName].uihints.default_choices
         ) || [];
-      for (const otherMetadata of this.allMetadata) {
+      for (const otherMetadata of allMetadata) {
         if (
           // Don't include the current metadata
-          otherMetadata !== this.metadata &&
+          otherMetadata !== metadata &&
           // Don't add if otherMetadata hasn't defined field
           otherMetadata.metadata[fieldName] &&
           !find(defaultChoices, (choice: string) => {
@@ -272,6 +168,114 @@ export class MetadataEditor extends ReactWidget {
       }
     }
     return defaultChoices;
+  };
+
+  let headerText = `Edit "${displayName}"`;
+  if (!name) {
+    headerText = `Add new ${schemaDisplayName}`;
+  }
+
+  const error = displayName === '' && invalidForm;
+  const onKeyPress: React.KeyboardEventHandler = (
+    event: React.KeyboardEvent
+  ) => {
+    const targetElement = event.nativeEvent.target as HTMLElement;
+    if (event.key === 'Enter' && targetElement?.tagName !== 'TEXTAREA') {
+      saveMetadata();
+    }
+  };
+  return (
+    <ThemeProvider themeManager={themeManager}>
+      <div onKeyPress={onKeyPress} className={ELYRA_METADATA_EDITOR_CLASS}>
+        <h3> {headerText} </h3>
+        <p style={{ width: '100%', marginBottom: '10px' }}>
+          All fields marked with an asterisk are required.&nbsp;
+          {referenceURL ? (
+            <Link href={referenceURL} target="_blank" rel="noreferrer noopener">
+              [Learn more ...]
+            </Link>
+          ) : null}
+        </p>
+        {displayName !== undefined ? (
+          <TextInput
+            label="Name"
+            key="displayNameTextInput"
+            fieldName="display_name"
+            defaultValue={displayName}
+            required={true}
+            secure={false}
+            defaultError={error}
+            onChange={(value): void => {
+              handleDisplayNameChange(value);
+            }}
+          />
+        ) : null}
+        <FormEditor
+          schema={schema}
+          onChange={formData => {
+            setMetadata(formData);
+            setDirty(true);
+          }}
+          setInvalid={(invalid: boolean) => {
+            setInvalidForm(invalid);
+          }}
+          editorServices={editorServices}
+          originalData={metadata}
+          allTags={allTags}
+          languageOptions={getDefaultChoices('language')}
+        />
+        <div
+          className={
+            'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
+          }
+          key={'SaveButton'}
+        >
+          <SaveButton
+            variant="outlined"
+            color="primary"
+            onClick={(): void => {
+              saveMetadata();
+            }}
+          >
+            Save & Close
+          </SaveButton>
+        </div>
+      </div>
+    </ThemeProvider>
+  );
+};
+
+export class MetadataEditorWidget extends ReactWidget {
+  props: IMetadataEditorProps;
+  widgetClass: string;
+  allSchema: any[] = [];
+  allMetadata: any[] = [];
+  loading: boolean = true;
+  dirty: boolean = false;
+  clearDirty: any;
+
+  constructor(props: IMetadataEditorProps) {
+    super();
+    this.props = props;
+    this.widgetClass = `elyra-metadataEditor-${props.name ?? 'new'}`;
+    this.addClass(this.widgetClass);
+
+    this.handleDirtyState = this.handleDirtyState.bind(this);
+    this.close = this.close.bind(this);
+    void this.loadSchemaAndMetadata();
+  }
+
+  async loadSchemaAndMetadata(): Promise<void> {
+    try {
+      this.allSchema = await MetadataService.getSchema(this.props.schemaspace);
+      this.allMetadata = await MetadataService.getMetadata(
+        this.props.schemaspace
+      );
+      this.loading = false;
+      this.update();
+    } catch (error) {
+      RequestErrors.serverError(error);
+    }
   }
 
   setFormFocus(): void {
@@ -299,87 +303,51 @@ export class MetadataEditor extends ReactWidget {
     this.setFormFocus();
   }
 
-  render(): React.ReactElement {
-    let headerText = `Edit "${this.displayName}"`;
-    if (!this.name) {
-      headerText = `Add new ${this.schemaDisplayName} ${this.titleContext ??
-        ''}`;
+  handleDirtyState(dirty: boolean): void {
+    this.dirty = dirty;
+    if (dirty && !this.clearDirty) {
+      this.clearDirty = this.props.status.setDirty();
+    } else if (!dirty && this.clearDirty) {
+      this.clearDirty.dispose();
+      this.clearDirty = null;
     }
+    if (dirty && !this.title.className.includes(DIRTY_CLASS)) {
+      this.title.className += DIRTY_CLASS;
+    } else if (!dirty) {
+      this.title.className = this.title.className.replace(DIRTY_CLASS, '');
+    }
+  }
 
-    if (this.loading) {
-      return <p> Loading... </p>;
+  onCloseRequest = (msg: Message): void => {
+    if (this.dirty) {
+      showDialog({
+        title: 'Close without saving?',
+        body: <p>Metadata has unsaved changes, close without saving?</p>,
+        buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      }).then((response: any): void => {
+        if (response.button.accept) {
+          this.dispose();
+          super.onCloseRequest(msg);
+        }
+      });
+    } else {
+      this.dispose();
+      super.onCloseRequest(msg);
     }
-    const error = this.displayName === '' && this.invalidForm;
-    const onKeyPress: React.KeyboardEventHandler = (
-      event: React.KeyboardEvent
-    ) => {
-      const targetElement = event.nativeEvent.target as HTMLElement;
-      if (event.key === 'Enter' && targetElement?.tagName !== 'TEXTAREA') {
-        this.saveMetadata();
-      }
-    };
+  };
+
+  render() {
+    if (this.loading) {
+      return <p>Loading...</p>;
+    }
     return (
-      <ThemeProvider themeManager={this.themeManager}>
-        <div onKeyPress={onKeyPress} className={ELYRA_METADATA_EDITOR_CLASS}>
-          <h3> {headerText} </h3>
-          <p style={{ width: '100%', marginBottom: '10px' }}>
-            All fields marked with an asterisk are required.&nbsp;
-            {this.referenceURL ? (
-              <Link
-                href={this.referenceURL}
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                [Learn more ...]
-              </Link>
-            ) : null}
-          </p>
-          {this.displayName !== undefined ? (
-            <TextInput
-              label="Name"
-              key="displayNameTextInput"
-              fieldName="display_name"
-              defaultValue={this.displayName}
-              required={true}
-              secure={false}
-              defaultError={error}
-              onChange={(value): void => {
-                this.handleDisplayNameChange(value);
-              }}
-            />
-          ) : null}
-          <FormEditor
-            schema={this.schema}
-            onChange={formData => {
-              this.metadata = formData;
-              this.handleDirtyState(true);
-            }}
-            setInvalid={(invalid: boolean) => {
-              this.invalidForm = invalid;
-            }}
-            editorServices={this.editorServices}
-            originalData={this.metadata}
-            allTags={this.allTags}
-            languageOptions={this.getDefaultChoices('language')}
-          />
-          <div
-            className={
-              'elyra-metadataEditor-formInput elyra-metadataEditor-saveButton'
-            }
-            key={'SaveButton'}
-          >
-            <SaveButton
-              variant="outlined"
-              color="primary"
-              onClick={(): void => {
-                this.saveMetadata();
-              }}
-            >
-              Save & Close
-            </SaveButton>
-          </div>
-        </div>
-      </ThemeProvider>
+      <MetadataEditor
+        {...this.props}
+        allSchema={this.allSchema}
+        allMetadata={this.allMetadata}
+        setDirty={this.handleDirtyState}
+        close={this.close}
+      />
     );
   }
 }

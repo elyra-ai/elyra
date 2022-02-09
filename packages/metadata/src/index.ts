@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
+import { MetadataWidget, MetadataEditorWidget } from '@elyra/metadata-common';
 import { MetadataService } from '@elyra/services';
 
 import { RequestErrors } from '@elyra/ui-components';
@@ -82,8 +82,9 @@ const extension: JupyterFrontEndPlugin<void> = {
         return;
       }
 
-      const metadataEditorWidget = new MetadataEditor({
+      const metadataEditorWidget = new MetadataEditorWidget({
         ...args,
+        schemaName: args.schema,
         editorServices,
         status,
         themeManager
@@ -93,7 +94,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = textEditorIcon;
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
-      metadataEditorWidget.titleContext = args.titleContext;
+      // metadataEditorWidget.titleContext = args.titleContext;
       app.shell.add(metadataEditorWidget, 'main');
     };
 
