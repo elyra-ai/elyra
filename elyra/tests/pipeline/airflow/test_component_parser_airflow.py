@@ -285,6 +285,13 @@ def test_parse_airflow_component_file():
                                                                    "(type: a list of strings)"
     assert get_parameter_description('elyra_fallback_type') == "(type: str)"
 
+    # Ensure that a long description with line wrapping and a backslash escape has rendered
+    # (and hence did not raise an error during json.loads in the properties API request)
+    long_description = get_parameter_description('elyra_long_description_property')
+    assert long_description.startswith("a string parameter") and \
+           long_description.endswith("as shown here: \\_ (type: str)")
+
+
     # Retrieve properties for DeriveFromTestOperator
     # DeriveFromTestOperator includes type hints for all init arguments
     properties_json = ComponentCache.to_canvas_properties(derive_test_op)

@@ -54,6 +54,9 @@ class TestOperator(BaseOperator):
     :type unusual_type_dict: a dictionary of arrays
     :param unusual_type_list: a list parameter with the phrase 'string' in type description
     :type unusual_type_list: a list of strings
+    :param long_description_property: a string parameter with a very long description
+        that wraps lines and also has an escaped underscore in it, as shown here: \_
+    :type long_description_property: str
     """
 
     def __init__(
@@ -75,6 +78,7 @@ class TestOperator(BaseOperator):
         unusual_type_dict=None,
         unusual_type_list=None,
         fallback_type=None,
+        long_description_property=None,
         *args,
         **kwargs
     ):
