@@ -287,10 +287,10 @@ def test_parse_airflow_component_file():
 
     # Ensure that a long description with line wrapping and a backslash escape has rendered
     # (and hence did not raise an error during json.loads in the properties API request)
-    long_description = get_parameter_description('elyra_long_description_property')
-    assert long_description.startswith("a string parameter") and \
-           long_description.endswith("as shown here: \\_ (type: str)")
-
+    parsed_description = """a string parameter with a very long description
+        that wraps lines and also has an escaped underscore in it, as shown here: (\_)  # noqa W605"""
+    modified_description = parsed_description.replace("\n", " ") + " (type: str)"  # modify desc acc. to parser rules
+    assert get_parameter_description('elyra_long_description_property') == modified_description
 
     # Retrieve properties for DeriveFromTestOperator
     # DeriveFromTestOperator includes type hints for all init arguments
