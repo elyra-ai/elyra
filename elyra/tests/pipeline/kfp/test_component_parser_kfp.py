@@ -200,25 +200,25 @@ def test_parse_kfp_component_file():
            {'StringControl': '', 'activeControl': 'StringControl'}
 
     assert properties_json['current_parameters']['elyra_test_bool_default'] == \
-           {'BooleanControl': 'False', 'activeControl': 'BooleanControl'}
+           {'BooleanControl': False, 'activeControl': 'BooleanControl'}
     assert properties_json['current_parameters']['elyra_test_bool_false'] == \
-           {'BooleanControl': 'False', 'activeControl': 'BooleanControl'}
+           {'BooleanControl': False, 'activeControl': 'BooleanControl'}
     assert properties_json['current_parameters']['elyra_test_bool_true'] == \
-           {'BooleanControl': 'True', 'activeControl': 'BooleanControl'}
+           {'BooleanControl': True, 'activeControl': 'BooleanControl'}
 
     assert properties_json['current_parameters']['elyra_test_int_default'] == \
-           {'NumberControl': '0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 0, 'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_test_int_zero'] == \
-           {'NumberControl': '0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 0, 'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_test_int_non_zero'] == \
-           {'NumberControl': '1', 'activeControl': 'NumberControl'}
+           {'NumberControl': 1, 'activeControl': 'NumberControl'}
 
     assert properties_json['current_parameters']['elyra_test_float_default'] == \
-           {'NumberControl': '0.0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 0.0, 'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_test_float_zero'] == \
-           {'NumberControl': '0.0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 0.0, 'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_test_float_non_zero'] == \
-           {'NumberControl': '1.0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 1.0, 'activeControl': 'NumberControl'}
 
     assert properties_json['current_parameters']['elyra_test_dict_default'] == \
            {'StringControl': '{}', 'activeControl': 'StringControl'}  # {}
@@ -408,19 +408,19 @@ async def test_parse_components_additional_metatypes():
     assert properties_json['current_parameters']['elyra_network_json'] == 'None'  # inputPath
     assert properties_json['current_parameters']['elyra_loss_name'] == {'StringControl': 'categorical_crossentropy',
                                                                         'activeControl': 'StringControl'}
-    assert properties_json['current_parameters']['elyra_num_classes'] == {'NumberControl': '0',
+    assert properties_json['current_parameters']['elyra_num_classes'] == {'NumberControl': 0,
                                                                           'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_optimizer'] == {'StringControl': 'rmsprop',
                                                                         'activeControl': 'StringControl'}
     assert properties_json['current_parameters']['elyra_optimizer_config'] == {'StringControl': '',
                                                                                'activeControl': 'StringControl'}
-    assert properties_json['current_parameters']['elyra_learning_rate'] == {'NumberControl': '0.01',
+    assert properties_json['current_parameters']['elyra_learning_rate'] == {'NumberControl': 0.01,
                                                                             'activeControl': 'NumberControl'}
-    assert properties_json['current_parameters']['elyra_num_epochs'] == {'NumberControl': '100',
+    assert properties_json['current_parameters']['elyra_num_epochs'] == {'NumberControl': 100,
                                                                          'activeControl': 'NumberControl'}
-    assert properties_json['current_parameters']['elyra_batch_size'] == {'NumberControl': '32',
+    assert properties_json['current_parameters']['elyra_batch_size'] == {'NumberControl': 32,
                                                                          'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_metrics'] == {'StringControl': "['accuracy']",
                                                                       'activeControl': 'StringControl'}
-    assert properties_json['current_parameters']['elyra_random_seed'] == {'NumberControl': '0',
+    assert properties_json['current_parameters']['elyra_random_seed'] == {'NumberControl': 0,
                                                                           'activeControl': 'NumberControl'}
