@@ -377,7 +377,8 @@ be fully qualified (i.e., prefixed with their package names).
                              'parent_operation_ids': operation.parent_operation_ids,
                              'component_params': operation.component_params_as_dict,
                              'operator_source': component.component_source,
-                             'is_generic_operator': False
+                             'is_generic_operator': False,
+                             'doc': operation.doc
                              }
 
                 target_ops.append(target_op)
