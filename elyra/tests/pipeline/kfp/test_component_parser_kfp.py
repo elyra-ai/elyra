@@ -17,12 +17,11 @@ import os
 from types import SimpleNamespace
 
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
+from conftest import TEST_CATALOG_NAME
 import jupyter_core.paths
 import pytest
 
-from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
-from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
@@ -47,7 +46,7 @@ def test_component_catalog_can_load_components_from_registries(component_cache_i
     assert len(components) > 0
 
 
-def test_modify_component_catalogs():
+def test_modify_component_catalogs(metadata_manager_with_teardown):
     # Initialize a ComponentCache instance and wait for all worker threads to compete
     component_catalog = ComponentCache.instance()
     component_catalog.wait_for_all_cache_updates()
@@ -57,8 +56,6 @@ def test_modify_component_catalogs():
 
     # Components must be sorted by id for the equality comparison with later component lists
     initial_components = sorted(initial_components, key=lambda component: component.id)
-
-    metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new registry instance with a single URL-based component
     paths = [_get_resource_path('kfp_test_operator.yaml')]
@@ -70,17 +67,11 @@ def test_modify_component_catalogs():
         "paths": paths
     }
     registry_instance = Metadata(schema_name="local-file-catalog",
-                                 name="new_test_registry",
+                                 name=TEST_CATALOG_NAME,
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    try:
-        if metadata_manager.get("new_test_registry"):
-            metadata_manager.remove("new_test_registry")
-    except Exception:
-        pass
-
-    metadata_manager.create("new_test_registry", registry_instance)
+    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -96,7 +87,7 @@ def test_modify_component_catalogs():
 
     # Modify the test registry to add an additional path to
     paths.append(_get_resource_path('kfp_test_operator_no_inputs.yaml'))
-    metadata_manager.update("new_test_registry", registry_instance)
+    metadata_manager_with_teardown.update(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -111,7 +102,7 @@ def test_modify_component_catalogs():
     assert 'Test Operator No Inputs' in modified_component_names
 
     # Delete the test registry
-    metadata_manager.remove("new_test_registry")
+    metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -131,15 +122,13 @@ def test_modify_component_catalogs():
     assert initial_palette == post_delete_palette
 
 
-def test_directory_based_component_catalog():
+def test_directory_based_component_catalog(metadata_manager_with_teardown):
     # Initialize a ComponentCache instance and wait for all worker threads to compete
     component_catalog = ComponentCache.instance()
     component_catalog.wait_for_all_cache_updates()
 
     # Get initial set of components from the current active registries
     initial_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-
-    metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')
@@ -150,17 +139,11 @@ def test_directory_based_component_catalog():
         "paths": [registry_path]
     }
     registry_instance = Metadata(schema_name="local-directory-catalog",
-                                 name="new_test_registry",
+                                 name=TEST_CATALOG_NAME,
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    try:
-        if metadata_manager.get("new_test_registry"):
-            metadata_manager.remove("new_test_registry")
-    except Exception:
-        pass
-
-    metadata_manager.create("new_test_registry", registry_instance)
+    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -174,9 +157,6 @@ def test_directory_based_component_catalog():
     assert 'Filter text' in added_component_names
     assert 'Test Operator' in added_component_names
     assert 'Test Operator No Inputs' in added_component_names
-
-    # Remove the test instance
-    metadata_manager.remove("new_test_registry")
 
 
 def test_parse_kfp_component_file():
@@ -220,25 +200,25 @@ def test_parse_kfp_component_file():
            {'StringControl': '', 'activeControl': 'StringControl'}
 
     assert properties_json['current_parameters']['elyra_test_bool_default'] == \
-           {'BooleanControl': 'False', 'activeControl': 'BooleanControl'}
+           {'BooleanControl': False, 'activeControl': 'BooleanControl'}
     assert properties_json['current_parameters']['elyra_test_bool_false'] == \
-           {'BooleanControl': 'False', 'activeControl': 'BooleanControl'}
+           {'BooleanControl': False, 'activeControl': 'BooleanControl'}
     assert properties_json['current_parameters']['elyra_test_bool_true'] == \
-           {'BooleanControl': 'True', 'activeControl': 'BooleanControl'}
+           {'BooleanControl': True, 'activeControl': 'BooleanControl'}
 
     assert properties_json['current_parameters']['elyra_test_int_default'] == \
-           {'NumberControl': '0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 0, 'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_test_int_zero'] == \
-           {'NumberControl': '0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 0, 'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_test_int_non_zero'] == \
-           {'NumberControl': '1', 'activeControl': 'NumberControl'}
+           {'NumberControl': 1, 'activeControl': 'NumberControl'}
 
     assert properties_json['current_parameters']['elyra_test_float_default'] == \
-           {'NumberControl': '0.0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 0.0, 'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_test_float_zero'] == \
-           {'NumberControl': '0.0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 0.0, 'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_test_float_non_zero'] == \
-           {'NumberControl': '1.0', 'activeControl': 'NumberControl'}
+           {'NumberControl': 1.0, 'activeControl': 'NumberControl'}
 
     assert properties_json['current_parameters']['elyra_test_dict_default'] == \
            {'StringControl': '{}', 'activeControl': 'StringControl'}  # {}
@@ -428,19 +408,19 @@ async def test_parse_components_additional_metatypes():
     assert properties_json['current_parameters']['elyra_network_json'] == 'None'  # inputPath
     assert properties_json['current_parameters']['elyra_loss_name'] == {'StringControl': 'categorical_crossentropy',
                                                                         'activeControl': 'StringControl'}
-    assert properties_json['current_parameters']['elyra_num_classes'] == {'NumberControl': '0',
+    assert properties_json['current_parameters']['elyra_num_classes'] == {'NumberControl': 0,
                                                                           'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_optimizer'] == {'StringControl': 'rmsprop',
                                                                         'activeControl': 'StringControl'}
     assert properties_json['current_parameters']['elyra_optimizer_config'] == {'StringControl': '',
                                                                                'activeControl': 'StringControl'}
-    assert properties_json['current_parameters']['elyra_learning_rate'] == {'NumberControl': '0.01',
+    assert properties_json['current_parameters']['elyra_learning_rate'] == {'NumberControl': 0.01,
                                                                             'activeControl': 'NumberControl'}
-    assert properties_json['current_parameters']['elyra_num_epochs'] == {'NumberControl': '100',
+    assert properties_json['current_parameters']['elyra_num_epochs'] == {'NumberControl': 100,
                                                                          'activeControl': 'NumberControl'}
-    assert properties_json['current_parameters']['elyra_batch_size'] == {'NumberControl': '32',
+    assert properties_json['current_parameters']['elyra_batch_size'] == {'NumberControl': 32,
                                                                          'activeControl': 'NumberControl'}
     assert properties_json['current_parameters']['elyra_metrics'] == {'StringControl': "['accuracy']",
                                                                       'activeControl': 'StringControl'}
-    assert properties_json['current_parameters']['elyra_random_seed'] == {'NumberControl': '0',
+    assert properties_json['current_parameters']['elyra_random_seed'] == {'NumberControl': 0,
                                                                           'activeControl': 'NumberControl'}

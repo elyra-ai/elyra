@@ -19,3 +19,4 @@ import '../style/index.css';
 export * from './MetadataEditor';
 export * from './MetadataWidget';
 export * from './AddMetadataButton';
+export * from './MetadataCommonService';

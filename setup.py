@@ -72,19 +72,19 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
-        'click>=7.1.1',
+        'click>=7.1.1,<8',
         'colorama',
         'entrypoints>=0.3',
         'jinja2>=2.11',
         'jsonschema>=3.2.0',
-        'jupyter_core>=4.0',
+        'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
         'jupyter_server>=1.7.0',
         'jupyterlab>=3.0.17',
         'jupyterlab-git~=0.32',
         'jupyterlab-lsp>=3.8.0',
         'jupyter-resource-usage>=0.5.1',
-        'minio>=7.0.0',
+        'minio>=7.0.0,<8.0.0',
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1',
         'nbdime~=3.1',
@@ -92,8 +92,8 @@ setup_args = dict(
         'networkx>=2.5.1',
         'papermill>=2.1.3',
         'python-lsp-server[all]>=1.1.0',
-        'pyyaml>=5.3.1',
-        'requests>=2.25.1',
+        'pyyaml>=5.3.1,<6.0',
+        'requests>=2.25.1,<3.0',
         'rfc3986-validator>=0.1.1',
         'tornado>=6.1.0',
         'traitlets>=4.3.2',
@@ -101,12 +101,11 @@ setup_args = dict(
         'watchdog>=2.1.3',
         'websocket-client',
         'yaspin',
-        'astunparse>=1.6.3',
         # KFP runtime dependencies
         'kfp>=1.7.0,<2.0,!=1.7.2',
         # Airflow runtime dependencies
         'pygithub',
-        'black',
+        'black<=21.12b0',
     ],
     extras_require={
         'test': ['elyra-examples-airflow-catalog', 'elyra-examples-kfp-catalog', 'pytest', 'pytest-tornasync'],
@@ -146,6 +145,8 @@ setup_args = dict(
             'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',
             'component-registries = elyra.metadata.schemasproviders:ComponentRegistriesSchemas',
             'component-catalogs = elyra.metadata.schemasproviders:ComponentCatalogsSchemas',
+            'airflow-provider-package-catalog-schema = elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_schema_provider:AirflowProviderPackageSchemasProvider',  # noqa: E501
+            'airflow-package-catalog-schema = elyra.pipeline.airflow.package_catalog_connector.airflow_package_schema_provider:AirflowPackageSchemasProvider',  # noqa: E501
             'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemasProvider'
         ],
         'elyra.pipeline.processors': [
@@ -156,7 +157,9 @@ setup_args = dict(
         'elyra.component.catalog_types': [
             'url-catalog = elyra.pipeline.catalog_connector:UrlComponentCatalogConnector',
             'local-file-catalog = elyra.pipeline.catalog_connector:FilesystemComponentCatalogConnector',
-            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector'
+            'local-directory-catalog = elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector',
+            'airflow-provider-package-catalog = elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_catalog_connector:AirflowProviderPackageCatalogConnector',  # noqa: E501
+            'airflow-package-catalog = elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector:AirflowPackageCatalogConnector'  # noqa: E501
         ],
         'papermill.engine': [
             'ElyraEngine = elyra.pipeline.elyra_engine:ElyraEngine',

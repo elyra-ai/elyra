@@ -33,7 +33,7 @@ You can manage runtime image configurations using the [JupyterLab UI](#managing-
 
 ### Managing runtime image configurations using the JupyterLab UI
 
-Runtime image configurations can be added, modified, and removed in the _Runtime Images_ panel.
+Runtime image configurations can be added, modified, duplicated, and removed in the _Runtime Images_ panel.
 
 ![Runtime Images UI](../images/user_guide/runtime-image-conf/runtime-images-ui.png)
 
@@ -59,22 +59,31 @@ To access the panel in JupyterLab:
 
 To add a runtime image configuration:
 
-- Click `+` to add a runtime image.
-- Add the runtime image properties as appropriate.
+1. Open the `Runtime Images` panel.
+1. Click `+` to add a runtime image.
+1. Add the runtime image properties as appropriate.
 
 #### Modifying a runtime image configuration
 
 To edit a runtime image configuration:
 
-- Click the `edit` icon next to the runtime image name.
-- Modify the runtime image properties as desired.
+1. Open the `Runtime Images` panel.
+1. Click the `edit` icon next to the runtime image name.
+1. Modify the runtime image properties as desired.
+
+#### Duplicating a runtime image configuration
+
+To duplicate a runtime image configuration:
+1. Open the `Runtime Images` panel.
+1. Click the duplicate icon next to the runtime image configuration.
+1. Follow the steps in '[_Modifying a runtime image configuration_](#modifying-a-runtime-image-configuration)' to customize the duplicated configuration.
 
 #### Deleting a runtime image configuration
 
 To delete a runtime image configuration:
-
-- Click the `delete` icon next to the runtime image name.
-- Confirm deletion.
+1. Open the `Runtime Images` panel.
+1. Click the `delete` icon next to the runtime image name.
+1. Confirm deletion.
 
 ### Managing runtime image configurations using the Elyra CLI
 

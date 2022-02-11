@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 from abc import abstractmethod
+from copy import deepcopy
 import hashlib
 from http import HTTPStatus
 import os
@@ -240,8 +241,12 @@ class ComponentCatalogConnector(LoggingConfigurable):
             # the catalog entry hash for each entry in the catalog
             keys_to_hash = self.get_hash_keys()
 
+            # Add display_name attribute to the metadata dictionary
+            catalog_metadata = deepcopy(catalog_instance.metadata)
+            catalog_metadata['display_name'] = catalog_instance.display_name
+
             # Add catalog entry data dictionaries to the thread queue
-            for entry_data in self.get_catalog_entries(catalog_instance.metadata):
+            for entry_data in self.get_catalog_entries(catalog_metadata):
                 catalog_entry_q.put_nowait(entry_data)
 
         except NotImplementedError as e:
@@ -268,7 +273,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                     self.log.debug(f"Attempting read of definition for catalog entry with identifying information: "
                                    f"{str(catalog_entry_data)}...")
                     definition = self.read_catalog_entry(catalog_entry_data=catalog_entry_data,
-                                                         catalog_metadata=catalog_instance.metadata)
+                                                         catalog_metadata=catalog_metadata)
 
                     # Ignore this entry if no definition content is returned
                     if not definition:
