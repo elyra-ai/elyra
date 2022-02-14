@@ -88,7 +88,7 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
 
     {% if operation.doc %}
         op_{{ operation.id|regex_replace }}.doc = """
-        {{ operation.doc }}
+        {{ operation.doc|replace("\"\"\"", "\\\"\\\"\\\"") }}
     """
     {% endif %}
 
