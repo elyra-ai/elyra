@@ -18,6 +18,7 @@ from pathlib import Path
 import re
 import string
 import tempfile
+from types import SimpleNamespace
 from unittest import mock
 
 from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
@@ -423,29 +424,39 @@ def test_collect_envs(processor):
 
 
 def test_unique_operation_name_existent(processor):
-    operation_name = "sample_operation"
 
-    op1 = {'notebook': "sample_operation"}
-    op2 = {'notebook': "sample_operation_2"}
-    op3 = {'notebook': "sample_operation_3"}
-    sample_operation_list = [op1, op2, op3]
+    op1 = SimpleNamespace(name="sample_operation")
+    op2 = SimpleNamespace(name="sample_operation_2")
+    op3 = SimpleNamespace(name="sample_operation_3")
+    op4 = SimpleNamespace(name="sample_operation")
+    op5 = SimpleNamespace(name="sample_operation_2")
+    op6 = SimpleNamespace(name="sample_operation_3")
+    sample_operation_list = [op1, op2, op3, op4, op5, op6]
 
-    unique_name = processor._get_unique_operation_name(operation_name, sample_operation_list)
+    correct_name_list = ['sample_operation', 'sample_operation_2', 'sample_operation_3',
+                         'sample_operation_4', 'sample_operation_2_2', 'sample_operation_3_2']
 
-    assert unique_name == "sample_operation_4"
+    renamed_op_list = processor._create_unique_node_names(sample_operation_list)
+    name_list = [op.name for op in renamed_op_list]
+
+    assert name_list == correct_name_list
 
 
 def test_unique_operation_name_non_existent(processor):
     operation_name = "sample_operation_foo_bar"
 
-    op1 = {'notebook': "sample_operation"}
-    op2 = {'notebook': "sample_operation_2"}
-    op3 = {'notebook': "sample_operation_3"}
+    op1 = SimpleNamespace(name="sample_operation")
+    op2 = SimpleNamespace(name="sample_operation_2")
+    op3 = SimpleNamespace(name="sample_operation_3")
     sample_operation_list = [op1, op2, op3]
 
-    unique_name = processor._get_unique_operation_name(operation_name, sample_operation_list)
+    correct_name_list = ['sample_operation', 'sample_operation_2', 'sample_operation_3']
 
-    assert unique_name == operation_name
+    renamed_op_list = processor._create_unique_node_names(sample_operation_list)
+    name_list = [op.name for op in renamed_op_list]
+
+    assert name_list == correct_name_list
+    assert operation_name not in name_list
 
 
 def test_process_list_value_function(processor):

@@ -220,7 +220,12 @@ be fully qualified (i.e., prefixed with their package names).
 
         PipelineProcessor._propagate_operation_inputs_outputs(pipeline, sorted_operations)
 
-        for operation in sorted_operations:
+        # Scrub all node labels of invalid characters
+        scrubbed_operations = self._scrub_invalid_characters_from_list(sorted_operations)
+        # Generate unique names for all operations
+        unique_operations = self._create_unique_node_names(scrubbed_operations, None)
+
+        for operation in unique_operations:
 
             if isinstance(operation, GenericOperation):
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
@@ -264,10 +269,7 @@ be fully qualified (i.e., prefixed with their package names).
                                                inputs=operation.inputs,
                                                outputs=operation.outputs)
 
-                unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
-                                                                        operation_list=target_ops)
-
-                target_op = {'notebook': unique_operation_name,
+                target_op = {'notebook': operation.name,
                              'id': operation.id,
                              'argument_list': bootscript.container_cmd,
                              'runtime_image': operation.runtime_image,
@@ -330,8 +332,7 @@ be fully qualified (i.e., prefixed with their package names).
                             set(json.loads(json.dumps(property_value)).keys()) == {'value', 'option'}:
                         parent_node_name = self._get_node_name(target_ops,
                                                                json.loads(json.dumps(property_value))['value'])
-                        processed_parent_node_name = self._scrub_invalid_characters(parent_node_name)
-                        processed_value = "\"{{ ti.xcom_pull(task_ids='" + processed_parent_node_name + "') }}\""
+                        processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
                     elif component_property.data_type == "boolean":
                         operation.component_params[component_property.ref] = property_value
@@ -349,9 +350,6 @@ be fully qualified (i.e., prefixed with their package names).
                 # Remove inputs and outputs from params dict until support for data exchange is provided
                 operation.component_params_as_dict.pop("inputs")
                 operation.component_params_as_dict.pop("outputs")
-
-                unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
-                                                                        operation_list=target_ops)
 
                 # Locate the import statement. If not found raise...
                 import_stmts = []
@@ -372,7 +370,7 @@ be fully qualified (i.e., prefixed with their package names).
                                          f"package name for '{component.name}' to the "
                                          f"AirflowPipelineProcessor.available_airflow_operators configuration.")
 
-                target_op = {'notebook': unique_operation_name,
+                target_op = {'notebook': operation.name,
                              'id': operation.id,
                              'imports': import_stmts,
                              'class_name': component.name,
@@ -442,19 +440,37 @@ be fully qualified (i.e., prefixed with their package names).
                 import black
                 autopep_output = autopep8.fix_code(python_output)
                 output_to_file = black.format_str(autopep_output, mode=black.FileMode())
+
                 fh.write(output_to_file)
 
         return pipeline_export_path
 
-    def _get_unique_operation_name(self, operation_name: str, operation_list: list) -> str:
-        unique_name_counter = 1
-        unique_operation_name = operation_name
-        names = [op['notebook'] for op in operation_list]
-        while unique_operation_name in names:
-            unique_name_counter += 1
-            unique_operation_name = ''.join([operation_name, '_', str(unique_name_counter)])
+    def _create_unique_node_names(self, operation_list, parent_unique_names=None):
+        unique_names = parent_unique_names or {}
+        for operation in operation_list:
+            # if a duplicate name is found
+            if operation.name in unique_names:
+                unique_names[operation.name] += 1
+                new_name = f"{operation.name}_{unique_names[operation.name]}"
+                if new_name in unique_names:  # look-ahead
+                    self._create_unique_node_names([operation], unique_names)
+                else:
+                    operation.name = new_name
+            else:
+                unique_names[operation.name] = 1
 
-        return unique_operation_name
+        return operation_list
+
+    def _scrub_invalid_characters_from_list(self, operation_list) -> str:
+        for operation in operation_list:
+            operation.name = self._scrub_invalid_characters(operation.name)
+
+        return operation_list
+
+    def _scrub_invalid_characters(self, name) -> str:
+        chars = re.escape(string.punctuation)
+        clean_name = re.sub(r'[' + chars + '\\s]', '_', name)  # noqa E226
+        return clean_name
 
     def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
         """
@@ -482,10 +498,6 @@ be fully qualified (i.e., prefixed with their package names).
         for operation in operations_list:
             if operation['id'] == node_id:
                 return operation['notebook']
-
-    def _scrub_invalid_characters(self, node_name) -> str:
-        chars = re.escape(string.punctuation)
-        return re.sub(r'['+chars+'\\s]', '_', node_name)  # noqa E226
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
