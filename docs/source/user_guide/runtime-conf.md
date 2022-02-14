@@ -31,34 +31,54 @@ Note: Elyra is only tested with Kubeflow v1.2.x and v1.3.x and Apache Airflow v1
 
 ### Managing runtime configurations using the JupyterLab UI
 
-To create, edit, or delete runtime configurations using the UI select the `Runtimes` tab from the JupyterLab sidebar, or click the `Runtimes` button in the Pipeline Editor.
+Runtime configurations can be listed, added, modified, duplicated, and removed in the _Runtimes_ panel.
 
-  ![Access runtime configurations](../images/access-runtime-configurations.png)
+![Runtimes panel](../images/user_guide/runtime-conf/access-runtime-configurations.png)
+
+To access the panel in JupyterLab:
+
+- Select the `Runtimes` panel from the JupyterLab sidebar.
+
+  ![Open panel from sidebar](../images/user_guide/runtime-conf/sidebar-button.png)     
+
+  OR
+
+- Open the JupyterLab command palette (`Cmd/Ctrl + Shift + C`) and search for `manage runtimes`.
+
+  ![Open panel from command palette](../images/user_guide/runtime-conf/cmd-palette.png)
 
 #### Creating a runtime configuration
 
 To create a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click `+` to add a new runtime configuration and choose the desired runtime configuration type, e.g. Kubeflow Pipelines or Apache Airflow. 
-   ![Create runtime configuration](../images/runtime-create-config.png)
+   ![Create runtime configuration](../images/user_guide/runtime-conf/runtime-create-config.png)
 1. Provide a runtime configuration display name, an optional description, and tag the configuration to make it more easily discoverable. 
 1. Enter the Kubeflow Pipelines or Apache Airflow deployment information. Refer to section [Kubeflow Pipelines configuration settings](#kubeflow-pipelines-configuration-settings) or [Apache Airflow configuration settings](#apache-airflow-configuration-settings) for details.
 1. Enter the Cloud Storage connectivity information. Refer to section [Cloud Storage settings](#cloud-storage-settings) for details.
 1. Save the runtime configuration. The new entry is displayed in the list.
 1. Expand the entry and verify that you can access the Kubeflow Pipelines or Apache Airflow GUI and the Cloud Storage GUI using the displayed links.
-   ![Access runtime configuration](../images/runtime-access-config.png) 
+   ![Access runtime configuration](../images/user_guide/runtime-conf/runtime-access-config.png) 
 
 #### Modifying a runtime configuration
 
 To edit a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click the pencil next to the runtime configuration.
+
+#### Duplicating a runtime configuration
+
+To duplicate a runtime configuration:
+1. Open the `Runtimes` panel.
+1. Click the duplicate icon next to the runtime configuration.
+1. Follow the steps in '[_Modifying a runtime image configuration_](#modifying-a-runtime-configuration)' to customize the duplicated configuration.
 
 #### Deleting a runtime configuration
 
 To delete a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click the trash can next to the runtime configuration.
+1. Confirm deletion.
 
 ### Managing runtime configurations using the Elyra CLI
 

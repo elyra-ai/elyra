@@ -108,7 +108,7 @@ class CacheUpdateManagerThread(Thread):
                 # Report successful join for threads that have previously logged a
                 # cache update duration warning
                 if thread.last_warn_time != thread.task_start_time:
-                    self.log.info(f"Cache update for catalog '{thread.name}' has"
+                    self.log.info(f"Cache update for catalog '{thread.name}' has "
                                   f"completed after {cumulative_run_time} seconds")
 
         return outstanding_threads

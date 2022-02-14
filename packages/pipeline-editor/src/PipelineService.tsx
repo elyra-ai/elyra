@@ -70,7 +70,7 @@ export class PipelineService {
     const res = await RequestHandler.makeGetRequest(
       'elyra/pipeline/runtimes/types'
     );
-    return res.runtime_types;
+    return res.runtime_types.sort((a: any, b: any) => a.id.localeCompare(b.id));
   }
 
   /**

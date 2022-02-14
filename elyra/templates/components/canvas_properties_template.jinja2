@@ -9,10 +9,14 @@
         "activeControl": "{{ property.default_control_type }}",
         "{{ property.default_control_type }}":
     {% endif %}
-    {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
+    {% set property_data_type = property.data_type %}
+    {% if property.data_type == 'inputvalue' %}{% set property_data_type = property.default_data_type %}{% endif %}
+    {% if property.default_control_type == "EnumControl" %}
+        null
+    {% elif property_data_type|lower == "bool" or property_data_type|lower == "boolean" %}
         {{ property.value|lower }}
-    {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or
-            property.data_type|lower == "number" or property.data_type|lower == "float" %}
+    {% elif property_data_type|lower == "int" or property_data_type|lower == "integer" or
+            property_data_type|lower == "number" or property_data_type|lower == "float" %}
         {{ property.value }}
     {% else %}
         "{{ property.value }}"

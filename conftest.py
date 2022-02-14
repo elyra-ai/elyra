@@ -22,6 +22,8 @@ from elyra.pipeline.component_catalog import ComponentCache
 
 pytest_plugins = ["jupyter_server.pytest_plugin"]
 
+TEST_CATALOG_NAME = 'new_test_catalog'
+
 KFP_COMPONENT_CACHE_INSTANCE = {
     "display_name": "KFP Example Components",
     "metadata": {
@@ -39,6 +41,7 @@ AIRFLOW_COMPONENT_CACHE_INSTANCE = {
     },
     "schema_name": "elyra-airflow-examples-catalog"
 }
+
 
 @pytest.fixture
 def component_cache_instance(request):
@@ -68,3 +71,22 @@ def component_cache_instance(request):
     # Test was not parametrized, so component instance is not needed
     except AttributeError:
         yield None
+
+
+@pytest.fixture
+def metadata_manager_with_teardown():
+    """
+    This fixture provides a MetadataManager instance for certain tests that modify the component
+    catalog. This ensures the catalog instance is removed even when the test fails
+    """
+    metadata_manager = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+
+    # Run test with provided metadata manager
+    yield metadata_manager
+
+    # Remove test catalog
+    try:
+        if metadata_manager.get(TEST_CATALOG_NAME):
+            metadata_manager.remove(TEST_CATALOG_NAME)
+    except Exception:
+        pass

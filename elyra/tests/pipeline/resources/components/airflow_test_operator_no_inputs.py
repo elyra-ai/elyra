@@ -13,17 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from typing import Any
+
 from airflow.models import BaseOperator
-from airflow.utils.decorators import apply_defaults
 
 
 class TestOperatorNoInputs(BaseOperator):
     r"""
-    Execute a test script.
+    An Operator class with no init function parameters (and hence no
+    properties when rendered as a component)
     """
 
-    @apply_defaults
     def __init__(self,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
+
+    def execute(self, context: Any):
+        pass

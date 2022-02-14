@@ -31,7 +31,7 @@ import {
   showDialog,
   UseSignal
 } from '@jupyterlab/apputils';
-import { editIcon, LabIcon } from '@jupyterlab/ui-components';
+import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 
@@ -39,6 +39,7 @@ import React from 'react';
 
 import { AddMetadataButton } from './AddMetadataButton';
 import { FilterTools } from './FilterTools';
+import { MetadataCommonService } from './MetadataCommonService';
 
 /**
  * The CSS class added to metadata widgets.
@@ -139,6 +140,21 @@ export class MetadataDisplay<
             schema: metadata.schema_name,
             name: metadata.name
           });
+        }
+      },
+      {
+        title: 'Duplicate',
+        icon: copyIcon,
+        onClick: (): void => {
+          MetadataCommonService.duplicateMetadataInstance(
+            this.props.schemaspace,
+            metadata,
+            this.props.metadata
+          )
+            .then((response: any): void => {
+              this.props.updateMetadata();
+            })
+            .catch(error => RequestErrors.serverError(error));
         }
       },
       {
