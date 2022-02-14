@@ -67,7 +67,7 @@
           "maxLength": 253,
           "uihints": {
             "category": "Source",
-            "secure": true
+            "field_type": "password"
           }
         }
       },
