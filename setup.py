@@ -41,7 +41,7 @@ metadata_path_catalogs = './etc/config/metadata/component-catalogs/*.json'  # de
 settings_path = './etc/config/settings/*.json'
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=1.0.1', ],
+    'kfp-tekton': ['kfp-tekton~=1.1.1', ],
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
     'kfp-examples': ['elyra-examples-kfp-catalog'],
