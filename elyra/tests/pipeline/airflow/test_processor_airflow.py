@@ -424,7 +424,6 @@ def test_collect_envs(processor):
 
 
 def test_unique_operation_name_existent(processor):
-
     op1 = SimpleNamespace(name="sample_operation")
     op2 = SimpleNamespace(name="sample_operation_2")
     op3 = SimpleNamespace(name="sample_operation_3")
@@ -457,6 +456,25 @@ def test_unique_operation_name_non_existent(processor):
 
     assert name_list == correct_name_list
     assert operation_name not in name_list
+
+
+def test_unique_operation_custom(processor):
+    op1 = SimpleNamespace(name="this bash")
+    op2 = SimpleNamespace(name="this@bash")
+    op3 = SimpleNamespace(name="this!bash")
+    op4 = SimpleNamespace(name="that^bash")
+    op5 = SimpleNamespace(name="that bash")
+    op6 = SimpleNamespace(name="that_bash_2")
+    sample_operation_list = [op1, op2, op3, op4, op5, op6]
+
+    correct_name_list = ['this_bash', 'this_bash_2', 'this_bash_3',
+                         'that_bash', 'that_bash_2', 'that_bash_2_2']
+
+    scrubbed_list = processor._scrub_invalid_characters_from_list(sample_operation_list)
+    renamed_op_list = processor._create_unique_node_names(scrubbed_list)
+    name_list = [op.name for op in renamed_op_list]
+
+    assert name_list == correct_name_list
 
 
 def test_process_list_value_function(processor):

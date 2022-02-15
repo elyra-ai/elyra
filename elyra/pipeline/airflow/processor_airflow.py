@@ -456,6 +456,7 @@ be fully qualified (i.e., prefixed with their package names).
                     self._create_unique_node_names([operation], unique_names)
                 else:
                     operation.name = new_name
+                    unique_names[operation.name] = 1
             else:
                 unique_names[operation.name] = 1
 
