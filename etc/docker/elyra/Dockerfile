@@ -29,7 +29,8 @@ RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolv
  && python3 -m pip install -r requirements.txt \   
  && jupyter lab build \
  && rm -rf $HOME/.cache/yarn \
- && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
+ && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules \
+ && rm requirements.txt
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' and 'airflow-examples' pip extras are not installed
