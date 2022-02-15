@@ -22,6 +22,7 @@ from typing import List
 from jsonschema import ValidationError
 
 from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.error import SchemaNotFoundError
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.metadata_app_utils import AppBase
@@ -407,8 +408,15 @@ class SchemaspaceExport(SchemaspaceBase):
     def start(self):
         super().start()  # process options
 
-        include_invalid = not self.valid_only_flag.value
         schema_name = self.schema_name_option.value
+        if(schema_name):
+            schema_list = list(self.schemas.keys())
+            if schema_name not in schema_list:
+                print(f"Schema name '{schema_name}' is invalid. For the '{self.schemaspace}' schemaspace, " +
+                      f"the schema-name must be one of {schema_list}")
+                raise SchemaNotFoundError(self.schemaspace, schema_name)
+
+        include_invalid = not self.valid_only_flag.value
         directory = self.directory_option.value
         clean = self.clean_flag.value
 
@@ -422,28 +430,64 @@ class SchemaspaceExport(SchemaspaceBase):
             metadata_instances = None
 
         if not metadata_instances:
-            print("No metadata instances found for schemaspace {}".format(self.schemaspace) +
-                  (" and schema {}".format(schema_name) if schema_name else ""))
-            print("Nothing exported to {}".format(directory))
+            print(f"No metadata instances found for schemaspace '{self.schemaspace}'" +
+                  (f" and schema '{schema_name}'" if schema_name else ""))
+            print(f"Nothing exported to '{directory}'")
             return
 
         dest_directory = os.path.join(directory, self.schemaspace)
 
         if not os.path.exists(dest_directory):
-            print("Creating directory structure for {}".format(dest_directory))
+            print(f"Creating directory structure for '{dest_directory}'")
             os.makedirs(dest_directory)
 
         if clean:
-            print("Cleaning out all files in {}".format(dest_directory))
             files = [os.path.join(dest_directory, f) for f in os.listdir(dest_directory)]
-            [os.remove(f) for f in files if os.path.isfile(f)]
+            if len(files) > 0:
+                print(f"Cleaning out all files in '{dest_directory}'")
+                [os.remove(f) for f in files if os.path.isfile(f)]
 
-        print("Exporting metadata instances for schemaspace {}".format(self.schemaspace) +
-              (" and schema {}".format(schema_name) if schema_name else "") +
-              " to {}".format(dest_directory))
-        for metadata in metadata_instances:
-            dict_metadata = metadata.to_dict()
+        print(f"Exporting metadata instances for schemaspace '{self.schemaspace}'" +
+              (f" and schema '{schema_name}'" if schema_name else "") +
+              (" (includes invalid)" if include_invalid else " (valid only)") +
+              f" to '{dest_directory}'")
+
+        sorted_instances = sorted(metadata_instances, key=lambda inst: (inst.schema_name, inst.name))
+        # pad to width of longest instance
+        max_schema_name_len = len('Schema')
+        max_name_len = len('Instance')
+        max_resource_len = len('Resource')
+        max_export_location_len = len('Export Location')
+        for instance in sorted_instances:
+            max_schema_name_len = max(len(instance.schema_name), max_schema_name_len)
+            max_name_len = max(len(instance.name), max_name_len)
+            max_resource_len = max(len(instance.resource), max_resource_len)
+
+        # longest export location is {dest_directory} + "/" + {longest metadata name} + ".json"
+        max_export_location_len = max(max_export_location_len, len(dest_directory + "/") + max_name_len + len(".json"))
+
+        print()
+        print("%s   %s  %s  %s  " % ('Schema'.ljust(max_schema_name_len),
+                                     'Instance'.ljust(max_name_len),
+                                     'Resource'.ljust(max_resource_len),
+                                     'Export Location'.ljust(max_export_location_len)))
+        print("%s   %s  %s  %s  " % ('------'.ljust(max_schema_name_len),
+                                     '--------'.ljust(max_name_len),
+                                     '--------'.ljust(max_resource_len),
+                                     '---------------'.ljust(max_export_location_len)))
+        for instance in sorted_instances:
+            dict_metadata = instance.to_dict()
             output_file = os.path.join(dest_directory, f'{dict_metadata["name"]}.json')
+
+            invalid = ""
+            if instance.reason and len(instance.reason) > 0:
+                invalid = f"**INVALID** ({instance.reason})"
+            print("%s   %s  %s  %s  %s" % (instance.schema_name.ljust(max_schema_name_len),
+                                           instance.name.ljust(max_name_len),
+                                           instance.resource.ljust(max_resource_len),
+                                           output_file.ljust(max_export_location_len),
+                                           invalid))
+
             with open(output_file, mode='w') as output_file:
                 json.dump(dict_metadata, output_file, indent=4)
 
@@ -532,7 +576,7 @@ class Export(SubcommandBase):
     """Exports metadata instances in a given schemaspace."""
 
     description = "Export metadata instances in a given schemaspace."
-    subcommand_description = "Export installed metadata in schemaspace {schemaspace}."
+    subcommand_description = "Export installed metadata in schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceExport
 
     def __init__(self, **kwargs):

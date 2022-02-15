@@ -148,15 +148,14 @@ To export runtime configurations:
 
 ```bash
 elyra-metadata export runtimes \
-	--schema-name="kfp" \
 	--directory="/tmp/foo"
 ```
 
-The above example will export all runtime configurations in the "kfp" schema to the "/tmp/foo/runtimes" directory.
+The above example will export all runtime configurations to the "/tmp/foo/runtimes" directory.
 
-Note that you must specify the `--directory` option. If the `--schema-name` option is not specified, runtime configurations across all schemas will be exported. 
+Note that you must specify the `--directory` option. 
 
-There are two additional flags that can be specified when exporting metadata:
+There are two flags that can be specified when exporting metadata:
 1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtimes" directory before exporting the metadata.
 

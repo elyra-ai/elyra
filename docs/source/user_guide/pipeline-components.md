@@ -212,15 +212,14 @@ To export component catalogs:
 
 ```bash
 elyra-metadata export component-catalogs \
-	--schema-name="url-catalog" \
 	--directory="/tmp/foo"
 ```
 
-The above example will export all component catalogs in the "url-catalog" schema to the "/tmp/foo/component-catalogs" directory.
+The above example will export all component catalogs to the "/tmp/foo/component-catalogs" directory.
 
-Note that you must specify the `--directory` option. If the `--schema-name` option is not specified, component catalogs across all schemas will be exported. 
+Note that you must specify the `--directory` option.
 
-There are two additional flags that can be specified when exporting metadata:
+There are two flags that can be specified when exporting metadata:
 1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the metadata.
 
