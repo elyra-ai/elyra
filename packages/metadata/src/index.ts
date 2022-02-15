@@ -74,7 +74,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       const openWidget = find(
         app.shell.widgets('main'),
         (widget: Widget, index: number) => {
-          return widget.id == widgetId;
+          return widget.id === widgetId;
         }
       );
       if (openWidget) {
@@ -122,7 +122,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataWidget.title.caption = args.display_name;
 
       if (
-        find(app.shell.widgets('left'), value => value.id === widgetId) ==
+        find(app.shell.widgets('left'), value => value.id === widgetId) ===
         undefined
       ) {
         app.shell.add(metadataWidget, 'left', { rank: 1000 });
