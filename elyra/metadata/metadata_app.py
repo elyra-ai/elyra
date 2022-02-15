@@ -410,7 +410,7 @@ class SchemaspaceExport(SchemaspaceBase):
 
         schema_name = self.schema_name_option.value
         if(schema_name):
-            schema_list = list(self.schemas.keys())
+            schema_list = sorted(list(self.schemas.keys()))
             if schema_name not in schema_list:
                 print(f"Schema name '{schema_name}' is invalid. For the '{self.schemaspace}' schemaspace, " +
                       f"the schema-name must be one of {schema_list}")

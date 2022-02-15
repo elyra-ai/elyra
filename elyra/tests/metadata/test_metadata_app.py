@@ -553,7 +553,7 @@ def test_export_bad_schema(script_runner):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
                             '--directory=dummy-directory', '--schema_name=bogus-schema')
     assert ret.stdout.startswith("Schema name 'bogus-schema' is invalid. For the 'metadata-tests' schemaspace, " +
-                                 "the schema-name must be one of ['metadata-test2', 'metadata-test']")
+                                 "the schema-name must be one of ['metadata-test', 'metadata-test2']")
     assert ret.success is False
 
 
