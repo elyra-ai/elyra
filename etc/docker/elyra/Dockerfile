@@ -21,9 +21,12 @@ FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
 ARG TAG="dev"
 
-# Install Elyra
+COPY requirements.txt .
+
+# Install Elyra and custom requirements
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[all]=="$TAG" \
+ && python3 -m pip install -r requirements.txt \   
  && jupyter lab build \
  && rm -rf $HOME/.cache/yarn \
  && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
