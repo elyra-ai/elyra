@@ -278,11 +278,26 @@ def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, 
 
         file_as_lines = open(response).read().splitlines()
 
-        # Check DAG project name
+        pipeline_description = pipeline_json['pipelines'][0]['app_data']['properties']['description']
+        escaped_description = pipeline_description.replace("\"\"\"", "\\\"\\\"\\\"")
+
         for i in range(len(file_as_lines)):
             if "args = {" == file_as_lines[i]:
+                # Check DAG project name
                 assert "project_id" == read_key_pair(file_as_lines[i + 1], sep=':')['key']
                 assert export_pipeline_name == read_key_pair(file_as_lines[i + 1], sep=':')['value']
+            elif 'description="""' in file_as_lines[i]:
+                # Check that DAG contains the correct description
+                line_no = i + 1
+                description_as_lines = []
+                while '"""' not in file_as_lines[line_no]:
+                    description_as_lines.append(file_as_lines[line_no])
+                    line_no += 1
+                expected_description_lines = escaped_description.split("\n")
+                assert description_as_lines == expected_description_lines
+
+                # Nothing more to be done in file
+                break
 
         # For every node in the original pipeline json
         for node in pipeline_json['pipelines'][0]['nodes']:

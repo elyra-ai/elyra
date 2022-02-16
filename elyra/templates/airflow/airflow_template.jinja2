@@ -14,7 +14,9 @@ dag = DAG(
     default_args=args,
     schedule_interval='@once',
     start_date=days_ago(1),
-    description='{{ pipeline_description }}',
+    description="""
+{{ pipeline_description|replace("\"\"\"", "\\\"\\\"\\\"") }}
+    """,
     is_paused_upon_creation={{ is_paused_upon_creation }},
 )
 
@@ -86,7 +88,7 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
 
     {% if operation.doc %}
         op_{{ operation.id|regex_replace }}.doc = """
-        {{ operation.doc }}
+        {{ operation.doc|replace("\"\"\"", "\\\"\\\"\\\"") }}
     """
     {% endif %}
 
