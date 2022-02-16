@@ -1,0 +1,12 @@
+# .github/release.yml
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: New Features
+      labels:
+        - kind:enhancement
