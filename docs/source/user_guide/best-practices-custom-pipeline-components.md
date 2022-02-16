@@ -53,8 +53,8 @@ variable. This variable has a list value and is a
 in Elyra. To configure `available_airflow_operators`, first create a configuration file from the command line (if 
 you do not already have one):
 
-```commandline
-jupyter elyra --config
+```bash
+$ jupyter elyra --config
 ```
 
 Open the configuration file (a Python file) and find the `PipelineProcessor(LoggingConfigurable)` header. Using 
