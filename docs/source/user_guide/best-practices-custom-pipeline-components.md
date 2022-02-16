@@ -38,12 +38,13 @@ limitations under the License.
 
 ##### Configure fully qualified package names for custom operator classes
 
-In order to successfully render the DAG for an Airflow pipeline, Elyra must be configured to include information 
-on the fully qualified custom operator classes used in that pipeline. This configuration is what makes it possible 
-for Elyra to correctly render the import statements for each operator node in a given DAG.
+For Apache Airflow operators imported into Elyra using URL, filesystem, or directory-based component catalogs, Elyra 
+must be configured to include information on the fully qualified package names for each custom operator class. This 
+configuration is what makes it possible for Elyra to correctly render the import statements for each operator node 
+in a given DAG.
 
-If you do not correctly configure an operator package name and try to export or submit a pipeline, Elyra 
-will give you an error message similar to the following:
+If you do not correctly configure an operator package name and try to export or submit a pipeline with custom 
+components, Elyra will give you an error message similar to the following:
 
 ![Error message requiring configuration](../images/user_guide/best-practices-custom-pipeline-components/config-error-message.png)
 
@@ -81,7 +82,7 @@ c.AirflowPipelineProcessor.available_airflow_operators.extend(
 ```
 
 There is no need to restart JupyterLab in order for these changes to be picked up. You can now successfully 
-export or submit a pipeline with these components. 
+export or submit a pipeline with these custom components. 
 
 #### Best practices
 
