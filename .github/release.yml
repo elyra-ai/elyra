@@ -9,4 +9,10 @@ changelog:
   categories:
     - title: New Features
       labels:
-        - kind:enhancement
+        -kind:enhancement 
+    - title: Bug Fixes
+      labels:
+        - kind:bug
+    - title: Other
+      labels:
+        - "*"
