@@ -449,13 +449,12 @@ be fully qualified (i.e., prefixed with their package names).
     def _create_unique_node_names(self, operation_list: List[Operation]) -> List[Operation]:
         unique_names = {}
         for operation in operation_list:
-            # if a duplicate name is found
-            if operation.name in unique_names:
-                new_name = operation.name
-                while new_name in unique_names:
-                    new_name = f"{operation.name}_{unique_names[operation.name]}"
-                    unique_names[operation.name] += 1
-                operation.name = new_name
+            # Ensure operation name is unique
+            new_name = operation.name
+            while new_name in unique_names:
+                new_name = f"{operation.name}_{unique_names[operation.name]}"
+                unique_names[operation.name] += 1
+            operation.name = new_name
 
             unique_names[operation.name] = 1
 
