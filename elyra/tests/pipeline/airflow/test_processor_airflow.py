@@ -433,7 +433,7 @@ def test_unique_operation_name_existent(processor):
     sample_operation_list = [op1, op2, op3, op4, op5, op6]
 
     correct_name_list = ['sample_operation', 'sample_operation_2', 'sample_operation_3',
-                         'sample_operation_4', 'sample_operation_2_2', 'sample_operation_3_2']
+                         'sample_operation_1', 'sample_operation_2_1', 'sample_operation_3_1']
 
     renamed_op_list = processor._create_unique_node_names(sample_operation_list)
     name_list = [op.name for op in renamed_op_list]
@@ -465,10 +465,12 @@ def test_unique_operation_custom(processor):
     op4 = SimpleNamespace(name="that^bash")
     op5 = SimpleNamespace(name="that bash")
     op6 = SimpleNamespace(name="that_bash_2")
-    sample_operation_list = [op1, op2, op3, op4, op5, op6]
+    op7 = SimpleNamespace(name="that_bash_1")
+    op8 = SimpleNamespace(name="that_bash_0")
+    sample_operation_list = [op1, op2, op3, op4, op5, op6, op7, op8]
 
-    correct_name_list = ['this_bash', 'this_bash_2', 'this_bash_3',
-                         'that_bash', 'that_bash_2', 'that_bash_2_2']
+    correct_name_list = ['this_bash', 'this_bash_1', 'this_bash_2', 'that_bash',
+                         'that_bash_1', 'that_bash_2', 'that_bash_1_1', 'that_bash_0']
 
     scrubbed_list = processor._scrub_invalid_characters_from_list(sample_operation_list)
     renamed_op_list = processor._create_unique_node_names(scrubbed_list)
@@ -585,7 +587,7 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, parsed_pipeline,
     operation_parameters = ordered_operations[task_id]['component_params']
     operation_parameter_endpoint = operation_parameters['endpoint']
 
-    assert operation_parameter_endpoint == '"{{ ti.xcom_pull(task_ids=\'BashOperator_2\') }}"'
+    assert operation_parameter_endpoint == '"{{ ti.xcom_pull(task_ids=\'BashOperator_1\') }}"'
 
 
 def test_scrub_invalid_characters(processor):

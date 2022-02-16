@@ -37,6 +37,7 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
@@ -223,7 +224,7 @@ be fully qualified (i.e., prefixed with their package names).
         # Scrub all node labels of invalid characters
         scrubbed_operations = self._scrub_invalid_characters_from_list(sorted_operations)
         # Generate unique names for all operations
-        unique_operations = self._create_unique_node_names(scrubbed_operations, None)
+        unique_operations = self._create_unique_node_names(scrubbed_operations)
 
         for operation in unique_operations:
 
@@ -445,30 +446,28 @@ be fully qualified (i.e., prefixed with their package names).
 
         return pipeline_export_path
 
-    def _create_unique_node_names(self, operation_list, parent_unique_names=None):
-        unique_names = parent_unique_names or {}
+    def _create_unique_node_names(self, operation_list: List[Operation]) -> List[Operation]:
+        unique_names = {}
         for operation in operation_list:
             # if a duplicate name is found
             if operation.name in unique_names:
-                unique_names[operation.name] += 1
-                new_name = f"{operation.name}_{unique_names[operation.name]}"
-                if new_name in unique_names:  # look-ahead
-                    self._create_unique_node_names([operation], unique_names)
-                else:
-                    operation.name = new_name
-                    unique_names[operation.name] = 1
-            else:
-                unique_names[operation.name] = 1
+                new_name = operation.name
+                while new_name in unique_names:
+                    new_name = f"{operation.name}_{unique_names[operation.name]}"
+                    unique_names[operation.name] += 1
+                operation.name = new_name
+
+            unique_names[operation.name] = 1
 
         return operation_list
 
-    def _scrub_invalid_characters_from_list(self, operation_list) -> str:
+    def _scrub_invalid_characters_from_list(self, operation_list: List[Operation]) -> List[Operation]:
         for operation in operation_list:
             operation.name = self._scrub_invalid_characters(operation.name)
 
         return operation_list
 
-    def _scrub_invalid_characters(self, name) -> str:
+    def _scrub_invalid_characters(self, name: str) -> str:
         chars = re.escape(string.punctuation)
         clean_name = re.sub(r'[' + chars + '\\s]', '_', name)  # noqa E226
         return clean_name
