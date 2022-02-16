@@ -34,4 +34,55 @@ limitations under the License.
 
 ### Apache Airflow components
 
+#### Requirements
+
+##### Configure fully qualified package names for custom operator classes
+
+In order to successfully render the DAG for an Airflow pipeline, Elyra must be configured to include information 
+on the fully qualified custom operator classes used in that pipeline. This configuration is what makes it possible 
+for Elyra to correctly render the import statements for each operator node in a given DAG.
+
+If you do not correctly configure an operator package name and try to export or submit a pipeline, Elyra 
+will give you an error message similar to the following:
+
+![Error message requiring configuration](../images/user_guide/best-practices-custom-pipeline-components/config-error-message.png)
+
+As seen above, the operators' fully qualified package names must be added to the `available_airflow_operators` 
+variable. This variable has a list value and is a 
+[configurable trait](https://medium.com/r/?url=https%3A%2F%2Ftraitlets.readthedocs.io%2Fen%2Fstable%2Fconfig.html) 
+in Elyra. To configure `available_airflow_operators`, first create a configuration file from the command line (if 
+you do not already have one):
+
+```commandline
+jupyter elyra --config
+```
+
+Open the configuration file (a Python file) and find the `PipelineProcessor(LoggingConfigurable)` header. Using 
+`c.AirflowPipelineProcessor.available_airflow_operators` as the variable name, modify the variable as needed 
+using Python list manipulation methods such as `append`, `extend`, or overwrite all existing values using an 
+assignment.
+
+For example, if you want to use the `SlackAPIPostOperator` from the Slack provider package and the `PapermillOperator` 
+from the core package in your pipelines, your configuration will look like this:
+
+```python
+...
+#------------------------------------------------------------------------------
+# PipelineProcessor(LoggingConfigurable) configuration
+#------------------------------------------------------------------------------
+
+c.AirflowPipelineProcessor.available_airflow_operators.extend(
+    [
+        "airflow.providers.slack.operators.SlackAPIPostOperator",
+        "airflow.operators.papermill_operator.PapermillOperator"
+    ]
+)
+...
+```
+
+There is no need to restart JupyterLab in order for these changes to be picked up. You can now successfully 
+export or submit a pipeline with these components. 
+
+#### Best practices
+
 > This documentation content is currently under development.
