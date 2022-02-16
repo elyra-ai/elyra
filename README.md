@@ -92,7 +92,7 @@ Elyra can be installed from PyPI:
 
 ### Prerequisites :
 * [NodeJS 12+](https://nodejs.org/en/)
-* [Python 3.6+](https://www.python.org/downloads/)
+* [Python 3.7+](https://www.python.org/downloads/)
 
 ##### Optional :
 * [Miniconda](https://docs.conda.io/en/latest/miniconda.html) 
