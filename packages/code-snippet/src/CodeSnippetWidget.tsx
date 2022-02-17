@@ -443,7 +443,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
                   this.props.shell.widgets('main'),
                   (value: Widget, index: number) => {
                     return (
-                      value.id ==
+                      value.id ===
                       `${METADATA_EDITOR_ID}:${CODE_SNIPPET_SCHEMASPACE}:${CODE_SNIPPET_SCHEMA}:${metadata.name}`
                     );
                   }
