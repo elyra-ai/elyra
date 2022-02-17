@@ -1,11 +1,11 @@
-ipykernel==5.3.0
-ipython==7.15.0
+ipykernel==6.9.1
+ipython==7.16.3
 ipython-genutils==0.2.0
 #jedi==0.17.0
 #Jinja2==2.11.2
 #jsonschema==3.2.0
-jupyter-client==6.1.6
-jupyter-core==4.6.3
+jupyter-client==7.1.2
+jupyter-core==4.9.2
 minio==6.0.2
 nbclient==0.4.1
 nbconvert==5.6.1
