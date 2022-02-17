@@ -50,12 +50,12 @@ components, Elyra will give you an error message similar to the following:
 
 As seen above, the operators' fully qualified package names must be added to the `available_airflow_operators` 
 variable. This variable has a list value and is a 
-[configurable trait](https://medium.com/r/?url=https%3A%2F%2Ftraitlets.readthedocs.io%2Fen%2Fstable%2Fconfig.html) 
+[configurable trait](https://traitlets.readthedocs.io/en/stable/config.html) 
 in Elyra. To configure `available_airflow_operators`, first create a configuration file from the command line (if 
 you do not already have one):
 
 ```bash
-$ jupyter elyra --config
+$ jupyter elyra --generate-config
 ```
 
 Open the configuration file (a Python file) and find the `PipelineProcessor(LoggingConfigurable)` header. Using 
