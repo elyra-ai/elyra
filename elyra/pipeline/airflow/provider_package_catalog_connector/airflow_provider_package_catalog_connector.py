@@ -300,6 +300,10 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                            'Airflow provider package archive was not found.')
             return None
 
+        # Compose package name from operator_file_name, e.g.
+        # 'airflow/providers/ssh/operators/ssh.py' => 'airflow.providers.ssh.operators.ssh'
+        package = '.'.join(Path(operator_file_name).with_suffix('').parts)
+
         # load operator source using the provided key
         operator_source = self.tmp_archive_dir / operator_file_name
         self.log.debug(f'Reading operator source \'{operator_source}\' ...')
