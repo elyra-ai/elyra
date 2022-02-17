@@ -21,7 +21,7 @@ limitations under the License.
 Articles, blog posts, and other resources covering Elyra. [Examples and tutorials are located here](tutorials.md).
 
 - 2022:
-    - February 17: [Getting Started with Apache Airflow Operators in Elyra](https://medium.com/ibm-data-ai/getting-started-with-apache-airflow-operators-in-elyra-aae882f80c4a?source=friends_link&sk=5849ae43f537abdf820e01e3cda2a8d2)
+    - February 16: [Getting Started with Apache Airflow Operators in Elyra](https://medium.com/ibm-data-ai/getting-started-with-apache-airflow-operators-in-elyra-aae882f80c4a?source=friends_link&sk=5849ae43f537abdf820e01e3cda2a8d2)
 - 2021:
     - December 7: [Elyra 3.3: Pipelines, custom components, and catalogs](https://medium.com/ibm-data-ai/elyra-3-3-pipelines-custom-components-and-catalogs-74cf198fdf48?source=friends_link&sk=ef91a56fbbae97bbaea77ff169d549dd) 
     - August 5: [Introducing Elyra pipelines with custom component support](https://medium.com/ibm-data-ai/introducing-elyra-pipelines-with-custom-component-support-ae6b616910b5?source=friends_link&sk=ee448fcc480db5c6c93db7a850ca026f)
