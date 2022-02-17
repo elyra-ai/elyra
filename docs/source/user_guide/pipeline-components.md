@@ -91,7 +91,7 @@ Details and demo pipelines for some of the included components can be found in t
 ### Special considerations for custom Airflow components
 Custom Airflow components imported from some types of component catalog connectors require additional configuration 
 in order to be used in pipelines. See 
-['Best Practices for Custom Pipeline Components'](best-practices-custom-pipeline-components.md#apache-airflow-components) 
+['Best Practices for Custom Pipeline Components'](best-practices-custom-pipeline-components.html#apache-airflow-components) 
 for details.
 
 ### Managing pipeline components
