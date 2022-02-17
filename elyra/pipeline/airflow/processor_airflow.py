@@ -18,6 +18,7 @@ from datetime import datetime
 import json
 import os
 import re
+import string
 import tempfile
 import time
 from typing import Dict
@@ -36,6 +37,7 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
@@ -219,7 +221,12 @@ be fully qualified (i.e., prefixed with their package names).
 
         PipelineProcessor._propagate_operation_inputs_outputs(pipeline, sorted_operations)
 
-        for operation in sorted_operations:
+        # Scrub all node labels of invalid characters
+        scrubbed_operations = self._scrub_invalid_characters_from_list(sorted_operations)
+        # Generate unique names for all operations
+        unique_operations = self._create_unique_node_names(scrubbed_operations)
+
+        for operation in unique_operations:
 
             if isinstance(operation, GenericOperation):
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
@@ -263,10 +270,7 @@ be fully qualified (i.e., prefixed with their package names).
                                                inputs=operation.inputs,
                                                outputs=operation.outputs)
 
-                unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
-                                                                        operation_list=target_ops)
-
-                target_op = {'notebook': unique_operation_name,
+                target_op = {'notebook': operation.name,
                              'id': operation.id,
                              'argument_list': bootscript.container_cmd,
                              'runtime_image': operation.runtime_image,
@@ -348,9 +352,6 @@ be fully qualified (i.e., prefixed with their package names).
                 operation.component_params_as_dict.pop("inputs")
                 operation.component_params_as_dict.pop("outputs")
 
-                unique_operation_name = self._get_unique_operation_name(operation_name=operation.name,
-                                                                        operation_list=target_ops)
-
                 # Locate the import statement. If not found raise...
                 import_stmts = []
                 import_stmt = self.class_import_map.get(component.name)
@@ -370,7 +371,7 @@ be fully qualified (i.e., prefixed with their package names).
                                          f"package name for '{component.name}' to the "
                                          f"AirflowPipelineProcessor.available_airflow_operators configuration.")
 
-                target_op = {'notebook': unique_operation_name,
+                target_op = {'notebook': operation.name,
                              'id': operation.id,
                              'imports': import_stmts,
                              'class_name': component.name,
@@ -412,9 +413,7 @@ be fully qualified (i.e., prefixed with their package names).
             loader = PackageLoader('elyra', 'templates/airflow')
             template_env = Environment(loader=loader)
 
-            template_env.filters['regex_replace'] = lambda string: re.sub("[-!@#$%^&*(){};:,/<>?|`~=+ ]",
-                                                                          "_",
-                                                                          string)  # nopep8 E731
+            template_env.filters['regex_replace'] = lambda string: self._scrub_invalid_characters(string)
 
             template = template_env.get_template('airflow_template.jinja2')
 
@@ -443,19 +442,35 @@ be fully qualified (i.e., prefixed with their package names).
                 import black
                 autopep_output = autopep8.fix_code(python_output)
                 output_to_file = black.format_str(autopep_output, mode=black.FileMode())
+
                 fh.write(output_to_file)
 
         return pipeline_export_path
 
-    def _get_unique_operation_name(self, operation_name: str, operation_list: list) -> str:
-        unique_name_counter = 1
-        unique_operation_name = operation_name
-        names = [op['notebook'] for op in operation_list]
-        while unique_operation_name in names:
-            unique_name_counter += 1
-            unique_operation_name = ''.join([operation_name, '_', str(unique_name_counter)])
+    def _create_unique_node_names(self, operation_list: List[Operation]) -> List[Operation]:
+        unique_names = {}
+        for operation in operation_list:
+            # Ensure operation name is unique
+            new_name = operation.name
+            while new_name in unique_names:
+                new_name = f"{operation.name}_{unique_names[operation.name]}"
+                unique_names[operation.name] += 1
+            operation.name = new_name
 
-        return unique_operation_name
+            unique_names[operation.name] = 1
+
+        return operation_list
+
+    def _scrub_invalid_characters_from_list(self, operation_list: List[Operation]) -> List[Operation]:
+        for operation in operation_list:
+            operation.name = self._scrub_invalid_characters(operation.name)
+
+        return operation_list
+
+    def _scrub_invalid_characters(self, name: str) -> str:
+        chars = re.escape(string.punctuation)
+        clean_name = re.sub(r'[' + chars + '\\s]', '_', name)  # noqa E226
+        return clean_name
 
     def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
         """

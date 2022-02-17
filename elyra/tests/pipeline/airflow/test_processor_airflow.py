@@ -16,7 +16,9 @@
 import os
 from pathlib import Path
 import re
+import string
 import tempfile
+from types import SimpleNamespace
 from unittest import mock
 
 from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
@@ -437,29 +439,59 @@ def test_collect_envs(processor):
 
 
 def test_unique_operation_name_existent(processor):
-    operation_name = "sample_operation"
+    op1 = SimpleNamespace(name="sample_operation")
+    op2 = SimpleNamespace(name="sample_operation_2")
+    op3 = SimpleNamespace(name="sample_operation_3")
+    op4 = SimpleNamespace(name="sample_operation")
+    op5 = SimpleNamespace(name="sample_operation_2")
+    op6 = SimpleNamespace(name="sample_operation_3")
+    sample_operation_list = [op1, op2, op3, op4, op5, op6]
 
-    op1 = {'notebook': "sample_operation"}
-    op2 = {'notebook': "sample_operation_2"}
-    op3 = {'notebook': "sample_operation_3"}
-    sample_operation_list = [op1, op2, op3]
+    correct_name_list = ['sample_operation', 'sample_operation_2', 'sample_operation_3',
+                         'sample_operation_1', 'sample_operation_2_1', 'sample_operation_3_1']
 
-    unique_name = processor._get_unique_operation_name(operation_name, sample_operation_list)
+    renamed_op_list = processor._create_unique_node_names(sample_operation_list)
+    name_list = [op.name for op in renamed_op_list]
 
-    assert unique_name == "sample_operation_4"
+    assert name_list == correct_name_list
 
 
 def test_unique_operation_name_non_existent(processor):
     operation_name = "sample_operation_foo_bar"
 
-    op1 = {'notebook': "sample_operation"}
-    op2 = {'notebook': "sample_operation_2"}
-    op3 = {'notebook': "sample_operation_3"}
+    op1 = SimpleNamespace(name="sample_operation")
+    op2 = SimpleNamespace(name="sample_operation_2")
+    op3 = SimpleNamespace(name="sample_operation_3")
     sample_operation_list = [op1, op2, op3]
 
-    unique_name = processor._get_unique_operation_name(operation_name, sample_operation_list)
+    correct_name_list = ['sample_operation', 'sample_operation_2', 'sample_operation_3']
 
-    assert unique_name == operation_name
+    renamed_op_list = processor._create_unique_node_names(sample_operation_list)
+    name_list = [op.name for op in renamed_op_list]
+
+    assert name_list == correct_name_list
+    assert operation_name not in name_list
+
+
+def test_unique_operation_custom(processor):
+    op1 = SimpleNamespace(name="this bash")
+    op2 = SimpleNamespace(name="this@bash")
+    op3 = SimpleNamespace(name="this!bash")
+    op4 = SimpleNamespace(name="that^bash")
+    op5 = SimpleNamespace(name="that bash")
+    op6 = SimpleNamespace(name="that_bash_2")
+    op7 = SimpleNamespace(name="that_bash_1")
+    op8 = SimpleNamespace(name="that_bash_0")
+    sample_operation_list = [op1, op2, op3, op4, op5, op6, op7, op8]
+
+    correct_name_list = ['this_bash', 'this_bash_1', 'this_bash_2', 'that_bash',
+                         'that_bash_1', 'that_bash_2', 'that_bash_1_1', 'that_bash_0']
+
+    scrubbed_list = processor._scrub_invalid_characters_from_list(sample_operation_list)
+    renamed_op_list = processor._create_unique_node_names(scrubbed_list)
+    name_list = [op.name for op in renamed_op_list]
+
+    assert name_list == correct_name_list
 
 
 def test_process_list_value_function(processor):
@@ -570,4 +602,14 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, parsed_pipeline,
     operation_parameters = ordered_operations[task_id]['component_params']
     operation_parameter_endpoint = operation_parameters['endpoint']
 
-    assert operation_parameter_endpoint == '"{{ ti.xcom_pull(task_ids=\'BashOperator_2\') }}"'
+    assert operation_parameter_endpoint == '"{{ ti.xcom_pull(task_ids=\'BashOperator_1\') }}"'
+
+
+def test_scrub_invalid_characters(processor):
+    invalid_character_list_string = '[-!@#$%^&*(){};:,/<>?|`~=+ ]'
+    valid_character_list_string = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
+    for character in invalid_character_list_string:
+        assert processor._scrub_invalid_characters(character) == '_'
+
+    for character in valid_character_list_string:
+        assert processor._scrub_invalid_characters(character) == character

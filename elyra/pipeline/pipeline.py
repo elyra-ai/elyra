@@ -98,6 +98,10 @@ class Operation(object):
     def name(self) -> str:
         return self._name
 
+    @name.setter
+    def name(self, value: str):
+        self._name = value
+
     @property
     def doc(self) -> str:
         return self._doc
@@ -251,6 +255,10 @@ class GenericOperation(Operation):
         if self._name == os.path.basename(self.filename):
             self._name = os.path.basename(self._name).split(".")[0]
         return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @property
     def filename(self) -> str:
