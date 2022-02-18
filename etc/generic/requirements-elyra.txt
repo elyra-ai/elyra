@@ -1,6 +1,6 @@
 # This is a comprehensive list of python dependencies that Elyra requires to execute Jupyter notebooks.
 ipykernel==6.9.1
-ipython==7.16.3
+ipython==8.0.1
 ipython-genutils==0.2.0
 jupyter-client==7.1.2
 jupyter-core==4.9.2
@@ -13,7 +13,7 @@ pyzmq==19.0.1
 prompt-toolkit==3.0.5
 requests==2.25.1
 tornado==6.0.4
-traitlets==4.3.3
+traitlets==5.1.1
 urllib3==1.26.5
 #
 # These excluded are transitive dependencies of the included python packages.
