@@ -18,8 +18,38 @@ import '@testing-library/cypress/add-commands';
 
 import './../utils/snapshots/add-commands';
 
-// TODO: we shouldn't have to fill out the form for any test that isn't specifically
-// testing filling out forms.
+Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
+  const kfpRuntimeInstallCommand =
+    'elyra-metadata install runtimes \
+  --schema_name=kfp \
+  --display_name="KFP Test Runtime" \
+  --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+  --cos_endpoint=http://0.0.0.0:9000 \
+  --cos_username=minioadmin \
+  --cos_password=minioadmin \
+  --cos_bucket=test-bucket';
+
+  const airflowRuntimeInstallCommand =
+    'elyra-metadata install runtimes \
+  --schema_name=airflow \
+  --display_name="Airflow Test Runtime" \
+  --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+  --github_repo=akchinstc/test-repo \
+  --github_branch=main \
+  --github_repo_token=xxxxxxxx \
+  --github_api_endpoint=https://api.github.com \
+  --cos_endpoint=http://0.0.0.0:9000 \
+  --cos_username=minioadmin \
+  --cos_password=minioadmin \
+  --cos_bucket=test-bucket';
+
+  cy.exec(
+    type === 'kfp' ? kfpRuntimeInstallCommand : airflowRuntimeInstallCommand,
+    { failOnNonZeroExit: false }
+  );
+});
+
+// Only used for testing filling out form for runtime metadata editor
 Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByRole('tab', { name: /runtimes/i }).click();
   cy.findByRole('button', { name: /create new runtime/i }).click();

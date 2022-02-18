@@ -16,6 +16,9 @@
 declare namespace Cypress {
   // eslint-disable-next-line @typescript-eslint/interface-name-prefix
   interface Chainable {
+    installRuntimeConfig(options?: {
+      type?: 'kfp' | 'airflow';
+    }): Chainable<void>;
     createRuntimeConfig(options?: { type?: 'kfp' }): Chainable<void>;
     createExampleComponentCatalog(options?: {
       type?: 'kfp' | 'airflow';
