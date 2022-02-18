@@ -24,12 +24,13 @@ from tempfile import mkdtemp
 from typing import Any
 from typing import Dict
 from typing import List
-from typing import Optional
 from urllib.parse import urlparse
 import zipfile
 
 import requests
 
+from elyra.pipeline.catalog_connector import AirflowCatalogEntry
+from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 
 
@@ -276,9 +277,9 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
         return operator_key_list
 
-    def read_catalog_entry(self,
-                           catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+    def get_component_definition(self,
+                                 catalog_entry_data: Dict[str, Any],
+                                 catalog_metadata: Dict[str, Any]) -> CatalogEntry:
         """
         Fetch the script identified by catalog_entry_data['file']
 
@@ -288,7 +289,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                                  stored; in addition to catalog_entry_data, catalog_metadata may also be
                                  needed to read the component definition for certain types of catalogs
 
-        :returns: the content of the given catalog entry's definition in string form
+        :returns: A CatalogEntry containing the definition and metadata
         """
 
         operator_file_name = catalog_entry_data['file']
@@ -298,7 +299,9 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             # there is nothing that can be done. Log error and return None
             self.log.error('Error. Cannot fetch operator source code. The '
                            'Airflow provider package archive was not found.')
-            return None
+            return AirflowCatalogEntry(None,
+                                       catalog_entry_data,
+                                       None)
 
         # Compose package name from operator_file_name, e.g.
         # 'airflow/providers/ssh/operators/ssh.py' => 'airflow.providers.ssh.operators.ssh'
@@ -309,11 +312,15 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         self.log.debug(f'Reading operator source \'{operator_source}\' ...')
         try:
             with open(operator_source, 'r') as source:
-                return source.read()
+                return AirflowCatalogEntry(definition=source.read(),
+                                           identifier=catalog_entry_data,
+                                           package_name=package)
         except Exception as ex:
             self.log.error(f'Error reading operator source \'{operator_source}\': {ex}')
 
-        return None
+        return AirflowCatalogEntry(None,
+                                   catalog_entry_data,
+                                   None)
 
     def get_hash_keys(self) -> List[Any]:
         """
