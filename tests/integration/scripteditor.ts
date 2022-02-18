@@ -44,7 +44,7 @@ describe('Script Editor tests', () => {
   });
 
   it('close editor', () => {
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.closeTab(-1);
   });
 
   it('open Python file with expected content', () => {
@@ -76,19 +76,37 @@ describe('Script Editor tests', () => {
       cy.findByText(/test runtime/i).should('exist');
     });
     // Click Run as Pipeline button
-    cy.contains('Run as Pipeline').click();
+    cy.findByText(/run as pipeline/i).click();
     // Check for expected dialog title
     cy.get('.jp-Dialog-header').should('have.text', 'Run file as pipeline');
     // Dismiss  dialog
     cy.get('button.jp-mod-reject').click();
 
     // Close editor tab
-    cy.get('.lm-TabBar-tabCloseIcon:visible')
-      .eq(1)
-      .click();
+    cy.closeTab(-1);
+  });
 
-    // go back to file browser
-    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
+  it('click the Run as Pipeline button on unsaved file should display save dialog', () => {
+    // Create new python file
+    cy.createNewScriptFile('Python');
+
+    // Add some text to the editor
+    cy.get('span[role="presentation"]').type('print("test")');
+
+    // Click Run as Pipeline button
+    cy.findByText(/run as pipeline/i).click();
+
+    // Check expected save and submit dialog message
+    cy.contains('.jp-Dialog-header', /this file contains unsaved changes/i);
+
+    // Dismiss save and submit dialog
+    cy.get('button.jp-mod-reject').click();
+
+    // Close editor tab
+    cy.closeTab(-1);
+
+    // Dismiss save your work dialog by discarding changes
+    cy.get('button.jp-mod-warn').click();
   });
 
   // R Tests
@@ -102,7 +120,7 @@ describe('Script Editor tests', () => {
   });
 
   it('close R editor', () => {
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.closeTab(-1);
   });
 
   it('open R file with expected content', () => {
@@ -127,7 +145,7 @@ describe('Script Editor tests', () => {
     cy.get(
       '#filebrowser [title*="Name: untitled1.py"] svg[data-icon="elyra:pyIcon"]'
     );
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.closeTab(-1);
 
     // Check r icons from launcher & file explorer
     cy.get(
@@ -136,7 +154,7 @@ describe('Script Editor tests', () => {
     cy.get(
       '#filebrowser [title*="Name: untitled1.r"] svg[data-icon="elyra:rIcon"]'
     );
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.closeTab(-1);
   });
 
   it('opens blank R file from menu', () => {
@@ -228,13 +246,11 @@ const openFileAndCheckContent = (fileExtension: string): void => {
   cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
   cy.get('.p-Panel .jp-mod-accept').click();
 
-  // Ensure that the files contants are as expected
+  // Ensure that the file contents are as expected
   cy.get('span[role="presentation"]').should($span => {
     expect($span.get(0).innerText).to.eq("print('Hello Elyra')");
   });
 
   // Close the file editor
-  cy.get('.lm-TabBar-tabCloseIcon:visible')
-    .last()
-    .click();
+  cy.closeTab(-1);
 };
