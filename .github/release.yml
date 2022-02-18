@@ -1,4 +1,5 @@
 # .github/release.yml
+# See https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
 
 changelog:
   exclude:
@@ -9,7 +10,7 @@ changelog:
   categories:
     - title: New Features
       labels:
-        -kind:enhancement 
+        - kind:enhancement 
     - title: Bug Fixes
       labels:
         - kind:bug
