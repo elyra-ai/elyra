@@ -291,8 +291,10 @@ class Component(object):
         return self._parameter_refs
 
     @property
-    def package_name(self) -> str:
-        return self._package_name
+    def import_statement(self) -> Optional[str]:
+        if not self._package_name:
+            return None
+        return f"from {self._package_name} import {self._name}"
 
     @property
     def input_properties(self) -> List[ComponentParameter]:

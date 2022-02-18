@@ -88,7 +88,8 @@ class AirflowComponentParser(ComponentParser):
                 definition=component_definition,
                 runtime_type=self.component_platform.name,
                 categories=registry_entry.categories,
-                properties=component_properties
+                properties=component_properties,
+                package_name=getattr(registry_entry.entry_data, 'package_name', None)
             )
 
             components.append(new_component)
