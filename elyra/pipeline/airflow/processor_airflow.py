@@ -353,7 +353,8 @@ be fully qualified (i.e., prefixed with their package names).
 
                 # Locate the import statement. If not found raise...
                 import_stmts = []
-                import_stmt = self.class_import_map.get(component.name)
+                # Check for package name on Component object, otherwise get from class_import_map
+                import_stmt = component.package_name or self.class_import_map.get(component.name)
                 if import_stmt:
                     import_stmts.append(import_stmt)
                 else:

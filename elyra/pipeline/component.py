@@ -178,7 +178,8 @@ class Component(object):
                  categories: Optional[List[str]] = None,
                  properties: Optional[List[ComponentParameter]] = None,
                  extensions: Optional[List[str]] = None,
-                 parameter_refs: Optional[dict] = None):
+                 parameter_refs: Optional[dict] = None,
+                 package_name: Optional[str] = None):
         """
         :param id: Unique identifier for a component
         :param name: The name of the component for display
@@ -193,6 +194,8 @@ class Component(object):
                            in the palette
         :param properties: The set of properties for the component
         :param extensions: The file extension used by the component
+        :param package_name: The fully qualified package name (excluding class name) of the file associated
+            with this component
         """
 
         if not id:
@@ -227,6 +230,7 @@ class Component(object):
 
         self._extensions = extensions
         self._parameter_refs = parameter_refs
+        self._package_name = package_name
 
     @property
     def id(self) -> str:
@@ -285,6 +289,10 @@ class Component(object):
     @property
     def parameter_refs(self) -> dict:
         return self._parameter_refs
+
+    @property
+    def package_name(self) -> str:
+        return self._package_name
 
     @property
     def input_properties(self) -> List[ComponentParameter]:

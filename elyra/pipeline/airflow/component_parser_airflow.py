@@ -42,7 +42,7 @@ class AirflowComponentParser(ComponentParser):
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         components: List[Component] = []
 
-        component_definition = registry_entry.component_definition
+        component_definition = registry_entry.entry_data.definition
         if not component_definition:
             return None
 
@@ -51,7 +51,7 @@ class AirflowComponentParser(ComponentParser):
             parsed_class_nodes = self._parse_all_classes(component_definition)
             num_operator_classes = len(parsed_class_nodes)
         except Exception as e:
-            self.log.error(f"Content associated with identifier '{registry_entry.component_identifier}' "
+            self.log.error(f"Content associated with identifier '{registry_entry.entry_data.identifier_as_string}' "
                            f"could not be parsed: {e}. Skipping...")
             return None
 
@@ -59,12 +59,12 @@ class AirflowComponentParser(ComponentParser):
             if not content.get('init_function'):
                 # Without the init function, class can't be parsed for properties
                 self.log.warning(f"Operator '{component_class}' associated with identifier "
-                                 f"'{registry_entry.component_identifier}' does not have an __init__ "
+                                 f"'{registry_entry.entry_data.identifier_as_string}' does not have an __init__ "
                                  f"function. Skipping...")
                 continue
 
             # Assign component name and unique id
-            component_id = registry_entry.component_id
+            component_id = registry_entry.entry_data.entry_id
             if num_operator_classes > 1:
                 # This file contains more than one operator and id must be adjusted
                 # to include the Operator class name as well
@@ -75,7 +75,7 @@ class AirflowComponentParser(ComponentParser):
                 component_properties: List[ComponentParameter] = self._parse_properties_from_init(**content)
             except Exception as e:
                 self.log.error(f"Properties of operator '{component_class}' associated with "
-                               f"identifier '{registry_entry.component_identifier}' could not be "
+                               f"identifier '{registry_entry.entry_data.identifier_as_string}' could not be "
                                f"parsed: {e}. Skipping...")
                 continue
 
@@ -84,7 +84,7 @@ class AirflowComponentParser(ComponentParser):
                 name=component_class,
                 description=DEFAULT_DESCRIPTION,
                 catalog_type=registry_entry.catalog_type,
-                source_identifier=registry_entry.component_identifier,
+                source_identifier=registry_entry.entry_data.identifier,
                 definition=component_definition,
                 runtime_type=self.component_platform.name,
                 categories=registry_entry.categories,

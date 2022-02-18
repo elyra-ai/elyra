@@ -301,17 +301,15 @@ class ComponentCache(SingletonConfigurable):
 
         # Get content of component definition file for each component in this catalog
         self.log.debug(f"Processing components in catalog '{catalog.display_name}'")
-        component_data_dict = catalog_reader.read_component_definitions(catalog)
-        if not component_data_dict:
+        component_entries = catalog_reader.read_component_definitions(catalog)
+        if not component_entries:
             return components
 
-        for component_id, component_data in component_data_dict.items():
+        for entry_data in component_entries:
             component_entry = {
-                "component_id": component_id,
+                "entry_data": entry_data,
                 "catalog_type": catalog.schema_name,
-                "categories": catalog.metadata.get("categories", []),
-                "component_definition": component_data.get('definition'),
-                "component_identifier": component_data.get('identifier')
+                "categories": catalog.metadata.get("categories", [])
             }
 
             # Parse the component entry to get a fully qualified Component object
