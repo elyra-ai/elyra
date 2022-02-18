@@ -21,6 +21,7 @@ import shutil
 from tempfile import mkdtemp
 from tempfile import TemporaryDirectory
 from typing import Optional
+from unittest import mock
 
 import pytest
 
@@ -553,7 +554,7 @@ def test_export_bad_schema(script_runner):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
                             '--directory=dummy-directory', '--schema_name=bogus-schema')
     assert ret.stdout.startswith("Schema name 'bogus-schema' is invalid. For the 'metadata-tests' schemaspace, " +
-                                 "the schema-name must be one of ['metadata-test', 'metadata-test2']")
+                                 "the schema name must be one of ['metadata-test', 'metadata-test2']")
     assert ret.success is False
 
 
@@ -562,6 +563,26 @@ def test_export_no_schema_no_instances(script_runner, mock_data_dir):
     assert ret.success
     assert ret.stdout.startswith(f"No metadata instances found for schemaspace '{METADATA_TEST_SCHEMASPACE}'")
     assert "Nothing exported to 'dummy-directory'" in ret.stdout
+
+
+def test_export_inaccessible_directory(script_runner, mock_data_dir):
+    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+
+    # create metadata
+    valid = Metadata(**valid_metadata_json)
+    resource = metadata_manager.create('valid', valid)
+    assert resource is not None
+
+    directory_parameter = "/xyz/dummy-directory"
+
+    mocked_function = mock.mock_open()
+    mocked_function.side_effect = OSError("Read-only file system: '/xyz'")
+
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            '--directory={}'.format(directory_parameter))
+    assert ret.success is False
+    assert f"Error creating directory structure for {directory_parameter}/" + \
+           f"{METADATA_TEST_SCHEMASPACE}: Read-only file system: '/xyz'" in ret.stdout
 
 
 def test_export_with_schema_no_instances(script_runner, mock_data_dir):
@@ -591,6 +612,7 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     # create invalid metadata
     metadata_dir = os.path.join(mock_data_dir, 'metadata', METADATA_TEST_SCHEMASPACE)
     create_json_file(metadata_dir, 'invalid.json', invalid_metadata_json)
+    create_json_file(metadata_dir, 'invalid2.json', invalid_metadata_json)
 
     # test for valid and invalid
     temp_dir = TemporaryDirectory()
@@ -602,11 +624,14 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     assert ret.stdout.startswith(f"Creating directory structure for '{export_directory}'")
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}' " + \
            f"(includes invalid) to '{export_directory}'" in ret.stdout
+    assert "Exported 3 instances (2 of which are invalid)" in ret.stdout
 
     exported_metadata = sorted(os.listdir(export_directory), key=str.casefold)
-    assert len(exported_metadata) == 2
+    assert len(exported_metadata) == 3
     assert exported_metadata[0] == "invalid.json"
-    assert exported_metadata[1] == "valid.json"
+    assert exported_metadata[1] == "invalid2.json"
+    assert exported_metadata[2] == "valid.json"
+    temp_dir.cleanup()
 
     # test for valid only
     temp_dir = TemporaryDirectory()
@@ -618,9 +643,12 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}' " + \
            f"(valid only) to '{export_directory}'" in ret.stdout
+    assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
+
     exported_metadata = os.listdir(export_directory)
     assert len(exported_metadata) == 1
     assert exported_metadata[0] == "valid.json"
+    temp_dir.cleanup()
 
 
 def test_export_with_schema_with_instances(script_runner, mock_data_dir):
@@ -650,10 +678,13 @@ def test_export_with_schema_with_instances(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'" + \
            f" and schema 'metadata-test' (includes invalid) to '{export_directory}'" in ret.stdout
+    assert "Exported 2 instances (1 of which is invalid)" in ret.stdout
+
     exported_metadata = sorted(os.listdir(export_directory), key=str.casefold)
     assert len(exported_metadata) == 2
     assert exported_metadata[0] == "invalid.json"
     assert exported_metadata[1] == "valid.json"
+    temp_dir.cleanup()
 
     # create export directory
     temp_dir = TemporaryDirectory()
@@ -667,9 +698,12 @@ def test_export_with_schema_with_instances(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'" + \
            f" and schema 'metadata-test' (valid only) to '{export_directory}'" in ret.stdout
+    assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
+
     exported_metadata = os.listdir(export_directory)
     assert len(exported_metadata) == 1
     assert exported_metadata[0] == "valid.json"
+    temp_dir.cleanup()
 
 
 def test_export_without_clean(script_runner, mock_data_dir):
@@ -719,8 +753,9 @@ def test_export_without_clean(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" not in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'" + \
            f" and schema 'metadata-test' (includes invalid) to '{export_directory}'" in ret.stdout
+    assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
 
-    # verify that the metadata file was overwritten while botth the dummy files were left as is
+    # verify that the metadata file was overwritten while both the dummy files were left as is
     export_directory_files = sorted(os.listdir(export_directory), key=str.casefold)
     assert len(export_directory_files) == 2
 
@@ -736,6 +771,7 @@ def test_export_without_clean(script_runner, mock_data_dir):
     assert len(export_directory_other_files) == 1
     assert export_directory_other_files[0] == dummy_filename_other
     assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+    temp_dir.cleanup()
 
 
 def test_export_clean(script_runner, mock_data_dir):
@@ -786,6 +822,7 @@ def test_export_clean(script_runner, mock_data_dir):
     assert f"Cleaning out all files in '{export_directory}'" in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'" + \
            f" and schema 'metadata-test' (includes invalid) to '{export_directory}'" in ret.stdout
+    assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
 
     # verify that the metadata file was overwritten and dummy file within the same schema folder was deleted
     # whereas the dummy file within the other schema folder was left as is
@@ -801,6 +838,7 @@ def test_export_clean(script_runner, mock_data_dir):
     assert len(export_directory_other_files) == 1
     assert export_directory_other_files[0] == dummy_filename_other
     assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+    temp_dir.cleanup()
 
 # Begin property tests...
 
