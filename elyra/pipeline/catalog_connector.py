@@ -36,7 +36,7 @@ from traitlets.traitlets import Integer
 from elyra.metadata.metadata import Metadata
 
 
-class CatalogEntry(object):
+class ComponentDefinition(object):
     """
     An object corresponding to a single entry of a component catalog, which has a
     unique id, a string definition, and a dict of identifying key-value pairs
@@ -77,9 +77,9 @@ class CatalogEntry(object):
         return str(self.identifier)
 
 
-class AirflowCatalogEntry(CatalogEntry):
+class AirflowCatalogEntry(ComponentDefinition):
     """
-    An Airflow-specific CatalogEntry that includes the fully qualified package
+    An Airflow-specific ComponentDefinition that includes the fully qualified package
     name (excluding class name) that represents the definition file.
     """
     package_name: str = None
@@ -154,6 +154,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
                            catalog_entry_data: Dict[str, Any],
                            catalog_metadata: Dict[str, Any]) -> Optional[str]:
         """
+        DEPRECATED. get_component_definition() must be implemented instead.
+
         Reads a component definition for a single catalog entry using the catalog_entry_data returned
         from get_catalog_entries() and, if needed, the catalog metadata.
 
@@ -181,9 +183,29 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
     def get_component_definition(self,
                                  catalog_entry_data: Dict[str, Any],
-                                 catalog_metadata: Dict[str, Any]) -> CatalogEntry:
+                                 catalog_metadata: Dict[str, Any]) -> Optional[ComponentDefinition]:
         """
-        TODO
+        Reads a component definition for a single catalog entry and creates a ComponentDefinition object
+        to represent it. Uses the catalog_entry_data returned from get_catalog_entries() and, if needed,
+        the catalog metadata to retrieve the definition.
+
+        :param catalog_entry_data: a dictionary that contains the information needed to read the content of
+            the component definition; below is an example data structure returned from get_catalog_entries()
+
+                example:
+                    {
+                        "directory_path": "/Users/path/to/directory",
+                        "relative_path": "subdir/file.py"
+                    }
+
+        :param catalog_metadata: the metadata associated with the catalog in which this catalog entry is
+            stored; this is the same dictionary that is passed into get_catalog_entries(); in addition to
+            catalog_entry_data, catalog_metadata may also be needed to read the component definition for
+            certain types of catalogs
+
+        :returns: a ComponentDefinition object representing the definition (and other identifying info)
+            for a single catalog entry; if None is returned, this catalog entry is skipped and a warning
+            message logged
         """
         raise NotImplementedError(
             "method 'get_component_definition()' must be overridden"
@@ -231,7 +253,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
             "abstract method 'get_hash_keys()' must be implemented"
         )
 
-    def read_component_definitions(self, catalog_instance: Metadata) -> List[CatalogEntry]:
+    def read_component_definitions(self, catalog_instance: Metadata) -> List[ComponentDefinition]:
         """
         This function compiles the definitions of all catalog entries in a given catalog.
 
@@ -306,7 +328,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                                    f"{str(catalog_entry_data)}...")
 
                     try:
-                        # Attempt to get a CatalogEntry object from get_component_definition
+                        # Attempt to get a ComponentDefinition object from get_component_definition
                         catalog_entry = self.get_component_definition(
                             catalog_entry_data=catalog_entry_data,
                             catalog_metadata=catalog_metadata
@@ -314,22 +336,22 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
                     except NotImplementedError:
                         # Connector class does not implement get_catalog_definition and we must
-                        # manually coerce this entry's returned values into a CatalogEntry object
+                        # manually coerce this entry's returned values into a ComponentDefinition object
                         definition = self.read_catalog_entry(
                             catalog_entry_data=catalog_entry_data,
                             catalog_metadata=catalog_metadata
                         )
 
-                        catalog_entry = CatalogEntry(definition=definition, identifier=catalog_entry_data)
+                        catalog_entry = ComponentDefinition(definition=definition, identifier=catalog_entry_data)
 
                     # Ignore this entry if no definition content is returned
-                    if not catalog_entry.definition:
+                    if not catalog_entry or not catalog_entry.definition:
                         self.log.warning(f"No definition content found for catalog entry with identifying information: "
                                          f"{catalog_entry.identifier_as_string}. Skipping...")
                         catalog_entry_q.task_done()
                         continue
 
-                    # Generate hash for this catalog entry and set as CatalogEntry id
+                    # Generate hash for this catalog entry and set as ComponentDefinition id
                     catalog_entry.set_entry_id(
                         catalog_type=catalog_instance.schema_name,
                         hash_keys=keys_to_hash
