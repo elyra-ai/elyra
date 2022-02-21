@@ -14,13 +14,15 @@
 # limitations under the License.
 #
 
-.PHONY: help purge install-all install-examples install uninstall clean test-dependencies lint-server lint-ui lint yarn-install eslint-ui eslint-check-ui prettier-ui prettier-check-ui flake lint-server-dependencies dev-link dev-unlink
-.PHONY: build-ui build-server install-server watch install-extensions build-jupyterlab install-server-package check-install only-install-server
-.PHONY: test-server test-ui test-integration test-integration-debug test docs-dependencies docs dist-ui release pytest
-.PHONY: validate-runtime-images elyra-image publish-elyra-image kf-notebook-image
-.PHONY: publish-kf-notebook-image container-images publish-container-images
-.PHONY: build-dependencies install-gitlab-dependency
-.PHONY: install-pb install-ui-pb
+.PHONY: help purge uninstall clean
+.PHONY: build-dependencies lint-server prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
+.PHONY: dev-link dev-unlink
+.PHONY: yarn-install build-ui package-ui build-python install-python-package install-python install install-all
+.PHONY: install-examples install-gitlab-dependency check-install watch release
+.PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
+.PHONY: docs-dependencies docs
+.PHONY: elyra-image publish-elyra-image kf-notebook-image publish-kf-notebook-image
+.PHONY: container-images publish-container-images validate-runtime-images
 SHELL:=/bin/bash
 
 TAG:=dev
@@ -36,6 +38,8 @@ help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+## Clean targets
+
 purge:
 	rm -rf build *.egg-info yarn-error.log
 	rm -rf node_modules lib dist
@@ -49,21 +53,11 @@ purge:
 	rm -rf $$(find . -name .pytest_cache)
 	rm -rf $(yarn cache dir)
 
-# NOTE: We can't use "lerna run lab:uninstall" because we may have deleted node_modules.
 uninstall:
-	$(call UNLINK_LAB_EXTENSION,@elyra/services)
-	$(call UNLINK_LAB_EXTENSION,@elyra/ui-components)
-	$(call UNLINK_LAB_EXTENSION,@elyra/metadata-common)
-	$(call UNLINK_LAB_EXTENSION,@elyra/script-editor)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/theme-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/code-snippet-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/metadata-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/pipeline-editor-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/python-editor-extension)
-	$(call UNINSTALL_LAB_EXTENSION,@elyra/r-editor-extension)
 	- jupyter labextension unlink @elyra/pipeline-services
 	- jupyter labextension unlink @elyra/pipeline-editor
 	pip uninstall -y jupyterlab-git
+	pip uninstall -y nbdime
 	pip uninstall -y jupyter-lsp
 	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
 	pip uninstall -y jupyterlab-lsp
@@ -81,9 +75,7 @@ uninstall:
 
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
-test-dependencies:
-	python -m pip install --upgrade pip
-	@pip install -q -r test_requirements.txt
+## Lint targets
 
 build-dependencies:
 	python -m pip install --upgrade pip
@@ -106,7 +98,9 @@ eslint-ui:
 
 lint-ui: prettier-ui eslint-ui
 
-lint: lint-ui prettier-ui lint-server ## Run linters
+lint: lint-ui lint-server ## Run linters
+
+## Library linking targets
 
 dev-link:
 	yarn link @elyra/pipeline-services
@@ -121,46 +115,27 @@ dev-unlink:
 	jupyter labextension uninstall @elyra/pipeline-editor
 	yarn install --force
 
+## Build and install targets
+
 yarn-install:
 	yarn install
 
-build-ui: # Build packages
+build-ui:
 	yarn lerna run build --stream
 
-build-server: # Build backend
+package-ui: yarn-install lint-ui build-ui
+
+build-python:
 	python setup.py bdist_wheel sdist
 
-build: build-server build-ui
-
-install-ui: yarn-install lint-ui build-ui install-extensions build-jupyterlab # Install packages
-
-dev-ui:
-	yarn lerna run --scope @elyra/*-extension lab:dev
-
-install-ui-pb: yarn-install lint-ui build-ui
-	pip install -e .
-
-install-extensions:
-	yarn lerna run lab:install --stream
-
-build-jupyterlab:
-	jupyter lab build
-
-prepare-server:
-	pip install --upgrade pip wheel
-
-only-install-server: prepare-server build-server install-server-package
-
-install-server: lint-server only-install-server ## Build and install backend only
-
-install-server-package:
+install-python-package:
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
-install: install-server install-ui check-install ## Build and install
+install-python: lint-server build-python install-python-package
 
-install-pb: install-server install-ui-pb install-examples install-gitlab-dependency check-install
+install: package-ui install-python check-install ## Build and install
 
-install-all: install install-examples install-gitlab-dependency ## Build and install, including examples
+install-all: package-ui install-python install-examples install-gitlab-dependency check-install ## Build and install, including examples
 
 install-examples: ## Install example pipeline components 
 	# install Kubeflow Pipelines example components
@@ -182,12 +157,18 @@ check-install:
 watch: ## Watch packages. For use alongside jupyter lab --watch
 	yarn lerna run watch --parallel
 
+release: yarn-install build-ui build-python ## Build wheel file for release
+
+## Test targets
+
+test-dependencies:
+	python -m pip install --upgrade pip
+	@pip install -q -r test_requirements.txt
+
 pytest:
 	pytest -v elyra
 
-test-server: install-server test-dependencies pytest # Run unit tests
-
-test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
+test-server: install-python test-dependencies pytest # Run python unit tests
 
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
@@ -198,7 +179,11 @@ test-integration: # Run frontend cypress integration tests
 test-integration-debug: # Open cypress integration test debugger
 	yarn test:integration:debug
 
+test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
+
 test: test-server test-ui ## Run all tests (backend, frontend and cypress integration tests)
+
+## Doc targets
 
 docs-dependencies:
 	@pip install -q -r docs/requirements.txt
@@ -206,16 +191,7 @@ docs-dependencies:
 docs: docs-dependencies ## Build docs
 	make -C docs clean html
 
-dist-ui: yarn-install build-ui
-	mkdir -p dist
-	$(call PACKAGE_LAB_EXTENSION,theme)
-	$(call PACKAGE_LAB_EXTENSION,code-snippet)
-	$(call PACKAGE_LAB_EXTENSION,metadata)
-	$(call PACKAGE_LAB_EXTENSION,pipeline-editor)
-	$(call PACKAGE_LAB_EXTENSION,python-editor)
-	$(call PACKAGE_LAB_EXTENSION,r-editor)
-
-release: dist-ui build-server ## Build wheel file for release
+## Docker targets
 
 elyra-image: # Build Elyra stand-alone container image
 	@mkdir -p build/docker
@@ -308,16 +284,3 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 			exit 1; \
 		fi; \
 	done
-
-
-define UNLINK_LAB_EXTENSION
-	- jupyter labextension unlink --no-build $1
-endef
-
-define UNINSTALL_LAB_EXTENSION
-	- jupyter labextension uninstall --no-build $1
-endef
-
-define PACKAGE_LAB_EXTENSION
-	cd packages/$1 && yarn dist && mv *.tgz ../../dist
-endef

@@ -34,7 +34,9 @@
     "lab:dev": "jupyter labextension develop --overwrite ../../dist/labextensions/@elyra/code-snippet-extension",
     "dist": "npm pack .",
     "prepare": "npm run build",
-    "watch": "tsc -w",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w",
+    "watch:labextension": "jupyter labextension watch .",
     "lab:install": "jupyter labextension install --no-build",
     "lab:uninstall": "jupyter labextension uninstall --no-build"
   },

@@ -36,7 +36,9 @@
     "dist": "npm pack .",
     "prepare": "npm run build ",
     "test": "FORCE_COLOR=true jest",
-    "watch": "tsc -w",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w",
+    "watch:labextension": "jupyter labextension watch .",
     "lab:install": "jupyter labextension install --no-build",
     "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
