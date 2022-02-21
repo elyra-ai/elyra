@@ -183,7 +183,7 @@ def test_parse_airflow_component_file():
 
     # Build entry for parsing
     entry = {
-        "entry_data": component_definition,
+        "component_definition": component_definition,
         "catalog_type": catalog_type,
         "categories": ["Test"]
     }
@@ -240,7 +240,8 @@ def test_parse_airflow_component_file():
     # Ensure system parameters are not prefixed and hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
+    component_identifier = component_entry.component_definition.identifier
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
 
     # Ensure component parameters are prefixed with 'elyra_' and values are as expected
@@ -359,7 +360,7 @@ def test_parse_airflow_component_url():
 
     # Build entry for parsing
     entry = {
-        "entry_data": component_definition,
+        "component_definition": component_definition,
         "catalog_type": catalog_type,
         "categories": ["Test"]
     }
@@ -378,7 +379,8 @@ def test_parse_airflow_component_url():
         property_dict = properties_json['current_parameters'][param_name]
         return property_dict[property_dict['activeControl']]
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
+    component_identifier = component_entry.component_definition.identifier
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert get_parameter('elyra_bash_command') == ''
     assert get_parameter('elyra_xcom_push') is True
@@ -403,7 +405,7 @@ def test_parse_airflow_component_file_no_inputs():
 
     # Build entry for parsing
     entry = {
-        "entry_data": component_definition,
+        "component_definition": component_definition,
         "catalog_type": catalog_type,
         "categories": ["Test"]
     }
@@ -429,7 +431,8 @@ def test_parse_airflow_component_file_no_inputs():
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
+    component_identifier = component_entry.component_definition.identifier
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
 
 

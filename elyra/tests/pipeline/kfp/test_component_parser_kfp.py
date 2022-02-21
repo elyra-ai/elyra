@@ -177,7 +177,7 @@ def test_parse_kfp_component_file():
 
     # Build entry for parsing
     entry = {
-        "entry_data": component_definition,
+        "component_definition": component_definition,
         "catalog_type": catalog_type,
         "categories": ["Test"]
     }
@@ -191,7 +191,8 @@ def test_parse_kfp_component_file():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
+    component_identifier = component_entry.component_definition.identifier
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == \
            {'StringControl': '', 'activeControl': 'StringControl'}
@@ -289,11 +290,9 @@ def test_parse_kfp_component_url():
 
     # Build entry for parsing
     entry = {
-        "entry_data": component_definition,
-        "catalog_type": catalog_type,
-        "categories": ["Test"],
         "component_definition": component_definition,
-        "component_identifier": {"url": url}
+        "catalog_type": catalog_type,
+        "categories": ["Test"]
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -305,7 +304,8 @@ def test_parse_kfp_component_url():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
+    component_identifier = component_entry.component_definition.identifier
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
     assert properties_json['current_parameters']['elyra_parameters'] == \
@@ -333,7 +333,7 @@ def test_parse_kfp_component_file_no_inputs():
 
     # Build entry for parsing
     entry = {
-        "entry_data": component_definition,
+        "component_definition": component_definition,
         "catalog_type": catalog_type,
         "categories": ["Test"]
     }
@@ -362,7 +362,8 @@ def test_parse_kfp_component_file_no_inputs():
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
+    component_identifier = component_entry.component_definition.identifier
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
 
 
@@ -394,7 +395,7 @@ async def test_parse_components_additional_metatypes():
 
     # Build entry for parsing
     entry = {
-        "entry_data": component_definition,
+        "component_definition": component_definition,
         "catalog_type": catalog_type,
         "categories": ["Test"]
     }
@@ -408,7 +409,8 @@ async def test_parse_components_additional_metatypes():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
+    component_identifier = component_entry.component_definition.identifier
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_training_features'] == 'None'  # inputPath
     assert properties_json['current_parameters']['elyra_training_labels'] == 'None'  # inputPath
