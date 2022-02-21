@@ -48,12 +48,12 @@ class KfpComponentParser(ComponentParser):
         component_properties = self._parse_properties(component_yaml)
 
         component = Component(
-            id=registry_entry.entry_data.entry_id,
+            id=registry_entry.component_definition.id,
             name=component_yaml.get('name'),
             description=description,
             catalog_type=registry_entry.catalog_type,
-            source_identifier=registry_entry.entry_data.identifier,
-            definition=registry_entry.entry_data.definition,
+            source_identifier=registry_entry.component_definition.identifier,
+            definition=registry_entry.component_definition.definition,
             runtime_type=self.component_platform.name,
             categories=registry_entry.categories,
             properties=component_properties
@@ -167,10 +167,10 @@ class KfpComponentParser(ComponentParser):
         Convert component_definition string to YAML object
         """
         try:
-            return yaml.safe_load(registry_entry.entry_data.definition)
+            return yaml.safe_load(registry_entry.component_definition.definition)
         except Exception as e:
             self.log.warning(f"Could not load YAML definition for component with identifying information: "
-                             f"'{registry_entry.entry_data.identifier_as_string}' -> {str(e)}")
+                             f"'{registry_entry.component_definition.identifier_as_string}' -> {str(e)}")
             return None
 
     def _is_path_based_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:

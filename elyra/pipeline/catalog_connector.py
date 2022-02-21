@@ -41,7 +41,7 @@ class ComponentDefinition(object):
     An object corresponding to a single entry of a component catalog, which has a
     unique id, a string definition, and a dict of identifying key-value pairs
     """
-    entry_id: str = None
+    id: str = None
     definition: str = None
     identifier: Dict = None
 
@@ -70,7 +70,7 @@ class ComponentDefinition(object):
 
         # Use only the first 12 characters of the resulting hash
         hash_digest = f"{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
-        self.entry_id = f"{catalog_type}:{hash_digest}"
+        self.id = f"{catalog_type}:{hash_digest}"
 
     @property
     def identifier_as_string(self) -> str:
@@ -154,7 +154,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                            catalog_entry_data: Dict[str, Any],
                            catalog_metadata: Dict[str, Any]) -> Optional[str]:
         """
-        DEPRECATED. get_component_definition() must be implemented instead.
+        DEPRECATED. Will be removed in 4.0. get_component_definition() must be implemented instead.
 
         Reads a component definition for a single catalog entry using the catalog_entry_data returned
         from get_catalog_entries() and, if needed, the catalog metadata.
@@ -329,7 +329,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
                     try:
                         # Attempt to get a ComponentDefinition object from get_component_definition
-                        catalog_entry = self.get_component_definition(
+                        component_definition = self.get_component_definition(
                             catalog_entry_data=catalog_entry_data,
                             catalog_metadata=catalog_metadata
                         )
@@ -342,22 +342,22 @@ class ComponentCatalogConnector(LoggingConfigurable):
                             catalog_metadata=catalog_metadata
                         )
 
-                        catalog_entry = ComponentDefinition(definition=definition, identifier=catalog_entry_data)
+                        component_definition = ComponentDefinition(definition=definition, identifier=catalog_entry_data)
 
                     # Ignore this entry if no definition content is returned
-                    if not catalog_entry or not catalog_entry.definition:
+                    if not component_definition or not component_definition.definition:
                         self.log.warning(f"No definition content found for catalog entry with identifying information: "
-                                         f"{catalog_entry.identifier_as_string}. Skipping...")
+                                         f"{component_definition.identifier_as_string}. Skipping...")
                         catalog_entry_q.task_done()
                         continue
 
                     # Generate hash for this catalog entry and set as ComponentDefinition id
-                    catalog_entry.set_entry_id(
+                    component_definition.set_entry_id(
                         catalog_type=catalog_instance.schema_name,
                         hash_keys=keys_to_hash
                     )
 
-                    catalog_entries.append(catalog_entry)
+                    catalog_entries.append(component_definition)
 
                 except NotImplementedError as e:
                     msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}."

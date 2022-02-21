@@ -42,29 +42,33 @@ class AirflowComponentParser(ComponentParser):
     def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
         components: List[Component] = []
 
-        component_definition = registry_entry.entry_data.definition
-        if not component_definition:
+        definition = registry_entry.component_definition.definition
+        if not definition:
             return None
+
+        component_identifier = registry_entry.component_definition.identifier_as_string
 
         # Parse the component definition for all defined Operator classes
         try:
-            parsed_class_nodes = self._parse_all_classes(component_definition)
+            parsed_class_nodes = self._parse_all_classes(definition)
             num_operator_classes = len(parsed_class_nodes)
         except Exception as e:
-            self.log.error(f"Content associated with identifier '{registry_entry.entry_data.identifier_as_string}' "
-                           f"could not be parsed: {e}. Skipping...")
+            self.log.error(
+                f"Content associated with identifier '{component_identifier}' could not be parsed: {e}. Skipping..."
+            )
             return None
 
         for component_class, content in parsed_class_nodes.items():
             if not content.get('init_function'):
                 # Without the init function, class can't be parsed for properties
-                self.log.warning(f"Operator '{component_class}' associated with identifier "
-                                 f"'{registry_entry.entry_data.identifier_as_string}' does not have an __init__ "
-                                 f"function. Skipping...")
+                self.log.warning(
+                    f"Operator '{component_class}' associated with identifier '{component_identifier}' "
+                    f"does not have an __init__ function. Skipping..."
+                )
                 continue
 
             # Assign component name and unique id
-            component_id = registry_entry.entry_data.entry_id
+            component_id = registry_entry.component_definition.id
             if num_operator_classes > 1:
                 # This file contains more than one operator and id must be adjusted
                 # to include the Operator class name as well
@@ -74,9 +78,10 @@ class AirflowComponentParser(ComponentParser):
             try:
                 component_properties: List[ComponentParameter] = self._parse_properties_from_init(**content)
             except Exception as e:
-                self.log.error(f"Properties of operator '{component_class}' associated with "
-                               f"identifier '{registry_entry.entry_data.identifier_as_string}' could not be "
-                               f"parsed: {e}. Skipping...")
+                self.log.error(
+                    f"Properties of operator '{component_class}' associated with identifier '{component_identifier}' "
+                    f"could not be parsed: {e}. Skipping..."
+                )
                 continue
 
             new_component = Component(
@@ -84,12 +89,12 @@ class AirflowComponentParser(ComponentParser):
                 name=component_class,
                 description=DEFAULT_DESCRIPTION,
                 catalog_type=registry_entry.catalog_type,
-                source_identifier=registry_entry.entry_data.identifier,
-                definition=component_definition,
+                source_identifier=registry_entry.component_definition.identifier,
+                definition=definition,
                 runtime_type=self.component_platform.name,
                 categories=registry_entry.categories,
                 properties=component_properties,
-                package_name=getattr(registry_entry.entry_data, 'package_name', None)
+                package_name=getattr(registry_entry.component_definition, 'package_name', None)
             )
 
             components.append(new_component)
