@@ -22,6 +22,7 @@ import jupyter_core.paths
 import pytest
 
 from elyra.metadata.metadata import Metadata
+from elyra.pipeline.catalog_connector import ComponentDefinition
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import ComponentParser
@@ -172,18 +173,19 @@ def test_parse_airflow_component_file():
 
     path = _get_resource_path('airflow_test_operator.py')
 
+    catalog_type = "local-file-catalog"
+
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"path": path}, {})
+    definition = reader.read_catalog_entry({"path": path}, {})
+    component_definition = ComponentDefinition(definition, {"path": path})
+    component_definition.set_entry_id(catalog_type, ['path'])
 
     # Build entry for parsing
-    catalog_type = "local-file-catalog"
     entry = {
-        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
+        "entry_data": component_definition,
         "catalog_type": catalog_type,
-        "categories": ["Test"],
-        "component_definition": component_definition,
-        "component_identifier": {"path": path}
+        "categories": ["Test"]
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -238,7 +240,7 @@ def test_parse_airflow_component_file():
     # Ensure system parameters are not prefixed and hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
 
     # Ensure component parameters are prefixed with 'elyra_' and values are as expected
@@ -346,18 +348,20 @@ def test_parse_airflow_component_url():
 
     url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
 
+    catalog_type = "url-catalog"
+
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"url": url}, {})
+    definition = reader.read_catalog_entry({"url": url}, {})
+    component_definition = ComponentDefinition(definition, {"url": url})
+    component_definition.set_entry_id(catalog_type, ['url'
+                                                     ''])
 
     # Build entry for parsing
-    catalog_type = "url-catalog"
     entry = {
-        "component_id": reader.get_unique_component_hash(catalog_type, {"url": url}, ["url"]),
+        "entry_data": component_definition,
         "catalog_type": catalog_type,
-        "categories": ["Test"],
-        "component_definition": component_definition,
-        "component_identifier": {"url": url}
+        "categories": ["Test"]
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -374,7 +378,7 @@ def test_parse_airflow_component_url():
         property_dict = properties_json['current_parameters'][param_name]
         return property_dict[property_dict['activeControl']]
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert get_parameter('elyra_bash_command') == ''
     assert get_parameter('elyra_xcom_push') is True
@@ -389,18 +393,19 @@ def test_parse_airflow_component_file_no_inputs():
 
     path = _get_resource_path('airflow_test_operator_no_inputs.py')
 
+    catalog_type = "local-file-catalog"
+
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"path": path}, {})
+    definition = reader.read_catalog_entry({"path": path}, {})
+    component_definition = ComponentDefinition(definition, {"path": path})
+    component_definition.set_entry_id(catalog_type, ['path'])
 
     # Build entry for parsing
-    catalog_type = "local-file-catalog"
     entry = {
-        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
+        "entry_data": component_definition,
         "catalog_type": catalog_type,
-        "categories": ["Test"],
-        "component_definition": component_definition,
-        "component_identifier": {"path": path}
+        "categories": ["Test"]
     }
     component_entry = SimpleNamespace(**entry)
 
@@ -424,7 +429,7 @@ def test_parse_airflow_component_file_no_inputs():
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.entry_data.identifier})
     assert properties_json['current_parameters']['component_source'] == component_source
 
 
