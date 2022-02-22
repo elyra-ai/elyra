@@ -17,7 +17,7 @@
 .PHONY: help purge uninstall clean
 .PHONY: build-dependencies lint-server prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
-.PHONY: yarn-install build-ui package-ui build-python install-python-package install-python install install-all
+.PHONY: yarn-install build-ui package-ui build-server install-server-package install-server install install-all
 .PHONY: install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
@@ -125,17 +125,17 @@ build-ui:
 
 package-ui: yarn-install lint-ui build-ui
 
-build-python:
+build-server:
 	python setup.py bdist_wheel sdist
 
-install-python-package:
+install-server-package:
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
-install-python: lint-server build-python install-python-package
+install-server: lint-server build-server install-server-package ## Build and install backend
 
-install: package-ui install-python check-install ## Build and install
+install: package-ui install-server check-install ## Build and install
 
-install-all: package-ui install-python install-examples install-gitlab-dependency check-install ## Build and install, including examples
+install-all: package-ui install-server install-examples install-gitlab-dependency check-install ## Build and install, including examples
 
 install-examples: ## Install example pipeline components 
 	# install Kubeflow Pipelines example components
@@ -151,13 +151,12 @@ install-gitlab-dependency:
 
 check-install:
 	jupyter serverextension list
-	jupyter server extension list
 	jupyter labextension list
 
 watch: ## Watch packages. For use alongside jupyter lab --watch
 	yarn lerna run watch --parallel
 
-release: yarn-install build-ui build-python ## Build wheel file for release
+release: yarn-install build-ui build-server ## Build wheel file for release
 
 ## Test targets
 
@@ -168,7 +167,7 @@ test-dependencies:
 pytest:
 	pytest -v elyra
 
-test-server: install-python test-dependencies pytest # Run python unit tests
+test-server: install-server test-dependencies pytest # Run python unit tests
 
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit

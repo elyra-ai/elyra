@@ -51,7 +51,7 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 If you use `pip`, install Elyra with:
 
 ```bash
-pip3 install --upgrade elyra[all] && jupyter lab build
+pip3 install --upgrade elyra[all]
 ```
 
 If desired, you can install these Elyra extensions independently:
@@ -59,25 +59,25 @@ If desired, you can install these Elyra extensions independently:
 - [Pipeline Editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-pipeline-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-pipeline-editor-extension
    ```
 
 - [Code Snippets](https://pypi.org/project/elyra-code-snippet-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-code-snippet-extension && jupyter lab build
+   pip3 install --upgrade elyra-code-snippet-extension
    ```
 
 - [Python Editor](https://pypi.org/project/elyra-python-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-python-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-python-editor-extension
    ```
 
 - [R Editor](https://pypi.org/project/elyra-r-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-r-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-r-editor-extension
    ```
 
 ### conda
@@ -85,7 +85,7 @@ If desired, you can install these Elyra extensions independently:
 If you use `conda`, install Elyra with:
 
 ```bash
-conda install -c conda-forge elyra[all] && jupyter lab build
+conda install -c conda-forge elyra[all]
 ```
 
 **NOTE:**
@@ -94,19 +94,19 @@ The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipeline
 You can also install the Pipeline editor, Code Snippet, or Script editor extensions individually:
 
 ```bash
-conda install -c conda-forge elyra-pipeline-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-pipeline-editor-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
+conda install -c conda-forge elyra-code-snippet-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-python-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-python-editor-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-r-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-r-editor-extension
 ```
 
 **NOTE:** The R Editor extension is not yet available on `conda-forge` or `pip` package manager.

@@ -305,7 +305,7 @@ def build_server():
     sed(_source('setup.py'), r'name="elyra"', 'name="elyra-server"')
 
     # build server wheel
-    check_run(["make", "build-python"], cwd=config.source_dir, capture_output=False)
+    check_run(["make", "build-server"], cwd=config.source_dir, capture_output=False)
 
     # revert project name
     check_run(["git", "reset", "--hard"], cwd=config.source_dir, capture_output=False)

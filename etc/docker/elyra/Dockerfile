@@ -24,7 +24,6 @@ ARG TAG="dev"
 # Install Elyra
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[all]=="$TAG" \
- && jupyter lab build \
  && rm -rf $HOME/.cache/yarn \
  && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 

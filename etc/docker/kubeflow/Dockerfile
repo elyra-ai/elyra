@@ -26,7 +26,6 @@ ARG TAG="dev"
 # - with component examples ('kfp-examples')
 RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[kfp-tekton,kfp-examples]==3.5.0 \
-    && jupyter lab build \
     && rm -rf $HOME/.cache/yarn \
     && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
