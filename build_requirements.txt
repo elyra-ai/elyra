@@ -1,3 +1,2 @@
 flake8>=3.5.0,<3.9.0
 flake8-import-order>=0.18.1
-jupyter-packaging>=0.10,<2'

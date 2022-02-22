@@ -16,7 +16,7 @@
 import os
 import sys
 
-from jupyter_packaging import create_cmdclass
+from jupyter_packaging import get_data_files
 from setuptools import setup, find_packages
 
 long_desc = """
@@ -63,7 +63,7 @@ setup_args = dict(
     long_description=long_desc,
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
-    cmdclass=create_cmdclass(data_files_spec=data_files_spec),
+    data_files=get_data_files(data_files_spec),
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',

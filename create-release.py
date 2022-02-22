@@ -328,14 +328,13 @@ def show_release_artifacts():
     print('')
 
 
-def copy_extension_archive(extension: str, work_dir: str) -> None:
+def copy_extension_dir(extension: str, work_dir: str) -> None:
     global config
 
-    extension_package_name = f'{extension}-{config.new_npm_version}.tgz'
-    extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
-    extension_package_dest_file = os.path.join(work_dir, 'dist', extension_package_name)
-    os.makedirs(os.path.dirname(extension_package_dest_file), exist_ok=True)
-    shutil.copy(extension_package_source_file, extension_package_dest_file)
+    extension_package_source_dir = os.path.join(config.source_dir, 'dist/labextensions/@elyra', extension)
+    extension_package_dest_dir = os.path.join(work_dir, 'dist/labextensions/@elyra', extension)
+    os.makedirs(os.path.dirname(extension_package_dest_dir), exist_ok=True)
+    shutil.copytree(extension_package_source_dir, extension_package_dest_dir)
 
 
 def generate_changelog() -> None:
@@ -426,11 +425,11 @@ def prepare_extensions_release() -> None:
         setup_file = os.path.join(extension_source_dir, 'setup.py')
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data-files}}", "('share/jupyter/lab/extensions', glob('./dist/*.tgz'))")
+        sed(setup_file, "{{data-files}}", "get_data_files[('share/jupyter/labextensions', 'dist/labextensions', '**')]")
         sed(setup_file, "{{install-requires}}", f"'elyra-server=={config.new_version}',")
 
         for dependency in extensions[extension]:
-            copy_extension_archive(dependency, extension_source_dir)
+            copy_extension_dir(dependency, extension_source_dir)
 
         # build extension
         check_run(['python', 'setup.py', 'bdist_wheel', 'sdist'], cwd=extension_source_dir)
