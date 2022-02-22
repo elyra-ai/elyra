@@ -88,6 +88,11 @@ Details and demo pipelines for some of the included components can be found in t
 - [Kubeflow Pipeline components](https://github.com/elyra-ai/examples/tree/master/pipelines/kubeflow_pipelines_component_examples)
 - [Apache Airflow components](https://github.com/elyra-ai/examples/tree/master/pipelines/airflow_component_examples)
 
+### Special considerations for custom Airflow components
+Custom Airflow components imported from some types of component catalog connectors require additional configuration 
+in order to be used in pipelines. See 
+['Best Practices for Custom Pipeline Components'](best-practices-custom-pipeline-components.html#apache-airflow-components) 
+for details.
 
 ### Managing pipeline components
 

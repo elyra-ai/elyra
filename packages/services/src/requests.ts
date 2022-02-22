@@ -203,10 +203,10 @@ export class RequestHandler {
             },
             // handle 404 if the server is not found
             (reason: any) => {
-              if (response.status == 404) {
+              if (response.status === 404) {
                 response['requestPath'] = requestPath;
                 return reject(response);
-              } else if (response.status == 204) {
+              } else if (response.status === 204) {
                 resolve({});
               } else {
                 return reject(reason);

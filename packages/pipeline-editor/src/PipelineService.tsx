@@ -159,7 +159,7 @@ export class PipelineService {
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
           <p>
-            {response['platform'] == 'APACHE_AIRFLOW' ? (
+            {response['platform'] === 'APACHE_AIRFLOW' ? (
               <p>
                 Apache Airflow DAG has been pushed to the{' '}
                 <a

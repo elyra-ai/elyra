@@ -48,7 +48,8 @@
         "alphabetize": { "order": "asc", "caseInsensitive": true },
         "newlines-between": "always-and-inside-groups"
       }
-    ]
+    ],
+    "eqeqeq": ["warn", "always"]
   },
   "overrides": [
     {

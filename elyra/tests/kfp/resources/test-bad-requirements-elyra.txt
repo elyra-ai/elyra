@@ -1,4 +1,4 @@
-ipykernel==5.3.0
+ipykernel==6.9.1
 ipython==7.15.0
 ipython-genutils==0.2.0
 papermill==1.2.2

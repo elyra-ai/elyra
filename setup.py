@@ -41,7 +41,7 @@ metadata_path_catalogs = './etc/config/metadata/component-catalogs/*.json'  # de
 settings_path = './etc/config/settings/*.json'
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=1.0.1', ],
+    'kfp-tekton': ['kfp-tekton~=1.1.1', ],
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
     'kfp-examples': ['elyra-examples-kfp-catalog'],
@@ -90,7 +90,7 @@ setup_args = dict(
         'nbdime~=3.1',
         'nbformat>=5.1.2',
         'networkx>=2.5.1',
-        'papermill>=2.1.3',
+        'papermill>=2.3.4',
         'python-lsp-server[all]>=1.1.0',
         'pyyaml>=5.3.1,<6.0',
         'requests>=2.25.1,<3.0',
@@ -120,10 +120,10 @@ setup_args = dict(
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ),
     entry_points={
         'console_scripts': [
