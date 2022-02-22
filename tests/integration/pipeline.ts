@@ -42,8 +42,11 @@ describe('Pipeline Editor tests', () => {
     cy.deleteFile('pipelines');
     cy.deleteFile('scripts');
 
-    // delete runtime configuration used for testing
-    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+    // delete runtime configurations used for testing
+    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
+      failOnNonZeroExit: false
+    });
+    cy.exec('elyra-metadata remove runtimes --name=airflow_test_runtime', {
       failOnNonZeroExit: false
     });
 
@@ -347,12 +350,16 @@ describe('Pipeline Editor tests', () => {
   it('should save runtime configuration', () => {
     cy.createPipeline();
 
-    // Create runtime configuration
-    cy.createRuntimeConfig();
+    // Create kfp runtime configuration
+    cy.createRuntimeConfig({ type: 'kfp' });
 
-    // validate it is now available
+    // Create airflow runtime configuration
+    cy.createRuntimeConfig({ type: 'airflow' });
+
+    // validate runtimes are now available
     cy.get('#elyra-metadata\\:runtimes').within(() => {
-      cy.findByText(/test runtime/i).should('exist');
+      cy.findByText(/kfp test runtime/i).should('exist');
+      cy.findByText(/airflow test runtime/i).should('exist');
     });
   });
 
@@ -442,8 +449,8 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should export pipeline as yaml', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig({ type: 'kfp' });
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
 
     // go back to file browser
     cy.findByRole('tab', { name: /file browser/i }).click();
@@ -479,8 +486,8 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should export pipeline as python dsl', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig();
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'airflow' });
 
     // go back to file browser
     cy.findByRole('tab', { name: /file browser/i }).click();
@@ -573,7 +580,7 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.savePipeline();
 
-    cy.createRuntimeConfig({ type: 'kfp' });
+    cy.installRuntimeConfig({ type: 'kfp' });
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
@@ -607,7 +614,7 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.savePipeline();
 
-    cy.createRuntimeConfig();
+    cy.installRuntimeConfig({ type: 'airflow' });
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
@@ -623,7 +630,7 @@ describe('Pipeline Editor tests', () => {
     cy.savePipeline();
 
     // Test Airflow export options
-    cy.createRuntimeConfig();
+    cy.installRuntimeConfig({ type: 'airflow' });
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
@@ -641,8 +648,7 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
 
     // Test KFP export options
-    cy.findByRole('tab', { name: /runtimes/i }).click();
-    cy.createRuntimeConfig({ type: 'kfp' });
+    cy.installRuntimeConfig({ type: 'kfp' });
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
