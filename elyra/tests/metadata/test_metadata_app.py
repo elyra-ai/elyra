@@ -21,7 +21,6 @@ import shutil
 from tempfile import mkdtemp
 from tempfile import TemporaryDirectory
 from typing import Optional
-from unittest import mock
 
 import pytest
 
@@ -573,16 +572,15 @@ def test_export_inaccessible_directory(script_runner, mock_data_dir):
     resource = metadata_manager.create('valid', valid)
     assert resource is not None
 
-    directory_parameter = "/xyz/dummy-directory"
-
-    mocked_function = mock.mock_open()
-    mocked_function.side_effect = OSError("Read-only file system: '/xyz'")
+    directory_parameter = "/dummy-directory"
 
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
                             '--directory={}'.format(directory_parameter))
     assert ret.success is False
     assert f"Error creating directory structure for {directory_parameter}/" + \
-           f"{METADATA_TEST_SCHEMASPACE}: Read-only file system: '/xyz'" in ret.stdout
+           f"{METADATA_TEST_SCHEMASPACE}: " in ret.stdout
+    assert any(ele in ret.stdout for ele in ["Read-only file system: ", "Permission denied: ", "Access Denied: "])
+    assert f"'{directory_parameter}'" in ret.stdout
 
 
 def test_export_with_schema_no_instances(script_runner, mock_data_dir):

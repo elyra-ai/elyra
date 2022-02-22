@@ -443,12 +443,12 @@ class SchemaspaceExport(SchemaspaceBase):
             except OSError as e:
                 print(f"Error creating directory structure for {dest_directory}: {e.strerror}: '{e.filename}'")
                 self.exit(1)
-
-        if clean:
-            files = [os.path.join(dest_directory, f) for f in os.listdir(dest_directory)]
-            if len(files) > 0:
-                print(f"Cleaning out all files in '{dest_directory}'")
-                [os.remove(f) for f in files if os.path.isfile(f)]
+        else:
+            if clean:
+                files = [os.path.join(dest_directory, f) for f in os.listdir(dest_directory)]
+                if len(files) > 0:
+                    print(f"Cleaning out all files in '{dest_directory}'")
+                    [os.remove(f) for f in files if os.path.isfile(f)]
 
         print(f"Exporting metadata instances for schemaspace '{self.schemaspace}'" +
               (f" and schema '{schema_name}'" if schema_name else "") +
