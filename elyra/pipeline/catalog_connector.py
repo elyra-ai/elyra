@@ -27,12 +27,14 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from deprecation import deprecated
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import default
 from traitlets.traitlets import Integer
 
+from elyra._version import __version__
 from elyra.metadata.metadata import Metadata
 
 
@@ -149,7 +151,9 @@ class ComponentCatalogConnector(LoggingConfigurable):
             "abstract method 'get_catalog_entries()' must be implemented"
         )
 
-    @abstractmethod
+    @deprecated(deprecated_in="3.7.0", removed_in="4.0",
+                current_version=__version__,
+                details="Implement the get_component_definition function instead")
     def read_catalog_entry(self,
                            catalog_entry_data: Dict[str, Any],
                            catalog_metadata: Dict[str, Any]) -> Optional[str]:

@@ -74,6 +74,7 @@ setup_args = dict(
         'autopep8>=1.5.0,<1.5.6',
         'click>=7.1.1,<8',
         'colorama',
+        'deprecation',
         'entrypoints>=0.3',
         'jinja2>=2.11',
         'jsonschema>=3.2.0',
