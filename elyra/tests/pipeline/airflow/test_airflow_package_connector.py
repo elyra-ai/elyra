@@ -91,4 +91,4 @@ def test_1_10_15_distribution():
     assert isinstance(ce, AirflowCatalogEntry)
     assert ce.definition is not None
     assert isinstance(ce.identifier, dict)
-    assert Path(ce.identifier['file']) == Path('airflow') / 'operators' / 'postgres_operator.py'
+    assert Path(ce.identifier['file']) == Path('airflow') / 'operators' / Path(ce.identifier['file']).name

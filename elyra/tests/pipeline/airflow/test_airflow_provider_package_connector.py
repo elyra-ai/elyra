@@ -94,4 +94,5 @@ def test_http_provider_package():
     assert isinstance(ce, AirflowCatalogEntry)
     assert ce.definition is not None
     assert isinstance(ce.identifier, dict)
-    assert Path(ce.identifier['file']) == Path('airflow') / 'providers' / 'http' / 'operators' / 'http.py'
+    assert Path(ce.identifier['file']) == \
+           Path('airflow') / 'providers' / 'http' / 'operators' / Path(ce.identifier['file']).name
