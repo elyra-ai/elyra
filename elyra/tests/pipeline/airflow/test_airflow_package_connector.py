@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 
+import io
 from pathlib import Path
+import zipfile
 
 from elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector import AirflowPackageCatalogConnector  # noqa:E501
 from elyra.pipeline.catalog_connector import AirflowCatalogEntry
@@ -28,7 +30,8 @@ AIRFLOW_SUPPORTED_FILE_TYPES = [".py"]
 
 def test_empty_workdir():
     """
-    Verify that the workdir isn't set by default
+    Verify that the workdir isn't set by default. (The property is only set
+    after 'get_catalog_entries' was invoked.)
     """
     apc = AirflowPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
     assert hasattr(apc, 'tmp_archive_dir') is False
@@ -37,6 +40,7 @@ def test_empty_workdir():
     cd = apc.get_component_definition({'file': 'dummyfile'},
                                       {})
     assert cd is None
+    assert hasattr(apc, 'tmp_archive_dir') is False
 
 
 def test_get_hash_keys():
@@ -49,19 +53,38 @@ def test_get_hash_keys():
     assert hk[0] == 'file'
 
 
-def test_invalid_download_input():
+def test_invalid_download_input(requests_mock):
+    """
+    Test invalid input scenarios.
+    """
     apc = AirflowPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
 
-    # handle input yields HTTP error
-    ce = apc.get_catalog_entries({'airflow_package_download_url': 'http://no.such.host/'})
+    # Input is an invalid URL/host.
+    requests_mock.get('http://no.such.host/a-file', real_http=True)
+    ce = apc.get_catalog_entries({'airflow_package_download_url':
+                                  'http://no.such.host/a-file'})
     assert len(ce) == 0
 
-    # handle input yields not a ZIP archive
-    ce = apc.get_catalog_entries({'airflow_package_download_url': 'https://github.com/elyra-ai/elyra'})
+    # Input is a valid URL but does not include a filename.
+    requests_mock.get('http://server.domain.com', text='a-file-content')
+    ce = apc.get_catalog_entries({'airflow_package_download_url':
+                                  'http://server.domain.com/'})
     assert len(ce) == 0
 
-    # handle not a distribution package
-    # TODO (requires test asset)
+    # Input is a valid URL, but does not return a ZIP-compressed file.
+    requests_mock.get('http://server.domain.com/a-file', text='another-file-content')
+    ce = apc.get_catalog_entries({'airflow_package_download_url':
+                                  'http://server.domain.com/a-file'})
+    assert len(ce) == 0
+
+    # Input is a valid URL and a ZIP-compressed file, but is not an Airflow built distribution.
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr('dummy_file.txt', 'I am a dummy file, living in a ZIP archive.')
+    requests_mock.get('http://server.domain.com/a-zip-file', content=zip_buffer.getvalue())
+    ce = apc.get_catalog_entries({'airflow_package_download_url':
+                                  'http://server.domain.com/a-zip-file'})
+    assert len(ce) == 0
 
 # -----------------------------------
 # Long running test(s)

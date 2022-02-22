@@ -38,6 +38,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
     Provides access to operators that are defined in Apache Airflow wheel archives.
     """
 
+    REQUEST_TIMEOUT = 30
+
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         """
@@ -78,9 +80,15 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             self.log.debug(f'Downloading Apache Airflow package from \'{airflow_package_download_url}\' ...')
 
             # download archive; abort after 30 seconds
-            response = requests.get(airflow_package_download_url,
-                                    timeout=30,
-                                    allow_redirects=True)
+            try:
+                response = requests.get(airflow_package_download_url,
+                                        timeout=AirflowPackageCatalogConnector.REQUEST_TIMEOUT,
+                                        allow_redirects=True)
+            except Exception as ex:
+                self.log.error('Error. The Airflow package connector is not configured properly. '
+                               f'Download of \'{airflow_package_download_url}\' failed: '
+                               f'{ex}')
+                return operator_key_list
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error('Error. The Airflow package connector is not configured properly. '
