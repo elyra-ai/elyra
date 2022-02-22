@@ -120,12 +120,12 @@ dev-unlink:
 yarn-install:
 	yarn install
 
-build-ui:
+build-ui: # Build packages
 	yarn lerna run build --stream
 
 package-ui: yarn-install lint-ui build-ui
 
-build-server:
+build-server: # Build backend
 	python setup.py bdist_wheel sdist
 
 install-server-package:

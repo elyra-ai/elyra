@@ -114,6 +114,8 @@ Elyra can be installed from PyPI:
   conda install -c conda-forge "elyra[all]>=3.7.0"
   ```
 
+  Install Elyra from PyPI ( Elyra >= 3.1.0 ):
+
   ```bash
   pip3 install --upgrade "elyra[all]>=3.1.0" && jupyter lab build
   ```
