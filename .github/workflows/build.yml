@@ -112,6 +112,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Build
         run: |
+          make build-dependencies
           make yarn-install
           make build-ui
       - name: Install
@@ -140,6 +141,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Build
         run: |
+          make build-dependencies
           make yarn-install
           make build-ui
       - name: Install
