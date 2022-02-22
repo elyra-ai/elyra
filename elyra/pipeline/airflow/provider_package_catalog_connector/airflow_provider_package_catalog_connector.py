@@ -30,8 +30,8 @@ import zipfile
 import requests
 
 from elyra.pipeline.catalog_connector import AirflowCatalogEntry
-from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
+from elyra.pipeline.catalog_connector import ComponentDefinition
 
 
 class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
@@ -279,7 +279,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
     def get_component_definition(self,
                                  catalog_entry_data: Dict[str, Any],
-                                 catalog_metadata: Dict[str, Any]) -> CatalogEntry:
+                                 catalog_metadata: Dict[str, Any]) -> ComponentDefinition:
         """
         Fetch the script identified by catalog_entry_data['file']
 
@@ -288,8 +288,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         :param catalog_metadata: the metadata associated with the catalog in which this catalog entry is
                                  stored; in addition to catalog_entry_data, catalog_metadata may also be
                                  needed to read the component definition for certain types of catalogs
-
-        :returns: A CatalogEntry containing the definition and metadata
+        :returns: A ComponentDefinition containing the definition and metadata, if found
         """
 
         operator_file_name = catalog_entry_data['file']
@@ -299,9 +298,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             # there is nothing that can be done. Log error and return None
             self.log.error('Error. Cannot fetch operator source code. The '
                            'Airflow provider package archive was not found.')
-            return AirflowCatalogEntry(None,
-                                       catalog_entry_data,
-                                       None)
+            return None
 
         # Compose package name from operator_file_name, e.g.
         # 'airflow/providers/ssh/operators/ssh.py' => 'airflow.providers.ssh.operators.ssh'
@@ -318,9 +315,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         except Exception as ex:
             self.log.error(f'Error reading operator source \'{operator_source}\': {ex}')
 
-        return AirflowCatalogEntry(None,
-                                   catalog_entry_data,
-                                   None)
+        return None
 
     def get_hash_keys(self) -> List[Any]:
         """

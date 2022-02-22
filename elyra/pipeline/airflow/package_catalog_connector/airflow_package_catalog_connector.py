@@ -22,14 +22,15 @@ from tempfile import mkdtemp
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Optional
 from urllib.parse import urlparse
 import zipfile
 
 import requests
 
 from elyra.pipeline.catalog_connector import AirflowCatalogEntry
-from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
+from elyra.pipeline.catalog_connector import ComponentDefinition
 
 
 class AirflowPackageCatalogConnector(ComponentCatalogConnector):
@@ -110,7 +111,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             os.remove(archive)
 
             # Locate Python scripts that are stored in the 'airflow/operators' directory
-            python_scripts = [str(s) for s in self.tmp_archive_dir.glob('airflow/operators/*.py')]
+            python_scripts = [s for s in self.tmp_archive_dir.glob('airflow/operators/*.py')]
 
             #
             # Identify Python scripts that define classes that extend the
@@ -124,9 +125,9 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             script_count = 0  # used for stats collection
             # process each Python script ...
             for script in python_scripts:
-                script_id = script[offset:]
-                if script_id == 'airflow/operators/__init__.py':
+                if script.name == '__init__.py':
                     continue
+                script_id = str(script)[offset:]
                 script_count += 1
                 self.log.debug(f'Parsing \'{script}\' ...')
                 with open(script, 'r') as source_code:
@@ -214,7 +215,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
     def get_component_definition(self,
                                  catalog_entry_data: Dict[str, Any],
-                                 catalog_metadata: Dict[str, Any]) -> CatalogEntry:
+                                 catalog_metadata: Dict[str, Any]) -> Optional[ComponentDefinition]:
         """
         Fetch the component that is identified by catalog_entry_data from
         the downloaded Apache Airflow package.
@@ -225,7 +226,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                                  stored; in addition to catalog_entry_data, catalog_metadata may also be
                                  needed to read the component definition for certain types of catalogs
 
-        :returns: A CatalogEntry containing the definition and metadata
+        :returns: A ComponentDefinition containing the definition and metadata, if found
         """
         operator_file_name = catalog_entry_data.get('file')
 
@@ -233,9 +234,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             # Log error and return None
             self.log.error('Error. Cannot fetch operator definition. The '
                            ' downloaded Airflow package archive was not found.')
-            return AirflowCatalogEntry(None,
-                                       catalog_entry_data,
-                                       None)
+            return None
 
         # Compose package name from operator_file_name, e.g.
         # 'airflow/operators/papermill_operator.py' => 'airflow.operators.papermill_operator'
@@ -252,9 +251,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
         except Exception as ex:
             self.log.error(f'Error reading operator source \'{operator_source}\': {ex}')
 
-        return AirflowCatalogEntry(None,
-                                   catalog_entry_data,
-                                   None)
+        return None
 
     def get_hash_keys(self) -> List[Any]:
         """
