@@ -109,10 +109,12 @@ Elyra can be installed from PyPI:
   pip3 install --upgrade "elyra[all]>=3.7.0"
   ```
 
-  Install fom Conda ( Elyra >= 3.1.0 ):
+  Install fom Conda ( Elyra >= 3.7.0 ):
   ```bash
   conda install -c conda-forge "elyra[all]>=3.7.0"
   ```
+  
+* For versions of Elyra prior to 3.7 `jupyter lab build` must be run after install to enable the extensions.
 
   Install Elyra from PyPI ( Elyra >= 3.1.0 ):
 

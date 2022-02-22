@@ -15,10 +15,10 @@
 #
 
 .PHONY: help purge uninstall clean
-.PHONY: build-dependencies lint-server prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
+.PHONY: lint-dependencies lint-server prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
-.PHONY: yarn-install build-ui package-ui build-server install-server-package install-server install install-all
-.PHONY: install-examples install-gitlab-dependency check-install watch release
+.PHONY: build-dependencies yarn-install build-ui package-ui build-server install-server-package install-server
+.PHONY: install install-all install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image publish-elyra-image kf-notebook-image publish-kf-notebook-image
@@ -77,11 +77,11 @@ clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
 ## Lint targets
 
-build-dependencies:
+lint-dependencies:
 	python -m pip install --upgrade pip
-	@pip install -q -r build_requirements.txt	
+	@pip install -q -r lint_requirements.txt
 
-lint-server: build-dependencies
+lint-server: lint-dependencies
 	flake8 elyra
 
 prettier-check-ui:
@@ -117,13 +117,17 @@ dev-unlink:
 
 ## Build and install targets
 
+build-dependencies:
+	python -m pip install --upgrade pip
+	@pip install -q -r build_requirements.txt
+
 yarn-install:
 	yarn install
 
 build-ui: # Build packages
 	yarn lerna run build --stream
 
-package-ui: yarn-install lint-ui build-ui
+package-ui: build-dependencies yarn-install lint-ui build-ui
 
 build-server: # Build backend
 	python setup.py bdist_wheel sdist
@@ -131,7 +135,7 @@ build-server: # Build backend
 install-server-package:
 	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
-install-server: lint-server build-server install-server-package ## Build and install backend
+install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
 install: package-ui install-server check-install ## Build and install
 

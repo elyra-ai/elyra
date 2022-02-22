@@ -108,7 +108,7 @@ setup_args = dict(
         **runtime_extras
     },
     include_package_data=True,
-    classifiers=(
+    classifiers=[
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering',
@@ -120,7 +120,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-    ),
+    ],
     entry_points={
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
