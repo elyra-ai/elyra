@@ -123,7 +123,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         For example, the FilesystemCatalogConnector includes both a base directory ('base_dir') key-value
         pair and a relative path ('path') key-value pair in its 'catalog_entry_data' dict. Both fields
-        are needed in order to access the corresponding component definition in read_catalog_entry().
+        are needed in order to access the corresponding component definition in get_component_definition().
 
         Every catalog_entry_data should contain each of the keys returned in get_hash_keys() to ensure
         uniqueness and portability among entries. For the same reason, no two catalog entries should have
@@ -143,7 +143,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                     }
 
         :returns: a list of catalog entry dictionaries, each of which contains the information
-                  needed to access a component definition in read_catalog_entry()
+                  needed to access a component definition in get_component_definition()
         """
         raise NotImplementedError(
             "abstract method 'get_catalog_entries()' must be implemented"
@@ -221,8 +221,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
         also enables pipeline portability across installations when the keys returned here are
         chosen strategically. For example, the FilesystemCatalogConnector includes both a base
         directory key-value pair and a relative path key-value pair in its 'catalog_entry_data' dict.
-        Both fields are required to access the component definition in read_catalog_entry(), but
-        only the relative path field is used to create the unique hash. This allows a component
+        Both fields are required to access the component definition in get_component_definition(),
+        but only the relative path field is used to create the unique hash. This allows a component
         that has the same relative path defined in two separate a catalogs in two separate
         installations to resolve to the same unique id in each, and therefore to be portable across
         pipelines in these installations.
