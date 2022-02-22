@@ -36,7 +36,3 @@ RUN elyra-metadata install component-catalogs \
     --display_name="Kubeflow Pipelines examples" \
     --runtime_type=KUBEFLOW_PIPELINES \
     --categories="['examples']"
-<<<<<<< HEAD
-=======
-
->>>>>>> master
