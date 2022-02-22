@@ -390,9 +390,16 @@
         "ui_data": {
           "comments": []
         },
-        "version": 4,
+        "version": 7,
         "runtime": "airflow",
         "runtime_config": "airflow-yukked1",
+        "runtime_type": "APACHE_AIRFLOW",
+        "properties": {
+          "name": "pipeline_with_custom_components",
+          "runtime": "Apache Airflow",
+          "description": "This is a pipeline description that\nincludes newline characters\n\n\"\"\"Note that it also includes a help string\"\"\""
+        },
+        "name": "pipeline_with_custom_components",
         "source": "pipeline_with_custom_components.json"
       },
       "runtime_ref": ""

@@ -622,6 +622,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     container_op = factory_function(**operation.component_params_as_dict)
                     container_op.set_display_name(operation.name)
 
+                    if operation.doc:
+                        container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
+
                     target_ops[operation.id] = container_op
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories

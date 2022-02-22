@@ -22,6 +22,7 @@ import {
   IMetadataDisplayProps,
   IMetadataDisplayState,
   IMetadataWidgetProps,
+  MetadataCommonService,
   MetadataDisplay,
   MetadataWidget,
   METADATA_ITEM
@@ -42,7 +43,12 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import * as nbformat from '@jupyterlab/nbformat';
 import { Notebook, NotebookModel, NotebookPanel } from '@jupyterlab/notebook';
-import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
+import {
+  copyIcon,
+  editIcon,
+  pasteIcon,
+  LabIcon
+} from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { MimeData } from '@lumino/coreutils';
@@ -383,8 +389,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
   actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
     return [
       {
-        title: 'Copy',
-        icon: copyIcon,
+        title: 'Copy to clipboard',
+        icon: pasteIcon,
         feedback: 'Copied!',
         onClick: (): void => {
           Clipboard.copyToSystem(metadata.metadata.code.join('\n'));
@@ -410,6 +416,21 @@ class CodeSnippetDisplay extends MetadataDisplay<
         }
       },
       {
+        title: 'Duplicate',
+        icon: copyIcon,
+        onClick: (): void => {
+          MetadataCommonService.duplicateMetadataInstance(
+            CODE_SNIPPET_SCHEMASPACE,
+            metadata,
+            this.props.metadata
+          )
+            .then((response: any): void => {
+              this.props.updateMetadata();
+            })
+            .catch(error => RequestErrors.serverError(error));
+        }
+      },
+      {
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
@@ -422,7 +443,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
                   this.props.shell.widgets('main'),
                   (value: Widget, index: number) => {
                     return (
-                      value.id ==
+                      value.id ===
                       `${METADATA_EDITOR_ID}:${CODE_SNIPPET_SCHEMASPACE}:${CODE_SNIPPET_SCHEMA}:${metadata.name}`
                     );
                   }

@@ -30,9 +30,9 @@ import { createRuntimeData, getConfigDetails } from './runtime-utils';
 import Utils from './utils';
 
 /**
- * Submit notebook button extension
- *  - Attach button to notebook toolbar and launch a dialog requesting
- *  information about the remote location to where submit the notebook
+ * Submit file button extension
+ *  - Attach button to editor toolbar and launch a dialog requesting
+ *  information about the remote location to where submit the file
  *  for execution
  */
 
@@ -45,7 +45,7 @@ export class SubmitFileButtonExtension<
     if (context.model.dirty) {
       const dialogResult = await showDialog({
         title:
-          'This notebook contains unsaved changes. To run the notebook as pipeline the changes need to be saved.',
+          'This file contains unsaved changes. To run the file as pipeline the changes need to be saved.',
         buttons: [
           Dialog.cancelButton(),
           Dialog.okButton({ label: 'Save and Submit' })
@@ -107,7 +107,7 @@ export class SubmitFileButtonExtension<
 
     const dialogResult = await showFormDialog(dialogOptions);
 
-    if (dialogResult.value == null) {
+    if (dialogResult.value === null) {
       // When Cancel is clicked on the dialog, just return
       return;
     }
@@ -125,7 +125,7 @@ export class SubmitFileButtonExtension<
 
     const configDetails = getConfigDetails(runtimeData, runtime_config);
 
-    // prepare notebook submission details
+    // prepare file submission details
     const pipeline = Utils.generateSingleFilePipeline(
       context.path,
       configDetails,
@@ -151,7 +151,7 @@ export class SubmitFileButtonExtension<
       tooltip: 'Run file as batch'
     });
 
-    // Add the toolbar button to the notebook
+    // Add the toolbar button to the editor
     editor.toolbar.insertItem(10, 'submitFile', submitFileButton);
 
     // The ToolbarButton class implements `IDisposable`, so the

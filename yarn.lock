@@ -1398,13 +1398,13 @@
     seedrandom "3.0.5"
     uuid "8.3.0"
 
-"@elyra/pipeline-editor@~1.5.1":
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.5.1.tgz#860d912ab8c88bb45969f494c37d7e8954856176"
-  integrity sha512-TemYiuNiyJnEKbN03W3qzxRk3+PoQGYzn1GOjTvO+rM0KJ+aY2JQ1mvSyo2y9yFRbQZNkgTdCnSffMn9mhZMEQ==
+"@elyra/pipeline-editor@~1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.6.0.tgz#133f244c2245f00f1ee021f844bfe6a45be42594"
+  integrity sha512-RCm8b5Cg6EnZLrXMTUPNlFWj3RXyUCBW8v6YX5bRWDTOodlrwZqPWdABYP2depusY238NvegJb9e4k9EEpMnjA==
   dependencies:
     "@elyra/canvas" "11.0.0"
-    "@elyra/pipeline-services" "^1.5.1"
+    "@elyra/pipeline-services" "^1.6.0"
     downshift "^6.1.2"
     immer "^9.0.7"
     nanoid "^3.1.20"
@@ -1419,10 +1419,10 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.42.tgz#d1e681022cd033234a8e0fe4febb0e58d8a7683e"
   integrity sha512-DF34KqUocckJWTJBUqS0diKgqgqAbCWljx3O5v1ZKHYoiz5UvSz5/67U/5oaJXIlPqwbmL47rWvIA/u6M7DCZw==
 
-"@elyra/pipeline-services@^1.5.1", "@elyra/pipeline-services@~1.5.1":
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.5.1.tgz#888384adee29c5f75158ebaf863a88da40a48962"
-  integrity sha512-yo8ffzyf42GJgMzTJsKJ/tvabUWgiRhLCMh8flcDUddITidPfvCTM4oDh3HpVIPSVwagzb6IdnJ+hqzHyZZPGQ==
+"@elyra/pipeline-services@^1.6.0", "@elyra/pipeline-services@~1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.6.0.tgz#1aecaff81b66d690c60fc7b542a69d3ed5749167"
+  integrity sha512-INUZDAZoe3Fvw6dnET+EgzDuY4j6SR9xx7a0CXofX4ehd6TWbO5neppoCeEt0IsqOrnN/eGUaDJ4lsl/sv6awA==
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
@@ -9661,9 +9661,9 @@ fn.name@1.x.x:
   integrity sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==
 
 follow-redirects@^1.0.0, follow-redirects@^1.14.0:
-  version "1.14.7"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.7.tgz#2004c02eb9436eee9a21446a6477debf17e81685"
-  integrity sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==
+  version "1.14.8"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.8.tgz#016996fb9a11a100566398b1c6839337d7bfa8fc"
+  integrity sha512-1x0S9UVJHsQprFcEC/qnNzBLcIxsjAV905f/UkQxbclCsoTWlacCNOpQa/anodLl2uaEKFhfWOvM2Qg77+15zA==
 
 for-each@^0.3.3:
   version "0.3.3"

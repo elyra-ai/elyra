@@ -104,16 +104,47 @@ describe('Code Snippet tests', () => {
     deleteSnippet(snippetName);
   });
 
+  // Duplicate snippet
+  it('should duplicate existing Code Snippet', () => {
+    createValidCodeSnippet(snippetName);
+    cy.wait(500);
+    let snippetRef = getSnippetByName(snippetName);
+    expect(snippetRef).to.not.be.null;
+
+    // create a duplicate of this snippet
+    duplicateSnippet(snippetName);
+    cy.wait(100);
+    snippetRef = getSnippetByName(`${snippetName}-Copy1`);
+    expect(snippetRef).to.not.be.null;
+
+    // create another duplicate of this snippet
+    duplicateSnippet(snippetName);
+    cy.wait(100);
+    snippetRef = getSnippetByName(`${snippetName}-Copy2`);
+    expect(snippetRef).to.not.be.null;
+
+    // cleanup
+    deleteSnippet(snippetName);
+    deleteSnippet(`${snippetName}-Copy1`);
+    deleteSnippet(`${snippetName}-Copy2`);
+  });
+
   it('should have visible action buttons for existing code snippet', () => {
     createValidCodeSnippet(snippetName);
 
     const actionButtons = getActionButtonsElement(snippetName);
-    const buttonTitles = ['Copy', 'Insert', 'Edit', 'Delete'];
+    const buttonTitles = [
+      'Copy to clipboard',
+      'Insert',
+      'Edit',
+      'Duplicate',
+      'Delete'
+    ];
 
     // Check expected buttons to be visible
     buttonTitles.forEach((title: string) => {
       actionButtons.within(() => {
-        cy.get(`button[title=${title}]`).should('be.visible');
+        cy.get(`button[title="${title}"]`).should('be.visible');
       });
     });
   });
@@ -359,6 +390,14 @@ const deleteSnippet = (snippetName: string): void => {
   // Confirm action in dialog
   cy.get('.jp-Dialog-header').contains(`Delete snippet '${snippetName}'?`);
   cy.get('button.jp-mod-accept').click();
+};
+
+const duplicateSnippet = (snippetName: string): void => {
+  // Find element by name
+  const item = getSnippetByName(snippetName);
+
+  // Click duplicate button
+  item.find('button[title="Duplicate"]').click();
 };
 
 const getActionButtonsElement = (snippetName: string): any => {

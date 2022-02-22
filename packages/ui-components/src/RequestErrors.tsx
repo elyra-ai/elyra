@@ -48,7 +48,7 @@ export class RequestErrors {
    * @returns A promise that resolves with whether the dialog was accepted.
    */
   static serverError(response: any): Promise<Dialog.IResult<any>> {
-    if (response.status == 404) {
+    if (response.status === 404) {
       return this.server404(response.requestPath);
     }
 

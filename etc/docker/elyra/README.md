@@ -25,8 +25,9 @@ See [Deploying Elyra and JupyterHub in a Kubernetes environment](https://elyra.r
 #### Building a custom container image
 
 To build a custom version of this container image:
-1. Clone this repository
-2. Build the image using the `Dockerfile` or `Dockerfile.dev` in the `etc/docker/elyra` directory:
+1. Clone this repository.
+1. [Optional] Add custom Python package requirements to `requirements.txt` in the `etc/docker/elyra` directory.
+1. Build the image using the `Dockerfile` or `Dockerfile.dev` in the `etc/docker/elyra` directory:
   - (Option 1) Run `make elyra-image TAG=3.X.X` to build with Elyra version `3.X.X`
   - (Option 2) Run `make elyra-image TAG=dev` to build with Elyra from your local source
-3. The container image is automatically tagged with `elyra/elyra:$TAG` and `quay.io/elyra/elyra:$TAG`
+1. The container image is automatically tagged with `elyra/elyra:$TAG` and `quay.io/elyra/elyra:$TAG`

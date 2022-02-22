@@ -70,7 +70,7 @@ export class PipelineService {
     const res = await RequestHandler.makeGetRequest(
       'elyra/pipeline/runtimes/types'
     );
-    return res.runtime_types;
+    return res.runtime_types.sort((a: any, b: any) => a.id.localeCompare(b.id));
   }
 
   /**
@@ -159,7 +159,7 @@ export class PipelineService {
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
           <p>
-            {response['platform'] == 'APACHE_AIRFLOW' ? (
+            {response['platform'] === 'APACHE_AIRFLOW' ? (
               <p>
                 Apache Airflow DAG has been pushed to the{' '}
                 <a
