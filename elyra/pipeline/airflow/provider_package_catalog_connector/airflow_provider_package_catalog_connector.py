@@ -84,14 +84,20 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             self.log.debug(f'Downloading provider package from \'{airflow_provider_package_download_url}\' ...')
 
             # download archive
-            response = requests.get(airflow_provider_package_download_url,
-                                    timeout=AirflowProviderPackageCatalogConnector.REQUEST_TIMEOUT,
-                                    allow_redirects=True)
+            try:
+                response = requests.get(airflow_provider_package_download_url,
+                                        timeout=AirflowProviderPackageCatalogConnector.REQUEST_TIMEOUT,
+                                        allow_redirects=True)
+            except Exception as ex:
+                self.log.error('Error. The Airflow provider package connector is not configured properly. '
+                               f'Download of \'{airflow_provider_package_download_url}\' failed: '
+                               f'{ex}')
+                return operator_key_list
 
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error('Error. The Airflow provider package connector is not configured properly. '
-                               f'Download of archive \'{airflow_provider_package_download_url}\' '
+                               f'Download of \'{airflow_provider_package_download_url}\' '
                                f'failed. HTTP response code: {response.status_code}')
                 return operator_key_list
 
@@ -124,7 +130,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                 # No such file or more than one file was found. Cannot proceed.
                 self.log.error('Error. The Airflow provider package connector is not configured properly. '
                                f'The archive \'{archive}\' '
-                               'contains {len(pl)} file(s) named get_provider_info.py.')
+                               f'contains {len(pl)} file(s) named \'get_provider_info.py\'.')
                 # return empty list
                 return operator_key_list
             get_provider_info_file_location = pl[0]
@@ -139,7 +145,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                 return_dict = namespace['get_provider_info']()
             except KeyError:
                 # no method with this name is defined in get_provider_info.py
-                self.log.error('Error. Cannot invoke get_provider_info method '
+                self.log.error('Error. Cannot \'invoke get_provider_info\' method '
                                f'in \'{get_provider_info_file_location}\'.')
                 return operator_key_list
 
