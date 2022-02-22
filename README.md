@@ -162,7 +162,7 @@ config dir: /usr/local/etc/jupyter
       jupyter_lsp [version] OK
     jupyter_resource_usage  enabled 
     - Validating...
-      jupyter_resource_usage  OK
+      jupyter_resource_usage [version] OK
     jupyterlab  enabled 
     - Validating...
       jupyterlab [version] OK
@@ -185,13 +185,13 @@ Config dir: /.../.jupyter
 Config dir: /.../etc/jupyter
     elyra enabled
     - Validating elyra...
-      elyra [version] OK
+      elyra  OK
     jupyter_lsp enabled
     - Validating jupyter_lsp...
       jupyter_lsp [version] OK
     jupyter_resource_usage enabled
     - Validating jupyter_resource_usage...
-      jupyter_resource_usage  OK
+      jupyter_resource_usage [version] OK
     jupyter_server_mathjax enabled
     - Validating jupyter_server_mathjax...
       jupyter_server_mathjax  OK
