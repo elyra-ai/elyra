@@ -119,6 +119,9 @@ describe('Script Editor tests', () => {
     cy.get('button[title="Top"]').should('be.visible');
     cy.get('button[title="Bottom"]').should('be.visible');
     
+    //close console tab
+    cy.closeTab(-1);
+    
     // Close editor tab
     cy.closeTab(-1);
   });
