@@ -280,4 +280,3 @@ const openFileAndCheckOutputTabTitle = (fileExtension: string): void => {
   // Close the file editor
   cy.closeTab(-1);
 };
-
