@@ -90,8 +90,8 @@ describe('Script Editor tests', () => {
     // Create new python file
     cy.createNewScriptFile('Python');
 
-    // Add some text to the editor
-    cy.get('span[role="presentation"]').type('print("test")');
+    // Add some text to the editor, include newline to clear help text that will block toolbar
+    cy.get('span[role="presentation"]').type('print("test")\n');
 
     // Click Run as Pipeline button
     cy.findByText(/run as pipeline/i).click();
