@@ -169,24 +169,18 @@ describe('Script Editor tests', () => {
   it('check toolbar and its content for R file', () => {
     checkToolbarContent();
   });
-});
 
-it('opens new output console', () => {
-  cy.createNewScriptFile('Python');
-  cy.get('span[role="presentation"]').type('print("test")');
-  cy.get('button[title="Run"]').click();
-  cy.get('[id=tab-ScriptEditor-output]').should(
-    'have.text',
-    'Python Console Output'
-  );
-});
+  // Output console tests
+  it('opens new output console', () => {
+    openFileAndCheckOutputTabTitle('py');
+  });
 
-it('checks if new output console has scroll up and scroll down buttons', () => {
-  cy.createNewScriptFile('Python');
-  cy.get('span[role="presentation"]').type('print("test")');
-  cy.get('button[title="Run"]').click();
-  cy.get('button[title="Top"]').should('be.visible');
-  cy.get('button[title="Bottom"]').should('be.visible');
+  it('checks if new output console has scroll up and scroll down buttons', () => {
+    openFileAndCheckOutputTabTitle('py');
+    cy.get('button[title="Run"]').click();
+    cy.get('button[title="Top"]').should('be.visible');
+    cy.get('button[title="Bottom"]').should('be.visible');
+  });
 });
 
 // ------------------------------
@@ -272,3 +266,18 @@ const openFileAndCheckContent = (fileExtension: string): void => {
   // Close the file editor
   cy.closeTab(-1);
 };
+
+const openFileAndCheckOutputTabTitle = (fileExtension: string): void => {
+  cy.findByRole('menuitem', { name: /file/i }).click();
+  cy.findByText(/^open from path$/i).click({ force: true });
+
+  // Search for helloworld file and open
+  cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
+  cy.get('.p-Panel .jp-mod-accept').click();
+  cy.get('button[title="Run"]').click();
+  cy.get('[id=tab-ScriptEditor-output]').should('have.text', 'Console Output');
+
+  // Close the file editor
+  cy.closeTab(-1);
+};
+
