@@ -136,7 +136,6 @@ setup_args = dict(
             'runtimes = elyra.metadata.schemaspaces:Runtimes',
             'runtimes-images = elyra.metadata.schemaspaces:RuntimeImages',
             'code-snippets = elyra.metadata.schemaspaces:CodeSnippets',
-            'component-registries = elyra.metadata.schemaspaces:ComponentRegistries',
             'component-catalogs = elyra.metadata.schemaspaces:ComponentCatalogs',
             'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemaspace'
         ],
@@ -144,7 +143,6 @@ setup_args = dict(
             'runtimes = elyra.metadata.schemasproviders:RuntimesSchemas',
             'runtimes-images = elyra.metadata.schemasproviders:RuntimeImagesSchemas',
             'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',
-            'component-registries = elyra.metadata.schemasproviders:ComponentRegistriesSchemas',
             'component-catalogs = elyra.metadata.schemasproviders:ComponentCatalogsSchemas',
             'airflow-provider-package-catalog-schema = elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_schema_provider:AirflowProviderPackageSchemasProvider',  # noqa: E501
             'airflow-package-catalog-schema = elyra.pipeline.airflow.package_catalog_connector.airflow_package_schema_provider:AirflowPackageSchemasProvider',  # noqa: E501
