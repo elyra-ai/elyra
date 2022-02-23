@@ -171,6 +171,24 @@ describe('Script Editor tests', () => {
   });
 });
 
+it('opens new output console', () => {
+  cy.createNewScriptFile('Python');
+  cy.get('span[role="presentation"]').type('print("test")');
+  cy.get('button[title="Run"]').click();
+  cy.get('[id=tab-ScriptEditor-output]').should(
+    'have.text',
+    'Python Console Output'
+  );
+});
+
+it('checks if new output console has scroll up and scroll down buttons', () => {
+  cy.createNewScriptFile('Python');
+  cy.get('span[role="presentation"]').type('print("test")');
+  cy.get('button[title="Run"]').click();
+  cy.get('button[title="Top"]').should('be.visible');
+  cy.get('button[title="Bottom"]').should('be.visible');
+});
+
 // ------------------------------
 // ----- Utility Functions
 // ------------------------------
