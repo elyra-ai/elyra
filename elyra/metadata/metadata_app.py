@@ -441,7 +441,7 @@ class SchemaspaceExport(SchemaspaceBase):
                 print(f"Creating directory structure for '{dest_directory}'")
                 os.makedirs(dest_directory)
             except OSError as e:
-                print(f"Error creating directory structure for {dest_directory}: {e.strerror}: '{e.filename}'")
+                print(f"Error creating directory structure for '{dest_directory}': {e.strerror}: '{e.filename}'")
                 self.exit(1)
         else:
             if clean:
