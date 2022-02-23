@@ -109,6 +109,17 @@ describe('Script Editor tests', () => {
     cy.get('button.jp-mod-warn').click();
   });
 
+  it('opens new output console', () => {
+    openFile('py');
+    cy.get('button[title="Run"]').click({ force: true });
+    cy.get('[id=tab-ScriptEditor-output]').should(
+      'have.text',
+      'Console Output'
+    );
+    cy.get('button[title="Top"]').should('be.visible');
+    cy.get('button[title="Bottom"]').should('be.visible');
+  });
+
   // R Tests
   it('opens blank R file from launcher', () => {
     cy.createNewScriptFile('R');
@@ -168,18 +179,6 @@ describe('Script Editor tests', () => {
 
   it('check toolbar and its content for R file', () => {
     checkToolbarContent();
-  });
-
-  // Output console tests
-  it('opens new output console', () => {
-    openFileAndCheckOutputTabTitle('py');
-  });
-
-  it('checks if new output console has scroll up and scroll down buttons', () => {
-    openFileAndCheckOutputTabTitle('py');
-    cy.get('button[title="Run"]').click();
-    cy.get('button[title="Top"]').should('be.visible');
-    cy.get('button[title="Bottom"]').should('be.visible');
   });
 });
 
@@ -250,32 +249,23 @@ const checkRightClickTabContent = (fileType: string): void => {
   ).click();
 };
 
-const openFileAndCheckContent = (fileExtension: string): void => {
+//open helloworld.py using file-> open from path
+const openFile = (fileExtension: string): void => {
   cy.findByRole('menuitem', { name: /file/i }).click();
   cy.findByText(/^open from path$/i).click({ force: true });
 
   // Search for helloworld file and open
   cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
   cy.get('.p-Panel .jp-mod-accept').click();
+};
 
+//open file and check contents
+const openFileAndCheckContent = (fileExtension: string): void => {
+  openFile('py');
   // Ensure that the file contents are as expected
   cy.get('span[role="presentation"]').should($span => {
     expect($span.get(0).innerText).to.eq("print('Hello Elyra')");
   });
-
-  // Close the file editor
-  cy.closeTab(-1);
-};
-
-const openFileAndCheckOutputTabTitle = (fileExtension: string): void => {
-  cy.findByRole('menuitem', { name: /file/i }).click();
-  cy.findByText(/^open from path$/i).click({ force: true });
-
-  // Search for helloworld file and open
-  cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
-  cy.get('.p-Panel .jp-mod-accept').click();
-  cy.get('button[title="Run"]').click();
-  cy.get('[id=tab-ScriptEditor-output]').should('have.text', 'Console Output');
 
   // Close the file editor
   cy.closeTab(-1);
