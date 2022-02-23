@@ -111,7 +111,7 @@ describe('Script Editor tests', () => {
 
   it('opens new output console', () => {
     openFile('py');
-    cy.get('button[title="Run"]').click({ force: true });
+    cy.get('button[title="Run"]').click();
     cy.get('[id=tab-ScriptEditor-output]').should(
       'have.text',
       'Console Output'
