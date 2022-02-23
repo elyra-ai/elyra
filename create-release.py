@@ -416,6 +416,8 @@ def prepare_extensions_release() -> None:
         check_run(['git', 'clone', config.git_extension_package_url, extension], cwd=config.work_dir)
         # update template
         setup_file = os.path.join(extension_source_dir, 'setup.py')
+        # add new import for get_data_files
+        sed(setup_file, "from glob import glob", "from glob import glob\nfrom jupyter_packaging import get_data_files")
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
         sed(setup_file, "{{data-files}}", "get_data_files[('share/jupyter/labextensions', 'dist/labextensions', '**')]")
