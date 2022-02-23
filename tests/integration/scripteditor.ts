@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 describe('Script Editor tests', () => {
   before(() => {
     cy.resetJupyterLab();
