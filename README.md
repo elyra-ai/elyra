@@ -162,24 +162,6 @@ Elyra can be installed from PyPI:
 Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.
 
 ```bash
-jupyter serverextension list
-```
-Should output:
-``` 
-config dir: /usr/local/etc/jupyter
-    jupyter_resource_usage  enabled 
-    - Validating...
-      jupyter_resource_usage  OK
-    jupyterlab  enabled 
-    - Validating...
-      jupyterlab [version] OK
-    nbdime  enabled 
-    - Validating...
-      nbdime [version] OK
-```
-
-
-```bash
 jupyter server extension list
 ```
 Should output:
@@ -222,19 +204,19 @@ Should output:
 ```      
 JupyterLab [version]
 /.../share/jupyter/labextensions
+        nbdime-jupyterlab [version] enabled OK
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
-        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
-
-Other labextensions (built into JupyterLab)
-   app dir: /.../share/jupyter/lab
         @elyra/code-snippet-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK
         @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
-        nbdime-jupyterlab [version] enabled OK        
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
+   app dir: /.../share/jupyter/lab
         
 ```
 

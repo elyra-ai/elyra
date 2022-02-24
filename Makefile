@@ -78,7 +78,6 @@ clean: purge uninstall ## Make a clean source tree and uninstall extensions
 ## Lint targets
 
 lint-dependencies:
-	python -m pip install --upgrade pip
 	@pip install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
@@ -118,7 +117,7 @@ dev-unlink:
 ## Build and install targets
 
 build-dependencies:
-	python -m pip install --upgrade pip
+	@python -m pip install -q --upgrade pip
 	@pip install -q -r build_requirements.txt
 
 yarn-install:
@@ -154,7 +153,7 @@ install-gitlab-dependency:
 	- pip install --upgrade python-gitlab
 
 check-install:
-	jupyter serverextension list
+	jupyter server extension list
 	jupyter labextension list
 
 watch: ## Watch packages. For use alongside jupyter lab --watch
@@ -165,7 +164,6 @@ release: yarn-install build-ui build-server ## Build wheel file for release
 ## Test targets
 
 test-dependencies:
-	python -m pip install --upgrade pip
 	@pip install -q -r test_requirements.txt
 
 pytest:
