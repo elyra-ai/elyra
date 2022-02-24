@@ -220,7 +220,6 @@ JupyterLab [version]
 
 Other labextensions (built into JupyterLab)
    app dir: /.../share/jupyter/lab
-        
 ```
 
 ## Starting Elyra

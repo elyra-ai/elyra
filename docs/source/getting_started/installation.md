@@ -124,34 +124,6 @@ To verify an Elyra installation review the installed server extensions and lab e
 Verify that the `elyra` extension is installed.
 
 ```bash
-jupyter serverextension list
-```
-
-Should output:
-
-```
-config dir: /.../etc/jupyter
-    elyra  enabled
-    - Validating...
-      elyra  OK
-    jupyter_lsp  enabled
-    - Validating...
-      jupyter_lsp [version] OK
-    jupyter_resource_usage  enabled 
-    - Validating...
-      jupyter_resource_usage [version] OK
-    jupyterlab  enabled 
-    - Validating...
-      jupyterlab [version] OK
-    jupyterlab_git  enabled
-    - Validating...
-      jupyterlab_git [version] OK
-    nbdime  enabled 
-    - Validating...
-      nbdime [version] OK
-```
-
-```
 jupyter server extension list
 ```
 
@@ -207,16 +179,16 @@ JupyterLab [version]
         nbdime-jupyterlab [version] enabled OK
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
-        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
-
-Other labextensions (built into JupyterLab)
-   app dir: /.../share/jupyter/lab
         @elyra/code-snippet-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK
         @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
+   app dir: /.../share/jupyter/lab
 ```
 
 ### Docker 
