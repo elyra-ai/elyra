@@ -400,10 +400,10 @@ def prepare_extensions_release() -> None:
     print("-----------------------------------------------------------------")
 
 
-    extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
-                  'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
-                  'elyra-python-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension'],
-                  'elyra-r-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension']}
+    extensions = {'elyra-code-snippet-extension':['code-snippet-extension', 'metadata-extension', 'theme-extension'],
+                  'elyra-pipeline-editor-extension':['pipeline-editor-extension', 'metadata-extension', 'theme-extension'],
+                  'elyra-python-editor-extension':['metadata-extension', 'theme-extension'],
+                  'elyra-r-editor-extension':['metadata-extension', 'theme-extension']}
 
     for extension in extensions:
         extension_source_dir = os.path.join(config.work_dir, extension)
@@ -417,10 +417,10 @@ def prepare_extensions_release() -> None:
         # update template
         setup_file = os.path.join(extension_source_dir, 'setup.py')
         # add new import for get_data_files
-        sed(setup_file, "from glob import glob", "from glob import glob\nfrom jupyter_packaging import get_data_files")
+        sed(setup_file, re.escape("from glob import glob"), re.escape("from glob import glob\nfrom jupyter_packaging import get_data_files"))
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data-files}}", "get_data_files[('share/jupyter/labextensions', 'dist/labextensions', '**')]")
+        sed(setup_file, "{{data-files}}", re.escape("get_data_files[('share/jupyter/labextensions', 'dist/labextensions', '**')]"))
         sed(setup_file, "{{install-requires}}", f"'elyra-server=={config.new_version}',")
 
         for dependency in extensions[extension]:
