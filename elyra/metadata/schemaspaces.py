@@ -61,22 +61,3 @@ class ComponentCatalogs(Schemaspace):
                          name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME,
                          display_name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME,
                          description="Schemaspace for instances of Elyra component catalog configurations")
-
-
-class ComponentRegistries(Schemaspace):
-    """DEPRECATED.  ComponentRegistries schemaspace is deprecated.
-
-    The schemaspace instance must remain until 3.4 to complete migration of potential
-    user-created registries.  Factory registries will not require migration.
-    """
-    COMPONENT_REGISTRIES_SCHEMASPACE_ID = "ae79159a-489d-4656-83a6-1adfbc567c70"
-    COMPONENT_REGISTRIES_SCHEMASPACE_NAME = "component-registries"
-    COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME = "Component Registries"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID,
-                         name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_NAME,
-                         display_name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra component registries configurations")
-
-        self._deprecated = True

@@ -87,7 +87,9 @@ class MetadataManager(LoggingConfigurable):
                 self.log.warning(f"Fetch of instance '{invalid_instance.name}' "
                                  f"of schemaspace '{self.schemaspace}' "
                                  f"encountered an exception: {ex}")
-                if include_invalid:
+                if include_invalid and (not of_schema or invalid_instance.schema_name == of_schema):
+                    # Export invalid instances if requested and if a schema was not specified
+                    # or the specified schema matches the instance's schema.
                     invalid_instance.reason = ex.__class__.__name__
                     instances.append(invalid_instance)
         return instances

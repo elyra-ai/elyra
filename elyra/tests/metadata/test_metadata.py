@@ -165,6 +165,13 @@ def test_manager_get_include_invalid(tests_manager):
     assert len(metadata_list) == 5
 
 
+def test_manager_get_of_schema(tests_manager):
+    metadata_list = tests_manager.get_all(include_invalid=True)
+    assert len(metadata_list) == 5
+    metadata_list = tests_manager.get_all(include_invalid=True, of_schema='metadata-test')
+    assert len(metadata_list) == 3  # does not include metadata with schema {unknown} and metadata-testxxx
+
+
 def test_manager_get_bad_json(tests_manager):
     with pytest.raises(ValueError) as ve:
         tests_manager.get("bad")
