@@ -154,12 +154,21 @@ jupyter serverextension list
 Should output:
 ``` 
 config dir: /usr/local/etc/jupyter
+    elyra  enabled
+    - Validating...
+      elyra  OK
+    jupyter_lsp  enabled
+    - Validating...
+      jupyter_lsp [version] OK
     jupyter_resource_usage  enabled 
     - Validating...
-      jupyter_resource_usage  OK
+      jupyter_resource_usage [version] OK
     jupyterlab  enabled 
     - Validating...
       jupyterlab [version] OK
+    jupyterlab_git  enabled
+    - Validating...
+      jupyterlab_git [version] OK
     nbdime  enabled 
     - Validating...
       nbdime [version] OK
@@ -176,13 +185,16 @@ Config dir: /.../.jupyter
 Config dir: /.../etc/jupyter
     elyra enabled
     - Validating elyra...
-      elyra [version] OK
+      elyra  OK
     jupyter_lsp enabled
     - Validating jupyter_lsp...
       jupyter_lsp [version] OK
     jupyter_resource_usage enabled
     - Validating jupyter_resource_usage...
-      jupyter_resource_usage  OK
+      jupyter_resource_usage [version] OK
+    jupyter_server_mathjax enabled
+    - Validating jupyter_server_mathjax...
+      jupyter_server_mathjax  OK
     jupyterlab enabled
     - Validating jupyterlab...
       jupyterlab [version] OK
@@ -209,6 +221,7 @@ Should output:
 ```      
 JupyterLab [version]
 /.../share/jupyter/labextensions
+        nbdime-jupyterlab [version] enabled OK
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
         @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
@@ -221,7 +234,6 @@ Other labextensions (built into JupyterLab)
         @elyra/python-editor-extension [version] enabled OK
         @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
-        nbdime-jupyterlab [version] enabled OK        
         
 ```
 
