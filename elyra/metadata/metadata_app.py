@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
+import os
 import sys
 from typing import Dict
 from typing import List
@@ -376,6 +378,100 @@ class SchemaspaceMigrate(SchemaspaceBase):
             print(f"No instances of schemaspace {self.schemaspace} were migrated.")
 
 
+class SchemaspaceExport(SchemaspaceBase):
+    """Handles the 'export' subcommand functionality for a specific schemaspace."""
+
+    schema_name_option = CliOption("--schema_name", name='schema_name',
+                                   description='The schema name of the metadata instances to export',
+                                   required=False)
+
+    valid_only_flag = Flag("--valid-only", name='valid-only',
+                           description='Only export valid instances (default includes invalid instances)',
+                           default_value=False)
+
+    clean_flag = Flag("--clean", name='clean',
+                      description='Clear out contents of the export directory',
+                      default_value=False)
+
+    directory_option = CliOption("--directory", name='directory',
+                                 description='The local file system path where the exported metadata will be stored',
+                                 required=True)
+
+    # 'Export' flags
+    options: List[Option] = [schema_name_option, valid_only_flag, clean_flag, directory_option]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
+
+    def start(self):
+        super().start()  # process options
+
+        schema_name = self.schema_name_option.value
+        if(schema_name):
+            schema_list = sorted(list(self.schemas.keys()))
+            if schema_name not in schema_list:
+                print(f"Schema name '{schema_name}' is invalid. For the '{self.schemaspace}' schemaspace, " +
+                      f"the schema name must be one of {schema_list}")
+                self.exit(1)
+
+        include_invalid = not self.valid_only_flag.value
+        directory = self.directory_option.value
+        clean = self.clean_flag.value
+
+        try:
+            if(self.schema_name_option is not None):
+                metadata_instances = self.metadata_manager.get_all(include_invalid=include_invalid,
+                                                                   of_schema=schema_name)
+            else:
+                metadata_instances = self.metadata_manager.get_all(include_invalid=include_invalid)
+        except MetadataNotFoundError:
+            metadata_instances = None
+
+        if not metadata_instances:
+            print(f"No metadata instances found for schemaspace '{self.schemaspace}'" +
+                  (f" and schema '{schema_name}'" if schema_name else ""))
+            print(f"Nothing exported to '{directory}'")
+            return
+
+        dest_directory = os.path.join(directory, self.schemaspace)
+
+        if not os.path.exists(dest_directory):
+            try:
+                print(f"Creating directory structure for '{dest_directory}'")
+                os.makedirs(dest_directory)
+            except OSError as e:
+                print(f"Error creating directory structure for '{dest_directory}': {e.strerror}: '{e.filename}'")
+                self.exit(1)
+        else:
+            if clean:
+                files = [os.path.join(dest_directory, f) for f in os.listdir(dest_directory)]
+                if len(files) > 0:
+                    print(f"Cleaning out all files in '{dest_directory}'")
+                    [os.remove(f) for f in files if os.path.isfile(f)]
+
+        print(f"Exporting metadata instances for schemaspace '{self.schemaspace}'" +
+              (f" and schema '{schema_name}'" if schema_name else "") +
+              (" (includes invalid)" if include_invalid else " (valid only)") +
+              f" to '{dest_directory}'")
+        num_valid_exported = 0
+        num_invalid_exported = 0
+        for instance in metadata_instances:
+            dict_metadata = instance.to_dict()
+            output_file = os.path.join(dest_directory, f'{dict_metadata["name"]}.json')
+            if "reason" in dict_metadata and len(dict_metadata["reason"]) > 0:
+                num_invalid_exported += 1
+            else:
+                num_valid_exported += 1
+            with open(output_file, mode='w') as output_file:
+                json.dump(dict_metadata, output_file, indent=4)
+
+        total_exported = num_valid_exported + num_invalid_exported
+        print(f"Exported {total_exported} " + ("instances" if total_exported > 1 else "instance") +
+              f" ({num_invalid_exported} of which " +
+              ("is" if num_invalid_exported == 1 else "are") + " invalid)")
+
+
 class SubcommandBase(AppBase):
     """Handles building the appropriate subcommands based on existing schemaspaces."""
 
@@ -456,8 +552,19 @@ class Migrate(SubcommandBase):
         super().__init__(**kwargs)
 
 
+class Export(SubcommandBase):
+    """Exports metadata instances in a given schemaspace."""
+
+    description = "Export metadata instances in a given schemaspace."
+    subcommand_description = "Export installed metadata in schemaspace '{schemaspace}'."
+    schemaspace_base_class = SchemaspaceExport
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class MetadataApp(AppBase):
-    """Lists, installs and removes metadata for a given schemaspace."""
+    """Lists, installs, removes, migrates and exports metadata for a given schemaspace."""
 
     name = "elyra-metadata"
     description = """Manage Elyra metadata."""
@@ -467,6 +574,7 @@ class MetadataApp(AppBase):
         'install': (Install, Install.description.splitlines()[0]),
         'remove': (Remove, Remove.description.splitlines()[0]),
         'migrate': (Migrate, Migrate.description.splitlines()[0]),
+        'export': (Export, Export.description.splitlines()[0])
     }
 
     @classmethod
