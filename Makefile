@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help purge uninstall clean
+.PHONY: help purge uninstall-src uninstall clean
 .PHONY: lint-dependencies lint-server prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
 .PHONY: build-dependencies yarn-install build-ui package-ui build-server install-server-package install-server
@@ -53,7 +53,19 @@ purge:
 	rm -rf $$(find . -name .pytest_cache)
 	rm -rf $(yarn cache dir)
 
-uninstall:
+uninstall-src: # Uninstalls source extensions if they're still installed
+	- jupyter labextension unlink --no-build @elyra/services
+	- jupyter labextension unlink --no-build @elyra/ui-components
+	- jupyter labextension unlink --no-build @elyra/metadata-common
+	- jupyter labextension unlink --no-build @elyra/script-editor
+	- jupyter labextension uninstall --no-build @elyra/theme-extension
+	- jupyter labextension uninstall --no-build @elyra/code-snippet-extension
+	- jupyter labextension uninstall --no-build @elyra/metadata-extension
+	- jupyter labextension uninstall --no-build @elyra/pipeline-editor-extension
+	- jupyter labextension uninstall --no-build @elyra/python-editor-extension
+	- jupyter labextension uninstall --no-build @elyra/r-editor-extension
+
+uninstall: uninstall-src
 	- jupyter labextension unlink @elyra/pipeline-services
 	- jupyter labextension unlink @elyra/pipeline-editor
 	pip uninstall -y jupyterlab-git
