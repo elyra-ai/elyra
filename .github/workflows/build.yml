@@ -41,7 +41,7 @@ jobs:
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile && tsc -v
 
   lint-server:
     name: Lint Server
