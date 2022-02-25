@@ -351,7 +351,6 @@ class ComponentCatalogConnector(LoggingConfigurable):
                 keys_to_hash = ComponentCatalogConnector.get_hash_keys()
 
             except Exception:
-                print('hello!')
                 keys_to_hash = self.get_hash_keys()
 
             # Add display_name attribute to the metadata dictionary
