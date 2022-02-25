@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 describe('Script Editor tests', () => {
   before(() => {
     cy.resetJupyterLab();
@@ -90,7 +91,7 @@ describe('Script Editor tests', () => {
     // Create new python file
     cy.createNewScriptFile('Python');
 
-    // Add some text to the editor, include newline to clear help text that will block toolbar
+    // Add some text to the editor
     cy.get('span[role="presentation"]').type('print("test")\n');
 
     // Click Run as Pipeline button
@@ -107,6 +108,23 @@ describe('Script Editor tests', () => {
 
     // Dismiss save your work dialog by discarding changes
     cy.get('button.jp-mod-warn').click();
+  });
+
+  it('opens new output console', () => {
+    openFile('py');
+    cy.get('button[title="Run"]').click();
+    cy.get('[id=tab-ScriptEditor-output]').should(
+      'have.text',
+      'Console Output'
+    );
+    cy.get('button[title="Top"]').should('be.visible');
+    cy.get('button[title="Bottom"]').should('be.visible');
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
   });
 
   // R Tests
@@ -238,14 +256,19 @@ const checkRightClickTabContent = (fileType: string): void => {
   ).click();
 };
 
-const openFileAndCheckContent = (fileExtension: string): void => {
+//open helloworld.py using file-> open from path
+const openFile = (fileExtension: string): void => {
   cy.findByRole('menuitem', { name: /file/i }).click();
   cy.findByText(/^open from path$/i).click({ force: true });
 
   // Search for helloworld file and open
   cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
   cy.get('.p-Panel .jp-mod-accept').click();
+};
 
+//open file and check contents
+const openFileAndCheckContent = (fileExtension: string): void => {
+  openFile('py');
   // Ensure that the file contents are as expected
   cy.get('span[role="presentation"]').should($span => {
     expect($span.get(0).innerText).to.eq("print('Hello Elyra')");
