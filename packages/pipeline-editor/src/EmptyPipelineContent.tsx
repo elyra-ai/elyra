@@ -43,8 +43,10 @@ export interface IEmptyPlatformSpecificPipelineProps {
 export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipelineProps> = ({
   onOpenCatalog
 }) => {
-  const componentExamplesURL =
-    'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
+  // Note: the URL is rewritten by the release script by replacing `latest` with a
+  // specific version number, e.g. https://.../en/v3.6.0/user_guide/pi...
+  const customComponentsHelpTopicURL =
+    'https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html';
 
   return (
     <div>
@@ -66,16 +68,16 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
         <br />
       </h3>
       <h4 className={HEADER_CLASS}>
-        Refer to
+        Refer to the
         <a
-          href={componentExamplesURL}
+          href={customComponentsHelpTopicURL}
           target="_blank"
           rel="noopener noreferrer"
         >
           {' '}
-          component examples{' '}
+          &apos;pipeline components&apos; help topic{' '}
         </a>
-        for more details about adding custom components.
+        for details.
       </h4>
     </div>
   );
