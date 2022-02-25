@@ -51,7 +51,7 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 If you use `pip`, install Elyra with:
 
 ```bash
-pip3 install --upgrade elyra[all] && jupyter lab build
+pip3 install --upgrade elyra[all]
 ```
 
 If desired, you can install these Elyra extensions independently:
@@ -59,25 +59,25 @@ If desired, you can install these Elyra extensions independently:
 - [Pipeline Editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-pipeline-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-pipeline-editor-extension
    ```
 
 - [Code Snippets](https://pypi.org/project/elyra-code-snippet-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-code-snippet-extension && jupyter lab build
+   pip3 install --upgrade elyra-code-snippet-extension
    ```
 
 - [Python Editor](https://pypi.org/project/elyra-python-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-python-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-python-editor-extension
    ```
 
 - [R Editor](https://pypi.org/project/elyra-r-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-r-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-r-editor-extension
    ```
 
 ### conda
@@ -85,7 +85,7 @@ If desired, you can install these Elyra extensions independently:
 If you use `conda`, install Elyra with:
 
 ```bash
-conda install -c conda-forge elyra[all] && jupyter lab build
+conda install -c conda-forge elyra[all]
 ```
 
 **NOTE:**
@@ -94,19 +94,19 @@ The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipeline
 You can also install the Pipeline editor, Code Snippet, or Script editor extensions individually:
 
 ```bash
-conda install -c conda-forge elyra-pipeline-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-pipeline-editor-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
+conda install -c conda-forge elyra-code-snippet-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-python-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-python-editor-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-r-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-r-editor-extension
 ```
 
 **NOTE:** The R Editor extension is not yet available on `conda-forge` or `pip` package manager.
@@ -124,34 +124,6 @@ To verify an Elyra installation review the installed server extensions and lab e
 Verify that the `elyra` extension is installed.
 
 ```bash
-jupyter serverextension list
-```
-
-Should output:
-
-```
-config dir: /.../etc/jupyter
-    elyra  enabled
-    - Validating...
-      elyra  OK
-    jupyter_lsp  enabled
-    - Validating...
-      jupyter_lsp [version] OK
-    jupyter_resource_usage  enabled 
-    - Validating...
-      jupyter_resource_usage [version] OK
-    jupyterlab  enabled 
-    - Validating...
-      jupyterlab [version] OK
-    jupyterlab_git  enabled
-    - Validating...
-      jupyterlab_git [version] OK
-    nbdime  enabled 
-    - Validating...
-      nbdime [version] OK
-```
-
-```
 jupyter server extension list
 ```
 
@@ -207,16 +179,16 @@ JupyterLab [version]
         nbdime-jupyterlab [version] enabled OK
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
-        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
-
-Other labextensions (built into JupyterLab)
-   app dir: /.../share/jupyter/lab
         @elyra/code-snippet-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK
         @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
+   app dir: /.../share/jupyter/lab
 ```
 
 ### Docker 

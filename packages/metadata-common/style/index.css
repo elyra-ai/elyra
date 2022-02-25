@@ -347,9 +347,6 @@ input.elyra-inputTag {
   height: 15px;
 }
 
-/* Cell tag styling */
-@import url('~@jupyterlab/celltags/style/base.css');
-
 .elyra-tags {
   margin-top: 8px;
 }
