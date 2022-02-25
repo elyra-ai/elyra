@@ -51,6 +51,7 @@
     "access": "public"
   },
   "jupyterlab": {
-    "extension": false
+    "extension": false,
+    "outputDir": "../../dist/labextensions/@elyra/ui-components"
   }
 }
