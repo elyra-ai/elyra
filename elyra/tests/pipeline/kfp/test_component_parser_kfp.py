@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import os
-from types import SimpleNamespace
 
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 from conftest import TEST_CATALOG_NAME
@@ -22,10 +21,12 @@ import jupyter_core.paths
 import pytest
 
 from elyra.metadata.metadata import Metadata
-from elyra.pipeline.catalog_connector import ComponentDefinition
+from elyra.pipeline.catalog_connector import CatalogEntry
+from elyra.pipeline.catalog_connector import EntryData
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_metadata import ComponentCatalogMetadata
 from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
@@ -165,34 +166,34 @@ def test_parse_kfp_component_file():
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
+    # Read contents of given path
     path = _get_resource_path('kfp_test_operator.yaml')
+    catalog_entry_data = {"path": path}
+    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
+    # Construct a catalog instance
     catalog_type = "local-file-catalog"
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
 
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    definition = reader.read_catalog_entry({"path": path}, {})
-    component_definition = ComponentDefinition(definition, {"path": path})
-    component_definition.set_entry_id(catalog_type, ['path'])
-
-    # Build entry for parsing
-    entry = {
-        "component_definition": component_definition,
-        "catalog_type": catalog_type,
-        "categories": ["Test"]
-    }
-    component_entry = SimpleNamespace(**entry)
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition)
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
 
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    component = parser.parse(component_entry)[0]
+    component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_identifier = component_entry.component_definition.identifier
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == \
            {'StringControl': '', 'activeControl': 'StringControl'}
@@ -278,34 +279,34 @@ def test_parse_kfp_component_url():
     kfp_supported_file_types = [".yaml"]
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
 
+    # Read contents of given path
     url = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml'  # noqa: E501
+    catalog_entry_data = {"url": url}
+    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
+    # Construct a catalog instance
     catalog_type = "url-catalog"
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
 
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    definition = reader.read_catalog_entry({"url": url}, {})
-    component_definition = ComponentDefinition(definition, {"url": url})
-    component_definition.set_entry_id(catalog_type, ['url'])
-
-    # Build entry for parsing
-    entry = {
-        "component_definition": component_definition,
-        "catalog_type": catalog_type,
-        "categories": ["Test"]
-    }
-    component_entry = SimpleNamespace(**entry)
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition)
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
 
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    component = parser.parse(component_entry)[0]
+    component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_identifier = component_entry.component_definition.identifier
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
     assert properties_json['current_parameters']['elyra_parameters'] == \
@@ -321,27 +322,28 @@ def test_parse_kfp_component_file_no_inputs():
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
+    # Read contents of given path
     path = _get_resource_path('kfp_test_operator_no_inputs.yaml')
+    catalog_entry_data = {"path": path}
+    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
+    # Construct a catalog instance
     catalog_type = "local-file-catalog"
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
 
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    definition = reader.read_catalog_entry({"path": path}, {})
-    component_definition = ComponentDefinition(definition, {"path": path})
-    component_definition.set_entry_id(catalog_type, ['path'])
-
-    # Build entry for parsing
-    entry = {
-        "component_definition": component_definition,
-        "catalog_type": catalog_type,
-        "categories": ["Test"]
-    }
-    component_entry = SimpleNamespace(**entry)
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition)
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
 
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    component = parser.parse(component_entry)[0]
+    component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Properties JSON should only include the two parameters common to every
@@ -362,12 +364,12 @@ def test_parse_kfp_component_file_no_inputs():
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
 
-    component_identifier = component_entry.component_definition.identifier
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
 
 
 async def test_parse_components_invalid_file():
+
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
@@ -383,34 +385,34 @@ async def test_parse_components_additional_metatypes():
     kfp_supported_file_types = [".yaml"]
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
 
+    # Read contents of given path
     url = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/keras/Train_classifier/from_CSV/component.yaml'  # noqa: E501
+    catalog_entry_data = {"url": url}
+    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
+    # Construct a catalog instance
     catalog_type = "url-catalog"
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
 
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    definition = reader.read_catalog_entry({"url": url}, {})
-    component_definition = ComponentDefinition(definition, {"url": url})
-    component_definition.set_entry_id(catalog_type, ['url'])
-
-    # Build entry for parsing
-    entry = {
-        "component_definition": component_definition,
-        "catalog_type": catalog_type,
-        "categories": ["Test"]
-    }
-    component_entry = SimpleNamespace(**entry)
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition)
+    catalog_entry = CatalogEntry(entry_data, {"url": url}, catalog_instance, ['url'])
 
     # Parse the component entry
     parser = KfpComponentParser()
-    component = parser.parse(component_entry)[0]
+    component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_identifier = component_entry.component_definition.identifier
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_training_features'] == 'None'  # inputPath
     assert properties_json['current_parameters']['elyra_training_labels'] == 'None'  # inputPath

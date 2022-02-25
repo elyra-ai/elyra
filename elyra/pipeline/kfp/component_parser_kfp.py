@@ -21,6 +21,7 @@ from typing import Optional
 
 import yaml
 
+from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
@@ -33,9 +34,9 @@ class KfpComponentParser(ComponentParser):
 
     component_platform: RuntimeProcessorType = RuntimeProcessorType.KUBEFLOW_PIPELINES
 
-    def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
+    def parse(self, catalog_entry: CatalogEntry) -> Optional[List[Component]]:
         # Get YAML object from component definition
-        component_yaml = self._read_component_yaml(registry_entry)
+        component_yaml = self._read_component_yaml(catalog_entry)
         if not component_yaml:
             return None
 
@@ -47,15 +48,10 @@ class KfpComponentParser(ComponentParser):
 
         component_properties = self._parse_properties(component_yaml)
 
-        component = Component(
-            id=registry_entry.component_definition.id,
+        component = catalog_entry.get_component(
+            id=catalog_entry.id,
             name=component_yaml.get('name'),
             description=description,
-            catalog_type=registry_entry.catalog_type,
-            source_identifier=registry_entry.component_definition.identifier,
-            definition=registry_entry.component_definition.definition,
-            runtime_type=self.component_platform.name,
-            categories=registry_entry.categories,
             properties=component_properties
         )
 
@@ -162,15 +158,15 @@ class KfpComponentParser(ComponentParser):
             )
         ]
 
-    def _read_component_yaml(self, registry_entry: SimpleNamespace) -> Optional[Dict[str, Any]]:
+    def _read_component_yaml(self, catalog_entry: CatalogEntry) -> Optional[Dict[str, Any]]:
         """
         Convert component_definition string to YAML object
         """
         try:
-            return yaml.safe_load(registry_entry.component_definition.definition)
+            return yaml.safe_load(catalog_entry.entry_data.definition)
         except Exception as e:
             self.log.warning(f"Could not load YAML definition for component with identifying information: "
-                             f"'{registry_entry.component_definition.identifier_as_string}' -> {str(e)}")
+                             f"'{catalog_entry.entry_reference}' -> {str(e)}")
             return None
 
     def _is_path_based_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:

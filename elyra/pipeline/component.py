@@ -171,7 +171,7 @@ class Component(object):
                  name: str,
                  description: Optional[str],
                  catalog_type: str,
-                 source_identifier: Any,
+                 component_reference: Any,
                  definition: Optional[str] = None,
                  runtime_type: Optional[str] = None,
                  op: Optional[str] = None,
@@ -186,7 +186,7 @@ class Component(object):
         :param description: The description of the component
         :param catalog_type: Indicates the type of component definition resource
                               location; one of ['url', filename', 'directory]
-        :param source_identifier: Source information to help locate the component definition
+        :param component_reference: Source information to help locate the component definition
         :param definition: The content of the specification file for this component
         :param runtime_type: The runtime type of the component (e.g. KUBEFLOW_PIPELINES, APACHE_AIRFLOW, etc.)
         :param op: The operation name of the component; used by generic components in rendering the palette
@@ -207,7 +207,7 @@ class Component(object):
         self._name = name
         self._description = description
         self._catalog_type = catalog_type
-        self._source_identifier = source_identifier
+        self._component_reference = component_reference
 
         self._definition = definition
         self._runtime_type = runtime_type
@@ -249,14 +249,19 @@ class Component(object):
         return self._catalog_type
 
     @property
-    def source_identifier(self) -> Any:
-        return self._source_identifier
+    def component_reference(self) -> Any:
+        return self._component_reference
 
     @property
     def component_source(self) -> str:
+        """
+        Informational property consisting of the catalog type from which
+        this component originates and the reference information used to
+        locate it within that catalog.
+        """
         return str({
             "catalog_type": self.catalog_type,
-            "component_ref": self.source_identifier
+            "component_ref": self.component_reference
         })
 
     @property
