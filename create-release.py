@@ -172,6 +172,9 @@ def update_version_to_release() -> None:
             r"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/")
 
+        sed(_source('packages/pipeline-editor/src/EmptyPipelineContent.tsx'),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/")
 
         check_run(["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"], cwd=config.source_dir)
         check_run(["yarn", "version", "--new-version", new_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
