@@ -121,6 +121,10 @@ class CatalogEntry(object):
         return f"{self.catalog_type}:{hash_digest}"
 
     def get_component(self, id: str, name: str, description: str, properties: List[ComponentParameter]) -> Component:
+        """
+        Construct a Component object given the arguments (as parsed from the definition file)
+        and the relevant information from the catalog from which the component originates.
+        """
         params = {
             "id": id,
             "name": name,
@@ -173,7 +177,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         For example, the FilesystemCatalogConnector includes both a base directory ('base_dir') key-value
         pair and a relative path ('path') key-value pair in its 'catalog_entry_data' dict. Both fields
-        are needed in order to access the corresponding component definition in get_component_definition().
+        are needed in order to access the corresponding definition in get_entry_data().
 
         Every catalog_entry_data should contain each of the keys returned in get_hash_keys() to ensure
         uniqueness and portability among entries. For the same reason, no two catalog entries should have
@@ -193,7 +197,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                     }
 
         :returns: a list of catalog entry dictionaries, each of which contains the information
-                  needed to access a component definition in get_component_definition()
+                  needed to access a component definition in get_entry_data()
         """
         raise NotImplementedError(
             "abstract method 'get_catalog_entries()' must be implemented"
@@ -201,12 +205,12 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
     @deprecated(deprecated_in="3.7.0", removed_in="4.0",
                 current_version=__version__,
-                details="Implement the get_component_definition function instead")
+                details="Implement the get_entry_data function instead")
     def read_catalog_entry(self,
                            catalog_entry_data: Dict[str, Any],
                            catalog_metadata: Dict[str, Any]) -> Optional[str]:
         """
-        DEPRECATED. Will be removed in 4.0. get_component_definition() must be implemented instead.
+        DEPRECATED. Will be removed in 4.0. get_entry_data() must be implemented instead.
 
         Reads a component definition for a single catalog entry using the catalog_entry_data returned
         from get_catalog_entries() and, if needed, the catalog metadata.
@@ -259,7 +263,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
             catalog entry; if None is returned, this catalog entry is skipped and a warning message logged
         """
         raise NotImplementedError(
-            "method 'get_component_definition()' must be overridden"
+            "method 'get_entry_data()' must be overridden"
         )
 
     @classmethod
@@ -275,8 +279,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
         also enables pipeline portability across installations when the keys returned here are
         chosen strategically. For example, the FilesystemCatalogConnector includes both a base
         directory key-value pair and a relative path key-value pair in its 'catalog_entry_data' dict.
-        Both fields are required to access the component definition in get_component_definition(),
-        but only the relative path field is used to create the unique hash. This allows a component
+        Both fields are required to access the component definition in get_entry_data(), but
+        only the relative path field is used to create the unique hash. This allows a component
         that has the same relative path defined in two separate a catalogs in two separate
         installations to resolve to the same unique id in each, and therefore to be portable across
         pipelines in these installations.
@@ -348,9 +352,11 @@ class ComponentCatalogConnector(LoggingConfigurable):
             # Retrieve list of keys that will be used to construct
             # the catalog entry hash for each entry in the catalog
             try:
+                # Attempt to use get_hash_keys as class method (Elyra version 3.7+)
                 keys_to_hash = ComponentCatalogConnector.get_hash_keys()
 
             except Exception:
+                # Fall back to using abstract method (version 3.6 and earlier)
                 keys_to_hash = self.get_hash_keys()
 
             # Add display_name attribute to the metadata dictionary
@@ -386,7 +392,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                                    f"{str(catalog_entry_data)}...")
 
                     try:
-                        # Attempt to get an EntryData object from get_component_definition
+                        # Attempt to get an EntryData object from get_entry_data first
                         entry_data: EntryData = self.get_entry_data(
                             catalog_entry_data=catalog_entry_data,
                             catalog_metadata=catalog_metadata
