@@ -185,7 +185,7 @@ $ elyra-metadata install component-catalogs \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
        --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
+       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories='["filter content"]'
 ```
 
@@ -202,7 +202,7 @@ $ elyra-metadata install component-catalogs \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
        --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
+       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories='["file operations"]' \
        --replace
 ```
@@ -382,10 +382,10 @@ The URL component catalog connector provides access to components that are store
 - You can specify one or more URLs.
 
 Examples (GUI):
- - `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
+ - `https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml`
 
 Examples (CLI):
- - `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
+ - `['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']`
  - `['<URL_1>','<URL_2>']`
 
 
