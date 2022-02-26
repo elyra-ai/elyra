@@ -168,6 +168,10 @@ def update_version_to_release() -> None:
             r"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/")
 
+        sed(_source('elyra/cli/pipeline_app.py'),
+            r"https://elyra.readthedocs.io/en/latest/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/")
+
         sed(_source('packages/pipeline-editor/src/EmptyPipelineContent.tsx'),
             r"https://elyra.readthedocs.io/en/latest/user_guide/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/")
