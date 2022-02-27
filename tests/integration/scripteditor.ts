@@ -35,6 +35,7 @@ describe('Script Editor tests', () => {
   });
 
   // Python Tests
+
   it('opens blank Python file from launcher', () => {
     cy.createNewScriptFile('Python');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
@@ -110,10 +111,27 @@ describe('Script Editor tests', () => {
     cy.get('button.jp-mod-warn').click();
   });
 
+  it('opens new output console', () => {
+    openFile('py');
+    cy.get('button[title="Run"]').click({ force: true });
+    cy.get('[id=tab-ScriptEditor-output]').should(
+      'have.text',
+      'Console Output'
+    );
+    cy.get('button[title="Top"]').should('be.visible');
+    cy.get('button[title="Bottom"]').should('be.visible');
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
+  });
+
   // check for new output console and scroll up/down buttons on output kernel
   it('opens new output console', () => {
     openFile('py');
-    cy.get('button[title="Run"]').click();
+    cy.get('button[title="Run"]').click({ force: true });
     cy.get('[id=tab-ScriptEditor-output]').should(
       'have.text',
       'Console Output'
@@ -149,13 +167,19 @@ describe('Script Editor tests', () => {
     openFile('py');
     cy.get('span[role="presentation"]').type('print("test")\n');
     cy.get('button[title="Run"]').click({ force: true });
-    cy.get('.elyra-ScriptEditor-OutputArea-output').contains('SyntaxError');
+    cy.get('.elyra-ScriptEditor-OutputArea-output').should(
+      'have.text',
+      'Error : SyntaxError - unterminated string literal (detected at line 1) (3615489043.py, line 1)'
+    );
 
     //close console tab
     cy.closeTab(-1);
 
     // Close editor tab
     cy.closeTab(-1);
+
+    // Dismiss save your work dialog by discarding changes
+    cy.get('button.jp-mod-warn').click();
   });
 
   // R Tests
@@ -289,7 +313,7 @@ const checkRightClickTabContent = (fileType: string): void => {
 
 //open helloworld.py using file-> open from path
 const openFile = (fileExtension: string): void => {
-  cy.findByRole('menuitem', { name: /file/i }).click();
+  cy.findByRole('menuitem', { name: /file/i }).click({ force: true });
   cy.findByText(/^open from path$/i).click({ force: true });
 
   // Search for helloworld file and open
