@@ -15,11 +15,10 @@
 #
 
 import io
-from pathlib import Path
 import zipfile
 
 from elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector import AirflowPackageCatalogConnector  # noqa:E501
-from elyra.pipeline.catalog_connector import AirflowCatalogEntry
+from elyra.pipeline.catalog_connector import AirflowEntryData
 
 AIRFLOW_1_10_15_PKG_URL = 'https://files.pythonhosted.org/packages/f0/3a/'\
                           'f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/'\
@@ -37,8 +36,8 @@ def test_empty_workdir():
     assert hasattr(apc, 'tmp_archive_dir') is False
     apc.get_hash_keys()
     assert hasattr(apc, 'tmp_archive_dir') is False
-    cd = apc.get_component_definition({'file': 'dummyfile'},
-                                      {})
+    cd = apc.read_catalog_entry({'file': 'dummyfile'},
+                                {})
     assert cd is None
     assert hasattr(apc, 'tmp_archive_dir') is False
 
@@ -47,8 +46,7 @@ def test_get_hash_keys():
     """
     Verify that `get_hash_keys` returns the expected hash key.
     """
-    apc = AirflowPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
-    hk = apc.get_hash_keys()
+    hk = AirflowPackageCatalogConnector.get_hash_keys()
     assert len(hk) == 1
     assert hk[0] == 'file'
 
@@ -108,10 +106,10 @@ def test_1_10_15_distribution():
         assert entry.get('file', '').endswith('.py')
 
     # fetch and validate the first entry
-    ce = apc.get_component_definition({'file': ces[0]['file']},
-                                      {})
+    ce = apc.read_catalog_entry({'file': ces[0]['file']},
+                                {})
+
     assert ce is not None
-    assert isinstance(ce, AirflowCatalogEntry)
+    assert isinstance(ce, AirflowEntryData)
     assert ce.definition is not None
-    assert isinstance(ce.identifier, dict)
-    assert Path(ce.identifier['file']) == Path('airflow') / 'operators' / Path(ce.identifier['file']).name
+    assert ce.package_name.startswith('airflow.operators.')

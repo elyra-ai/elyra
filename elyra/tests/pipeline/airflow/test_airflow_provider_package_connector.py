@@ -15,11 +15,10 @@
 #
 
 import io
-from pathlib import Path
 import zipfile
 
 from elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_catalog_connector import AirflowProviderPackageCatalogConnector  # noqa:E501
-from elyra.pipeline.catalog_connector import AirflowCatalogEntry
+from elyra.pipeline.catalog_connector import AirflowEntryData
 
 HTTP_PROVIDER_PKG_URL = 'https://files.pythonhosted.org/packages/a1/08/'\
                         '91653e9f394cbefe356ac07db809be7e69cc89b094379ad91d6cef3d2bc9/'\
@@ -37,8 +36,8 @@ def test_empty_workdir():
     assert hasattr(appc, 'tmp_archive_dir') is False
     appc.get_hash_keys()
     assert hasattr(appc, 'tmp_archive_dir') is False
-    cd = appc.get_component_definition({'file': 'dummyfile'},
-                                       {})
+    cd = appc.read_catalog_entry({'file': 'dummyfile'},
+                                 {})
     assert cd is None
     assert hasattr(appc, 'tmp_archive_dir') is False
 
@@ -47,8 +46,7 @@ def test_get_hash_keys():
     """
     Verify that `get_hash_keys` returns the expected hash key.
     """
-    appc = AirflowProviderPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
-    hk = appc.get_hash_keys()
+    hk = AirflowProviderPackageCatalogConnector.get_hash_keys()
     assert len(hk) == 2
     assert hk[0] == 'provider'
     assert hk[1] == 'file'
@@ -112,11 +110,9 @@ def test_http_provider_package():
         assert entry.get('file', '').endswith('.py')
 
     # fetch and validate the first entry
-    ce = appc.get_component_definition({'file': ces[0]['file']},
-                                       {})
+    ce = appc.read_catalog_entry({'file': ces[0]['file']},
+                                 {})
     assert ce is not None
-    assert isinstance(ce, AirflowCatalogEntry)
+    assert isinstance(ce, AirflowEntryData)
     assert ce.definition is not None
-    assert isinstance(ce.identifier, dict)
-    assert Path(ce.identifier['file']) == \
-           Path('airflow') / 'providers' / 'http' / 'operators' / Path(ce.identifier['file']).name
+    assert ce.package_name == 'airflow.providers.http.operators.http'

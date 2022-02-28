@@ -28,9 +28,9 @@ import zipfile
 
 import requests
 
-from elyra.pipeline.catalog_connector import AirflowCatalogEntry
+from elyra.pipeline.catalog_connector import AirflowEntryData
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
-from elyra.pipeline.catalog_connector import ComponentDefinition
+from elyra.pipeline.catalog_connector import EntryData
 
 
 class AirflowPackageCatalogConnector(ComponentCatalogConnector):
@@ -221,9 +221,9 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
         return operator_key_list
 
-    def get_component_definition(self,
-                                 catalog_entry_data: Dict[str, Any],
-                                 catalog_metadata: Dict[str, Any]) -> Optional[ComponentDefinition]:
+    def read_catalog_entry(self,
+                           catalog_entry_data: Dict[str, Any],
+                           catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
         """
         Fetch the component that is identified by catalog_entry_data from
         the downloaded Apache Airflow package.
@@ -234,7 +234,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                                  stored; in addition to catalog_entry_data, catalog_metadata may also be
                                  needed to read the component definition for certain types of catalogs
 
-        :returns: A ComponentDefinition containing the definition and metadata, if found
+        :returns: An AirflowEntryData containing the definition and metadata, if found
         """
         operator_file_name = catalog_entry_data.get('file')
 
@@ -253,20 +253,20 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
         self.log.debug(f'Reading operator source \'{operator_source}\' ...')
         try:
             with open(operator_source, 'r') as source:
-                return AirflowCatalogEntry(definition=source.read(),
-                                           identifier=catalog_entry_data,
-                                           package_name=package)
+                return AirflowEntryData(definition=source.read(),
+                                        package_name=package)
         except Exception as ex:
             self.log.error(f'Error reading operator source \'{operator_source}\': {ex}')
 
         return None
 
-    def get_hash_keys(self) -> List[Any]:
+    @classmethod
+    def get_hash_keys(cls) -> List[Any]:
         """
         Instructs Elyra to use the specified keys to generate a unique
         hash value for item returned by get_catalog_entries
         :returns: a list of keys
-      """
+        """
         # Example key values:
         # - file: operators/bash_operator.py
         return ['file']
