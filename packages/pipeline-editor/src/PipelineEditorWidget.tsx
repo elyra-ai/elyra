@@ -648,7 +648,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       const dialogResult = await showFormDialog(dialogOptions);
 
-      if (dialogResult.value == null) {
+      if (dialogResult.value === null) {
         // When Cancel is clicked on the dialog, just return
         return;
       }

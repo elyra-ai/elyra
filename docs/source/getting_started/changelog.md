@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 3.6.0 - 02/08/2022
+
+- Update built-in connector reference - [#2457](https://github.com/elyra-ai/elyra/pull/2457)
+
 ## Release 3.6.0rc0 - 02/07/2022
 
 - Add Airflow provider package catalog connector - [#2438](https://github.com/elyra-ai/elyra/pull/2438)

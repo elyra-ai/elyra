@@ -35,12 +35,6 @@ make release
 pip install --upgrade pip
 pip install --upgrade --use-deprecated=legacy-resolver tornado jupyter-core jupyter-server jupyterlab dist/*.whl
 
-# Rebuild Jupyter Lab to enable extensions
-jupyter labextension link --no-build packages/services/
-jupyter labextension link --no-build packages/ui-components/
-jupyter labextension link --no-build packages/metadata-common/
-jupyter lab build --dev-build=False --minimize=False --debug
-
 mkdir -p binder-demo
 
 # Enable debug output

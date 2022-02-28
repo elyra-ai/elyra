@@ -47,17 +47,21 @@ Elyra does not include its own component repository. Instead you can configure i
 ![component catalogs](../images/user_guide/pipeline-components/component-catalogs.png)
 
 Elyra includes connectors for the following component catalog types:
- - _Filesystem component catalogs_ provide access to components that are stored in a filesystem that is readable by JupyterLab/Elyra.
+ - [_Filesystem component catalogs_](#filesystem-component-catalog) provide access to components that are stored in a filesystem that is readable by JupyterLab/Elyra.
 
    Example: A filesystem component catalog that is configured using the `/users/jdoe/kubeflow_components/dev/my_component.yaml` path makes `my_component.yaml` available to Elyra.
 
- - _Directory component catalogs_ provide access to components that are stored in a directory.
+ - [_Directory component catalogs_](#directory-component-catalog) provide access to components that are stored in a directory.
 
    Example: A directory component catalog that is configured using the `/users/jdoe/kubeflow_components/test` path makes all component files in that directory available to Elyra.
 
- - _URL component catalogs_ provide access to components that are stored on the web and can be retrieved using anonymous HTTP `GET` requests.
+ - [_URL component catalogs_](#url-component-catalog) provide access to components that are stored on the web and can be retrieved using anonymous HTTP `GET` requests.
 
     Example: A URL component catalog that is configured using the `http://myserver:myport/mypath/my_component.yaml` URL makes the `my_component.yaml` component file available to Elyra.
+
+ - [_Apache Airflow package catalogs_](#apache-airflow-package-catalog) provide access to Apache Airflow operators that are stored in Apache Airflow built distributions.
+
+ - [_Apache Airflow provider package catalogs_](#apache-airflow-provider-package-catalog) provide access to Apache Airflow operators that are stored in Apache Airflow provider packages.  
 
 Refer to section [Built-in catalog connector reference](#built-in-catalog-connector-reference) for details about these connectors. 
 
@@ -84,6 +88,11 @@ Details and demo pipelines for some of the included components can be found in t
 - [Kubeflow Pipeline components](https://github.com/elyra-ai/examples/tree/master/pipelines/kubeflow_pipelines_component_examples)
 - [Apache Airflow components](https://github.com/elyra-ai/examples/tree/master/pipelines/airflow_component_examples)
 
+### Special considerations for custom Airflow components
+Custom Airflow components imported from some types of component catalog connectors require additional configuration 
+in order to be used in pipelines. See 
+['Best Practices for Custom Pipeline Components'](best-practices-custom-pipeline-components.html#apache-airflow-components) 
+for details.
 
 ### Managing pipeline components
 
@@ -176,7 +185,7 @@ $ elyra-metadata install component-catalogs \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
        --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
+       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories='["filter content"]'
 ```
 
@@ -193,7 +202,7 @@ $ elyra-metadata install component-catalogs \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
        --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
+       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories='["file operations"]' \
        --replace
 ```
@@ -201,6 +210,23 @@ $ elyra-metadata install component-catalogs \
 Note: You must specify all property values, not only the ones that you want to modify.
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
+
+#### Exporting component catalogs
+
+To export component catalogs:
+
+```bash
+elyra-metadata export component-catalogs \
+	--directory="/tmp/foo"
+```
+
+The above example will export all component catalogs to the "/tmp/foo/component-catalogs" directory.
+
+Note that you must specify the `--directory` option.
+
+There are two flags that can be specified when exporting metadata:
+1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the metadata.
 
 #### Removing a component catalog entry
 
@@ -213,8 +239,16 @@ $ elyra-metadata remove component-catalogs \
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
-### Migrating user-defined component registries to 3.3
-The Elyra 3.3 release renames _Component Registries_ to _Component Catalogs_ and splits the `component-registry` schema into three separate "component catalog" schemas based on the old schema's `location-type`.  As a result, any  user-defined component registry instances created prior to Elyra 3.3 will not be available until migrated.  This migration is performed using the `elyra-metadata` CLI tool.
+### Migrating user-defined component registries
+The Elyra 3.3 release renamed _Component Registries_ to _Component Catalogs_ and split the `component-registry` schema 
+into three separate "component catalog" schemas based on the old schema's `location-type`.  As a result, any 
+user-defined component registry instances created prior to Elyra 3.3 will not be available unless migrated. 
+
+The Elyra 3.7 release, however, officially removes support for the `component-registries` schema, including the ability 
+to migrate component registry instances to component catalog instances. If you have upgraded to Elyra 3.7+ from Elyra 
+3.2 or earlier and would still like access to your previously-defined instances, you will first need to install a 
+down-level release and migrate your instances using the instructions below. This migration is performed using the 
+`elyra-metadata` CLI tool.
 
 #### Determining instances to migrate
 To determine the instances available to migrate, issue the following command:
@@ -348,8 +382,32 @@ The URL component catalog connector provides access to components that are store
 - You can specify one or more URLs.
 
 Examples (GUI):
- - `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
+ - `https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml`
 
 Examples (CLI):
- - `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
+ - `['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']`
  - `['<URL_1>','<URL_2>']`
+
+
+#### Apache Airflow package catalog
+
+The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra/tree/master/elyra/pipeline/airflow/package_catalog_connector) provides access to operators that are stored in Apache Airflow [built distributions](https://packaging.python.org/en/latest/glossary/#term-built-distribution):
+- Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
+- The specified URL must be retrievable using an anonymous HTTP `GET` request.
+
+Examples:
+ - [Apache Airflow](https://pypi.org/project/apache-airflow/) (v1.10.15): 
+   ```
+   https://files.pythonhosted.org/packages/f0/3a/f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/apache_airflow-1.10.15-py2.py3-none-any.whl
+   ``` 
+
+#### Apache Airflow provider package catalog
+The [Apache Airflow provider package catalog connector](https://github.com/elyra-ai/elyra/tree/master/elyra/pipeline/airflow/provider_package_catalog_connector) provides access to operators that are stored in [Apache Airflow provider packages](https://airflow.apache.org/docs/apache-airflow-providers/):
+- Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
+- The specified URL must be retrievable using an anonymous HTTP `GET` request.
+
+Examples:
+ - [apache-airflow-providers-http](https://airflow.apache.org/docs/apache-airflow-providers-http/stable/index.html) (v2.0.2): 
+   ```
+   https://files.pythonhosted.org/packages/a1/08/91653e9f394cbefe356ac07db809be7e69cc89b094379ad91d6cef3d2bc9/apache_airflow_providers_http-2.0.2-py3-none-any.whl
+   ```

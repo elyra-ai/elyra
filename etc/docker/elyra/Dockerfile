@@ -21,12 +21,15 @@ FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
 ARG TAG="dev"
 
-# Install Elyra
+COPY requirements.txt .
+
+# Install Elyra and custom requirements
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[all]=="$TAG" \
- && jupyter lab build \
+ && python3 -m pip install -r requirements.txt \   
  && rm -rf $HOME/.cache/yarn \
- && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
+ && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules \
+ && rm requirements.txt
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' and 'airflow-examples' pip extras are not installed

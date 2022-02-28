@@ -47,9 +47,9 @@ describe('Code Snippet tests', () => {
     ).should('be.visible');
 
     // Fields marked as required should be highlighted
-    cy.get('.elyra-MuiFormHelperText-root.elyra-Mui-error').as(
-      'required-warnings'
-    );
+    cy.get(
+      '.elyra-MuiFormHelperText-root.elyra-Mui-error, .MuiFormHelperText-root.Mui-error'
+    ).as('required-warnings');
     cy.get('@required-warnings').should('have.length', 2);
   });
 

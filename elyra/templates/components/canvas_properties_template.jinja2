@@ -1,6 +1,6 @@
 {
     "current_parameters": {
-      {% if component.description %}"component_description": "{{ component.description }}",{% endif %}
+      {% if component.description %}"component_description": {{ component.description|tojson|safe }},{% endif %}
       "label": "",
 {% for property in component.properties %}
         "elyra_{{ property.ref }}":
@@ -9,12 +9,14 @@
         "activeControl": "{{ property.default_control_type }}",
         "{{ property.default_control_type }}":
     {% endif %}
+    {% set property_data_type = property.data_type %}
+    {% if property.data_type == 'inputvalue' %}{% set property_data_type = property.default_data_type %}{% endif %}
     {% if property.default_control_type == "EnumControl" %}
         null
-    {% elif property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
+    {% elif property_data_type|lower == "bool" or property_data_type|lower == "boolean" %}
         {{ property.value|lower }}
-    {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or
-            property.data_type|lower == "number" or property.data_type|lower == "float" %}
+    {% elif property_data_type|lower == "int" or property_data_type|lower == "integer" or
+            property_data_type|lower == "number" or property_data_type|lower == "float" %}
         {{ property.value }}
     {% else %}
         "{{ property.value }}"
@@ -81,7 +83,7 @@
             "default": "{{ property.name }}"
           },
           "description": {
-            "default": "{{ property.description }}",
+            "default": {{ property.description|tojson|safe }},
             "placement": "on_panel"
           },
           "data": {

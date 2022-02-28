@@ -152,10 +152,6 @@ def update_version_to_release() -> None:
         sed(_source('docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md'),
             r"master",
             f"{new_version}")
-
-        sed(_source('etc/docker/kubeflow/Dockerfile'),
-            r"elyra\[kfp-tekton,kfp-examples\]==.*",
-            f"elyra\[kfp-tekton,kfp-examples\]=={new_version} \\\\")
         sed(_source('etc/docker/elyra/Dockerfile'),
             r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
             f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra")
@@ -171,6 +167,14 @@ def update_version_to_release() -> None:
         sed(_source('packages/theme/src/index.ts'),
             r"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/")
+
+        sed(_source('elyra/cli/pipeline_app.py'),
+            r"https://elyra.readthedocs.io/en/latest/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/")
+
+        sed(_source('packages/pipeline-editor/src/EmptyPipelineContent.tsx'),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/")
 
         check_run(["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"], cwd=config.source_dir)
         check_run(["yarn", "version", "--new-version", new_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
@@ -228,9 +232,6 @@ def update_version_to_dev() -> None:
         sed(_source('docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md'),
             rf"{new_version}",
             "master")
-
-        # for now, this stays with the latest release
-        # sed(_source('etc/docker/kubeflow/Dockerfile'), r"elyra[all]==.*", f"elyra[all]=={new_version}")
 
         sed(_source('etc/docker/elyra/Dockerfile'),
             rf"\&\& git checkout tags/v{new_version} -b v{new_version} ",
@@ -328,14 +329,13 @@ def show_release_artifacts():
     print('')
 
 
-def copy_extension_archive(extension: str, work_dir: str) -> None:
+def copy_extension_dir(extension: str, work_dir: str) -> None:
     global config
 
-    extension_package_name = f'{extension}-{config.new_npm_version}.tgz'
-    extension_package_source_file = os.path.join(config.source_dir, 'dist', extension_package_name)
-    extension_package_dest_file = os.path.join(work_dir, 'dist', extension_package_name)
-    os.makedirs(os.path.dirname(extension_package_dest_file), exist_ok=True)
-    shutil.copy(extension_package_source_file, extension_package_dest_file)
+    extension_package_source_dir = os.path.join(config.source_dir, 'dist/labextensions/@elyra', extension)
+    extension_package_dest_dir = os.path.join(work_dir, 'dist/labextensions/@elyra', extension)
+    os.makedirs(os.path.dirname(extension_package_dest_dir), exist_ok=True)
+    shutil.copytree(extension_package_source_dir, extension_package_dest_dir)
 
 
 def generate_changelog() -> None:
@@ -408,10 +408,10 @@ def prepare_extensions_release() -> None:
     print("-----------------------------------------------------------------")
 
 
-    extensions = {'elyra-code-snippet-extension':['elyra-code-snippet-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
-                  'elyra-pipeline-editor-extension':['elyra-pipeline-editor-extension', 'elyra-metadata-extension', 'elyra-theme-extension'],
-                  'elyra-python-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension'],
-                  'elyra-r-editor-extension':['elyra-metadata-extension', 'elyra-theme-extension']}
+    extensions = {'elyra-code-snippet-extension':['code-snippet-extension', 'metadata-extension', 'theme-extension'],
+                  'elyra-pipeline-editor-extension':['pipeline-editor-extension', 'metadata-extension', 'theme-extension'],
+                  'elyra-python-editor-extension':['metadata-extension', 'theme-extension'],
+                  'elyra-r-editor-extension':['metadata-extension', 'theme-extension']}
 
     for extension in extensions:
         extension_source_dir = os.path.join(config.work_dir, extension)
@@ -424,13 +424,15 @@ def prepare_extensions_release() -> None:
         check_run(['git', 'clone', config.git_extension_package_url, extension], cwd=config.work_dir)
         # update template
         setup_file = os.path.join(extension_source_dir, 'setup.py')
+        # add new import for get_data_files
+        sed(setup_file, re.escape("from glob import glob"), re.escape("from glob import glob\nfrom jupyter_packaging import get_data_files"))
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data-files}}", "('share/jupyter/lab/extensions', glob('./dist/*.tgz'))")
+        sed(setup_file, "{{data-files}}", re.escape("get_data_files[('share/jupyter/labextensions', 'dist/labextensions', '**')]"))
         sed(setup_file, "{{install-requires}}", f"'elyra-server=={config.new_version}',")
 
         for dependency in extensions[extension]:
-            copy_extension_archive(dependency, extension_source_dir)
+            copy_extension_dir(dependency, extension_source_dir)
 
         # build extension
         check_run(['python', 'setup.py', 'bdist_wheel', 'sdist'], cwd=extension_source_dir)
