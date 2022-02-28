@@ -111,27 +111,10 @@ describe('Script Editor tests', () => {
     cy.get('button.jp-mod-warn').click();
   });
 
-  it('opens new output console', () => {
-    openFile('py');
-    cy.get('button[title="Run"]').click({ force: true });
-    cy.get('[id=tab-ScriptEditor-output]').should(
-      'have.text',
-      'Console Output'
-    );
-    cy.get('button[title="Top"]').should('be.visible');
-    cy.get('button[title="Bottom"]').should('be.visible');
-
-    //close console tab
-    cy.closeTab(-1);
-
-    // Close editor tab
-    cy.closeTab(-1);
-  });
-
   // check for new output console and scroll up/down buttons on output kernel
   it('opens new output console', () => {
     openFile('py');
-    cy.get('button[title="Run"]').click({ force: true });
+    cy.get('button[title="Run"]').click();
     cy.get('[id=tab-ScriptEditor-output]').should(
       'have.text',
       'Console Output'
@@ -164,13 +147,10 @@ describe('Script Editor tests', () => {
 
   // test to check if output kernel has Error message for invalid code
   it('checks for Error message', () => {
-    openFile('py');
-    cy.get('span[role="presentation"]').type('print("test")\n');
-    cy.get('button[title="Run"]').click({ force: true });
-    cy.get('.elyra-ScriptEditor-OutputArea-output').should(
-      'have.text',
-      'Error : SyntaxError - unterminated string literal (detected at line 1) (3615489043.py, line 1)'
-    );
+    cy.createNewScriptFile('Python');
+    cy.get('span[role="presentation"]').type('print"test"\n');
+    cy.get('button[title="Run"]').click();
+    cy.findByText(/Error : SyntaxError/i).should('be.visible');
 
     //close console tab
     cy.closeTab(-1);
@@ -313,7 +293,7 @@ const checkRightClickTabContent = (fileType: string): void => {
 
 //open helloworld.py using file-> open from path
 const openFile = (fileExtension: string): void => {
-  cy.findByRole('menuitem', { name: /file/i }).click({ force: true });
+  cy.findByRole('menuitem', { name: /file/i }).click();
   cy.findByText(/^open from path$/i).click({ force: true });
 
   // Search for helloworld file and open
