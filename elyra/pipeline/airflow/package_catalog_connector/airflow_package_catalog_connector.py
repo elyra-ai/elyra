@@ -28,13 +28,17 @@ import zipfile
 
 import requests
 
+from elyra.pipeline.catalog_connector import AirflowEntryData
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
+from elyra.pipeline.catalog_connector import EntryData
 
 
 class AirflowPackageCatalogConnector(ComponentCatalogConnector):
     """
     Provides access to operators that are defined in Apache Airflow wheel archives.
     """
+
+    REQUEST_TIMEOUT = 30
 
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
 
@@ -76,9 +80,15 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             self.log.debug(f'Downloading Apache Airflow package from \'{airflow_package_download_url}\' ...')
 
             # download archive; abort after 30 seconds
-            response = requests.get(airflow_package_download_url,
-                                    timeout=30,
-                                    allow_redirects=True)
+            try:
+                response = requests.get(airflow_package_download_url,
+                                        timeout=AirflowPackageCatalogConnector.REQUEST_TIMEOUT,
+                                        allow_redirects=True)
+            except Exception as ex:
+                self.log.error('Error. The Airflow package connector is not configured properly. '
+                               f'Download of \'{airflow_package_download_url}\' failed: '
+                               f'{ex}')
+                return operator_key_list
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error('Error. The Airflow package connector is not configured properly. '
@@ -109,7 +119,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             os.remove(archive)
 
             # Locate Python scripts that are stored in the 'airflow/operators' directory
-            python_scripts = [str(s) for s in self.tmp_archive_dir.glob('airflow/operators/*.py')]
+            python_scripts = [s for s in self.tmp_archive_dir.glob('airflow/operators/*.py')]
 
             #
             # Identify Python scripts that define classes that extend the
@@ -123,9 +133,9 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             script_count = 0  # used for stats collection
             # process each Python script ...
             for script in python_scripts:
-                script_id = script[offset:]
-                if script_id == 'airflow/operators/__init__.py':
+                if script.name == '__init__.py':
                     continue
+                script_id = str(script)[offset:]
                 script_count += 1
                 self.log.debug(f'Parsing \'{script}\' ...')
                 with open(script, 'r') as source_code:
@@ -213,7 +223,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
     def read_catalog_entry(self,
                            catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+                           catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
         """
         Fetch the component that is identified by catalog_entry_data from
         the downloaded Apache Airflow package.
@@ -224,7 +234,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                                  stored; in addition to catalog_entry_data, catalog_metadata may also be
                                  needed to read the component definition for certain types of catalogs
 
-        :returns: the content of the given catalog entry's definition in string form
+        :returns: An AirflowEntryData containing the definition and metadata, if found
         """
         operator_file_name = catalog_entry_data.get('file')
 
@@ -234,23 +244,29 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                            ' downloaded Airflow package archive was not found.')
             return None
 
+        # Compose package name from operator_file_name, e.g.
+        # 'airflow/operators/papermill_operator.py' => 'airflow.operators.papermill_operator'
+        package = '.'.join(Path(operator_file_name).with_suffix('').parts)
+
         # load operator source using the provided key
         operator_source = self.tmp_archive_dir / operator_file_name
         self.log.debug(f'Reading operator source \'{operator_source}\' ...')
         try:
             with open(operator_source, 'r') as source:
-                return source.read()
+                return AirflowEntryData(definition=source.read(),
+                                        package_name=package)
         except Exception as ex:
             self.log.error(f'Error reading operator source \'{operator_source}\': {ex}')
 
         return None
 
-    def get_hash_keys(self) -> List[Any]:
+    @classmethod
+    def get_hash_keys(cls) -> List[Any]:
         """
         Instructs Elyra to use the specified keys to generate a unique
         hash value for item returned by get_catalog_entries
         :returns: a list of keys
-      """
+        """
         # Example key values:
         # - file: operators/bash_operator.py
         return ['file']

@@ -24,13 +24,14 @@ from tempfile import mkdtemp
 from typing import Any
 from typing import Dict
 from typing import List
-from typing import Optional
 from urllib.parse import urlparse
 import zipfile
 
 import requests
 
+from elyra.pipeline.catalog_connector import AirflowEntryData
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
+from elyra.pipeline.catalog_connector import EntryData
 
 
 class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
@@ -83,14 +84,20 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             self.log.debug(f'Downloading provider package from \'{airflow_provider_package_download_url}\' ...')
 
             # download archive
-            response = requests.get(airflow_provider_package_download_url,
-                                    timeout=AirflowProviderPackageCatalogConnector.REQUEST_TIMEOUT,
-                                    allow_redirects=True)
+            try:
+                response = requests.get(airflow_provider_package_download_url,
+                                        timeout=AirflowProviderPackageCatalogConnector.REQUEST_TIMEOUT,
+                                        allow_redirects=True)
+            except Exception as ex:
+                self.log.error('Error. The Airflow provider package connector is not configured properly. '
+                               f'Download of \'{airflow_provider_package_download_url}\' failed: '
+                               f'{ex}')
+                return operator_key_list
 
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error('Error. The Airflow provider package connector is not configured properly. '
-                               f'Download of archive \'{airflow_provider_package_download_url}\' '
+                               f'Download of \'{airflow_provider_package_download_url}\' '
                                f'failed. HTTP response code: {response.status_code}')
                 return operator_key_list
 
@@ -123,7 +130,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                 # No such file or more than one file was found. Cannot proceed.
                 self.log.error('Error. The Airflow provider package connector is not configured properly. '
                                f'The archive \'{archive}\' '
-                               'contains {len(pl)} file(s) named get_provider_info.py.')
+                               f'contains {len(pl)} file(s) named \'get_provider_info.py\'.')
                 # return empty list
                 return operator_key_list
             get_provider_info_file_location = pl[0]
@@ -138,7 +145,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                 return_dict = namespace['get_provider_info']()
             except KeyError:
                 # no method with this name is defined in get_provider_info.py
-                self.log.error('Error. Cannot invoke get_provider_info method '
+                self.log.error('Error. Cannot \'invoke get_provider_info\' method '
                                f'in \'{get_provider_info_file_location}\'.')
                 return operator_key_list
 
@@ -278,7 +285,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
     def read_catalog_entry(self,
                            catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+                           catalog_metadata: Dict[str, Any]) -> EntryData:
         """
         Fetch the script identified by catalog_entry_data['file']
 
@@ -287,8 +294,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         :param catalog_metadata: the metadata associated with the catalog in which this catalog entry is
                                  stored; in addition to catalog_entry_data, catalog_metadata may also be
                                  needed to read the component definition for certain types of catalogs
-
-        :returns: the content of the given catalog entry's definition in string form
+        :returns: A EntryData containing the definition and metadata, if found
         """
 
         operator_file_name = catalog_entry_data['file']
@@ -300,18 +306,24 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                            'Airflow provider package archive was not found.')
             return None
 
+        # Compose package name from operator_file_name, e.g.
+        # 'airflow/providers/ssh/operators/ssh.py' => 'airflow.providers.ssh.operators.ssh'
+        package = '.'.join(Path(operator_file_name).with_suffix('').parts)
+
         # load operator source using the provided key
         operator_source = self.tmp_archive_dir / operator_file_name
         self.log.debug(f'Reading operator source \'{operator_source}\' ...')
         try:
             with open(operator_source, 'r') as source:
-                return source.read()
+                return AirflowEntryData(definition=source.read(),
+                                        package_name=package)
         except Exception as ex:
             self.log.error(f'Error reading operator source \'{operator_source}\': {ex}')
 
         return None
 
-    def get_hash_keys(self) -> List[Any]:
+    @classmethod
+    def get_hash_keys(cls) -> List[Any]:
         """
         Instructs Elyra to use the specified keys to generate a unique
         hash value for item returned by get_catalog_entries
