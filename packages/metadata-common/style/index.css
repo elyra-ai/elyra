@@ -417,9 +417,6 @@ fieldset#root {
   cursor: not-allowed;
 }
 
-/* Cell tag styling */
-@import url('~@jupyterlab/celltags/style/base.css');
-
 .elyra-tags {
   margin-top: 8px;
 }
