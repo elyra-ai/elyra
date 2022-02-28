@@ -36,8 +36,8 @@ def test_empty_workdir():
     assert hasattr(appc, 'tmp_archive_dir') is False
     appc.get_hash_keys()
     assert hasattr(appc, 'tmp_archive_dir') is False
-    cd = appc.read_catalog_entry({'file': 'dummyfile'},
-                                 {})
+    cd = appc.get_entry_data({'file': 'dummyfile'},
+                             {})
     assert cd is None
     assert hasattr(appc, 'tmp_archive_dir') is False
 
@@ -110,8 +110,8 @@ def test_http_provider_package():
         assert entry.get('file', '').endswith('.py')
 
     # fetch and validate the first entry
-    ce = appc.read_catalog_entry({'file': ces[0]['file']},
-                                 {})
+    ce = appc.get_entry_data({'file': ces[0]['file']},
+                             {})
     assert ce is not None
     assert isinstance(ce, AirflowEntryData)
     assert ce.definition is not None

@@ -221,9 +221,9 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
         return operator_key_list
 
-    def read_catalog_entry(self,
-                           catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
+    def get_entry_data(self,
+                       catalog_entry_data: Dict[str, Any],
+                       catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
         """
         Fetch the component that is identified by catalog_entry_data from
         the downloaded Apache Airflow package.

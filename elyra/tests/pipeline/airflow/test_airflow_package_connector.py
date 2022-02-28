@@ -36,8 +36,8 @@ def test_empty_workdir():
     assert hasattr(apc, 'tmp_archive_dir') is False
     apc.get_hash_keys()
     assert hasattr(apc, 'tmp_archive_dir') is False
-    cd = apc.read_catalog_entry({'file': 'dummyfile'},
-                                {})
+    cd = apc.get_entry_data({'file': 'dummyfile'},
+                            {})
     assert cd is None
     assert hasattr(apc, 'tmp_archive_dir') is False
 
@@ -106,8 +106,8 @@ def test_1_10_15_distribution():
         assert entry.get('file', '').endswith('.py')
 
     # fetch and validate the first entry
-    ce = apc.read_catalog_entry({'file': ces[0]['file']},
-                                {})
+    ce = apc.get_entry_data({'file': ces[0]['file']},
+                            {})
 
     assert ce is not None
     assert isinstance(ce, AirflowEntryData)

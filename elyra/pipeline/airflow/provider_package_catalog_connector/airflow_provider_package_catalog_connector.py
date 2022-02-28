@@ -24,6 +24,7 @@ from tempfile import mkdtemp
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Optional
 from urllib.parse import urlparse
 import zipfile
 
@@ -283,9 +284,9 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
         return operator_key_list
 
-    def read_catalog_entry(self,
-                           catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> EntryData:
+    def get_entry_data(self,
+                       catalog_entry_data: Dict[str, Any],
+                       catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
         """
         Fetch the script identified by catalog_entry_data['file']
 
