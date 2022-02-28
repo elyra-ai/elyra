@@ -132,7 +132,7 @@ describe('Script Editor tests', () => {
   // test to check if output kernel has expected output
   it('checks for valid output', () => {
     openFile('py');
-    cy.get('button[title="Run"]').click({ force: true });
+    cy.get('button[title="Run"]').click();
     cy.get('.elyra-ScriptEditor-OutputArea-output').should(
       'have.text',
       'Hello Elyra\n'
@@ -294,7 +294,7 @@ const checkRightClickTabContent = (fileType: string): void => {
 //open helloworld.py using file-> open from path
 const openFile = (fileExtension: string): void => {
   cy.findByRole('menuitem', { name: /file/i }).click();
-  cy.findByText(/^open from path$/i).click({ force: true });
+  cy.findByText(/^open from path$/i).click();
 
   // Search for helloworld file and open
   cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
