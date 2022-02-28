@@ -27,7 +27,6 @@ COPY requirements.txt .
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[all]=="$TAG" \
  && python3 -m pip install -r requirements.txt \   
- && jupyter lab build \
  && rm -rf $HOME/.cache/yarn \
  && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules \
  && rm requirements.txt

@@ -103,6 +103,19 @@ Elyra can be installed from PyPI:
 
 * [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
 
+  Install Elyra from PyPI ( Elyra >= 3.7.0 ):
+
+  ```bash
+  pip3 install --upgrade "elyra[all]>=3.7.0"
+  ```
+
+  Install fom Conda ( Elyra >= 3.7.0 ):
+  ```bash
+  conda install -c conda-forge "elyra[all]>=3.7.0"
+  ```
+
+* For versions of Elyra prior to 3.7 `jupyter lab build` must be run after install to enable the extensions.
+
   Install Elyra from PyPI ( Elyra >= 3.1.0 ):
 
   ```bash
@@ -149,24 +162,6 @@ Elyra can be installed from PyPI:
 Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.
 
 ```bash
-jupyter serverextension list
-```
-Should output:
-``` 
-config dir: /usr/local/etc/jupyter
-    jupyter_resource_usage  enabled 
-    - Validating...
-      jupyter_resource_usage  OK
-    jupyterlab  enabled 
-    - Validating...
-      jupyterlab [version] OK
-    nbdime  enabled 
-    - Validating...
-      nbdime [version] OK
-```
-
-
-```bash
 jupyter server extension list
 ```
 Should output:
@@ -176,13 +171,16 @@ Config dir: /.../.jupyter
 Config dir: /.../etc/jupyter
     elyra enabled
     - Validating elyra...
-      elyra [version] OK
+      elyra  OK
     jupyter_lsp enabled
     - Validating jupyter_lsp...
       jupyter_lsp [version] OK
     jupyter_resource_usage enabled
     - Validating jupyter_resource_usage...
-      jupyter_resource_usage  OK
+      jupyter_resource_usage [version] OK
+    jupyter_server_mathjax enabled
+    - Validating jupyter_server_mathjax...
+      jupyter_server_mathjax  OK
     jupyterlab enabled
     - Validating jupyterlab...
       jupyterlab [version] OK
@@ -209,20 +207,19 @@ Should output:
 ```      
 JupyterLab [version]
 /.../share/jupyter/labextensions
+        nbdime-jupyterlab [version] enabled OK
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
-        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
-
-Other labextensions (built into JupyterLab)
-   app dir: /.../share/jupyter/lab
         @elyra/code-snippet-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK
         @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
-        nbdime-jupyterlab [version] enabled OK        
-        
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
+   app dir: /.../share/jupyter/lab
 ```
 
 ## Starting Elyra

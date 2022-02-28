@@ -185,7 +185,7 @@ $ elyra-metadata install component-catalogs \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
        --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
+       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories='["filter content"]'
 ```
 
@@ -202,7 +202,7 @@ $ elyra-metadata install component-catalogs \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
        --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/filter_text_using_shell_and_grep.yaml']" \
+       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories='["file operations"]' \
        --replace
 ```
@@ -210,6 +210,23 @@ $ elyra-metadata install component-catalogs \
 Note: You must specify all property values, not only the ones that you want to modify.
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
+
+#### Exporting component catalogs
+
+To export component catalogs:
+
+```bash
+elyra-metadata export component-catalogs \
+	--directory="/tmp/foo"
+```
+
+The above example will export all component catalogs to the "/tmp/foo/component-catalogs" directory.
+
+Note that you must specify the `--directory` option.
+
+There are two flags that can be specified when exporting metadata:
+1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the metadata.
 
 #### Removing a component catalog entry
 
@@ -222,8 +239,16 @@ $ elyra-metadata remove component-catalogs \
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
-### Migrating user-defined component registries to 3.3
-The Elyra 3.3 release renames _Component Registries_ to _Component Catalogs_ and splits the `component-registry` schema into three separate "component catalog" schemas based on the old schema's `location-type`.  As a result, any  user-defined component registry instances created prior to Elyra 3.3 will not be available until migrated.  This migration is performed using the `elyra-metadata` CLI tool.
+### Migrating user-defined component registries
+The Elyra 3.3 release renamed _Component Registries_ to _Component Catalogs_ and split the `component-registry` schema 
+into three separate "component catalog" schemas based on the old schema's `location-type`.  As a result, any 
+user-defined component registry instances created prior to Elyra 3.3 will not be available unless migrated. 
+
+The Elyra 3.7 release, however, officially removes support for the `component-registries` schema, including the ability 
+to migrate component registry instances to component catalog instances. If you have upgraded to Elyra 3.7+ from Elyra 
+3.2 or earlier and would still like access to your previously-defined instances, you will first need to install a 
+down-level release and migrate your instances using the instructions below. This migration is performed using the 
+`elyra-metadata` CLI tool.
 
 #### Determining instances to migrate
 To determine the instances available to migrate, issue the following command:
@@ -357,10 +382,10 @@ The URL component catalog connector provides access to components that are store
 - You can specify one or more URLs.
 
 Examples (GUI):
- - `https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml`
+ - `https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml`
 
 Examples (CLI):
- - `['https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/config/components/kfp/run_notebook_using_papermill.yaml']`
+ - `['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']`
  - `['<URL_1>','<URL_2>']`
 
 

@@ -26,7 +26,6 @@ ARG TAG="dev"
 # - with component examples ('kfp-examples')
 RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[kfp-tekton,kfp-examples]=="$TAG" \
-    && jupyter lab build \
     && rm -rf $HOME/.cache/yarn \
     && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
@@ -37,4 +36,3 @@ RUN elyra-metadata install component-catalogs \
     --display_name="Kubeflow Pipelines examples" \
     --runtime_type=KUBEFLOW_PIPELINES \
     --categories="['examples']"
-
