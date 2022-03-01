@@ -1,0 +1,16 @@
+{
+  "jupyter.lab.setting-icon": "elyra:pipeline",
+  "jupyter.lab.setting-icon-label": "Elyra Pipeline Editor",
+  "title": "Pipeline Editor",
+  "description": "Pipeline editor settings.",
+  "properties": {
+    "doubleClickBehavior": {
+      "title": "Double-click Behavior",
+      "description": "Double click to open properties",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "additionalProperties": false,
+  "type": "object"
+}

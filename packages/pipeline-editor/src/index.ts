@@ -39,6 +39,7 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { addIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
@@ -82,20 +83,28 @@ const extension: JupyterFrontEndPlugin<void> = {
     ILauncher,
     IFileBrowserFactory,
     ILayoutRestorer,
-    IMainMenu
+    IMainMenu,
+    ISettingRegistry
   ],
   optional: [IThemeManager],
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     launcher: ILauncher,
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
     menu: IMainMenu,
+    registry: ISettingRegistry,
     themeManager?: IThemeManager
   ) => {
     console.log('Elyra - pipeline-editor extension is activated!');
 
+    // Fetch the initial state of the settings.
+    const settings = await registry
+      .load('@elyra/pipeline-editor-extension:plugin')
+      .catch(error => console.log(error));
+
+    console.log(settings);
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
       name: PIPELINE_EDITOR,
@@ -104,7 +113,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       shell: app.shell,
       commands: app.commands,
       browserFactory: browserFactory,
-      serviceManager: app.serviceManager
+      serviceManager: app.serviceManager,
+      settings: settings
     });
 
     // Add the default behavior of opening the widget for .pipeline files
