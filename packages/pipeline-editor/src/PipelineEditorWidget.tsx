@@ -526,9 +526,9 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
   };
 
-  const handleDoubleClick = (data: any): void => {
+  const onDoubleClick = (data: any): void => {
     if (doubleClickBehavior) {
-      setPanelOpen(true);
+      onAction({ type: 'properties' });
       return;
     }
     for (let i = 0; i < data.selectedObjectIds.length; i++) {
@@ -1001,7 +1001,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipeline={pipeline}
           onAction={onAction}
           onChange={onChange}
-          onDoubleClickNode={handleDoubleClick}
+          onDoubleClickNode={doubleClickBehavior ? undefined : onDoubleClick}
           onError={onError}
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}

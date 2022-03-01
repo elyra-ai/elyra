@@ -57,6 +57,7 @@ const PIPELINE_EDITOR = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
 const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
+const PLUGIN_ID = '@elyra/pipeline-editor-extension:plugin';
 
 const createRemoteIcon = async ({
   name,
@@ -101,10 +102,9 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Fetch the initial state of the settings.
     const settings = await registry
-      .load('@elyra/pipeline-editor-extension:plugin')
+      .load(PLUGIN_ID)
       .catch(error => console.log(error));
 
-    console.log(settings);
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
       name: PIPELINE_EDITOR,
