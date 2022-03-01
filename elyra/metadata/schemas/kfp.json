@@ -74,11 +74,32 @@
           }
         },
         "auth_type": {
+          "oneOf": [
+            {
+              "title": "NO_AUTHENTICATION"
+            },
+            {
+              "title": "DEX_STATIC_PASSWORDS",
+              "type": "object",
+              "properties": {
+                "api_username": {
+                  "title": "Kubeflow Pipelines API Endpoint Username",
+                  "description": "The Kubeflow Pipelines API endpoint username. ",
+                  "type": "string"
+                },
+                "api_password": {
+                  "title": "Kubeflow Pipelines API Endpoint Password",
+                  "description": "Password for the specified username. ",
+                  "type": "string",
+                  "uihints": {
+                    "secure": true
+                  }
+                }
+              }
+            }
+          ],
           "title": "Authentication Type",
-          "description": "Authentication type Elyra uses to authenticate with Kubeflow",
-          "type": "string",
-          "enum": ["{AUTH_PROVIDER_PLACEHOLDERS}"],
-          "default": "{DEFAULT_AUTH_PROVIDER_PLACEHOLDER}",
+          "description": "Authentication type Elyra uses to authenticate with Kubeflow Pipelines",
           "uihints": {
             "category": "Kubeflow Pipelines"
           }
