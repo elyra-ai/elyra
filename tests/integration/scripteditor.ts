@@ -294,7 +294,7 @@ const checkRightClickTabContent = (fileType: string): void => {
 //open helloworld.py using file-> open from path
 const openFile = (fileExtension: string): void => {
   cy.findByRole('menuitem', { name: /file/i }).click();
-  cy.findByText(/^open from path$/i).click();
+  cy.findByText(/^open from path$/i).click({ force: true });
 
   // Search for helloworld file and open
   cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
