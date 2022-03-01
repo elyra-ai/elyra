@@ -204,8 +204,8 @@ const PipelineWrapper: React.FC<IProps> = ({
     error: runtimesSchemaError
   } = useRuntimesSchema();
 
-  const doubleClickBehavior =
-    settings?.composite['doubleClickBehavior'] ?? true;
+  const doubleClickToOpenProperties =
+    settings?.composite['doubleClickToOpenProperties'] ?? true;
 
   const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
 
@@ -527,10 +527,6 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   const onDoubleClick = (data: any): void => {
-    if (doubleClickBehavior) {
-      onAction({ type: 'properties' });
-      return;
-    }
     for (let i = 0; i < data.selectedObjectIds.length; i++) {
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
@@ -1001,7 +997,9 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipeline={pipeline}
           onAction={onAction}
           onChange={onChange}
-          onDoubleClickNode={doubleClickBehavior ? undefined : onDoubleClick}
+          onDoubleClickNode={
+            doubleClickToOpenProperties ? undefined : onDoubleClick
+          }
           onError={onError}
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}

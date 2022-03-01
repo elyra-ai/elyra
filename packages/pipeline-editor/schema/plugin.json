@@ -4,11 +4,11 @@
   "title": "Pipeline Editor",
   "description": "Pipeline editor settings.",
   "properties": {
-    "doubleClickBehavior": {
-      "title": "Double-click Behavior",
-      "description": "Double click to open properties",
+    "doubleClickToOpenProperties": {
+      "title": "Double-click node to open properties",
+      "description": "If not checked, double-clicking a node opens the file referenced by the node. If checked, double-clicking a node opens its properties panel.",
       "type": "boolean",
-      "default": true
+      "default": false
     }
   },
   "additionalProperties": false,
