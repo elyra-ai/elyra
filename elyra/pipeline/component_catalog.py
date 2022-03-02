@@ -151,9 +151,10 @@ class CacheUpdateThread(Thread):
             # Remove only the components from this catalog
             self._component_cache[self._catalog.runtime_type.name].pop(self._catalog.name, None)
         else:
-            # Replace all components for the given catalog
-            self._component_cache[self._catalog.runtime_type.name][self._catalog.name] = \
-                ComponentCache.instance().read_component_catalog(self._catalog)
+            # Replace all components for the given catalog if not present
+            if self._catalog.name not in self._component_cache[self._catalog.runtime_type.name]:
+                self._component_cache[self._catalog.runtime_type.name][self._catalog.name] = \
+                    ComponentCache.instance().read_component_catalog(self._catalog)
 
         self._queue.task_done()
 
@@ -202,16 +203,14 @@ class ComponentCache(SingletonConfigurable):
         self._cache_manager.name = "CacheUpdateManager"
         self._cache_manager.start()
 
-        self._build_cache()
+    def load(self):
+        """Loads the cache from existing ComponentCatalog metadata instances"""
 
-    def _build_cache(self):
-        """
-        Reads through all ComponentCatalogMetadata instances to build the initial component cache
-        """
-
-        all_catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
-        for catalog in all_catalogs:
-            self.update_cache_for_catalog(catalog)
+        # A fetch of all component catalog instances will trigger their load hooks to add themselves
+        # to the cache.  This should only be called during system startup and only after the singleton
+        # instance has been created.
+        if self.initialized:
+            MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
 
     def update_cache_for_catalog(self, catalog: ComponentCatalogMetadata, operation: Optional[str] = None):
         """

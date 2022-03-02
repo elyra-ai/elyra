@@ -37,14 +37,20 @@ class ComponentCatalogMetadata(Metadata):
     def runtime_type(self) -> RuntimeProcessorType:
         return RuntimeProcessorType.get_instance_by_name(self.metadata['runtime_type'])
 
-    def post_save(self, **kwargs: Any) -> None:
-        try:
+    def on_load(self, **kwargs: Any) -> None:
+        try:  # Load catalog entries when instance is fetched (this will be conditional on whether the catalog exists).
             component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='modify')
         except Exception:
             pass
 
+    def post_save(self, **kwargs: Any) -> None:
+        try:  # Remove components associated with this catalog on updates.  They will be updated on load.
+            component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='delete')
+        except Exception:
+            pass
+
     def post_delete(self, **kwargs: Any) -> None:
-        try:
+        try:  # Remove components associated with this catalog on deletes.
             component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='delete')
         except Exception:
             pass

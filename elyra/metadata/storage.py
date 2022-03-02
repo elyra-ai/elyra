@@ -101,6 +101,9 @@ class FileMetadataCache(SingletonConfigurable):
             self.observed_dirs = set()  # Tracks which directories are being watched
             self.observer = Observer()
             self.observer.start()
+        else:
+            self.log.info("The file metadata cache is currently disabled via configuration.  "
+                          "Set FileMetadataCache.enabled=True to enable instance caching.")
 
     def __len__(self) -> int:
         """Return the number of running kernels."""
