@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 import os
+from subprocess import CompletedProcess
+from subprocess import run
 
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 from conftest import TEST_CATALOG_NAME
@@ -48,9 +50,11 @@ def test_component_catalog_can_load_components_from_registries(component_cache_i
     assert len(components) > 0
 
 
-def test_modify_component_catalogs(metadata_manager_with_teardown):
+@pytest.mark.parametrize('create_inprocess', [True, False])
+def test_modify_component_catalogs(jp_environ, metadata_manager_with_teardown, create_inprocess):
     # Initialize a ComponentCache instance and wait for all worker threads to compete
     component_catalog = ComponentCache.instance()
+    component_catalog.load()
     component_catalog.wait_for_all_cache_updates()
 
     # Get initial set of components from the current active registries
@@ -73,7 +77,17 @@ def test_modify_component_catalogs(metadata_manager_with_teardown):
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    if create_inprocess:
+        metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    else:
+        res: CompletedProcess = run(['elyra-metadata', 'install', 'component-catalogs',
+                                     f'--schema_name={registry_instance.schema_name}',
+                                     f'--json={registry_instance.to_json()}',
+                                     f'--name={TEST_CATALOG_NAME}'])
+        assert res.returncode == 0
+        # Because the instance was created out-of-process, we need to fetch the instance
+        # to trigger its component's inclusion into the cache
+        metadata_manager_with_teardown.get(TEST_CATALOG_NAME)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
@@ -124,9 +138,11 @@ def test_modify_component_catalogs(metadata_manager_with_teardown):
     assert initial_palette == post_delete_palette
 
 
-def test_directory_based_component_catalog(metadata_manager_with_teardown):
+@pytest.mark.parametrize('create_inprocess', [True, False])
+def test_directory_based_component_catalog(jp_environ, metadata_manager_with_teardown, create_inprocess):
     # Initialize a ComponentCache instance and wait for all worker threads to compete
     component_catalog = ComponentCache.instance()
+    component_catalog.load()
     component_catalog.wait_for_all_cache_updates()
 
     # Get initial set of components from the current active registries
@@ -145,7 +161,17 @@ def test_directory_based_component_catalog(metadata_manager_with_teardown):
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    if create_inprocess:
+        metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    else:
+        res: CompletedProcess = run(['elyra-metadata', 'install', 'component-catalogs',
+                                     f'--schema_name={registry_instance.schema_name}',
+                                     f'--json={registry_instance.to_json()}',
+                                     f'--name={TEST_CATALOG_NAME}'])
+        assert res.returncode == 0
+        # Because the instance was created out-of-process, we need to fetch the instance
+        # to trigger its component's inclusion into the cache
+        metadata_manager_with_teardown.get(TEST_CATALOG_NAME)
 
     # Wait for update to complete
     component_catalog.wait_for_all_cache_updates()
