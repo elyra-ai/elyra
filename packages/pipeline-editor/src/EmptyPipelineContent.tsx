@@ -21,7 +21,13 @@ import React from 'react';
 
 const HEADER_CLASS = 'empty-pipeline-header';
 
-export const EmptyGenericPipeline: React.FC = () => {
+export interface IEmptyGenericPipelineProps {
+  onOpenSettings: () => void;
+}
+
+export const EmptyGenericPipeline: React.FC<IEmptyGenericPipelineProps> = ({
+  onOpenSettings
+}) => {
   return (
     <div>
       <dragDropIcon.react
@@ -32,6 +38,19 @@ export const EmptyGenericPipeline: React.FC = () => {
       />
       <h3 className={HEADER_CLASS}>
         Start your new pipeline by dragging files from the file browser pane
+      </h3>
+      <br />
+      <br />
+      <h3 className={HEADER_CLASS}>
+        Click{' '}
+        <button className={'empty-pipeline-button'} onClick={onOpenSettings}>
+          <settingsIcon.react
+            className="component-catalog-icon"
+            tag="div"
+            height="24px"
+          />
+        </button>{' '}
+        to configure the pipeline editor.
       </h3>
     </div>
   );
@@ -53,9 +72,15 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
 
   return (
     <div>
-      <EmptyGenericPipeline />
+      <dragDropIcon.react
+        className="drag-drop-icon"
+        tag="div"
+        elementPosition="center"
+        height="120px"
+      />
       <h3 className={HEADER_CLASS}>
-        or add custom components by clicking the{' '}
+        Start your new pipeline by dragging files from the file browser pane or
+        add custom components by clicking the{' '}
         <button className={'empty-pipeline-button'} onClick={onOpenCatalog}>
           <componentCatalogIcon.react
             className="component-catalog-icon"
@@ -64,8 +89,6 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
           />
         </button>{' '}
         button.
-        <br />
-        <br />
       </h3>
       <h4 className={HEADER_CLASS}>
         Refer to the
@@ -79,6 +102,8 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
         </a>
         for details.
       </h4>
+      <br />
+      <br />
       <h3 className={HEADER_CLASS}>
         Click{' '}
         <button className={'empty-pipeline-button'} onClick={onOpenSettings}>
@@ -89,8 +114,6 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
           />
         </button>{' '}
         to configure the pipeline editor.
-        <br />
-        <br />
       </h3>
     </div>
   );

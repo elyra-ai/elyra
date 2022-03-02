@@ -1010,7 +1010,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           leftPalette={true}
         >
           {type === undefined ? (
-            <EmptyGenericPipeline />
+            <EmptyGenericPipeline onOpenSettings={handleOpenSettings} />
           ) : (
             <EmptyPlatformSpecificPipeline
               onOpenCatalog={handleOpenCatalog}
