@@ -452,9 +452,6 @@ describe('Pipeline Editor tests', () => {
     // Install runtime configuration
     cy.installRuntimeConfig({ type: 'kfp' });
 
-    // go back to file browser
-    cy.findByRole('tab', { name: /file browser/i }).click();
-
     cy.openFile('helloworld.pipeline');
 
     // try to export valid pipeline
@@ -466,8 +463,8 @@ describe('Pipeline Editor tests', () => {
     cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
 
     cy.findByLabelText(/runtime configuration/i)
-      .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
-      .should('have.value', 'test_runtime');
+      .select('kfp_test_runtime')
+      .should('have.value', 'kfp_test_runtime');
 
     // Validate all export options are available
     cy.findByLabelText(/export pipeline as/i)
@@ -489,9 +486,6 @@ describe('Pipeline Editor tests', () => {
     // Install runtime configuration
     cy.installRuntimeConfig({ type: 'airflow' });
 
-    // go back to file browser
-    cy.findByRole('tab', { name: /file browser/i }).click();
-
     cy.openFile('helloworld.pipeline');
 
     // try to export valid pipeline
@@ -503,8 +497,8 @@ describe('Pipeline Editor tests', () => {
     cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
 
     cy.findByLabelText(/runtime configuration/i)
-      .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
-      .should('have.value', 'test_runtime');
+      .select('airflow_test_runtime')
+      .should('have.value', 'airflow_test_runtime');
 
     // overwrite existing helloworld.py file
     cy.findByLabelText(/export pipeline as/i)
