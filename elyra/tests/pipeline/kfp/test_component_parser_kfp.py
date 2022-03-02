@@ -22,7 +22,6 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import CatalogEntry
-from elyra.pipeline.catalog_connector import EntryData
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
@@ -169,7 +168,6 @@ def test_parse_kfp_component_file():
     # Read contents of given path
     path = _get_resource_path('kfp_test_operator.yaml')
     catalog_entry_data = {"path": path}
-    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
     # Construct a catalog instance
     catalog_type = "local-file-catalog"
@@ -182,7 +180,7 @@ def test_parse_kfp_component_file():
     )
 
     # Build the catalog entry data structures required for parsing
-    entry_data = EntryData(definition)
+    entry_data = reader.get_entry_data(catalog_entry_data, {})
     catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
 
     # Parse the component entry
@@ -282,7 +280,6 @@ def test_parse_kfp_component_url():
     # Read contents of given path
     url = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/notebooks/Run_notebook_using_papermill/component.yaml'  # noqa: E501
     catalog_entry_data = {"url": url}
-    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
     # Construct a catalog instance
     catalog_type = "url-catalog"
@@ -295,7 +292,7 @@ def test_parse_kfp_component_url():
     )
 
     # Build the catalog entry data structures required for parsing
-    entry_data = EntryData(definition)
+    entry_data = reader.get_entry_data(catalog_entry_data, {})
     catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
 
     # Parse the component entry
@@ -325,7 +322,6 @@ def test_parse_kfp_component_file_no_inputs():
     # Read contents of given path
     path = _get_resource_path('kfp_test_operator_no_inputs.yaml')
     catalog_entry_data = {"path": path}
-    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
     # Construct a catalog instance
     catalog_type = "local-file-catalog"
@@ -338,7 +334,7 @@ def test_parse_kfp_component_file_no_inputs():
     )
 
     # Build the catalog entry data structures required for parsing
-    entry_data = EntryData(definition)
+    entry_data = reader.get_entry_data(catalog_entry_data, {})
     catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
 
     # Parse the component entry
@@ -376,8 +372,8 @@ async def test_parse_components_invalid_file():
 
     # Get path to an invalid component definition file and read contents
     path = _get_resource_path('kfp_test_operator_invalid.yaml')
-    component_definition = reader.read_catalog_entry({"path": path}, {})
-    assert component_definition is None
+    entry_data = reader.get_entry_data({"path": path}, {})
+    assert entry_data is None
 
 
 async def test_parse_components_additional_metatypes():
@@ -388,7 +384,6 @@ async def test_parse_components_additional_metatypes():
     # Read contents of given path
     url = 'https://raw.githubusercontent.com/kubeflow/pipelines/1.4.1/components/keras/Train_classifier/from_CSV/component.yaml'  # noqa: E501
     catalog_entry_data = {"url": url}
-    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
     # Construct a catalog instance
     catalog_type = "url-catalog"
@@ -401,7 +396,7 @@ async def test_parse_components_additional_metatypes():
     )
 
     # Build the catalog entry data structures required for parsing
-    entry_data = EntryData(definition)
+    entry_data = reader.get_entry_data(catalog_entry_data, {})
     catalog_entry = CatalogEntry(entry_data, {"url": url}, catalog_instance, ['url'])
 
     # Parse the component entry
