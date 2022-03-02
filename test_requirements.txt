@@ -9,4 +9,5 @@ pytest>=5.4.1
 pytest-console-scripts
 pytest-tornasync
 pytest_virtualenv
+requests-mock
 requests-unixsocket
