@@ -410,8 +410,8 @@ def prepare_extensions_release() -> None:
 
     extensions = {'elyra-code-snippet-extension':['code-snippet-extension', 'metadata-extension', 'theme-extension'],
                   'elyra-pipeline-editor-extension':['pipeline-editor-extension', 'metadata-extension', 'theme-extension'],
-                  'elyra-python-editor-extension':['metadata-extension', 'theme-extension'],
-                  'elyra-r-editor-extension':['metadata-extension', 'theme-extension']}
+                  'elyra-python-editor-extension':['python-editor-extension', 'metadata-extension', 'theme-extension'],
+                  'elyra-r-editor-extension':['r-editor-extension', 'metadata-extension', 'theme-extension']}
 
     for extension in extensions:
         extension_source_dir = os.path.join(config.work_dir, extension)
