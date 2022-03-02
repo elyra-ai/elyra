@@ -35,6 +35,7 @@ describe('Script Editor tests', () => {
   });
 
   // Python Tests
+
   it('opens blank Python file from launcher', () => {
     cy.createNewScriptFile('Python');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
@@ -106,6 +107,7 @@ describe('Script Editor tests', () => {
     cy.get('button.jp-mod-warn').click();
   });
 
+  // check for new output console and scroll up/down buttons on output kernel
   it('opens new output console', () => {
     openFile('py');
     cy.get('button[title="Run"]').click();
@@ -121,6 +123,39 @@ describe('Script Editor tests', () => {
 
     // Close editor tab
     cy.closeTab(-1);
+  });
+
+  // test to check if output kernel has expected output
+  it('checks for valid output', () => {
+    openFile('py');
+    cy.get('button[title="Run"]').click();
+    cy.get('.elyra-ScriptEditor-OutputArea-output').should(
+      'have.text',
+      'Hello Elyra\n'
+    );
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
+  });
+
+  // test to check if output kernel has Error message for invalid code
+  it('checks for Error message', () => {
+    cy.createNewScriptFile('Python');
+    cy.get('span[role="presentation"]').type('print"test"\n');
+    cy.get('button[title="Run"]').click();
+    cy.findByText(/Error : SyntaxError/i).should('be.visible');
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
+
+    // Dismiss save your work dialog by discarding changes
+    cy.get('button.jp-mod-warn').click();
   });
 
   // R Tests

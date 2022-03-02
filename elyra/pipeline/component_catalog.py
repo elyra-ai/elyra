@@ -20,7 +20,6 @@ from queue import Queue
 from threading import Event
 from threading import Thread
 import time
-from types import SimpleNamespace
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -173,7 +172,7 @@ class ComponentCache(SingletonConfigurable):
                               description="Run notebook file",
                               op="execute-notebook-node",
                               catalog_type="elyra",
-                              source_identifier="elyra",
+                              component_reference="elyra",
                               extensions=[".ipynb"],
                               categories=[_generic_category_label]),
         "python-script": Component(id="python-script",
@@ -181,7 +180,7 @@ class ComponentCache(SingletonConfigurable):
                                    description="Run Python script",
                                    op="execute-python-node",
                                    catalog_type="elyra",
-                                   source_identifier="elyra",
+                                   component_reference="elyra",
                                    extensions=[".py"],
                                    categories=[_generic_category_label]),
         "r-script": Component(id="r-script",
@@ -189,7 +188,7 @@ class ComponentCache(SingletonConfigurable):
                               description="Run R script",
                               op="execute-r-node",
                               catalog_type="elyra",
-                              source_identifier="elyra",
+                              component_reference="elyra",
                               extensions=[".r"],
                               categories=[_generic_category_label])}
 
@@ -301,21 +300,13 @@ class ComponentCache(SingletonConfigurable):
 
         # Get content of component definition file for each component in this catalog
         self.log.debug(f"Processing components in catalog '{catalog.display_name}'")
-        component_data_dict = catalog_reader.read_component_definitions(catalog)
-        if not component_data_dict:
+        catalog_entries = catalog_reader.read_component_definitions(catalog)
+        if not catalog_entries:
             return components
 
-        for component_id, component_data in component_data_dict.items():
-            component_entry = {
-                "component_id": component_id,
-                "catalog_type": catalog.schema_name,
-                "categories": catalog.metadata.get("categories", []),
-                "component_definition": component_data.get('definition'),
-                "component_identifier": component_data.get('identifier')
-            }
-
-            # Parse the component entry to get a fully qualified Component object
-            parsed_components = parser.parse(SimpleNamespace(**component_entry)) or []
+        for catalog_entry in catalog_entries:
+            # Parse the entry to get a fully qualified Component object
+            parsed_components = parser.parse(catalog_entry) or []
             for component in parsed_components:
                 components[component.id] = component
 

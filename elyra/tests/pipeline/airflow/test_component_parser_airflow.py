@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import os
-from types import SimpleNamespace
+
 
 from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 from conftest import TEST_CATALOG_NAME
@@ -22,10 +22,13 @@ import jupyter_core.paths
 import pytest
 
 from elyra.metadata.metadata import Metadata
+from elyra.pipeline.catalog_connector import CatalogEntry
+from elyra.pipeline.catalog_connector import EntryData
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_metadata import ComponentCatalogMetadata
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
@@ -170,26 +173,28 @@ def test_parse_airflow_component_file():
     airflow_supported_file_types = [".py"]
     reader = FilesystemComponentCatalogConnector(airflow_supported_file_types)
 
+    # Read contents of given path
     path = _get_resource_path('airflow_test_operator.py')
+    catalog_entry_data = {"path": path}
+    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"path": path}, {})
-
-    # Build entry for parsing
+    # Construct a catalog instance
     catalog_type = "local-file-catalog"
-    entry = {
-        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
-        "catalog_type": catalog_type,
-        "categories": ["Test"],
-        "component_definition": component_definition,
-        "component_identifier": {"path": path}
-    }
-    component_entry = SimpleNamespace(**entry)
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
+
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition)
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    components = parser.parse(component_entry)
+    components = parser.parse(catalog_entry)
     assert len(components) == 3  # TestOperator, DeriveFromTestOperator, and DeriveFromImportedOperator
 
     # Split components list into its constituent operators
@@ -238,7 +243,7 @@ def test_parse_airflow_component_file():
     # Ensure system parameters are not prefixed and hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
 
     # Ensure component parameters are prefixed with 'elyra_' and values are as expected
@@ -347,30 +352,32 @@ def test_parse_airflow_component_file():
 
 
 def test_parse_airflow_component_url():
-    # Define the appropriate reader for a Url-type component definition
+    # Define the appropriate reader for a URL-type component definition
     airflow_supported_file_types = [".py"]
     reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
+    # Read contents of given path
     url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
+    catalog_entry_data = {"url": url}
+    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"url": url}, {})
-
-    # Build entry for parsing
+    # Construct a catalog instance
     catalog_type = "url-catalog"
-    entry = {
-        "component_id": reader.get_unique_component_hash(catalog_type, {"url": url}, ["url"]),
-        "catalog_type": catalog_type,
-        "categories": ["Test"],
-        "component_definition": component_definition,
-        "component_identifier": {"url": url}
-    }
-    component_entry = SimpleNamespace(**entry)
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
+
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition)
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    component = parser.parse(component_entry)[0]
+    component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Ensure component parameters are prefixed, and system parameters are not, and hold correct values
@@ -381,7 +388,7 @@ def test_parse_airflow_component_url():
         property_dict = properties_json['current_parameters'][param_name]
         return property_dict[property_dict['activeControl']]
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert get_parameter('elyra_bash_command') == ''
     assert get_parameter('elyra_xcom_push') is True
@@ -394,26 +401,28 @@ def test_parse_airflow_component_file_no_inputs():
     airflow_supported_file_types = [".py"]
     reader = FilesystemComponentCatalogConnector(airflow_supported_file_types)
 
+    # Read contents of given path
     path = _get_resource_path('airflow_test_operator_no_inputs.py')
+    catalog_entry_data = {"path": path}
+    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"path": path}, {})
-
-    # Build entry for parsing
+    # Construct a catalog instance
     catalog_type = "local-file-catalog"
-    entry = {
-        "component_id": reader.get_unique_component_hash(catalog_type, {"path": path}, ["path"]),
-        "catalog_type": catalog_type,
-        "categories": ["Test"],
-        "component_definition": component_definition,
-        "component_identifier": {"path": path}
-    }
-    component_entry = SimpleNamespace(**entry)
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
+
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition)
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
-    no_input_op = parser.parse(component_entry)[0]
+    no_input_op = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(no_input_op)
 
     # Properties JSON should only include the two parameters common to every
@@ -431,7 +440,7 @@ def test_parse_airflow_component_file_no_inputs():
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": component_entry.component_identifier})
+    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
 
 
