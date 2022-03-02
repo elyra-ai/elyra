@@ -146,7 +146,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                 return_dict = namespace['get_provider_info']()
             except KeyError:
                 # no method with this name is defined in get_provider_info.py
-                self.log.error('Error. Cannot \'invoke get_provider_info\' method '
+                self.log.error('Error. Cannot invoke \' get_provider_info\' method '
                                f'in \'{get_provider_info_file_location}\'.')
                 return operator_key_list
 
@@ -295,7 +295,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         :param catalog_metadata: the metadata associated with the catalog in which this catalog entry is
                                  stored; in addition to catalog_entry_data, catalog_metadata may also be
                                  needed to read the component definition for certain types of catalogs
-        :returns: A EntryData containing the definition and metadata, if found
+        :returns: An AirflowEntryData containing the definition and metadata, if found
         """
 
         operator_file_name = catalog_entry_data['file']
