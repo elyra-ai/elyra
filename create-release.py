@@ -36,7 +36,7 @@ config: SimpleNamespace
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
 DEFAULT_GIT_URL = 'git@github.com:elyra-ai/elyra.git'
-DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:elyra-ai/elyra-package-template.git'
+DEFAULT_GIT_BRANCH = ''
 DEFAULT_BUILD_DIR = 'build/release'
 
 
@@ -276,7 +276,7 @@ def checkout_code() -> None:
     print(f'Creating working directory: {config.work_dir}')
     os.makedirs(config.work_dir)
     print(f'Cloning : {config.git_url} to {config.work_dir}')
-    check_run(['git', 'clone', config.git_url], cwd=config.work_dir)
+    check_run(['git', 'clone', config.git_url, '-b' if config.git_branch else '', config.git_branch], cwd=config.work_dir)
     check_run(['git', 'config', 'user.name', config.git_user_name], cwd=config.source_dir)
     check_run(['git', 'config', 'user.email', config.git_user_email], cwd=config.source_dir)
 
@@ -416,19 +416,18 @@ def prepare_extensions_release() -> None:
     for extension in extensions:
         extension_source_dir = os.path.join(config.work_dir, extension)
         print(f'Preparing extension : {extension} at {extension_source_dir}')
-        # clone extension package template
+        # copy extension package template to working directory
         if os.path.exists(extension_source_dir):
             print(f'Removing working directory: {config.source_dir}')
             shutil.rmtree(extension_source_dir)
-        print(f'Cloning : {config.git_extension_package_url} to {config.work_dir}')
-        check_run(['git', 'clone', config.git_extension_package_url, extension], cwd=config.work_dir)
+        check_run(['mkdir', '-p', extension_source_dir], cwd=config.work_dir)
+        print(f'Copying : {_source("etc/templates/setup.py")} to {extension_source_dir}')
+        check_run(['cp', _source('etc/templates/setup.py'), extension_source_dir], cwd=config.work_dir)
         # update template
         setup_file = os.path.join(extension_source_dir, 'setup.py')
-        # add new import for get_data_files
-        sed(setup_file, re.escape("from glob import glob"), re.escape("from glob import glob\nfrom jupyter_packaging import get_data_files"))
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data-files}}", re.escape("get_data_files[('share/jupyter/labextensions', 'dist/labextensions', '**')]"))
+        sed(setup_file, "{{data-files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
         sed(setup_file, "{{install-requires}}", f"'elyra-server=={config.new_version}',")
 
         for dependency in extensions[extension]:
@@ -455,12 +454,13 @@ def prepare_runtime_extensions_package_release() -> None:
     for package in packages:
         package_source_dir = os.path.join(config.work_dir, package)
         print(f'Preparing package : {package} at {package_source_dir}')
-        # clone extension package template
+        # copy extension package template to working directory
         if os.path.exists(package_source_dir):
             print(f'Removing working directory: {config.source_dir}')
             shutil.rmtree(package_source_dir)
-        print(f'Cloning : {config.git_extension_package_url} to {config.work_dir}')
-        check_run(['git', 'clone', config.git_extension_package_url, package], cwd=config.work_dir)
+        check_run(['mkdir', '-p', package_source_dir], cwd=config.work_dir)
+        print(f'Copying : {_source("etc/templates/setup.py")} to {package_source_dir}')
+        check_run(['cp', _source('etc/templates/setup.py'), package_source_dir], cwd=config.work_dir)
         # update template
         setup_file = os.path.join(package_source_dir, 'setup.py')
         sed(setup_file, "{{package-name}}", package)
@@ -609,7 +609,7 @@ def initialize_config(args=None) -> SimpleNamespace:
     configuration = {
         'goal': args.goal,
         'git_url': DEFAULT_GIT_URL,
-        'git_extension_package_url': DEFAULT_EXTENSION_PACKAGE_GIT_URL,
+        'git_branch': DEFAULT_GIT_BRANCH,
         'git_hash': 'HEAD',
         'git_user_name': check_output(['git', 'config', 'user.name']),
         'git_user_email': check_output(['git', 'config', 'user.email']),
@@ -639,7 +639,7 @@ def print_config() -> None:
     print("-----------------------------------------------------------------")
     print(f'Goal \t\t\t -> {config.goal}')
     print(f'Git URL \t\t -> {config.git_url}')
-    print(f'Git Extension URL \t -> {config.git_extension_package_url}')
+    print(f'Git Branch \t -> {config.git_branch}')
     print(f'Git reference \t\t -> {config.git_hash}')
     print(f'Git user \t\t -> {config.git_user_name}')
     print(f'Git user emain \t\t -> {config.git_user_email}')
