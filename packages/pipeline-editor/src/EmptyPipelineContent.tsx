@@ -15,6 +15,7 @@
  */
 
 import { componentCatalogIcon, dragDropIcon } from '@elyra/ui-components';
+import { settingsIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
 
@@ -38,10 +39,12 @@ export const EmptyGenericPipeline: React.FC = () => {
 
 export interface IEmptyPlatformSpecificPipelineProps {
   onOpenCatalog: () => void;
+  onOpenSettings: () => void;
 }
 
 export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipelineProps> = ({
-  onOpenCatalog
+  onOpenCatalog,
+  onOpenSettings
 }) => {
   // Note: the URL is rewritten by the release script by replacing `latest` with a
   // specific version number, e.g. https://.../en/v3.6.0/user_guide/pi...
@@ -53,10 +56,7 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
       <EmptyGenericPipeline />
       <h3 className={HEADER_CLASS}>
         or add custom components by clicking the{' '}
-        <button
-          className={'open-component-catalog-button'}
-          onClick={onOpenCatalog}
-        >
+        <button className={'empty-pipeline-button'} onClick={onOpenCatalog}>
           <componentCatalogIcon.react
             className="component-catalog-icon"
             tag="div"
@@ -79,6 +79,19 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
         </a>
         for details.
       </h4>
+      <h3 className={HEADER_CLASS}>
+        Click{' '}
+        <button className={'empty-pipeline-button'} onClick={onOpenSettings}>
+          <settingsIcon.react
+            className="component-catalog-icon"
+            tag="div"
+            height="24px"
+          />
+        </button>{' '}
+        to configure the pipeline editor.
+        <br />
+        <br />
+      </h3>
     </div>
   );
 };

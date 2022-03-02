@@ -977,6 +977,10 @@ const PipelineWrapper: React.FC<IProps> = ({
     shell.activateById(`elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`);
   };
 
+  const handleOpenSettings = (): void => {
+    commands.execute('settingeditor:open');
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -1008,7 +1012,10 @@ const PipelineWrapper: React.FC<IProps> = ({
           {type === undefined ? (
             <EmptyGenericPipeline />
           ) : (
-            <EmptyPlatformSpecificPipeline onOpenCatalog={handleOpenCatalog} />
+            <EmptyPlatformSpecificPipeline
+              onOpenCatalog={handleOpenCatalog}
+              onOpenSettings={handleOpenSettings}
+            />
           )}
         </PipelineEditor>
       </Dropzone>
