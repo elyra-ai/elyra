@@ -633,11 +633,6 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
     cy.findByRole('option', { name: /yaml/i }).should('not.exist');
 
-    // Delete existing runtime configuration (test runtimes always use the same name)
-    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
-      failOnNonZeroExit: false
-    });
-
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();
 
