@@ -80,6 +80,8 @@ uninstall: uninstall-src
 	- jupyter lab clean
 	# remove Kubeflow Pipelines example components
 	- pip uninstall -y elyra-examples-kfp-catalog
+	# remove Apache Airflow example components
+	- pip uninstall -y elyra-examples-airflow-catalog
 	# remove GitLab dependency
 	- pip uninstall -y python-gitlab
 
@@ -154,6 +156,9 @@ install-examples: ## Install example pipeline components
 	# install Kubeflow Pipelines example components
 	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector
 	- pip install --upgrade elyra-examples-kfp-catalog
+	# install Apache Airflow example components
+	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector
+	- pip install --upgrade elyra-examples-airflow-catalog
 
 install-gitlab-dependency:
 	# install GitLab support for Airflow
