@@ -181,7 +181,7 @@ test-dependencies:
 pytest:
 	pytest -v elyra
 
-test-server: install-server test-dependencies pytest # Run python unit tests
+test-server: test-dependencies pytest # Run python unit tests
 
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit

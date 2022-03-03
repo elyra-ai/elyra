@@ -35,8 +35,8 @@ config: SimpleNamespace
 
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
-DEFAULT_GIT_URL = 'git@github.com:elyra-ai/elyra.git'
-DEFAULT_GIT_BRANCH = ''
+DEFAULT_GIT_ORG = 'elyra-ai'
+DEFAULT_GIT_BRANCH = 'master'
 DEFAULT_BUILD_DIR = 'build/release'
 
 
@@ -276,7 +276,7 @@ def checkout_code() -> None:
     print(f'Creating working directory: {config.work_dir}')
     os.makedirs(config.work_dir)
     print(f'Cloning : {config.git_url} to {config.work_dir}')
-    check_run(['git', 'clone', config.git_url, '-b' if config.git_branch else '', config.git_branch], cwd=config.work_dir)
+    check_run(['git', 'clone', config.git_url, '-b', config.git_branch], cwd=config.work_dir)
     check_run(['git', 'config', 'user.name', config.git_user_name], cwd=config.source_dir)
     check_run(['git', 'config', 'user.email', config.git_user_email], cwd=config.source_dir)
 
@@ -608,8 +608,8 @@ def initialize_config(args=None) -> SimpleNamespace:
 
     configuration = {
         'goal': args.goal,
-        'git_url': DEFAULT_GIT_URL,
-        'git_branch': DEFAULT_GIT_BRANCH,
+        'git_url': f"git@github.com:{args.org or DEFAULT_GIT_ORG}/elyra.git",
+        'git_branch': args.branch or DEFAULT_GIT_BRANCH,
         'git_hash': 'HEAD',
         'git_user_name': check_output(['git', 'config', 'user.name']),
         'git_user_email': check_output(['git', 'config', 'user.email']),
@@ -639,10 +639,10 @@ def print_config() -> None:
     print("-----------------------------------------------------------------")
     print(f'Goal \t\t\t -> {config.goal}')
     print(f'Git URL \t\t -> {config.git_url}')
-    print(f'Git Branch \t -> {config.git_branch}')
+    print(f'Git Branch \t\t -> {config.git_branch}')
     print(f'Git reference \t\t -> {config.git_hash}')
     print(f'Git user \t\t -> {config.git_user_name}')
-    print(f'Git user emain \t\t -> {config.git_user_email}')
+    print(f'Git user email \t\t -> {config.git_user_email}')
     print(f'Work dir \t\t -> {config.work_dir}')
     print(f'Source dir \t\t -> {config.source_dir}')
     print(f'Old Version \t\t -> {config.old_version}')
@@ -700,6 +700,8 @@ def main(args=None):
     parser.add_argument('--dev-version', help='the new development version', type=str, required=False)
     parser.add_argument('--beta', help='the release beta number', type=str, required=False)
     parser.add_argument('--rc', help='the release candidate number', type=str, required=False)
+    parser.add_argument('--org', help='the github org or username to use', type=str, required=False)
+    parser.add_argument('--branch', help='the branch name to use', type=str, required=False)
     args = parser.parse_args()
 
     # can't use both rc and beta parameters
