@@ -23,7 +23,6 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import CatalogEntry
-from elyra.pipeline.catalog_connector import EntryData
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import ComponentParser
@@ -176,7 +175,6 @@ def test_parse_airflow_component_file():
     # Read contents of given path
     path = _get_resource_path('airflow_test_operator.py')
     catalog_entry_data = {"path": path}
-    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
     # Construct a catalog instance
     catalog_type = "local-file-catalog"
@@ -189,7 +187,7 @@ def test_parse_airflow_component_file():
     )
 
     # Build the catalog entry data structures required for parsing
-    entry_data = EntryData(definition)
+    entry_data = reader.get_entry_data(catalog_entry_data, {})
     catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
 
     # Parse the component entry
@@ -359,7 +357,6 @@ def test_parse_airflow_component_url():
     # Read contents of given path
     url = 'https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py'  # noqa: E501
     catalog_entry_data = {"url": url}
-    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
     # Construct a catalog instance
     catalog_type = "url-catalog"
@@ -372,7 +369,7 @@ def test_parse_airflow_component_url():
     )
 
     # Build the catalog entry data structures required for parsing
-    entry_data = EntryData(definition)
+    entry_data = reader.get_entry_data(catalog_entry_data, {})
     catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
 
     # Parse the component entry
@@ -404,7 +401,6 @@ def test_parse_airflow_component_file_no_inputs():
     # Read contents of given path
     path = _get_resource_path('airflow_test_operator_no_inputs.py')
     catalog_entry_data = {"path": path}
-    definition = reader.read_catalog_entry(catalog_entry_data, {})
 
     # Construct a catalog instance
     catalog_type = "local-file-catalog"
@@ -417,7 +413,7 @@ def test_parse_airflow_component_file_no_inputs():
     )
 
     # Build the catalog entry data structures required for parsing
-    entry_data = EntryData(definition)
+    entry_data = reader.get_entry_data(catalog_entry_data, {})
     catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
 
     # Parse the component entry
@@ -455,5 +451,5 @@ async def test_parse_components_invalid_url(invalid_url):
     reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
     # Get path to an invalid component definition file and read contents
-    component_definition = reader.read_catalog_entry({"url": invalid_url}, {})
-    assert component_definition is None
+    entry_data = reader.get_entry_data({"url": invalid_url}, {})
+    assert entry_data is None
