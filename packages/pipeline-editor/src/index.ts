@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { MetadataWidget } from '@elyra/metadata-common';
 import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
 import { RequestHandler } from '@elyra/services';
 import {
@@ -41,6 +40,10 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { addIcon, LabIcon } from '@jupyterlab/ui-components';
 
+import {
+  COMPONENT_CATALOGS_SCHEMASPACE,
+  ComponentCatalogsWidget
+} from './ComponentCatalogsWidget';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 import {
@@ -55,7 +58,6 @@ import '../style/index.css';
 const PIPELINE_EDITOR = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 
 const createRemoteIcon = async ({
   name,
@@ -351,7 +353,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
 
-    const componentCatalogWidget = new MetadataWidget({
+    const componentCatalogWidget = new ComponentCatalogsWidget({
       app,
       themeManager,
       display_name: 'Component Catalogs', // TODO: This info should come from the server for all schemaspaces

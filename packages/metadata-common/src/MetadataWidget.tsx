@@ -128,7 +128,7 @@ export class MetadataDisplay<
     });
   };
 
-  actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
+  actionButtons(metadata: IMetadata): IMetadataActionButton[] {
     return [
       {
         title: 'Edit',
@@ -167,7 +167,7 @@ export class MetadataDisplay<
         }
       }
     ];
-  };
+  }
 
   /**
    * Classes that extend MetadataWidget should override this
