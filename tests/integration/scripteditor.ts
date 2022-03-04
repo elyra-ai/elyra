@@ -29,7 +29,7 @@ describe('Script Editor tests', () => {
     cy.deleteFile('helloworld.r'); // delete R file used for testing
 
     // Delete runtime configuration used for testing
-    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
       failOnNonZeroExit: false
     });
   });
@@ -71,12 +71,8 @@ describe('Script Editor tests', () => {
   });
 
   it('click the Run as Pipeline button should display dialog', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig();
-    // Validate it is now available
-    cy.get('#elyra-metadata\\:runtimes').within(() => {
-      cy.findByText(/test runtime/i).should('exist');
-    });
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
     // Click Run as Pipeline button
     cy.findByText(/run as pipeline/i).click();
     // Check for expected dialog title
