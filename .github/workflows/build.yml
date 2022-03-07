@@ -41,7 +41,7 @@ jobs:
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile && tsc -v
 
   lint-server:
     name: Lint Server
@@ -87,7 +87,7 @@ jobs:
       - name: Install
         # Note: Tests fail if we don't install `wheel` for some reason.
         run: |
-          make only-install-server
+          make install-server
           make test-dependencies
       - name: Test
         run: make pytest
@@ -110,12 +110,13 @@ jobs:
             node_modules
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-      - name: Install
-        run: |
-          make yarn-install
-          make only-install-server
       - name: Build
-        run: make build-ui
+        run: |
+          make build-dependencies
+          make yarn-install
+          make build-ui
+      - name: Install
+        run: make install-server
       - name: Test
         run: make test-ui-unit
 
@@ -138,17 +139,15 @@ jobs:
             */*/node_modules
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      - name: Build
+        run: |
+          make build-dependencies
+          make yarn-install
+          make build-ui
       - name: Install
         run: |
-          make yarn-install
-          make only-install-server
+          make install-server
           make install-examples
-      - name: Build
-        run: make build-ui
-      - name: Setup JupyterLab
-        run: |
-          make install-extensions
-          make build-jupyterlab
       - name: Cypress
         run: make test-integration
       - name: Collect logs

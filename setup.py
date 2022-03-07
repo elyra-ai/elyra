@@ -16,7 +16,7 @@
 import os
 import sys
 
-from glob import glob
+from jupyter_packaging import get_data_files
 from setuptools import setup, find_packages
 
 long_desc = """
@@ -30,18 +30,20 @@ version_ns = {}
 with open(os.path.join(here, 'elyra', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
-npm_packages_path = "./dist/*.tgz"
-auto_jupyter_notebook_extension_path = "./etc/config/jupyter_notebook_config.d/*.json"
-auto_jupyter_server_extension_path = "./etc/config/jupyter_server_config.d/*.json"
-component_catalog_path = './etc/config/components/*.json'  # deprecated
-components_kfp_path = './etc/config/components/kfp/*.yaml'  # deprecated
-components_airflow_path = './etc/config/components/airflow/*.py'  # deprecated
-metadata_path_runtime_image = './etc/config/metadata/runtime-images/*.json'
-metadata_path_catalogs = './etc/config/metadata/component-catalogs/*.json'  # deprecated
-settings_path = './etc/config/settings/*.json'
+data_files_spec = [
+    ('etc/jupyter/jupyter_notebook_config.d', 'etc/config/jupyter_notebook_config.d', '*.json'),
+    ('etc/jupyter/jupyter_server_config.d', 'etc/config/jupyter_server_config.d', '*.json'),
+    ('share/jupyter/metadata/runtime-images', 'etc/config/metadata/runtime-images', '*.json'),
+    ('share/jupyter/metadata/component-catalogs', 'etc/config/metadata/component-catalogs', '*.json'),  # deprecated
+    ('share/jupyter/components', 'etc/config/components', '*.json'),  # deprecated
+    ('share/jupyter/components/kfp/', 'etc/config/components/kfp', '*.yaml'),  # deprecated
+    ('share/jupyter/components/airflow/', 'etc/config/components/airflow', '*.py'),  # deprecated
+    ('share/jupyter/lab/settings', 'etc/config/settings', '*.json'),
+    ('share/jupyter/labextensions', 'dist/labextensions', '**')
+]
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=1.0.1', ],
+    'kfp-tekton': ['kfp-tekton~=1.1.1', ],
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
     'kfp-examples': ['elyra-examples-kfp-catalog'],
@@ -61,26 +63,21 @@ setup_args = dict(
     long_description=long_desc,
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
-    data_files=[('etc/jupyter/jupyter_notebook_config.d', glob(auto_jupyter_notebook_extension_path)),
-                ('etc/jupyter/jupyter_server_config.d', glob(auto_jupyter_server_extension_path)),
-                ('share/jupyter/metadata/runtime-images', glob(metadata_path_runtime_image)),
-                ('share/jupyter/metadata/component-catalogs', glob(metadata_path_catalogs)),  # deprecated
-                ('share/jupyter/components', glob(component_catalog_path)),  # deprecated
-                ('share/jupyter/components/kfp/', glob(components_kfp_path)),  # deprecated
-                ('share/jupyter/components/airflow/', glob(components_airflow_path)),  # deprecated
-                ('share/jupyter/lab/settings', glob(settings_path))],
+    data_files=get_data_files(data_files_spec),
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
         'click>=7.1.1,<8',
         'colorama',
+        'deprecation',
         'entrypoints>=0.3',
         'jinja2>=2.11',
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
+        'jupyter-packaging>=0.10',
         'jupyter_server>=1.7.0',
-        'jupyterlab>=3.0.17',
+        'jupyterlab~=3.3.0rc0',
         'jupyterlab-git~=0.32',
         'jupyterlab-lsp>=3.8.0',
         'jupyter-resource-usage>=0.5.1',
@@ -90,7 +87,7 @@ setup_args = dict(
         'nbdime~=3.1',
         'nbformat>=5.1.2',
         'networkx>=2.5.1',
-        'papermill>=2.1.3',
+        'papermill>=2.3.4',
         'python-lsp-server[all]>=1.1.0',
         'pyyaml>=5.3.1,<6.0',
         'requests>=2.25.1,<3.0',
@@ -112,7 +109,7 @@ setup_args = dict(
         **runtime_extras
     },
     include_package_data=True,
-    classifiers=(
+    classifiers=[
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering',
@@ -124,7 +121,7 @@ setup_args = dict(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-    ),
+    ],
     entry_points={
         'console_scripts': [
             'elyra-metadata = elyra.metadata.metadata_app:MetadataApp.main',
@@ -135,7 +132,6 @@ setup_args = dict(
             'runtimes = elyra.metadata.schemaspaces:Runtimes',
             'runtimes-images = elyra.metadata.schemaspaces:RuntimeImages',
             'code-snippets = elyra.metadata.schemaspaces:CodeSnippets',
-            'component-registries = elyra.metadata.schemaspaces:ComponentRegistries',
             'component-catalogs = elyra.metadata.schemaspaces:ComponentCatalogs',
             'metadata-tests = elyra.tests.metadata.test_utils:MetadataTestSchemaspace'
         ],
@@ -143,7 +139,6 @@ setup_args = dict(
             'runtimes = elyra.metadata.schemasproviders:RuntimesSchemas',
             'runtimes-images = elyra.metadata.schemasproviders:RuntimeImagesSchemas',
             'code-snippets = elyra.metadata.schemasproviders:CodeSnippetsSchemas',
-            'component-registries = elyra.metadata.schemasproviders:ComponentRegistriesSchemas',
             'component-catalogs = elyra.metadata.schemasproviders:ComponentCatalogsSchemas',
             'airflow-provider-package-catalog-schema = elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_schema_provider:AirflowProviderPackageSchemasProvider',  # noqa: E501
             'airflow-package-catalog-schema = elyra.pipeline.airflow.package_catalog_connector.airflow_package_schema_provider:AirflowPackageSchemasProvider',  # noqa: E501
@@ -166,12 +161,6 @@ setup_args = dict(
         ]
     },
 )
-
-
-if "--dev" not in sys.argv:
-    setup_args["data_files"].append(('share/jupyter/lab/extensions', glob(npm_packages_path)))
-else:
-    sys.argv.remove("--dev")
 
 if __name__ == '__main__':
     setup(**setup_args)

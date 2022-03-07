@@ -171,21 +171,22 @@ class Component(object):
                  name: str,
                  description: Optional[str],
                  catalog_type: str,
-                 source_identifier: Any,
+                 component_reference: Any,
                  definition: Optional[str] = None,
                  runtime_type: Optional[str] = None,
                  op: Optional[str] = None,
                  categories: Optional[List[str]] = None,
                  properties: Optional[List[ComponentParameter]] = None,
                  extensions: Optional[List[str]] = None,
-                 parameter_refs: Optional[dict] = None):
+                 parameter_refs: Optional[dict] = None,
+                 package_name: Optional[str] = None):
         """
         :param id: Unique identifier for a component
         :param name: The name of the component for display
         :param description: The description of the component
         :param catalog_type: Indicates the type of component definition resource
                               location; one of ['url', filename', 'directory]
-        :param source_identifier: Source information to help locate the component definition
+        :param component_reference: Source information to help locate the component definition
         :param definition: The content of the specification file for this component
         :param runtime_type: The runtime type of the component (e.g. KUBEFLOW_PIPELINES, APACHE_AIRFLOW, etc.)
         :param op: The operation name of the component; used by generic components in rendering the palette
@@ -193,6 +194,8 @@ class Component(object):
                            in the palette
         :param properties: The set of properties for the component
         :param extensions: The file extension used by the component
+        :param package_name: The fully qualified package name (excluding class name) of the file associated
+            with this component
         """
 
         if not id:
@@ -204,7 +207,7 @@ class Component(object):
         self._name = name
         self._description = description
         self._catalog_type = catalog_type
-        self._source_identifier = source_identifier
+        self._component_reference = component_reference
 
         self._definition = definition
         self._runtime_type = runtime_type
@@ -227,6 +230,7 @@ class Component(object):
 
         self._extensions = extensions
         self._parameter_refs = parameter_refs
+        self._package_name = package_name
 
     @property
     def id(self) -> str:
@@ -245,14 +249,19 @@ class Component(object):
         return self._catalog_type
 
     @property
-    def source_identifier(self) -> Any:
-        return self._source_identifier
+    def component_reference(self) -> Any:
+        return self._component_reference
 
     @property
     def component_source(self) -> str:
+        """
+        Informational property consisting of the catalog type from which
+        this component originates and the reference information used to
+        locate it within that catalog.
+        """
         return str({
             "catalog_type": self.catalog_type,
-            "component_ref": self.source_identifier
+            "component_ref": self.component_reference
         })
 
     @property
@@ -285,6 +294,12 @@ class Component(object):
     @property
     def parameter_refs(self) -> dict:
         return self._parameter_refs
+
+    @property
+    def import_statement(self) -> Optional[str]:
+        if not self._package_name:
+            return None
+        return f"from {self._package_name} import {self._name}"
 
     @property
     def input_properties(self) -> List[ComponentParameter]:

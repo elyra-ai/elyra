@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 describe('Script Editor tests', () => {
   before(() => {
     cy.resetJupyterLab();
@@ -28,12 +29,13 @@ describe('Script Editor tests', () => {
     cy.deleteFile('helloworld.r'); // delete R file used for testing
 
     // Delete runtime configuration used for testing
-    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
       failOnNonZeroExit: false
     });
   });
 
   // Python Tests
+
   it('opens blank Python file from launcher', () => {
     cy.createNewScriptFile('Python');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
@@ -44,7 +46,7 @@ describe('Script Editor tests', () => {
   });
 
   it('close editor', () => {
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.closeTab(-1);
   });
 
   it('open Python file with expected content', () => {
@@ -69,26 +71,91 @@ describe('Script Editor tests', () => {
   });
 
   it('click the Run as Pipeline button should display dialog', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig();
-    // Validate it is now available
-    cy.get('#elyra-metadata\\:runtimes').within(() => {
-      cy.findByText(/test runtime/i).should('exist');
-    });
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
     // Click Run as Pipeline button
-    cy.contains('Run as Pipeline').click();
+    cy.findByText(/run as pipeline/i).click();
     // Check for expected dialog title
     cy.get('.jp-Dialog-header').should('have.text', 'Run file as pipeline');
     // Dismiss  dialog
     cy.get('button.jp-mod-reject').click();
 
     // Close editor tab
-    cy.get('.lm-TabBar-tabCloseIcon:visible')
-      .eq(1)
-      .click();
+    cy.closeTab(-1);
+  });
 
-    // go back to file browser
-    cy.get('.lm-TabBar-tab[data-id="filebrowser"]').click();
+  it('click the Run as Pipeline button on unsaved file should display save dialog', () => {
+    // Create new python file
+    cy.createNewScriptFile('Python');
+
+    // Add some text to the editor
+    cy.get('span[role="presentation"]').type('print("test")\n');
+
+    // Click Run as Pipeline button
+    cy.findByText(/run as pipeline/i).click();
+
+    // Check expected save and submit dialog message
+    cy.contains('.jp-Dialog-header', /this file contains unsaved changes/i);
+
+    // Dismiss save and submit dialog
+    cy.get('button.jp-mod-reject').click();
+
+    // Close editor tab
+    cy.closeTab(-1);
+
+    // Dismiss save your work dialog by discarding changes
+    cy.get('button.jp-mod-warn').click();
+  });
+
+  // check for new output console and scroll up/down buttons on output kernel
+  it('opens new output console', () => {
+    openFile('py');
+    cy.get('button[title="Run"]').click();
+    cy.get('[id=tab-ScriptEditor-output]').should(
+      'have.text',
+      'Console Output'
+    );
+    cy.get('button[title="Top"]').should('be.visible');
+    cy.get('button[title="Bottom"]').should('be.visible');
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
+  });
+
+  // test to check if output kernel has expected output
+  it('checks for valid output', () => {
+    openFile('py');
+    cy.get('button[title="Run"]').click();
+    cy.get('.elyra-ScriptEditor-OutputArea-output').should(
+      'have.text',
+      'Hello Elyra\n'
+    );
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
+  });
+
+  // test to check if output kernel has Error message for invalid code
+  it('checks for Error message', () => {
+    cy.createNewScriptFile('Python');
+    cy.get('span[role="presentation"]').type('print"test"\n');
+    cy.get('button[title="Run"]').click();
+    cy.findByText(/Error : SyntaxError/i).should('be.visible');
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
+
+    // Dismiss save your work dialog by discarding changes
+    cy.get('button.jp-mod-warn').click();
   });
 
   // R Tests
@@ -102,7 +169,7 @@ describe('Script Editor tests', () => {
   });
 
   it('close R editor', () => {
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.closeTab(-1);
   });
 
   it('open R file with expected content', () => {
@@ -127,7 +194,7 @@ describe('Script Editor tests', () => {
     cy.get(
       '#filebrowser [title*="Name: untitled1.py"] svg[data-icon="elyra:pyIcon"]'
     );
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.closeTab(-1);
 
     // Check r icons from launcher & file explorer
     cy.get(
@@ -136,7 +203,7 @@ describe('Script Editor tests', () => {
     cy.get(
       '#filebrowser [title*="Name: untitled1.r"] svg[data-icon="elyra:rIcon"]'
     );
-    cy.get('.lm-TabBar-tabCloseIcon:visible').click();
+    cy.closeTab(-1);
   });
 
   it('opens blank R file from menu', () => {
@@ -220,21 +287,24 @@ const checkRightClickTabContent = (fileType: string): void => {
   ).click();
 };
 
-const openFileAndCheckContent = (fileExtension: string): void => {
+//open helloworld.py using file-> open from path
+const openFile = (fileExtension: string): void => {
   cy.findByRole('menuitem', { name: /file/i }).click();
   cy.findByText(/^open from path$/i).click({ force: true });
 
   // Search for helloworld file and open
   cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
   cy.get('.p-Panel .jp-mod-accept').click();
+};
 
-  // Ensure that the files contants are as expected
+//open file and check contents
+const openFileAndCheckContent = (fileExtension: string): void => {
+  openFile('py');
+  // Ensure that the file contents are as expected
   cy.get('span[role="presentation"]').should($span => {
     expect($span.get(0).innerText).to.eq("print('Hello Elyra')");
   });
 
   // Close the file editor
-  cy.get('.lm-TabBar-tabCloseIcon:visible')
-    .last()
-    .click();
+  cy.closeTab(-1);
 };
