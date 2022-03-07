@@ -801,7 +801,15 @@ a {
   text-align: center;
 }
 
-.component-catalog-icon {
+h3.empty-pipeline-header {
+  font-size: var(--jp-content-font-size5);
+}
+
+h4.empty-pipeline-header {
+  font-size: var(--jp-content-font-size3);
+}
+
+.empty-pipeline-icon {
   display: inline-block;
   vertical-align: middle;
 }
@@ -814,10 +822,14 @@ a {
   padding: 0;
   border: none;
   background: none;
-  color: #8897a2;
+  color: var(--jp-brand-color1);
 }
 
 .empty-pipeline-button:hover {
   background-color: var(--jp-layout-color2);
   cursor: pointer;
+}
+
+.empty-pipeline-button .jp-icon3[fill] {
+  fill: var(--jp-brand-color1);
 }

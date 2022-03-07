@@ -20,6 +20,8 @@ import { settingsIcon } from '@jupyterlab/ui-components';
 import React from 'react';
 
 const HEADER_CLASS = 'empty-pipeline-header';
+const BUTTON_CLASS = 'empty-pipeline-button';
+const ICON_CLASS = 'empty-pipeline-icon';
 
 export interface IEmptyGenericPipelineProps {
   onOpenSettings: () => void;
@@ -43,12 +45,12 @@ export const EmptyGenericPipeline: React.FC<IEmptyGenericPipelineProps> = ({
       <br />
       <h3 className={HEADER_CLASS}>
         Click{' '}
-        <button className={'empty-pipeline-button'} onClick={onOpenSettings}>
-          <settingsIcon.react
-            className="component-catalog-icon"
-            tag="div"
-            height="24px"
-          />
+        <button
+          title="Settings"
+          className={BUTTON_CLASS}
+          onClick={onOpenSettings}
+        >
+          <settingsIcon.react className={ICON_CLASS} tag="div" height="24px" />
         </button>{' '}
         to configure the pipeline editor.
       </h3>
@@ -81,9 +83,9 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
       <h3 className={HEADER_CLASS}>
         Start your new pipeline by dragging files from the file browser pane or
         add custom components by clicking the{' '}
-        <button className={'empty-pipeline-button'} onClick={onOpenCatalog}>
+        <button className={BUTTON_CLASS} onClick={onOpenCatalog}>
           <componentCatalogIcon.react
-            className="component-catalog-icon"
+            className={ICON_CLASS}
             tag="div"
             height="24px"
           />
@@ -106,12 +108,12 @@ export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipel
       <br />
       <h3 className={HEADER_CLASS}>
         Click{' '}
-        <button className={'empty-pipeline-button'} onClick={onOpenSettings}>
-          <settingsIcon.react
-            className="component-catalog-icon"
-            tag="div"
-            height="24px"
-          />
+        <button
+          title="Settings"
+          className={BUTTON_CLASS}
+          onClick={onOpenSettings}
+        >
+          <settingsIcon.react className={ICON_CLASS} tag="div" height="24px" />
         </button>{' '}
         to configure the pipeline editor.
       </h3>
