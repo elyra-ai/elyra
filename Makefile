@@ -26,7 +26,7 @@
 SHELL:=/bin/bash
 
 # Python execs
-PYTHON=python3
+PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
 
 TAG:=dev
