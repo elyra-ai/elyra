@@ -47,9 +47,6 @@ runtime_extras = {
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
     'kfp-examples': ['elyra-examples-kfp-catalog'],
-    # Apache Airflow example components
-    # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
-    'airflow-examples': ['elyra-examples-airflow-catalog'],
     # Use gitlab as Airflow DAG repository
     'gitlab': ['python-gitlab']
 }
