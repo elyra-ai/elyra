@@ -591,7 +591,7 @@ export class CodeSnippetWidget extends MetadataWidget {
         <div>
           <br />
           <h6 className="elyra-no-metadata-msg">
-            Click the + button to add a new Code Snippet
+            Click the + button to add {this.props.display_name}
           </h6>
         </div>
       );

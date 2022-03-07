@@ -433,6 +433,18 @@ export class MetadataWidget extends ReactWidget {
    * @returns a rendered instance of `MetadataDisplay`
    */
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
+    if (Array.isArray(metadata) && !metadata.length) {
+      // Empty metadata
+      return (
+        <div>
+          <br />
+          <h6 className="elyra-no-metadata-msg">
+            Click the + button to add {this.props.display_name}
+          </h6>
+        </div>
+      );
+    }
+
     return (
       <MetadataDisplay
         metadata={metadata}
