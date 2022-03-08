@@ -184,6 +184,14 @@ def test_install_and_replace(script_runner, mock_data_dir):
     if os.path.exists(expected_file):
         os.remove(expected_file)
 
+    # Attempt replace before schemaspace exists and ensure appropriate error message
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
+                            '--name=test-metadata_42_valid-name', '--display_name=display_name',
+                            '--required_test=required_value', '--replace')
+    assert ret.success is False
+    assert "No such instance named 'test-metadata_42_valid-name' was found in the metadata-tests schemaspace." \
+           in ret.stdout
+
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value', '--number_default_test=24')
