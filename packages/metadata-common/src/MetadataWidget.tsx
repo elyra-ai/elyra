@@ -439,7 +439,7 @@ export class MetadataWidget extends ReactWidget {
         <div>
           <br />
           <h6 className="elyra-no-metadata-msg">
-            Click the + button to add {this.props.display_name}
+            Click the + button to add {this.props.display_name.toLowerCase()}
           </h6>
         </div>
       );
