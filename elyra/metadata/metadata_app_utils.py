@@ -425,11 +425,12 @@ class AppBase(object):
             self.argv.remove(log_option)
 
     def log_and_exit(self, msg: Optional[str] = None, exit_status: int = 1, display_help: bool = False):
-        if msg:
-            print(msg)
         if display_help:
-            print()
             self.print_help()
+        if msg:
+            if display_help:
+                print()
+            print(msg)
         AppBase.exit(exit_status)
 
     def get_subcommand(self):
