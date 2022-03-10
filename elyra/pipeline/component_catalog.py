@@ -94,12 +94,13 @@ class CacheUpdateManagerThread(Thread):
 
                         write_required = True
 
+                        catalog_instance: ComponentCatalogMetadata = None
                         if cache_action == 'delete':
                             # Remove status stanza from manifest
                             manifest['status'].pop(catalog_name, None)
 
-                            # Add a delete action to the cache queue
-                            self._cache_queue.put((catalog_name, cache_action))
+                            # Fabricate a metadata instance that only includes catalog name
+                            catalog_instance = ComponentCatalogMetadata(name=catalog_name)
 
                         elif cache_action == 'modify':
                             # Create or replace the status stanza to indicate status is current
@@ -114,8 +115,8 @@ class CacheUpdateManagerThread(Thread):
                                 schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
                             ).get(name=catalog_name)
 
-                            # Add action to the cache queue
-                            self._cache_queue.put((catalog_instance, cache_action))
+                        # Add action to the cache queue
+                        self._cache_queue.put((catalog_instance, cache_action))
 
                     # Clear redundant actions from manifest queue and
                     # reset manifest actions to prepare for write out
@@ -179,6 +180,7 @@ class CacheUpdateManagerThread(Thread):
             updater_thread = CacheUpdateThread(
                 self._component_cache,
                 self._cache_queue,
+                self._manifest_queue,
                 catalog,
                 action
             )
@@ -231,13 +233,13 @@ class CacheUpdateThread(Thread):
                  component_cache: Dict[str, Dict],
                  cache_queue: Queue,
                  manifest_queue: Queue,
-                 catalog: Union[ComponentCatalogMetadata, str],
+                 catalog: ComponentCatalogMetadata,
                  action: Optional[str] = None):
 
         super().__init__()
 
         self.setDaemon(True)
-        self.name = catalog if isinstance(catalog, str) else catalog.name
+        self.name = catalog.name
 
         self._component_cache = component_cache
         self._cache_queue = cache_queue
@@ -256,8 +258,8 @@ class CacheUpdateThread(Thread):
             # Check all runtime types in cache for an entry of the given name.
             # If found, remove only the components from this catalog
             for runtime_type in self._component_cache:
-                if self.name in self._component_cache[runtime_type]:
-                    self._component_cache[runtime_type].pop(self.name, None)
+                if self.catalog.name in self._component_cache[runtime_type]:
+                    self._component_cache[runtime_type].pop(self.catalog.name, None)
                     break
         else:
             runtime_type = self.catalog.runtime_type.name
@@ -268,12 +270,11 @@ class CacheUpdateThread(Thread):
 
             # Replace all components for the given catalog
             try:
-                self._component_cache[runtime_type][self.name] = \
+                self._component_cache[runtime_type][self.catalog.name] = \
                     ComponentCache.instance().read_component_catalog(self.catalog)
             except Exception as e:
                 # TODO update manifest queue with some sort of 'error' action
-                # self._manifest_queue.put((str(e), 'error'))
-                pass  # for now
+                self._manifest_queue.put((self.catalog, [e]))
 
         self._cache_queue.task_done()
 
