@@ -102,7 +102,7 @@ class FileMetadataCache(SingletonConfigurable):
             self.observer = Observer()
             self.observer.start()
         else:
-            self.log.info("The file metadata cache is currently disabled via configuration.  "
+            self.log.info("The file metadata cache is currently disabled via configuration. "
                           "Set FileMetadataCache.enabled=True to enable instance caching.")
 
     def __len__(self) -> int:

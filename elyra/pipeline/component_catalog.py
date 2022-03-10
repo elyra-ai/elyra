@@ -15,6 +15,7 @@
 #
 import json
 from logging import Logger
+import os
 from queue import Empty
 from queue import Queue
 from threading import Event
@@ -23,12 +24,16 @@ import time
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Union
 
 import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Template
+import jupyter_core.paths
 from traitlets.config import SingletonConfigurable
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schemaspaces import ComponentCatalogs
@@ -44,40 +49,144 @@ CATALOG_UPDATE_TIMEOUT = 15
 
 
 class CacheUpdateManagerThread(Thread):
-    def __init__(self, log: Logger, component_cache: Dict[str, Dict], cache_task_queue: Queue):
+    def __init__(self,
+                 log: Logger,
+                 component_cache: Dict[str, Dict],
+                 cache_queue: Queue,
+                 manifest_queue: Queue,
+                 manifest_filename: str):
         super().__init__()
 
         self.setDaemon(True)
 
         self.log = log
         self._component_cache = component_cache
-        self._cache_task_queue = cache_task_queue
+        self._cache_queue = cache_queue
+        self._manifest_queue = manifest_queue
+        self._manifest_filename = manifest_filename
 
         self._threads: List[CacheUpdateThread] = []
 
         self.stop_event = Event()
 
     def run(self):
-        outstanding_threads = False
-
         while not self.stop_event.is_set():
-            timeout = NONBLOCKING_TIMEOUT if outstanding_threads else BLOCKING_TIMEOUT
             try:
-                # Get a task from the queue
-                catalog, operation = self._cache_task_queue.get(timeout=timeout)
-
+                # Get a task from the manifest queue
+                catalog, action = self._manifest_queue.get(timeout=NONBLOCKING_TIMEOUT)
             except Empty:
-                # No task exists in the queue, proceed to check for thread execution
+                # No task exists in the manifest queue, proceed to check for cache tasks
                 pass
-
             else:
-                # Create and start a thread for the task
-                updater_thread = CacheUpdateThread(self._component_cache, self._cache_task_queue, catalog, operation)
-                updater_thread.start()
+                # Make the required update to the manifest file
+                if os.path.isfile(self._manifest_filename):
+                    with open(self._manifest_filename, 'r') as f:
+                        manifest = json.loads(f.read())
 
-                self._threads.append(updater_thread)
+                write_required = False
+                if action == 'cache':
+                    # A 'cache' action means that updates to the component cache are required
 
-            outstanding_threads = self.check_outstanding_threads()
+                    # Handle all pending actions in one batch
+                    for pending_action in manifest.get('actions'):
+                        catalog_name = list(pending_action.keys())[0]
+                        cache_action = list(pending_action.values())[0]
+
+                        write_required = True
+
+                        catalog_instance: ComponentCatalogMetadata = None
+                        if cache_action == 'delete':
+                            # Remove status stanza from manifest
+                            manifest['status'].pop(catalog_name, None)
+
+                            # Fabricate a metadata instance that only includes catalog name
+                            catalog_instance = ComponentCatalogMetadata(name=catalog_name)
+
+                        elif cache_action == 'modify':
+                            # Create or replace the status stanza to indicate status is current
+                            errors = manifest['status'].get(catalog_name, {}).get('errors', [])
+                            manifest['status'][catalog_name] = {
+                                'action': 'current',
+                                'errors': errors
+                            }
+
+                            # Fetch the catalog instance associated with this action
+                            catalog_instance = MetadataManager(
+                                schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
+                            ).get(name=catalog_name)
+
+                        # Add action to the cache queue
+                        self._cache_queue.put((catalog_instance, cache_action))
+
+                    # Clear redundant actions from manifest queue and
+                    # reset manifest actions to prepare for write out
+                    self.clear_duplicate_cache_actions()
+                    manifest['actions'] = []
+
+                else:
+                    # Any action that is not a 'cache' action means that it is a manifest action
+                    # Format necessary action and include in manifest only if not already present
+                    manifest_action = {catalog.name: action}
+                    if manifest_action not in manifest['actions']:
+                        manifest['actions'].append(manifest_action)
+                        write_required = True
+
+                if write_required:
+                    with open(self._manifest_filename, 'w') as f:
+                        f.write(json.dumps(manifest, indent=2))
+
+                self._manifest_queue.task_done()
+
+            self.manage_cache_tasks()
+
+    def clear_duplicate_cache_actions(self):
+        """
+        Remove redundant actions from the manifest queue. Because manifest 'cache' actions
+        trigger batch processing of all pending cache updates, multiple 'cache' actions left
+        in the queue after a batch processing event are redundant.
+        """
+        task_set = set()
+        while True:
+            try:
+                task = self._manifest_queue.get(block=False)
+            except Empty:
+                break
+            else:
+                task_set.add(task)
+        for task in task_set:
+            self._manifest_queue.put(task)
+
+    def manage_cache_tasks(self):
+        """
+        Check the cache queue for a cache update action and start
+        a corresponding worker thread to complete the update
+        """
+        outstanding_threads = self.check_outstanding_threads()
+
+        try:
+            # Get a task from the cache queue
+            timeout = BLOCKING_TIMEOUT
+            if outstanding_threads or not self._manifest_queue.empty():
+                timeout = NONBLOCKING_TIMEOUT
+
+            catalog, action = self._cache_queue.get(timeout=timeout)
+
+        except Empty:
+            # No task exists in the cache queue, proceed to check for thread execution
+            pass
+
+        else:
+            # Create and start a thread for the task
+            updater_thread = CacheUpdateThread(
+                self._component_cache,
+                self._cache_queue,
+                self._manifest_queue,
+                catalog,
+                action
+            )
+            updater_thread.start()
+
+            self._threads.append(updater_thread)
 
     def check_outstanding_threads(self) -> bool:
         """
@@ -122,9 +231,10 @@ class CacheUpdateManagerThread(Thread):
 class CacheUpdateThread(Thread):
     def __init__(self,
                  component_cache: Dict[str, Dict],
-                 queue: Queue,
+                 cache_queue: Queue,
+                 manifest_queue: Queue,
                  catalog: ComponentCatalogMetadata,
-                 operation: Optional[str] = None):
+                 action: Optional[str] = None):
 
         super().__init__()
 
@@ -132,36 +242,46 @@ class CacheUpdateThread(Thread):
         self.name = catalog.name
 
         self._component_cache = component_cache
-        self._queue = queue
+        self._cache_queue = cache_queue
+        self._manifest_queue = manifest_queue
 
         # Task-specific properties
-        self._catalog = catalog
-        self._operation = operation
+        self.catalog = catalog
+        self.action = action
 
         # Thread metadata
         self.task_start_time = time.time()
         self.last_warn_time = self.task_start_time
 
     def run(self):
-        # Add sub-dictionary for this platform type if not present
-        if not self._component_cache.get(self._catalog.runtime_type.name):
-            self._component_cache[self._catalog.runtime_type.name] = {}
-
-        if self._operation == 'delete':
-            # Remove only the components from this catalog
-            self._component_cache[self._catalog.runtime_type.name].pop(self._catalog.name, None)
+        if self.action == 'delete':
+            # Check all runtime types in cache for an entry of the given name.
+            # If found, remove only the components from this catalog
+            for runtime_type in self._component_cache:
+                if self.catalog.name in self._component_cache[runtime_type]:
+                    self._component_cache[runtime_type].pop(self.catalog.name, None)
+                    break
         else:
-            # Replace all components for the given catalog if not present
-            if self._catalog.name not in self._component_cache[self._catalog.runtime_type.name]:
-                self._component_cache[self._catalog.runtime_type.name][self._catalog.name] = \
-                    ComponentCache.instance().read_component_catalog(self._catalog)
+            runtime_type = self.catalog.runtime_type.name
 
-        self._queue.task_done()
+            # Add sub-dictionary for this runtime type if not present
+            if not self._component_cache.get(runtime_type):
+                self._component_cache[runtime_type] = {}
+
+            # Replace all components for the given catalog
+            try:
+                self._component_cache[runtime_type][self.catalog.name] = \
+                    ComponentCache.instance().read_component_catalog(self.catalog)
+            except Exception as e:
+                # TODO update manifest queue with some sort of 'error' action
+                self._manifest_queue.put((self.catalog, [e]))
+
+        self._cache_queue.task_done()
 
 
 class ComponentCache(SingletonConfigurable):
     # The component_cache is indexed at the top level by runtime type name, e.g. 'APACHE_AIRFLOW',
-    # and has as it's value another dictionary. At the second level, each sub-dictionary is indexed by
+    # and has as its value another dictionary. At the second level, each sub-dictionary is indexed by
     # a ComponentCatalogMetadata instance name and its value is also a sub-dictionary. This lowest
     # level dictionary is indexed by component id and maps to the corresponding Component object.
     _component_cache: Dict[str, Dict[str, Dict[str, Component]]] = {}
@@ -196,34 +316,75 @@ class ComponentCache(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self._cache_task_queue = Queue()
+        self._cache_queue = Queue()
+        self._manifest_queue = Queue()
 
-        # Start a thread to manage updates to the component cache
-        self._cache_manager = CacheUpdateManagerThread(self.log, self._component_cache, self._cache_task_queue)
+        manifest_dir = kwargs.get('component_manifest_dir', jupyter_core.paths.jupyter_runtime_dir())
+        self.manifest_filename = os.path.join(manifest_dir, "elyra-component-manifest.json")
+
+        # Set up watchdog for manifest
+        self.observer = Observer()
+        self.observer.schedule(ManifestFileChangeHandler(self), manifest_dir)
+
+        # Start a thread to manage updates to the component cache and manifest
+        self._cache_manager = CacheUpdateManagerThread(
+            self.log,
+            self._component_cache,
+            self._cache_queue,
+            self._manifest_queue,
+            self.manifest_filename
+        )
         self._cache_manager.name = "CacheUpdateManager"
         self._cache_manager.start()
 
     def load(self):
-        """Loads the cache from existing ComponentCatalog metadata instances"""
-
-        # A fetch of all component catalog instances will trigger their load hooks to add themselves
-        # to the cache.  This should only be called during system startup and only after the singleton
-        # instance has been created.
+        """
+        Completes a series of actions during system startup, such as creating
+        the component manifest file and triggering the build of the component
+        cache for existing ComponentCatalog metadata instances.
+        """
+        # Proceed only if singleton instance has been created
         if self.initialized:
-            MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
+            # Create/overwrite manifest file and start its watchdog
+            self.set_up_manifest_file()
+            self.observer.start()
 
-    def update_cache_for_catalog(self, catalog: ComponentCatalogMetadata, operation: Optional[str] = None):
+            # Fetch all component catalog instances and trigger their add to
+            # the component manifest, and consequently, the component cache
+            catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
+            for catalog in catalogs:
+                self.update_manifest(catalog, 'modify')
+
+    def set_up_manifest_file(self):
         """
-        Triggers an update of the component cache for the given ComponentCatalogMetadata instance.
+        Build an empty manifest and overwrite or create the file. After this point,
+        only the CacheUpdateManagerThread is able to touch this file.
         """
-        self._cache_task_queue.put((catalog, operation))
+        empty_manifest = {
+            "actions": [],
+            "status": {}
+        }
+
+        with open(self.manifest_filename, 'w') as f:
+            f.write(json.dumps(empty_manifest, indent=2))
+
+    def update_manifest(self, catalog: Optional[ComponentCatalogMetadata] = None, action: Optional[str] = None):
+        """
+        Triggers an update of the component manifest for the given ComponentCatalogMetadata instance.
+        """
+        self._manifest_queue.put((catalog, action))
+
+        # CLI processes will never start their watchdog. For these out-of-process updates,
+        # we want to wait for the manifest update to complete before exiting
+        if not self.observer.is_alive():
+            self._manifest_queue.join()
 
     def wait_for_all_cache_updates(self):
         """
         Block execution and wait for all tasks in the cache task update queue to complete.
         Primarily used for testing.
         """
-        self._cache_task_queue.join()
+        self._cache_queue.join()
 
     def get_all_components(self, platform: RuntimeProcessorType) -> List[Component]:
         """
@@ -377,3 +538,29 @@ class ComponentCache(SingletonConfigurable):
 
         canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)
+
+
+class ManifestFileChangeHandler(FileSystemEventHandler):
+    """Watchdog handler that filters on .json files within specific metadata directories."""
+
+    def __init__(self, component_cache: ComponentCache, **kwargs):
+        super().__init__(**kwargs)
+        self.component_cache = component_cache
+        self.manifest_filename = component_cache.manifest_filename
+        self.log = component_cache.log
+
+    def dispatch(self, event):
+        """Dispatches delete and modification events pertaining to the manifest filename"""
+        if event.src_path.endswith(os.path.basename(self.manifest_filename)):
+            super().dispatch(event)
+
+    def on_deleted(self, event):
+        """
+        Fires when the component manifest file is deleted, triggering a re-load of the
+        manifest and, ultimately, the component cache.
+        """
+        ComponentCache.instance().load()
+
+    def on_modified(self, event):
+        """Fires when the component manifest file is modified."""
+        self.component_cache.update_manifest(action='cache')
