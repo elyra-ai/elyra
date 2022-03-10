@@ -15,7 +15,7 @@
  */
 
 import { IDictionary } from '@elyra/services';
-import { addIcon } from '@jupyterlab/ui-components';
+import { addIcon, refreshIcon } from '@jupyterlab/ui-components';
 import {
   Box,
   ButtonGroup,
@@ -32,19 +32,20 @@ import React from 'react';
 export const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
 export const METADATA_HEADER_POPPER_CLASS = 'elyra-metadataHeader-popper';
 
-export interface IAddMetadataButtonProps {
+export interface IMetadataHeaderButtonsProps {
   schemas?: IDictionary<any>[];
   addMetadata: (schema: string, titleContext?: string) => void;
   titleContext?: string;
   appendToTitle?: boolean;
+  refreshMetadata: () => void;
 }
 
 const StyledButton = styled(Button)({
   minWidth: 'auto'
 });
 
-export const AddMetadataButton = (
-  props: IAddMetadataButtonProps
+export const MetadataHeaderButtons = (
+  props: IMetadataHeaderButtonsProps
 ): React.ReactElement => {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLDivElement>(null);
@@ -76,6 +77,17 @@ export const AddMetadataButton = (
   return (
     <Box>
       <ButtonGroup ref={anchorRef} variant="text">
+        <StyledButton
+          size="small"
+          className={METADATA_HEADER_BUTTON_CLASS}
+          onClick={(): void => {
+            props.refreshMetadata();
+            setOpen(false);
+          }}
+          title="Refresh list"
+        >
+          <refreshIcon.react tag="span" elementPosition="center" width="16px" />
+        </StyledButton>
         <StyledButton
           size="small"
           className={METADATA_HEADER_BUTTON_CLASS}

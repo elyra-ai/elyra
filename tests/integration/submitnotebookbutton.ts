@@ -26,7 +26,7 @@ describe('Submit Notebook Button tests', () => {
     cy.deleteFile('*.ipynb');
 
     // Delete runtime configuration used for testing
-    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
       failOnNonZeroExit: false
     });
   });
@@ -37,13 +37,8 @@ describe('Submit Notebook Button tests', () => {
   });
 
   it('click the "Run as Pipeline" button should display dialog', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig();
-
-    // Validate it is now available
-    cy.get('#elyra-metadata\\:runtimes').within(() => {
-      cy.findByText(/test runtime/i).should('exist');
-    });
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
 
     cy.findByRole('tab', { name: /file browser/i }).click();
 
@@ -71,4 +66,5 @@ const openNewNotebookFile = (): void => {
   )
     .first()
     .click();
+  cy.wait(500);
 };

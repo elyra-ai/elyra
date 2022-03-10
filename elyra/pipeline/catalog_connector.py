@@ -500,29 +500,30 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
             })
         return catalog_entry_data
 
-    def read_catalog_entry(self,
-                           catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+    def get_entry_data(self,
+                       catalog_entry_data: Dict[str, Any],
+                       catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
         """
-        Reads a component definition for a single catalog entry using the catalog_entry_data returned
-        from get_catalog_entries() and, if needed, the catalog metadata.
+        Reads a component definition (and other information-of-interest) for a single catalog entry and
+        creates an EntryData object to represent it. Uses the catalog_entry_data returned from
+        get_catalog_entries() and, if needed, the catalog metadata to retrieve the definition.
 
         :param catalog_entry_data: for the Filesystem- and DirectoryComponentCatalogConnector classes,
-                                   this includes 'path' and 'base_dir' keys
+            this includes 'path' and 'base_dir' keys
         :param catalog_metadata: Filesystem- and DirectoryComponentCatalogConnector classes do not need this
-                                 field to read individual catalog entries
-
+            field to read individual catalog entries
         """
         path = os.path.join(catalog_entry_data.get('base_dir', ''), catalog_entry_data.get('path'))
         if not os.path.exists(path):
             self.log.warning(f"Invalid location for component: {path}")
         else:
             with open(path, 'r') as f:
-                return f.read()
+                return EntryData(definition=f.read())
 
         return None
 
-    def get_hash_keys(self) -> List[Any]:
+    @classmethod
+    def get_hash_keys(cls) -> List[Any]:
         """
         For the Filesystem- and DirectoryComponentCatalogConnector classes, only the
         'path' value is needed from the catalog_entry_data dictionary to construct a
@@ -611,19 +612,18 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
         """
         return [{'url': url} for url in catalog_metadata.get('paths')]
 
-    def read_catalog_entry(self,
-                           catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+    def get_entry_data(self,
+                       catalog_entry_data: Dict[str, Any],
+                       catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
         """
-        Reads a component definition for a single catalog entry using the catalog_entry_data returned
-        from get_catalog_entries() and, if needed, the catalog metadata.
+        Reads a component definition (and other information-of-interest) for a single catalog entry and
+        creates an EntryData object to represent it. Uses the catalog_entry_data returned from
+        get_catalog_entries() and, if needed, the catalog metadata to retrieve the definition.
 
         :param catalog_entry_data: for the UrlComponentCatalogConnector class this includes a 'url' key
         :param catalog_metadata: UrlComponentCatalogConnector does not need this field to read
-                                 individual catalog entries
-
+            individual catalog entries
         """
-
         url = catalog_entry_data.get('url')
         try:
             res = requests.get(url)
@@ -633,11 +633,12 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
             if res.status_code != HTTPStatus.OK:
                 self.log.warning(f"Invalid location for component: {url} (HTTP code {res.status_code})")
             else:
-                return res.text
+                return EntryData(definition=res.text)
 
         return None
 
-    def get_hash_keys(self) -> List[Any]:
+    @classmethod
+    def get_hash_keys(cls) -> List[Any]:
         """
         For the UrlComponentCatalogConnector class, only the 'url' value is needed
         from the catalog_entry_data dictionary to construct a unique hash id for a
