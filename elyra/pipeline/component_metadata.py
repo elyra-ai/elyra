@@ -43,12 +43,6 @@ class ComponentCatalogMetadata(Metadata):
         except Exception:
             pass
 
-    def post_save(self, **kwargs: Any) -> None:
-        try:  # Remove components associated with this catalog on updates.  They will be updated on load.
-            component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='delete')
-        except Exception:
-            pass
-
     def post_delete(self, **kwargs: Any) -> None:
         try:  # Remove components associated with this catalog on deletes.
             component_catalog.ComponentCache.instance().update_manifest(catalog=self, action='delete')
