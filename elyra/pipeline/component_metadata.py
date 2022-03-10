@@ -38,14 +38,14 @@ class ComponentCatalogMetadata(Metadata):
         return RuntimeProcessorType.get_instance_by_name(self.metadata['runtime_type'])
 
     def post_save(self, **kwargs: Any) -> None:
-        try:
-            component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='modify')
+        try:  # Modify components associated with this catalog on creates and updates.
+            component_catalog.ComponentCache.instance().update_manifest(catalog=self, action='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
-        try:
-            component_catalog.ComponentCache.instance().update_cache_for_catalog(catalog=self, operation='delete')
+        try:  # Remove components associated with this catalog on deletes.
+            component_catalog.ComponentCache.instance().update_manifest(catalog=self, action='delete')
         except Exception:
             pass
 
