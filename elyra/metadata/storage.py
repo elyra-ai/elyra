@@ -265,7 +265,7 @@ class FileMetadataStore(MetadataStore):
         # Write out the instance
         try:
             with jupyter_core.paths.secure_write(resource) as f:
-                f.write(json.dumps(metadata, indent=2))  # Only persist necessary items
+                json.dump(metadata, f, indent=2)  # Only persist necessary items
         except Exception as ex:
             self._rollback(resource, renamed_resource)
             raise ex from ex
