@@ -17,8 +17,10 @@
 import { JupyterServer } from '@jupyterlab/testutils';
 
 import { ScriptEditorController } from '../ScriptEditorController';
+import { ScriptRunner } from '../ScriptRunner';
 
 const server = new JupyterServer();
+const language = 'python';
 
 beforeAll(async () => {
   jest.setTimeout(20000);
@@ -34,7 +36,6 @@ describe('@elyra/script-editor', () => {
     describe('#getKernelSpecs', () => {
       it('should get Python kernel specs', async () => {
         const controller = new ScriptEditorController();
-        const language = 'python';
         const kernelSpecs = await controller.getKernelSpecsByLanguage(language);
         for (const [key, value] of Object.entries(
           kernelSpecs?.kernelspecs ?? []
@@ -42,6 +43,18 @@ describe('@elyra/script-editor', () => {
           expect(key).toContain(language);
           expect(value?.language).toContain(language);
         }
+      });
+    });
+  });
+
+  describe('KernelManager', () => {
+    describe('#startSession', () => {
+      it('should start a kernel session', async () => {
+        const dummyFunc = (x: boolean) => console.log(x);
+        const runner = new ScriptRunner(dummyFunc);
+        const session = await runner.startSession(language, 'test.py');
+        expect(session.id).toBeTruthy();
+        expect(session.id).toEqual(runner.sessionConnection?.id);
       });
     });
   });
