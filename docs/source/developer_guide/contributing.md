@@ -102,12 +102,8 @@ Then, in the `package.json`, add the following under `'scripts'`:
 ```
 And the following under `'dev_dependencies'`:
 ```
-"@jupyterlab/testutils": "^1.0.0",
-"@types/enzyme": "^3.10.5",
-"@types/enzyme-adapter-react-16": "^1.0.6",
+"@jupyterlab/testutils": "3.3.0",
 "@types/jest": "^23.3.11",
-"enzyme": "^3.11.0",
-"enzyme-adapter-react-16": "^1.15.3",
 "install": "^0.13.0",
 "jest": "^24.7.1",
 "jest-raw-loader": "^1.0.1",
