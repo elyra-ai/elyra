@@ -213,3 +213,32 @@ class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
         await self.finish({"runtime_types": runtime_types})
+
+
+class ComponentCacheHandler(HttpErrorMixin, APIHandler):
+    """Handler to trigger a complete re-fresh of all component catalogs."""
+
+    @web.authenticated
+    async def put(self):
+        self.log.debug("Refreshing component cache for all catalog instances...")
+        ComponentCache.instance().update_manifest_queue(source='API', action='delete-manifest')
+
+        # TODO check that this is correct
+        self.set_status(200)
+        self.finish()
+
+
+class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
+    """Handler to trigger a re-fresh of a single component catalog with the given name."""
+
+    @web.authenticated
+    async def put(self, catalog):
+        if not catalog:
+            raise web.HTTPError(400, "?")  # TODO fix or remove altogether
+
+        self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
+        ComponentCache.instance().update_manifest_queue(source=catalog, action='modify')
+
+        # TODO check that this is correct
+        self.set_status(200)
+        self.finish()

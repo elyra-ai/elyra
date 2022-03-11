@@ -39,13 +39,13 @@ class ComponentCatalogMetadata(Metadata):
 
     def post_save(self, **kwargs: Any) -> None:
         try:  # Modify components associated with this catalog on creates and updates.
-            component_catalog.ComponentCache.instance().update_manifest_queue(action='modify', catalog_name=self.name)
+            component_catalog.ComponentCache.instance().update_manifest_queue(source=self.name, action='modify')
         except Exception:
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
         try:  # Remove components associated with this catalog on deletes.
-            component_catalog.ComponentCache.instance().update_manifest_queue(action='delete', catalog_name=self.name)
+            component_catalog.ComponentCache.instance().update_manifest_queue(source=self.name, action='delete')
         except Exception:
             pass
 
