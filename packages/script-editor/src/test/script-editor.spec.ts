@@ -17,11 +17,11 @@
 import { JupyterServer } from '@jupyterlab/testutils';
 
 import { ScriptEditorController } from '../ScriptEditorController';
-jest.setTimeout(3 * 60 * 1000);
 
 const server = new JupyterServer();
 
 beforeAll(async () => {
+  jest.setTimeout(20000);
   await server.start();
 });
 
@@ -39,7 +39,6 @@ describe('@elyra/script-editor', () => {
         for (const [key, value] of Object.entries(
           kernelSpecs?.kernelspecs ?? []
         )) {
-          // console.log(`${key}: ${value}`);
           expect(key).toContain(language);
           expect(value?.language).toContain(language);
         }
