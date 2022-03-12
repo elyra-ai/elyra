@@ -1,8 +1,8 @@
 {
-  "display_name": "Pytorch 1.11.0 with CUDA-devel",
+  "display_name": "Pytorch 1.9 with CUDA-devel",
   "metadata": {
-    "description": "PyTorch 1.11.0 (with GPU support)",
-    "image_name": "pytorch/pytorch:1.11.0-cuda11.3-cudnn8-devel",
+    "description": "PyTorch 1.9 (with GPU support)",
+    "image_name": "pytorch/pytorch:1.9.0-cuda10.2-cudnn7-devel",
     "tags": ["gpu", "pytorch"]
   },
   "schema_name": "runtime-image"
