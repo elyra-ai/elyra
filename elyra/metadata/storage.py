@@ -196,6 +196,8 @@ class FileMetadataStore(MetadataStore):
         If name is provided, the single instance will be returned in a list of one item.
         """
         if not self.schemaspace_exists():  # schemaspace doesn't exist - return empty list
+            if name:  # If we're looking for a specific instance and there's no schemaspace, raise MetadataNotFound
+                raise MetadataNotFoundError(self.schemaspace, name)
             return []
 
         resources = {}
