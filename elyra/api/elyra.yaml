@@ -347,7 +347,7 @@ paths:
       responses:
         200:
           description: The refresh request was initiated successfully.
-        400:
+        404:
           description: Invalid catalog.
 
   /elyra/pipeline/components/{processor}:

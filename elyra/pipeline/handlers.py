@@ -23,6 +23,9 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado import web
 
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.parser import PipelineParser
@@ -223,7 +226,6 @@ class ComponentCacheHandler(HttpErrorMixin, APIHandler):
         self.log.debug("Refreshing component cache for all catalog instances...")
         ComponentCache.instance().update_manifest_queue(source='API', action='delete-manifest')
 
-        # TODO check that this is correct
         self.set_status(200)
         self.finish()
 
@@ -233,12 +235,16 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def put(self, catalog):
-        if not catalog:
-            raise web.HTTPError(400, "?")  # TODO fix or remove altogether
+        try:
+            # Ensure given catalog name is a metadata instance
+            MetadataManager(
+                schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
+            ).get(name=catalog)
+        except MetadataNotFoundError:
+            raise web.HTTPError(404, f"Invalid catalog name '{catalog}'")
 
         self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
         ComponentCache.instance().update_manifest_queue(source=catalog, action='modify')
 
-        # TODO check that this is correct
         self.set_status(200)
         self.finish()
