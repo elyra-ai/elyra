@@ -776,8 +776,8 @@ const PipelineWrapper: React.FC<IProps> = ({
             `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`
           );
           break;
-        case 'openTextViewer':
-          commands.execute('elyra-text-viewer:open', {
+        case 'openCodeViewer':
+          commands.execute('elyra-code-viewer:open', {
             content: JSON.stringify(contextRef.current.model.toJSON(), null, 2),
             mimeType: 'application/json'
           });
@@ -847,8 +847,8 @@ const PipelineWrapper: React.FC<IProps> = ({
         iconDisabled: IconUtil.encode(componentCatalogIcon)
       },
       {
-        action: 'openTextViewer',
-        label: 'Open Text Viewer',
+        action: 'openCodeViewer',
+        label: 'Open Code Viewer',
         enable: true,
         iconEnabled: IconUtil.encode(pipelineIcon),
         iconDisabled: IconUtil.encode(pipelineIcon)

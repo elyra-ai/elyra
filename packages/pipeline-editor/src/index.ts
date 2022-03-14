@@ -33,18 +33,14 @@ import {
 import {
   ICommandPalette,
   IThemeManager,
-  MainAreaWidget,
   WidgetTracker
 } from '@jupyterlab/apputils';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { addIcon, LabIcon, textEditorIcon } from '@jupyterlab/ui-components';
-
-import uuid4 from 'uuid/v4';
+import { addIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
@@ -54,7 +50,6 @@ import {
 } from './RuntimeImagesWidget';
 import { RuntimesWidget } from './RuntimesWidget';
 import { SubmitFileButtonExtension } from './SubmitFileButtonExtension';
-import { TextViewerWidget } from './TextViewerWidget';
 
 import '../style/index.css';
 
@@ -90,7 +85,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     IFileBrowserFactory,
     ILayoutRestorer,
     IMainMenu,
-    IEditorServices,
     ISettingRegistry
   ],
   optional: [IThemeManager],
@@ -101,7 +95,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
     menu: IMainMenu,
-    editorServices: IEditorServices,
     registry: ISettingRegistry,
     themeManager?: IThemeManager
   ) => {
@@ -384,38 +377,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
     app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
     app.shell.add(componentCatalogWidget, 'left', { rank: 961 });
-
-    // Initialize Text Viewer
-    // TODO: This code should move into a separate widget
-    const openTextViewer = (args: {
-      content: string;
-      label?: string;
-      mimeType?: string;
-    }): void => {
-      const func = editorServices.factoryService.newDocumentEditor;
-      const factory: CodeEditor.Factory = options => {
-        return func(options);
-      };
-
-      const widget = new TextViewerWidget({
-        factory,
-        content: args.content,
-        mimeType: args.mimeType
-      });
-      // TODO: Find a better way to set these values
-      widget.id = `text-viewer-${uuid4()}`;
-      widget.title.label = args.label || 'Text Viewer';
-      widget.title.icon = textEditorIcon;
-
-      const main = new MainAreaWidget({ content: widget });
-      app.shell.add(main, 'main');
-    };
-
-    app.commands.addCommand('elyra-text-viewer:open', {
-      execute: (args: any) => {
-        openTextViewer(args);
-      }
-    });
   }
 };
 export default extension;

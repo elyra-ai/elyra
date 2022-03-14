@@ -17,11 +17,11 @@
 import { CodeEditor, CodeEditorWrapper } from '@jupyterlab/codeeditor';
 import { StackedLayout, Widget } from '@lumino/widgets';
 
-export class TextViewerWidget extends Widget {
+export class CodeViewerWidget extends Widget {
   /**
    * Construct a new text viewer widget.
    */
-  constructor(options: TextViewerWidget.IOptions) {
+  constructor(options: CodeViewerWidget.IOptions) {
     super();
     this.addClass('jp-FileEditor');
 
@@ -49,7 +49,7 @@ export class TextViewerWidget extends Widget {
 /**
  * The namespace for text viewer widget.
  */
-export namespace TextViewerWidget {
+export namespace CodeViewerWidget {
   /**
    * The options used to create an text viewer widget.
    */
@@ -60,7 +60,7 @@ export namespace TextViewerWidget {
     factory: CodeEditor.Factory;
 
     /**
-     * The content to display in the editor.
+     * The content to display in the viewer.
      */
     content: string;
 
