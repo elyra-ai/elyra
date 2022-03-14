@@ -174,6 +174,29 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         self.finish(properties_json)
 
 
+class PipelineComponentDefinitionHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose method calls to retrieve the definition for a given component_id"""
+
+    @web.authenticated
+    async def get(self, processor, component_id):
+        self.log.debug(f'Retrieving component definition for component: {component_id}')
+
+        if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
+            raise web.HTTPError(400, f"Invalid processor name '{processor}'")
+
+        if not component_id:
+            raise web.HTTPError(400, "Missing component ID")
+
+        component: Optional[Component] = \
+            await PipelineProcessorManager.instance().get_component(processor, component_id)
+        definition_json = json.dumps(component.definition)
+
+        self.set_status(200)
+        self.set_header("Content-Type", 'application/json')
+
+        self.finish(definition_json)
+
+
 class PipelineValidationHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to validate pipeline payloads for errors"""
 

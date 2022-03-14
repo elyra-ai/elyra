@@ -32,7 +32,7 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.handlers import PipelineComponentHandler
+from elyra.pipeline.handlers import PipelineComponentHandler, PipelineComponentDefinitionHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
 from elyra.pipeline.handlers import PipelineRuntimeTypesHandler
@@ -97,6 +97,8 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
             (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),
             (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
              PipelineComponentPropertiesHandler),
+            (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/definition',
+             PipelineComponentDefinitionHandler),
             (f'/{self.name}/pipeline/export', PipelineExportHandler),
             (f'/{self.name}/pipeline/runtimes/types', PipelineRuntimeTypesHandler),
             (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
