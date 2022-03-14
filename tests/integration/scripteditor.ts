@@ -29,12 +29,13 @@ describe('Script Editor tests', () => {
     cy.deleteFile('helloworld.r'); // delete R file used for testing
 
     // Delete runtime configuration used for testing
-    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
       failOnNonZeroExit: false
     });
   });
 
   // Python Tests
+
   it('opens blank Python file from launcher', () => {
     cy.createNewScriptFile('Python');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
@@ -70,12 +71,8 @@ describe('Script Editor tests', () => {
   });
 
   it('click the Run as Pipeline button should display dialog', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig();
-    // Validate it is now available
-    cy.get('#elyra-metadata\\:runtimes').within(() => {
-      cy.findByText(/test runtime/i).should('exist');
-    });
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
     // Click Run as Pipeline button
     cy.findByText(/run as pipeline/i).click();
     // Check for expected dialog title
@@ -110,6 +107,7 @@ describe('Script Editor tests', () => {
     cy.get('button.jp-mod-warn').click();
   });
 
+  // check for new output console and scroll up/down buttons on output kernel
   it('opens new output console', () => {
     openFile('py');
     cy.get('button[title="Run"]').click();
@@ -125,6 +123,39 @@ describe('Script Editor tests', () => {
 
     // Close editor tab
     cy.closeTab(-1);
+  });
+
+  // test to check if output kernel has expected output
+  it('checks for valid output', () => {
+    openFile('py');
+    cy.get('button[title="Run"]').click();
+    cy.get('.elyra-ScriptEditor-OutputArea-output').should(
+      'have.text',
+      'Hello Elyra\n'
+    );
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
+  });
+
+  // test to check if output kernel has Error message for invalid code
+  it('checks for Error message', () => {
+    cy.createNewScriptFile('Python');
+    cy.get('span[role="presentation"]').type('print"test"\n');
+    cy.get('button[title="Run"]').click();
+    cy.findByText(/Error : SyntaxError/i).should('be.visible');
+
+    //close console tab
+    cy.closeTab(-1);
+
+    // Close editor tab
+    cy.closeTab(-1);
+
+    // Dismiss save your work dialog by discarding changes
+    cy.get('button.jp-mod-warn').click();
   });
 
   // R Tests

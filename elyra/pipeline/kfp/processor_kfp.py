@@ -619,7 +619,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         operation.component_params_as_dict.pop(parameter, None)
 
                     # Create ContainerOp instance and assign appropriate user-provided name
-                    container_op = factory_function(**operation.component_params_as_dict)
+                    sanitized_component_params = {
+                        self._sanitize_param_name(name): value
+                        for name, value in operation.component_params_as_dict.items()
+                    }
+                    container_op = factory_function(**sanitized_component_params)
                     container_op.set_display_name(operation.name)
 
                     if operation.doc:
@@ -691,6 +695,29 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         :param name: name of the operation
         """
         return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-', name)).lstrip('-').rstrip('-')
+
+    @staticmethod
+    def _sanitize_param_name(name: str) -> str:
+        """
+        Sanitize a component parameter name.
+
+        Behavior is mirrored from how Kubeflow 1.X sanitizes identifier names:
+        - https://github.com/kubeflow/pipelines/blob/1.8.1/sdk/python/kfp/components/_naming.py#L32-L42
+        - https://github.com/kubeflow/pipelines/blob/1.8.1/sdk/python/kfp/components/_naming.py#L49-L50
+        """
+        normalized_name = name.lower()
+
+        # remove non-word characters
+        normalized_name = re.sub(r'[\W_]', ' ', normalized_name)
+
+        # no double spaces, leading or trailing spaces
+        normalized_name = re.sub(' +', ' ', normalized_name).strip()
+
+        # no leading digits
+        if re.match(r'\d', normalized_name):
+            normalized_name = 'n' + normalized_name
+
+        return normalized_name.replace(' ', '_')
 
 
 class KfpPipelineProcessorResponse(PipelineProcessorResponse):

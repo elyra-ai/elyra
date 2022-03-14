@@ -287,7 +287,8 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"url": url}, {})
+    entry_data = reader.get_entry_data({"url": url}, {})
+    component_definition = entry_data.definition
 
     # Instantiate a url-based component
     component_id = 'url-catalog:7f0546b6135c'
@@ -296,7 +297,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           description="",
                           op="filter-text",
                           catalog_type="url-catalog",
-                          source_identifier={"url": url},
+                          component_reference={"url": url},
                           definition=component_definition,
                           categories=[],
                           properties=[])
@@ -365,7 +366,8 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    component_definition = reader.read_catalog_entry({"path": absolute_path}, {})
+    entry_data = reader.get_entry_data({"path": absolute_path}, {})
+    component_definition = entry_data.definition
 
     # Instantiate a file-based component
     component_id = "elyra-kfp-examples-catalog:a08014f9252f"
@@ -374,7 +376,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           description="",
                           op="download-data",
                           catalog_type="elyra-kfp-examples-catalog",
-                          source_identifier={"path": absolute_path},
+                          component_reference={"path": absolute_path},
                           definition=component_definition,
                           properties=[],
                           categories=[])

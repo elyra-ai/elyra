@@ -25,6 +25,10 @@
 .PHONY: container-images publish-container-images validate-runtime-images
 SHELL:=/bin/bash
 
+# Python execs
+PYTHON?=python3
+PYTHON_PIP=$(PYTHON) -m pip
+
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
@@ -68,29 +72,29 @@ uninstall-src: # Uninstalls source extensions if they're still installed
 uninstall: uninstall-src
 	- jupyter labextension unlink @elyra/pipeline-services
 	- jupyter labextension unlink @elyra/pipeline-editor
-	pip uninstall -y jupyterlab-git
-	pip uninstall -y nbdime
-	pip uninstall -y jupyter-lsp
+	$(PYTHON_PIP) uninstall -y jupyterlab-git
+	$(PYTHON_PIP) uninstall -y nbdime
+	$(PYTHON_PIP) uninstall -y jupyter-lsp
 	- jupyter labextension uninstall @krassowski/jupyterlab-lsp
-	pip uninstall -y jupyterlab-lsp
-	pip uninstall -y python-lsp-server
-	pip uninstall -y jupyter-resource-usage
+	$(PYTHON_PIP) uninstall -y jupyterlab-lsp
+	$(PYTHON_PIP) uninstall -y python-lsp-server
+	$(PYTHON_PIP) uninstall -y jupyter-resource-usage
 	- jupyter labextension uninstall @jupyter-server/resource-usage
-	pip uninstall -y elyra
+	$(PYTHON_PIP) uninstall -y elyra
 	- jupyter lab clean
 	# remove Kubeflow Pipelines example components
-	- pip uninstall -y elyra-examples-kfp-catalog
+	- $(PYTHON_PIP) uninstall -y elyra-examples-kfp-catalog
 	# remove Apache Airflow example components
-	- pip uninstall -y elyra-examples-airflow-catalog
+	- $(PYTHON_PIP) uninstall -y elyra-examples-airflow-catalog
 	# remove GitLab dependency
-	- pip uninstall -y python-gitlab
+	- $(PYTHON_PIP) uninstall -y python-gitlab
 
 clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
 ## Lint targets
 
 lint-dependencies:
-	@pip install -q -r lint_requirements.txt
+	@$(PYTHON_PIP) install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
 	flake8 elyra
@@ -129,8 +133,8 @@ dev-unlink:
 ## Build and install targets
 
 build-dependencies:
-	@python -m pip install -q --upgrade pip
-	@pip install -q -r build_requirements.txt
+	@$(PYTHON_PIP) install -q --upgrade pip
+	@$(PYTHON_PIP) install -q -r build_requirements.txt
 
 yarn-install:
 	yarn install
@@ -141,10 +145,10 @@ build-ui: # Build packages
 package-ui: build-dependencies yarn-install lint-ui build-ui
 
 build-server: # Build backend
-	python setup.py bdist_wheel sdist
+	$(PYTHON) -m setup bdist_wheel sdist
 
 install-server-package:
-	pip install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
+	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
@@ -155,14 +159,14 @@ install-all: package-ui install-server install-examples install-gitlab-dependenc
 install-examples: ## Install example pipeline components 
 	# install Kubeflow Pipelines example components
 	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector
-	- pip install --upgrade elyra-examples-kfp-catalog
+	- $(PYTHON_PIP) install --upgrade elyra-examples-kfp-catalog
 	# install Apache Airflow example components
 	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector
-	- pip install --upgrade elyra-examples-airflow-catalog
+	- $(PYTHON_PIP) install --upgrade elyra-examples-airflow-catalog
 
 install-gitlab-dependency:
 	# install GitLab support for Airflow
-	- pip install --upgrade python-gitlab
+	- $(PYTHON_PIP) install --upgrade python-gitlab
 
 check-install:
 	jupyter server extension list
@@ -176,12 +180,12 @@ release: yarn-install build-ui build-server ## Build wheel file for release
 ## Test targets
 
 test-dependencies:
-	@pip install -q -r test_requirements.txt
+	@$(PYTHON_PIP) install -q -r test_requirements.txt
 
 pytest:
-	pytest -v elyra
+	$(PYTHON) -m pytest -v elyra
 
-test-server: install-server test-dependencies pytest # Run python unit tests
+test-server: test-dependencies pytest # Run python unit tests
 
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
@@ -199,7 +203,7 @@ test: test-server test-ui ## Run all tests (backend, frontend and cypress integr
 ## Doc targets
 
 docs-dependencies:
-	@pip install -q -r docs/requirements.txt
+	@$(PYTHON_PIP) install -q -r docs/requirements.txt
 
 docs: docs-dependencies ## Build docs
 	make -C docs clean html
@@ -270,7 +274,7 @@ publish-container-images: publish-elyra-image publish-kf-notebook-image ## Publi
 
 validate-runtime-images: # Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
-	pip install jq ; \
+	$(PYTHON_PIP) install jq ; \
 	for file in `find etc/config/metadata/runtime-images -name "*.json"` ; do \
 		image=`cat $$file | jq -e -r '.metadata.image_name'` ; \
 		if [ $$? -ne 0 ]; then \

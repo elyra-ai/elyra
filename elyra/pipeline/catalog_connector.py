@@ -27,13 +27,120 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from deprecation import deprecated
 from jupyter_core.paths import ENV_JUPYTER_PATH
 import requests
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import default
 from traitlets.traitlets import Integer
 
+from elyra._version import __version__
 from elyra.metadata.metadata import Metadata
+from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParameter
+from elyra.pipeline.runtime_type import RuntimeProcessorType
+
+
+class EntryData(object):
+    """
+    An object representing the data retrieved from a single entry of a catalog, which,
+    at minimum, includes the string definition of the corresponding component(s)
+    """
+    definition: str = None
+
+    def __init__(self, definition: str, **kwargs):
+        self.definition = definition
+
+
+class AirflowEntryData(EntryData):
+    """
+    An Airflow-specific EntryData object that includes the fully-qualified package
+    name (excluding class name) that represents the definition file.
+    """
+    package_name: str = None
+
+    def __init__(self, definition: str, **kwargs):
+        super().__init__(definition, **kwargs)
+        self.package_name = kwargs.get('package_name')
+
+
+class KfpEntryData(EntryData):
+    """
+    A KFP-specific EntryData object
+    """
+    pass
+
+
+class CatalogEntry(object):
+    """
+    An object corresponding to a single entry of a component catalog, which has a
+    unique id, a string definition, a dict of identifying key-value pairs, and
+    other associated metadata.
+    """
+    id: str
+    entry_data: EntryData
+    entry_reference: Any
+    catalog_type: str
+    runtime_type: RuntimeProcessorType
+    categories: List[str]
+
+    def __init__(self,
+                 entry_data: EntryData,
+                 entry_reference: Any,
+                 catalog_instance: Metadata,
+                 hash_keys: List[str]):
+        self.entry_data = entry_data
+        self.entry_reference = entry_reference
+        self.catalog_type = catalog_instance.schema_name
+        self.runtime_type = catalog_instance.runtime_type.name  # noqa
+        self.categories = catalog_instance.metadata.get("categories", [])
+
+        self.id = self.compute_unique_id(hash_keys)
+
+    def compute_unique_id(self, hash_keys: List[str]) -> str:
+        """
+        Computes a unique id for the given component based on the schema name of the
+        catalog connector type and any information specific to that component-catalog-type
+        combination as given in hash_keys.
+
+        :param hash_keys: the list of keys (present in the catalog_entry_data dict)
+            whose values will be used to construct the hash
+
+        :returns: a unique component id of the form '<catalog-type>:<hash_of_entry_info>'
+        """
+        hash_str = ""
+        for key in hash_keys:
+            if not self.entry_reference.get(key):
+                # Catalog entry does not have key - build hash without it
+                continue
+            hash_str = hash_str + str(self.entry_reference[key]) + ":"
+        hash_str = hash_str[:-1]
+
+        # Use only the first 12 characters of the resulting hash
+        hash_digest = f"{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
+        return f"{self.catalog_type}:{hash_digest}"
+
+    def get_component(self, id: str, name: str, description: str, properties: List[ComponentParameter]) -> Component:
+        """
+        Construct a Component object given the arguments (as parsed from the definition file)
+        and the relevant information from the catalog from which the component originates.
+        """
+        params = {
+            "id": id,
+            "name": name,
+            "description": description,
+            "properties": properties,
+            "catalog_type": self.catalog_type,
+            "component_reference": self.entry_reference,
+            "definition": self.entry_data.definition,
+            "runtime_type": self.runtime_type,
+            "categories": self.categories
+        }
+
+        if isinstance(self.entry_data, AirflowEntryData):
+            params['package_name'] = self.entry_data.package_name
+
+        return Component(**params)
 
 
 class ComponentCatalogConnector(LoggingConfigurable):
@@ -70,7 +177,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         For example, the FilesystemCatalogConnector includes both a base directory ('base_dir') key-value
         pair and a relative path ('path') key-value pair in its 'catalog_entry_data' dict. Both fields
-        are needed in order to access the corresponding component definition in read_catalog_entry().
+        are needed in order to access the corresponding definition in get_entry_data().
 
         Every catalog_entry_data should contain each of the keys returned in get_hash_keys() to ensure
         uniqueness and portability among entries. For the same reason, no two catalog entries should have
@@ -90,17 +197,21 @@ class ComponentCatalogConnector(LoggingConfigurable):
                     }
 
         :returns: a list of catalog entry dictionaries, each of which contains the information
-                  needed to access a component definition in read_catalog_entry()
+                  needed to access a component definition in get_entry_data()
         """
         raise NotImplementedError(
             "abstract method 'get_catalog_entries()' must be implemented"
         )
 
-    @abstractmethod
+    @deprecated(deprecated_in="3.7.0", removed_in="4.0",
+                current_version=__version__,
+                details="Implement the get_entry_data function instead")
     def read_catalog_entry(self,
                            catalog_entry_data: Dict[str, Any],
                            catalog_metadata: Dict[str, Any]) -> Optional[str]:
         """
+        DEPRECATED. Will be removed in 4.0. get_entry_data() must be implemented instead.
+
         Reads a component definition for a single catalog entry using the catalog_entry_data returned
         from get_catalog_entries() and, if needed, the catalog metadata.
 
@@ -126,17 +237,49 @@ class ComponentCatalogConnector(LoggingConfigurable):
             "abstract method 'read_catalog_entry()' must be implemented"
         )
 
-    @abstractmethod
-    def get_hash_keys(self) -> List[Any]:
+    def get_entry_data(self,
+                       catalog_entry_data: Dict[str, Any],
+                       catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
+        """
+        Reads a component definition (and other information-of-interest) for a single catalog entry and
+        creates an EntryData object to represent it. Uses the catalog_entry_data returned from
+        get_catalog_entries() and, if needed, the catalog metadata to retrieve the definition.
+
+        :param catalog_entry_data: a dictionary that contains the information needed to read the content of
+            the component definition; below is an example data structure returned from get_catalog_entries()
+
+                example:
+                    {
+                        "directory_path": "/Users/path/to/directory",
+                        "relative_path": "subdir/file.py"
+                    }
+
+        :param catalog_metadata: the metadata associated with the catalog in which this catalog entry is
+            stored; this is the same dictionary that is passed into get_catalog_entries(); in addition to
+            catalog_entry_data, catalog_metadata may also be needed to read the component definition for
+            certain types of catalogs
+
+        :returns: an EntryData object representing the definition (and other identifying info) for a single
+            catalog entry; if None is returned, this catalog entry is skipped and a warning message logged
+        """
+        raise NotImplementedError(
+            "method 'get_entry_data()' must be overridden"
+        )
+
+    @classmethod
+    def get_hash_keys(cls) -> List[Any]:
         """
         Provides a list of keys, available in the 'catalog_entry_data' dictionary, whose values
         will be used to construct a unique hash id for each entry with the given catalog type.
+
+        This function has been changed to a class method as of version 3.7. Connectors that still
+        implement this function as an abstract method will be supported in a fallback scenario.
 
         Besides being a means to uniquely identify a single component (catalog entry), the hash id
         also enables pipeline portability across installations when the keys returned here are
         chosen strategically. For example, the FilesystemCatalogConnector includes both a base
         directory key-value pair and a relative path key-value pair in its 'catalog_entry_data' dict.
-        Both fields are required to access the component definition in read_catalog_entry(), but
+        Both fields are required to access the component definition in get_entry_data(), but
         only the relative path field is used to create the unique hash. This allows a component
         that has the same relative path defined in two separate a catalogs in two separate
         installations to resolve to the same unique id in each, and therefore to be portable across
@@ -168,38 +311,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
             "abstract method 'get_hash_keys()' must be implemented"
         )
 
-    def get_unique_component_hash(self,
-                                  catalog_type: str,
-                                  catalog_entry_data: Dict[str, Any],
-                                  catalog_hash_keys: List[Any]) -> str:
-        """
-        Constructs a unique hash for the given component based on the name of the catalog
-        connector class and any information specific to that component-and-catalog-type
-        combination as given in catalog_hash_keys.
-
-        :param catalog_type: the identifying type of this Connector class, as taken from the
-                             schema_name of the related schema (e.g., url-catalog)
-        :param catalog_entry_data: the identifying data associated with the catalog entry; this data
-                                   structure is one of the dicts returned from get_catalog_entries()
-        :param catalog_hash_keys: the list of keys (present in the catalog_entry_data dict)
-                                  whose values will be used to construct the hash
-
-        :returns: a unique component id of the form '<catalog-type>:<hash_of_entry_data>'
-        """
-        hash_str = ""
-        for key in catalog_hash_keys:
-            if not catalog_entry_data.get(key):
-                self.log.warning(f"Catalog entry does not have key '{key}'. Continuing to build hash "
-                                 f"string without this key...")
-                continue
-            hash_str = hash_str + str(catalog_entry_data[key]) + ":"
-        hash_str = hash_str[:-1]
-
-        # Use only the first 12 characters of the resulting hash
-        hash_digest = f"{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
-        return f"{catalog_type}:{hash_digest}"
-
-    def read_component_definitions(self, catalog_instance: Metadata) -> Dict[str, Dict]:
+    def read_component_definitions(self, catalog_instance: Metadata) -> List[EntryData]:
         """
         This function compiles the definitions of all catalog entries in a given catalog.
 
@@ -233,21 +345,27 @@ class ComponentCatalogConnector(LoggingConfigurable):
 
         :returns: a mapping of a unique component ids to their definition and identifying data
         """
-        catalog_entry_map = {}
         catalog_entry_q = Queue()
+        catalog_entries: List[CatalogEntry] = []
 
         try:
             # Retrieve list of keys that will be used to construct
             # the catalog entry hash for each entry in the catalog
-            keys_to_hash = self.get_hash_keys()
+            try:
+                # Attempt to use get_hash_keys as class method (Elyra version 3.7+)
+                keys_to_hash = ComponentCatalogConnector.get_hash_keys()
+
+            except Exception:
+                # Fall back to using abstract method (version 3.6 and earlier)
+                keys_to_hash = self.get_hash_keys()
 
             # Add display_name attribute to the metadata dictionary
             catalog_metadata = deepcopy(catalog_instance.metadata)
             catalog_metadata['display_name'] = catalog_instance.display_name
 
             # Add catalog entry data dictionaries to the thread queue
-            for entry_data in self.get_catalog_entries(catalog_metadata):
-                catalog_entry_q.put_nowait(entry_data)
+            for entry in self.get_catalog_entries(catalog_metadata):
+                catalog_entry_q.put_nowait(entry)
 
         except NotImplementedError as e:
             err_msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}"
@@ -272,26 +390,40 @@ class ComponentCatalogConnector(LoggingConfigurable):
                     # Read the entry definition given its returned data and the catalog entry data
                     self.log.debug(f"Attempting read of definition for catalog entry with identifying information: "
                                    f"{str(catalog_entry_data)}...")
-                    definition = self.read_catalog_entry(catalog_entry_data=catalog_entry_data,
-                                                         catalog_metadata=catalog_metadata)
+
+                    try:
+                        # Attempt to get an EntryData object from get_entry_data first
+                        entry_data: EntryData = self.get_entry_data(
+                            catalog_entry_data=catalog_entry_data,
+                            catalog_metadata=catalog_metadata
+                        )
+                    except NotImplementedError:
+                        # Connector class does not implement get_catalog_definition and we must
+                        # manually coerce this entry's returned values into a EntryData object
+                        definition = self.read_catalog_entry(
+                            catalog_entry_data=catalog_entry_data,
+                            catalog_metadata=catalog_metadata
+                        )
+
+                        entry_data: EntryData = EntryData(definition=definition)
 
                     # Ignore this entry if no definition content is returned
-                    if not definition:
+                    if not entry_data or not entry_data.definition:
                         self.log.warning(f"No definition content found for catalog entry with identifying information: "
-                                         f"{str(catalog_entry_data)}. Skipping...")
+                                         f"{catalog_entry_data}. Skipping...")
                         catalog_entry_q.task_done()
                         continue
 
-                    # Generate hash for this catalog entry
-                    catalog_entry_id = self.get_unique_component_hash(catalog_type=catalog_instance.schema_name,
-                                                                      catalog_entry_data=catalog_entry_data,
-                                                                      catalog_hash_keys=keys_to_hash)
+                    # Create a CatalogEntry object with the returned EntryData and other
+                    # necessary information from the catalog instance and connector class
+                    catalog_entry = CatalogEntry(
+                        entry_data=entry_data,
+                        entry_reference=catalog_entry_data,
+                        catalog_instance=catalog_instance,
+                        hash_keys=keys_to_hash
+                    )
 
-                    # Add entry definition and identifying data to mapping
-                    catalog_entry_map[catalog_entry_id] = {
-                        "definition": definition,
-                        "identifier": catalog_entry_data
-                    }
+                    catalog_entries.append(catalog_entry)
 
                 except NotImplementedError as e:
                     msg = f"{self.__class__.__name__} does not meet the requirements of a catalog connector class: {e}."
@@ -313,7 +445,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
         # Wait for all queued entries to be processed
         catalog_entry_q.join()
 
-        return catalog_entry_map
+        return catalog_entries
 
 
 class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
@@ -368,29 +500,30 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
             })
         return catalog_entry_data
 
-    def read_catalog_entry(self,
-                           catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+    def get_entry_data(self,
+                       catalog_entry_data: Dict[str, Any],
+                       catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
         """
-        Reads a component definition for a single catalog entry using the catalog_entry_data returned
-        from get_catalog_entries() and, if needed, the catalog metadata.
+        Reads a component definition (and other information-of-interest) for a single catalog entry and
+        creates an EntryData object to represent it. Uses the catalog_entry_data returned from
+        get_catalog_entries() and, if needed, the catalog metadata to retrieve the definition.
 
         :param catalog_entry_data: for the Filesystem- and DirectoryComponentCatalogConnector classes,
-                                   this includes 'path' and 'base_dir' keys
+            this includes 'path' and 'base_dir' keys
         :param catalog_metadata: Filesystem- and DirectoryComponentCatalogConnector classes do not need this
-                                 field to read individual catalog entries
-
+            field to read individual catalog entries
         """
         path = os.path.join(catalog_entry_data.get('base_dir', ''), catalog_entry_data.get('path'))
         if not os.path.exists(path):
             self.log.warning(f"Invalid location for component: {path}")
         else:
             with open(path, 'r') as f:
-                return f.read()
+                return EntryData(definition=f.read())
 
         return None
 
-    def get_hash_keys(self) -> List[Any]:
+    @classmethod
+    def get_hash_keys(cls) -> List[Any]:
         """
         For the Filesystem- and DirectoryComponentCatalogConnector classes, only the
         'path' value is needed from the catalog_entry_data dictionary to construct a
@@ -479,19 +612,18 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
         """
         return [{'url': url} for url in catalog_metadata.get('paths')]
 
-    def read_catalog_entry(self,
-                           catalog_entry_data: Dict[str, Any],
-                           catalog_metadata: Dict[str, Any]) -> Optional[str]:
+    def get_entry_data(self,
+                       catalog_entry_data: Dict[str, Any],
+                       catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
         """
-        Reads a component definition for a single catalog entry using the catalog_entry_data returned
-        from get_catalog_entries() and, if needed, the catalog metadata.
+        Reads a component definition (and other information-of-interest) for a single catalog entry and
+        creates an EntryData object to represent it. Uses the catalog_entry_data returned from
+        get_catalog_entries() and, if needed, the catalog metadata to retrieve the definition.
 
         :param catalog_entry_data: for the UrlComponentCatalogConnector class this includes a 'url' key
         :param catalog_metadata: UrlComponentCatalogConnector does not need this field to read
-                                 individual catalog entries
-
+            individual catalog entries
         """
-
         url = catalog_entry_data.get('url')
         try:
             res = requests.get(url)
@@ -501,11 +633,12 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
             if res.status_code != HTTPStatus.OK:
                 self.log.warning(f"Invalid location for component: {url} (HTTP code {res.status_code})")
             else:
-                return res.text
+                return EntryData(definition=res.text)
 
         return None
 
-    def get_hash_keys(self) -> List[Any]:
+    @classmethod
+    def get_hash_keys(cls) -> List[Any]:
         """
         For the UrlComponentCatalogConnector class, only the 'url' value is needed
         from the catalog_entry_data dictionary to construct a unique hash id for a

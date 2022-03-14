@@ -18,7 +18,6 @@ import json
 import os
 import shutil
 
-from jupyter_server.tests.utils import expected_http_error
 from jupyter_server.utils import url_path_join
 import pytest
 from tornado.httpclient import HTTPClientError
@@ -30,6 +29,7 @@ from elyra.tests.metadata.test_utils import create_json_file
 from elyra.tests.metadata.test_utils import get_instance
 from elyra.tests.metadata.test_utils import invalid_metadata_json
 from elyra.tests.metadata.test_utils import valid_metadata_json
+from elyra.tests.util.handlers_utils import expected_http_error
 
 os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
 

@@ -426,10 +426,15 @@ class AppBase(object):
 
     def log_and_exit(self, msg: Optional[str] = None, exit_status: int = 1, display_help: bool = False):
         if msg:
-            print(msg)
+            # Prefix message with 'ERROR: ' if we're going to follow it up with full usage so
+            # the error is not lost amongst the usage.
+            full_msg = f"ERROR: {msg}" if display_help else msg
+            print(full_msg)
+
         if display_help:
             print()
             self.print_help()
+
         AppBase.exit(exit_status)
 
     def get_subcommand(self):
@@ -446,14 +451,15 @@ class AppBase(object):
 
             if arg in ['--help', '-h']:
                 self.log_and_exit(display_help=True)
-            else:
-                print("Subcommand '{}' is invalid.".format(self.argv[0]))
-        return None
 
-    def exit_no_subcommand(self):
-        print("No subcommand specified. Must specify one of: %s" % list(self.subcommands))
+            msg = f"Subcommand '{self.argv[0]}' is invalid."
+        else:
+            msg = "No subcommand specified."
+        self.exit_no_subcommand(msg)
+
+    def exit_no_subcommand(self, msg: str):
+        print(f"{msg}  One of: {list(self.subcommands)} must be specified.")
         print()
-        self.print_description()
         self.print_subcommands()
         self.exit(1)
 
@@ -464,7 +470,7 @@ class AppBase(object):
            is not in the argv lists or does not have a value, exit.
         """
         # if check_help is enabled, check the arguments for help options and
-        # exit if found. This is only necessary when processing invidual options.
+        # exit if found. This is only necessary when processing individual options.
         if check_help and self.has_help():
             self.log_and_exit(display_help=True)
 
@@ -480,20 +486,18 @@ class AppBase(object):
                     self.log_and_exit(cli_option.bad_value, display_help=True)
                 if cli_option.required:
                     if not cli_option.value:
-                        self.log_and_exit("Parameter '{}' requires a value.".
-                                          format(cli_option.cli_option), display_help=True)
+                        self.log_and_exit(f"Parameter '{cli_option.cli_option}' requires a value.", display_help=True)
                     elif cli_option.enum:  # ensure value is in set
                         if cli_option.value not in cli_option.enum:
-                            self.log_and_exit("Parameter '{}' requires one of the following values: {}".
-                                              format(cli_option.cli_option, cli_option.enum), display_help=True)
+                            self.log_and_exit(f"Parameter '{cli_option.cli_option}' requires one of the "
+                                              f"following values: {cli_option.enum}", display_help=True)
             self._remove_argv_entry(option)
         elif cli_option.required and cli_option.value is None:
             if cli_option.enum is None:
-                self.log_and_exit("'{}' is a required parameter.".
-                                  format(cli_option.cli_option), display_help=True)
+                self.log_and_exit(f"'{cli_option.cli_option}' is a required parameter.", display_help=True)
             else:
-                self.log_and_exit("'{}' is a required parameter and must be one of the following values: {}.".
-                                  format(cli_option.cli_option, cli_option.enum), display_help=True)
+                self.log_and_exit(f"'{cli_option.cli_option}' is a required parameter and must be one of the "
+                                  f"following values: {cli_option.enum}.", display_help=True)
 
         cli_option.processed = True
 
@@ -512,7 +516,7 @@ class AppBase(object):
         # Check if there are still unprocessed arguments.  If so, and fail_unexpected is true,
         # log and exit, else issue warning and continue.
         if len(self.argv) > 0:
-            msg = "The following arguments were unexpected: {}".format(self.argv)
+            msg = f"The following arguments were unexpected: {self.argv}"
             self.log_and_exit(msg, display_help=True)
 
     def has_help(self):
@@ -531,7 +535,7 @@ class AppBase(object):
         """
         # build the argv entry from the mappings since it must be located with name=value
         if cli_option not in self.argv_mappings.keys():
-            self.log_and_exit("Can't find option '{}' in argv!".format(cli_option))
+            self.log_and_exit(f"Can't find option '{cli_option}' in argv!")
 
         entry = cli_option
         value = self.argv_mappings.get(cli_option)
@@ -555,7 +559,7 @@ class AppBase(object):
         print()
         for subcommand, desc in self.subcommands.items():
             print(subcommand)
-            print("    {}".format(desc[1]))
+            print(f"    {desc[1]}")
 
     @staticmethod
     def exit(status: int):

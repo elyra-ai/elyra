@@ -45,6 +45,10 @@
   cursor: pointer;
 }
 
+.elyra-metadataHeader-button.MuiButtonGroup-groupedTextHorizontal:not(:last-child) {
+  border-right: none;
+}
+
 .elyra-metadataHeader [fill] {
   fill: var(--jp-ui-font-color1);
 }
@@ -119,7 +123,7 @@
 .elyra-metadataEditor
   .elyra-metadataEditor-arrayInput
   li:not(.elyra-metadataEditor-arrayItemEditor)
-  .elyra-MuiInputBase-formControl {
+  .elyra-elyra-metadataHeaderMuiInputBase-formControl {
   background-color: var(--jp-border-color3);
 }
 

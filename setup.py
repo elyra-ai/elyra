@@ -47,9 +47,6 @@ runtime_extras = {
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
     'kfp-examples': ['elyra-examples-kfp-catalog'],
-    # Apache Airflow example components
-    # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
-    'airflow-examples': ['elyra-examples-airflow-catalog'],
     # Use gitlab as Airflow DAG repository
     'gitlab': ['python-gitlab']
 }
@@ -69,6 +66,7 @@ setup_args = dict(
         'autopep8>=1.5.0,<1.5.6',
         'click>=7.1.1,<8',
         'colorama',
+        'deprecation',
         'entrypoints>=0.3',
         'jinja2>=2.11',
         'jsonschema>=3.2.0',
@@ -76,7 +74,7 @@ setup_args = dict(
         'jupyter_client>=6.1.7',
         'jupyter-packaging>=0.10',
         'jupyter_server>=1.7.0',
-        'jupyterlab~=3.3.0rc0',
+        'jupyterlab~=3.3.0',
         'jupyterlab-git~=0.32',
         'jupyterlab-lsp>=3.8.0',
         'jupyter-resource-usage>=0.5.1',
