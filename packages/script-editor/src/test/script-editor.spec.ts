@@ -50,7 +50,7 @@ describe('@elyra/script-editor', () => {
   describe('KernelManager', () => {
     describe('#startSession', () => {
       it('should start a kernel session', async () => {
-        const dummyFunc = (x: boolean) => console.log(x);
+        const dummyFunc = (x: boolean): void => console.log(x);
         const runner = new ScriptRunner(dummyFunc);
         const session = await runner.startSession(language, 'test.py');
         expect(session.id).toBeTruthy();
