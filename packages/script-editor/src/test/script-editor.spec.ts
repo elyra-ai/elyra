@@ -49,12 +49,25 @@ describe('@elyra/script-editor', () => {
 
   describe('KernelManager', () => {
     describe('#startSession', () => {
+      let runner: ScriptRunner;
+
+      beforeEach(() => {
+        runner = new ScriptRunner((x: boolean): void => console.log(x));
+      });
+
       it('should start a kernel session', async () => {
-        const dummyFunc = (x: boolean): void => console.log(x);
-        const runner = new ScriptRunner(dummyFunc);
         const session = await runner.startSession(language, 'test.py');
-        expect(session.id).toBeTruthy();
         expect(session.id).toEqual(runner.sessionConnection?.id);
+        expect(runner.sessionConnection?.kernel?.connectionStatus).toEqual(
+          'connecting'
+        );
+        runner.shutdownSession();
+      });
+
+      it('should shut down a kernel session', async () => {
+        await runner.startSession(language, 'test.py');
+        await runner.shutdownSession();
+        expect(runner.sessionConnection).toBeNull();
       });
     });
   });
