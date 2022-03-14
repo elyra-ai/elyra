@@ -188,6 +188,10 @@ def test_parse_kfp_component_file():
     component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
+    # Ensure description is rendered even with an unescaped character
+    description = 'This component description contains an unescaped " character'
+    assert properties_json['current_parameters']['component_description'] == description
+
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
