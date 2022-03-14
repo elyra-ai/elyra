@@ -27,7 +27,7 @@ paths:
   /elyra/elyra.yaml:
     get:
       tags:
-      - api
+        - api
       summary: Get API information (yaml).
       responses:
         200:
@@ -42,7 +42,7 @@ paths:
   /elyra/schemaspace:
     get:
       tags:
-      - schemaspace
+        - schemaspace
       summary: Get current schemaspace names.
       responses:
         200:
@@ -63,15 +63,15 @@ paths:
   /elyra/schemaspace/{schemaspace_name_or_id}:
     get:
       tags:
-      - schemaspace
+        - schemaspace
       summary: Get properties for a given schemaspace.
       parameters:
-      - name: schemaspace_name_or_id
-        in: path
-        description: The name or id of the schemaspace.
-        required: true
-        schema:
-          type: string
+        - name: schemaspace_name_or_id
+          in: path
+          description: The name or id of the schemaspace.
+          required: true
+          schema:
+            type: string
       responses:
         200:
           description: Returns the single-valued properties of the current schemaspace.
@@ -90,15 +90,15 @@ paths:
   /elyra/schema/{schemaspace_name_or_id}:
     get:
       tags:
-      - schema
+        - schema
       summary: Get schemas for a given schemaspace
       parameters:
-      - name: schemaspace_name_or_id
-        in: path
-        description: The name or id of the schemaspace
-        required: true
-        schema:
-          type: string
+        - name: schemaspace_name_or_id
+          in: path
+          description: The name or id of the schemaspace
+          required: true
+          schema:
+            type: string
       responses:
         200:
           description: Returns the schema instances for a given schemaspace name or id.
@@ -121,21 +121,21 @@ paths:
   /elyra/schema/{schemaspace_name_or_id}/{resource}:
     get:
       tags:
-      - schema
+        - schema
       summary: Get a given schema instance from a given schemaspace name or id.
       parameters:
-      - name: schemaspace_name_or_id
-        in: path
-        description: The name or id of the schemaspace.
-        required: true
-        schema:
-          type: string
-      - name: resource
-        in: path
-        description: The name of the resource in a given schemaspace.
-        required: true
-        schema:
-          type: string
+        - name: schemaspace_name_or_id
+          in: path
+          description: The name or id of the schemaspace.
+          required: true
+          schema:
+            type: string
+        - name: resource
+          in: path
+          description: The name of the resource in a given schemaspace.
+          required: true
+          schema:
+            type: string
       responses:
         200:
           description: The named schema instance within the schemaspace.
@@ -152,15 +152,15 @@ paths:
   /elyra/metadata/{schemaspace_name_or_id}:
     get:
       tags:
-      - metadata
+        - metadata
       summary: Get metadata for a given schemaspace name or id.
       parameters:
-      - name: schemaspace_name_or_id
-        in: path
-        description: The name or id of the schemaspace.
-        required: true
-        schema:
-          type: string
+        - name: schemaspace_name_or_id
+          in: path
+          description: The name or id of the schemaspace.
+          required: true
+          schema:
+            type: string
       responses:
         200:
           description: The metadata instances within the schemaspace.
@@ -183,15 +183,15 @@ paths:
           description: Unexpected error.
     post:
       tags:
-      - metadata
+        - metadata
       summary: Create a metadata instance in a given schemaspace.
       parameters:
-      - name: schemaspace_name_or_id
-        in: path
-        description: The name or id of the schemaspace.
-        required: true
-        schema:
-          type: string
+        - name: schemaspace_name_or_id
+          in: path
+          description: The name or id of the schemaspace.
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -224,21 +224,21 @@ paths:
   /elyra/metadata/{schemaspace_name_or_id}/{resource}:
     get:
       tags:
-      - metadata
+        - metadata
       summary: Get a given metadata instance from a given schemaspace name or id.
       parameters:
-      - name: schemaspace_name_or_id
-        in: path
-        description: The name or id of the schemaspace.
-        required: true
-        schema:
-          type: string
-      - name: resource
-        in: path
-        description: The name of the resource in a given schemaspace.
-        required: true
-        schema:
-          type: string
+        - name: schemaspace_name_or_id
+          in: path
+          description: The name or id of the schemaspace.
+          required: true
+          schema:
+            type: string
+        - name: resource
+          in: path
+          description: The name of the resource in a given schemaspace.
+          required: true
+          schema:
+            type: string
       responses:
         200:
           description: The named metadata instance within the schemaspace.
@@ -294,21 +294,21 @@ paths:
 
     delete:
       tags:
-      - metadata
+        - metadata
       summary: Delete a given metadata resource from a given schemaspace.
       parameters:
-      - name: schemaspace_name_or_id
-        in: path
-        description: The name or id of the schemaspace.
-        required: true
-        schema:
-          type: string
-      - name: resource
-        in: path
-        description: The name of the resource in a given schemaspace.
-        required: true
-        schema:
-          type: string
+        - name: schemaspace_name_or_id
+          in: path
+          description: The name or id of the schemaspace.
+          required: true
+          schema:
+            type: string
+        - name: resource
+          in: path
+          description: The name of the resource in a given schemaspace.
+          required: true
+          schema:
+            type: string
       responses:
         204:
           description: The resource was successfully deleted.
@@ -321,29 +321,91 @@ paths:
         500:
           description: Unexpected error.
 
-  /elyra/pipeline/schedule:
-    post:
+  /elyra/pipeline/components/cache:
+    put:
       tags:
-      - pipeline
-      summary: Execute pipelines as batch jobs.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PipelineResource'
+        - pipeline
+        - component
+      summary: Initiates a refresh of the entire component cache.
       responses:
         200:
-          description: The pipeline processor response.
+          description: The refresh request was initiated successfully.
+
+  /elyra/pipeline/components/cache/{catalog}:
+    parameters:
+      - name: catalog
+        in: path
+        description: The name of the component catalog to refresh
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - pipeline
+        - component
+      summary: Initiates a refresh of the given component catalog.
+      responses:
+        200:
+          description: The refresh request was initiated successfully.
+        400:
+          description: Invalid catalog.
+
+  /elyra/pipeline/components/{processor}:
+    parameters:
+      - name: processor
+        in: path
+        description: The name of the runtime processor.  Will match the runtime schema name (e.g., "kfp", "airflow", etc.).
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - pipeline
+        - component
+      summary: Fetch all components associated with the given runtime processor.
+      responses:
+        200:
+          description: The components relative to the given runtime processor for use in the Elyra front-end.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PipelineScheduleResponse'
+                type: object
+        400:
+          description: Invalid runtime processor.
+
+  /elyra/pipeline/components/{processor}/{component_id}/properties:
+    parameters:
+      - name: processor
+        in: path
+        description: The name of the runtime processor.  Will match the runtime schema name (e.g., "kfp", "airflow", etc.).
+        required: true
+        schema:
+          type: string
+      - name: component_id
+        in: path
+        description: The component identifier - composed of the catalog connector schema name, ":", and the component's hash.
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - pipeline
+        - component
+      summary: Fetch a component's properties for use in the Elyra front-end
+      responses:
+        200:
+          description: JSON containing the component definition.
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Invalid runtime processor or component ID.
 
   /elyra/pipeline/export:
     post:
       tags:
-      - pipeline
+        - pipeline
       summary: Export a pipeline.
       requestBody:
         required: true
@@ -389,35 +451,73 @@ paths:
                     items:
                       $ref: '#/components/schemas/RuntimeTypeResources'
 
+  /elyra/pipeline/schedule:
+    post:
+      tags:
+        - pipeline
+      summary: Execute pipelines as batch jobs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PipelineResource'
+      responses:
+        200:
+          description: The pipeline processor response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineScheduleResponse'
+
+  /elyra/pipeline/validate:
+    post:
+      tags:
+        - pipeline
+      summary: Validate a pipeline.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PipelineResource'
+      responses:
+        200:
+          description: The pipeline validation response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineValidationResponse'
+
 
   /elyra/contents/properties/{filepath}:
     get:
-        tags:
+      tags:
         - contents
-        summary: Get a dictionary of properties for a file.
-        parameters:
+      summary: Get a dictionary of properties for a file.
+      parameters:
         - name: filepath
           in: path
           description: The path to the file to be parsed, relative to the JupyterLab server root directory.
           required: true
           schema:
             type: string
-        responses:
-          200:
-            description: The dictionary of properties found while parsing the file.
-            content:
-              application/json:
-                schema:
-                  type: object
-                  description: A dictionary of properties.
-                  allOf:
-                    - $ref: '#/components/schemas/ContentsPropertiesResource'
-          400:
-            description: File is a directory.
-          404:
-            description: File not found.
+      responses:
+        200:
+          description: The dictionary of properties found while parsing the file.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: A dictionary of properties.
+                allOf:
+                  - $ref: '#/components/schemas/ContentsPropertiesResource'
+        400:
+          description: File is a directory.
+        404:
+          description: File not found.
 
-  
+
 components:
   schemas:
     MetadataResourceBody:
@@ -446,10 +546,10 @@ components:
     MetadataResource:
       description: The set of properties comprising a metadata resource entity.
       required:
-      - name
-      - display_name
-      - schema_name
-      - metadata
+        - name
+        - display_name
+        - schema_name
+        - metadata
       type: object
       properties:
         name:
@@ -470,8 +570,8 @@ components:
     SchemaResource:
       description: The set of properties comprising a schema resource entity.
       required:
-      - name
-      - schemaspace
+        - name
+        - schemaspace
       type: object
       properties:
         schemaspace:
@@ -488,14 +588,14 @@ components:
           properties: {}
           description: A free-form dictionary consisting of additional information
             about the resource.
-    
+
     SchemaspaceResource:
       description: The set of properties comprising a schemaspace resource entity.
       required:
-      - name
-      - id
-      - display_name
-      - description
+        - name
+        - id
+        - display_name
+        - description
       type: object
       properties:
         name:
@@ -551,9 +651,9 @@ components:
     PipelineScheduleResponse:
       description: The set of properties comprising a pipeline processor response entity.
       required:
-      - run_url
-      - object_storage_url
-      - object_storage_path
+        - run_url
+        - object_storage_url
+        - object_storage_path
       type: object
       properties:
         run_url:
@@ -588,6 +688,45 @@ components:
         overwrite:
           type: boolean
           description: Determines if the existing export should be overwritten.
+
+    PipelineValidationResponse:
+      description: The set of properties comprising a pipeline validation response entity.
+      required:
+        - title
+        - description
+        - issues
+      type: object
+      properties:
+        title:
+          type: string
+          description: The title relative to the validation response.
+        description:
+          type: string
+          description: The description relative to the validation response.
+        issues:
+          type: array
+          description: The issues encountered during validation.  This will be empty if no issues were encountered.
+          items:
+            type: object
+            properties:
+              severity:
+                type: integer
+                enum: [1, 2, 3, 4]
+                description: The numeric value representing the severity of the issue - Error (1), Warning (2), Information (3), Hint (4)
+              source:
+                type: string
+                description: The highlevel source of the validation issue.
+              type:
+                type: string
+                description: Indicator of the category of the issue (e.g., "invalidNodeProperty", "invalidRuntime", etc.).
+              message:
+                type: string
+                description: The message corresponding to the validation issue.
+              data:
+                type: object
+                description: JSON consisting of information pertaining to where the issue occurred.
+
+
 
     RuntimeTypeResources:
       description: The set of properties comprising a runtime type resource entity.
