@@ -58,37 +58,35 @@ def mock_data_dir():
 def test_no_opts(script_runner):
     ret = script_runner.run('elyra-metadata')
     assert ret.success is False
-    message = "No subcommand specified. Must specify one of: ['list', 'install', 'remove', 'migrate', 'export']"
+    message = "No subcommand specified.  One of: ['list', 'install', 'remove', 'migrate', 'export'] must be specified."
     assert message in ret.stdout
 
 
 def test_bad_subcommand(script_runner):
     ret = script_runner.run('elyra-metadata', 'bogus-subcommand')
     assert ret.success is False
-    assert ret.stdout.startswith("Subcommand 'bogus-subcommand' is invalid.")
-    message = "No subcommand specified. Must specify one of: ['list', 'install', 'remove', 'migrate', 'export']"
-    assert message in ret.stdout
+    assert "Subcommand 'bogus-subcommand' is invalid.  One of: ['list', 'install', 'remove', 'migrate', 'export'] " \
+           "must be specified." in ret.stdout
 
 
 def test_install_bad_argument(script_runner):
     ret = script_runner.run('elyra-metadata', 'install', '--bogus-argument')
     assert ret.success is False
-    assert ret.stdout.startswith("Subcommand '--bogus-argument' is invalid.")
-    assert "Install a metadata instance into schemaspace \'{}\'.".format(METADATA_TEST_SCHEMASPACE) in ret.stdout
+    assert "Subcommand '--bogus-argument' is invalid." in ret.stdout
+    assert f"Install a metadata instance into schemaspace \'{METADATA_TEST_SCHEMASPACE}\'." in ret.stdout
 
 
 def test_install_bad_schemaspace(script_runner):
     ret = script_runner.run('elyra-metadata', 'install', 'bogus-schemaspace')
     assert ret.success is False
-    assert ret.stdout.startswith("Subcommand 'bogus-schemaspace' is invalid.")
-    assert "Install a metadata instance into a given schemaspace." in ret.stdout
-    assert "Install a metadata instance into schemaspace \'{}\'.".format(METADATA_TEST_SCHEMASPACE) in ret.stdout
+    assert "Subcommand 'bogus-schemaspace' is invalid." in ret.stdout
+    assert f"Install a metadata instance into schemaspace \'{METADATA_TEST_SCHEMASPACE}\'." in ret.stdout
 
 
 def test_install_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--help')
     assert ret.success is False
-    assert ret.stdout.startswith(f"\nInstall a metadata instance into schemaspace '{METADATA_TEST_SCHEMASPACE}'.")
+    assert f"Install a metadata instance into schemaspace '{METADATA_TEST_SCHEMASPACE}'." in ret.stdout
 
 
 def test_install_no_schema_single(script_runner, mock_data_dir):
@@ -96,7 +94,7 @@ def test_install_no_schema_single(script_runner, mock_data_dir):
     # Note: this test will break if it ever supports multiple.
     ret = script_runner.run('elyra-metadata', 'install', "runtime-images")
     assert ret.success is False
-    assert ret.stdout.startswith("'--display_name' is a required parameter.")
+    assert "ERROR: '--display_name' is a required parameter." in ret.stdout
 
 
 def test_install_no_schema_multiple(script_runner, mock_data_dir):
@@ -104,20 +102,21 @@ def test_install_no_schema_multiple(script_runner, mock_data_dir):
     assert ret.success is False
     # Since order in dictionaries, where the one-of list is derived, can be random, just check up to the
     # first known difference in the schema names.
-    assert ret.stdout.startswith("'--schema_name' is a required parameter and must be one of the "
-                                 "following values: ['metadata-test")
+    assert "ERROR: '--schema_name' is a required parameter and must be one of the " \
+           "following values: ['metadata-test" in ret.stdout
 
 
 def test_install_bad_schema_multiple(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-foo')
     assert ret.success is False
-    assert ret.stdout.startswith("Parameter '--schema_name' requires one of the following values: ['metadata-test")
+    assert "ERROR: Parameter '--schema_name' requires one of the " \
+           "following values: ['metadata-test" in ret.stdout
 
 
 def test_install_no_name(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test')
     assert ret.success is False
-    assert ret.stdout.startswith("'--display_name' is a required parameter.")
+    assert "ERROR: '--display_name' is a required parameter." in ret.stdout
 
 
 def test_install_complex_usage(script_runner, mock_data_dir):
@@ -136,7 +135,7 @@ def test_install_only_display_name(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
                             f'--display_name={metadata_display_name}', '--required_test=required_value')
     assert ret.success is True
-    assert ret.stdout.startswith(f"Metadata instance '{metadata_name}' for schema 'metadata-test' has been written to:")
+    assert f"Metadata instance '{metadata_name}' for schema 'metadata-test' has been written to:" in ret.stdout
 
     # Ensure it can be fetched by name...
     metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE_ID)
@@ -149,7 +148,7 @@ def test_install_invalid_name(script_runner, mock_data_dir):
                             '--name=UPPER_CASE_NOT_ALLOWED', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success is False
-    assert ret.stdout.startswith("The following exception occurred saving metadata instance for schema 'metadata-test'")
+    assert "The following exception occurred saving metadata instance for schema 'metadata-test'" in ret.stdout
     assert "Name of metadata must be lowercase alphanumeric" in ret.stdout
 
 
@@ -183,6 +182,14 @@ def test_install_and_replace(script_runner, mock_data_dir):
     # Cleanup from any potential previous failures
     if os.path.exists(expected_file):
         os.remove(expected_file)
+
+    # Attempt replace before schemaspace exists and ensure appropriate error message
+    ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
+                            '--name=test-metadata_42_valid-name', '--display_name=display_name',
+                            '--required_test=required_value', '--replace')
+    assert ret.success is False
+    assert "No such instance named 'test-metadata_42_valid-name' was found in the metadata-tests schemaspace." \
+           in ret.stdout
 
     ret = script_runner.run('elyra-metadata', 'install', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
@@ -338,13 +345,13 @@ def test_install_and_replace_complex(script_runner, mock_data_dir, complex_keywo
 def test_list_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_SCHEMASPACE, '--help')
     assert ret.success is False
-    assert ret.stdout.startswith("\nList installed metadata for {}.".format(METADATA_TEST_SCHEMASPACE))
+    assert "List installed metadata for {}.".format(METADATA_TEST_SCHEMASPACE) in ret.stdout
 
 
 def test_list_bad_argument(script_runner):
     ret = script_runner.run('elyra-metadata', 'list', METADATA_TEST_SCHEMASPACE, '--bogus-argument')
     assert ret.success is False
-    assert ret.stdout.startswith("The following arguments were unexpected: ['--bogus-argument']")
+    assert "ERROR: The following arguments were unexpected: ['--bogus-argument']" in ret.stdout
 
 
 def test_list_instances(script_runner, mock_data_dir):
@@ -354,7 +361,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert lines[0].startswith("No metadata instances found for {}".format(METADATA_TEST_SCHEMASPACE))
+    assert "No metadata instances found for {}".format(METADATA_TEST_SCHEMASPACE) in lines[0]
 
     valid = Metadata(**valid_metadata_json)
     resource = metadata_manager.create('valid', valid)
@@ -466,13 +473,13 @@ def test_list_json_instances(script_runner, mock_data_dir):
 def test_remove_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_SCHEMASPACE, '--help')
     assert ret.success is False
-    assert ret.stdout.startswith(f"\nRemove a metadata instance from schemaspace '{METADATA_TEST_SCHEMASPACE}'.")
+    assert f"Remove a metadata instance from schemaspace '{METADATA_TEST_SCHEMASPACE}'." in ret.stdout
 
 
 def test_remove_no_name(script_runner):
     ret = script_runner.run('elyra-metadata', 'remove', METADATA_TEST_SCHEMASPACE)
     assert ret.success is False
-    assert ret.stdout.startswith("'--name' is a required parameter.")
+    assert "ERROR: '--name' is a required parameter." in ret.stdout
 
 
 def test_remove_malformed_name(script_runner):
@@ -527,40 +534,40 @@ def test_remove_instance(script_runner, mock_data_dir):
 def test_export_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--help')
     assert ret.success is False
-    assert ret.stdout.startswith(f"\nExport installed metadata in schemaspace '{METADATA_TEST_SCHEMASPACE}'")
+    assert f"Export installed metadata in schemaspace '{METADATA_TEST_SCHEMASPACE}'" in ret.stdout
 
 
 def test_export_no_directory(script_runner):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE)
     assert ret.success is False
-    assert ret.stdout.startswith("'--directory' is a required parameter.")
+    assert "'--directory' is a required parameter." in ret.stdout
 
 
 def test_export_bad_argument(script_runner):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
                             '--directory=dummy-directory', '--bogus-argument')
     assert ret.success is False
-    assert ret.stdout.startswith("The following arguments were unexpected: ['--bogus-argument']")
+    assert "The following arguments were unexpected: ['--bogus-argument']" in ret.stdout
 
 
 def test_export_bad_schemaspace(script_runner):
     ret = script_runner.run('elyra-metadata', 'export', 'bogus-schemaspace')
     assert ret.success is False
-    assert ret.stdout.startswith("Subcommand 'bogus-schemaspace' is invalid.")
+    assert "Subcommand 'bogus-schemaspace' is invalid." in ret.stdout
 
 
 def test_export_bad_schema(script_runner):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
                             '--directory=dummy-directory', '--schema_name=bogus-schema')
-    assert ret.stdout.startswith("Schema name 'bogus-schema' is invalid. For the 'metadata-tests' schemaspace, " +
-                                 "the schema name must be one of ['metadata-test', 'metadata-test2']")
+    assert "Schema name 'bogus-schema' is invalid. For the 'metadata-tests' schemaspace, " \
+           "the schema name must be one of ['metadata-test', 'metadata-test2']" in ret.stdout
     assert ret.success is False
 
 
 def test_export_no_schema_no_instances(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--directory=dummy-directory')
     assert ret.success
-    assert ret.stdout.startswith(f"No metadata instances found for schemaspace '{METADATA_TEST_SCHEMASPACE}'")
+    assert f"No metadata instances found for schemaspace '{METADATA_TEST_SCHEMASPACE}'" in ret.stdout
     assert "Nothing exported to 'dummy-directory'" in ret.stdout
 
 
@@ -594,8 +601,8 @@ def test_export_with_schema_no_instances(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
                             '--schema_name=metadata-test2', '--directory=dummy-directory')
     assert ret.success
-    assert ret.stdout.startswith("No metadata instances found for schemaspace " +
-                                 f"'{METADATA_TEST_SCHEMASPACE}' and schema 'metadata-test2'")
+    assert f"No metadata instances found for schemaspace '{METADATA_TEST_SCHEMASPACE}' " \
+           f"and schema 'metadata-test2'" in ret.stdout
     assert "Nothing exported to 'dummy-directory'" in ret.stdout
 
 
@@ -619,7 +626,7 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
                             '--directory={}'.format(directory_parameter))
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
-    assert ret.stdout.startswith(f"Creating directory structure for '{export_directory}'")
+    assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}' " + \
            f"(includes invalid) to '{export_directory}'" in ret.stdout
     assert "Exported 3 instances (2 of which are invalid)" in ret.stdout
@@ -919,7 +926,7 @@ def test_number_default(script_runner, mock_data_dir):
 def test_uri(script_runner, mock_data_dir):
     prop_test = PropertyTester("uri")
     prop_test.negative_value = "//invalid-uri"
-    prop_test.negative_stdout = "Property used to test uri formatting"
+    prop_test.negative_stdout = "\'//invalid-uri\' is not a \'uri\'"
     #  this can be joined with previous if adding meta-properties
     #  "; title: URI Test, format: uri"
     prop_test.negative_stderr = "'//invalid-uri' is not a 'uri'"
@@ -930,7 +937,7 @@ def test_uri(script_runner, mock_data_dir):
 def test_integer_exclusivity(script_runner, mock_data_dir):
     prop_test = PropertyTester("integer_exclusivity")
     prop_test.negative_value = 3
-    prop_test.negative_stdout = "Property used to test integers with exclusivity restrictions"
+    prop_test.negative_stdout = "3 is less than or equal to the minimum of 3"
     #  this can be joined with previous if adding meta-properties
     #  "; title: Integer Exclusivity Test, exclusiveMinimum: 3, exclusiveMaximum: 10"
     prop_test.negative_stderr = "3 is less than or equal to the minimum of 3"
@@ -941,7 +948,7 @@ def test_integer_exclusivity(script_runner, mock_data_dir):
 def test_integer_multiple(script_runner, mock_data_dir):
     prop_test = PropertyTester("integer_multiple")
     prop_test.negative_value = 32
-    prop_test.negative_stdout = "Property used to test integers with multipleOf restrictions"
+    prop_test.negative_stdout = "32 is not a multiple of 6"
     #  this can be joined with previous if adding meta-properties
     #  "; title: Integer Multiple Test, multipleOf: 6"
     prop_test.negative_stderr = "32 is not a multiple of 6"
@@ -952,7 +959,7 @@ def test_integer_multiple(script_runner, mock_data_dir):
 def test_number_range(script_runner, mock_data_dir):
     prop_test = PropertyTester("number_range")
     prop_test.negative_value = 2.7
-    prop_test.negative_stdout = "Property used to test numbers with range"
+    prop_test.negative_stdout = "2.7 is less than the minimum of 3"
     #  this can be joined with previous if adding meta-properties
     #  "; title: Number Range Test, minimum: 3, maximum: 10"
     prop_test.negative_stderr = "2.7 is less than the minimum of 3"
@@ -963,7 +970,7 @@ def test_number_range(script_runner, mock_data_dir):
 def test_const(script_runner, mock_data_dir):
     prop_test = PropertyTester("const")
     prop_test.negative_value = 2.718
-    prop_test.negative_stdout = "Property used to test properties with const"
+    prop_test.negative_stdout = "3.14 was expected"
     #  this can be joined with previous if adding meta-properties
     #  " ; title: Const Test, const: 3.14"
     prop_test.negative_stderr = "3.14 was expected"
@@ -974,7 +981,7 @@ def test_const(script_runner, mock_data_dir):
 def test_string_length(script_runner, mock_data_dir):
     prop_test = PropertyTester("string_length")
     prop_test.negative_value = "12345678901"
-    prop_test.negative_stdout = "Property used to test strings with length restrictions"
+    prop_test.negative_stdout = "\'12345678901\' is too long"
     #  this can be joined with previous if adding meta-properties
     #  "; title: String Length Test, minLength: 3, maxLength: 10"
     prop_test.negative_stderr = "'12345678901' is too long"
@@ -985,7 +992,7 @@ def test_string_length(script_runner, mock_data_dir):
 def test_string_pattern(script_runner, mock_data_dir):
     prop_test = PropertyTester("string_pattern")  # Must start/end with alphanumeric, can include '-' and '.'
     prop_test.negative_value = "-foo1"
-    prop_test.negative_stdout = "Property used to test strings with pattern restrictions"
+    prop_test.negative_stdout = "\'-foo1\' does not match \'^[a-z0-9][a-z0-9-.]*[a-z0-9]$\'"
     #  this can be joined with previous if adding meta-properties
     #  "; title: String Pattern Test, pattern: ^[a-z0-9][a-z0-9-.]*[a-z0-9]$"
     prop_test.negative_stderr = "'-foo1' does not match '^[a-z0-9][a-z0-9-.]*[a-z0-9]$'"
@@ -996,7 +1003,7 @@ def test_string_pattern(script_runner, mock_data_dir):
 def test_enum(script_runner, mock_data_dir):
     prop_test = PropertyTester("enum")
     prop_test.negative_value = "jupyter"
-    prop_test.negative_stdout = "Property used to test properties with enums"
+    prop_test.negative_stdout = "\'jupyter\' is not one of [\'elyra\', \'rocks\', \'added\']"
     #  this can be joined with previous if adding meta-properties
     #  "; title: Enum Test, enum: ['elyra', 'rocks', 'added']"
     prop_test.negative_stderr = "'jupyter' is not one of ['elyra', 'rocks', 'added']"
@@ -1007,7 +1014,7 @@ def test_enum(script_runner, mock_data_dir):
 def test_array(script_runner, mock_data_dir):
     prop_test = PropertyTester("array")
     prop_test.negative_value = [1, 2, 2]
-    prop_test.negative_stdout = "Property used to test array with item restrictions"
+    prop_test.negative_stdout = "[1, 2, 2] has non-unique elements"
     #  this can be joined with previous if adding meta-properties
     #  "; title: Array Test, minItems: 3, maxItems: 10, uniqueItems: True"
     prop_test.negative_stderr = "[1, 2, 2] has non-unique elements"
@@ -1018,7 +1025,7 @@ def test_array(script_runner, mock_data_dir):
 def test_object(script_runner, mock_data_dir):
     prop_test = PropertyTester("object")
     prop_test.negative_value = {'prop1': 2, 'prop2': 3}
-    prop_test.negative_stdout = "Property used to test object elements with properties restrictions"
+    prop_test.negative_stdout = "{\'prop1\': 2, \'prop2\': 3} does not have enough properties"
     #  this can be joined with previous if adding meta-properties
     #  "; title: Object Test, minProperties: 3, maxProperties: 10"
     prop_test.negative_stderr = "{'prop1': 2, 'prop2': 3} does not have enough properties"
@@ -1029,7 +1036,7 @@ def test_object(script_runner, mock_data_dir):
 def test_boolean(script_runner, mock_data_dir):
     prop_test = PropertyTester("boolean")
     prop_test.negative_value = "bogus_boolean"
-    prop_test.negative_stdout = "Property used to test boolean values"
+    prop_test.negative_stdout = "\'bogus_boolean\' is not of type \'boolean\'"
     #  this can be joined with previous if adding meta-properties
     #  "; title: Boolean Test"
     prop_test.negative_stderr = "'bogus_boolean' is not of type 'boolean'"
@@ -1040,7 +1047,7 @@ def test_boolean(script_runner, mock_data_dir):
 def test_null(script_runner, mock_data_dir):
     prop_test = PropertyTester("null")
     prop_test.negative_value = "bogus_null"
-    prop_test.negative_stdout = "Property used to test null types"
+    prop_test.negative_stdout = "\'bogus_null\' is not of type \'null\'"
     #  this can be joined with previous if adding meta-properties
     #  "; title: Null Test"
     prop_test.negative_stderr = "'bogus_null' is not of type 'null'"
