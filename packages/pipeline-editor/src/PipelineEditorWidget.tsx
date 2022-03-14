@@ -48,10 +48,10 @@ import {
   DocumentWidget,
   Context
 } from '@jupyterlab/docregistry';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import 'carbon-components/css/carbon-components.min.css';
-
-import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
@@ -144,6 +144,7 @@ class PipelineEditorWidget extends ReactWidget {
   commands: any;
   addFileToPipelineSignal: Signal<this, any>;
   context: Context;
+  settings: ISettingRegistry.ISettings;
 
   constructor(options: any) {
     super(options);
@@ -152,6 +153,7 @@ class PipelineEditorWidget extends ReactWidget {
     this.commands = options.commands;
     this.addFileToPipelineSignal = options.addFileToPipelineSignal;
     this.context = options.context;
+    this.settings = options.settings;
   }
 
   render(): any {
@@ -163,6 +165,7 @@ class PipelineEditorWidget extends ReactWidget {
         commands={this.commands}
         addFileToPipelineSignal={this.addFileToPipelineSignal}
         widgetId={this.parent?.id}
+        settings={this.settings}
       />
     );
   }
@@ -174,6 +177,7 @@ interface IProps {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<PipelineEditorWidget, any>;
+  settings?: ISettingRegistry.ISettings;
   widgetId?: string;
 }
 
@@ -183,6 +187,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   shell,
   commands,
   addFileToPipelineSignal,
+  settings,
   widgetId
 }) => {
   const ref = useRef<any>(null);
@@ -198,6 +203,9 @@ const PipelineWrapper: React.FC<IProps> = ({
     data: runtimesSchema,
     error: runtimesSchemaError
   } = useRuntimesSchema();
+
+  const doubleClickToOpenProperties =
+    settings?.composite['doubleClickToOpenProperties'] ?? true;
 
   const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
 
@@ -518,7 +526,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
   };
 
-  const handleOpenFile = (data: any): void => {
+  const onDoubleClick = (data: any): void => {
     for (let i = 0; i < data.selectedObjectIds.length; i++) {
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
@@ -969,6 +977,10 @@ const PipelineWrapper: React.FC<IProps> = ({
     shell.activateById(`elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`);
   };
 
+  const handleOpenSettings = (): void => {
+    commands.execute('settingeditor:open');
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -989,16 +1001,21 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipeline={pipeline}
           onAction={onAction}
           onChange={onChange}
-          onDoubleClickNode={handleOpenFile}
+          onDoubleClickNode={
+            doubleClickToOpenProperties ? undefined : onDoubleClick
+          }
           onError={onError}
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
           leftPalette={true}
         >
           {type === undefined ? (
-            <EmptyGenericPipeline />
+            <EmptyGenericPipeline onOpenSettings={handleOpenSettings} />
           ) : (
-            <EmptyPlatformSpecificPipeline onOpenCatalog={handleOpenCatalog} />
+            <EmptyPlatformSpecificPipeline
+              onOpenCatalog={handleOpenCatalog}
+              onOpenSettings={handleOpenSettings}
+            />
           )}
         </PipelineEditor>
       </Dropzone>
@@ -1011,6 +1028,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<this, any>;
+  settings: ISettingRegistry.ISettings;
 
   constructor(options: any) {
     super(options);
@@ -1018,6 +1036,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     this.shell = options.shell;
     this.commands = options.commands;
     this.addFileToPipelineSignal = new Signal<this, any>(this);
+    this.settings = options.settings;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
@@ -1027,7 +1046,8 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       commands: this.commands,
       browserFactory: this.browserFactory,
       context: context,
-      addFileToPipelineSignal: this.addFileToPipelineSignal
+      addFileToPipelineSignal: this.addFileToPipelineSignal,
+      settings: this.settings
     };
     const content = new PipelineEditorWidget(props);
 

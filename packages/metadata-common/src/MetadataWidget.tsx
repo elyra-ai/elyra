@@ -37,9 +37,9 @@ import { Signal } from '@lumino/signaling';
 
 import React from 'react';
 
-import { AddMetadataButton } from './AddMetadataButton';
 import { FilterTools } from './FilterTools';
 import { MetadataCommonService } from './MetadataCommonService';
+import { MetadataHeaderButtons } from './MetadataHeaderButtons';
 
 /**
  * The CSS class added to metadata widgets.
@@ -433,6 +433,18 @@ export class MetadataWidget extends ReactWidget {
    * @returns a rendered instance of `MetadataDisplay`
    */
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
+    if (Array.isArray(metadata) && !metadata.length) {
+      // Empty metadata
+      return (
+        <div>
+          <br />
+          <h6 className="elyra-no-metadata-msg">
+            Click the + button to add {this.props.display_name.toLowerCase()}
+          </h6>
+        </div>
+      );
+    }
+
     return (
       <MetadataDisplay
         metadata={metadata}
@@ -462,11 +474,12 @@ export class MetadataWidget extends ReactWidget {
               />
               <p> {this.props.display_name} </p>
             </div>
-            <AddMetadataButton
+            <MetadataHeaderButtons
               schemas={this.schemas}
               addMetadata={this.addMetadata}
               titleContext={this.titleContext}
               appendToTitle={this.props.appendToTitle}
+              refreshMetadata={this.updateMetadata}
             />
           </header>
           <UseSignal signal={this.renderSignal} initialArgs={[]}>
