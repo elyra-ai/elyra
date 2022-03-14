@@ -32,8 +32,8 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentDefinitionHandler
+from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
 from elyra.pipeline.handlers import PipelineRuntimeTypesHandler
