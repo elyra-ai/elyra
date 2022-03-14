@@ -233,10 +233,20 @@ export class MetadataEditorWidget extends ReactWidget {
         }
         return acc;
       }, []);
-      this.schema =
+      const schema =
         allSchema.find((s: any) => {
           return s.name === this.props.schemaName;
         }) ?? {};
+      const properties = schema.properties.metadata.properties;
+      for (const prop in properties) {
+        if (properties[prop].const !== undefined) {
+          properties[prop].default = properties[prop].const;
+          properties[prop].uihints = {
+            'ui:readonly': true
+          };
+        }
+      }
+      this.schema = schema;
       this.title.label = `New ${this.schema.title}`;
       this.metadata = allMetadata.find((m: any) => m.name === this.props.name);
       this.loading = false;
