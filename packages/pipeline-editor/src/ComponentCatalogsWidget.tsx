@@ -71,6 +71,18 @@ export class ComponentCatalogsWidget extends MetadataWidget {
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
+    if (Array.isArray(metadata) && !metadata.length) {
+      // Empty metadata
+      return (
+        <div>
+          <br />
+          <h6 className="elyra-no-metadata-msg">
+            Click the + button to add {this.props.display_name.toLowerCase()}
+          </h6>
+        </div>
+      );
+    }
+
     return (
       <ComponentCatalogsDisplay
         metadata={metadata}

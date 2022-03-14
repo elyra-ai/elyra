@@ -59,7 +59,6 @@ import '../style/index.css';
 const PIPELINE_EDITOR = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 const PLUGIN_ID = '@elyra/pipeline-editor-extension:plugin';
 
 const createRemoteIcon = async ({
