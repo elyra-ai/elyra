@@ -354,6 +354,22 @@ def test_list_bad_argument(script_runner):
     assert "ERROR: The following arguments were unexpected: ['--bogus-argument']" in ret.stdout
 
 
+def test_list_conflicting_options(script_runner, mock_data_dir):
+    """
+    TODO: Remove this test in version 4.0. It is no longer applicable because
+    option '--valid-only' is no longer supported.
+    Verify that an error is raised if mutually exclusive options
+    '--valid-only' and '--include-invalid' are specified.
+    """
+    ret = script_runner.run('elyra-metadata',
+                            'list',
+                            METADATA_TEST_SCHEMASPACE,
+                            '--valid-only',
+                            '--include-invalid')
+    assert ret.success is False
+    assert "ERROR. Options '--valid-only' and '--include-invalid' are mutually exclusive." in ret.stdout
+
+
 def test_list_instances(script_runner, mock_data_dir):
     metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
 
@@ -361,7 +377,16 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert "No metadata instances found for {}".format(METADATA_TEST_SCHEMASPACE) in lines[0]
+    assert f"No metadata instances found for {METADATA_TEST_SCHEMASPACE}" in lines[0]
+
+    ret = script_runner.run('elyra-metadata',
+                            'list',
+                            METADATA_TEST_SCHEMASPACE,
+                            '--include-invalid')
+    assert ret.success
+    lines = ret.stdout.split('\n')
+    assert len(lines) == 2  # always 2 more than the actual runtime count
+    assert f"No metadata instances found for {METADATA_TEST_SCHEMASPACE}" in lines[0]
 
     valid = Metadata(**valid_metadata_json)
     resource = metadata_manager.create('valid', valid)
@@ -378,7 +403,25 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 9  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_SCHEMASPACE)
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
+    line_elements = [line.split() for line in lines[4:8]]
+    assert line_elements[0][0] == "metadata-test"
+    assert line_elements[0][1] == "another"
+    assert line_elements[1][0] == "metadata-test"
+    assert line_elements[1][1] == "another2"
+    assert line_elements[2][0] == "metadata-test"
+    assert line_elements[2][1] == "valid"
+    assert line_elements[3][0] == "metadata-test"
+    assert line_elements[3][1] == "valid2"
+
+    ret = script_runner.run('elyra-metadata',
+                            'list',
+                            METADATA_TEST_SCHEMASPACE,
+                            '--include-invalid')
+    assert ret.success
+    lines = ret.stdout.split('\n')
+    assert len(lines) == 9  # always 5 more than the actual runtime count
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
     line_elements = [line.split() for line in lines[4:8]]
     assert line_elements[0][0] == "metadata-test"
     assert line_elements[0][1] == "another"
@@ -402,7 +445,26 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 10  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_SCHEMASPACE)
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
+    line_elements = [line.split() for line in lines[4:9]]
+    assert line_elements[0][1] == "another"
+    assert line_elements[1][1] == "invalid"
+    assert line_elements[1][3] == "**INVALID**"
+    assert line_elements[1][4] == "(ValidationError)"
+    assert line_elements[2][3] == "**INVALID**"
+    assert line_elements[2][4] == "(ValidationError)"
+    assert line_elements[3][1] == "valid"
+    assert line_elements[4][3] == "**INVALID**"
+    assert line_elements[4][4] == "(SchemaNotFoundError)"
+
+    ret = script_runner.run('elyra-metadata',
+                            'list',
+                            METADATA_TEST_SCHEMASPACE,
+                            '--include-invalid')
+    assert ret.success
+    lines = ret.stdout.split('\n')
+    assert len(lines) == 10  # always 5 more than the actual runtime count
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
     line_elements = [line.split() for line in lines[4:9]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "invalid"
@@ -418,7 +480,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 7  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for {} (valid only):".format(METADATA_TEST_SCHEMASPACE)
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (valid only):"
     line_elements = [line.split() for line in lines[4:6]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "valid"
@@ -564,6 +626,23 @@ def test_export_bad_schema(script_runner):
     assert ret.success is False
 
 
+def test_export_conflicting_options(script_runner, mock_data_dir):
+    """
+    TODO: Remove this test in version 4.0. It is no longer applicable because
+    option '--valid-only' is no longer supported.
+    Verify that an error is raised if mutually exclusive options
+    '--valid-only' and '--include-invalid' are specified.
+    """
+    ret = script_runner.run('elyra-metadata',
+                            'export',
+                            METADATA_TEST_SCHEMASPACE,
+                            '--directory=dummy-directory',
+                            '--valid-only',
+                            '--include-invalid')
+    assert ret.success is False
+    assert "ERROR. Options '--valid-only' and '--include-invalid' are mutually exclusive." in ret.stdout
+
+
 def test_export_no_schema_no_instances(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--directory=dummy-directory')
     assert ret.success
@@ -624,6 +703,27 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     directory_parameter = temp_dir.name
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
                             '--directory={}'.format(directory_parameter))
+    assert ret.success
+    export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
+    assert f"Creating directory structure for '{export_directory}'" in ret.stdout
+    assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}' " + \
+           f"(includes invalid) to '{export_directory}'" in ret.stdout
+    assert "Exported 3 instances (2 of which are invalid)" in ret.stdout
+
+    exported_metadata = sorted(os.listdir(export_directory), key=str.casefold)
+    assert len(exported_metadata) == 3
+    assert exported_metadata[0] == "invalid.json"
+    assert exported_metadata[1] == "invalid2.json"
+    assert exported_metadata[2] == "valid.json"
+    temp_dir.cleanup()
+
+    # test for valid and invalid using '--include-invalid' option, which
+    # prior to version 4.0 is a no-op
+    temp_dir = TemporaryDirectory()
+    directory_parameter = temp_dir.name
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            f'--directory={directory_parameter}',
+                            '--include-invalid')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
