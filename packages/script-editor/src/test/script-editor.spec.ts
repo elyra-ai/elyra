@@ -50,13 +50,14 @@ describe('@elyra/script-editor', () => {
   describe('KernelManager', () => {
     describe('#startSession', () => {
       let runner: ScriptRunner;
+      const testPath = 'test.py';
 
       beforeEach(() => {
         runner = new ScriptRunner((x: boolean): void => console.log(x));
       });
 
       it('should start a kernel session', async () => {
-        const session = await runner.startSession(language, 'test.py');
+        const session = await runner.startSession(language, testPath);
         expect(session.id).toEqual(runner.sessionConnection?.id);
         expect(runner.sessionConnection?.kernel?.connectionStatus).toEqual(
           'connecting'
@@ -69,6 +70,19 @@ describe('@elyra/script-editor', () => {
         await runner.shutdownSession();
         expect(runner.sessionConnection).toBeNull();
       });
+
+      // Test should run script
+      it('should run script', async () => {
+        const code = 'print("Test")';
+        await runner.startSession(language, 'test.py');
+        const kernelMsg = async (msg: any): Promise<void> => {
+          msg.output && expect(msg.output).toEqual('Test');
+        };
+        await runner.runScript(language, testPath, code, kernelMsg);
+        await runner.shutdownSession();
+      });
+
+      // Test should receive error message when running a broken script
     });
   });
 });
