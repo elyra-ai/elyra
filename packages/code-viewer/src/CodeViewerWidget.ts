@@ -65,11 +65,6 @@ export namespace CodeViewerWidget {
     content: string;
 
     /**
-     * The title for the widget.
-     */
-    title?: string;
-
-    /**
      * The mime type for the content.
      */
     mimeType?: string;

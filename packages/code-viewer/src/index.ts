@@ -21,8 +21,7 @@ import {
 import { MainAreaWidget } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon } from '@jupyterlab/ui-components';
-
-import uuid4 from 'uuid/v4';
+import { toArray } from '@lumino/algorithm';
 
 import { CodeViewerWidget } from './CodeViewerWidget';
 
@@ -49,23 +48,33 @@ const extension: JupyterFrontEndPlugin<void> = {
       content: string;
       label?: string;
       mimeType?: string;
+      extension?: string;
     }): void => {
       const func = editorServices.factoryService.newDocumentEditor;
       const factory: CodeEditor.Factory = options => {
         return func(options);
       };
 
-      // TODO: Add optional extension arg and derive mimetype from it
+      // Derive mimetype from extension
+      let mimetype = args.mimeType;
+      if (!mimetype && args.extension) {
+        mimetype = editorServices.mimeTypeService.getMimeTypeByFilePath(
+          `temp.${args.extension.replace(/\\.$/, '')}`
+        );
+      }
+
       const widget = new CodeViewerWidget({
         factory,
         content: args.content,
-        mimeType: args.mimeType
+        mimeType: mimetype
       });
-      // TODO: Find a way to hash the content rather than use a UUID
-      widget.id = `code-viewer-${uuid4()}`;
       widget.title.label = args.label || 'Code Viewer';
-      // TODO: Determine icon based on mimetype/extension
-      widget.title.icon = textEditorIcon;
+
+      // Get the fileType based on the mimetype to determine the icon
+      const fileType = toArray(app.docRegistry.fileTypes()).find(fileType => {
+        return mimetype ? fileType.mimeTypes.includes(mimetype) : undefined;
+      });
+      widget.title.icon = fileType?.icon ?? textEditorIcon;
 
       const main = new MainAreaWidget({ content: widget });
       app.shell.add(main, 'main');
