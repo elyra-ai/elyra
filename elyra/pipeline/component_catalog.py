@@ -308,7 +308,8 @@ class CacheUpdateThread(Thread):
 
     def prepare_cache_for_catalog(self, runtime_type: Optional[str] = None):
         """
-        TODO
+        Add entries to the component cache for the runtime type and/or catalog
+        of focus for this thread, and set the catalog state to 'updating'.
         """
         if self.action == 'delete':
             for runtime_type in self._component_cache:
