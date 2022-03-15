@@ -25,6 +25,7 @@ import {
   IThemeManager
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
+import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { Message } from '@lumino/messaging';
@@ -44,6 +45,7 @@ interface IMetadataEditorProps {
   onSave: () => void;
   editorServices: IEditorServices | null;
   status: ILabStatus;
+  componentRegistry?: IFormComponentRegistry;
   themeManager?: IThemeManager;
 }
 
@@ -71,6 +73,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   setDirty,
   close,
   allTags,
+  componentRegistry,
   getDefaultChoices
 }: IMetadataEditorComponentProps) => {
   const [invalidForm, setInvalidForm] = React.useState(name === undefined);
@@ -162,6 +165,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
             setMetadata(formData);
             setDirty(true);
           }}
+          componentRegistry={componentRegistry}
           setInvalid={(invalid: boolean): void => {
             setInvalidForm(invalid);
           }}

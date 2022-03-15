@@ -55,6 +55,9 @@
           "title": "Code",
           "description": "Code snippet code lines",
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "uihints": {
             "field_type": "code",
             "category": "Source"

@@ -51,7 +51,6 @@
             "maxLength": 18
           },
           "uihints": {
-            "field_type": "array",
             "category": "Component Categories"
           }
         },
@@ -63,7 +62,6 @@
             "type": "string"
           },
           "uihints": {
-            "field_type": "array",
             "category": "Configuration"
           }
         },
@@ -72,7 +70,6 @@
           "description": "Indicates whether a recursive search for component specification files should be performed on subdirectories",
           "type": "boolean",
           "uihints": {
-            "placeholder": "false",
             "category": "Configuration"
           }
         }

@@ -16,7 +16,8 @@
 
 import { DropDown } from '@elyra/ui-components';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import Form, { Field, IChangeEvent } from '@rjsf/core';
+import { IFormComponentRegistry } from '@jupyterlab/ui-components';
+import Form, { Field, IChangeEvent, Widget } from '@rjsf/core';
 import * as React from 'react';
 
 import { CodeBlock } from './CodeBlock';
@@ -27,41 +28,40 @@ interface IFormEditorProps {
   onChange: (formData: any) => void;
   setInvalid: (invalid: boolean) => void;
   editorServices: IEditorServices | null;
+  componentRegistry?: IFormComponentRegistry;
   originalData?: any;
   allTags?: string[];
   languageOptions?: string[];
 }
 
-const CustomArray: Field = props => {
-  if (props.name === 'code') {
-    return (
-      <CodeBlock
-        editorServices={props.formContext.editorServices}
-        defaultValue={
-          props.formData?.join('\n') ??
-          (props.defaultValue as string[])?.join('\n')
-        }
-        language={props.formContext.language}
-        label={props.title ?? 'Code'}
-        required={props.required}
-        defaultError={false}
-        onChange={props.onChange}
-      />
-    );
-  } else if (props.name === 'tags') {
-    return (
-      <MetadataEditorTags
-        selectedTags={props.formData ?? []}
-        tags={props.formContext.allTags ?? []}
-        handleChange={(selectedTags: string[], allTags: string[]): void => {
-          props.onChange(selectedTags);
-          props.formContext.updateAllTags?.(allTags);
-        }}
-      />
-    );
-  }
+const MetadataEditorTagsWidget: Field = props => {
+  return (
+    <MetadataEditorTags
+      selectedTags={props.formData ?? []}
+      tags={props.formContext.allTags ?? []}
+      handleChange={(selectedTags: string[], allTags: string[]): void => {
+        props.onChange(selectedTags);
+        props.formContext.updateAllTags?.(allTags);
+      }}
+    />
+  );
+};
 
-  return <div>{props.children}</div>;
+const CodeBlockWidget: Field = props => {
+  return (
+    <CodeBlock
+      editorServices={props.formContext.editorServices}
+      defaultValue={
+        props.formData?.join('\n') ??
+        (props.schema.default as string[])?.join('\n')
+      }
+      language={props.formContext.language}
+      label={props.schema.title ?? 'Code'}
+      required={props.required}
+      defaultError={false}
+      onChange={props.formContext.onChange}
+    />
+  );
 };
 
 export const FormEditor: React.FC<IFormEditorProps> = ({
@@ -69,6 +69,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   onChange,
   setInvalid,
   editorServices,
+  componentRegistry,
   originalData,
   allTags,
   languageOptions
@@ -79,7 +80,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   const uiSchema: any = {};
   for (const field in schema?.properties) {
     uiSchema[field] = schema.properties[field].uihints ?? {};
-    uiSchema[field]['ui:widget'] = uiSchema[field]['field_type'];
+    uiSchema[field]['ui:field'] = uiSchema[field]['field_type'];
     uiSchema[field].classNames = `${field}Field`;
   }
 
@@ -96,7 +97,9 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         },
         languageOptions: languageOptions
       }}
-      widgets={{
+      fields={{
+        code: CodeBlockWidget,
+        tags: MetadataEditorTagsWidget,
         dropdown: DropDown
       }}
       uiSchema={uiSchema}
@@ -104,9 +107,6 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         setFormData(e.formData);
         onChange(e.formData);
         setInvalid(e.errors.length > 0 || false);
-      }}
-      fields={{
-        ArrayField: CustomArray
       }}
       liveValidate={true}
     />

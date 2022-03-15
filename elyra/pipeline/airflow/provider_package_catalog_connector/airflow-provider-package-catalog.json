@@ -51,7 +51,6 @@
           },
           "default": ["provider packages"],
           "uihints": {
-            "field_type": "array",
             "category": "Component Categories"
           }
         },

@@ -14,28 +14,30 @@
  * limitations under the License.
  */
 
-import { Widget } from '@rjsf/core';
+import { Field } from '@rjsf/core';
 
 import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
-export const DropDown: Widget = props => {
+export const DropDown: Field = props => {
   const {
     defaultValue,
     formContext,
-    label,
+    schema,
+    name,
     required,
     onChange,
     placeholder,
-    value,
+    formData,
     id
   } = props;
-  const [current, setValue] = React.useState(value ?? defaultValue);
+  const label = schema.title ?? name;
+  const [current, setValue] = React.useState(formData ?? defaultValue);
 
   React.useEffect(() => {
-    setValue(value);
-  }, [value]);
+    setValue(formData);
+  }, [formData]);
 
   const handleChange = (newValue: string): void => {
     setValue(newValue);

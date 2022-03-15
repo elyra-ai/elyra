@@ -51,7 +51,6 @@
             "maxLength": 18
           },
           "uihints": {
-            "field_type": "array",
             "category": "Component Categories"
           }
         },
@@ -71,7 +70,6 @@
             "type": "string"
           },
           "uihints": {
-            "field_type": "array",
             "category": "Configuration"
           }
         }
