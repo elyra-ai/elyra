@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import pytest
+import time
 
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
@@ -43,12 +44,26 @@ AIRFLOW_COMPONENT_CACHE_INSTANCE = {
 }
 
 
+def wait_for_cache_updates(component_catalog):
+    """
+    TODO
+    """
+    t0 = time.time()
+    elapsed_time = t0 - time.time()
+    component_catalog.wait_for_all_manifest_updates()
+    while component_catalog.cache_manager.manifest_update_pending and elapsed_time < 60:
+        time.sleep(0.5)
+        elapsed_time = t0 - time.time()
+    component_catalog.wait_for_all_cache_updates()
+
+
 @pytest.fixture
 def component_cache_instance(request):
     """Creates an instance of a component cache and removes after test."""
 
     # Create a ComponentCache instance to handle the cache update on metadata instance creation
     component_catalog = ComponentCache.instance()
+    component_catalog.load()
 
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
@@ -58,15 +73,18 @@ def component_cache_instance(request):
     except Exception:
         pass
 
-    # Attempt to create the instance
     try:
+        # Create instance and wait for the cache update to complete
         component_cache_instance = md_mgr.create(instance_name, Metadata(**request.param))
 
         # Wait for the cache update to complete
-        component_catalog.wait_for_all_cache_updates()
+        wait_for_cache_updates(component_catalog)
 
         yield component_cache_instance.name
+
+        # Remove instance and wait for the cache update to complete
         md_mgr.remove(component_cache_instance.name)
+        wait_for_cache_updates(component_catalog)
 
     # Test was not parametrized, so component instance is not needed
     except AttributeError:
