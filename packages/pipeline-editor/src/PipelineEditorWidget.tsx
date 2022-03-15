@@ -776,12 +776,14 @@ const PipelineWrapper: React.FC<IProps> = ({
             `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`
           );
           break;
+        // TODO: REMOVE THIS TEST CODE BEFORE MERGING
         case 'openCodeViewer':
           commands.execute('elyra-code-viewer:open', {
             content: JSON.stringify(contextRef.current.model.toJSON(), null, 2),
             mimeType: 'application/json'
           });
           break;
+        // END TEST CODE
         case 'openFile':
           commands.execute(commandIDs.openDocManager, {
             path: PipelineService.getWorkspaceRelativeNodePath(
@@ -846,6 +848,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         iconEnabled: IconUtil.encode(componentCatalogIcon),
         iconDisabled: IconUtil.encode(componentCatalogIcon)
       },
+      // TODO: REMOVE THIS TEST CODE BEFORE MERGING
       {
         action: 'openCodeViewer',
         label: 'Open Code Viewer',
@@ -853,6 +856,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         iconEnabled: IconUtil.encode(pipelineIcon),
         iconDisabled: IconUtil.encode(pipelineIcon)
       },
+      // END TEST CODE
       { action: 'undo', label: 'Undo' },
       { action: 'redo', label: 'Redo' },
       { action: 'cut', label: 'Cut' },
