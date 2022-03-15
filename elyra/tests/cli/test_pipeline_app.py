@@ -276,7 +276,7 @@ def test_run_pipeline_with_no_nodes():
         assert result.exit_code != 0
 
 
-def test_submit_pipeline_with_no_nodes(kfp_runtime_instance):
+def test_submit_pipeline_with_no_nodes(jp_environ, kfp_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
         with open('foo.pipeline', 'w') as pipeline_file:
@@ -322,7 +322,7 @@ def test_describe_with_kfp_components():
 
 
 @pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_validate_with_kfp_components(kfp_runtime_instance, component_cache_instance):
+def test_validate_with_kfp_components(jp_environ, kfp_runtime_instance, component_cache_instance):
     runner = CliRunner()
     pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
 
@@ -350,7 +350,7 @@ def test_describe_with_missing_kfp_component():
         assert result.exit_code == 0
 
 
-def test_validate_with_missing_kfp_component(kfp_runtime_instance):
+def test_validate_with_missing_kfp_component(jp_environ, kfp_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
         valid_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
