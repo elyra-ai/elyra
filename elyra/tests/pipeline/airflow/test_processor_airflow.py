@@ -39,7 +39,7 @@ PIPELINE_FILE_CUSTOM_COMPONENTS = 'resources/sample_pipelines/pipeline_with_airf
 
 
 @pytest.fixture
-def processor(setup_factory_data, component_cache_instance):
+def processor(setup_factory_data):
     processor = AirflowPipelineProcessor(os.getcwd())
     return processor
 
@@ -250,8 +250,14 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
 
 
 @pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
-@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_create_file_custom_components(monkeypatch, processor, parsed_pipeline, parsed_ordered_dict, sample_metadata):
+@pytest.mark.parametrize('component_cache_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+def test_create_file_custom_components(monkeypatch,
+                                       processor,
+                                       component_cache_instance,
+                                       component_catalog,
+                                       parsed_pipeline,
+                                       parsed_ordered_dict,
+                                       sample_metadata):
     pipeline_json = _read_pipeline_resource(PIPELINE_FILE_CUSTOM_COMPONENTS)
 
     export_pipeline_name = "some-name"
@@ -576,8 +582,12 @@ def test_process_dictionary_value_function(processor):
 @pytest.mark.parametrize('parsed_pipeline',
                          ['resources/validation_pipelines/aa_operator_same_name.json'],
                          indirect=True)
-@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_same_name_operator_in_pipeline(monkeypatch, processor, parsed_pipeline, sample_metadata):
+@pytest.mark.parametrize('component_cache_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+def test_same_name_operator_in_pipeline(monkeypatch,
+                                        processor,
+                                        component_cache_instance,
+                                        parsed_pipeline,
+                                        sample_metadata):
     task_id = 'e3922a29-f4c0-43d9-8d8b-4509aab80032'
     upstream_task_id = '0eb57369-99d1-4cd0-a205-8d8d96af3ad4'
 

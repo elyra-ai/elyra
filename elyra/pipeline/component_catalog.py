@@ -66,7 +66,7 @@ class CacheUpdateManagerThread(Thread):
         self._manifest_queue = manifest_queue
         self._manifest_filename = manifest_filename
 
-        self.manifest_update_pending = False
+        self.out_of_process_update = True
 
         # Create a new manifest file for this process
         self.build_manifest_file()
@@ -78,7 +78,7 @@ class CacheUpdateManagerThread(Thread):
     def run(self):
         while not self.stop_event.is_set():
             # Clear redundant tasks from manifest queue
-            self.clear_duplicate_actions()
+            # self.clear_duplicate_actions()  # TODO test and remove
 
             try:
                 # Get a task from the manifest queue
@@ -100,6 +100,9 @@ class CacheUpdateManagerThread(Thread):
 
                     # Build a new manifest file for this process
                     self.build_manifest_file()
+
+                    # TODO add comment here
+                    self._manifest_queue.task_done()  # TODO also clear all manifest queue tasks at this point?
 
                 elif action == 'cache':
                     # A 'cache' action means that updates to the component cache are required.
@@ -134,11 +137,13 @@ class CacheUpdateManagerThread(Thread):
                         if source == self._manifest_filename:
                             self.build_manifest_file()
 
-                        self.manifest_update_pending = False
+                    # TODO comment here
+                    self._manifest_queue.task_done()
 
                 else:
                     # Any action that is not a 'delete-manifest' or 'cache' action means
-                    # that an update to the manifest is required.
+                    # that an update to the manifest is required (prompting the watchdog
+                    # to trigger a 'cache' action)
                     catalog_name = source
                     if manifest.get(catalog_name) != action:
                         # Add new action to manifest if not already present
@@ -148,9 +153,9 @@ class CacheUpdateManagerThread(Thread):
                         with open(self._manifest_filename, 'w') as f:
                             json.dump(manifest, f, indent=2)
 
-                        self.manifest_update_pending = True
-
-                self._manifest_queue.task_done()
+                        if self.out_of_process_update:
+                            self._manifest_queue.task_done()
+                        # Do not mark in-process tasks as done; a cache update is pending
 
             self.manage_cache_tasks()
 
@@ -205,7 +210,6 @@ class CacheUpdateManagerThread(Thread):
             # Create and start a thread for the task
             updater_thread = CacheUpdateThread(
                 self._component_cache,
-                self._cache_queue,
                 catalog,
                 action
             )
@@ -238,6 +242,11 @@ class CacheUpdateManagerThread(Thread):
                 # Thread has been joined and can be removed from the list
                 self._threads.remove(thread)
 
+                # TODO comment
+                self._cache_queue.task_done()
+                if self._manifest_queue.unfinished_tasks:
+                    self._manifest_queue.task_done()
+
                 # Report successful join for threads that have previously logged a
                 # cache update duration warning
                 if thread.last_warn_time != thread.task_start_time:
@@ -256,7 +265,6 @@ class CacheUpdateManagerThread(Thread):
 class CacheUpdateThread(Thread):
     def __init__(self,
                  component_cache: Dict[str, Dict],
-                 cache_queue: Queue,
                  catalog: ComponentCatalogMetadata,
                  action: Optional[str] = None):
 
@@ -266,7 +274,6 @@ class CacheUpdateThread(Thread):
         self.name = catalog.name
 
         self._component_cache = component_cache
-        self._cache_queue = cache_queue
 
         # Task-specific properties
         self.catalog = catalog
@@ -303,8 +310,6 @@ class CacheUpdateThread(Thread):
                 catalog_state['errors'].append(str(e))
 
             self._component_cache[runtime_type][self.catalog.name]['status'] = catalog_state
-
-        self._cache_queue.task_done()
 
     def prepare_cache_for_catalog(self, runtime_type: Optional[str] = None):
         """
@@ -403,6 +408,8 @@ class ComponentCache(SingletonConfigurable):
             # Remove all existing manifest files from previous processes
             self.remove_all_manifest_files()
 
+            self.cache_manager.out_of_process_update = False
+
             # Start the watchdog if an observer exists
             if not self.observer.is_alive():
                 self.observer.start()
@@ -411,7 +418,8 @@ class ComponentCache(SingletonConfigurable):
             # the component manifest, and consequently, the component cache
             catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
             for catalog in catalogs:
-                self.update_manifest_queue(source=catalog.name, action='modify')
+                # self.update_manifest_queue(source=catalog.name, action='modify')
+                self._cache_queue.put((catalog, 'modify'))
 
     def remove_all_manifest_files(self):
         """
@@ -434,8 +442,15 @@ class ComponentCache(SingletonConfigurable):
 
         # CLI processes will never start their watchdog. For these out-of-process updates,
         # we want to wait for the manifest update to complete before exiting
-        if not self.observer.is_alive():
-            self.wait_for_all_manifest_updates()
+        if self.cache_manager.out_of_process_update:
+            self.wait_for_all_tasks()
+
+    def wait_for_all_tasks(self):
+        """
+        TODO
+        """
+        self._manifest_queue.join()
+        self._cache_queue.join()
 
     def wait_for_all_manifest_updates(self):
         """

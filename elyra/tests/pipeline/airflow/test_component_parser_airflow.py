@@ -19,7 +19,6 @@ from subprocess import run
 
 from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 from conftest import TEST_CATALOG_NAME
-from conftest import wait_for_cache_updates
 import jupyter_core.paths
 import pytest
 
@@ -49,24 +48,14 @@ def _get_resource_path(filename):
     return resource_path
 
 
-@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_component_catalog_can_load_components_from_registries(component_cache_instance):
-    components = ComponentCache.instance().get_all_components(RUNTIME_PROCESSOR)
+@pytest.mark.parametrize('component_cache_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, True)], indirect=True)
+def test_component_catalog_can_load_components_from_registries(component_cache_instance, component_catalog):
+    components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0
 
 
 @pytest.mark.parametrize('create_inprocess', [True, False])
-async def test_modify_component_catalogs(jp_environ, metadata_manager_with_teardown, create_inprocess):
-    # Clear any ComponentCache instance so next parametrized test starts with clean instance
-    ComponentCache.clear_instance()
-
-    # Initialize a ComponentCache instance
-    component_catalog = ComponentCache.instance()
-    component_catalog.load()
-
-    # Wait for update to complete
-    wait_for_cache_updates(component_catalog)
-
+async def test_modify_component_catalogs(component_catalog, metadata_manager_with_teardown, create_inprocess):
     # Get initial set of components
     initial_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
 
@@ -88,9 +77,6 @@ async def test_modify_component_catalogs(jp_environ, metadata_manager_with_teard
     if create_inprocess:
         metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
     else:
-        # Manually set manifest_update_pending variable so that updates are awaited
-        component_catalog.cache_manager.manifest_update_pending = True
-
         res: CompletedProcess = run(['elyra-metadata', 'install', 'component-catalogs',
                                      f'--schema_name={registry_instance.schema_name}',
                                      f'--json={registry_instance.to_json()}',
@@ -98,7 +84,7 @@ async def test_modify_component_catalogs(jp_environ, metadata_manager_with_teard
         assert res.returncode == 0
 
     # Wait for update to complete
-    wait_for_cache_updates(component_catalog)
+    component_catalog.wait_for_all_tasks()
 
     # Get new set of components from all active registries, including added test registry
     components_after_create = component_catalog.get_all_components(RUNTIME_PROCESSOR)
@@ -114,7 +100,7 @@ async def test_modify_component_catalogs(jp_environ, metadata_manager_with_teard
     metadata_manager_with_teardown.update(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
-    wait_for_cache_updates(component_catalog)
+    component_catalog.wait_for_all_tasks()
 
     # Get set of components from all active registries, including modified test registry
     components_after_update = component_catalog.get_all_components(RUNTIME_PROCESSOR)
@@ -128,7 +114,7 @@ async def test_modify_component_catalogs(jp_environ, metadata_manager_with_teard
     metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
 
     # Wait for update to complete
-    wait_for_cache_updates(component_catalog)
+    component_catalog.wait_for_all_tasks()
 
     # Check that components remaining after delete are the same as before the new catalog was added
     components_after_remove = component_catalog.get_all_components(RUNTIME_PROCESSOR)
@@ -136,17 +122,7 @@ async def test_modify_component_catalogs(jp_environ, metadata_manager_with_teard
 
 
 @pytest.mark.parametrize('create_inprocess', [True, False])
-async def test_directory_based_component_catalog(jp_environ, metadata_manager_with_teardown, create_inprocess):
-    # Clear any ComponentCache instance so next parametrized test starts with clean instance
-    ComponentCache.clear_instance()
-
-    # Initialize a ComponentCache instance
-    component_catalog = ComponentCache.instance()
-    component_catalog.load()
-
-    # Wait for update to complete
-    wait_for_cache_updates(component_catalog)
-
+async def test_directory_based_component_catalog(component_catalog, metadata_manager_with_teardown, create_inprocess):
     # Get initial set of components
     initial_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
 
@@ -166,9 +142,6 @@ async def test_directory_based_component_catalog(jp_environ, metadata_manager_wi
     if create_inprocess:
         metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
     else:
-        # Manually set manifest_update_pending variable so that updates are awaited
-        component_catalog.cache_manager.manifest_update_pending = True
-
         res: CompletedProcess = run(['elyra-metadata', 'install', 'component-catalogs',
                                      f'--schema_name={registry_instance.schema_name}',
                                      f'--json={registry_instance.to_json()}',
@@ -176,7 +149,7 @@ async def test_directory_based_component_catalog(jp_environ, metadata_manager_wi
         assert res.returncode == 0
 
     # Wait for update to complete
-    wait_for_cache_updates(component_catalog)
+    component_catalog.wait_for_all_tasks()
 
     # Get new set of components from all active registries, including added test registry
     components_after_create = component_catalog.get_all_components(RUNTIME_PROCESSOR)
@@ -189,7 +162,7 @@ async def test_directory_based_component_catalog(jp_environ, metadata_manager_wi
 
     # Delete the test registry and wait for updates to complete
     metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
-    wait_for_cache_updates(component_catalog)
+    component_catalog.wait_for_all_tasks()
 
 
 def test_parse_airflow_component_file():

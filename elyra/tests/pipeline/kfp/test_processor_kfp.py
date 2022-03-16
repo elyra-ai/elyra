@@ -36,7 +36,7 @@ from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
 
 @pytest.fixture
-def processor(setup_factory_data, component_cache_instance):
+def processor(setup_factory_data):
     processor = KfpPipelineProcessor(os.getcwd())
     return processor
 
@@ -275,8 +275,13 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+def test_processing_url_runtime_specific_component(monkeypatch,
+                                                   processor,
+                                                   component_cache_instance,
+                                                   component_catalog,
+                                                   sample_metadata,
+                                                   tmpdir):
     # Define the appropriate reader for a URL-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
@@ -357,8 +362,13 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+def test_processing_filename_runtime_specific_component(monkeypatch,
+                                                        processor,
+                                                        component_cache_instance,
+                                                        component_catalog,
+                                                        sample_metadata,
+                                                        tmpdir):
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)

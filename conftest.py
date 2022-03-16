@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import pytest
-import time
 
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
@@ -44,26 +43,25 @@ AIRFLOW_COMPONENT_CACHE_INSTANCE = {
 }
 
 
-def wait_for_cache_updates(component_catalog):
+@pytest.fixture
+def component_catalog(jp_environ):
     """
     TODO
     """
-    t0 = time.time()
-    elapsed_time = t0 - time.time()
-    component_catalog.wait_for_all_manifest_updates()
-    while component_catalog.cache_manager.manifest_update_pending and elapsed_time < 60:
-        time.sleep(0.5)
-        elapsed_time = t0 - time.time()
-    component_catalog.wait_for_all_cache_updates()
+    # Clear any ComponentCache instance so next parametrized test starts with clean instance
+    ComponentCache.clear_instance()
+
+    # Create new instance and wait for all load tasks
+    component_catalog = ComponentCache.instance()
+    component_catalog.load()
+    component_catalog.wait_for_all_tasks()
+    yield component_catalog
 
 
 @pytest.fixture
-def component_cache_instance(request):
-    """Creates an instance of a component cache and removes after test."""
-
-    # Create a ComponentCache instance to handle the cache update on metadata instance creation
-    component_catalog = ComponentCache.instance()
-    component_catalog.load()
+def component_cache_instance(jp_environ, request):
+    """Creates an instance of a component catalog and removes after test."""
+    instance_metadata, wait_for_cache_updates = request.param
 
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
@@ -75,16 +73,14 @@ def component_cache_instance(request):
 
     try:
         # Create instance and wait for the cache update to complete
-        component_cache_instance = md_mgr.create(instance_name, Metadata(**request.param))
-
-        # Wait for the cache update to complete
-        wait_for_cache_updates(component_catalog)
-
+        component_cache_instance = md_mgr.create(instance_name, Metadata(**instance_metadata))
+        # component_catalog.wait_for_all_tasks()
         yield component_cache_instance.name
 
-        # Remove instance and wait for the cache update to complete
+        # Remove instance
         md_mgr.remove(component_cache_instance.name)
-        wait_for_cache_updates(component_catalog)
+        if wait_for_cache_updates:
+            ComponentCache.instance().wait_for_all_tasks()
 
     # Test was not parametrized, so component instance is not needed
     except AttributeError:
@@ -92,7 +88,7 @@ def component_cache_instance(request):
 
 
 @pytest.fixture
-def metadata_manager_with_teardown():
+def metadata_manager_with_teardown(jp_environ):
     """
     This fixture provides a MetadataManager instance for certain tests that modify the component
     catalog. This ensures the catalog instance is removed even when the test fails
@@ -106,5 +102,6 @@ def metadata_manager_with_teardown():
     try:
         if metadata_manager.get(TEST_CATALOG_NAME):
             metadata_manager.remove(TEST_CATALOG_NAME)
+            # ComponentCache.instance().wait_for_all_cache_updates()
     except Exception:
         pass

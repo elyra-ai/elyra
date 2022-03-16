@@ -106,8 +106,11 @@ def test_basic_pipeline_structure_with_scripts(validation_manager, load_pipeline
     assert not response.to_json().get('issues')
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-async def test_invalid_runtime_node_kubeflow(validation_manager, load_pipeline, component_cache_instance):
+@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+async def test_invalid_runtime_node_kubeflow(validation_manager,
+                                             load_pipeline,
+                                             component_cache_instance,
+                                             component_catalog):
     pipeline, response = load_pipeline('kf_invalid_node_op.pipeline')
     node_id = "eace43f8-c4b1-4a25-b331-d57d4fc29426"
 
@@ -124,10 +127,11 @@ async def test_invalid_runtime_node_kubeflow(validation_manager, load_pipeline, 
     assert issues[0]['data']['nodeID'] == node_id
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
 async def test_invalid_runtime_node_kubeflow_with_supernode(validation_manager,
                                                             load_pipeline,
-                                                            component_cache_instance):
+                                                            component_cache_instance,
+                                                            component_catalog):
     pipeline, response = load_pipeline('kf_invalid_node_op_with_supernode.pipeline')
     node_id = "98aa7270-639b-42a4-9a07-b31cd0fa3205"
     pipeline_id = "00304a2b-dec4-4a73-ab4a-6830f97d7855"
@@ -217,8 +221,11 @@ async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
     assert issues[0]['data']['nodeID'] == node_id
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch, load_pipeline, component_cache_instance):
+@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch,
+                                                           load_pipeline,
+                                                           component_cache_instance,
+                                                           component_catalog):
     pipeline, response = load_pipeline('kf_invalid_node_property_in_component.pipeline')
     node_id = 'fe08b42d-bd8c-4e97-8010-0503a3185427'
     node_property = "notebook"
@@ -524,8 +531,11 @@ def test_pipeline_invalid_single_cycle_kfp_with_supernode(validation_manager, lo
     assert issues[0]['type'] == 'circularReference'
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-async def test_pipeline_kfp_inputpath_parameter(validation_manager, load_pipeline, component_cache_instance):
+@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+async def test_pipeline_kfp_inputpath_parameter(validation_manager,
+                                                load_pipeline,
+                                                component_cache_instance,
+                                                component_catalog):
     pipeline, response = load_pipeline('kf_inputpath_parameter.pipeline')
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
     await validation_manager._validate_node_properties(pipeline_definition=pipeline_definition,
@@ -537,10 +547,11 @@ async def test_pipeline_kfp_inputpath_parameter(validation_manager, load_pipelin
     assert len(issues) == 0
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
 async def test_pipeline_invalid_kfp_inputpath_parameter(validation_manager,
                                                         load_pipeline,
-                                                        component_cache_instance):
+                                                        component_cache_instance,
+                                                        component_catalog):
     invalid_key_node_id = "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1"
     missing_param_node_id = "e8820c55-dc79-46d1-b32e-924fa5d70d2a"
     pipeline, response = load_pipeline('kf_invalid_inputpath_parameter.pipeline')
@@ -561,10 +572,11 @@ async def test_pipeline_invalid_kfp_inputpath_parameter(validation_manager,
     assert issues[1]['data']['nodeID'] == missing_param_node_id
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
 async def test_pipeline_invalid_kfp_inputpath_missing_connection(validation_manager,
                                                                  load_pipeline,
-                                                                 component_cache_instance):
+                                                                 component_cache_instance,
+                                                                 component_catalog):
     invalid_node_id = "5b78ea0a-e5fc-4022-94d4-7b9dc170d794"
     pipeline, response = load_pipeline('kf_invalid_inputpath_missing_connection.pipeline')
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
@@ -581,10 +593,11 @@ async def test_pipeline_invalid_kfp_inputpath_missing_connection(validation_mana
     assert issues[0]['data']['nodeID'] == invalid_node_id
 
 
-@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize('component_cache_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
 async def test_pipeline_aa_parent_node_missing_xcom_push(validation_manager,
                                                          load_pipeline,
-                                                         component_cache_instance):
+                                                         component_cache_instance,
+                                                         component_catalog):
 
     invalid_node_id = 'b863d458-21b5-4a46-8420-5a814b7bd525'
     invalid_operator = 'BashOperator'
