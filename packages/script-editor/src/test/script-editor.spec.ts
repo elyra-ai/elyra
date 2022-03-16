@@ -78,19 +78,19 @@ describe('@elyra/script-editor', () => {
 
       it('should run script', async () => {
         const code = 'print("Test")';
-        const kernelMsgFn = async (msg: any): Promise<void> =>
-          msg.output && expect(msg.output).toMatch(/test/i);
+        const testCallback = async (kernelMsg: any): Promise<void> =>
+          kernelMsg.output && expect(kernelMsg.output).toMatch(/test/i);
         expect(kernelName).not.toBe('');
-        await runner.runScript(kernelName, testPath, code, kernelMsgFn);
+        await runner.runScript(kernelName, testPath, code, testCallback);
         await runner.shutdownSession();
       });
 
       it('should receive error message when running a broken script', async () => {
         const code = 'print(Broken Test)';
-        const kernelMsgFn = async (msg: any): Promise<void> =>
-          msg.error && expect(msg.error.type).toMatch(/error/i);
+        const testCallback = async (kernelMsg: any): Promise<void> =>
+          kernelMsg.error && expect(kernelMsg.error.type).toMatch(/error/i);
         expect(kernelName).not.toBe('');
-        await runner.runScript(kernelName, testPath, code, kernelMsgFn);
+        await runner.runScript(kernelName, testPath, code, testCallback);
         await runner.shutdownSession();
       });
     });
