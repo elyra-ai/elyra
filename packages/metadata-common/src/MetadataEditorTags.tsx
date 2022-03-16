@@ -15,6 +15,7 @@
  */
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { checkIcon, addIcon } from '@jupyterlab/ui-components';
+import { Field } from '@rjsf/core';
 
 import React from 'react';
 
@@ -261,3 +262,16 @@ export class MetadataEditorTags extends React.Component<
     return <div>{this.renderTags()}</div>;
   }
 }
+
+export const MetadataEditorTagsField: Field = props => {
+  return (
+    <MetadataEditorTags
+      selectedTags={props.formData ?? []}
+      tags={props.formContext.allTags ?? []}
+      handleChange={(selectedTags: string[], allTags: string[]): void => {
+        props.onChange(selectedTags);
+        props.formContext.updateAllTags?.(allTags);
+      }}
+    />
+  );
+};

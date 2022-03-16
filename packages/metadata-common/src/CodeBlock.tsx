@@ -14,56 +14,34 @@
  * limitations under the License.
  */
 
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { FormHelperText, InputLabel } from '@material-ui/core';
+import { CodeEditor } from '@jupyterlab/codeeditor';
+import { InputLabel } from '@material-ui/core';
+import { Field } from '@rjsf/core';
 import * as React from 'react';
 
-interface ICodeBlockProps {
-  editorServices: IEditorServices;
-  defaultValue: string;
-  language: string;
-  onChange?: (value: string) => any;
-  defaultError: boolean;
-  label: string;
-  required: boolean;
-}
-
-export const CodeBlock: React.FC<ICodeBlockProps> = ({
-  editorServices,
-  defaultValue,
-  language,
-  onChange,
-  defaultError,
-  label,
-  required
-}) => {
-  const [error, setError] = React.useState(defaultError);
-
+export const CodeBlock: Field = props => {
+  const label = props.schema.title ?? 'Code';
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 
   // `editorServices` should never change so make it a ref.
-  const servicesRef = React.useRef(editorServices);
-
-  // This is necessary to rerender with error when clicking the save button.
-  React.useEffect(() => {
-    setError(defaultError);
-  }, [defaultError]);
+  const servicesRef = React.useRef(props.formContext.editorServices);
 
   React.useEffect(() => {
     const handleChange = (args: any): void => {
-      setError(required && args.text === '');
-      onChange?.(args.text.split('\n'));
+      props.formContext.onChange?.(args.text.split('\n'));
     };
 
     if (codeBlockRef.current !== null) {
       editorRef.current = servicesRef.current.factoryService.newInlineEditor({
         host: codeBlockRef.current,
         model: new CodeEditor.Model({
-          value: defaultValue,
+          value:
+            props.formData?.join('\n') ??
+            (props.schema.default as string[])?.join('\n'),
           mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
-            name: language,
-            codemirror_mode: language
+            name: props.formContext.language,
+            codemirror_mode: props.formContext.language
           })
         })
       });
@@ -84,22 +62,17 @@ export const CodeBlock: React.FC<ICodeBlockProps> = ({
     if (editorRef.current !== undefined) {
       editorRef.current.model.mimeType = servicesRef.current.mimeTypeService.getMimeTypeByLanguage(
         {
-          name: language,
-          codemirror_mode: language
+          name: props.formContext.language,
+          codemirror_mode: props.formContext.language
         }
       );
     }
-  }, [language]);
+  }, [props.formContext.language]);
 
   return (
     <div>
-      <InputLabel error={error} required={required}>
-        {label}
-      </InputLabel>
+      <InputLabel required={props.required}>{label}</InputLabel>
       <div ref={codeBlockRef} className="elyra-form-code" />
-      {error === true && (
-        <FormHelperText error>This field is required.</FormHelperText>
-      )}
     </div>
   );
 };
