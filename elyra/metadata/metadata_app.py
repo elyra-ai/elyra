@@ -385,9 +385,10 @@ class SchemaspaceExport(SchemaspaceBase):
                                    description='The schema name of the metadata instances to export',
                                    required=False)
 
-    valid_only_flag = Flag("--valid-only", name='valid-only',
-                           description='Only export valid instances (default includes invalid instances)',
-                           default_value=False)
+    include_invalid_flag = Flag("--include-invalid", name='include-invalid',
+                                description='Export valid and invalid instances. '
+                                'By default only valid instances are exported.',
+                                default_value=False)
 
     clean_flag = Flag("--clean", name='clean',
                       description='Clear out contents of the export directory',
@@ -398,7 +399,7 @@ class SchemaspaceExport(SchemaspaceBase):
                                  required=True)
 
     # 'Export' flags
-    options: List[Option] = [schema_name_option, valid_only_flag, clean_flag, directory_option]
+    options: List[Option] = [schema_name_option, include_invalid_flag, clean_flag, directory_option]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -415,7 +416,7 @@ class SchemaspaceExport(SchemaspaceBase):
                       f"the schema name must be one of {schema_list}")
                 self.exit(1)
 
-        include_invalid = not self.valid_only_flag.value
+        include_invalid = self.include_invalid_flag.value
         directory = self.directory_option.value
         clean = self.clean_flag.value
 
