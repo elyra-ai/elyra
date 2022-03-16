@@ -18,6 +18,7 @@ import { JupyterServer } from '@jupyterlab/testutils';
 
 import { MetadataService } from '../metadata';
 import { RequestHandler } from '../requests';
+jest.setTimeout(3 * 60 * 1000);
 
 const server = new JupyterServer();
 
@@ -32,7 +33,6 @@ const codeSnippetMetadata = {
 };
 
 beforeAll(async () => {
-  jest.setTimeout(20000);
   await server.start();
 });
 

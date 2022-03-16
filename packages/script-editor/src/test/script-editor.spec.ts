@@ -18,12 +18,12 @@ import { JupyterServer } from '@jupyterlab/testutils';
 
 import { ScriptEditorController } from '../ScriptEditorController';
 import { ScriptRunner } from '../ScriptRunner';
+jest.setTimeout(3 * 60 * 1000);
 
 const server = new JupyterServer();
 const language = 'python';
 
 beforeAll(async () => {
-  jest.setTimeout(20000);
   await server.start();
 });
 
