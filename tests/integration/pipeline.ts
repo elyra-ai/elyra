@@ -555,7 +555,7 @@ describe('Pipeline Editor tests', () => {
 
   it('kfp pipeline should display custom components', () => {
     cy.createExampleComponentCatalog({ type: 'kfp' });
-    cy.wait(4000);
+    cy.wait(5000);
 
     cy.createPipeline({ type: 'kfp' });
     cy.get('.palette-flyout-category[value="examples"]').click();
