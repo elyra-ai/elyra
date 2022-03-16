@@ -65,18 +65,12 @@ class SchemaspaceList(SchemaspaceBase):
     json_flag = Flag("--json", name='json',
                      description='List complete instances as JSON', default_value=False)
 
-    # deprecated: remove this flag in 4.0
     valid_only_flag = Flag("--valid-only", name='valid-only',
-                           description='[Deprecated] Only list valid instances (default includes invalid instances).'
-                           'This option will be removed in Elyra v4.0.',
+                           description='Only list valid instances (default includes invalid instances)',
                            default_value=False)
 
-    include_invalid_flag = Flag("--include-invalid", name='include-invalid',
-                                description='Include invalid instances.',
-                                default_value=False)
-
     # 'List' flags
-    options = [json_flag, valid_only_flag, include_invalid_flag]
+    options = [json_flag, valid_only_flag]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -85,19 +79,7 @@ class SchemaspaceList(SchemaspaceBase):
     def start(self):
         super().start()  # process options
 
-        # TODO: remove this check in 4.0
-        if self.valid_only_flag.value is True and self.include_invalid_flag.value is True:
-            print(f"ERROR. Options '{self.valid_only_flag.cli_option}' and '{self.include_invalid_flag.cli_option}'"
-                  " are mutually exclusive.")
-            self.exit(1)
-
-        # 3.7 behavior: include invalid, unless explicitly excluded
-        include_invalid = True
-        if self.valid_only_flag.value:
-            include_invalid = False
-        # TODO 4.0+ behavior:  include invalid, if explicitly requested
-        # include_invalid = self.include_invalid_flag.value
-
+        include_invalid = not self.valid_only_flag.value
         try:
             metadata_instances = self.metadata_manager.get_all(include_invalid=include_invalid)
         except MetadataNotFoundError:
@@ -109,11 +91,11 @@ class SchemaspaceList(SchemaspaceBase):
             print(metadata_instances)
         else:
             if not metadata_instances:
-                print(f"No metadata instances found for {self.schemaspace}")
+                print("No metadata instances found for {}".format(self.schemaspace))
                 return
 
             validity_clause = "includes invalid" if include_invalid else "valid only"
-            print(f"Available metadata instances for {self.schemaspace} ({validity_clause}):")
+            print("Available metadata instances for {} ({}):".format(self.schemaspace, validity_clause))
 
             sorted_instances = sorted(metadata_instances, key=lambda inst: (inst.schema_name, inst.name))
             # pad to width of longest instance
@@ -126,18 +108,16 @@ class SchemaspaceList(SchemaspaceBase):
                 max_resource_len = max(len(instance.resource), max_resource_len)
 
             print()
-            print(f"{'Schema'.ljust(max_schema_name_len)}   "
-                  f"{'Instance'.ljust(max_name_len)}  "
-                  f"{'Resource'.ljust(max_resource_len)}  ")
-            print(f"{'------'.ljust(max_schema_name_len)}   "
-                  f"{'--------'.ljust(max_name_len)}  "
-                  f"{'--------'.ljust(max_resource_len)}  ")
-
+            print("%s   %s  %s  " % ('Schema'.ljust(max_schema_name_len),
+                                     'Instance'.ljust(max_name_len),
+                                     'Resource'.ljust(max_resource_len)))
+            print("%s   %s  %s  " % ('------'.ljust(max_schema_name_len),
+                                     '--------'.ljust(max_name_len),
+                                     '--------'.ljust(max_resource_len)))
             for instance in sorted_instances:
                 invalid = ""
                 if instance.reason and len(instance.reason) > 0:
-                    invalid = f"**INVALID** ({instance.reason})"
-                # print()
+                    invalid = "**INVALID** ({})".format(instance.reason)
                 print("%s   %s  %s  %s" % (instance.schema_name.ljust(max_schema_name_len),
                                            instance.name.ljust(max_name_len),
                                            instance.resource.ljust(max_resource_len),
@@ -170,6 +150,13 @@ class SchemaspaceRemove(SchemaspaceBase):
 
         self.metadata_manager.remove(name)
         print(f"Metadata instance '{name}' removed from schemaspace '{self.schemaspace}'.")
+
+
+class SchemaspaceCreate(SchemaspaceBase):
+    """
+    _summary_
+    """
+    pass
 
 
 class SchemaspaceInstall(SchemaspaceBase):
@@ -405,14 +392,9 @@ class SchemaspaceExport(SchemaspaceBase):
                                    description='The schema name of the metadata instances to export',
                                    required=False)
 
-    # deprecated: remove this flag in 4.0
-    valid_only_flag = Flag("--valid-only", name='valid-only',
-                           description='[Deprecated] Only export valid instances (default includes invalid instances).'
-                           'This option will be removed in Elyra v4.0.',
-                           default_value=False)
-
     include_invalid_flag = Flag("--include-invalid", name='include-invalid',
-                                description='Include invalid instances.',
+                                description='Export valid and invalid instances. '
+                                'By default only valid instances are exported.',
                                 default_value=False)
 
     clean_flag = Flag("--clean", name='clean',
@@ -424,7 +406,7 @@ class SchemaspaceExport(SchemaspaceBase):
                                  required=True)
 
     # 'Export' flags
-    options: List[Option] = [schema_name_option, valid_only_flag, include_invalid_flag, clean_flag, directory_option]
+    options: List[Option] = [schema_name_option, include_invalid_flag, clean_flag, directory_option]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -441,18 +423,7 @@ class SchemaspaceExport(SchemaspaceBase):
                       f"the schema name must be one of {schema_list}")
                 self.exit(1)
 
-        if self.valid_only_flag.value is True and self.include_invalid_flag.value is True:
-            print(f"ERROR. Options '{self.valid_only_flag.cli_option}' and '{self.include_invalid_flag.cli_option}'"
-                  " are mutually exclusive.")
-            self.exit(1)
-
-        # 3.7 behavior: include invalid, unless explicitly excluded
-        include_invalid = True
-        if self.valid_only_flag.value:
-            include_invalid = False
-        # TODO 4.0+ behavior:  include invalid, if explicitly requested
-        # include_invalid = self.include_invalid_flag.value
-
+        include_invalid = self.include_invalid_flag.value
         directory = self.directory_option.value
         clean = self.clean_flag.value
 

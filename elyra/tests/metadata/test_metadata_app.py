@@ -354,22 +354,6 @@ def test_list_bad_argument(script_runner):
     assert "ERROR: The following arguments were unexpected: ['--bogus-argument']" in ret.stdout
 
 
-def test_list_conflicting_options(script_runner, mock_data_dir):
-    """
-    TODO: Remove this test in version 4.0. It is no longer applicable because
-    option '--valid-only' is no longer supported.
-    Verify that an error is raised if mutually exclusive options
-    '--valid-only' and '--include-invalid' are specified.
-    """
-    ret = script_runner.run('elyra-metadata',
-                            'list',
-                            METADATA_TEST_SCHEMASPACE,
-                            '--valid-only',
-                            '--include-invalid')
-    assert ret.success is False
-    assert "ERROR. Options '--valid-only' and '--include-invalid' are mutually exclusive." in ret.stdout
-
-
 def test_list_instances(script_runner, mock_data_dir):
     metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
 
@@ -377,16 +361,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert f"No metadata instances found for {METADATA_TEST_SCHEMASPACE}" in lines[0]
-
-    ret = script_runner.run('elyra-metadata',
-                            'list',
-                            METADATA_TEST_SCHEMASPACE,
-                            '--include-invalid')
-    assert ret.success
-    lines = ret.stdout.split('\n')
-    assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert f"No metadata instances found for {METADATA_TEST_SCHEMASPACE}" in lines[0]
+    assert "No metadata instances found for {}".format(METADATA_TEST_SCHEMASPACE) in lines[0]
 
     valid = Metadata(**valid_metadata_json)
     resource = metadata_manager.create('valid', valid)
@@ -403,25 +378,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 9  # always 5 more than the actual runtime count
-    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
-    line_elements = [line.split() for line in lines[4:8]]
-    assert line_elements[0][0] == "metadata-test"
-    assert line_elements[0][1] == "another"
-    assert line_elements[1][0] == "metadata-test"
-    assert line_elements[1][1] == "another2"
-    assert line_elements[2][0] == "metadata-test"
-    assert line_elements[2][1] == "valid"
-    assert line_elements[3][0] == "metadata-test"
-    assert line_elements[3][1] == "valid2"
-
-    ret = script_runner.run('elyra-metadata',
-                            'list',
-                            METADATA_TEST_SCHEMASPACE,
-                            '--include-invalid')
-    assert ret.success
-    lines = ret.stdout.split('\n')
-    assert len(lines) == 9  # always 5 more than the actual runtime count
-    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
+    assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_SCHEMASPACE)
     line_elements = [line.split() for line in lines[4:8]]
     assert line_elements[0][0] == "metadata-test"
     assert line_elements[0][1] == "another"
@@ -445,26 +402,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 10  # always 5 more than the actual runtime count
-    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
-    line_elements = [line.split() for line in lines[4:9]]
-    assert line_elements[0][1] == "another"
-    assert line_elements[1][1] == "invalid"
-    assert line_elements[1][3] == "**INVALID**"
-    assert line_elements[1][4] == "(ValidationError)"
-    assert line_elements[2][3] == "**INVALID**"
-    assert line_elements[2][4] == "(ValidationError)"
-    assert line_elements[3][1] == "valid"
-    assert line_elements[4][3] == "**INVALID**"
-    assert line_elements[4][4] == "(SchemaNotFoundError)"
-
-    ret = script_runner.run('elyra-metadata',
-                            'list',
-                            METADATA_TEST_SCHEMASPACE,
-                            '--include-invalid')
-    assert ret.success
-    lines = ret.stdout.split('\n')
-    assert len(lines) == 10  # always 5 more than the actual runtime count
-    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
+    assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_SCHEMASPACE)
     line_elements = [line.split() for line in lines[4:9]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "invalid"
@@ -480,7 +418,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split('\n')
     assert len(lines) == 7  # always 5 more than the actual runtime count
-    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (valid only):"
+    assert lines[0] == "Available metadata instances for {} (valid only):".format(METADATA_TEST_SCHEMASPACE)
     line_elements = [line.split() for line in lines[4:6]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "valid"
@@ -626,23 +564,6 @@ def test_export_bad_schema(script_runner):
     assert ret.success is False
 
 
-def test_export_conflicting_options(script_runner, mock_data_dir):
-    """
-    TODO: Remove this test in version 4.0. It is no longer applicable because
-    option '--valid-only' is no longer supported.
-    Verify that an error is raised if mutually exclusive options
-    '--valid-only' and '--include-invalid' are specified.
-    """
-    ret = script_runner.run('elyra-metadata',
-                            'export',
-                            METADATA_TEST_SCHEMASPACE,
-                            '--directory=dummy-directory',
-                            '--valid-only',
-                            '--include-invalid')
-    assert ret.success is False
-    assert "ERROR. Options '--valid-only' and '--include-invalid' are mutually exclusive." in ret.stdout
-
-
 def test_export_no_schema_no_instances(script_runner, mock_data_dir):
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--directory=dummy-directory')
     assert ret.success
@@ -661,7 +582,7 @@ def test_export_inaccessible_directory(script_runner, mock_data_dir):
     directory_parameter = "/dummy-directory"
 
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--directory={}'.format(directory_parameter))
+                            f'--directory={directory_parameter}')
     assert ret.success is False
     assert f"Error creating directory structure for '{directory_parameter}/" + \
            f"{METADATA_TEST_SCHEMASPACE}': " in ret.stdout
@@ -702,7 +623,8 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     temp_dir = TemporaryDirectory()
     directory_parameter = temp_dir.name
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--directory={}'.format(directory_parameter))
+                            '--include-invalid',
+                            f'--directory={directory_parameter}')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
@@ -742,7 +664,7 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     temp_dir = TemporaryDirectory()
     directory_parameter = temp_dir.name
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--valid-only', '--directory={}'.format(directory_parameter))
+                            f'--directory={directory_parameter}')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
@@ -776,8 +698,12 @@ def test_export_with_schema_with_instances(script_runner, mock_data_dir):
     directory_parameter = temp_dir.name
 
     # test for valid and invalid
-    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+    ret = script_runner.run('elyra-metadata',
+                            'export',
+                            METADATA_TEST_SCHEMASPACE,
+                            '--include-invalid',
+                            '--schema_name=metadata-test',
+                            f'--directory={directory_parameter}')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
@@ -797,7 +723,7 @@ def test_export_with_schema_with_instances(script_runner, mock_data_dir):
 
     # test for valid only
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
-                            '--valid-only', '--directory={}'.format(directory_parameter))
+                            f'--directory={directory_parameter}')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
@@ -853,11 +779,12 @@ def test_export_without_clean(script_runner, mock_data_dir):
 
     # export metadata without --clean flag
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+                            '--schema_name=metadata-test',
+                            f'--directory={directory_parameter}')
     assert ret.success
     assert f"Creating directory structure for '{export_directory}'" not in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'" + \
-           f" and schema 'metadata-test' (includes invalid) to '{export_directory}'" in ret.stdout
+           f" and schema 'metadata-test' (valid only) to '{export_directory}'" in ret.stdout
     assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
 
     # verify that the metadata file was overwritten while both the dummy files were left as is
@@ -921,12 +848,13 @@ def test_export_clean(script_runner, mock_data_dir):
 
     # export metadata with --clean flag
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--clean',
-                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+                            '--schema_name=metadata-test',
+                            f'--directory={directory_parameter}')
     assert ret.success
     assert f"Creating directory structure for '{export_directory}'" not in ret.stdout
     assert f"Cleaning out all files in '{export_directory}'" in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'" + \
-           f" and schema 'metadata-test' (includes invalid) to '{export_directory}'" in ret.stdout
+           f" and schema 'metadata-test' (valid only) to '{export_directory}'" in ret.stdout
     assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
 
     # verify that the metadata file was overwritten and dummy file within the same schema folder was deleted

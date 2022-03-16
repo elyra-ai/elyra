@@ -155,9 +155,9 @@ The above example will export all code snippets to the "/tmp/foo/code-snippets" 
 
 Note that you must specify the `--directory` option. 
 
-There are two flags that can be specified when exporting metadata:
-1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
-2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/code-snippets" directory before exporting the metadata.
+There are two flags that can be specified when exporting code snippets:
+1. To include invalid code snippets, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/code-snippets" directory before exporting the code snippets.
 
 #### Deleting a code snippet
 
