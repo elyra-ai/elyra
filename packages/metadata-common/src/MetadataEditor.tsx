@@ -26,6 +26,7 @@ import {
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
+import { ITranslator } from '@jupyterlab/translation';
 
 import { find } from '@lumino/algorithm';
 import { Message } from '@lumino/messaging';
@@ -44,6 +45,7 @@ interface IMetadataEditorProps {
   code?: string[];
   onSave: () => void;
   editorServices: IEditorServices | null;
+  translator: ITranslator;
   status: ILabStatus;
   componentRegistry?: IFormComponentRegistry;
   themeManager?: IThemeManager;
@@ -68,6 +70,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   schemaName,
   schemaTop,
   initialMetadata,
+  translator,
   name,
   themeManager,
   setDirty,
@@ -169,6 +172,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
           setInvalid={(invalid: boolean): void => {
             setInvalidForm(invalid);
           }}
+          translator={translator}
           editorServices={editorServices}
           originalData={metadata}
           allTags={allTags}

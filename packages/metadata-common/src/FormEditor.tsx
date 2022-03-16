@@ -17,7 +17,8 @@
 import { DropDown } from '@elyra/ui-components';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
-import Form, { IChangeEvent } from '@rjsf/core';
+import { ITranslator } from '@jupyterlab/translation';
+import Form, { ArrayFieldTemplateProps, IChangeEvent } from '@rjsf/core';
 import * as React from 'react';
 
 import { CodeBlock } from './CodeBlock';
@@ -28,11 +29,66 @@ interface IFormEditorProps {
   onChange: (formData: any) => void;
   setInvalid: (invalid: boolean) => void;
   editorServices: IEditorServices | null;
+  translator: ITranslator;
   componentRegistry?: IFormComponentRegistry;
   originalData?: any;
   allTags?: string[];
   languageOptions?: string[];
 }
+
+const ArrayTemplate = (props: ArrayFieldTemplateProps) => {
+  return (
+    <div className={props.className}>
+      <props.TitleField
+        title={props.title}
+        required={props.required}
+        id={`${props.idSchema.$id}-title`}
+      />
+      <props.DescriptionField
+        id={`${props.idSchema.$id}-description`}
+        description={props.schema.description ?? ''}
+      />
+      {props.items.map(item => {
+        return (
+          <div key={item.key} className={item.className}>
+            {item.children}
+            <div className="jp-ArrayOperations">
+              <button
+                className="jp-mod-styled jp-mod-reject"
+                onClick={item.onReorderClick(item.index, item.index - 1)}
+                disabled={!item.hasMoveUp}
+              >
+                {props.formContext?.trans?.__?.('Move Up') ?? 'Move up'}
+              </button>
+              <button
+                className="jp-mod-styled jp-mod-reject"
+                onClick={item.onReorderClick(item.index, item.index + 1)}
+                disabled={!item.hasMoveDown}
+              >
+                {props.formContext?.trans?.__?.('Move Down') ?? 'Move down'}
+              </button>
+              <button
+                className="jp-mod-styled jp-mod-warn"
+                onClick={item.onDropIndexClick(item.index)}
+                disabled={!item.hasRemove}
+              >
+                {props.formContext?.trans?.__?.('Remove') ?? 'remove'}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+      {props.canAdd && (
+        <button
+          className="jp-mod-styled jp-mod-reject"
+          onClick={props.onAddClick}
+        >
+          {props.formContext?.trans?.__?.('Add') ?? 'Add'}
+        </button>
+      )}
+    </div>
+  );
+};
 
 export const FormEditor: React.FC<IFormEditorProps> = ({
   schema,
@@ -40,6 +96,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   setInvalid,
   editorServices,
   componentRegistry,
+  translator,
   originalData,
   allTags,
   languageOptions
@@ -65,13 +122,15 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         updateAllTags: (updatedTags: string[]): void => {
           setTags(updatedTags);
         },
-        languageOptions: languageOptions
+        languageOptions: languageOptions,
+        trans: translator
       }}
       fields={{
         code: CodeBlock,
         tags: MetadataEditorTagsField,
         dropdown: DropDown
       }}
+      ArrayFieldTemplate={ArrayTemplate}
       uiSchema={uiSchema}
       onChange={(e: IChangeEvent<any>): void => {
         setFormData(e.formData);

@@ -342,6 +342,10 @@ button.elyra-inputTag {
   font-size: var(--jp-ui-font-size1);
 }
 
+.jp-ArrayOperations button:disabled {
+  cursor: not-allowed;
+}
+
 input.elyra-inputTag {
   font-size: var(--jp-ui-font-size1);
   background: none;

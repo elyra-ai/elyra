@@ -34,6 +34,7 @@ import {
   LabIcon,
   IFormComponentRegistry
 } from '@jupyterlab/ui-components';
+import { ITranslator } from '@jupyterlab/translation';
 
 import { find } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
@@ -56,7 +57,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     ICommandPalette,
     IEditorServices,
     ILabStatus,
-    IFormComponentRegistry
+    IFormComponentRegistry,
+    ITranslator
   ],
   optional: [IThemeManager],
   activate: async (
@@ -65,6 +67,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     editorServices: IEditorServices,
     status: ILabStatus,
     componentRegistry: IFormComponentRegistry,
+    translator: ITranslator,
     themeManager?: IThemeManager
   ) => {
     console.log('Elyra - metadata extension is activated!');
@@ -102,6 +105,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         editorServices,
         status,
         themeManager,
+        translator,
         componentRegistry
       });
       metadataEditorWidget.title.label = widgetLabel;
