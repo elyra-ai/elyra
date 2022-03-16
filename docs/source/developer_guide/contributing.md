@@ -87,7 +87,7 @@ Refer to the [cypress API](https://docs.cypress.io/api/api/table-of-contents.htm
 New integration tests can be added to `tests/integration`. 
 
 #### UI Unit tests
-To run all of the unit tests, use `make test-ui-unit` from the root directory. To run the unit tests for a specific Elyra package, simply run `jest` from that package's directory (under `packages/`). For writing tests, `jest` has a watch mode option: just run `jest --watch`. 
+To run all of the unit tests, use `make test-ui-unit` from the root directory. To run the unit tests for a specific Elyra package, simply run `jest` or `npm run test` from that package's directory (under `packages/`). To turn on the watch mode just run `jest --watch` or `npm run test --watch`.
 
 Elyra's unit tests test the various classes and objects used by Elyra extensions. Refer to the [jest API](https://jestjs.io/docs/en/getting-started) for more details. 
 
