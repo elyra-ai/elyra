@@ -222,9 +222,9 @@ The above example will export all component catalogs to the "/tmp/foo/component-
 
 Note that you must specify the `--directory` option.
 
-There are two flags that can be specified when exporting metadata:
-1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
-2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the metadata.
+There are two flags that can be specified when exporting component catalogs:
+1. To include invalid component catalogs, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the component catalogs.
 
 #### Removing a component catalog entry
 
