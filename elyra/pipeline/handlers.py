@@ -241,7 +241,7 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
                 schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
             ).get(name=catalog)
         except MetadataNotFoundError:
-            raise web.HTTPError(404, f"Invalid catalog name '{catalog}'")
+            raise web.HTTPError(404, f"Catalog '{catalog}' cannot be found.")
 
         self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
         ComponentCache.instance().update_manifest_queue(source=catalog, action='modify')

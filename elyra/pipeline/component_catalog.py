@@ -162,7 +162,7 @@ class CacheUpdateManagerThread(Thread):
         empty_manifest: Dict[str, str] = {}
 
         with open(self._manifest_filename, 'w') as f:
-            f.write(json.dumps(empty_manifest, indent=2))
+            json.dump(empty_manifest, f, indent=2)
 
     def clear_duplicate_actions(self):
         """
