@@ -2,7 +2,7 @@
   "display_name": "R Script",
   "metadata": {
     "description": "R Script",
-    "image_name": "jupyter/r-notebook",
+    "image_name": "jupyter/r-notebook:r-4.1.2",
     "tags": ["R"]
   },
   "schema_name": "runtime-image"
