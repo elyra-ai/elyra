@@ -104,7 +104,6 @@ And the following under `'dev_dependencies'`:
 ```
 "@jupyterlab/testutils": "3.3.0",
 "@types/jest": "^23.3.11",
-"install": "^0.13.0",
 "jest": "^24.7.1",
 "jest-raw-loader": "^1.0.1",
 "ts-jest": "^24.0.2",
