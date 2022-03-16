@@ -18,7 +18,12 @@ import { DropDown } from '@elyra/ui-components';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import { ITranslator } from '@jupyterlab/translation';
-import Form, { ArrayFieldTemplateProps, IChangeEvent } from '@rjsf/core';
+import Form, {
+  ArrayFieldTemplateProps,
+  Field,
+  IChangeEvent,
+  Widget
+} from '@rjsf/core';
 import * as React from 'react';
 
 import { CodeBlock } from './CodeBlock';
@@ -35,6 +40,19 @@ interface IFormEditorProps {
   allTags?: string[];
   languageOptions?: string[];
 }
+
+const PasswordWidget: Widget = props => {
+  const { BaseInput } = props.registry.widgets;
+  const [showPassword, setShowPassword] = React.useState(false);
+  return (
+    <div>
+      <BaseInput type={showPassword ? 'text' : 'password'} {...props} />
+      <button onClick={() => setShowPassword(!showPassword)}>
+        Show password
+      </button>
+    </div>
+  );
+};
 
 const ArrayTemplate = (props: ArrayFieldTemplateProps) => {
   return (
@@ -108,6 +126,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   for (const field in schema?.properties) {
     uiSchema[field] = schema.properties[field].uihints ?? {};
     uiSchema[field]['ui:field'] = uiSchema[field]['field_type'];
+    uiSchema[field]['ui:widget'] = uiSchema[field]['widget_type'];
     uiSchema[field].classNames = `${field}Field`;
   }
 
@@ -129,6 +148,9 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         code: CodeBlock,
         tags: MetadataEditorTagsField,
         dropdown: DropDown
+      }}
+      widgets={{
+        password: PasswordWidget
       }}
       ArrayFieldTemplate={ArrayTemplate}
       uiSchema={uiSchema}
