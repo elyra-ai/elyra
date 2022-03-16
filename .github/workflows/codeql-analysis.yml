@@ -12,6 +12,7 @@ on:
     # The branches below must be a subset of the branches above
     branches: [master]
   schedule:
+    # Run every Wednesday at 8 am
     - cron: '0 8 * * 3'
 
 permissions:
