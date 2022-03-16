@@ -83,17 +83,20 @@ class CatalogEntry(object):
     catalog_type: str
     runtime_type: RuntimeProcessorType
     categories: List[str]
+    file_extensions: str
 
     def __init__(self,
                  entry_data: EntryData,
                  entry_reference: Any,
                  catalog_instance: Metadata,
-                 hash_keys: List[str]):
+                 hash_keys: List[str],
+                 file_extensions: List[str]):
         self.entry_data = entry_data
         self.entry_reference = entry_reference
         self.catalog_type = catalog_instance.schema_name
         self.runtime_type = catalog_instance.runtime_type.name  # noqa
         self.categories = catalog_instance.metadata.get("categories", [])
+        self.file_extensions = file_extensions
 
         self.id = self.compute_unique_id(hash_keys)
 
@@ -134,7 +137,8 @@ class CatalogEntry(object):
             "component_reference": self.entry_reference,
             "definition": self.entry_data.definition,
             "runtime_type": self.runtime_type,
-            "categories": self.categories
+            "categories": self.categories,
+            "extensions": self.file_extensions
         }
 
         if isinstance(self.entry_data, AirflowEntryData):
@@ -420,7 +424,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
                         entry_data=entry_data,
                         entry_reference=catalog_entry_data,
                         catalog_instance=catalog_instance,
-                        hash_keys=keys_to_hash
+                        hash_keys=keys_to_hash,
+                        file_extensions=self._file_types
                     )
 
                     catalog_entries.append(catalog_entry)

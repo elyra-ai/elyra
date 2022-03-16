@@ -309,6 +309,14 @@ class Component(object):
     def output_properties(self) -> List[ComponentParameter]:
         return [prop for prop in self._properties if prop.data_type == 'outputpath']
 
+    @property
+    def file_extension(self) -> Optional[str]:
+        """
+        The file extension of the definition file representing this
+        Component.
+        """
+        return self.extensions[0] if self.extensions else None
+
     @staticmethod
     def _log_warning(msg: str, logger: Optional[Logger] = None):
         if logger:

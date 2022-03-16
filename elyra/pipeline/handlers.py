@@ -154,6 +154,16 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipeline component_id properties"""
 
+    def get_mime_type(self, ext: Optional[str]) -> str:
+        """
+        Get the MIME type for the component definition content.
+        """
+        if ext == '.yaml':
+            return 'text/x-yaml'
+        elif ext == '.py':
+            return 'text/x-python'
+        return 'text/plain'
+
     @web.authenticated
     async def get(self, processor, component_id):
         self.log.debug(f'Retrieving pipeline component properties for component: {component_id}')
@@ -167,16 +177,22 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         component: Optional[Component] = \
             await PipelineProcessorManager.instance().get_component(processor, component_id)
 
+        if not component:
+            raise web.HTTPError(404, f"Component '{component_id}' not found")
+
+        content_type = 'application/json'
         if self.request.path.endswith("/properties"):
-            # Return completely set of component properties
-            json_response = ComponentCache.to_canvas_properties(component)
+            # Return complete set of component properties
+            response = ComponentCache.to_canvas_properties(component)
         else:
             # Return component definition content
-            json_response = json.dumps(component.definition)
+            response = component.definition
+            content_type = self.get_mime_type(component.file_extension)
 
+        self.write(response)
         self.set_status(200)
-        self.set_header("Content-Type", 'application/json')
-        self.finish(json_response)
+        self.set_header("Content-Type", content_type)
+        self.flush()
 
 
 class PipelineValidationHandler(HttpErrorMixin, APIHandler):
