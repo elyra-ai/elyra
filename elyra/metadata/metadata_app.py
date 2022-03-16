@@ -149,7 +149,7 @@ class SchemaspaceRemove(SchemaspaceBase):
             pass
 
         self.metadata_manager.remove(name)
-        print("Metadata instance '{}' removed from schemaspace '{}'.".format(name, self.schemaspace))
+        print(f"Metadata instance '{name}' removed from schemaspace '{self.schemaspace}'.")
 
 
 class SchemaspaceInstall(SchemaspaceBase):
@@ -158,7 +158,7 @@ class SchemaspaceInstall(SchemaspaceBase):
     # Known options, others will be derived from schema based on schema_name...
 
     replace_flag = Flag("--replace", name='replace',
-                        description='Replace existing instance', default_value=False)
+                        description='Replace an existing instance', default_value=False)
     name_option = CliOption("--name", name='name',
                             description='The name of the metadata instance to install')
     file_option = FileOption("--file", name='file',
@@ -185,13 +185,13 @@ class SchemaspaceInstall(SchemaspaceBase):
             self.schema_name_option = CliOption("--schema_name", name='schema_name',
                                                 default_value=schema_list[0],
                                                 description="The schema_name of the metadata instance to "
-                                                            "install (defaults to '{}')".format(schema_list[0]),
+                                                            f"install (defaults to '{schema_list[0]}')",
                                                 required=True)
         else:
             enum = schema_list
             self.schema_name_option = CliOption("--schema_name", name='schema_name', enum=enum,
-                                                description='The schema_name of the metadata instance to install.  '
-                                                            'Must be one of: {}'.format(enum),
+                                                description="The schema_name of the metadata instance to install.  "
+                                                            f"Must be one of: {enum}",
                                                 required=True)
 
         self.options.extend([self.schema_name_option, self.name_option])
@@ -241,8 +241,8 @@ class SchemaspaceInstall(SchemaspaceBase):
             elif isinstance(option, JSONBasedOption):
                 metadata.update(option.metadata)
 
-        if display_name is None and self.replace_flag.value is False:  # Only require
-            self.log_and_exit("Could not determine display_name from schema '{}'".format(schema_name))
+        if display_name is None and self.replace_flag.value is False:  # Only require on create
+            self.log_and_exit(f"Could not determine display_name from schema '{schema_name}'")
 
         ex_msg = None
         new_instance = None
@@ -262,15 +262,15 @@ class SchemaspaceInstall(SchemaspaceBase):
             ex_msg = str(ex)
 
         if new_instance:
-            print("Metadata instance '{}' for schema '{}' has been written to: {}"
-                  .format(new_instance.name, schema_name, new_instance.resource))
+            print(f"Metadata instance '{new_instance.name}' for schema '{schema_name}' has been written "
+                  f"to: {new_instance.resource}")
         else:
             if ex_msg:
-                self.log_and_exit("The following exception occurred saving metadata instance for schema '{}': {}"
-                                  .format(schema_name, ex_msg), display_help=True)
+                self.log_and_exit(f"The following exception occurred saving metadata instance "
+                                  f"for schema '{schema_name}': {ex_msg}", display_help=False)
             else:
-                self.log_and_exit("A failure occurred saving metadata instance '{}' for schema '{}'."
-                                  .format(name, schema_name), display_help=True)
+                self.log_and_exit(f"A failure occurred saving metadata instance '{name}' for "
+                                  f"schema '{schema_name}'.", display_help=False)
 
     def _process_json_based_options(self) -> bool:
         """Process the file and json options to see if they have values (and those values can be loaded as JSON)
@@ -408,7 +408,7 @@ class SchemaspaceExport(SchemaspaceBase):
         super().start()  # process options
 
         schema_name = self.schema_name_option.value
-        if(schema_name):
+        if schema_name:
             schema_list = sorted(list(self.schemas.keys()))
             if schema_name not in schema_list:
                 print(f"Schema name '{schema_name}' is invalid. For the '{self.schemaspace}' schemaspace, " +
@@ -420,7 +420,7 @@ class SchemaspaceExport(SchemaspaceBase):
         clean = self.clean_flag.value
 
         try:
-            if(self.schema_name_option is not None):
+            if self.schema_name_option is not None:
                 metadata_instances = self.metadata_manager.get_all(include_invalid=include_invalid,
                                                                    of_schema=schema_name)
             else:
@@ -497,9 +497,6 @@ class SubcommandBase(AppBase):
 
     def start(self):
         subcommand = self.get_subcommand()
-        if subcommand is None:
-            self.exit_no_subcommand()
-
         subinstance = subcommand[0](argv=self.argv, schemaspace_schemas=self.schemaspace_schemas)
         return subinstance.start()
 
@@ -597,9 +594,6 @@ class MetadataApp(AppBase):
 
     def start(self):
         subcommand = self.get_subcommand()
-        if subcommand is None:
-            self.exit_no_subcommand()
-
         subinstance = subcommand[0](argv=self.argv, schemaspace_schemas=self.schemaspace_schemas)
         return subinstance.start()
 

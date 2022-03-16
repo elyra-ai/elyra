@@ -23,7 +23,11 @@ import {
   JupyterFrontEndPlugin,
   ILabStatus
 } from '@jupyterlab/application';
-import { IThemeManager, ICommandPalette } from '@jupyterlab/apputils';
+import {
+  IThemeManager,
+  ICommandPalette,
+  MainAreaWidget
+} from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
 
@@ -94,7 +98,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.title.icon = textEditorIcon;
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
       metadataEditorWidget.titleContext = args.titleContext;
-      app.shell.add(metadataEditorWidget, 'main');
+      const main = new MainAreaWidget({ content: metadataEditorWidget });
+      app.shell.add(main, 'main');
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
