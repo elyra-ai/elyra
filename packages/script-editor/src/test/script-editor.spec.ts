@@ -50,14 +50,19 @@ describe('@elyra/script-editor', () => {
   describe('KernelManager', () => {
     describe('#startSession', () => {
       let runner: ScriptRunner;
+      let kernelName: string;
       const testPath = 'test.py';
 
-      beforeEach(() => {
+      beforeEach(async () => {
         runner = new ScriptRunner((x: boolean): void => console.log(x));
+        const controller = new ScriptEditorController();
+        const kernelSpecs = await controller.getKernelSpecsByLanguage(language);
+        kernelName =
+          Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name || '';
       });
 
       it('should start a kernel session', async () => {
-        const session = await runner.startSession(language, testPath);
+        const session = await runner.startSession(kernelName, testPath);
         expect(session.id).toEqual(runner.sessionConnection?.id);
         expect(runner.sessionConnection?.kernel?.connectionStatus).toEqual(
           'connecting'
@@ -66,23 +71,28 @@ describe('@elyra/script-editor', () => {
       });
 
       it('should shut down a kernel session', async () => {
-        await runner.startSession(language, 'test.py');
+        await runner.startSession(kernelName, 'test.py');
         await runner.shutdownSession();
         expect(runner.sessionConnection).toBeNull();
       });
 
-      // Test should run script
       it('should run script', async () => {
         const code = 'print("Test")';
-        await runner.startSession(language, 'test.py');
-        const kernelMsg = async (msg: any): Promise<void> => {
-          msg.output && expect(msg.output).toEqual('Test');
-        };
-        await runner.runScript(language, testPath, code, kernelMsg);
+        const kernelMsgFn = async (msg: any): Promise<void> =>
+          msg.output && expect(msg.output).toMatch(/test/i);
+        expect(kernelName).not.toBe('');
+        await runner.runScript(kernelName, testPath, code, kernelMsgFn);
         await runner.shutdownSession();
       });
 
-      // Test should receive error message when running a broken script
+      it('should receive error message when running a broken script', async () => {
+        const code = 'print(Broken Test)';
+        const kernelMsgFn = async (msg: any): Promise<void> =>
+          msg.error && expect(msg.error.type).toMatch(/error/i);
+        expect(kernelName).not.toBe('');
+        await runner.runScript(kernelName, testPath, code, kernelMsgFn);
+        await runner.shutdownSession();
+      });
     });
   });
 });
