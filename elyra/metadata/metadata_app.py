@@ -152,13 +152,6 @@ class SchemaspaceRemove(SchemaspaceBase):
         print(f"Metadata instance '{name}' removed from schemaspace '{self.schemaspace}'.")
 
 
-class SchemaspaceCreate(SchemaspaceBase):
-    """
-    _summary_
-    """
-    pass
-
-
 class SchemaspaceInstall(SchemaspaceBase):
     """Handles the 'install' subcommand functionality for a specific schemaspace."""
 
