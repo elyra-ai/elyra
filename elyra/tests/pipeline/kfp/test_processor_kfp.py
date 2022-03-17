@@ -275,7 +275,7 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_processing_url_runtime_specific_component(monkeypatch,
                                                    processor,
                                                    catalog_instance,
@@ -362,7 +362,7 @@ def test_processing_url_runtime_specific_component(monkeypatch,
     assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_processing_filename_runtime_specific_component(monkeypatch,
                                                         processor,
                                                         catalog_instance,
