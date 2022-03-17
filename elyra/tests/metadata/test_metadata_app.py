@@ -582,7 +582,7 @@ def test_export_inaccessible_directory(script_runner, mock_data_dir):
     directory_parameter = "/dummy-directory"
 
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--directory={}'.format(directory_parameter))
+                            f'--directory={directory_parameter}')
     assert ret.success is False
     assert f"Error creating directory structure for '{directory_parameter}/" + \
            f"{METADATA_TEST_SCHEMASPACE}': " in ret.stdout
@@ -623,7 +623,29 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     temp_dir = TemporaryDirectory()
     directory_parameter = temp_dir.name
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--directory={}'.format(directory_parameter))
+                            '--include-invalid',
+                            f'--directory={directory_parameter}')
+    assert ret.success
+    export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
+    assert f"Creating directory structure for '{export_directory}'" in ret.stdout
+    assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}' " + \
+           f"(includes invalid) to '{export_directory}'" in ret.stdout
+    assert "Exported 3 instances (2 of which are invalid)" in ret.stdout
+
+    exported_metadata = sorted(os.listdir(export_directory), key=str.casefold)
+    assert len(exported_metadata) == 3
+    assert exported_metadata[0] == "invalid.json"
+    assert exported_metadata[1] == "invalid2.json"
+    assert exported_metadata[2] == "valid.json"
+    temp_dir.cleanup()
+
+    # test for valid and invalid using '--include-invalid' option, which
+    # prior to version 4.0 is a no-op
+    temp_dir = TemporaryDirectory()
+    directory_parameter = temp_dir.name
+    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
+                            f'--directory={directory_parameter}',
+                            '--include-invalid')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
@@ -642,7 +664,7 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     temp_dir = TemporaryDirectory()
     directory_parameter = temp_dir.name
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--valid-only', '--directory={}'.format(directory_parameter))
+                            f'--directory={directory_parameter}')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
@@ -676,8 +698,12 @@ def test_export_with_schema_with_instances(script_runner, mock_data_dir):
     directory_parameter = temp_dir.name
 
     # test for valid and invalid
-    ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+    ret = script_runner.run('elyra-metadata',
+                            'export',
+                            METADATA_TEST_SCHEMASPACE,
+                            '--include-invalid',
+                            '--schema_name=metadata-test',
+                            f'--directory={directory_parameter}')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
@@ -697,7 +723,7 @@ def test_export_with_schema_with_instances(script_runner, mock_data_dir):
 
     # test for valid only
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
-                            '--valid-only', '--directory={}'.format(directory_parameter))
+                            f'--directory={directory_parameter}')
     assert ret.success
     export_directory = os.path.join(directory_parameter, METADATA_TEST_SCHEMASPACE)
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
@@ -753,11 +779,12 @@ def test_export_without_clean(script_runner, mock_data_dir):
 
     # export metadata without --clean flag
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE,
-                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+                            '--schema_name=metadata-test',
+                            f'--directory={directory_parameter}')
     assert ret.success
     assert f"Creating directory structure for '{export_directory}'" not in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'" + \
-           f" and schema 'metadata-test' (includes invalid) to '{export_directory}'" in ret.stdout
+           f" and schema 'metadata-test' (valid only) to '{export_directory}'" in ret.stdout
     assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
 
     # verify that the metadata file was overwritten while both the dummy files were left as is
@@ -821,12 +848,13 @@ def test_export_clean(script_runner, mock_data_dir):
 
     # export metadata with --clean flag
     ret = script_runner.run('elyra-metadata', 'export', METADATA_TEST_SCHEMASPACE, '--clean',
-                            '--schema_name=metadata-test', '--directory={}'.format(directory_parameter))
+                            '--schema_name=metadata-test',
+                            f'--directory={directory_parameter}')
     assert ret.success
     assert f"Creating directory structure for '{export_directory}'" not in ret.stdout
     assert f"Cleaning out all files in '{export_directory}'" in ret.stdout
     assert f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'" + \
-           f" and schema 'metadata-test' (includes invalid) to '{export_directory}'" in ret.stdout
+           f" and schema 'metadata-test' (valid only) to '{export_directory}'" in ret.stdout
     assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
 
     # verify that the metadata file was overwritten and dummy file within the same schema folder was deleted
