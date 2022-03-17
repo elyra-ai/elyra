@@ -19,6 +19,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from jsonschema import validate
+from jsonschema import ValidationError
 import yaml
 
 from elyra.pipeline.catalog_connector import CatalogEntry
@@ -33,6 +35,90 @@ class KfpComponentParser(ComponentParser):
     _file_types: List[str] = [".yaml"]
 
     component_platform: RuntimeProcessorType = RuntimeProcessorType.KUBEFLOW_PIPELINES
+
+    yaml_schema = {
+        "properties": {
+            "name": {
+                "type": "string"
+            },
+            "description": {
+                "type": "string"
+            },
+            "inputs": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string"
+                        },
+                        "optional": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "required": ["name"]
+            },
+            "outputs": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string"
+                        },
+                        "optional": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "required": ["name"]
+            },
+            "implementation": {
+                "type": "object",
+                "properties": {
+                    "container": {
+                        "type": "object",
+                        "properties": {
+                            "image": {
+                                "type": "string"
+                            },
+                            "command": {
+                                "type": "array",
+                                "items": {
+                                    "OneOf": [
+                                        {"type": "string"},
+                                        {"type": "object"}
+                                    ]
+                                }
+                            },
+                            "args": {
+                                "type": "array",
+                                "items": {
+                                    "OneOf": [
+                                        {"type": "string"},
+                                        {"type": "object"}
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     def parse(self, catalog_entry: CatalogEntry) -> Optional[List[Component]]:
         # Get YAML object from component definition
@@ -58,7 +144,7 @@ class KfpComponentParser(ComponentParser):
         return [component]
 
     def _parse_properties(self, component_yaml: Dict[str, Any]) -> List[ComponentParameter]:
-        properties: List[ComponentParameter] = list()
+        properties: List[ComponentParameter] = []
 
         # NOTE: Currently no runtime-specific properties are needed
         # properties.extend(self.get_runtime_specific_properties())
@@ -163,11 +249,21 @@ class KfpComponentParser(ComponentParser):
         Convert component_definition string to YAML object
         """
         try:
-            return yaml.safe_load(catalog_entry.entry_data.definition)
+            results = yaml.safe_load(catalog_entry.entry_data.definition)
         except Exception as e:
             self.log.warning(f"Could not load YAML definition for component with identifying information: "
                              f"'{catalog_entry.entry_reference}' -> {str(e)}")
             return None
+
+        try:
+            # Validate against component YAML schema
+            validate(instance=results, schema=self.yaml_schema)
+        except ValidationError as ve:
+            self.log.warning(f"Invalid format of YAML definition for component with identifying information: "
+                             f"'{catalog_entry.entry_reference}' -> {str(ve)}")
+            return None
+
+        return results
 
     def _is_path_based_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:
         """
