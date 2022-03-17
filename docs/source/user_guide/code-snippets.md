@@ -115,7 +115,7 @@ To format the output as JSON run `elyra-metadata list code-snippets --json`. Not
 To create a code snippet:
 
 ```bash
-elyra-metadata install code-snippets \
+elyra-metadata create code-snippets \
 	--display_name="Preview DataFrame" \
 	--description="Preview Pandas DataFrame" \
 	--tags="['Python', 'Pandas']" \
@@ -130,8 +130,7 @@ Refer to the [Code snippet properties](#code-snippet-properties) section for an 
 To modify a code snippet:
 
 ```bash
-elyra-metadata install code-snippets \
-	--replace \
+elyra-metadata update code-snippets \
 	--name="preview_dataframe" \
 	--display_name="Preview DataFrame" \
 	--description="Preview Pandas DataFrame" \
@@ -140,7 +139,7 @@ elyra-metadata install code-snippets \
 	--code="['# Display first 5 rows', 'df.head(5)']"
 ```
 
-Refer to the [Code snippet properties](#code-snippet-properties) section for an explanation of the parameters. Note that you must specify the `--name` parameter and the `--replace` parameter. 
+Refer to the [Code snippet properties](#code-snippet-properties) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 
 
 #### Exporting code snippets
 
