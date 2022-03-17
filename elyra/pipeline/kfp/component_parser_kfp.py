@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 from types import SimpleNamespace
 from typing import Any
 from typing import Dict
@@ -22,6 +23,7 @@ from typing import Optional
 from jsonschema import validate
 from jsonschema import ValidationError
 import yaml
+from pathlib import Path
 
 from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
@@ -35,90 +37,6 @@ class KfpComponentParser(ComponentParser):
     _file_types: List[str] = [".yaml"]
 
     component_platform: RuntimeProcessorType = RuntimeProcessorType.KUBEFLOW_PIPELINES
-
-    yaml_schema = {
-        "properties": {
-            "name": {
-                "type": "string"
-            },
-            "description": {
-                "type": "string"
-            },
-            "inputs": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "string"
-                        },
-                        "description": {
-                            "type": "string"
-                        },
-                        "type": {
-                            "type": "string"
-                        },
-                        "optional": {
-                            "type": "boolean"
-                        }
-                    }
-                },
-                "required": ["name"]
-            },
-            "outputs": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "string"
-                        },
-                        "description": {
-                            "type": "string"
-                        },
-                        "type": {
-                            "type": "string"
-                        },
-                        "optional": {
-                            "type": "boolean"
-                        }
-                    }
-                },
-                "required": ["name"]
-            },
-            "implementation": {
-                "type": "object",
-                "properties": {
-                    "container": {
-                        "type": "object",
-                        "properties": {
-                            "image": {
-                                "type": "string"
-                            },
-                            "command": {
-                                "type": "array",
-                                "items": {
-                                    "OneOf": [
-                                        {"type": "string"},
-                                        {"type": "object"}
-                                    ]
-                                }
-                            },
-                            "args": {
-                                "type": "array",
-                                "items": {
-                                    "OneOf": [
-                                        {"type": "string"},
-                                        {"type": "object"}
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     def parse(self, catalog_entry: CatalogEntry) -> Optional[List[Component]]:
         # Get YAML object from component definition
@@ -257,7 +175,8 @@ class KfpComponentParser(ComponentParser):
 
         try:
             # Validate against component YAML schema
-            validate(instance=results, schema=self.yaml_schema)
+            with open(Path(__file__).parent / 'component-schema.json') as f:
+                validate(instance=results, schema=json.load(f))
         except ValidationError as ve:
             self.log.warning(f"Invalid format of YAML definition for component with identifying information: "
                              f"'{catalog_entry.entry_reference}' -> {str(ve)}")
