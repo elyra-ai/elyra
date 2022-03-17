@@ -381,6 +381,10 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 elif data_type in ['list', 'set', 'array', 'arr']:
                     data_type = "list"
                     default_value = []
+                else:
+                    # TODO: Unknown container type, surface error?
+                    data_type = "unknown"
+                    default_value = None
 
                 # Since we know the type, create our return value and bail
                 data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,

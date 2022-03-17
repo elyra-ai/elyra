@@ -68,7 +68,7 @@ def dependency_exists(command) -> bool:
     """Returns true if a command exists on the system"""
     try:
         check_run(["which", command])
-    except:
+    except subprocess.CalledProcessError:
         return False
 
     return True
@@ -187,7 +187,6 @@ def update_version_to_dev() -> None:
     global config
 
     new_version = config.new_version
-    new_npm_version = config.new_npm_version
     dev_version = config.dev_version
     dev_npm_version = config.dev_npm_version
 
@@ -393,7 +392,7 @@ def generate_changelog() -> None:
 
         # copy the remaining changelog at the bottom of the new content
         with io.open(changelog_backup_path) as old_changelog:
-            line = old_changelog.readline() # ignore first line as title
+            old_changelog.readline()  # ignore first line as title
             line = old_changelog.readline()
             while line:
                 changelog.write(line)
