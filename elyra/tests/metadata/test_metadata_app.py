@@ -576,13 +576,13 @@ def test_update_no_name(script_runner, mock_data_dir):
 
 
 def test_update_no_instance(script_runner, mock_data_dir):
-    """ Attempt replace before instance exists """
+    """Attempt replace before instance exists """
     ret = script_runner.run('elyra-metadata', 'update', METADATA_TEST_SCHEMASPACE, '--schema_name=metadata-test',
                             '--name=test-metadata_42_valid-name', '--display_name=display_name',
                             '--required_test=required_value')
     assert ret.success is False
     assert "No such instance named 'test-metadata_42_valid-name' was found in the metadata-tests schemaspace." \
-           in ret.stdout 
+           in ret.stdout
 
 
 def test_update_simple(script_runner, mock_data_dir):
