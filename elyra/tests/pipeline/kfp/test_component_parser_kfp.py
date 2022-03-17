@@ -43,7 +43,7 @@ def _get_resource_path(filename):
     return resource_path
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, True)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_component_catalog_load(component_cache, catalog_instance):
     components = component_cache.get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0

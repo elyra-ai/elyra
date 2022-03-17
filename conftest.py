@@ -59,17 +59,15 @@ def component_cache(jp_environ):
 @pytest.fixture
 def catalog_instance(component_cache, request):
     """Creates an instance of a component catalog and removes after test."""
-    instance_metadata, wait_for_cache_updates = request.param
+    instance_metadata = request.param
 
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
     catalog = md_mgr.create(instance_name, Metadata(**instance_metadata))
-    if wait_for_cache_updates:
-        component_cache.wait_for_all_tasks()
+    component_cache.wait_for_all_tasks()
     yield catalog
     md_mgr.remove(instance_name)
-    if wait_for_cache_updates:
-        component_cache.wait_for_all_tasks()
+    component_cache.wait_for_all_tasks()
 
 
 @pytest.fixture

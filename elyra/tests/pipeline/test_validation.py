@@ -106,7 +106,7 @@ def test_basic_pipeline_structure_with_scripts(validation_manager, load_pipeline
     assert not response.to_json().get('issues')
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_invalid_runtime_node_kubeflow(validation_manager,
                                              load_pipeline,
                                              catalog_instance,
@@ -121,13 +121,14 @@ async def test_invalid_runtime_node_kubeflow(validation_manager,
                                                      pipeline_runtime='kfp')
 
     issues = response.to_json().get('issues')
+    print(issues)
     assert len(issues) == 1
     assert issues[0]['severity'] == 1
     assert issues[0]['type'] == 'invalidNodeType'
     assert issues[0]['data']['nodeID'] == node_id
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_invalid_runtime_node_kubeflow_with_supernode(validation_manager,
                                                             load_pipeline,
                                                             catalog_instance,
@@ -221,7 +222,7 @@ async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
     assert issues[0]['data']['nodeID'] == node_id
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch,
                                                            load_pipeline,
                                                            catalog_instance,
@@ -531,7 +532,7 @@ def test_pipeline_invalid_single_cycle_kfp_with_supernode(validation_manager, lo
     assert issues[0]['type'] == 'circularReference'
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_pipeline_kfp_inputpath_parameter(validation_manager,
                                                 load_pipeline,
                                                 catalog_instance,
@@ -547,7 +548,7 @@ async def test_pipeline_kfp_inputpath_parameter(validation_manager,
     assert len(issues) == 0
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_pipeline_invalid_kfp_inputpath_parameter(validation_manager,
                                                         load_pipeline,
                                                         catalog_instance,
@@ -572,7 +573,7 @@ async def test_pipeline_invalid_kfp_inputpath_parameter(validation_manager,
     assert issues[1]['data']['nodeID'] == missing_param_node_id
 
 
-@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_pipeline_invalid_kfp_inputpath_missing_connection(validation_manager,
                                                                  load_pipeline,
                                                                  catalog_instance,
@@ -593,7 +594,7 @@ async def test_pipeline_invalid_kfp_inputpath_missing_connection(validation_mana
     assert issues[0]['data']['nodeID'] == invalid_node_id
 
 
-@pytest.mark.parametrize('catalog_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_pipeline_aa_parent_node_missing_xcom_push(validation_manager,
                                                          load_pipeline,
                                                          catalog_instance,

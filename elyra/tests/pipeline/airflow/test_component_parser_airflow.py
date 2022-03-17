@@ -48,7 +48,7 @@ def _get_resource_path(filename):
     return resource_path
 
 
-@pytest.mark.parametrize('catalog_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, True)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_component_catalog_can_load_components_from_registries(catalog_instance, component_cache):
     components = component_cache.get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0

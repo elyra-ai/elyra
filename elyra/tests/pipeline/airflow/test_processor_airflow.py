@@ -250,7 +250,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
 
 
 @pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
-@pytest.mark.parametrize('catalog_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_create_file_custom_components(monkeypatch,
                                        processor,
                                        catalog_instance,
@@ -582,7 +582,7 @@ def test_process_dictionary_value_function(processor):
 @pytest.mark.parametrize('parsed_pipeline',
                          ['resources/validation_pipelines/aa_operator_same_name.json'],
                          indirect=True)
-@pytest.mark.parametrize('catalog_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_same_name_operator_in_pipeline(monkeypatch,
                                         processor,
                                         catalog_instance,
