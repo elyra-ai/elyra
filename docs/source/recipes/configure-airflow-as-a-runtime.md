@@ -79,7 +79,7 @@ To deploy Apache Airflow on a new Kubernetes cluster:
    kubectl create secret generic airflow-secret --from-file=id_rsa=.ssh/id_rsa --from-file=known_hosts=.ssh/known_hosts --from-file=id_rsa.pub=.ssh/id_rsa.pub -n airflow
    ```
   
-2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration):
+2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration). This sample configuration will use the `KubernetesExecutor` by default.
    - Set `git.url` to the URL of the private repository you created earlier, e.g. `ssh://git@github.com/your-git-org/your-dag-repo`. **Note: Make sure your ssh URL contains only forward slashes.**   
    - Set `git.ref` to the DAG branch, e.g. `main` you created earlier.
    - Set `git.secret` to the name of the secret you created, e.g. `airflow-secret`.
