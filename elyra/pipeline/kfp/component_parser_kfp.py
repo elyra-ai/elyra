@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import json
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 from typing import Dict
@@ -23,7 +24,6 @@ from typing import Optional
 from jsonschema import validate
 from jsonschema import ValidationError
 import yaml
-from pathlib import Path
 
 from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
