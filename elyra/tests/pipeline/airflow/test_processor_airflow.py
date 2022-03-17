@@ -46,7 +46,7 @@ def processor(setup_factory_data):
 
 @pytest.fixture
 def parsed_pipeline(request):
-    ComponentCache.instance().wait_for_all_cache_updates()
+    ComponentCache.instance().wait_for_all_cache_tasks()
     pipeline_resource = _read_pipeline_resource(request.param)
     return PipelineParser().parse(pipeline_json=pipeline_resource)
 
@@ -250,11 +250,11 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
 
 
 @pytest.mark.parametrize('parsed_pipeline', [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
-@pytest.mark.parametrize('component_cache_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
 def test_create_file_custom_components(monkeypatch,
                                        processor,
-                                       component_cache_instance,
-                                       component_catalog,
+                                       catalog_instance,
+                                       component_cache,
                                        parsed_pipeline,
                                        parsed_ordered_dict,
                                        sample_metadata):
@@ -582,10 +582,10 @@ def test_process_dictionary_value_function(processor):
 @pytest.mark.parametrize('parsed_pipeline',
                          ['resources/validation_pipelines/aa_operator_same_name.json'],
                          indirect=True)
-@pytest.mark.parametrize('component_cache_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [(AIRFLOW_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
 def test_same_name_operator_in_pipeline(monkeypatch,
                                         processor,
-                                        component_cache_instance,
+                                        catalog_instance,
                                         parsed_pipeline,
                                         sample_metadata):
     task_id = 'e3922a29-f4c0-43d9-8d8b-4509aab80032'

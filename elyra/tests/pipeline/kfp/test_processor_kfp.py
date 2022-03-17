@@ -43,7 +43,7 @@ def processor(setup_factory_data):
 
 @pytest.fixture
 def pipeline():
-    ComponentCache.instance().wait_for_all_cache_updates()
+    ComponentCache.instance().wait_for_all_cache_tasks()
     pipeline_resource = _read_pipeline_resource(
         'resources/sample_pipelines/pipeline_3_node_sample.json')
     return PipelineParser.parse(pipeline_resource)
@@ -275,11 +275,11 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
 
 
-@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
 def test_processing_url_runtime_specific_component(monkeypatch,
                                                    processor,
-                                                   component_cache_instance,
-                                                   component_catalog,
+                                                   catalog_instance,
+                                                   component_cache,
                                                    sample_metadata,
                                                    tmpdir):
     # Define the appropriate reader for a URL-type component definition
@@ -362,11 +362,11 @@ def test_processing_url_runtime_specific_component(monkeypatch,
     assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
 
 
-@pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
+@pytest.mark.parametrize('catalog_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
 def test_processing_filename_runtime_specific_component(monkeypatch,
                                                         processor,
-                                                        component_cache_instance,
-                                                        component_catalog,
+                                                        catalog_instance,
+                                                        component_cache,
                                                         sample_metadata,
                                                         tmpdir):
     # Define the appropriate reader for a filesystem-type component definition

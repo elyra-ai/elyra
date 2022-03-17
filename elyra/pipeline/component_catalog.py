@@ -44,12 +44,12 @@ from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
-BLOCKING_TIMEOUT = 5
+BLOCKING_TIMEOUT = 0.5
 NONBLOCKING_TIMEOUT = 0.10
 CATALOG_UPDATE_TIMEOUT = 15
 
 
-class CacheUpdateManagerThread(Thread):
+class CacheUpdateManager(Thread):
     def __init__(self,
                  log: Logger,
                  component_cache: Dict[str, Dict],
@@ -60,25 +60,23 @@ class CacheUpdateManagerThread(Thread):
 
         self.setDaemon(True)
 
-        self.log = log
-        self._component_cache = component_cache
-        self._cache_queue = cache_queue
-        self._manifest_queue = manifest_queue
-        self._manifest_filename = manifest_filename
+        self.log: Logger = log
+        self._component_cache: Dict[str, Dict] = component_cache
+        self._cache_queue: Queue = cache_queue
+        self._manifest_queue: Queue = manifest_queue
+        self._manifest_filename: str = manifest_filename
 
         self.out_of_process_update = True
 
         # Create a new manifest file for this process
-        self.build_manifest_file()
+        self._write_manifest()
 
-        self._threads: List[CacheUpdateThread] = []
+        self._threads: List[CacheUpdateWorker] = []
 
         self.stop_event = Event()
 
     def run(self):
         while not self.stop_event.is_set():
-            # Clear redundant tasks from manifest queue
-            # self.clear_duplicate_actions()  # TODO test and remove
 
             try:
                 # Get a task from the manifest queue
@@ -89,8 +87,7 @@ class CacheUpdateManagerThread(Thread):
             else:
                 # Some task is required: either make the required update to the manifest file or
                 # add relevant tasks to the cache queue
-                with open(self._manifest_filename, 'r') as f:
-                    manifest = json.load(f)
+                manifest = self._read_manifest()
 
                 if action == 'delete-manifest':
                     # A 'delete-manifest' action will remove the manifest file, triggering re-load
@@ -99,7 +96,7 @@ class CacheUpdateManagerThread(Thread):
                     os.remove(self._manifest_filename)
 
                     # Build a new manifest file for this process
-                    self.build_manifest_file()
+                    self._write_manifest()
 
                     # TODO add comment here
                     self._manifest_queue.task_done()  # TODO also clear all manifest queue tasks at this point?
@@ -113,9 +110,7 @@ class CacheUpdateManagerThread(Thread):
                     # the cache action has been triggered by a different process
                     if source != self._manifest_filename and os.path.isfile(source):
                         # Load out-of-process manifest in order to perform cache actions in-process
-                        with open(source, 'r') as f:
-                            oop_manifest = json.load(f)
-                        pending_actions = oop_manifest
+                        pending_actions = self._read_manifest(filename=source)
 
                     # Handle all pending actions in one batch (last update wins)
                     for catalog_name, cache_action in pending_actions.items():
@@ -135,7 +130,7 @@ class CacheUpdateManagerThread(Thread):
                         # Reset manifest actions to prepare for write out if this cache update
                         # is acting upon its own manifest file
                         if source == self._manifest_filename:
-                            self.build_manifest_file()
+                            self._write_manifest()
 
                     # TODO comment here
                     self._manifest_queue.task_done()
@@ -150,8 +145,7 @@ class CacheUpdateManagerThread(Thread):
                         manifest[catalog_name] = action
 
                         # Write to file
-                        with open(self._manifest_filename, 'w') as f:
-                            json.dump(manifest, f, indent=2)
+                        self._write_manifest(manifest)
 
                         if self.out_of_process_update:
                             self._manifest_queue.task_done()
@@ -159,33 +153,27 @@ class CacheUpdateManagerThread(Thread):
 
             self.manage_cache_tasks()
 
-    def build_manifest_file(self):
-        """
-        Build an empty manifest and overwrite or create the file. Only the
-        CacheUpdateManagerThread is able to touch this file.
-        """
-        empty_manifest: Dict[str, str] = {}
+    def _read_manifest(self, filename: Optional[str] = None) -> Dict[str, str]:
+        """Read and return the contents of a manifest file.
 
+        If 'filename' is not provided, this process's manifest file will be read.
+        """
+        file = filename or self._manifest_filename
+        with open(file, 'r') as f:
+            manifest: Dict[str, str] = json.load(f)
+        self.log.info(f"Read manifest '{manifest}' from file '{file}'")  # FIXME - change to debug
+        return manifest
+
+    def _write_manifest(self, manifest: Optional[Dict[str, str]] = None) -> None:
+        """Write the given manifest to this process's manifest file.
+
+        If the manifest is None, an empty manifest will be written.
+        """
+        manifest: Dict[str, str] = manifest or {}
+
+        self.log.info(f"Writing manifest '{manifest}' to file '{self._manifest_filename}'")  # FIXME - change to debug
         with open(self._manifest_filename, 'w') as f:
-            json.dump(empty_manifest, f, indent=2)
-
-    def clear_duplicate_actions(self):
-        """
-        Remove redundant actions from the manifest queue. Because manifest 'cache' actions
-        trigger batch processing of all pending cache updates, multiple 'cache' actions left
-        in the queue after a batch processing event are redundant.
-        """
-        task_set = set()
-        while True:
-            try:
-                task = self._manifest_queue.get(block=False)
-            except Empty:
-                break
-            else:
-                task_set.add(task)
-                self._manifest_queue.task_done()
-        for task in task_set:
-            self._manifest_queue.put(task)
+            json.dump(manifest, f, indent=2)
 
     def manage_cache_tasks(self):
         """
@@ -208,7 +196,7 @@ class CacheUpdateManagerThread(Thread):
 
         else:
             # Create and start a thread for the task
-            updater_thread = CacheUpdateThread(
+            updater_thread = CacheUpdateWorker(
                 self._component_cache,
                 catalog,
                 action
@@ -262,7 +250,7 @@ class CacheUpdateManagerThread(Thread):
         self.stop_event.set()
 
 
-class CacheUpdateThread(Thread):
+class CacheUpdateWorker(Thread):
     def __init__(self,
                  component_cache: Dict[str, Dict],
                  catalog: ComponentCatalogMetadata,
@@ -387,7 +375,7 @@ class ComponentCache(SingletonConfigurable):
         self.observer.schedule(ManifestFileChangeHandler(self), manifest_dir)
 
         # Start a thread to manage updates to the component cache and manifest
-        self.cache_manager = CacheUpdateManagerThread(
+        self.cache_manager = CacheUpdateManager(
             self.log,
             self._component_cache,
             self._cache_queue,
@@ -449,10 +437,10 @@ class ComponentCache(SingletonConfigurable):
         """
         TODO
         """
-        self._manifest_queue.join()
-        self._cache_queue.join()
+        self.wait_for_all_manifest_tasks()
+        self.wait_for_all_cache_tasks()
 
-    def wait_for_all_manifest_updates(self):
+    def wait_for_all_manifest_tasks(self):
         """
         Block execution and wait for all tasks in the manifest update queue to complete. This
         is used by tests and out-of-process updates/deletes that should exit after their manifest
@@ -460,7 +448,7 @@ class ComponentCache(SingletonConfigurable):
         """
         self._manifest_queue.join()
 
-    def wait_for_all_cache_updates(self):
+    def wait_for_all_cache_tasks(self):
         """
         Block execution and wait for all tasks in the cache task update queue to complete.
         Primarily used for testing.

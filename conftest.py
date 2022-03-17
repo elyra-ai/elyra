@@ -44,47 +44,32 @@ AIRFLOW_COMPONENT_CACHE_INSTANCE = {
 
 
 @pytest.fixture
-def component_catalog(jp_environ):
+def component_cache(jp_environ):
     """
-    TODO
+    Initialize a component cache
     """
-    # Clear any ComponentCache instance so next parametrized test starts with clean instance
-    ComponentCache.clear_instance()
+    # Create new instance and load the cache
+    component_cache = ComponentCache.instance()
+    component_cache.load()
 
-    # Create new instance and wait for all load tasks
-    component_catalog = ComponentCache.instance()
-    component_catalog.load()
-    component_catalog.wait_for_all_tasks()
-    yield component_catalog
+    yield component_cache
+    ComponentCache.clear_instance()
 
 
 @pytest.fixture
-def component_cache_instance(jp_environ, request):
+def catalog_instance(component_cache, request):
     """Creates an instance of a component catalog and removes after test."""
     instance_metadata, wait_for_cache_updates = request.param
 
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
-    # clean possible orphaned instance...
-    try:
-        md_mgr.remove(instance_name)
-    except Exception:
-        pass
-
-    try:
-        # Create instance and wait for the cache update to complete
-        component_cache_instance = md_mgr.create(instance_name, Metadata(**instance_metadata))
-        # component_catalog.wait_for_all_tasks()
-        yield component_cache_instance.name
-
-        # Remove instance
-        md_mgr.remove(component_cache_instance.name)
-        if wait_for_cache_updates:
-            ComponentCache.instance().wait_for_all_tasks()
-
-    # Test was not parametrized, so component instance is not needed
-    except AttributeError:
-        yield None
+    catalog = md_mgr.create(instance_name, Metadata(**instance_metadata))
+    if wait_for_cache_updates:
+        component_cache.wait_for_all_tasks()
+    yield catalog
+    md_mgr.remove(instance_name)
+    if wait_for_cache_updates:
+        component_cache.wait_for_all_tasks()
 
 
 @pytest.fixture

@@ -322,7 +322,7 @@ def test_describe_with_kfp_components():
 
 
 @pytest.mark.parametrize('component_cache_instance', [(KFP_COMPONENT_CACHE_INSTANCE, False)], indirect=True)
-def test_validate_with_kfp_components(jp_environ, kfp_runtime_instance, component_cache_instance, component_catalog):
+def test_validate_with_kfp_components(jp_environ, kfp_runtime_instance, component_cache_instance, component_cache):
     runner = CliRunner()
     pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
 
