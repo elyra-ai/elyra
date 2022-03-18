@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-import { MetadataWidget, MetadataEditorWidget } from '@elyra/metadata-common';
+import {
+  MetadataWidget,
+  MetadataEditorWidget,
+  CodeBlock,
+  MetadataEditorTagsField,
+  PasswordField
+} from '@elyra/metadata-common';
 import { MetadataService } from '@elyra/services';
 
-import { RequestErrors } from '@elyra/ui-components';
+import { DropDown, RequestErrors } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
@@ -71,6 +77,11 @@ const extension: JupyterFrontEndPlugin<void> = {
     themeManager?: IThemeManager
   ) => {
     console.log('Elyra - metadata extension is activated!');
+
+    componentRegistry.addRenderer('code', CodeBlock);
+    componentRegistry.addRenderer('tags', MetadataEditorTagsField);
+    componentRegistry.addRenderer('dropdown', DropDown);
+    componentRegistry.addRenderer('password', PasswordField);
 
     const openMetadataEditor = (args: {
       schema: string;

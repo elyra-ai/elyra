@@ -67,7 +67,7 @@
           "maxLength": 253,
           "uihints": {
             "category": "Source",
-            "widget_type": "password"
+            "field_type": "password"
           }
         }
       },
