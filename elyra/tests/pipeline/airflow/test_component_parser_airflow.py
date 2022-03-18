@@ -188,7 +188,13 @@ def test_parse_airflow_component_file():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
+    catalog_entry = CatalogEntry(
+        entry_data,
+        catalog_entry_data,
+        catalog_instance,
+        ['path'],
+        airflow_supported_file_types
+    )
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
@@ -370,7 +376,13 @@ def test_parse_airflow_component_url():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
+    catalog_entry = CatalogEntry(
+        entry_data,
+        catalog_entry_data,
+        catalog_instance,
+        ['url'],
+        airflow_supported_file_types
+    )
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
@@ -414,7 +426,13 @@ def test_parse_airflow_component_file_no_inputs():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
+    catalog_entry = CatalogEntry(
+        entry_data,
+        catalog_entry_data,
+        catalog_instance,
+        ['path'],
+        airflow_supported_file_types
+    )
 
     # Parse the component entry
     parser = ComponentParser.create_instance(platform=RUNTIME_PROCESSOR)

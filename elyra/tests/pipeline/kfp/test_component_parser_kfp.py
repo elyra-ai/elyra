@@ -181,7 +181,13 @@ def test_parse_kfp_component_file():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
+    catalog_entry = CatalogEntry(
+        entry_data,
+        catalog_entry_data,
+        catalog_instance,
+        ['path'],
+        kfp_supported_file_types
+    )
 
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
@@ -293,7 +299,13 @@ def test_parse_kfp_component_url():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
+    catalog_entry = CatalogEntry(
+        entry_data,
+        catalog_entry_data,
+        catalog_instance,
+        ['url'],
+        kfp_supported_file_types
+    )
 
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
@@ -335,7 +347,13 @@ def test_parse_kfp_component_file_no_inputs():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
+    catalog_entry = CatalogEntry(
+        entry_data,
+        catalog_entry_data,
+        catalog_instance,
+        ['path'],
+        kfp_supported_file_types
+    )
 
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
@@ -397,7 +415,13 @@ async def test_parse_components_additional_metatypes():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, {"url": url}, catalog_instance, ['url'])
+    catalog_entry = CatalogEntry(
+        entry_data,
+        catalog_entry_data,
+        catalog_instance,
+        ['url'],
+        kfp_supported_file_types
+    )
 
     # Parse the component entry
     parser = KfpComponentParser()
