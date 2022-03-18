@@ -180,19 +180,20 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         if not component:
             raise web.HTTPError(404, f"Component '{component_id}' not found")
 
-        content_type = 'application/json'
         if self.request.path.endswith("/properties"):
             # Return complete set of component properties
-            response = ComponentCache.to_canvas_properties(component)
+            json_response = ComponentCache.to_canvas_properties(component)
         else:
             # Return component definition content
-            response = component.definition
-            content_type = self.get_mime_type(component.file_extension)
+            response = {
+                "content": component.definition,
+                "mimeType": self.get_mime_type(component.file_extension)
+            }
+            json_response = json.dumps(response)
 
-        self.write(response)
         self.set_status(200)
-        self.set_header("Content-Type", content_type)
-        self.flush()
+        self.set_header("Content-Type", 'application/json')
+        self.finish(json_response)
 
 
 class PipelineValidationHandler(HttpErrorMixin, APIHandler):
