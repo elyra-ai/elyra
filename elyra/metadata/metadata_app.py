@@ -472,6 +472,96 @@ class SchemaspaceExport(SchemaspaceBase):
               ("is" if num_invalid_exported == 1 else "are") + " invalid)")
 
 
+class SchemaspaceImport(SchemaspaceBase):
+    """Handles the 'import' subcommand functionality for a specific schemaspace."""
+
+    directory_option = CliOption("--directory", name='directory',
+                                 description='The local file system path from where the metadata will be imported',
+                                 required=True)
+
+    replace_flag = Flag("--replace", name='replace',
+                        description='Overwrite existing metadata instance with the same name',
+                        default_value=False)
+
+    # 'Import' flags
+    options: List[Option] = [directory_option, replace_flag]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
+
+    def start(self):
+        super().start()  # process options
+
+        directory = self.directory_option.value
+
+        src_directory = os.path.join(directory, self.schemaspace)
+
+        try:
+            json_files = [f for f in os.listdir(src_directory) if f.endswith('.json')]
+        except OSError as e:
+            print(f"Unable to reach the '{src_directory}' directory: {e.strerror}: '{e.filename}'")
+            self.exit(1)
+
+        if len(json_files) == 0:
+            print(f"No instances for import found in the '{src_directory}' directory")
+            return
+
+        instance_count_imported = 0
+        instance_count_not_imported = 0
+        metadata_file = None
+
+        for file in json_files:
+            filepath = os.path.join(src_directory, file)
+            try:
+                with open(filepath) as f:
+                    metadata_file = json.loads(f.read())
+                f.close()
+            except OSError as e:
+                print(f"Unable to reach the '{file}' file: {e.strerror}: '{e.filename}'")
+                instance_count_not_imported += 1
+                continue
+
+            name = os.path.splitext(file)[0]
+            try:
+                schema_name = metadata_file['schema_name']
+                display_name = metadata_file['display_name']
+                metadata = metadata_file['metadata']
+            except KeyError as e:
+                print(f"Could not find '{e.args[0]}' key in the import file '{filepath}'")
+                instance_count_not_imported += 1
+                continue
+
+            new_instance = None
+
+            try:
+                if self.replace_flag.value:  # if replacing, fetch the instance so it can be updated
+                    updated_instance = self.metadata_manager.get(name)
+                    updated_instance.schema_name = schema_name
+                    if display_name:
+                        updated_instance.display_name = display_name
+                    if name:
+                        updated_instance.name = name
+                    updated_instance.metadata.update(metadata)
+                    new_instance = self.metadata_manager.update(name, updated_instance)
+                else:  # create a new instance
+                    instance = Metadata(schema_name=schema_name, name=name,
+                                        display_name=display_name, metadata=metadata)
+                    new_instance = self.metadata_manager.create(name, instance)
+            except Exception:
+                pass
+
+            if new_instance:
+                instance_count_imported += 1
+            else:
+                instance_count_not_imported += 1
+
+        print(f"\nImported {instance_count_imported} " + ("instance" if instance_count_imported == 1 else "instances") +
+              ((f"\n{instance_count_not_imported} " + ("instance" if instance_count_not_imported == 1
+                                                       else "instances") + " could not be imported")
+               if instance_count_not_imported > 0 else ""))
+
+
 class SubcommandBase(AppBase):
     """Handles building the appropriate subcommands based on existing schemaspaces."""
 
@@ -563,8 +653,19 @@ class Export(SubcommandBase):
         super().__init__(**kwargs)
 
 
+class Import(SubcommandBase):
+    """Imports metadata instances into a given schemaspace."""
+
+    description = "Import metadata instances into a given schemaspace."
+    subcommand_description = "Import metadata instances into schemaspace '{schemaspace}'."
+    schemaspace_base_class = SchemaspaceImport
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class MetadataApp(AppBase):
-    """Lists, installs, removes, migrates and exports metadata for a given schemaspace."""
+    """Lists, installs, removes, migrates, exports and imports metadata for a given schemaspace."""
 
     name = "elyra-metadata"
     description = """Manage Elyra metadata."""
@@ -574,7 +675,8 @@ class MetadataApp(AppBase):
         'install': (Install, Install.description.splitlines()[0]),
         'remove': (Remove, Remove.description.splitlines()[0]),
         'migrate': (Migrate, Migrate.description.splitlines()[0]),
-        'export': (Export, Export.description.splitlines()[0])
+        'export': (Export, Export.description.splitlines()[0]),
+        'import': (Import, Import.description.splitlines()[0])
     }
 
     @classmethod
@@ -590,7 +692,8 @@ class MetadataApp(AppBase):
         include_deprecated = False
         args = kwargs.get('argv', [])
         if len(args) > 0:
-            include_deprecated = args[0] != 'install'  # Only install will not operate against a deprecated schemaspace
+            # Only install and import will not operate against a deprecated schemaspace
+            include_deprecated = args[0] not in ['install', 'import']
         schemaspace_names = schema_mgr.get_schemaspace_names(include_deprecated=include_deprecated)
         for name in schemaspace_names:
             self.schemaspace_schemas[name] = schema_mgr.get_schemaspace_schemas(name)
