@@ -226,6 +226,21 @@ There are two flags that can be specified when exporting component catalogs:
 1. To include invalid component catalogs, use the `--include-invalid` flag.
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the component catalogs.
 
+#### Importing component catalogs
+
+To import component catalogs:
+
+```bash
+elyra-metadata import component-catalogs \
+	--directory="/tmp/foo"
+```
+
+The above example will import all valid component catalogs in the "/tmp/foo/component-catalogs" directory (files present in any sub-directories will be ignored).
+
+Note that you must specify the `--directory` option. 
+
+By default, metadata will not be imported if a component catalog instance with the same name already exists. The `--replace` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+
 #### Removing a component catalog entry
 
 To remove a component catalog entry and its component definitions from the Visual Pipeline Editor palette:

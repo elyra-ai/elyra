@@ -878,32 +878,32 @@ def test_export_clean(script_runner, mock_data_dir):
 def test_import_help(script_runner):
     ret = script_runner.run('elyra-metadata', 'import', METADATA_TEST_SCHEMASPACE, '--help')
     assert ret.success is False
-    assert ret.stdout.startswith(f"\nImport metadata instances into schemaspace '{METADATA_TEST_SCHEMASPACE}'")
+    assert f"\nImport metadata instances into schemaspace '{METADATA_TEST_SCHEMASPACE}'" in ret.stdout
 
 
 def test_import_no_directory(script_runner):
     ret = script_runner.run('elyra-metadata', 'import', METADATA_TEST_SCHEMASPACE)
     assert ret.success is False
-    assert ret.stdout.startswith("'--directory' is a required parameter.")
+    assert "ERROR: '--directory' is a required parameter." in ret.stdout
 
 
 def test_import_bad_argument(script_runner):
     ret = script_runner.run('elyra-metadata', 'import', METADATA_TEST_SCHEMASPACE,
                             '--directory=dummy-directory', '--bogus-argument')
     assert ret.success is False
-    assert ret.stdout.startswith("The following arguments were unexpected: ['--bogus-argument']")
+    assert "ERROR: The following arguments were unexpected: ['--bogus-argument']" in ret.stdout
 
 
 def test_import_deprecated_schemaspace(script_runner):
     ret = script_runner.run('elyra-metadata', 'import', 'component-registries')
     assert ret.success is False
-    assert ret.stdout.startswith("Subcommand 'component-registries' is invalid.")
+    assert "Subcommand 'component-registries' is invalid." in ret.stdout
 
 
 def test_import_bad_schemaspace(script_runner):
     ret = script_runner.run('elyra-metadata', 'import', 'bogus-schemaspace')
     assert ret.success is False
-    assert ret.stdout.startswith("Subcommand 'bogus-schemaspace' is invalid.")
+    assert "Subcommand 'bogus-schemaspace' is invalid." in ret.stdout
 
 
 def test_import_inaccessible_directory(script_runner):
