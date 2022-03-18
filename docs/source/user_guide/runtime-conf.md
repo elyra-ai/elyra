@@ -155,9 +155,9 @@ The above example will export all runtime configurations to the "/tmp/foo/runtim
 
 Note that you must specify the `--directory` option. 
 
-There are two flags that can be specified when exporting metadata:
-1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
-2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtimes" directory before exporting the metadata.
+There are two flags that can be specified when exporting runtime configurations:
+1. To include invalid runtime configurations, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtimes" directory before exporting the runtime configurations.
 
 #### Deleting a runtime configuration
 

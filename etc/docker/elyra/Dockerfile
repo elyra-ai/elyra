@@ -27,19 +27,13 @@ COPY requirements.txt .
 RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
     elyra[all]=="$TAG" \
  && python3 -m pip install -r requirements.txt \   
- && jupyter lab build \
  && rm -rf $HOME/.cache/yarn \
  && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules \
  && rm requirements.txt
 
 # Install component examples catalogs
-#  - this wail fail if the 'kfp-examples' and 'airflow-examples' pip extras are not installed
+#  - this wail fail if the 'kfp-examples' pip extra is not installed
 RUN elyra-metadata install component-catalogs \
-    --schema_name=elyra-airflow-examples-catalog \
-    --display_name="Apache Airflow examples" \
-    --runtime_type=APACHE_AIRFLOW \
-    --categories="['examples']" \
- && elyra-metadata install component-catalogs \
     --schema_name=elyra-kfp-examples-catalog  \
     --display_name="Kubeflow Pipelines examples" \
     --runtime_type=KUBEFLOW_PIPELINES \

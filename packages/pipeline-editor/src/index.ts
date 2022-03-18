@@ -39,6 +39,7 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { addIcon, LabIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
@@ -56,6 +57,7 @@ const PIPELINE_EDITOR = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
 const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
+const PLUGIN_ID = '@elyra/pipeline-editor-extension:plugin';
 
 const createRemoteIcon = async ({
   name,
@@ -82,19 +84,26 @@ const extension: JupyterFrontEndPlugin<void> = {
     ILauncher,
     IFileBrowserFactory,
     ILayoutRestorer,
-    IMainMenu
+    IMainMenu,
+    ISettingRegistry
   ],
   optional: [IThemeManager],
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     launcher: ILauncher,
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
     menu: IMainMenu,
+    registry: ISettingRegistry,
     themeManager?: IThemeManager
   ) => {
     console.log('Elyra - pipeline-editor extension is activated!');
+
+    // Fetch the initial state of the settings.
+    const settings = await registry
+      .load(PLUGIN_ID)
+      .catch(error => console.log(error));
 
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
@@ -104,16 +113,20 @@ const extension: JupyterFrontEndPlugin<void> = {
       shell: app.shell,
       commands: app.commands,
       browserFactory: browserFactory,
-      serviceManager: app.serviceManager
+      serviceManager: app.serviceManager,
+      settings: settings
     });
 
     // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({
-      name: PIPELINE,
-      displayName: 'Pipeline',
-      extensions: ['.pipeline'],
-      icon: pipelineIcon
-    });
+    app.docRegistry.addFileType(
+      {
+        name: PIPELINE,
+        displayName: 'Pipeline',
+        extensions: ['.pipeline'],
+        icon: pipelineIcon
+      },
+      ['JSON']
+    );
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
     const tracker = new WidgetTracker<DocumentWidget>({
@@ -348,6 +361,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
 
+    restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
+    app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
+
     const componentCatalogWidget = new MetadataWidget({
       app,
       themeManager,
@@ -361,8 +377,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     componentCatalogWidget.title.icon = componentCatalogIcon;
     componentCatalogWidget.title.caption = 'Component Catalogs';
 
-    restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
-    app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
+    restorer.add(componentCatalogWidget, componentCatalogWidgetID);
     app.shell.add(componentCatalogWidget, 'left', { rank: 961 });
   }
 };

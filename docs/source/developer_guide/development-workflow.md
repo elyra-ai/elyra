@@ -94,7 +94,9 @@ $ make
 clean                          Make a clean source tree and uninstall extensions
 container-images               Build all container images
 docs                           Build docs
-install-server                 Build and install backend only
+install-all                    Build and install, including examples
+install-examples               Install example pipeline components
+install-server                 Build and install backend
 install                        Build and install
 lint                           Run linters
 publish-container-images       Publish all container images
