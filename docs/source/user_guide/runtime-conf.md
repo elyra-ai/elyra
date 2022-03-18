@@ -109,7 +109,7 @@ To format the output as JSON run `elyra-metadata list runtimes --json`. Note tha
 To create a runtime configuration for a Kubeflow Pipelines deployment:
 
 ```bash
-elyra-metadata install runtimes \
+elyra-metadata create runtimes \
        --schema_name=kfp \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
@@ -129,11 +129,10 @@ Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-con
 
 #### Modifying a runtime configuration
 
-To edit a runtime configuration, use the `--replace` option along with `--name` and `--schema_name` (to locate the instance), followed by the modified property values.  In this case, we're updating the `api_password` and `tags` properties:
+To edit a runtime configuration, use the `update` command along with `--name` and `--schema_name` (to locate the instance), followed by the modified property values.  In this case, we're updating the `api_password` and `tags` properties:
 
 ```bash
-elyra-metadata install runtimes \
-       --replace \
+elyra-metadata update runtimes \
        --name="my_kubeflow_pipelines_runtime" \
        --schema_name=kfp \
        --api_password=mynewpassword \
