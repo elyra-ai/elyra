@@ -23,7 +23,6 @@ export class CodeViewerWidget extends Widget {
    */
   constructor(options: CodeViewerWidget.IOptions) {
     super();
-    this.addClass('jp-FileEditor');
 
     this.model = new CodeEditor.Model({
       value: options.content,
