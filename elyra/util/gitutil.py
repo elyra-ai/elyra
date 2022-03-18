@@ -42,7 +42,7 @@ class SupportedGitTypes(Enum):
             from elyra.util.gitlab import GitLabClient  # noqa: F401
             enabled_types.append(SupportedGitTypes.GITLAB)
         except ImportError:
-            pass
+            pass  # Gitlab package is not installed, ignore and use only GitHub
         return enabled_types
 
     @staticmethod

@@ -46,7 +46,7 @@ from elyra.util.github import GithubClient
 try:
     from elyra.util.gitlab import GitLabClient
 except ImportError:
-    pass
+    pass  # Gitlab package is not installed, ignore and use only GitHub
 from elyra.util.gitutil import SupportedGitTypes
 from elyra.util.path import get_absolute_path
 
