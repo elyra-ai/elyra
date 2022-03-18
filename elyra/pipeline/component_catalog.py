@@ -136,7 +136,7 @@ class CacheUpdateManager(Thread):
                     # A 'delete-manifest' action will remove the manifest files, triggering re-load
                     # of all catalogs from the watchdog. This action is only triggered by the
                     # catalog refresh API
-                    self.remove_all_manifest_files()
+                    self.remove_all_manifest_files(delete_own=True)
 
                     # Build a new manifest file if this is not a server process. The pending
                     # cache load will create a manifest relative to the server process.
