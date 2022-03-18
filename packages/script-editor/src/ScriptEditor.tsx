@@ -40,7 +40,7 @@ import {
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
 
-import { EditorHandler } from './EditorHandler';
+import { DebuggerEditorHandler } from './DebuggerEditorHandler';
 import { KernelDropdown, ISelect } from './KernelDropdown';
 import { ScriptDebugger } from './ScriptDebugger';
 import { ScriptEditorController } from './ScriptEditorController';
@@ -198,10 +198,8 @@ export abstract class ScriptEditor extends DocumentWidget<
 
     if (debuggerIsAvailable) {
       this.disableButton(false, 'debug');
-      // Enable setting breakpoints
-      // this.setupEditor();
-      const EditorHandler = this.createEditorDebugHandler();
-      console.log(EditorHandler);
+      const handler = this.createEditorDebugHandler();
+      console.log(handler);
     }
   };
 
@@ -223,16 +221,11 @@ export abstract class ScriptEditor extends DocumentWidget<
     button.setHidden(hide);
   };
 
-  private createEditorDebugHandler = (): EditorHandler => {
-    // const specsManager = new KernelSpecManager();
-    // const config = new Debugger.Config();
-    // const service = new DebuggerService({ specsManager, config });
-    const editorHandler = new EditorHandler({
+  private createEditorDebugHandler = (): DebuggerEditorHandler => {
+    return new DebuggerEditorHandler({
       editor: this.content.editor,
       path: this.context.path
     });
-
-    return editorHandler;
   };
 
   /**

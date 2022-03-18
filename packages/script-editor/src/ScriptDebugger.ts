@@ -16,21 +16,10 @@
 
 import { IDebugger } from '@jupyterlab/debugger';
 
-// import {
-//   KernelManager,
-//   KernelSpecManager,
-//   Session,
-//   SessionManager
-// } from '@jupyterlab/services';
-
 /**
  * Utility class to enable debugging scripts
  */
 export class ScriptDebugger {
-  // sessionManager: SessionManager;
-  // sessionConnection: Session.ISessionConnection | null;
-  // kernelSpecManager: KernelSpecManager;
-  // kernelManager: KernelManager;
   disableButton: (disabled: boolean, buttonType: string) => void;
   breakpoints: IDebugger.IBreakpoint[];
 
@@ -40,13 +29,6 @@ export class ScriptDebugger {
   constructor(disableButton: (disabled: boolean, buttonType: string) => void) {
     this.disableButton = disableButton;
     this.breakpoints = [];
-
-    // this.kernelSpecManager = new KernelSpecManager();
-    // this.kernelManager = new KernelManager();
-    // this.sessionManager = new SessionManager({
-    //   kernelManager: this.kernelManager
-    // });
-    // this.sessionConnection = null;
   }
 
   updateBreakpoints = (breakpoints: IDebugger.IBreakpoint[]): void => {
@@ -54,115 +36,17 @@ export class ScriptDebugger {
   };
 
   /**
+   * TODO
    * Function: Starts a session with a proper kernel and executes script in debug mode
    */
-  // debugScript = async (
-  //   kernelName: string | undefined,
-  //   contextPath: string,
-  //   code: string,
-  //   handleKernelMsg: (msgOutput: any) => void
-  // ): Promise<any> => {
-  // if (!kernelName) {
-  //   this.disableButton(true, 'run');
-  //   return this.errorDialog(KERNEL_ERROR_MSG);
-  // }
-
-  // if (!this.sessionConnection) {
-  //   this.disableButton(true, 'run');
-
-  //   try {
-  //     await this.startSession(kernelName, contextPath);
-  //   } catch (e) {
-  //     return this.errorDialog(SESSION_ERROR_MSG);
-  //   }
-
-  //   // This is a bit weird, seems like typescript doesn't believe that `startSession`
-  //   // can set `sessionConnection`
-  //   this.sessionConnection = this
-  //     .sessionConnection as Session.ISessionConnection | null;
-  //   if (!this.sessionConnection?.kernel) {
-  //     // session didn't get started
-  //     return this.errorDialog(SESSION_ERROR_MSG);
-  //   }
-
-  //   const future = this.sessionConnection.kernel.requestExecute({ code });
-
-  //   future.onIOPub = (msg: any): void => {
-  //     const msgOutput: any = {};
-
-  //     if (msg.msg_type === 'error') {
-  //       msgOutput.error = {
-  //         type: msg.content.ename,
-  //         output: msg.content.evalue
-  //       };
-  //     } else if (
-  //       msg.msg_type === 'execute_result' ||
-  //       msg.msg_type === 'display_data'
-  //     ) {
-  //       if ('text/plain' in msg.content.data) {
-  //         msgOutput.output = msg.content.data['text/plain'];
-  //       } else {
-  //         // ignore
-  //         console.log('Ignoring received message ' + msg);
-  //       }
-  //     } else if (msg.msg_type === 'stream') {
-  //       msgOutput.output = msg.content.text;
-  //     } else if (msg.msg_type === 'status') {
-  //       msgOutput.status = msg.content.execution_state;
-  //     } else {
-  //       // ignore other message types
-  //     }
-
-  //     // Notify UI
-  //     handleKernelMsg(msgOutput);
-  //   };
-
-  //   try {
-  //     await future.done;
-  //     this.shutdownSession();
-  //   } catch (e) {
-  //     console.log('Exception: done = ' + JSON.stringify(e));
-  //   }
-  // }
-  // };
 
   /**
+   * TODO
    * Function: Starts new debugger session.
    */
-  // startDebuggerSession = async (
-  //   kernelName: string,
-  //   contextPath: string
-  // ): Promise<Session.ISessionConnection> => {
-  //   const options: Session.ISessionOptions = {
-  //     kernel: {
-  //       name: kernelName
-  //     },
-  //     path: contextPath,
-  //     type: 'file',
-  //     name: contextPath
-  //   };
-
-  //   this.sessionConnection = await this.sessionManager.startNew(options);
-  //   this.sessionConnection.setPath(contextPath);
-
-  //   return this.sessionConnection;
-  // };
 
   /**
+   * TODO
    * Function: Shuts down debugger session.
    */
-  // shutdownSession = async (): Promise<void> => {
-  //   if (this.sessionConnection) {
-  //     const name = this.sessionConnection.kernel?.name;
-
-  //     try {
-  //       this.disableButton(false, 'run');
-  //       await this.sessionConnection.shutdown();
-  //       this.sessionConnection = null;
-  //       console.log(name + ' kernel shut down');
-  //     } catch (e) {
-  //       console.log('Exception: shutdown = ' + JSON.stringify(e));
-  //     }
-  //   }
-  // };
 }

@@ -41,15 +41,16 @@ const LINE_HIGHLIGHT_CLASS = 'jp-DebuggerEditor-highlight';
 const EDITOR_CHANGED_TIMEOUT = 1000;
 
 /**
- * A handler for a CodeEditor.IEditor.
+ * A debugger handler for a CodeEditor.IEditor.
+ * Adapted from JupyterLab EditorHandler.
  */
-export class EditorHandler implements IDisposable {
+export class DebuggerEditorHandler implements IDisposable {
   /**
-   * Instantiate a new EditorHandler.
+   * Instantiate a new DebuggerEditorHandler.
    *
-   * @param options The instantiation options for a EditorHandler.
+   * @param options The instantiation options for a DebuggerEditorHandler.
    */
-  constructor(options: EditorHandler.IOptions) {
+  constructor(options: DebuggerEditorHandler.IOptions) {
     this._id = ''; //options.debuggerService.session?.connection?.id ?? '';
     this._path = options.path ?? '';
     // this._debuggerService = options.debuggerService;
@@ -62,24 +63,6 @@ export class EditorHandler implements IDisposable {
     this._editorMonitor.activityStopped.connect(() => {
       this._sendEditorBreakpoints();
     }, this);
-
-    // this._debuggerService.model.breakpoints.changed.connect(async () => {
-    //   if (!this._editor || this._editor.isDisposed) {
-    //     return;
-    //   }
-    //   this._addBreakpointsToEditor();
-    // });
-
-    // this._debuggerService.model.breakpoints.restored.connect(async () => {
-    //   if (!this._editor || this._editor.isDisposed) {
-    //     return;
-    //   }
-    //   this._addBreakpointsToEditor();
-    // });
-
-    // this._debuggerService.model.callstack.currentFrameChanged.connect(() => {
-    //   EditorHandler.clearHighlight(this._editor);
-    // });
 
     this._setupEditor();
     this.isDisposed = false;
@@ -130,8 +113,8 @@ export class EditorHandler implements IDisposable {
       return;
     }
     const editor = this._editor as CodeMirrorEditor;
-    EditorHandler.clearHighlight(editor);
-    EditorHandler.clearGutter(editor);
+    DebuggerEditorHandler.clearHighlight(editor);
+    DebuggerEditorHandler.clearGutter(editor);
     editor.setOption('lineNumbers', false);
     editor.editor.setOption('gutters', []);
     editor.editor.off('gutterClick', this._onGutterClick);
@@ -154,12 +137,6 @@ export class EditorHandler implements IDisposable {
     });
 
     console.log('breakpoints: ' + breakpoints);
-
-    // void this._debuggerService.updateBreakpoints(
-    //   this._editor.model.value.text,
-    //   breakpoints,
-    //   this._path
-    // );
   }
 
   /**
@@ -170,9 +147,6 @@ export class EditorHandler implements IDisposable {
    */
   private _onGutterClick = (editor: Editor, lineNumber: number): void => {
     const info = editor.lineInfo(lineNumber);
-    // if (!info || this._id !== this._debuggerService.session?.connection?.id) {
-    //   return;
-    // }
     if (!info) {
       return;
     }
@@ -181,30 +155,13 @@ export class EditorHandler implements IDisposable {
     if (remove) {
       editor.setGutterMarker(lineNumber, 'breakpoints', null);
     }
-    // let breakpoints: IDebugger.IBreakpoint[] = this._getBreakpoints();
-    // if (remove) {
-    //   breakpoints = breakpoints.filter(ele => ele.line !== info.line + 1);
-    // } else {
-    //   breakpoints.push(
-    //     Private.createBreakpoint(
-    //       this._path, //?? this._debuggerService.session.connection.name,
-    //       info.line + 1
-    //     )
-    //   );
-    // }
 
-    // EditorHandler.clearGutter(this._editor as CodeMirrorEditor);
+    // DebuggerEditorHandler.clearGutter(this._editor as CodeMirrorEditor);
     editor.setGutterMarker(
       lineNumber,
       'breakpoints',
       Private.createMarkerNode()
     );
-
-    // void this._debuggerService.updateBreakpoints(
-    //   this._editor.model.value.text,
-    //   breakpoints,
-    //   this._path
-    // );
   };
 
   /**
@@ -213,10 +170,7 @@ export class EditorHandler implements IDisposable {
   private _addBreakpointsToEditor(): void {
     const editor = this._editor as CodeMirrorEditor;
     const breakpoints = this._getBreakpoints();
-    // if (this._id !== this._debuggerService.session?.connection?.id) {
-    //   return;
-    // }
-    EditorHandler.clearGutter(editor);
+    DebuggerEditorHandler.clearGutter(editor);
     breakpoints.forEach(breakpoint => {
       if (typeof breakpoint.line === 'number') {
         editor.editor.setGutterMarker(
@@ -248,18 +202,13 @@ export class EditorHandler implements IDisposable {
    * or its path (if it exists).
    */
   private _getBreakpoints(): IDebugger.IBreakpoint[] {
-    // const code = this._editor.model.value.text;
-    // return this._debuggerService.model.breakpoints.getBreakpoints(
-    //   this._path || this._debuggerService.getCodeId(code)
-    // );
-
+    // TODO
     return [];
   }
 
   private _id: string;
   private _path: string;
   private _editor: CodeEditor.IEditor;
-  // private _debuggerService: IDebugger;
   private _editorMonitor: ActivityMonitor<
     IObservableString,
     IObservableString.IChangedArgs
@@ -267,18 +216,13 @@ export class EditorHandler implements IDisposable {
 }
 
 /**
- * A namespace for EditorHandler `statics`.
+ * A namespace for DebuggerEditorHandler `statics`.
  */
-export namespace EditorHandler {
+export namespace DebuggerEditorHandler {
   /**
-   * Instantiation options for `EditorHandler`.
+   * Instantiation options for `DebuggerEditorHandler`.
    */
   export interface IOptions {
-    /**
-     * The debugger service.
-     */
-    // debuggerService: IDebugger;
-
     /**
      * The code editor to handle.
      */
