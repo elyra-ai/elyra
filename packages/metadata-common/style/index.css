@@ -346,6 +346,21 @@ button.elyra-inputTag {
   cursor: not-allowed;
 }
 
+.elyra-passwordFieldButton {
+  border: none;
+  border-radius: 5px;
+  background: none;
+}
+
+.elyra-passwordFieldButton:hover {
+  background-color: var(--jp-border-color3);
+}
+
+.elyra-passwordFieldButton svg {
+  width: 25px;
+  display: flex;
+}
+
 input.elyra-inputTag {
   font-size: var(--jp-ui-font-size1);
   background: none;
