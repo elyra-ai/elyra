@@ -16,12 +16,12 @@
 import json
 # import os
 
-from jupyter_server.tests.utils import expected_http_error
 import pytest
 from tornado.httpclient import HTTPClientError
 
 from elyra.tests.contents.test_utils import expected_response
 from elyra.tests.contents.test_utils import expected_response_empty
+from elyra.tests.util.handlers_utils import expected_http_error
 
 
 async def test_file_not_found(jp_fetch):

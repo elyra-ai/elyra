@@ -585,25 +585,6 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  it('airflow pipeline should display custom components', () => {
-    cy.createExampleComponentCatalog({ type: 'airflow' });
-    cy.createPipeline({ type: 'airflow' });
-    cy.get('.palette-flyout-category[value="examples"]').click();
-
-    const airflowCustomComponents = [
-      'elyra-airflow-examples-catalog\\:3a55d015ea96', // bash operator
-      'elyra-airflow-examples-catalog\\:a043648d3897', // email operator
-      'elyra-airflow-examples-catalog\\:b94cd49692e2', // http operator
-      'elyra-airflow-examples-catalog\\:3b639742748f', // spark sql operator
-      'elyra-airflow-examples-catalog\\:b29c25ec8bd6', // spark submit operator
-      'elyra-airflow-examples-catalog\\:16a204f716a2' // slack post operator
-    ];
-
-    airflowCustomComponents.forEach(component => {
-      cy.get(`#${component}`).should('exist');
-    });
-  });
-
   it('airflow pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.savePipeline();

@@ -66,4 +66,5 @@ const openNewNotebookFile = (): void => {
   )
     .first()
     .click();
+  cy.wait(500);
 };

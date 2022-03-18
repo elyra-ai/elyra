@@ -69,24 +69,22 @@ You can add support for other component catalogs by installing a connector from 
 
 #### Example custom components
 
-To help you get started with custom components, the Elyra community has selected a couple for each supported runtime type and makes them available using _example catalogs_. 
+To help you get started with custom components, the Elyra community has selected a couple for Kubeflow Pipelines and makes them available using _example catalogs_. 
 
 ![Example pipeline for the HTTP component](../images/user_guide/pipeline-components/example-components-pipeline.png)
 
 Whether or not your Elyra includes the example components depends on how you deployed it:
-- The community maintained [pre-built container images](getting_started.html#docker) have the example component catalogs for Kubeflow Pipelines and Apache Airflow pre-installed and enabled. The components are ready to use in the pipeline editor.
-- All-inclusive stand-alone installations (e.g. `pip install elyra[all]`) include the example component catalogs. However, the catalogs must be explicitly added to the palette.
-- Core-only installations (e.g. `pip install elyra`) do not include the example components. The example catalogs must be separately installed and explicitly added to the palette. 
+- The community maintained [pre-built container images](getting_started.html#docker) have the example component catalogs for Kubeflow Pipelines pre-installed and enabled. The components are ready to use in the pipeline editor.
+- All-inclusive stand-alone installations (e.g. `pip install elyra[all]`) include the example components. However, the catalog must be explicitly added to the palette.
+- Core-only installations (e.g. `pip install elyra`) do not include the example components. The example catalog must be separately installed and explicitly added to the palette. 
 
 **Installing and enabling the component examples catalogs**
 
-If necessary, follow the instructions for the appropriate catalog:
- - [Kubeflow Pipelines component examples catalog](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
- - [Apache Airflow component examples catalog](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
+Follow the instructions in [Kubeflow Pipelines component examples catalog](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector).
 
 Details and demo pipelines for some of the included components can be found in the Elyra examples repository:
 - [Kubeflow Pipeline components](https://github.com/elyra-ai/examples/tree/master/pipelines/kubeflow_pipelines_component_examples)
-- [Apache Airflow components](https://github.com/elyra-ai/examples/tree/master/pipelines/airflow_component_examples)
+
 
 ### Special considerations for custom Airflow components
 Custom Airflow components imported from some types of component catalog connectors require additional configuration 
@@ -224,9 +222,9 @@ The above example will export all component catalogs to the "/tmp/foo/component-
 
 Note that you must specify the `--directory` option.
 
-There are two flags that can be specified when exporting metadata:
-1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
-2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the metadata.
+There are two flags that can be specified when exporting component catalogs:
+1. To include invalid component catalogs, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the component catalogs.
 
 #### Removing a component catalog entry
 
