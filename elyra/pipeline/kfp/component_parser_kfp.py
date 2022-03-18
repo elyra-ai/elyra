@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
-from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 from typing import Dict
@@ -30,6 +28,7 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ControllerMap
+from elyra.pipeline.kfp.kfp_component_utils import component_yaml_schema
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -175,8 +174,7 @@ class KfpComponentParser(ComponentParser):
 
         try:
             # Validate against component YAML schema
-            with open(Path(__file__).parent / 'component-schema.json') as f:
-                validate(instance=results, schema=json.load(f))
+            validate(instance=results, schema=component_yaml_schema)
         except ValidationError as ve:
             self.log.warning(f"Invalid format of YAML definition for component with identifying information: "
                              f"'{catalog_entry.entry_reference}' -> {str(ve)}")
