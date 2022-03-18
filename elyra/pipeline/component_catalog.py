@@ -61,22 +61,22 @@ class CacheUpdateManager(Thread):
 
     The component cache manager maintains two queues, a "manifest queue"
     and a "cache queue".  The manifest queue entries are a tuple of 'source'
-    and 'action'.  The 'source' indicates the target aaainst which the 'action'
+    and 'action'.  The 'source' indicates the target aainst which the 'action'
     is applied.  The 'action' provides an indication of what action to take.
 
     Actions of 'modify' and 'delete' will have a 'source' of the catalog name
     to add to the manifest (along with that action).  These queue entries are
     inserted by the metadata persistence hooks when a component catalog instance
     is created, updated, or deleted.
-    An'action' of 'delete-manifest' will have a 'source' placeholder value of 'API'
+    An 'action' of 'delete-manifest' will have a 'source' placeholder value of 'API'
     which prompts the deletion of the manifest file that, for server processes
     triggers the complete reload of the component cache by deleting the manifest
     file entirely.
     An 'action' of 'cache' will have a source indicating the absolute path of
-    the manifest file.  This triggers the a cache worker thread to read the manifest
+    the manifest file.  This triggers a cache worker thread to read the manifest
     and perform the necessary actions relative to each of the catalogs referenced.
 
-    The manifest file itself, is a JSON file (dictionary) consisting of catalog name
+    The manifest file itself is a JSON file (dictionary) consisting of catalog name
     and cache-relative action ('delete', 'modify') indicating the kind of update
     to make to the component cache relative to the catalog.  For 'delete' the components
     of the referenced catalog are removed.  For 'modify' the components of the referenced
@@ -167,11 +167,13 @@ class CacheUpdateManager(Thread):
                         self._cache_queue.put((catalog_instance, cache_action))
 
                     # Reset manifest actions since they're complete
-                    self._write_manifest(filename=source)
+                    if pending_actions:
+                        self._write_manifest(filename=source)
 
                     # 'cache' actions can be marked as done immediately as the tasks are
                     # handed off to a cache worker thread
-                    self._manifest_queue.task_done()
+                    if self._manifest_queue.unfinished_tasks:
+                        self._manifest_queue.task_done()
 
                 else:
                     # Any action that is not a 'delete-manifest' or 'cache' action means that
@@ -183,7 +185,7 @@ class CacheUpdateManager(Thread):
                     self.log.debug(f"CacheUpdateManager read manifest entry with catalog_name: '{source}, "
                                    f"action: '{manifest.get(catalog_name)}', expected_action: '{action}'")
 
-                    # Add new action to manifest if not already present
+                    # Add action to manifest (or over-write prior action)
                     manifest[catalog_name] = action
 
                     # Write to file so that this entry gets repurposed as a 'cache' action.
@@ -225,13 +227,13 @@ class CacheUpdateManager(Thread):
         with open(filename, 'w') as f:
             json.dump(manifest, f, indent=2)
 
-    def remove_all_manifest_files(self):
+    def remove_all_manifest_files(self, delete_own: bool = False):
         """
         Remove all existing manifest files in the Jupyter runtimes directory.
         """
         manifest_files = Path(os.path.dirname(self._manifest_filename)).glob('**/elyra-component-manifest-*.json')
         for file in manifest_files:
-            if self.is_server_process and str(file) == self._manifest_filename:
+            if not delete_own and self.is_server_process and str(file) == self._manifest_filename:
                 # Ensure that we do not remove the manifest file for this process
                 continue
             os.remove(str(file))
@@ -320,6 +322,7 @@ class CacheUpdateManager(Thread):
         Trigger completion of the manager thread.
         """
         self.stop_event.set()
+        self.remove_all_manifest_files(delete_own=True)
 
 
 class CacheUpdateWorker(Thread):
@@ -337,8 +340,8 @@ class CacheUpdateWorker(Thread):
         self._component_cache: ComponentCacheType = component_cache
 
         # Task-specific properties
-        self.catalog = catalog
-        self.action = action
+        self.catalog: ComponentCatalogMetadata = catalog
+        self.action: str = action
 
         # Thread metadata
         self.task_start_time = time.time()
