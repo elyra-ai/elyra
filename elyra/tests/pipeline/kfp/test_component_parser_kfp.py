@@ -368,14 +368,49 @@ def test_parse_kfp_component_file_no_inputs():
     assert properties_json['current_parameters']['component_source'] == component_source
 
 
-async def test_parse_components_invalid_file():
+async def test_parse_components_invalid_yaml(caplog):
+    # Define the appropriate reader for a filesystem-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
+    # Read contents of given path
+    path = _get_resource_path('kfp_test_invalid_component.yaml')
+    catalog_entry_data = {"path": path}
+
+    # Construct a catalog instance
+    catalog_type = "local-file-catalog"
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
+
+    # Build the catalog entry data structures required for parsing
+    entry_data = reader.get_entry_data(catalog_entry_data, {})
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
+
+    # Parse the component entry
+    parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
+    component = parser.parse(catalog_entry)
+
+    # Failed YAML schema validation returns None
+    assert component is None
+
+    # Assert validation error is captured appropriately in log
+    assert "Invalid format of YAML definition for component" in caplog.text
+    assert "Failed validating 'type'" in caplog.text
+    assert "On instance['inputs'][0]['name']:\n    2" in caplog.text
+
+
+async def test_parse_components_not_a_file():
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
     # Get path to an invalid component definition file and read contents
-    path = _get_resource_path('kfp_test_operator_invalid.yaml')
+    path = _get_resource_path('kfp_test_operator_not_a_file.yaml')
     entry_data = reader.get_entry_data({"path": path}, {})
     assert entry_data is None
 
