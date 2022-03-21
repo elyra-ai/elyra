@@ -40,7 +40,7 @@ export class MetadataCommonService {
     let base_name = metadataInstance.display_name;
     const match = metadataInstance.display_name.match(/-Copy\d+$/);
     if (match !== null) {
-      base_name = base_name.replace(/.(-Copy\d+)$/, '');
+      base_name = base_name.replace(/-Copy\d+$/, '');
     }
     let count = 1;
 
