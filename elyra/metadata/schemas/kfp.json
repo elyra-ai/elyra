@@ -212,6 +212,9 @@
           "title": "Tags",
           "description": "Tags for categorizing Kubeflow pipelines",
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "uihints": {
             "field_type": "tags"
           }

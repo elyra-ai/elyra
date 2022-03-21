@@ -97,6 +97,9 @@ Application-level properties within a schema reside as top-level properties with
         "title": "Tags",
         "description": "Tags for categorizing snippets",
         "type": "array",
+        "items": {
+          "type": "string"
+        },
         "uihints": {
           "field_type": "tags"
         }

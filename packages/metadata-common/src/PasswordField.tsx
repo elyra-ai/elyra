@@ -7,20 +7,26 @@ export const PasswordField: Field = props => {
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
-    <div style={{ display: 'flex' }}>
-      <StringField
-        {...props}
-        uiSchema={{
-          ...props.uiSchema,
-          'ui:widget': showPassword ? undefined : 'password'
-        }}
-      />
-      <button
-        className="elyra-passwordFieldButton"
-        onClick={() => setShowPassword(!showPassword)}
-      >
-        {showPassword ? <viewOffIcon.react /> : <viewIcon.react />}
-      </button>
+    <div>
+      <label>{props.schema.title}</label>
+      {props.schema.description && (
+        <p className="field-description">{props.schema.description}</p>
+      )}
+      <div style={{ display: 'flex' }}>
+        <StringField
+          {...props}
+          uiSchema={{
+            ...props.uiSchema,
+            'ui:widget': showPassword ? undefined : 'password'
+          }}
+        />
+        <button
+          className="elyra-passwordFieldButton"
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? <viewOffIcon.react /> : <viewIcon.react />}
+        </button>
+      </div>
     </div>
   );
 };

@@ -36,6 +36,9 @@
           "title": "Tags",
           "description": "Tags for categorizing snippets",
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "uihints": {
             "field_type": "tags"
           }

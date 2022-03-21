@@ -104,7 +104,6 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   for (const field in schema?.properties) {
     uiSchema[field] = schema.properties[field].uihints ?? {};
     uiSchema[field]['ui:field'] = uiSchema[field]['field_type'];
-    uiSchema[field]['ui:field'] = uiSchema[field]['widget_type'];
     uiSchema[field].classNames = `${field}Field`;
   }
 
@@ -125,6 +124,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       fields={componentRegistry?.renderers}
       ArrayFieldTemplate={ArrayTemplate}
       uiSchema={uiSchema}
+      noHtml5Validate={true}
       onChange={(e: IChangeEvent<any>): void => {
         setFormData(e.formData);
         onChange(e.formData);
