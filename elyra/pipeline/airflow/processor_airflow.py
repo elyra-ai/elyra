@@ -23,6 +23,7 @@ import tempfile
 import time
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Union
 
 import autopep8
@@ -495,10 +496,11 @@ be fully qualified (i.e., prefixed with their package names).
             converted_value = json.dumps(converted_value)
         return converted_value
 
-    def _get_node_name(self, operations_list: list, node_id: str) -> str:
+    def _get_node_name(self, operations_list: list, node_id: str) -> Optional[str]:
         for operation in operations_list:
             if operation['id'] == node_id:
                 return operation['notebook']
+        return None
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
