@@ -402,7 +402,8 @@ class ComponentCache(SingletonConfigurable):
         Block execution and wait for all tasks in the cache task update queue to complete.
         Primarily used for testing.
         """
-        self.cache_queue.join()
+        if self.is_server_process:
+            self.cache_queue.join()
 
     def get_all_components(self, platform: RuntimeProcessorType) -> List[Component]:
         """
