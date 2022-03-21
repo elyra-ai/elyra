@@ -225,8 +225,7 @@ async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
 @pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch,
                                                            load_pipeline,
-                                                           catalog_instance,
-                                                           component_cache):
+                                                           catalog_instance):
     pipeline, response = load_pipeline('kf_invalid_node_property_in_component.pipeline')
     node_id = 'fe08b42d-bd8c-4e97-8010-0503a3185427'
     node_property = "notebook"

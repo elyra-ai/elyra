@@ -31,7 +31,7 @@ RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolve
 
 # Install component examples catalog
 #  - this will fail if the 'kfp-examples' pip extra is not installed
-RUN elyra-metadata install component-catalogs \
+RUN elyra-metadata create component-catalogs \
     --schema_name=elyra-kfp-examples-catalog \
     --display_name="Kubeflow Pipelines examples" \
     --runtime_type=KUBEFLOW_PIPELINES \

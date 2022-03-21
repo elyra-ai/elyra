@@ -49,7 +49,7 @@ def component_cache(jp_environ):
     Initialize a component cache
     """
     # Create new instance and load the cache
-    component_cache = ComponentCache.instance()
+    component_cache = ComponentCache.instance(emulate_server_app=True)
     component_cache.load()
 
     yield component_cache
@@ -67,7 +67,6 @@ def catalog_instance(component_cache, request):
     component_cache.wait_for_all_tasks()
     yield catalog
     md_mgr.remove(instance_name)
-    component_cache.wait_for_all_tasks()
 
 
 @pytest.fixture

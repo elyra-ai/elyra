@@ -50,11 +50,11 @@ OR
 
 In order to use Apache Airflow with Elyra, it must be configured to use a Git repository to store DAGs.
 
-- Create a private repository on github.com, GitHub Enterprise, gitlab.com, or GitLab Enterprise. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.)
+- Create a private repository on github.com, GitHub Enterprise, gitlab.com, or GitLab Enterprise. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.) Next, create a branch (e.g `main`) in your repository. This will be referenced later for storing the DAGs. 
 - Generate a personal access token with push access to the repository. This token is used by Elyra to upload DAGs.
    - [Instructions for GitHub](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
    - [Instructions for GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
-- Generate an SSH key with read access for the repository. Apache Airflow uses a git-sync container to keep its collection of DAGs in synch with the content of the Git Repository and the SSH key is used to authenticate.
+- Generate an SSH key with read access for the repository. Apache Airflow uses a git-sync container to keep its collection of DAGs in synch with the content of the Git Repository and the SSH key is used to authenticate. **Note: Make sure to generate the SSH key using RSA algorithm.**  
    - [Instructions for GitHub](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
    - [Instructions for GitLab](https://docs.gitlab.com/ee/ssh/)
 
@@ -79,9 +79,9 @@ To deploy Apache Airflow on a new Kubernetes cluster:
    kubectl create secret generic airflow-secret --from-file=id_rsa=.ssh/id_rsa --from-file=known_hosts=.ssh/known_hosts --from-file=id_rsa.pub=.ssh/id_rsa.pub -n airflow
    ```
   
-2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration):
-   - Set `git.url` to the URL of the private repository you created earlier, e.g. `ssh://git@github.com/your-git-org/your-dag-repo`
-   - Set `git.ref` to the DAG branch, e.g. `main`.
+2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/master/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration). This sample configuration will use the `KubernetesExecutor` by default.
+   - Set `git.url` to the URL of the private repository you created earlier, e.g. `ssh://git@github.com/your-git-org/your-dag-repo`. **Note: Make sure your ssh URL contains only forward slashes.**   
+   - Set `git.ref` to the DAG branch, e.g. `main` you created earlier.
    - Set `git.secret` to the name of the secret you created, e.g. `airflow-secret`.
    - Adjust the `git.gitSync.refreshTime` as desired.
 

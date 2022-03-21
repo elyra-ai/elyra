@@ -32,11 +32,13 @@ from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Template
 from jupyter_core.paths import jupyter_runtime_dir
+from traitlets.config import Application
 from traitlets.config import SingletonConfigurable
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
@@ -85,26 +87,17 @@ class CacheUpdateManager(Thread):
     def __init__(self,
                  log: Logger,
                  component_cache: ComponentCacheType,
-                 cache_queue: Queue,
-                 manifest_queue: Queue,
-                 manifest_filename: str):
+                 cache_queue: Queue):  # ,
+        # manifest_queue: Queue,
+        # manifest_filename: str):
         super().__init__()
 
-        self.setDaemon(True)
+        self.daemon = True
         self.name = "CacheUpdateManager"
 
         self.log: Logger = log
         self._component_cache: ComponentCacheType = component_cache
         self._cache_queue: Queue = cache_queue
-        self._manifest_queue: Queue = manifest_queue
-        self._manifest_filename: str = manifest_filename
-
-        # All values indicate a non-server process. This attribute will be changed
-        # to true for the process that loads the cache.
-        self.is_server_process: bool = False
-
-        # Create a new manifest file for this process
-        self._write_manifest()
 
         self._threads: List[CacheUpdateWorker] = []
 
@@ -115,128 +108,7 @@ class CacheUpdateManager(Thread):
         entry, the cache queue entries are processed.
         """
         while not self.stop_event.is_set():
-
-            try:
-                # Get a task from the manifest queue
-                source, action = self._manifest_queue.get(timeout=NONBLOCKING_TIMEOUT)
-                self.log.debug(f"CacheUpdateManager processing manifest queue entry for "
-                               f"action: '{action}', source: '{source}'...")
-            except Empty:
-                # No task exists in the manifest queue, proceed to check for cache tasks
-                pass
-            else:
-                # Process the manifest queue entry
-
-                if action == 'delete-manifest':
-                    # TODO test this
-                    # Clear the manifest queue of all tasks so that any prior
-                    # queued updates do not occur unnecessarily
-                    self._manifest_queue.queue.clear()
-
-                    # A 'delete-manifest' action will remove the manifest files, triggering re-load
-                    # of all catalogs from the watchdog. This action is only triggered by the
-                    # catalog refresh API
-                    self.remove_all_manifest_files()
-
-                    # Build a new manifest file if this is not a server process. The pending
-                    # cache load will create a manifest relative to the server process.
-                    if not self.is_server_process:
-                        self._write_manifest()
-
-                elif action == 'cache':
-                    # A 'cache' action means that updates to the component cache are required.
-                    # These actions are only ever triggered by the manifest file watchdog and
-                    # are only ever completed by the server process
-
-                    # Load manifest in order to perform cache actions in-process
-                    pending_actions = self._read_manifest(filename=source)
-
-                    # Handle all pending actions in one batch (last update wins)
-                    for catalog_name, cache_action in pending_actions.items():
-                        if cache_action == 'delete':
-                            # Fabricate a metadata instance that only includes catalog name
-                            catalog_instance = ComponentCatalogMetadata(name=catalog_name)
-
-                        else:  # cache_action == 'modify':
-                            # Fetch the catalog instance associated with this action
-                            catalog_instance = MetadataManager(
-                                schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
-                            ).get(name=catalog_name)
-
-                        # Add action to the cache queue
-                        self._cache_queue.put((catalog_instance, cache_action))
-
-                    # Reset manifest actions since they're complete
-                    if pending_actions:
-                        self._write_manifest(filename=source)
-
-                    # 'cache' actions can be marked as done immediately as the tasks are
-                    # handed off to a cache worker thread
-                    if self._manifest_queue.unfinished_tasks:
-                        self._manifest_queue.task_done()
-
-                else:
-                    # Any action that is not a 'delete-manifest' or 'cache' action means that
-                    # an update to the manifest is required (ultimately prompting the watchdog
-                    # of the server process's ComponentCache instance to trigger a 'cache' action)
-                    manifest = self._read_manifest()
-
-                    catalog_name = source
-                    self.log.debug(f"CacheUpdateManager read manifest entry with catalog_name: '{source}, "
-                                   f"action: '{manifest.get(catalog_name)}', expected_action: '{action}'")
-
-                    # Add action to manifest (or over-write prior action)
-                    manifest[catalog_name] = action
-
-                    # Write to file so that this entry gets repurposed as a 'cache' action.
-                    self._write_manifest(manifest=manifest)
-
-                    # If this update is occurring out-of-process, the task can be
-                    # marked as done because out-of-process updates do not work
-                    # on cache updates. If the update is the server process, however,
-                    # a cache update is pending and the manifest task will not be
-                    # marked as complete until its corresponding cache task joins
-                    if not self.is_server_process:
-                        self._manifest_queue.task_done()
-
-                self.log.debug(f"CacheUpdateManager processed manifest queue entry for "
-                               f"action: '{action}', source: '{source}'.")
             self.manage_cache_tasks()
-
-    def _read_manifest(self, filename: Optional[str] = None) -> Dict[str, str]:
-        """Read and return the contents of a manifest file.
-
-        If 'filename' is not provided, this process's manifest file will be read.
-        """
-        file: str = filename or self._manifest_filename
-        with open(file, 'r') as f:
-            manifest: Dict[str, str] = json.load(f)
-        self.log.debug(f"Reading manifest '{manifest}' from file '{file}'")
-        return manifest
-
-    def _write_manifest(self, filename: Optional[str] = None, manifest: Optional[Dict[str, str]] = None) -> None:
-        """Write the given manifest to the given manifest file.
-
-        If the filename is None, the current process's manifest is written.
-        If the manifest is None, an empty manifest will be written.
-        """
-        filename = filename or self._manifest_filename
-        manifest: Dict[str, str] = manifest or {}
-
-        self.log.debug(f"Writing manifest '{manifest}' to file '{filename}'")
-        with open(filename, 'w') as f:
-            json.dump(manifest, f, indent=2)
-
-    def remove_all_manifest_files(self, delete_own: bool = False):
-        """
-        Remove all existing manifest files in the Jupyter runtimes directory.
-        """
-        manifest_files = Path(os.path.dirname(self._manifest_filename)).glob('**/elyra-component-manifest-*.json')
-        for file in manifest_files:
-            if not delete_own and self.is_server_process and str(file) == self._manifest_filename:
-                # Ensure that we do not remove the manifest file for this process
-                continue
-            os.remove(str(file))
 
     def manage_cache_tasks(self):
         """
@@ -248,7 +120,7 @@ class CacheUpdateManager(Thread):
         try:
             # Get a task from the cache queue
             timeout = BLOCKING_TIMEOUT
-            if outstanding_threads or not self._manifest_queue.empty():
+            if outstanding_threads:  # or not self._manifest_queue.empty():
                 timeout = NONBLOCKING_TIMEOUT
 
             catalog, action = self._cache_queue.get(timeout=timeout)
@@ -298,10 +170,10 @@ class CacheUpdateManager(Thread):
                 # Mark cache task as complete
                 self._cache_queue.task_done()
 
-                # Mark the corresponding manifest 'modify' task that prompted this
-                # cache task as complete
-                if self._manifest_queue.unfinished_tasks:
-                    self._manifest_queue.task_done()
+                # # Mark the corresponding manifest 'modify' task that prompted this
+                # # cache task as complete
+                # if self._manifest_queue.unfinished_tasks:
+                #     self._manifest_queue.task_done()
 
                 # Report successful join for threads that have previously logged a
                 # cache update duration warning
@@ -322,7 +194,6 @@ class CacheUpdateManager(Thread):
         Trigger completion of the manager thread.
         """
         self.stop_event.set()
-        self.remove_all_manifest_files(delete_own=True)
 
 
 class CacheUpdateWorker(Thread):
@@ -451,26 +322,29 @@ class ComponentCache(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self._cache_queue: Queue = Queue()
-        self._manifest_queue: Queue = Queue()
+        self.is_server_process = Application.instance().__class__.__name__ in ['ServerApp', 'ElyraApp']
+        if "emulate_server_app" in kwargs and bool(kwargs["emulate_server_app"]):
+            self.is_server_process = True
 
-        manifest_dir = jupyter_runtime_dir()
-        self.manifest_filename = os.path.join(manifest_dir, f"elyra-component-manifest-{os.getpid()}.json")
+        self.manifest_dir = jupyter_runtime_dir()
+        if self.is_server_process:
+            self.cache_queue: Queue = Queue()
 
-        # Set up watchdog for manifest file
-        self.observer = Observer()
-        self.observer.schedule(ManifestFileChangeHandler(self), manifest_dir)
+            # Set up watchdog for manifest file
+            self.observer = Observer()
+            self.observer.schedule(ManifestFileChangeHandler(self), self.manifest_dir)
 
-        # Start a thread to manage updates to the component cache and manifest
-        self.cache_manager = CacheUpdateManager(
-            self.log,
-            self._component_cache,
-            self._cache_queue,
-            self._manifest_queue,
-            self.manifest_filename
-        )
-        self.cache_manager.start()
-        self.log.debug("CacheUpdateManager started...")
+            # Start a thread to manage updates to the component cache and manifest
+            manager = CacheUpdateManager(
+                self.log,
+                self._component_cache,
+                self.cache_queue
+            )
+            self.cache_manager = manager
+            self.cache_manager.start()
+            self.log.debug("CacheUpdateManager started...")
+        else:
+            self._manifest_filename = os.path.join(self.manifest_dir, f"elyra-component-manifest-{os.getpid()}.json")
 
     def load(self):
         """
@@ -483,54 +357,74 @@ class ComponentCache(SingletonConfigurable):
             # The cache manager will work on manifest and cache tasks on an
             # in-process basis as load() is only called during startup from
             # the server process.
-            self.cache_manager.is_server_process = True
+            if self.is_server_process:
+                # Remove all existing manifest files from previous processes
+                self.remove_all_manifest_files()
 
-            # Remove all existing manifest files from previous processes
-            self.cache_manager.remove_all_manifest_files()
+                # Start the watchdog if its not alive, prevents redundant starts
+                if not self.observer.is_alive():
+                    self.observer.start()
 
-            # Start the watchdog if its not alive, prevents redundant starts
-            if not self.observer.is_alive():
-                self.observer.start()
+                # Fetch all component catalog instances and trigger their add to the component cache
+                catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
+                for catalog in catalogs:
+                    self.cache_queue.put((catalog, 'modify'))
 
-            # Fetch all component catalog instances and trigger their add to the component cache
-            catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
-            for catalog in catalogs:
-                self._cache_queue.put((catalog, 'modify'))
-
-    def update_manifest_queue(self, source: str, action: str):
+    def remove_all_manifest_files(self):
         """
-        Triggers an update of the component manifest for the given catalog name.
+        Remove all existing manifest files in the Jupyter runtimes directory.
         """
-        manifest_task = (source, action)
-        if manifest_task not in list(self._manifest_queue.queue):
-            self._manifest_queue.put(manifest_task)
+        manifest_files = Path(self.manifest_dir).glob('**/elyra-component-manifest-*.json')
+        for file in manifest_files:
+            os.remove(str(file))
 
-        # CLI processes will never start their watchdog. For these out-of-process updates,
-        # we want to wait for the manifest update to complete before exiting
-        if not self.cache_manager.is_server_process:
-            self.wait_for_all_tasks()
+    def update_component_cache(self, catalog: Metadata, action: str):
+        """
+        Triggers an update of the component cache for the given catalog name.  If this is a non-server
+        process, the entry is written to the manifest file where it will be "processed" by the watchdog
+        and inserted into the component cache queue.
+        """
+        if self.is_server_process:
+            self.cache_queue.put((catalog, action))
+        else:
+            manifest: Dict[str, str] = self.load_manifest()
+            manifest[catalog.name] = action
+            self.update_manifest(manifest=manifest)
+
+    def load_manifest(self, filename: Optional[str] = None) -> Dict[str, str]:
+        """Read and return the contents of a manifest file.
+
+        If 'filename' is not provided, this process's manifest file will be read.
+        """
+        filename = filename or self._manifest_filename
+        if not os.path.isfile(filename):
+            self.log.debug(f"Manifest file '{filename}' doesn't exist and will be created.")
+            return {}
+        with open(filename, 'r') as f:
+            manifest: Dict[str, str] = json.load(f)
+        self.log.debug(f"Reading manifest '{manifest}' from file '{filename}'")
+        return manifest
+
+    def update_manifest(self, filename: Optional[str] = None, manifest: Optional[Dict[str, str]] = None) -> None:
+        """Update the manifest file with the given entry."""
+        filename = filename or self._manifest_filename
+        manifest = manifest or {}
+        self.log.debug(f"Updating manifest '{manifest}' to file '{filename}'")
+        with open(filename, 'w') as f:
+            json.dump(manifest, f, indent=2)
 
     def wait_for_all_tasks(self):
         """
         Block execution and wait for all tasks on the manifest and cache queues.
         """
-        self.wait_for_all_manifest_tasks()
         self.wait_for_all_cache_tasks()
-
-    def wait_for_all_manifest_tasks(self):
-        """
-        Block execution and wait for all tasks in the manifest update queue to complete. This
-        is used by tests and out-of-process updates/deletes that should exit after their manifest
-        file is updated.
-        """
-        self._manifest_queue.join()
 
     def wait_for_all_cache_tasks(self):
         """
         Block execution and wait for all tasks in the cache task update queue to complete.
         Primarily used for testing.
         """
-        self._cache_queue.join()
+        self.cache_queue.join()
 
     def get_all_components(self, platform: RuntimeProcessorType) -> List[Component]:
         """
@@ -699,15 +593,14 @@ class ManifestFileChangeHandler(FileSystemEventHandler):
         if "elyra-component-manifest" in event.src_path:
             super().dispatch(event)
 
-    def on_deleted(self, event):
-        """
-        Fires when the component manifest file is deleted, triggering a re-load of the
-        manifest and, ultimately, the component cache.
-        """
-        self.log.debug(f"ManifestFileChangeHandler: file '{event.src_path}' has been deleted.")
-        ComponentCache.instance().load()
-
     def on_modified(self, event):
         """Fires when the component manifest file is modified."""
         self.log.debug(f"ManifestFileChangeHandler: file '{event.src_path}' has been modified.")
-        self.component_cache.update_manifest_queue(source=event.src_path, action='cache')
+        manifest = self.component_cache.load_manifest(filename=event.src_path)
+        if manifest:  # only update the manifest if there is work to do
+            for catalog, action in manifest.items():
+                self.log.debug(f"ManifestFileChangeHandler: inserting ({catalog},{action}) into cache queue...")
+                catalog_instance = MetadataManager(
+                    schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get(name=catalog)
+                self.component_cache.cache_queue.put((catalog_instance, action))
+            self.component_cache.update_manifest(filename=event.src_path)  # clear the manifest
