@@ -224,7 +224,7 @@ class ComponentCacheHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def put(self):
         self.log.debug("Refreshing component cache for all catalog instances...")
-        ComponentCache.instance().update_manifest_queue(source='API', action='delete-manifest')
+        ComponentCache.instance().update_component_cache_for_all_catalogs()
 
         self.set_status(200)
         self.finish()
@@ -237,14 +237,14 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
     async def put(self, catalog):
         try:
             # Ensure given catalog name is a metadata instance
-            MetadataManager(
+            catalog_instance = MetadataManager(
                 schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
             ).get(name=catalog)
         except MetadataNotFoundError:
             raise web.HTTPError(404, f"Catalog '{catalog}' cannot be found.")
 
         self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
-        ComponentCache.instance().update_manifest_queue(source=catalog, action='modify')
+        ComponentCache.instance().update_component_cache(catalog=catalog_instance, action='modify')
 
         self.set_status(200)
         self.finish()

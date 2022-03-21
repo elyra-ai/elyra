@@ -59,37 +59,20 @@ ComponentCacheType = Dict[str, Dict[str, Dict[str, Union[Component, Dict[str, Un
 
 
 class CacheUpdateManager(Thread):
-    """Primary thread for maintaining consistency of the component cache.
+    """
+    Primary thread for maintaining consistency of the component cache.
 
-    The component cache manager maintains two queues, a "manifest queue"
-    and a "cache queue".  The manifest queue entries are a tuple of 'source'
-    and 'action'.  The 'source' indicates the target aainst which the 'action'
-    is applied.  The 'action' provides an indication of what action to take.
-
-    Actions of 'modify' and 'delete' will have a 'source' of the catalog name
-    to add to the manifest (along with that action).  These queue entries are
-    inserted by the metadata persistence hooks when a component catalog instance
-    is created, updated, or deleted.
-    An 'action' of 'delete-manifest' will have a 'source' placeholder value of 'API'
-    which prompts the deletion of the manifest file that, for server processes
-    triggers the complete reload of the component cache by deleting the manifest
-    file entirely.
-    An 'action' of 'cache' will have a source indicating the absolute path of
-    the manifest file.  This triggers a cache worker thread to read the manifest
-    and perform the necessary actions relative to each of the catalogs referenced.
-
-    The manifest file itself is a JSON file (dictionary) consisting of catalog name
-    and cache-relative action ('delete', 'modify') indicating the kind of update
-    to make to the component cache relative to the catalog.  For 'delete' the components
-    of the referenced catalog are removed.  For 'modify' the components of the referenced
-    catalog are inserted or updated (depending on its prior existence).
+    The component cache manager maintains the cache queue, whose entries are a
+    tuple of 'catalog' and 'action'.  The 'catalog' is a catalog instance against
+    which the 'action' is applied. The 'action' is one of 'modify' or 'delete'.
+    For 'delete' the components of the referenced catalog are removed. For 'modify'
+    the components of the referenced catalog are inserted or updated (depending on
+    its prior existence).
     """
     def __init__(self,
                  log: Logger,
                  component_cache: ComponentCacheType,
-                 cache_queue: Queue):  # ,
-        # manifest_queue: Queue,
-        # manifest_filename: str):
+                 cache_queue: Queue):
         super().__init__()
 
         self.daemon = True
@@ -169,11 +152,6 @@ class CacheUpdateManager(Thread):
 
                 # Mark cache task as complete
                 self._cache_queue.task_done()
-
-                # # Mark the corresponding manifest 'modify' task that prompted this
-                # # cache task as complete
-                # if self._manifest_queue.unfinished_tasks:
-                #     self._manifest_queue.task_done()
 
                 # Report successful join for threads that have previously logged a
                 # cache update duration warning
@@ -361,14 +339,12 @@ class ComponentCache(SingletonConfigurable):
                 # Remove all existing manifest files from previous processes
                 self.remove_all_manifest_files()
 
-                # Start the watchdog if its not alive, prevents redundant starts
+                # Start the watchdog if it's not alive, prevents redundant starts
                 if not self.observer.is_alive():
                     self.observer.start()
 
                 # Fetch all component catalog instances and trigger their add to the component cache
-                catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
-                for catalog in catalogs:
-                    self.cache_queue.put((catalog, 'modify'))
+                self.update_component_cache_for_all_catalogs()
 
     def remove_all_manifest_files(self):
         """
@@ -377,6 +353,14 @@ class ComponentCache(SingletonConfigurable):
         manifest_files = Path(self.manifest_dir).glob('**/elyra-component-manifest-*.json')
         for file in manifest_files:
             os.remove(str(file))
+
+    def update_component_cache_for_all_catalogs(self):
+        """
+        Fetch all component catalog instances and trigger a load or re-load for each instance.
+        """
+        catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
+        for catalog in catalogs:
+            self.cache_queue.put((catalog, 'modify'))
 
     def update_component_cache(self, catalog: Metadata, action: str):
         """
@@ -412,12 +396,6 @@ class ComponentCache(SingletonConfigurable):
         self.log.debug(f"Updating manifest '{manifest}' to file '{filename}'")
         with open(filename, 'w') as f:
             json.dump(manifest, f, indent=2)
-
-    def wait_for_all_tasks(self):
-        """
-        Block execution and wait for all tasks on the manifest and cache queues.
-        """
-        self.wait_for_all_cache_tasks()
 
     def wait_for_all_cache_tasks(self):
         """
@@ -600,7 +578,16 @@ class ManifestFileChangeHandler(FileSystemEventHandler):
         if manifest:  # only update the manifest if there is work to do
             for catalog, action in manifest.items():
                 self.log.debug(f"ManifestFileChangeHandler: inserting ({catalog},{action}) into cache queue...")
-                catalog_instance = MetadataManager(
-                    schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get(name=catalog)
+                if action == 'delete':
+                    # The metadata instance has already been deleted, so we must
+                    # fabricate an instance that only consists of a catalog name
+                    catalog_instance = ComponentCatalogMetadata(name=catalog)
+
+                else:  # cache_action == 'modify':
+                    # Fetch the catalog instance associated with this action
+                    catalog_instance = MetadataManager(
+                        schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
+                    ).get(name=catalog)
+
                 self.component_cache.cache_queue.put((catalog_instance, action))
             self.component_cache.update_manifest(filename=event.src_path)  # clear the manifest

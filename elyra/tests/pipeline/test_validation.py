@@ -109,8 +109,7 @@ def test_basic_pipeline_structure_with_scripts(validation_manager, load_pipeline
 @pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_invalid_runtime_node_kubeflow(validation_manager,
                                              load_pipeline,
-                                             catalog_instance,
-                                             component_cache):
+                                             catalog_instance):
     pipeline, response = load_pipeline('kf_invalid_node_op.pipeline')
     node_id = "eace43f8-c4b1-4a25-b331-d57d4fc29426"
 
@@ -131,8 +130,7 @@ async def test_invalid_runtime_node_kubeflow(validation_manager,
 @pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_invalid_runtime_node_kubeflow_with_supernode(validation_manager,
                                                             load_pipeline,
-                                                            catalog_instance,
-                                                            component_cache):
+                                                            catalog_instance):
     pipeline, response = load_pipeline('kf_invalid_node_op_with_supernode.pipeline')
     node_id = "98aa7270-639b-42a4-9a07-b31cd0fa3205"
     pipeline_id = "00304a2b-dec4-4a73-ab4a-6830f97d7855"
@@ -196,11 +194,11 @@ async def test_invalid_node_op_with_airflow(validation_manager, load_pipeline):
     assert issues[0]['data']['nodeID'] == node_id
 
 
-async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
+async def test_invalid_node_property_structure(validation_manager, monkeypatch, load_pipeline):
     pipeline, response = load_pipeline('generic_invalid_node_property_structure.pipeline')
     node_id = '88ab83dc-d5f0-443a-8837-788ed16851b7'
     node_property = 'runtime_image'
-    pvm = PipelineValidationManager.instance()
+    pvm = validation_manager
 
     monkeypatch.setattr(pvm, "_validate_filepath", lambda node_id, node_label,
                         property_name, filename, response: True)
@@ -223,13 +221,14 @@ async def test_invalid_node_property_structure(monkeypatch, load_pipeline):
 
 
 @pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-async def test_missing_node_property_for_kubeflow_pipeline(monkeypatch,
+async def test_missing_node_property_for_kubeflow_pipeline(validation_manager,
+                                                           monkeypatch,
                                                            load_pipeline,
                                                            catalog_instance):
     pipeline, response = load_pipeline('kf_invalid_node_property_in_component.pipeline')
     node_id = 'fe08b42d-bd8c-4e97-8010-0503a3185427'
     node_property = "notebook"
-    pvm = PipelineValidationManager.instance()
+    pvm = validation_manager
 
     monkeypatch.setattr(pvm, "_validate_filepath", lambda node_id, file_dir, property_name, filename, response: True)
 

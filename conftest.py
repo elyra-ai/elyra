@@ -48,6 +48,8 @@ def component_cache(jp_environ):
     """
     Initialize a component cache
     """
+    ComponentCache.clear_instance()
+
     # Create new instance and load the cache
     component_cache = ComponentCache.instance(emulate_server_app=True)
     component_cache.load()
