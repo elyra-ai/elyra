@@ -138,7 +138,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   };
 
   let headerText = `Edit "${displayName}"`;
-  if (!name) {
+  if (!displayName) {
     headerText = `Add new ${schemaTop.title}`;
   }
 
@@ -255,8 +255,9 @@ export class MetadataEditorWidget extends ReactWidget {
         }
       }
       this.schema = schema;
-      this.title.label = `New ${this.schema.title}`;
       this.metadata = allMetadata.find((m: any) => m.name === this.props.name);
+      this.title.label =
+        this.metadata.display_name ?? `New ${this.schema.title}`;
       this.loading = false;
       this.update();
     } catch (error) {
