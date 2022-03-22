@@ -43,7 +43,7 @@ data_files_spec = [
 ]
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=1.1.1', ],
+    'kfp-tekton': ['kfp-tekton~=1.2.0', ],
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
     'kfp-examples': ['elyra-examples-kfp-catalog'],
@@ -64,12 +64,12 @@ setup_args = dict(
     packages=find_packages(),
     install_requires=[
         'autopep8>=1.5.0,<1.5.6',
-        'click>=7.1.1,<8',
+        'click>=8',
         'colorama',
         'deprecation',
         'entrypoints>=0.3',
         'jinja2>=2.11',
-        'jsonschema>=3.2.0',
+        'jsonschema>=3.2.0,<4.0',  # Cap from KFP
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
         'jupyter-packaging>=0.10',
@@ -90,10 +90,12 @@ setup_args = dict(
         'requests>=2.25.1,<3.0',
         'rfc3986-validator>=0.1.1',
         'tornado>=6.1.0',
+        'typing-extensions>=3.10,<4',  # Cap from KFP
         'traitlets>=4.3.2',
         'urllib3>=1.26.5',
         'watchdog>=2.1.3',
         'websocket-client',
+        'wrapt>=1.11,<1.14',  # Add from asteroid
         'yaspin',
         # KFP runtime dependencies
         'kfp>=1.7.0,<2.0,!=1.7.2',
