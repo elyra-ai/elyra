@@ -710,7 +710,7 @@ flower:
   ## NOTE:
   ## - only takes effect if `airflow.executor` is `CeleryExecutor`
   ##
-  enabled: true
+  enabled: false
 
   ## resource requests/limits for the flower Pods
   ##
@@ -1423,7 +1423,7 @@ redis:
   ## - set to `false` if using an external redis database
   ## - set to `false` if `airflow.executor` is `KubernetesExecutor`
   ##
-  enabled: true
+  enabled: false
 
   ## the redis password
   ##

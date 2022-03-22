@@ -42,9 +42,9 @@ describe('Code Snippet tests', () => {
     createInvalidCodeSnippet(snippetName);
 
     // Metadata editor should not close
-    cy.get(
-      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
-    ).should('be.visible');
+    cy.get('.lm-TabBar-tabLabel')
+      .contains('New Code Snippet')
+      .should('be.visible');
 
     // Fields marked as required should be highlighted
     cy.get(
@@ -57,9 +57,9 @@ describe('Code Snippet tests', () => {
     createValidCodeSnippet(snippetName);
 
     // Metadata editor tab should not be visible
-    cy.get(
-      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
-    ).should('not.exist');
+    cy.get('.lm-TabBar-tabLabel')
+      .contains('New Code Snippet')
+      .should('not.exist');
 
     // Check new code snippet is displayed
     getSnippetByName(snippetName);
@@ -85,9 +85,9 @@ describe('Code Snippet tests', () => {
     cy.get('.elyra-metadataEditor-form-display_name').type('{enter}');
 
     // Metadata editor tab should not be visible
-    cy.get(
-      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
-    ).should('not.exist');
+    cy.get('.lm-TabBar-tabLabel')
+      .contains('New Code Snippet')
+      .should('not.exist');
 
     // Check new code snippet is displayed
     getSnippetByName(snippetName);

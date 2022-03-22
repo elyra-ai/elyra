@@ -48,7 +48,6 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-intl": "^3.0.0",
-    "install": "^0.13.0",
     "jest": "^24.7.1",
     "jest-raw-loader": "^1.0.1",
     "rimraf": "^3.0.2",

@@ -67,6 +67,12 @@ If desired, you can install these Elyra extensions independently:
    pip3 install --upgrade elyra-code-snippet-extension
    ```
 
+- [Code Viewer](https://pypi.org/project/elyra-code-viewer-extension/)
+
+   ```bash
+   pip3 install --upgrade elyra-code-viewer-extension
+   ```
+
 - [Python Editor](https://pypi.org/project/elyra-python-editor-extension/)
 
    ```bash
@@ -90,7 +96,7 @@ conda install -c conda-forge elyra[all]
 **NOTE:**
 The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton) dependency [is no longer installed by default](https://github.com/elyra-ai/elyra/pull/2043). To install this dependency, you must specify `elyra[all]` or `elyra[kfp-tekton]`.
 
-You can also install the Pipeline editor, Code Snippet, or Script editor extensions individually:
+You can also install the Pipeline editor, Code Snippet, Code Viewer, or Script editor extensions individually:
 
 ```bash
 conda install -c conda-forge elyra-pipeline-editor-extension
@@ -98,6 +104,10 @@ conda install -c conda-forge elyra-pipeline-editor-extension
 
 ```bash
 conda install -c conda-forge elyra-code-snippet-extension
+```
+
+```bash
+conda install -c conda-forge elyra-code-viewer-extension
 ```
 
 ```bash
@@ -179,6 +189,7 @@ JupyterLab [version]
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
         @elyra/code-snippet-extension [version] enabled OK
+        @elyra/code-viewer-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK
