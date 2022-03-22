@@ -257,7 +257,7 @@ export class MetadataEditorWidget extends ReactWidget {
       this.schema = schema;
       this.metadata = allMetadata.find((m: any) => m.name === this.props.name);
       this.title.label =
-        this.metadata.display_name ?? `New ${this.schema.title}`;
+        this.metadata?.display_name ?? `New ${this.schema.title}`;
       this.loading = false;
       this.update();
     } catch (error) {
@@ -305,7 +305,7 @@ export class MetadataEditorWidget extends ReactWidget {
     }
   }
 
-  onCloseRequest = (msg: Message): void => {
+  onCloseRequest(msg: Message): void {
     if (this.dirty) {
       showDialog({
         title: 'Close without saving?',
@@ -321,7 +321,7 @@ export class MetadataEditorWidget extends ReactWidget {
       this.dispose();
       super.onCloseRequest(msg);
     }
-  };
+  }
 
   getDefaultChoices(fieldName: string): any[] {
     const schema = this.schema.properties.metadata;

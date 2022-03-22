@@ -8,7 +8,7 @@ export const PasswordField: Field = props => {
 
   return (
     <div>
-      <label>{props.schema.title}</label>
+      <label className="control-label">{props.schema.title}</label>
       {props.schema.description && (
         <p className="field-description">{props.schema.description}</p>
       )}
