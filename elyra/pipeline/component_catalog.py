@@ -300,7 +300,9 @@ class ComponentCache(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.is_server_process = Application.instance().__class__.__name__ in ['ServerApp', 'ElyraApp']
+        self.is_server_process = False
+        if Application.initialized() and Application.instance().__class__.__name__ in ['ServerApp', 'ElyraApp']:
+            self.is_server_process = True
         if "emulate_server_app" in kwargs and bool(kwargs["emulate_server_app"]):
             self.is_server_process = True
 
