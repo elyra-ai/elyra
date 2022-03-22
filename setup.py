@@ -43,7 +43,7 @@ data_files_spec = [
 ]
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=1.2.0', ],
+    'kfp-tekton': ['kfp-tekton~=1.2.0', ],  # See elyra-ai/elyra/pull/2034 for fix pack pinning
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
     'kfp-examples': ['elyra-examples-kfp-catalog'],
@@ -87,7 +87,7 @@ setup_args = dict(
         'papermill>=2.3.4',
         'python-lsp-server[all]>=1.1.0',
         'pyyaml>=5.3.1,<6.0',  # Cap from kfp
-        'requests>=2.25.1,<3.0',  # Cap from kfp
+        'requests>=2.25.1',
         'rfc3986-validator>=0.1.1',
         'tornado>=6.1.0',
         'typing-extensions>=3.10,<4',  # Cap from kfp
@@ -98,7 +98,7 @@ setup_args = dict(
         'wrapt>=1.11,<1.14',  # Cap from asteroid from ?
         'yaspin',
         # KFP runtime dependencies
-        'kfp>=1.7.0,<2.0,!=1.7.2',  # We cap the SDK to <2.0
+        'kfp>=1.7.0,<2.0,!=1.7.2',  # We cap the SDK to <2.0 due to possible breaking changes
         # Airflow runtime dependencies
         'pygithub',
         'black<=21.12b0',  # Cap due to psf/black#2846
