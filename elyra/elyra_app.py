@@ -75,7 +75,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         schemaspace_regex = r"(?P<schemaspace>[\w\.\-]+)"
         resource_regex = r"(?P<resource>[\w\.\-]+)"
         path_regex = r"(?P<path>(?:(?:/[^/]+)+|/?))"  # same as jupyter server and will include a leading slash
-        processor_regex = r"(?P<processor>[\w]+)"
+        processor_regex = r"(?P<runtime>[\w]+)"
         component_regex = r"(?P<component_id>[\w\.\-:]+)"
 
         self.handlers.extend([

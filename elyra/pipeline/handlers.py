@@ -137,13 +137,15 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipelines editor component configuration"""
 
     @web.authenticated
-    async def get(self, processor):
-        self.log.debug(f'Retrieving pipeline components for: {processor} runtime')
+    async def get(self, runtime):
+        self.log.debug(f'Retrieving pipeline components for: {runtime} runtime')
 
-        if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
-            raise web.HTTPError(400, f"Invalid processor name '{processor}'")
+        processor_manager = PipelineProcessorManager.instance()
+        if not processor_manager.is_supported_runtime_platform(runtime) and \
+                not processor_manager.is_supported_runtime(runtime):
+            raise web.HTTPError(400, f"Invalid processor name '{runtime}'")
 
-        components: List[Component] = await PipelineProcessorManager.instance().get_components(processor)
+        components: List[Component] = await processor_manager.get_components(runtime)
         palette_json = ComponentCache.to_canvas_palette(components=components)
 
         self.set_status(200)
@@ -165,17 +167,18 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         return 'text/plain'
 
     @web.authenticated
-    async def get(self, processor, component_id):
+    async def get(self, runtime, component_id):
         self.log.debug(f'Retrieving pipeline component properties for component: {component_id}')
 
-        if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
-            raise web.HTTPError(400, f"Invalid processor name '{processor}'")
+        processor_manager = PipelineProcessorManager.instance()
+        if not processor_manager.is_supported_runtime_platform(runtime) and \
+                not processor_manager.is_supported_runtime(runtime):
+            raise web.HTTPError(400, f"Invalid processor name '{runtime}'")
 
         if not component_id:
             raise web.HTTPError(400, "Missing component ID")
 
-        component: Optional[Component] = \
-            await PipelineProcessorManager.instance().get_component(processor, component_id)
+        component: Optional[Component] = await processor_manager.get_component(runtime, component_id)
 
         if not component:
             raise web.HTTPError(404, f"Component '{component_id}' not found")
@@ -185,11 +188,12 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
             json_response = ComponentCache.to_canvas_properties(component)
         else:
             # Return component definition content
-            response = {
-                "content": component.definition,
-                "mimeType": self.get_mime_type(component.file_extension)
-            }
-            json_response = json.dumps(response)
+            json_response = json.dumps(
+                {
+                    "content": component.definition,
+                    "mimeType": self.get_mime_type(component.file_extension)
+                }
+            )
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
