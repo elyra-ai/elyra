@@ -19,6 +19,7 @@ from collections import OrderedDict
 import json
 from operator import itemgetter
 import os
+from pathlib import Path
 from typing import Optional
 import warnings
 
@@ -45,17 +46,37 @@ SEVERITY = {ValidationSeverity.Error: 'Error',
             ValidationSeverity.Information: 'Information'}
 
 
+def _get_runtime_config(runtime_config: Optional[str]) -> Optional[dict]:
+    """Fetch runtime configuration"""
+    if not runtime_config or runtime_config == 'local':
+        # No runtime configuration was specified or it is local.
+        # Cannot use metadata manager to determine the runtime type.
+        return None
+    try:
+        metadata_manager = MetadataManager(schemaspace='runtimes')
+        return metadata_manager.get(runtime_config)
+    except Exception as e:
+        raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
+
+
 def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
+    """Get runtime type for the provided runtime_config"""
+    rtc = _get_runtime_config(runtime_config)
+    if rtc:
+        return rtc.metadata.get('runtime_type')
+    return None
+
+
+def _get_runtime_schema_name(runtime_config: Optional[str]) -> Optional[str]:
+    """Get runtime schema name for the provided runtime_config"""
     if not runtime_config or runtime_config == 'local':
         # No runtime configuration was specified or it is local.
         # Cannot use metadata manager to determine the runtime type.
         return 'local'
-    try:
-        metadata_manager = MetadataManager(schemaspace='runtimes')
-        metadata = metadata_manager.get(runtime_config)
-        return metadata.schema_name
-    except Exception as e:
-        raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
+    rtc = _get_runtime_config(runtime_config)
+    if rtc:
+        return rtc.schema_name
+    return None
 
 
 def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
@@ -84,12 +105,6 @@ def _validate_pipeline_runtime(primary_pipeline: Pipeline, runtime: str) -> bool
             is_valid = False
 
     return is_valid
-
-
-def _validate_pipeline_file_extension(pipeline_file: str):
-    extension = os.path.splitext(pipeline_file)[1]
-    if extension != '.pipeline':
-        raise click.ClickException('Pipeline file should be a [.pipeline] file.\n')
 
 
 def _preprocess_pipeline(pipeline_path: str,
@@ -166,7 +181,7 @@ def _print_issues(issues):
     click.echo("")
 
 
-def _validate_pipeline_definition(pipeline_definition):
+def _validate_pipeline_definition(pipeline_definition: PipelineDefinition) -> bool:
 
     click.echo("Validating pipeline...")
     # validate pipeline
@@ -177,8 +192,7 @@ def _validate_pipeline_definition(pipeline_definition):
     issues = validation_response.to_json().get('issues')
     _print_issues(issues)
 
-    if validation_response.has_fatal:
-        raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
+    return validation_response.has_fatal
 
 
 def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
@@ -195,6 +209,15 @@ def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
         raise click.ClickException(f'Error parsing pipeline: \n {ve}')
     except RuntimeError as re:
         raise click.ClickException(f'Error processing pipeline: \n {re} \n {re.__cause__}')
+
+
+def validate_pipeline_path(ctx, param, value):
+    """Callback for pipeline_path parameter"""
+    if not value.is_file():
+        raise click.BadParameter(f"'{value}' is not a file.")
+    if value.suffix != '.pipeline':
+        raise click.BadParameter(f"'{value}' is not a .pipeline file.")
+    return value
 
 
 def print_banner(title):
@@ -234,7 +257,9 @@ def pipeline():
 @click.option('--runtime-config',
               required=False,
               help='Runtime config where the pipeline should be processed')
-@click.argument('pipeline_path')
+@click.argument('pipeline_path',
+                type=Path,
+                callback=validate_pipeline_path)
 def validate(pipeline_path, runtime_config='local'):
     """
     Validate pipeline
@@ -243,18 +268,19 @@ def validate(pipeline_path, runtime_config='local'):
 
     print_banner("Elyra Pipeline Validation")
 
-    runtime = _get_runtime_type(runtime_config)
-
-    _validate_pipeline_file_extension(pipeline_path)
+    runtime = _get_runtime_schema_name(runtime_config)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
-    _validate_pipeline_definition(pipeline_definition)
+    if _validate_pipeline_definition(pipeline_definition):
+        raise click.ClickException("Pipeline validation FAILED.")
 
 
 @click.command()
-@click.argument('pipeline_path')
+@click.argument('pipeline_path',
+                type=Path,
+                callback=validate_pipeline_path)
 @click.option('--json',
               'json_option',
               is_flag=True,
@@ -272,14 +298,13 @@ def submit(json_option, pipeline_path, runtime_config):
 
     print_banner("Elyra Pipeline Submission")
 
-    runtime = _get_runtime_type(runtime_config)
-
-    _validate_pipeline_file_extension(pipeline_path)
+    runtime = _get_runtime_schema_name(runtime_config)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
-    _validate_pipeline_definition(pipeline_definition)
+    if _validate_pipeline_definition(pipeline_definition):
+        raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
 
     with yaspin(text="Submitting pipeline..."):
         response: PipelineProcessorResponse = _execute_pipeline(pipeline_definition)
@@ -313,7 +338,9 @@ def submit(json_option, pipeline_path, runtime_config):
               is_flag=True,
               required=False,
               help='Display pipeline summary in JSON format')
-@click.argument('pipeline_path')
+@click.argument('pipeline_path',
+                type=Path,
+                callback=validate_pipeline_path)
 def run(json_option, pipeline_path):
     """
     Run a pipeline in your local environment
@@ -322,12 +349,11 @@ def run(json_option, pipeline_path):
 
     print_banner("Elyra Pipeline Local Run")
 
-    _validate_pipeline_file_extension(pipeline_path)
-
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
-    _validate_pipeline_definition(pipeline_definition)
+    if _validate_pipeline_definition(pipeline_definition):
+        raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
 
     response = _execute_pipeline(pipeline_definition)
 
@@ -346,7 +372,9 @@ def run(json_option, pipeline_path):
               is_flag=True,
               required=False,
               help='Display pipeline summary in JSON format')
-@click.argument('pipeline_path')
+@click.argument('pipeline_path',
+                type=Path,
+                callback=validate_pipeline_path)
 def describe(json_option, pipeline_path):
     """
     Display pipeline summary
@@ -361,8 +389,6 @@ def describe(json_option, pipeline_path):
     blank_list = ["None Listed"]
     pipeline_keys = ["name", "description", "type", "version", "nodes", "file_dependencies", "component_dependencies"]
     iter_keys = {"file_dependencies", "component_dependencies"}
-
-    _validate_pipeline_file_extension(pipeline_path)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
@@ -408,7 +434,124 @@ def describe(json_option, pipeline_path):
         click.echo(json.dumps(describe_dict, indent=indent_length))
 
 
+@click.command()
+@click.argument('pipeline_path',
+                type=Path,
+                callback=validate_pipeline_path)
+@click.option('--runtime-config',
+              required=True,
+              help='Runtime configuration name.')
+@click.option('--output',
+              required=False,
+              type=Path,
+              help='Exported file name (including optional path). Defaults to '
+                   ' the current directory and the pipeline name.')
+@click.option('--overwrite',
+              is_flag=True,
+              help='Overwrite output file if it already exists.')
+def export(pipeline_path, runtime_config, output, overwrite):
+    """
+    Export a pipeline to a runtime-specific format
+    """
+
+    click.echo()
+    print_banner("Elyra pipeline export")
+
+    runtime_schema = _get_runtime_schema_name(runtime_config)
+    runtime_type = _get_runtime_type(runtime_config)
+
+    pipeline_definition = \
+        _preprocess_pipeline(pipeline_path, runtime=runtime_schema, runtime_config=runtime_config)
+
+    # Verify that the pipeline's runtime type is compatible with the
+    # runtime configuration
+    pipeline_runtime_type = pipeline_definition.get('pipelines', [{}])[0]\
+                                               .get('app_data', {})\
+                                               .get('runtime_type', 'Generic')
+    if pipeline_runtime_type and\
+       pipeline_runtime_type != 'Generic' and\
+       pipeline_runtime_type != runtime_type:
+        raise click.BadParameter(f"The runtime configuration type '{runtime_type}' does not match "
+                                 f"the pipeline's runtime type '{pipeline_runtime_type}'.",
+                                 param_hint='--runtime-config')
+
+    supported_export_formats = {
+        'KUBEFLOW_PIPELINES': [
+            {
+                'format': 'yaml',
+                'file_suffixes': ['.yaml', '.yml'],
+                'default_file_suffix': '.yaml'
+            }
+        ],
+        'APACHE_AIRFLOW': [
+            {
+                'format': 'py',
+                'file_suffixes': ['.py'],
+                'default_file_suffix': '.py'
+            }
+        ]
+    }
+
+    # If, in the future, a runtime supports multiple export output formats,
+    # the user can choose one. For now, choose the only option.
+    selected_export_format = supported_export_formats[runtime_type][0]
+
+    # generate output file name from the user-provided input
+    if output is None:
+        # user did not specify an output; use current directory
+        # and derive the file name from the pipeline file name
+        output_path = Path.cwd()
+        filename = f"{Path(pipeline_path).stem}{selected_export_format['default_file_suffix']}"
+    else:
+        if output.suffix in selected_export_format['file_suffixes']:
+            # user provided a file name
+            output_path = output.parent
+            filename = output.name
+        else:
+            # user provided a directory
+            output_path = output
+            filename = f"{Path(pipeline_path).stem}{selected_export_format['default_file_suffix']}"
+    output_file = output_path.resolve() / filename
+
+    # verify that the output path meets the prerequisites
+    if not output_file.parent.is_dir():
+        try:
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+        except Exception as ex:
+            raise click.BadParameter(f'Cannot create output directory: {ex}',
+                                     param_hint='--output')
+
+    # handle output overwrite
+    if output_file.exists() and not overwrite:
+        raise click.ClickException(f"Output file '{str(output_file)}' exists and "
+                                   "option '--overwrite' was not specified.")
+
+    # validate the pipeline
+    if _validate_pipeline_definition(pipeline_definition):
+        raise click.ClickException("Pipeline validation FAILED. The pipeline was not exported.")
+
+    with yaspin(text='Exporting pipeline ...'):
+        try:
+            # parse pipeline
+            pipeline_object = PipelineParser().parse(pipeline_definition)
+            # process pipeline
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                asyncio.get_event_loop().run_until_complete(
+                    PipelineProcessorManager.instance().export(pipeline_object,
+                                                               selected_export_format['format'],
+                                                               str(output_file),
+                                                               True))
+        except ValueError as ve:
+            raise click.ClickException(f'Error parsing pipeline: \n {ve}')
+        except RuntimeError as re:
+            raise click.ClickException(f'Error exporting pipeline: \n {re} \n {re.__cause__}')
+
+    click.echo(f"Pipeline was exported to '{str(output_file)}'.")
+
+
 pipeline.add_command(describe)
 pipeline.add_command(validate)
 pipeline.add_command(submit)
 pipeline.add_command(run)
+pipeline.add_command(export)
