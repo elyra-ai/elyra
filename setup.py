@@ -63,14 +63,14 @@ setup_args = dict(
     data_files=get_data_files(data_files_spec),
     packages=find_packages(),
     install_requires=[
-        'autopep8>=1.5.0,<1.5.6',
-        'click>=8',
+        'autopep8>=1.5.0',
+        'click>=8',  # elyra-ai/elyra#2579
         'colorama',
         'deprecation',
         'entrypoints>=0.3',
         'jinja2>=2.11',
-        'jsonschema>=3.2.0,<4.0',  # Cap from KFP
-        'jupyter_core>=4.0,<5.0',
+        'jsonschema>=3.2.0,<4.0',  # Cap from kfp
+        'jupyter_core>=4.6.0',
         'jupyter_client>=6.1.7',
         'jupyter-packaging>=0.10',
         'jupyter_server>=1.7.0',
@@ -78,7 +78,7 @@ setup_args = dict(
         'jupyterlab-git~=0.32',
         'jupyterlab-lsp>=3.8.0',
         'jupyter-resource-usage>=0.5.1',
-        'minio>=7.0.0,<8.0.0',
+        'minio>=7.0.0',
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1',
         'nbdime~=3.1',
@@ -86,22 +86,22 @@ setup_args = dict(
         'networkx>=2.5.1',
         'papermill>=2.3.4',
         'python-lsp-server[all]>=1.1.0',
-        'pyyaml>=5.3.1,<6.0',
-        'requests>=2.25.1,<3.0',
+        'pyyaml>=5.3.1,<6.0',  # Cap from kfp
+        'requests>=2.25.1,<3.0',  # Cap from kfp
         'rfc3986-validator>=0.1.1',
         'tornado>=6.1.0',
-        'typing-extensions>=3.10,<4',  # Cap from KFP
+        'typing-extensions>=3.10,<4',  # Cap from kfp
         'traitlets>=4.3.2',
         'urllib3>=1.26.5',
         'watchdog>=2.1.3',
         'websocket-client',
-        'wrapt>=1.11,<1.14',  # Add from asteroid
+        'wrapt>=1.11,<1.14',  # Cap from asteroid from ?
         'yaspin',
         # KFP runtime dependencies
-        'kfp>=1.7.0,<2.0,!=1.7.2',
+        'kfp>=1.7.0,<2.0,!=1.7.2',  # We cap the SDK to <2.0
         # Airflow runtime dependencies
         'pygithub',
-        'black<=21.12b0',
+        'black<=21.12b0',  # Cap due to psf/black#2846
     ],
     extras_require={
         'test': ['elyra-examples-airflow-catalog', 'elyra-examples-kfp-catalog', 'pytest', 'pytest-tornasync'],
