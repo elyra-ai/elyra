@@ -73,11 +73,10 @@ describe('Script Editor tests', () => {
   it('click the Run as Pipeline button should display dialog', () => {
     // Install runtime configuration
     cy.installRuntimeConfig({ type: 'kfp' });
-    // Click Run as Pipeline button
-    cy.findByText(/run as pipeline/i).click();
+    clickRunAsPipelineButton();
     // Check for expected dialog title
     cy.get('.jp-Dialog-header').should('have.text', 'Run file as pipeline');
-    // Dismiss  dialog
+    // Dismiss dialog
     cy.get('button.jp-mod-reject').click();
 
     // Close editor tab
@@ -88,11 +87,18 @@ describe('Script Editor tests', () => {
     // Create new python file
     cy.createNewScriptFile('Python');
 
-    // Add some text to the editor
-    cy.get('span[role="presentation"]').type('print("test")\n');
+    // Add some text to the editor (wait code editor to load)
+    cy.wait(1000);
+    cy.get('span[role="presentation"]')
+      .should('be.visible')
+      .type('print("test")\n');
 
-    // Click Run as Pipeline button
-    cy.findByText(/run as pipeline/i).click();
+    // Dismiss code assistant box
+    cy.get('.CodeMirror-lines')
+      .first()
+      .click('center');
+
+    clickRunAsPipelineButton();
 
     // Check expected save and submit dialog message
     cy.contains('.jp-Dialog-header', /this file contains unsaved changes/i);
@@ -107,10 +113,10 @@ describe('Script Editor tests', () => {
     cy.get('button.jp-mod-warn').click();
   });
 
-  // check for new output console and scroll up/down buttons on output kernel
+  // check for new output console and scroll up/down buttons
   it('opens new output console', () => {
     openFile('py');
-    cy.get('button[title="Run"]').click();
+    clickRunButton();
     cy.get('[id=tab-ScriptEditor-output]').should(
       'have.text',
       'Console Output'
@@ -125,10 +131,10 @@ describe('Script Editor tests', () => {
     cy.closeTab(-1);
   });
 
-  // test to check if output kernel has expected output
+  // check for expected output on running a valid code
   it('checks for valid output', () => {
     openFile('py');
-    cy.get('button[title="Run"]').click();
+    clickRunButton();
     cy.get('.elyra-ScriptEditor-OutputArea-output').should(
       'have.text',
       'Hello Elyra\n'
@@ -141,11 +147,22 @@ describe('Script Editor tests', () => {
     cy.closeTab(-1);
   });
 
-  // test to check if output kernel has Error message for invalid code
+  // check for error message running an invalid code
   it('checks for Error message', () => {
     cy.createNewScriptFile('Python');
-    cy.get('span[role="presentation"]').type('print"test"\n');
-    cy.get('button[title="Run"]').click();
+
+    // Add some code with syntax error to the editor (wait code editor to load)
+    cy.wait(1000);
+    cy.get('span[role="presentation"]')
+      .should('be.visible')
+      .type('print"test"\n');
+
+    // Dismiss code assistant box
+    cy.get('.CodeMirror-lines')
+      .first()
+      .click('center');
+
+    clickRunButton();
     cy.findByText(/Error : SyntaxError/i).should('be.visible');
 
     //close console tab
@@ -287,7 +304,7 @@ const checkRightClickTabContent = (fileType: string): void => {
   ).click();
 };
 
-//open helloworld.py using file-> open from path
+// Open helloworld.py using file-> open from path
 const openFile = (fileExtension: string): void => {
   cy.findByRole('menuitem', { name: /file/i }).click();
   cy.findByText(/^open from path$/i).click({ force: true });
@@ -297,7 +314,7 @@ const openFile = (fileExtension: string): void => {
   cy.get('.p-Panel .jp-mod-accept').click();
 };
 
-//open file and check contents
+// Open file and check contents
 const openFileAndCheckContent = (fileExtension: string): void => {
   openFile('py');
   // Ensure that the file contents are as expected
@@ -307,4 +324,14 @@ const openFileAndCheckContent = (fileExtension: string): void => {
 
   // Close the file editor
   cy.closeTab(-1);
+};
+
+// Click Run as Pipeline button
+const clickRunAsPipelineButton = (): void => {
+  cy.findByText(/run as pipeline/i).click();
+};
+
+// Click Run button
+const clickRunButton = (): void => {
+  cy.get('button[title="Run"]').click();
 };
