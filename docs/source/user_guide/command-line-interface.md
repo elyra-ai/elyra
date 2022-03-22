@@ -164,7 +164,7 @@ Finally, when updating instances using the `--replace` option.  You are not requ
 ### Working with pipelines
 
 In Elyra, [a pipeline](pipelines.md) is a representation of a
-workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow.
+workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow. The `elyra-pipeline` CLI is used to run pipelines, validate pipelines, describe pipelines, or export pipelines.
 
 #### Getting help
 
@@ -179,9 +179,11 @@ To learn more about a specific command, e.g. `run`, run
 $ elyra-pipeline run --help
 ```
 
-#### Running pipelines
-
 Refer to the topics below for detailed information on how to use `elyra-pipeline` to
  - [Display pipeline information summary](pipelines.html#running-a-pipeline-using-the-command-line)
- - [Run a pipeline locally](pipelines.html#running-a-pipeline-using-the-command-line)
- - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-using-the-command-line)
+ - [Run a pipeline locally](pipelines.html#running-a-pipeline-from-the-command-line-interface)
+ - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-from-the-command-line-interface)
+ - [Export a pipeline](pipelines.html#exporting-a-pipeline-from-the-command-line-interface)
+
+
+
