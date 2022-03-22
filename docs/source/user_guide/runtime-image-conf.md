@@ -107,7 +107,7 @@ runtime-image   anaconda               /Users/jdoe/.../jupyter/metadata/runtime-
 To add a runtime image configuration for the public `jdoe/my-image:1.0.0` container image:
 
 ```bash
-$ elyra-metadata install runtime-images --schema_name=runtime-image \
+$ elyra-metadata create runtime-images --schema_name=runtime-image \
        --name="my_image_name" \
        --display_name="My runtime image" \
        --description="My custom runtime container image" \
@@ -116,15 +116,14 @@ $ elyra-metadata install runtime-images --schema_name=runtime-image \
 
 #### Modifying a runtime configuration
 
-To replace a runtime image configuration append the `--replace` option:
+To replace a runtime image configuration use the `update` command:
 
 ```bash
-$ elyra-metadata install runtime-images --schema_name=runtime-image \
+$ elyra-metadata update runtime-images --schema_name=runtime-image \
        --name="my_image_name" \
        --display_name="My runtime image" \
        --description="My other custom runtime container image" \
-       --image_name="jdoe/my-other-image:1.0.1" \
-       --replace
+       --image_name="jdoe/my-other-image:1.0.1"
 ```
 
 #### Exporting runtime image configurations

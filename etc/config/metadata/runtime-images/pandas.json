@@ -1,8 +1,8 @@
 {
-  "display_name": "Pandas 1.1.1",
+  "display_name": "Pandas 1.4.1",
   "metadata": {
-    "description": "Pandas 1.1.1",
-    "image_name": "amancevice/pandas:1.1.1",
+    "description": "Pandas 1.4.1",
+    "image_name": "amancevice/pandas:1.4.1",
     "tags": ["pandas"]
   },
   "schema_name": "runtime-image"
