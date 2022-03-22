@@ -79,7 +79,7 @@ async def test_modify_component_catalogs(jp_environ, component_cache,
         assert res.returncode == 0
 
     # Wait for update to complete
-    component_cache.wait_for_all_tasks()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get new set of components from all active registries, including added test registry
     components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
@@ -94,7 +94,7 @@ async def test_modify_component_catalogs(jp_environ, component_cache,
     metadata_manager_with_teardown.update(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
-    component_cache.wait_for_all_tasks()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get set of components from all active registries, including modified test registry
     components_after_update = component_cache.get_all_components(RUNTIME_PROCESSOR)
@@ -108,7 +108,7 @@ async def test_modify_component_catalogs(jp_environ, component_cache,
     metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
 
     # Wait for update to complete
-    component_cache.wait_for_all_tasks()
+    component_cache.wait_for_all_cache_tasks()
 
     # Check that components remaining after delete are the same as before the new catalog was added
     components_after_remove = component_cache.get_all_components(RUNTIME_PROCESSOR)
@@ -143,7 +143,7 @@ async def test_directory_based_component_catalog(component_cache, metadata_manag
         assert res.returncode == 0
 
     # Wait for update to complete
-    component_cache.wait_for_all_tasks()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get new set of components from all active registries, including added test registry
     components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
@@ -157,7 +157,7 @@ async def test_directory_based_component_catalog(component_cache, metadata_manag
 
     # Delete the test registry and wait for updates to complete
     metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
-    component_cache.wait_for_all_tasks()
+    component_cache.wait_for_all_cache_tasks()
 
 
 def test_parse_kfp_component_file():

@@ -48,8 +48,10 @@ def component_cache(jp_environ):
     """
     Initialize a component cache
     """
+    ComponentCache.clear_instance()
+
     # Create new instance and load the cache
-    component_cache = ComponentCache.instance()
+    component_cache = ComponentCache.instance(emulate_server_app=True)
     component_cache.load()
 
     yield component_cache
@@ -64,10 +66,9 @@ def catalog_instance(component_cache, request):
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
     catalog = md_mgr.create(instance_name, Metadata(**instance_metadata))
-    component_cache.wait_for_all_tasks()
+    component_cache.wait_for_all_cache_tasks()
     yield catalog
     md_mgr.remove(instance_name)
-    component_cache.wait_for_all_tasks()
 
 
 @pytest.fixture
@@ -85,6 +86,5 @@ def metadata_manager_with_teardown(jp_environ):
     try:
         if metadata_manager.get(TEST_CATALOG_NAME):
             metadata_manager.remove(TEST_CATALOG_NAME)
-            # ComponentCache.instance().wait_for_all_cache_updates()
     except Exception:
         pass
