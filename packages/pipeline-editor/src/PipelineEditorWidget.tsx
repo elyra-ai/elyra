@@ -98,7 +98,8 @@ export const commandIDs = {
   saveDocManager: 'docmanager:save',
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
-  addFileToPipeline: 'pipeline-editor:add-node'
+  addFileToPipeline: 'pipeline-editor:add-node',
+  openViewer: 'elyra-code-viewer:open'
 };
 
 const getAllPaletteNodes = (palette: any): any[] => {
@@ -526,19 +527,43 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
   };
 
+  const handleOpenComponentDef = useCallback(
+    (componentId: string) => {
+      PipelineService.getComponentDef(
+        __doNotUseInFutureMapTypeToRandomProcessor__,
+        componentId
+      )
+        .then(res => {
+          const nodeDef = getAllPaletteNodes(palette).find(
+            n => n.id === componentId
+          );
+          commands.execute(commandIDs.openViewer, {
+            content: res.content,
+            mimeType: res.mimeType,
+            label: nodeDef?.label ?? componentId
+          });
+        })
+        .catch(e => RequestErrors.serverError(e));
+    },
+    [__doNotUseInFutureMapTypeToRandomProcessor__, commands, palette]
+  );
+
   const onDoubleClick = (data: any): void => {
     for (let i = 0; i < data.selectedObjectIds.length; i++) {
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
       );
-      if (!node?.app_data?.component_parameters?.filename) {
-        continue;
+      const nodeDef = getAllPaletteNodes(palette).find(n => n.op === node?.op);
+      if (node?.app_data?.component_parameters?.filename) {
+        commands.execute(commandIDs.openDocManager, {
+          path: PipelineService.getWorkspaceRelativeNodePath(
+            contextRef.current.path,
+            node.app_data.component_parameters.filename
+          )
+        });
+      } else if (!nodeDef?.app_data?.parameter_refs?.['filehandler']) {
+        handleOpenComponentDef(nodeDef?.id);
       }
-      const path = PipelineService.getWorkspaceRelativeNodePath(
-        contextRef.current.path,
-        node.app_data.component_parameters.filename
-      );
-      commands.execute(commandIDs.openDocManager, { path });
     }
   };
 
@@ -784,11 +809,21 @@ const PipelineWrapper: React.FC<IProps> = ({
             )
           });
           break;
+        case 'openComponentDef':
+          handleOpenComponentDef(args.payload);
+          break;
         default:
           break;
       }
     },
-    [handleSubmission, handleClearPipeline, panelOpen, shell, commands]
+    [
+      handleSubmission,
+      handleClearPipeline,
+      panelOpen,
+      shell,
+      commands,
+      handleOpenComponentDef
+    ]
   );
 
   const toolbar = {
