@@ -119,7 +119,7 @@ Note: You can rename the pipeline file in the JupyterLab _File Browser_.
 
 Pipelines can be run from the Visual Pipeline Editor and the `elyra-pipeline` command line interface. Before you can run a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
 
-**Running a pipeline from the Visual Pipeline Editor**
+#### Running a pipeline from the Visual Pipeline Editor
 
 To run a pipeline from the Visual Pipeline Editor:
 1. Click `Run Pipeline` in the editor's tool bar.
@@ -139,7 +139,7 @@ To run a pipeline from the Visual Pipeline Editor:
    - For local/JupyterLab execution all artifacts are stored in the local file system.
    - For Kubeflow Pipelines and Apache Airflow output artifacts for generic components are stored in the runtime configuration's designated object storage bucket.   
 
-**Running a pipeline from the command line interface**
+#### Running a pipeline from the command line interface
 
 The [`elyra-pipeline` command line interface](https://elyra.readthedocs.io/en/latest/user_guide/command-line-interface.html#working-with-pipelines)
 provides an informative command: `describe` and two execution commands: `run` and `submit`.
@@ -172,6 +172,9 @@ It packages dependencies for generic components and uploads them to cloud storag
 
 Before you can export a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
 
+
+#### Exporting a pipeline from the Visual Pipeline Editor
+
 To export a pipeline from the Visual Pipeline Editor:
 1. Click `Export Pipeline` in the editor's tool bar.
 
@@ -183,4 +186,20 @@ To export a pipeline from the Visual Pipeline Editor:
    
    ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
 
-1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is monitoring.   
+1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is monitoring.
+
+
+#### Exporting a pipeline from the command line interface
+
+Use the `elyra-pipeline export` command to export a pipeline to a runtime-specific format, such as YAML for Kubeflow Pipelines and Python DAG for Apache Airflow.
+
+```bash
+$ elyra-pipeline export my.pipeline --runtime-config kfp_dev_env --output /path/to/exported.yaml --overwrite
+```
+
+To learn more about supported parameters, run
+```bash
+$ elyra-pipeline export --help
+```
+
+
