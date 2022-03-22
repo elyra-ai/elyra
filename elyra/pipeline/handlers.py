@@ -224,7 +224,7 @@ class ComponentCacheHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def put(self):
         self.log.debug("Refreshing component cache for all catalog instances...")
-        ComponentCache.instance().update_component_cache_for_all_catalogs()
+        ComponentCache.instance().refresh()
 
         self.set_status(200)
         self.finish()
@@ -244,7 +244,7 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(404, f"Catalog '{catalog}' cannot be found.")
 
         self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
-        ComponentCache.instance().update_component_cache(catalog=catalog_instance, action='modify')
+        ComponentCache.instance().update(catalog=catalog_instance, action='modify')
 
         self.set_status(200)
         self.finish()
