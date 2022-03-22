@@ -210,17 +210,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
 
-  // TODO: DELETE THIS
-  const __doNotUseInFutureMapTypeToRandomProcessor__ = (():
-    | string
-    | undefined => {
-    const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
-    return schema?.name;
-  })();
-
-  const { data: palette, error: paletteError } = usePalette(
-    __doNotUseInFutureMapTypeToRandomProcessor__
-  );
+  const { data: palette, error: paletteError } = usePalette(type);
 
   const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
 
@@ -529,10 +519,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const handleOpenComponentDef = useCallback(
     (componentId: string) => {
-      PipelineService.getComponentDef(
-        __doNotUseInFutureMapTypeToRandomProcessor__,
-        componentId
-      )
+      PipelineService.getComponentDef(type, componentId)
         .then(res => {
           const nodeDef = getAllPaletteNodes(palette).find(
             n => n.id === componentId
@@ -545,7 +532,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         })
         .catch(e => RequestErrors.serverError(e));
     },
-    [__doNotUseInFutureMapTypeToRandomProcessor__, commands, palette]
+    [commands, palette, type]
   );
 
   const onDoubleClick = (data: any): void => {
