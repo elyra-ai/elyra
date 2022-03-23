@@ -32,7 +32,6 @@ from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Template
 from jupyter_core.paths import jupyter_runtime_dir
-from traitlets.config import Application
 from traitlets.config import SingletonConfigurable
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -301,7 +300,7 @@ class ComponentCache(SingletonConfigurable):
         super().__init__(**kwargs)
 
         self.is_server_process = False
-        if Application.initialized() and Application.instance().__class__.__name__ in ['ServerApp', 'ElyraApp']:
+        if 'parent' in kwargs and kwargs['parent'].__class__.__name__ in ['ServerApp', 'ElyraApp']:
             self.is_server_process = True
         elif "emulate_server_app" in kwargs and bool(kwargs["emulate_server_app"]):  # Primarily used by tests
             self.is_server_process = True
