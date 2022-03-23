@@ -96,7 +96,7 @@ describe('Script Editor tests', () => {
     // Dismiss code assistant box
     cy.get('.CodeMirror-lines')
       .first()
-      .click('center');
+      .type('{esc}');
 
     clickRunAsPipelineButton();
 
@@ -160,7 +160,7 @@ describe('Script Editor tests', () => {
     // Dismiss code assistant box
     cy.get('.CodeMirror-lines')
       .first()
-      .click('center');
+      .type('{esc}');
 
     clickRunButton();
     cy.findByText(/Error : SyntaxError/i).should('be.visible');
