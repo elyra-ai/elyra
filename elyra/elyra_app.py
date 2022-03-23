@@ -124,5 +124,9 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     def initialize_templates(self):
         pass
 
+    async def stop_extension(self):
+        if ComponentCache.initialized():
+            ComponentCache.instance(parent=self).cache_manager.stop()  # terminate CacheUpdateManager
+
 
 launch_instance = ElyraApp.launch_instance

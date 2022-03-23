@@ -86,9 +86,7 @@ class CacheUpdateManager(Thread):
         self.stop_event: Event = Event()  # Set when server process stops
 
     def run(self):
-        """Process manifest queue entries.  If queue is empty or after processing one manifest
-        entry, the cache queue entries are processed.
-        """
+        """Process queue queue entries until server is stopped."""
         while not self.stop_event.is_set():
             self.manage_cache_tasks()
 
@@ -100,10 +98,8 @@ class CacheUpdateManager(Thread):
         outstanding_threads = self._has_outstanding_threads()
 
         try:
-            # Get a task from the cache queue
-            timeout = BLOCKING_TIMEOUT
-            if outstanding_threads:  # or not self._manifest_queue.empty():
-                timeout = NONBLOCKING_TIMEOUT
+            # Get a task from the cache queue, waiting less if we have active threads.
+            timeout = NONBLOCKING_TIMEOUT if outstanding_threads else BLOCKING_TIMEOUT
 
             catalog, action = self._cache_queue.get(timeout=timeout)
 
@@ -167,10 +163,9 @@ class CacheUpdateManager(Thread):
         return outstanding_threads
 
     def stop(self):
-        """
-        Trigger completion of the manager thread.
-        """
+        """Trigger completion of the manager thread."""
         self.stop_event.set()
+        self.log.debug("CacheUpdateManager stopped.")
 
 
 class CacheUpdateWorker(Thread):
@@ -182,7 +177,7 @@ class CacheUpdateWorker(Thread):
 
         super().__init__()
 
-        self.setDaemon(True)
+        self.daemon = True
         self.name = catalog.name  # Let the name of the thread reflect the catalog being managed
 
         self._component_cache: ComponentCacheType = component_cache
@@ -202,6 +197,7 @@ class CacheUpdateWorker(Thread):
         self.prepare_cache_for_catalog(runtime_type)
 
     def run(self):
+        """Apply the relative action to the given catalog entry in the cache."""
         if self.action == 'delete':
             # Check all runtime types in cache for an entry of the given name.
             # If found, remove only the components from this catalog
@@ -219,11 +215,9 @@ class CacheUpdateWorker(Thread):
                 catalog_state['state'] = "current"
                 catalog_state['errors'] = []  # reset any errors that may have been present
             except Exception as e:
-                # Update manifest queue with an 'error' action and the relevant message
+                # Update state with an 'error' action and the relevant message
                 catalog_state['state'] = "error"
                 catalog_state['errors'].append(str(e))
-
-            self._component_cache[runtime_type][self.catalog.name]['status'] = catalog_state
 
     def prepare_cache_for_catalog(self, runtime_type: Optional[str] = None):
         """
@@ -248,13 +242,12 @@ class CacheUpdateWorker(Thread):
             self._component_cache[runtime_type][self.catalog.name] = {
                 "components": {},
                 "status": {
-                    "state": "current",
+                    "state": "updating",
                     "errors": []
                 }
             }
-
-        # Set state to 'updating'
-        self._component_cache[runtime_type][self.catalog.name]['status']['state'] = 'updating'
+        else:  # Set state to 'updating' for an existing entry
+            self._component_cache[runtime_type][self.catalog.name]['status']['state'] = 'updating'
 
 
 class ComponentCache(SingletonConfigurable):
