@@ -236,7 +236,7 @@ class ComponentCache(SingletonConfigurable):
         for catalog_name, catalog_components in platform_components.items():
             components.extend(list(catalog_components.values()))
 
-        if not components:
+        if not components and platform.name != "LOCAL":
             self.log.error(f"No components could be found in any catalog for platform type '{platform.name}'.")
 
         return components
