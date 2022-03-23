@@ -300,7 +300,6 @@ def test_parse_kfp_component_url():
     entry_data = reader.get_entry_data(catalog_entry_data, {})
     catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
 
-
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(catalog_entry)[0]
