@@ -36,6 +36,8 @@ from elyra.pipeline.pipeline_definition import Pipeline
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationSeverity
 
@@ -181,7 +183,8 @@ def _print_issues(issues):
     click.echo("")
 
 
-def _validate_pipeline_definition(pipeline_definition: PipelineDefinition) -> bool:
+def _validate_pipeline_definition(pipeline_definition: PipelineDefinition):
+    """Validate pipeline definition and display issues"""
 
     click.echo("Validating pipeline...")
     # validate pipeline
@@ -192,7 +195,9 @@ def _validate_pipeline_definition(pipeline_definition: PipelineDefinition) -> bo
     issues = validation_response.to_json().get('issues')
     _print_issues(issues)
 
-    return validation_response.has_fatal
+    if validation_response.has_fatal:
+        # raise an exception and let the caller decide what to do
+        raise click.ClickException()
 
 
 def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
@@ -273,7 +278,9 @@ def validate(pipeline_path, runtime_config='local'):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
-    if _validate_pipeline_definition(pipeline_definition):
+    try:
+        _validate_pipeline_definition(pipeline_definition)
+    except Exception:
         raise click.ClickException("Pipeline validation FAILED.")
 
 
@@ -303,7 +310,9 @@ def submit(json_option, pipeline_path, runtime_config):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
-    if _validate_pipeline_definition(pipeline_definition):
+    try:
+        _validate_pipeline_definition(pipeline_definition)
+    except Exception:
         raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
 
     with yaspin(text="Submitting pipeline..."):
@@ -352,8 +361,10 @@ def run(json_option, pipeline_path):
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
 
-    if _validate_pipeline_definition(pipeline_definition):
-        raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
+    try:
+        _validate_pipeline_definition(pipeline_definition)
+    except Exception:
+        raise click.ClickException("Pipeline validation FAILED. The pipeline was not run.")
 
     response = _execute_pipeline(pipeline_definition)
 
@@ -457,8 +468,9 @@ def export(pipeline_path, runtime_config, output, overwrite):
     click.echo()
     print_banner("Elyra pipeline export")
 
-    runtime_schema = _get_runtime_schema_name(runtime_config)
-    runtime_type = _get_runtime_type(runtime_config)
+    rtc = _get_runtime_config(runtime_config)
+    runtime_schema = rtc.schema_name
+    runtime_type = rtc.metadata.get('runtime_type')
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime_schema, runtime_config=runtime_config)
@@ -475,42 +487,28 @@ def export(pipeline_path, runtime_config, output, overwrite):
                                  f"the pipeline's runtime type '{pipeline_runtime_type}'.",
                                  param_hint='--runtime-config')
 
-    supported_export_formats = {
-        'KUBEFLOW_PIPELINES': [
-            {
-                'format': 'yaml',
-                'file_suffixes': ['.yaml', '.yml'],
-                'default_file_suffix': '.yaml'
-            }
-        ],
-        'APACHE_AIRFLOW': [
-            {
-                'format': 'py',
-                'file_suffixes': ['.py'],
-                'default_file_suffix': '.py'
-            }
-        ]
-    }
-
+    resources = RuntimeTypeResources.get_instance_by_type(
+        RuntimeProcessorType.get_instance_by_name(runtime_type))
     # If, in the future, a runtime supports multiple export output formats,
     # the user can choose one. For now, choose the only option.
-    selected_export_format = supported_export_formats[runtime_type][0]
+    selected_export_format = resources.get_export_extensions()[0]
+    selected_export_format_suffix = f'.{selected_export_format}'
 
     # generate output file name from the user-provided input
     if output is None:
         # user did not specify an output; use current directory
         # and derive the file name from the pipeline file name
         output_path = Path.cwd()
-        filename = f"{Path(pipeline_path).stem}{selected_export_format['default_file_suffix']}"
+        filename = f"{Path(pipeline_path).stem}{selected_export_format_suffix}"
     else:
-        if output.suffix in selected_export_format['file_suffixes']:
+        if output.suffix == selected_export_format_suffix:
             # user provided a file name
             output_path = output.parent
             filename = output.name
         else:
             # user provided a directory
             output_path = output
-            filename = f"{Path(pipeline_path).stem}{selected_export_format['default_file_suffix']}"
+            filename = f"{Path(pipeline_path).stem}{selected_export_format_suffix}"
     output_file = output_path.resolve() / filename
 
     # verify that the output path meets the prerequisites
@@ -527,7 +525,9 @@ def export(pipeline_path, runtime_config, output, overwrite):
                                    "option '--overwrite' was not specified.")
 
     # validate the pipeline
-    if _validate_pipeline_definition(pipeline_definition):
+    try:
+        _validate_pipeline_definition(pipeline_definition)
+    except Exception:
         raise click.ClickException("Pipeline validation FAILED. The pipeline was not exported.")
 
     with yaspin(text='Exporting pipeline ...'):
@@ -539,7 +539,7 @@ def export(pipeline_path, runtime_config, output, overwrite):
                 warnings.simplefilter("ignore")
                 asyncio.get_event_loop().run_until_complete(
                     PipelineProcessorManager.instance().export(pipeline_object,
-                                                               selected_export_format['format'],
+                                                               selected_export_format,
                                                                str(output_file),
                                                                True))
         except ValueError as ve:
