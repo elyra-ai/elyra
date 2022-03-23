@@ -489,9 +489,13 @@ def export(pipeline_path, runtime_config, output, overwrite):
 
     resources = RuntimeTypeResources.get_instance_by_type(
         RuntimeProcessorType.get_instance_by_name(runtime_type))
+    supported_export_formats = resources.get_export_extensions()
+    if len(supported_export_formats) == 0:
+        raise click.ClickException(f"Runtime type '{runtime_type}' does not support export.")
+
     # If, in the future, a runtime supports multiple export output formats,
     # the user can choose one. For now, choose the only option.
-    selected_export_format = resources.get_export_extensions()[0]
+    selected_export_format = supported_export_formats[0]
     selected_export_format_suffix = f'.{selected_export_format}'
 
     # generate output file name from the user-provided input
