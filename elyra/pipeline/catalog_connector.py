@@ -47,9 +47,11 @@ class EntryData(object):
     at minimum, includes the string definition of the corresponding component(s)
     """
     definition: str = None
+    file_extension: str = None
 
-    def __init__(self, definition: str, **kwargs):
+    def __init__(self, definition: str, file_extension: Optional[str] = None, **kwargs):
         self.definition = definition
+        self.file_extension = file_extension
 
 
 class AirflowEntryData(EntryData):
@@ -59,8 +61,8 @@ class AirflowEntryData(EntryData):
     """
     package_name: str = None
 
-    def __init__(self, definition: str, **kwargs):
-        super().__init__(definition, **kwargs)
+    def __init__(self, definition: str, file_extension: Optional[str] = None, **kwargs):
+        super().__init__(definition, file_extension, **kwargs)
         self.package_name = kwargs.get('package_name')
 
 
@@ -83,20 +85,17 @@ class CatalogEntry(object):
     catalog_type: str
     runtime_type: RuntimeProcessorType
     categories: List[str]
-    file_extensions: str
 
     def __init__(self,
                  entry_data: EntryData,
                  entry_reference: Any,
                  catalog_instance: Metadata,
-                 hash_keys: List[str],
-                 file_extensions: List[str]):
+                 hash_keys: List[str]):
         self.entry_data = entry_data
         self.entry_reference = entry_reference
         self.catalog_type = catalog_instance.schema_name
         self.runtime_type = catalog_instance.runtime_type.name  # noqa
         self.categories = catalog_instance.metadata.get("categories", [])
-        self.file_extensions = file_extensions
 
         self.id = self.compute_unique_id(hash_keys)
 
@@ -123,7 +122,12 @@ class CatalogEntry(object):
         hash_digest = f"{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
         return f"{self.catalog_type}:{hash_digest}"
 
-    def get_component(self, id: str, name: str, description: str, properties: List[ComponentParameter]) -> Component:
+    def get_component(self,
+                      id: str,
+                      name: str,
+                      description: str,
+                      properties: List[ComponentParameter],
+                      file_extension: str) -> Component:
         """
         Construct a Component object given the arguments (as parsed from the definition file)
         and the relevant information from the catalog from which the component originates.
@@ -138,7 +142,7 @@ class CatalogEntry(object):
             "definition": self.entry_data.definition,
             "runtime_type": self.runtime_type,
             "categories": self.categories,
-            "extensions": self.file_extensions
+            "extensions": [self.entry_data.file_extension or file_extension]
         }
 
         if isinstance(self.entry_data, AirflowEntryData):
@@ -424,8 +428,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                         entry_data=entry_data,
                         entry_reference=catalog_entry_data,
                         catalog_instance=catalog_instance,
-                        hash_keys=keys_to_hash,
-                        file_extensions=self._file_types
+                        hash_keys=keys_to_hash
                     )
 
                     catalog_entries.append(catalog_entry)
@@ -523,7 +526,7 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
             self.log.warning(f"Invalid location for component: {path}")
         else:
             with open(path, 'r') as f:
-                return EntryData(definition=f.read())
+                return EntryData(definition=f.read(), file_extension=os.path.splitext(path)[1])
 
         return None
 
