@@ -549,7 +549,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           )
         });
       } else if (!nodeDef?.app_data?.parameter_refs?.['filehandler']) {
-        handleOpenComponentDef(nodeDef?.id);
+        handleOpenComponentDef(nodeDef?.id ?? node?.op);
       }
     }
   };
