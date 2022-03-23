@@ -78,19 +78,12 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         else:
             raise RuntimeError(f"Could not find pipeline processor '{processor_name}'")
 
-    def get_processor_from_platform(self, platform_name: str):
-        if not self.is_valid_platform(platform_name):
-            raise RuntimeError(f"Could not find pipeline processor for platform '{platform_name}'")
-        for processor in self._processors.values():
-            if processor.type.name == platform_name:
-                return processor
-
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
 
-    def is_valid_platform(self, platform_name: str) -> bool:
+    def is_valid_runtime_type(self, runtime_type_name: str) -> bool:
         for processor in self._processors.values():
-            if processor.type.name == platform_name:
+            if processor.type.name == runtime_type_name:
                 return True
         return False
 
@@ -121,34 +114,24 @@ class PipelineProcessorManager(SingletonConfigurable):
         processor = self._registry.get_processor(runtime_name)
         return processor
 
-    def get_processor_for_runtime_platform(self, platform_name: str):
-        processor = self._registry.get_processor_from_platform(platform_name)
-        return processor
-
     def is_supported_runtime(self, runtime_name: str) -> bool:
         return self._registry.is_valid_processor(runtime_name)
 
-    def is_supported_runtime_platform(self, platform_name) -> bool:
-        return self._registry.is_valid_platform(platform_name)
+    def is_supported_runtime_type(self, runtime_type_name) -> bool:
+        return self._registry.is_valid_runtime_type(runtime_type_name)
 
     def get_runtime_type(self, runtime_name: str) -> RuntimeProcessorType:
         processor = self.get_processor_for_runtime(runtime_name)
         return processor.type
 
     async def get_components(self, runtime):
-        try:
-            processor = self.get_processor_for_runtime(runtime_name=runtime)
-        except RuntimeError:
-            processor = self.get_processor_for_runtime_platform(platform_name=runtime)
+        processor = self.get_processor_for_runtime(runtime_name=runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
         return res
 
     async def get_component(self, runtime, component_id):
-        try:
-            processor = self.get_processor_for_runtime(runtime_name=runtime)
-        except RuntimeError:
-            processor = self.get_processor_for_runtime_platform(platform_name=runtime)
+        processor = self.get_processor_for_runtime(runtime_name=runtime)
 
         res = await asyncio.get_event_loop().\
             run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))

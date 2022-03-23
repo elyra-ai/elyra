@@ -317,7 +317,7 @@ class ComponentCache(SingletonConfigurable):
         return list(ComponentCache._generic_components.values())
 
     @staticmethod
-    def get_generic_component(component_id: str) -> Component:
+    def get_generic_component(component_id: str) -> Optional[Component]:
         return ComponentCache._generic_components.get(component_id)
 
     @staticmethod
