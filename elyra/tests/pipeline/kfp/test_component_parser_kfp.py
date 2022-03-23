@@ -417,7 +417,13 @@ async def test_parse_components_invalid_yaml(caplog):
 
     # Build the catalog entry data structures required for parsing
     entry_data = EntryData(definition=definition)
-    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
+    catalog_entry = CatalogEntry(
+        entry_data,
+        catalog_entry_data,
+        catalog_instance,
+        ['path'],
+        ['.yaml']
+    )
 
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
