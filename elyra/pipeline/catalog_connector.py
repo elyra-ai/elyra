@@ -311,7 +311,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
             "abstract method 'get_hash_keys()' must be implemented"
         )
 
-    def read_component_definitions(self, catalog_instance: Metadata) -> List[EntryData]:
+    def read_component_definitions(self, catalog_instance: Metadata) -> List[CatalogEntry]:
         """
         This function compiles the definitions of all catalog entries in a given catalog.
 
