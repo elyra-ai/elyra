@@ -23,11 +23,12 @@ import {
   IMetadataDisplayState,
   IMetadataActionButton
 } from '@elyra/metadata-common';
-import { MetadataService } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import { refreshIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
+
+import { PipelineService } from './PipelineService';
 
 export const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 
@@ -46,11 +47,7 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
         title: 'Refresh',
         icon: refreshIcon,
         onClick: (): void => {
-          MetadataService.putMetadata(
-            COMPONENT_CATALOGS_SCHEMASPACE,
-            metadata.name,
-            JSON.stringify(metadata)
-          )
+          PipelineService.refreshComponentsCache(metadata.name)
             .then((response: any): void => {
               this.props.updateMetadata();
             })
@@ -68,6 +65,14 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
 export class ComponentCatalogsWidget extends MetadataWidget {
   constructor(props: IMetadataWidgetProps) {
     super(props);
+  }
+
+  refreshMetadata(): void {
+    PipelineService.refreshComponentsCache()
+      .then((response: any): void => {
+        super.updateMetadata();
+      })
+      .catch(error => RequestErrors.serverError(error));
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {

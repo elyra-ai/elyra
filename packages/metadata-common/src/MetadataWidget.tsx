@@ -363,6 +363,7 @@ export class MetadataWidget extends ReactWidget {
     this.titleContext = props.titleContext;
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
+    this.refreshMetadata = this.refreshMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
     this.renderDisplay = this.renderDisplay.bind(this);
     this.addMetadata = this.addMetadata.bind(this);
@@ -407,6 +408,10 @@ export class MetadataWidget extends ReactWidget {
     this.fetchMetadata().then((metadata: any[]) => {
       this.renderSignal.emit(metadata);
     });
+  }
+
+  refreshMetadata(): void {
+    this.updateMetadata();
   }
 
   // Triggered when the widget button on side panel is clicked
@@ -479,7 +484,7 @@ export class MetadataWidget extends ReactWidget {
               addMetadata={this.addMetadata}
               titleContext={this.titleContext}
               appendToTitle={this.props.appendToTitle}
-              refreshMetadata={this.updateMetadata}
+              refreshMetadata={this.refreshMetadata}
             />
           </header>
           <UseSignal signal={this.renderSignal} initialArgs={[]}>

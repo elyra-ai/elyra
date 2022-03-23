@@ -104,7 +104,7 @@ export class RequestHandler {
    */
   static async makePutRequest<T = any>(
     requestPath: string,
-    requestBody: any,
+    requestBody?: any,
     longRequestDialog?: Dialog<any>
   ): Promise<T> {
     return this.makeServerRequest(
