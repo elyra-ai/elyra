@@ -11,7 +11,7 @@
   {% if not ns.first_match %},{% endif %}{% set ns.first_match = False %}
         {
           "op": "{{ component.op }}",
-          "description": "{{ component.description }}",
+          "description": {{ component.description|tojson|safe }},
           "id": "{{ component.id }}",
           "image": "",
           "label": "{{ component.name }}",
@@ -55,7 +55,7 @@
           {% endif %}
             "image": "",
             "ui_data": {
-              "description": "{{ component.description }}",
+              "description": {{ component.description|tojson|safe }},
               "label": "{{ component.name }}",
               "image": "",
               "x_pos": 0,
