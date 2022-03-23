@@ -108,11 +108,12 @@ def test_run_with_invalid_pipeline():
 def test_submit_with_invalid_pipeline(kfp_runtime_instance):
     runner = CliRunner()
 
-    result = runner.invoke(pipeline, ['submit', 'foo.pipeline',
+    pipeline_file_name = 'foo.pipeline'
+    result = runner.invoke(pipeline, ['submit', pipeline_file_name,
                                       '--runtime-config', kfp_runtime_instance])
-    assert "Pipeline file not found:" in result.output
-    assert "foo.pipeline" in result.output
     assert result.exit_code != 0
+    assert f"Invalid value for 'PIPELINE_PATH': '{pipeline_file_name}' is not "\
+           "a file." in result.output
 
 
 def test_describe_with_invalid_pipeline():
@@ -147,13 +148,15 @@ def test_run_with_unsupported_file_type():
 def test_submit_with_unsupported_file_type(kfp_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
-        with open('foo.ipynb', 'w') as f:
+        pipeline_file_name = 'foo.ipynb'
+        with open(pipeline_file_name, 'w') as f:
             f.write('{ "nbformat": 4, "cells": [] }')
 
-        result = runner.invoke(pipeline, ['submit', 'foo.ipynb',
+        result = runner.invoke(pipeline, ['submit', pipeline_file_name,
                                           '--runtime-config', kfp_runtime_instance])
-        assert "Pipeline file should be a [.pipeline] file" in result.output
         assert result.exit_code != 0
+        assert f"Invalid value for 'PIPELINE_PATH': '{pipeline_file_name}' is not "\
+               "a .pipeline file." in result.output
 
 
 def test_describe_with_unsupported_file_type():
@@ -366,3 +369,43 @@ def test_validate_with_missing_kfp_component(kfp_runtime_instance):
         assert "Validating pipeline..." in result.output
         assert "[Error][Calculate data hash] - This component was not found in the catalog." in result.output
         assert result.exit_code != 0
+
+
+# ------------------------------------------------------------------
+# tests for 'submit' command
+# ------------------------------------------------------------------
+
+def test_submit_invalid_monitor_interval_option(kfp_runtime_instance):
+    """Verify that the '--monitor-timeout' option works as expected"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # dummy pipeline - it's not used
+        pipeline_file_path = os.path.join(os.path.dirname(__file__), 'resources', 'kfp_3_node_custom.pipeline')
+
+        # this should fail: '--monitor-timeout' must be an integer
+        invalid_option_value = 'abc'
+        result = runner.invoke(pipeline, ['submit',
+                                          pipeline_file_path,
+                                          '--runtime-config',
+                                          kfp_runtime_instance,
+                                          '--monitor-timeout',
+                                          invalid_option_value])
+        assert result.exit_code != 0
+        assert f"Invalid value for '--monitor-timeout': {invalid_option_value} is not "\
+               "a valid integer" in result.output
+
+        # this should fail: '--monitor-timeout' must be a positive integer
+        invalid_option_value = 0
+        result = runner.invoke(pipeline, ['submit',
+                                          pipeline_file_path,
+                                          '--runtime-config',
+                                          kfp_runtime_instance,
+                                          '--monitor-timeout',
+                                          invalid_option_value])
+        assert result.exit_code != 0
+        assert f"Invalid value for '--monitor-timeout': '{invalid_option_value}' is not "\
+               "a positive integer" in result.output
+
+# ------------------------------------------------------------------
+# end tests for 'submit' command
+# ------------------------------------------------------------------

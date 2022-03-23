@@ -19,17 +19,22 @@ from collections import OrderedDict
 import json
 from operator import itemgetter
 import os
+from pathlib import Path
+from sys import exit
 from typing import Optional
 import warnings
 
 import click
 from colorama import Fore
 from colorama import Style
+from kfp import Client as ArgoClient
 from yaspin import yaspin
 
 from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
+from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
+from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_definition import Pipeline
 from elyra.pipeline.pipeline_definition import PipelineDefinition
@@ -38,11 +43,26 @@ from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationSeverity
 
+# custom exit code - a timeout occurred
+EXIT_TIMEDOUT = 124
 
 SEVERITY = {ValidationSeverity.Error: 'Error',
             ValidationSeverity.Warning: 'Warning',
             ValidationSeverity.Hint: 'Hint',
             ValidationSeverity.Information: 'Information'}
+
+
+def _get_runtime_config(runtime_config: Optional[str]) -> Optional[dict]:
+    """Fetch runtime configuration"""
+    if not runtime_config or runtime_config == 'local':
+        # No runtime configuration was specified or it is local.
+        # Cannot use metadata manager to determine the runtime type.
+        return None
+    try:
+        metadata_manager = MetadataManager(schemaspace='runtimes')
+        return metadata_manager.get(runtime_config)
+    except Exception as e:
+        raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
 
 
 def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
@@ -178,7 +198,7 @@ def _validate_pipeline_definition(pipeline_definition):
     _print_issues(issues)
 
     if validation_response.has_fatal:
-        raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
+        raise click.ClickException("Pipeline validation FAILED.")
 
 
 def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
@@ -195,6 +215,15 @@ def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
         raise click.ClickException(f'Error parsing pipeline: \n {ve}')
     except RuntimeError as re:
         raise click.ClickException(f'Error processing pipeline: \n {re} \n {re.__cause__}')
+
+
+def validate_pipeline_path(ctx, param, value):
+    """Callback for pipeline_path parameter"""
+    if not value.is_file():
+        raise click.BadParameter(f"'{value}' is not a file.")
+    if value.suffix != '.pipeline':
+        raise click.BadParameter(f"'{value}' is not a .pipeline file.")
+    return value
 
 
 def print_banner(title):
@@ -253,17 +282,46 @@ def validate(pipeline_path, runtime_config='local'):
     _validate_pipeline_definition(pipeline_definition)
 
 
+def validate_timeout_option(ctx, param, value):
+    """Callback for monitor-timeout parameter validation"""
+    try:
+        value = int(value)
+        if value <= 0:
+            raise ValueError()
+    except ValueError:
+        raise click.BadParameter(f"'{value}' is not a positive integer.")
+    else:
+        return value
+
+
 @click.command()
-@click.argument('pipeline_path')
+@click.argument('pipeline_path',
+                type=Path,
+                callback=validate_pipeline_path)
 @click.option('--json',
               'json_option',
               is_flag=True,
               required=False,
               help='Display pipeline summary in JSON format')
 @click.option('--runtime-config',
+              'runtime_config_name',
               required=True,
               help='Runtime config where the pipeline should be processed')
-def submit(json_option, pipeline_path, runtime_config):
+@click.option('--monitor',
+              'monitor_option',
+              is_flag=True,
+              required=False,
+              help='Monitor the pipeline run (Supported for Kubeflow Pipelines only)')
+@click.option('--monitor-timeout',
+              'timeout_option',
+              type=int,
+              default=60,
+              show_default=True,
+              required=False,
+              help='Monitoring timeout in minutes.',
+              callback=validate_timeout_option)
+def submit(json_option, pipeline_path, runtime_config_name,
+           monitor_option, timeout_option):
     """
     Submit a pipeline to be executed on the server
     """
@@ -272,12 +330,16 @@ def submit(json_option, pipeline_path, runtime_config):
 
     print_banner("Elyra Pipeline Submission")
 
-    runtime = _get_runtime_type(runtime_config)
+    runtime_config = _get_runtime_config(runtime_config_name)
+
+    runtime_schema = runtime_config.schema_name
 
     _validate_pipeline_file_extension(pipeline_path)
 
     pipeline_definition = \
-        _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
+        _preprocess_pipeline(pipeline_path,
+                             runtime=runtime_schema,
+                             runtime_config=runtime_config_name)
 
     _validate_pipeline_definition(pipeline_definition)
 
@@ -305,6 +367,71 @@ def submit(json_option, pipeline_path, runtime_config):
         if response:
             click.echo()
             print(json.dumps(response.to_json(), indent=4))
+
+    # Start pipeline run monitoring, if requested
+    if runtime_schema == 'kfp' and monitor_option:
+        minute_str = 'minutes' if timeout_option > 1 else 'minute'
+        try:
+            msg = f"Monitoring status of pipeline run '{response.run_id}' for up to "\
+                  f"{timeout_option} {minute_str}..."
+            with yaspin(text=msg):
+                status = _monitor_kfp_submission(runtime_config,
+                                                 runtime_config_name,
+                                                 response.run_id,
+                                                 timeout_option)
+        except TimeoutError:
+            click.echo('Monitoring was stopped because the timeout threshold '
+                       f'({timeout_option} {minute_str}) was exceeded. The pipeline is still running.')
+            exit(EXIT_TIMEDOUT)
+        else:
+            # The following are known KFP states: 'succeeded', 'failed', 'skipped',
+            # 'error'. Treat 'unknown' as error. Exit with appropriate status code.
+            click.echo(f'Monitoring ended with run status: {status}')
+            if status.lower() not in ['succeeded', 'skipped']:
+                # Click appears to use non-zero exit codes 1 (ClickException)
+                # and 2 (UsageError). Terminate.
+                exit(click.ClickException.exit_code)
+
+
+def _monitor_kfp_submission(runtime_config: dict,
+                            runtime_config_name: str,
+                            run_id: str,
+                            timeout: int) -> str:
+    """Monitor the status of a Kubeflow Pipelines run"""
+
+    try:
+        # Authenticate with the KFP server
+        auth_info = \
+            KFPAuthenticator().authenticate(runtime_config.metadata['api_endpoint'].rstrip('/'),
+                                            auth_type_str=runtime_config.metadata.get('auth_type'),
+                                            runtime_config_name=runtime_config_name,
+                                            auth_parm_1=runtime_config.metadata.get('api_username'),
+                                            auth_parm_2=runtime_config.metadata.get('api_password'))
+    except AuthenticationError as ae:
+        if ae.get_request_history() is not None:
+            click.echo('An authentication error was raised. Diagnostic information follows.')
+            click.echo(ae.request_history_to_string())
+        raise click.ClickException(f'Kubeflow authentication failed: {ae}')
+
+    try:
+        # Create a Kubeflow Pipelines client. There is no need to use a Tekton client,
+        # because the monitoring API is agnostic.
+        client = ArgoClient(host=runtime_config.metadata['api_endpoint'].rstrip('/'),
+                            cookies=auth_info.get('cookies', None),
+                            credentials=auth_info.get('credentials', None),
+                            existing_token=auth_info.get('existing_token', None),
+                            namespace=runtime_config.metadata.get('user_namespace'))
+        # wait for the run to complete or timeout (API uses seconds as unit - convert)
+        run_details = client.wait_for_run_completion(run_id, timeout * 60)
+    except TimeoutError:
+        # pipeline processing did not finish yet, stop monitoring
+        raise
+    except Exception as ex:
+        # log error and return 'unknown' status
+        click.echo(f'Monitoring failed: {type(ex)}: {ex}')
+        return 'unknown'
+    else:
+        return run_details.run.status
 
 
 @click.command()
