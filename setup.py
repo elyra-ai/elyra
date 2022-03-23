@@ -95,7 +95,6 @@ setup_args = dict(
         'urllib3>=1.26.5',
         'watchdog>=2.1.3',
         'websocket-client',
-        'wrapt>=1.11,<1.14',  # Cap from asteroid from ?
         'yaspin',
         # KFP runtime dependencies
         'kfp>=1.7.0,<2.0,!=1.7.2',  # We cap the SDK to <2.0 due to possible breaking changes
