@@ -226,7 +226,7 @@ class ComponentCacheHandler(HttpErrorMixin, APIHandler):
         self.log.debug("Refreshing component cache for all catalog instances...")
         ComponentCache.instance().refresh()
 
-        self.set_status(200)
+        self.set_status(204)
         self.finish()
 
 
@@ -246,5 +246,5 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
         self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
         ComponentCache.instance().update(catalog=catalog_instance, action='modify')
 
-        self.set_status(200)
+        self.set_status(204)
         self.finish()
