@@ -16,6 +16,10 @@
 
 import json
 
+from conftest import KFP_COMPONENT_CACHE_INSTANCE
+import pytest
+import requests
+
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.tests.pipeline import resources
@@ -29,7 +33,8 @@ except ImportError:
 
 async def test_get_components(jp_fetch):
     # Ensure all valid components can be found
-    response = await jp_fetch('elyra', 'pipeline', 'components', 'local')
+    runtime_type = RuntimeProcessorType.LOCAL
+    response = await jp_fetch('elyra', 'pipeline', 'components', runtime_type.name)
     assert response.code == 200
     payload = json.loads(response.body.decode())
     palette = json.loads(pkg_resources.read_text(resources, 'palette.json'))
@@ -38,11 +43,42 @@ async def test_get_components(jp_fetch):
 
 async def test_get_component_properties_config(jp_fetch):
     # Ensure all valid component_entry properties can be found
-    response = await jp_fetch('elyra', 'pipeline', 'components', 'local', 'notebook', 'properties')
+    runtime_type = RuntimeProcessorType.LOCAL
+    response = await jp_fetch('elyra', 'pipeline', 'components', runtime_type.name, 'notebook', 'properties')
     assert response.code == 200
     payload = json.loads(response.body.decode())
     properties = json.loads(pkg_resources.read_text(resources, 'properties.json'))
     assert payload == properties
+
+
+@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+async def test_get_component_properties_definition(component_cache_instance, jp_fetch, caplog):
+    # Ensure the definition for a component can be found
+    component_url = "https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/" \
+                    "kfp-example-components-connector/kfp_examples_connector/resources/download_data.yaml"
+    definition = requests.get(component_url)
+
+    component_id = 'elyra-kfp-examples-catalog:a08014f9252f'  # static id for the 'Download Data' example component
+
+    # Test with shorthand runtime (e.g. 'kfp', 'airflow') (support to be removed in later release)
+    response = await jp_fetch('elyra', 'pipeline', 'components', 'kfp', component_id)
+    assert response.code == 200
+    payload = json.loads(response.body.decode())
+    assert payload['content'] == definition.text
+    assert payload['mimeType'] == 'text/x-yaml'
+
+    assert "Deprecation warning" in caplog.text
+    caplog.clear()
+
+    # Test with runtime type name in endpoint
+    runtime_type = RuntimeProcessorType.KUBEFLOW_PIPELINES
+    response = await jp_fetch('elyra', 'pipeline', 'components', runtime_type.name, component_id)
+    assert response.code == 200
+    payload = json.loads(response.body.decode())
+    assert payload['content'] == definition.text
+    assert payload['mimeType'] == 'text/x-yaml'
+
+    assert "Deprecation warning" not in caplog.text
 
 
 async def test_runtime_types_resources(jp_fetch):
