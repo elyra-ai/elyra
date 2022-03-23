@@ -215,8 +215,7 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         else:
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
-        # Try to get component_id as a generic component; assigns None if id is
-        # not a generic component
+        # Try to get component_id as a generic component; assigns None if id is not a generic component
         component: Optional[Component] = ComponentCache.get_generic_component(component_id)
 
         # Try to retrieve a runtime-type-specific component; assigns None if not found

@@ -526,7 +526,7 @@ class FilesystemComponentCatalogConnector(ComponentCatalogConnector):
             self.log.warning(f"Invalid location for component: {path}")
         else:
             with open(path, 'r') as f:
-                return EntryData(definition=f.read(), file_extension=os.path.splitext(path)[1])
+                return EntryData(definition=f.read())
 
         return None
 
