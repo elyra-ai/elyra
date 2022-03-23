@@ -74,7 +74,7 @@ $ elyra-metadata list runtime-images --json | jq ".[].display_name"
 Refer to the topics below for detailed information on how to use `elyra-metadata` to
  - [Manage code snippets](code-snippets.html#managing-code-snippets-using-the-elyra-cli)
  - [Manage runtime configurations](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli)
- - [Manage runtime images](runtime-image-conf.html#managing-runtime-images-with-the-command-line-interface)
+ - [Manage runtime images](runtime-image-conf.html#managing-runtime-image-configurations-using-the-elyra-cli)
  - [Manage pipeline components](pipeline-components.html#managing-custom-components-using-the-elyra-cli)
 
 #### Creating and updating metadata with complex properties
@@ -159,7 +159,7 @@ It should also be noted that individual object-valued properties can optionally 
 
 Should a failure be encountered relative to a complex schema, the properties identified as complex will be identified in the tool's usage statement.  They will refer to a note at the bottom of the usage statement indicating that these approaches should be used.
 
-Finally, when updating instances using the `--replace` option.  You are not required to include unchanged values on the command line.  Instead, the existing object is read and any properties provided on the command line, or included in the bulk JSON data, are applied to the existing properties.
+Finally, when updating instances using the `update` command, you are not required to include unchanged values on the command line.  Instead, the existing object is read and any properties provided on the command line, or included in the bulk JSON data, are applied to the existing properties.
 
 ### Working with pipelines
 

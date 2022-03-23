@@ -32,6 +32,8 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.handlers import ComponentCacheCatalogHandler
+from elyra.pipeline.handlers import ComponentCacheHandler
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
@@ -77,6 +79,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         path_regex = r"(?P<path>(?:(?:/[^/]+)+|/?))"  # same as jupyter server and will include a leading slash
         processor_regex = r"(?P<processor>[\w]+)"
         component_regex = r"(?P<component_id>[\w\.\-:]+)"
+        catalog_regex = r"(?P<catalog>[\w\.\-:]+)"
 
         self.handlers.extend([
             # API
@@ -94,9 +97,12 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
             (f'/{self.name}/schemaspace/{schemaspace_regex}', SchemaspaceResourceHandler),
 
             # Pipeline
+            (f'/{self.name}/pipeline/components/cache', ComponentCacheHandler),
+            (f'/{self.name}/pipeline/components/cache/{catalog_regex}', ComponentCacheCatalogHandler),
             (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),
             (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
              PipelineComponentPropertiesHandler),
+
             (f'/{self.name}/pipeline/export', PipelineExportHandler),
             (f'/{self.name}/pipeline/runtimes/types', PipelineRuntimeTypesHandler),
             (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
@@ -112,11 +118,15 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         PipelineProcessorManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
         PipelineValidationManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
         FileMetadataCache.instance(parent=self)
-        ComponentCache.instance(parent=self)
         SchemaManager.instance(parent=self)
+        ComponentCache.instance(parent=self).load()
 
     def initialize_templates(self):
         pass
+
+    async def stop_extension(self):
+        if ComponentCache.initialized():
+            ComponentCache.instance(parent=self).cache_manager.stop()  # terminate CacheUpdateManager
 
 
 launch_instance = ElyraApp.launch_instance

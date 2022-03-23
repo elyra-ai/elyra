@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FROM tensorflow/tensorflow:1.15.2-gpu-py3
+FROM tensorflow/tensorflow:1.15.5-gpu-py3
 
 RUN apt update && \
     apt install -y curl && \

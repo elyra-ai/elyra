@@ -363,6 +363,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
 
+    restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
+    app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
+
     const componentCatalogWidget = new ComponentCatalogsWidget({
       app,
       themeManager,
@@ -376,8 +379,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     componentCatalogWidget.title.icon = componentCatalogIcon;
     componentCatalogWidget.title.caption = 'Component Catalogs';
 
-    restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
-    app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
+    restorer.add(componentCatalogWidget, componentCatalogWidgetID);
     app.shell.add(componentCatalogWidget, 'left', { rank: 961 });
   }
 };

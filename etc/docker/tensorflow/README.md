@@ -17,4 +17,4 @@ limitations under the License.
 -->
 
 ### tensorflow
-Builds custom tensorflow v1.15.2 runtime images for use with Elyra, one with GPU libraries and support and one without.
+Builds custom tensorflow v1.15.5 runtime images for use with Elyra, one with GPU libraries and support and one without.

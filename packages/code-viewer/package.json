@@ -1,0 +1,63 @@
+{
+  "name": "@elyra/code-viewer-extension",
+  "version": "3.7.0-dev",
+  "description": "JupyterLab extension - Display code without a file",
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "homepage": "https://github.com/elyra-ai/elyra",
+  "bugs": {
+    "url": "https://github.com/elyra-ai/elyra/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elyra-ai/elyra/"
+  },
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "style": "style/index.css",
+  "files": [
+    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "src/**/*.{ts,tsx}",
+    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+  ],
+  "scripts": {
+    "build": "jlpm run build:lib && jlpm run build:labextension:dev",
+    "build:prod": "jlpm run build:lib && jlpm run build:labextension",
+    "build:lib": "tsc",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "clean": "rimraf lib tsconfig.tsbuildinfo ../../dist/labextensions/@elyra/code-viewer-extension",
+    "lab:dev": "jupyter labextension develop --overwrite ../../dist/labextensions/@elyra/code-viewer-extension",
+    "dist": "npm pack .",
+    "prepare": "npm run build",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w",
+    "watch:labextension": "jupyter labextension watch .",
+    "lab:install": "jupyter labextension install --no-build",
+    "lab:uninstall": "jupyter labextension uninstall --no-build"
+  },
+  "dependencies": {
+    "@jupyterlab/application": "^3.3.0",
+    "@jupyterlab/apputils": "^3.3.0",
+    "@jupyterlab/builder": "^3.3.0",
+    "@jupyterlab/codeeditor": "^3.3.0",
+    "@jupyterlab/ui-components": "^3.3.0",
+    "@lumino/algorithm": "^1.9.1",
+    "@lumino/widgets": "^1.31.1"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "typescript": "~4.1.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "jupyterlab": {
+    "extension": true,
+    "outputDir": "../../dist/labextensions/@elyra/code-viewer-extension"
+  }
+}

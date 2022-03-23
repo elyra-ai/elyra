@@ -36,14 +36,14 @@ from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
 
 @pytest.fixture
-def processor(setup_factory_data, component_cache_instance):
+def processor(setup_factory_data):
     processor = KfpPipelineProcessor(os.getcwd())
     return processor
 
 
 @pytest.fixture
 def pipeline():
-    ComponentCache.instance().wait_for_all_cache_updates()
+    ComponentCache.instance().wait_for_all_cache_tasks()
     pipeline_resource = _read_pipeline_resource(
         'resources/sample_pipelines/pipeline_3_node_sample.json')
     return PipelineParser.parse(pipeline_resource)
@@ -275,8 +275,13 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_processing_url_runtime_specific_component(monkeypatch,
+                                                   processor,
+                                                   catalog_instance,
+                                                   component_cache,
+                                                   sample_metadata,
+                                                   tmpdir):
     # Define the appropriate reader for a URL-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
@@ -303,7 +308,11 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           properties=[])
 
     # Replace cached component registry with single url-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name]['some_catalog_name'] = {component_id: component}
+    ComponentCache.instance()._component_cache[processor._type.name]['some_catalog_name'] = {
+        "components": {
+            component_id: component
+        }
+    }
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
@@ -353,8 +362,13 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_processing_filename_runtime_specific_component(monkeypatch,
+                                                        processor,
+                                                        catalog_instance,
+                                                        component_cache,
+                                                        sample_metadata,
+                                                        tmpdir):
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
@@ -382,7 +396,11 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           categories=[])
 
     # Replace cached component registry with single filename-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name]['some_catalog_name'] = {component_id: component}
+    ComponentCache.instance()._component_cache[processor._type.name]['some_catalog_name'] = {
+        "components": {
+            component_id: component
+        }
+    }
 
     # Construct hypothetical operation for component
     operation_name = "Download data test"

@@ -23,6 +23,9 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado import web
 
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.parser import PipelineParser
@@ -213,3 +216,35 @@ class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
         await self.finish({"runtime_types": runtime_types})
+
+
+class ComponentCacheHandler(HttpErrorMixin, APIHandler):
+    """Handler to trigger a complete re-fresh of all component catalogs."""
+
+    @web.authenticated
+    async def put(self):
+        self.log.debug("Refreshing component cache for all catalog instances...")
+        ComponentCache.instance().refresh()
+
+        self.set_status(200)
+        self.finish()
+
+
+class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
+    """Handler to trigger a re-fresh of a single component catalog with the given name."""
+
+    @web.authenticated
+    async def put(self, catalog):
+        try:
+            # Ensure given catalog name is a metadata instance
+            catalog_instance = MetadataManager(
+                schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
+            ).get(name=catalog)
+        except MetadataNotFoundError:
+            raise web.HTTPError(404, f"Catalog '{catalog}' cannot be found.")
+
+        self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
+        ComponentCache.instance().update(catalog=catalog_instance, action='modify')
+
+        self.set_status(200)
+        self.finish()
