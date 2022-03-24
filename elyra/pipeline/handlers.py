@@ -225,6 +225,11 @@ class ComponentCacheHandler(HttpErrorMixin, APIHandler):
     @web.authenticated
     async def put(self):
 
+        # Validate the body
+        cache_refresh = self.get_json_body()
+        if 'action' not in cache_refresh or cache_refresh['action'] != 'refresh':
+            raise web.HTTPError(400, reason="A body of {'action': 'refresh'} is required!")
+
         try:
             self.log.debug("Refreshing component cache for all catalog instances...")
             ComponentCache.instance().refresh()
@@ -240,6 +245,12 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def put(self, catalog):
+
+        # Validate the body
+        cache_refresh = self.get_json_body()
+        if 'action' not in cache_refresh or cache_refresh['action'] != 'refresh':
+            raise web.HTTPError(400, reason="A body of {'action': 'refresh'} is required.")
+
         try:
             # Ensure given catalog name is a metadata instance
             catalog_instance = MetadataManager(
@@ -250,6 +261,6 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
 
         self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
         ComponentCache.instance().update(catalog=catalog_instance, action='modify')
-
         self.set_status(204)
+
         await self.finish()

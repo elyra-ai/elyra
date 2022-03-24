@@ -89,3 +89,17 @@ def metadata_manager_with_teardown(jp_environ):
             metadata_manager.remove(TEST_CATALOG_NAME)
     except Exception:
         pass
+
+
+# Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)
+@pytest.fixture
+def jp_server_config():
+    return {
+        "ServerApp": {
+            "jpserver_extensions": {
+                "elyra": True
+            }
+        }
+    }
+
+
