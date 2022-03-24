@@ -519,12 +519,15 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const handleOpenComponentDef = useCallback(
     (componentId: string, componentSource: string) => {
+      // Show error dialog if the component does not exist
       if (!componentId) {
         const dialogBody = [];
         try {
           const componentSourceJson = JSON.parse(componentSource);
           dialogBody.push(`catalog_type: ${componentSourceJson.catalog_type}`);
-          for (const [key, value] of componentSourceJson.component_ref) {
+          for (const [key, value] of Object.entries(
+            componentSourceJson.component_ref
+          )) {
             dialogBody.push(`${key}: ${value}`);
           }
         } catch {
