@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import os
-import sys
 
 from jupyter_packaging import get_data_files
 from setuptools import setup, find_packages

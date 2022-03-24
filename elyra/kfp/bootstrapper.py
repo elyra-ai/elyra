@@ -422,7 +422,6 @@ class NotebookFileOp(FileOpBase):
            5. On first match, log info message regarding the switch and use that kernel.
            6. If no language match is found, revert to notebook kernel and log warning message.
         """
-        import json
         from jupyter_client.kernelspec import KernelSpecManager
         import nbformat
 
