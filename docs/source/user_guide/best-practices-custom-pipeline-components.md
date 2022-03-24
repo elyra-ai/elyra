@@ -95,38 +95,64 @@ Pipeline files include references to components, but not the component definitio
 
 The error message includes a key that identifies the catalog type, which made the component available in the environment where the pipeline was created. 
 
-#### Filesystem catalog
+#### Filesystem catalog (type: `local-file-catalog`)
 
 The [filesystem component catalog](pipeline-components.html#filesystem-component-catalog) provides access to components that are stored in the local filesystem. In this context local refers to the environment where JupyterLab is running.
 
-#### Directory catalog
+1. Take note of the displayed `base_dir` and `path`. (`base_dir` might be empty)
+In the environment where the pipeline was created the file (`path`'s value) was stored in the `base_dir` directory.
+1. Obtain a copy of the file and store it in the local file system, following the [best practices recommendation](pipeline-components.html#filesystem-component-catalog).
+1. [Add a new filesystem component catalog](pipeline-components.html#adding-a-component-catalog), providing the appropriate values as input.
+
+#### Directory catalog (type: `local-directory-catalog`)
 
 The [directory component catalog](pipeline-components.html#directory-component-catalog) provides access to components that are stored in the local filesystem. In this context local refers to the environment where JupyterLab is running.
 
-#### URL catalog
+1. Take note of the displayed `base_dir` and `path`. In the environment where the pipeline was created the file (`path`'s value) was stored in the `base_dir` directory.
+1. Obtain a copy of the file and store it in _any_ directory in the local file system that JupyterLab has access to. 
+1. [Add a new directory component catalog](pipeline-components.html#adding-a-component-catalog), providing the local directory name as input.
+
+#### URL catalog (type: `url-catalog`)
 
 The [URL component catalog](pipeline-components.html#pipeline-components.html#url-component-catalog) provides access to components that are stored on the web.
 
+1. Take note of the displayed `url`.
+1. [Add a new URL component catalog](pipeline-components.html#adding-a-component-catalog), providing the URL as input.
 
-#### Apache Airflow package catalog
+#### Apache Airflow package catalog (type: `airflow-package-catalog`)
 
 The [Apache Airflow package catalog](pipeline-components.html#apache-airflow-package-catalog) provides access to Apache Airflow operators that are stored in built distributions. 
 
-#### Apache Airflow provider package catalog
+1. Take note of the displayed `airflow_package`, which identifies the Apache Airflow built distribution that includes the missing operator.
+1. [Add a new Apache Airflow package catalog](pipeline-components.html#adding-a-component-catalog), providing the _download URL_ for the listed distribution as input. For example, if the value of `airflow_package` is `apache_airflow-1.10.15-py2.py3-none-any.whl`, specify as URL
+   ```
+   https://files.pythonhosted.org/packages/f0/3a/f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/apache_airflow-1.10.15-py2.py3-none-any.whl
+   ```
 
-The [Apache Airflow provider package catalog](pipeline-components.html#apache-airflow-provider-package-catalog) provides access to Apache Airflow operators that are stored in Apache Airflow provider packages. 
+#### Apache Airflow provider package catalog (type: `airflow-provider-package-catalog`)
 
-#### Kubeflow Pipelines example components catalog
+The [Apache Airflow provider package catalog](pipeline-components.html#apache-airflow-provider-package-catalog) provides access to Apache Airflow operators that are stored in Apache Airflow provider packages.
 
-Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector) for details.
+1. Take note of the displayed `provider_package`, which identifies the Apache Airflow provider package that includes the missing operator.
+1. [Add a new Apache Airflow provider package catalog](pipeline-components.html#adding-a-component-catalog), providing the _download URL_ for the listed package as input. For example, if the value of `provider_package` is `apache_airflow_providers_http-2.0.2-py3-none-any.whl`, specify as URL
+   ```
+   https://files.pythonhosted.org/packages/a1/08/91653e9f394cbefe356ac07db809be7e69cc89b094379ad91d6cef3d2bc9/apache_airflow_providers_http-2.0.2-py3-none-any.whl
+   ```
 
-#### Apache Airflow example components catalog
+#### Kubeflow Pipelines example components catalog (type: `elyra-kfp-examples-catalog`)
 
-Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector) for details.
+The missing component definition is stored in the Kubeflow Pipelines example components catalog. Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector) for details on how to install and enable connector.
 
-#### Machine Learning Exchange catalog
+#### Apache Airflow example components catalog (type: `elyra-airflow-examples-catalog`)
 
-Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/mlx-connector) for details.
+The missing component definition is stored in the Apache Airflow example components catalog. Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector) for details on how to install and enable connector.
+
+#### Machine Learning Exchange catalog (type: `mlx-catalog`)
+
+The missing component definition is stored in a [Machine Learning Exchange](https://github.com/machine-learning-exchange) deployment. 
+
+1. Contact the user who created the pipeline to request deployment connectivity details.
+1. Install and configure the connector as outlined in the [connector documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/mlx-connector).
 
 #### Component catalogs not listed here
 
