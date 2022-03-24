@@ -87,3 +87,47 @@ export or submit a pipeline with these custom components.
 #### Best practices
 
 > This documentation content is currently under development.
+
+
+### Troubleshooting missing pipeline components
+
+Pipeline files include references to components, but not the component definitions. If you open a pipeline in the Visual Pipeline Editor, Elyra tries to match these component references with it's local component inventory. If a component reference cannot be resolved, an error message is displayed providing information you can use to locate the component.
+
+The error message includes a key that identifies the catalog type, which made the component available in the environment where the pipeline was created. 
+
+#### Filesystem catalog
+
+The [filesystem component catalog](pipeline-components.html#filesystem-component-catalog) provides access to components that are stored in the local filesystem. In this context local refers to the environment where JupyterLab is running.
+
+#### Directory catalog
+
+The [directory component catalog](pipeline-components.html#directory-component-catalog) provides access to components that are stored in the local filesystem. In this context local refers to the environment where JupyterLab is running.
+
+#### URL catalog
+
+The [URL component catalog](pipeline-components.html#pipeline-components.html#url-component-catalog) provides access to components that are stored on the web.
+
+
+#### Apache Airflow package catalog
+
+The [Apache Airflow package catalog](pipeline-components.html#apache-airflow-package-catalog) provides access to Apache Airflow operators that are stored in built distributions. 
+
+#### Apache Airflow provider package catalog
+
+The [Apache Airflow provider package catalog](pipeline-components.html#apache-airflow-provider-package-catalog) provides access to Apache Airflow operators that are stored in Apache Airflow provider packages. 
+
+#### Kubeflow Pipelines example components catalog
+
+Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector) for details.
+
+#### Apache Airflow example components catalog
+
+Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector) for details.
+
+#### Machine Learning Exchange catalog
+
+Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/mlx-connector) for details.
+
+#### Component catalogs not listed here
+
+Check the [component catalog connector directory](https://github.com/elyra-ai/examples/blob/master/component-catalog-connectors/connector-directory.md) if the referenced catalog type is not listed here.
