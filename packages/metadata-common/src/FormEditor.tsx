@@ -101,10 +101,15 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   const [tags, setTags] = React.useState(allTags);
 
   const uiSchema: any = {};
-  for (const field in schema?.properties) {
-    uiSchema[field] = schema.properties[field].uihints ?? {};
-    uiSchema[field]['ui:field'] = uiSchema[field]['field_type'];
-    uiSchema[field].classNames = `${field}Field`;
+  for (const category in schema?.properties) {
+    const properties = schema.properties[category];
+    uiSchema[category] = {};
+    for (const field in properties.properties) {
+      uiSchema[category][field] = properties.properties[field].uihints ?? {};
+      uiSchema[category][field]['ui:field'] =
+        uiSchema[category][field]['field_type'];
+      uiSchema[category][field].classNames = `${field}Field`;
+    }
   }
 
   return (

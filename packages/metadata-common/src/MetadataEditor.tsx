@@ -81,17 +81,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
 }: IMetadataEditorComponentProps) => {
   const [invalidForm, setInvalidForm] = React.useState(name === undefined);
 
-  const schema = {
-    ...schemaTop.properties.metadata,
-    properties: {
-      display_name: {
-        type: 'string',
-        title: 'Name'
-      },
-      ...schemaTop.properties.metadata.properties
-    },
-    required: ['display_name', ...schemaTop.properties.metadata.required]
-  };
+  const schema = schemaTop.properties.metadata;
 
   React.useEffect(() => {
     if (initialMetadata?.metadata) {
@@ -110,8 +100,8 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
 
     const newMetadata: any = {
       schema_name: schemaName,
-      display_name: metadata?.['display_name'],
-      metadata: metadata
+      display_name: metadata?.['_noCategory']?.['display_name'],
+      metadata: flattenFormData(metadata)
     };
 
     if (!name) {
@@ -141,6 +131,16 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   if (!displayName) {
     headerText = `Add new ${schemaTop.title}`;
   }
+
+  const flattenFormData = (newFormData: any) => {
+    const flattened: { [id: string]: any } = {};
+    for (const category in newFormData) {
+      for (const property in newFormData[category]) {
+        flattened[property] = newFormData[category][property];
+      }
+    }
+    return flattened;
+  };
 
   const onKeyPress: React.KeyboardEventHandler = (
     event: React.KeyboardEvent
@@ -254,8 +254,49 @@ export class MetadataEditorWidget extends ReactWidget {
           };
         }
       }
+      const metadata = allMetadata.find((m: any) => m.name === this.props.name);
+      const metadataWithCategories: { [id: string]: any } = {};
+      const schemaPropertiesByCategory: { [id: string]: any } = {
+        _noCategory: {
+          type: 'object',
+          title: ' ',
+          properties: {
+            display_name: {
+              title: 'Name',
+              type: 'string'
+            }
+          },
+          required: ['display_name']
+        }
+      };
+      for (const schemaProperty in schema.properties.metadata.properties) {
+        const properties =
+          schema.properties.metadata.properties[schemaProperty];
+        const category =
+          (properties.uihints && properties.uihints.category) ?? '_noCategory';
+
+        if (!metadataWithCategories[category]) {
+          metadataWithCategories[category] = {};
+        }
+        metadataWithCategories[category][schemaProperty] =
+          metadata?.metadata?.[schemaProperty];
+        if (!schemaPropertiesByCategory[category]) {
+          schemaPropertiesByCategory[category] = {
+            type: 'object',
+            properties: {},
+            required: []
+          };
+        }
+        if (schema.properties.metadata.required?.includes(schemaProperty)) {
+          schemaPropertiesByCategory[category].required.push(schemaProperty);
+        }
+        schemaPropertiesByCategory[category]['properties'][
+          schemaProperty
+        ] = properties;
+      }
       this.schema = schema;
-      this.metadata = allMetadata.find((m: any) => m.name === this.props.name);
+      this.schema.properties.metadata.properties = schemaPropertiesByCategory;
+      this.metadata = metadataWithCategories;
       this.title.label =
         this.metadata?.display_name ?? `New ${this.schema.title}`;
       this.loading = false;
