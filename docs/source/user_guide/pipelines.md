@@ -154,7 +154,7 @@ $ elyra-pipeline submit elyra-pipelines/a-kubeflow.pipeline \
       --runtime-config kfp-shared-tekton
 ```
 
-Note: Refer to the [Managing runtime configurations using the Elyra CLI](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli) topic in the _User Guide_ for details on how to list and manage runtime configurations.
+Note: Refer to the [Managing runtime configurations using the Elyra CLI](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli) topic in the _User Guide_ for details on how to list and manage runtime configurations. If the specified `--runtime-config` is not compatible with the specified pipeline an error is raised.
 
 ### Exporting pipelines
 
@@ -191,6 +191,8 @@ To learn more about supported parameters, run
 ```bash
 $ elyra-pipeline export --help
 ```
+
+Note: Refer to the [Managing runtime configurations using the Elyra CLI](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli) topic in the _User Guide_ for details on how to list and manage runtime configurations. If the specified `--runtime-config` is not compatible with the specified pipeline an error is raised.
 
 ### Describing pipelines
 

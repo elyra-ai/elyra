@@ -31,6 +31,7 @@ from yaspin import yaspin
 from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
+from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_definition import Pipeline
 from elyra.pipeline.pipeline_definition import PipelineDefinition
@@ -38,6 +39,7 @@ from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
+from elyra.pipeline.runtimes_metadata import RuntimesMetadata
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationSeverity
 
@@ -48,40 +50,41 @@ SEVERITY = {ValidationSeverity.Error: 'Error',
             ValidationSeverity.Information: 'Information'}
 
 
-def _get_runtime_config(runtime_config: Optional[str]) -> Optional[dict]:
-    """Fetch runtime configuration"""
-    if not runtime_config or runtime_config == 'local':
+def _get_runtime_config(runtime_config_name: Optional[str]) -> Optional[RuntimesMetadata]:
+    """Fetch runtime configuration for the specified name"""
+    if not runtime_config_name or runtime_config_name == 'local':
         # No runtime configuration was specified or it is local.
         # Cannot use metadata manager to determine the runtime type.
         return None
     try:
-        metadata_manager = MetadataManager(schemaspace='runtimes')
-        return metadata_manager.get(runtime_config)
+        metadata_manager = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_NAME)
+        return metadata_manager.get(runtime_config_name)
     except Exception as e:
-        raise click.ClickException(f'Invalid runtime configuration: {runtime_config}\n {e}')
+        raise click.ClickException(f'Invalid runtime configuration: {runtime_config_name}\n {e}')
 
 
-def _get_runtime_type(runtime_config: Optional[str]) -> Optional[str]:
-    """Get runtime type for the provided runtime_config"""
-    rtc = _get_runtime_config(runtime_config)
-    if rtc:
-        return rtc.metadata.get('runtime_type')
+def _get_runtime_type(runtime_config_name: Optional[str]) -> Optional[str]:
+    """Get runtime type for the provided runtime configuration name"""
+    runtime_config = _get_runtime_config(runtime_config_name)
+    if runtime_config:
+        return runtime_config.metadata.get('runtime_type')
     return None
 
 
-def _get_runtime_schema_name(runtime_config: Optional[str]) -> Optional[str]:
-    """Get runtime schema name for the provided runtime_config"""
-    if not runtime_config or runtime_config == 'local':
+def _get_runtime_schema_name(runtime_config_name: Optional[str]) -> Optional[str]:
+    """Get runtime schema name for the provided runtime configuration name"""
+    if not runtime_config_name or runtime_config_name == 'local':
         # No runtime configuration was specified or it is local.
         # Cannot use metadata manager to determine the runtime type.
         return 'local'
-    rtc = _get_runtime_config(runtime_config)
-    if rtc:
-        return rtc.schema_name
+    runtime_config = _get_runtime_config(runtime_config_name)
+    if runtime_config:
+        return runtime_config.schema_name
     return None
 
 
 def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
+    """Return the display name for the specified runtime schema_name"""
     if not schema_name or schema_name == 'local':
         # No schame name was  specified or it is local.
         # Cannot use metadata manager to determine the display name.
@@ -89,7 +92,7 @@ def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
 
     try:
         schema_manager = SchemaManager.instance()
-        schema = schema_manager.get_schema('runtimes', schema_name)
+        schema = schema_manager.get_schema(Runtimes.RUNTIMES_SCHEMASPACE_NAME, schema_name)
         return schema['display_name']
     except Exception as e:
         raise click.ClickException(f'Invalid runtime configuration: {schema_name}\n {e}')
@@ -197,7 +200,7 @@ def _validate_pipeline_definition(pipeline_definition: PipelineDefinition):
 
     if validation_response.has_fatal:
         # raise an exception and let the caller decide what to do
-        raise click.ClickException()
+        raise click.ClickException("Unable to continue due to pipeline validation issues.")
 
 
 def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
