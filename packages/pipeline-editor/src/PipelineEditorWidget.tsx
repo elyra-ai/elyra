@@ -518,8 +518,36 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   const handleOpenComponentDef = useCallback(
-    (componentId: string) => {
-      PipelineService.getComponentDef(type, componentId)
+    (componentId: string, componentSource: string) => {
+      if (!componentId) {
+        const dialogBody = [];
+        try {
+          const componentSourceJson = JSON.parse(componentSource);
+          dialogBody.push(`catalog_type: ${componentSourceJson.catalog_type}`);
+          for (const [key, value] of componentSourceJson.component_ref) {
+            dialogBody.push(`${key}: ${value}`);
+          }
+        } catch {
+          dialogBody.push(componentSource);
+        }
+        return showDialog({
+          title: 'Component not found',
+          body: (
+            <p>
+              This node uses a component that is not stored in your component
+              registry.
+              {dialogBody.map((line, i) => (
+                <span key={i}>
+                  <br />
+                  {line}
+                </span>
+              ))}
+            </p>
+          ),
+          buttons: [Dialog.okButton()]
+        });
+      }
+      return PipelineService.getComponentDef(type, componentId)
         .then(res => {
           const nodeDef = getAllPaletteNodes(palette).find(
             n => n.id === componentId
@@ -549,7 +577,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           )
         });
       } else if (!nodeDef?.app_data?.parameter_refs?.['filehandler']) {
-        handleOpenComponentDef(nodeDef?.id ?? node?.op);
+        handleOpenComponentDef(nodeDef?.id, node?.app_data?.component_source);
       }
     }
   };
@@ -797,7 +825,10 @@ const PipelineWrapper: React.FC<IProps> = ({
           });
           break;
         case 'openComponentDef':
-          handleOpenComponentDef(args.payload);
+          handleOpenComponentDef(
+            args.payload.componentId,
+            args.payload.componentSource
+          );
           break;
         default:
           break;
