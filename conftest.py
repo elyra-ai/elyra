@@ -55,6 +55,7 @@ def component_cache(jp_environ):
     component_cache.load()
 
     yield component_cache
+    component_cache.cache_manager.stop()
     ComponentCache.clear_instance()
 
 

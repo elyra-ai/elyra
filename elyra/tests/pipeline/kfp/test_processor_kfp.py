@@ -279,7 +279,6 @@ def test_process_dictionary_value_function(processor):
 def test_processing_url_runtime_specific_component(monkeypatch,
                                                    processor,
                                                    catalog_instance,
-                                                   component_cache,
                                                    sample_metadata,
                                                    tmpdir):
     # Define the appropriate reader for a URL-type component definition
@@ -366,7 +365,6 @@ def test_processing_url_runtime_specific_component(monkeypatch,
 def test_processing_filename_runtime_specific_component(monkeypatch,
                                                         processor,
                                                         catalog_instance,
-                                                        component_cache,
                                                         sample_metadata,
                                                         tmpdir):
     # Define the appropriate reader for a filesystem-type component definition
