@@ -79,13 +79,18 @@ class RefreshQueue(Queue):
         self._refreshing = value
 
     def get(self, block: bool = True, timeout: Optional[float] = None):
-        """Overrides the superclass method to set the future to done when empty."""
+        """Overrides the superclass method to set the refreshing property to false when empty."""
         try:
             entry = super().get(block=block, timeout=timeout)
         except Empty:
             self.refreshing = False
             raise
         return entry
+
+    def put(self, item, block=True, timeout=None):
+        """Overrides the superclass method to set the refreshing property to true."""
+        super().put(item, block=block, timeout=timeout)
+        self.refreshing = True
 
 
 class UpdateQueue(Queue):
@@ -121,7 +126,7 @@ class CacheUpdateManager(Thread):
         self._component_cache: ComponentCacheType = component_cache
         self._refresh_queue: RefreshQueue = refresh_queue
         self._update_queue: UpdateQueue = update_queue
-        self._check_refresh_queue = True
+        self._check_refresh_queue = False
         self._threads: List[CacheUpdateWorker] = []
 
         self.stop_event: Event = Event()  # Set when server process stops
@@ -411,9 +416,8 @@ class ComponentCache(SingletonConfigurable):
         if self.cache_manager.is_refreshing():
             raise RefreshInProgressError()
         catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
-        self.cache_manager.init_refresh()
         for catalog in catalogs:
-            self._insert_queue_request(self.refresh_queue, catalog, 'modify')
+            self._insert_request(self.refresh_queue, catalog, 'modify')
 
     def update(self, catalog: Metadata, action: str):
         """
@@ -421,13 +425,18 @@ class ComponentCache(SingletonConfigurable):
         process, the entry is written to the manifest file where it will be "processed" by the watchdog
         and inserted into the component cache queue, otherwise we update the cache queue directly.
         """
-        self._insert_queue_request(self.update_queue, catalog, action)
+        self._insert_request(self.update_queue, catalog, action)
 
-    def _insert_queue_request(self, queue: Queue, catalog: Metadata, action: str):
+    def _insert_request(self, queue: Queue, catalog: Metadata, action: str):
         """
-        Triggers an update of the component cache for the given catalog name.  If this is a non-server
-        process, the entry is written to the manifest file where it will be "processed" by the watchdog
-        and inserted into the component cache queue, otherwise we update the cache queue directly.
+        If running as a server process, the request is submitted to the desired queue, otherwise
+        it is posted to the manifest where the server process (if running) can detect the manifest
+        file update and send the request to the update queue.
+
+        Note that any calls to ComponentCache.refresh() from non-server processes will still
+        perform the refresh, but via the update queue rather than the refresh queue.  We could,
+        instead, raise NotImplementedError in such cases, but we may want the ability to refresh
+        the entire component cache from a CLI utility and the current implementation would allow that.
         """
         if self.is_server_process:
             queue.put((catalog, action))
