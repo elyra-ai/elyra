@@ -16,6 +16,7 @@
 from abc import abstractmethod
 from enum import Enum
 from importlib import import_module
+import json
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
@@ -259,7 +260,7 @@ class Component(object):
         this component originates and the reference information used to
         locate it within that catalog.
         """
-        return str({
+        return json.dumps({
             "catalog_type": self.catalog_type,
             "component_ref": self.component_reference
         })
