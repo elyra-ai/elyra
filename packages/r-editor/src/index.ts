@@ -214,7 +214,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       // Add new r file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewRFile, args: { isMenu: true } }],
-        34
+        93
       );
     }
 

@@ -214,7 +214,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       // Add new python file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewPythonFile, args: { isMenu: true } }],
-        30
+        92
       );
     }
 

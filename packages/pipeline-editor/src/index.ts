@@ -299,7 +299,7 @@ const extension: JupyterFrontEndPlugin<void> = {
                   args: { runtimeType: t, isMenu: true }
                 }
               ],
-              t.id === 'LOCAL' ? 30 : 31
+              t.id === 'LOCAL' ? 90 : 91
             );
           }
         }
