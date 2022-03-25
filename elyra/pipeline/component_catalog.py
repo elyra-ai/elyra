@@ -352,12 +352,7 @@ class ComponentCache(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.is_server_process = False
-        if 'parent' in kwargs and kwargs['parent'].__class__.__name__ in ['ServerApp', 'ElyraApp']:
-            self.is_server_process = True
-        elif "emulate_server_app" in kwargs and bool(kwargs["emulate_server_app"]):  # Primarily used by tests
-            self.is_server_process = True
-
+        self.is_server_process = ComponentCache._determine_server_process(**kwargs)
         self.manifest_dir = jupyter_runtime_dir()
         # Ensure queue attribute exists for non-server instances as well.
         self.refresh_queue: Optional[RefreshQueue] = None
@@ -382,6 +377,18 @@ class ComponentCache(SingletonConfigurable):
             self.log.debug("CacheUpdateManager started...")
         else:
             self.manifest_filename = os.path.join(self.manifest_dir, f"elyra-component-manifest-{os.getpid()}.json")
+
+    @staticmethod
+    def _determine_server_process(**kwargs) -> bool:
+        """Determines if this process is a server (extension) process."""
+        app_names = ['ServerApp', 'ElyraApp']
+        is_server_process = False
+        if 'parent' in kwargs and kwargs['parent'].__class__.__name__ in app_names:
+            is_server_process = True
+        elif 'emulate_server_app' in kwargs and kwargs['emulate_server_app']:  # Used in unittests
+            is_server_process = True
+
+        return is_server_process
 
     def load(self):
         """
