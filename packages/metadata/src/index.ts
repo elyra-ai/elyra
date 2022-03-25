@@ -23,10 +23,7 @@ import {
   JupyterFrontEndPlugin,
   ILabStatus
 } from '@jupyterlab/application';
-import {
-  IThemeManager,
-  ICommandPalette
-} from '@jupyterlab/apputils';
+import { IThemeManager, ICommandPalette } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
 
