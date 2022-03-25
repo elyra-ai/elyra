@@ -24,8 +24,12 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado import web
 
+from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_catalog import RefreshInProgressError
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorRegistry
@@ -49,7 +53,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
     async def get(self):
         msg_json = dict(title="Operation not supported.")
         self.set_header("Content-Type", 'application/json')
-        self.finish(msg_json)
+        await self.finish(msg_json)
 
     @web.authenticated
     async def post(self, *args, **kwargs):
@@ -98,7 +102,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
             self.set_status(400)
 
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_msg)
+        await self.finish(json_msg)
 
 
 class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
@@ -108,7 +112,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
     async def get(self):
         msg_json = dict(title="Operation not supported.")
         self.write(msg_json)
-        self.flush()
+        await self.flush()
 
     @web.authenticated
     async def post(self, *args, **kwargs):
@@ -139,7 +143,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
             self.set_status(400)
 
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_msg)
+        await self.finish(json_msg)
 
 
 class PipelineComponentHandler(HttpErrorMixin, APIHandler):
@@ -175,7 +179,7 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(palette_json)
+        await self.finish(palette_json)
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
@@ -240,7 +244,7 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_response)
+        await self.finish(json_response)
 
 
 class PipelineValidationHandler(HttpErrorMixin, APIHandler):
@@ -250,7 +254,7 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
     async def get(self):
         msg_json = dict(title="GET requests are not supported.")
         self.write(msg_json)
-        self.flush()
+        await self.flush()
 
     @web.authenticated
     async def post(self):
@@ -264,7 +268,7 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-        self.finish(json_msg)
+        await self.finish(json_msg)
 
 
 class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
@@ -282,3 +286,50 @@ class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
         await self.finish({"runtime_types": runtime_types})
+
+
+class ComponentCacheHandler(HttpErrorMixin, APIHandler):
+    """Handler to trigger a complete re-fresh of all component catalogs."""
+
+    @web.authenticated
+    async def put(self):
+
+        # Validate the body
+        cache_refresh = self.get_json_body()
+        if 'action' not in cache_refresh or cache_refresh['action'] != 'refresh':
+            raise web.HTTPError(400, reason="A body of {'action': 'refresh'} is required!")
+
+        try:
+            self.log.debug("Refreshing component cache for all catalog instances...")
+            ComponentCache.instance().refresh()
+            self.set_status(204)
+        except RefreshInProgressError as ripe:
+            self.set_status(409, str(ripe))
+
+        await self.finish()
+
+
+class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
+    """Handler to trigger a re-fresh of a single component catalog with the given name."""
+
+    @web.authenticated
+    async def put(self, catalog):
+
+        # Validate the body
+        cache_refresh = self.get_json_body()
+        if 'action' not in cache_refresh or cache_refresh['action'] != 'refresh':
+            raise web.HTTPError(400, reason="A body of {'action': 'refresh'} is required.")
+
+        try:
+            # Ensure given catalog name is a metadata instance
+            catalog_instance = MetadataManager(
+                schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
+            ).get(name=catalog)
+        except MetadataNotFoundError:
+            raise web.HTTPError(404, f"Catalog '{catalog}' cannot be found.")
+
+        self.log.debug(f"Refreshing component cache for catalog with name '{catalog}'...")
+        ComponentCache.instance().update(catalog=catalog_instance, action='modify')
+        self.set_status(204)
+
+        await self.finish()

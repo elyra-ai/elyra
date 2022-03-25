@@ -13,22 +13,66 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import asyncio
 import json
+import os
+
+import jupyter_core
 
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schemaspaces import ComponentCatalogs
 import pytest
 import requests
+from tornado.httpclient import HTTPClientError
 
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.tests.pipeline import resources
+from elyra.tests.util.handlers_utils import expected_http_error
+
 
 try:
     import importlib.resources as pkg_resources
 except ImportError:
     # Try backported to PY<37 `importlib_resources`.
     import importlib_resources as pkg_resources
+
+
+COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], 'components')
+TEST_CATALOG_NAME = 'test_handlers_catalog'
+
+
+def _get_resource_path(filename):
+    resource_path = os.path.join(os.path.dirname(__file__), 'resources', 'components', filename)
+    resource_path = os.path.normpath(resource_path)
+    return resource_path
+
+
+async def cli_catalog_instance(jp_fetch):
+    # Create new registry instance with a single URL-based component
+    # This is not a fixture because it needs to
+    paths = [_get_resource_path('kfp_test_operator.yaml')]
+
+    instance_metadata = {
+        "description": "A test registry",
+        "runtime_type": RuntimeProcessorType.KUBEFLOW_PIPELINES.name,
+        "categories": ["New Components"],
+        "paths": paths
+    }
+    instance = Metadata(schema_name="local-file-catalog",
+                        name=TEST_CATALOG_NAME,
+                        display_name="New Test Catalog",
+                        metadata=instance_metadata)
+
+    body = json.dumps(instance.to_dict())
+    r = await jp_fetch('elyra', 'metadata', ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID,
+                       body=body, method='POST')
+    assert r.code == 201
+    r = await jp_fetch('elyra', 'metadata', ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+    assert r.code == 200
+    metadata = json.loads(r.body.decode())
+    assert len(metadata) >= 1
 
 
 async def test_get_components(jp_fetch):
@@ -100,3 +144,39 @@ async def test_runtime_types_resources(jp_fetch):
         assert runtime_type_resources.get('display_name') == resources_instance.display_name
         assert runtime_type_resources.get('export_file_types') == resources_instance.export_file_types
         assert runtime_type_resources.get('icon') == resources_instance.icon_endpoint
+
+
+async def test_double_refresh(jp_fetch):
+    # Ensure that attempts to refresh the component cache while another is in progress result in 409
+
+    await cli_catalog_instance(jp_fetch)
+
+    refresh = {'action': 'refresh'}
+    body = json.dumps(refresh)
+
+    response = await jp_fetch('elyra', 'pipeline', 'components', 'cache', body=body, method='PUT')
+    assert response.code == 204
+    with pytest.raises(HTTPClientError) as e:
+        await jp_fetch('elyra', 'pipeline', 'components', 'cache', body=body, method='PUT')
+    assert expected_http_error(e, 409)
+    # Give the first refresh attempt a chance to complete and try again to ensure it has
+    await asyncio.sleep(2)
+    response = await jp_fetch('elyra', 'pipeline', 'components', 'cache', body=body, method='PUT')
+    assert response.code == 204
+
+
+async def test_malformed_refresh(jp_fetch):
+    # Ensure that providing the endpoints with a bad body generate 400 errors.
+    refresh = {'no-action': 'refresh'}
+    body = json.dumps(refresh)
+
+    with pytest.raises(HTTPClientError) as e:
+        await jp_fetch('elyra', 'pipeline', 'components', 'cache', body=body, method='PUT')
+    assert expected_http_error(e, 400)
+
+    refresh = {'action': 'no-refresh'}
+    body = json.dumps(refresh)
+
+    with pytest.raises(HTTPClientError) as e:
+        await jp_fetch('elyra', 'pipeline', 'components', 'cache', body=body, method='PUT')
+    assert expected_http_error(e, 400)

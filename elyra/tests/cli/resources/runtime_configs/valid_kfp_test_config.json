@@ -1,0 +1,20 @@
+{
+  "display_name": "Kubeflow Pipelines dev environment",
+  "metadata": {
+    "api_endpoint": "http://kfphost/pipeline",
+    "description": "KFP test instance",
+    "cos_endpoint": "http://miniohost:12345",
+    "cos_username": "minio",
+    "cos_password": "minio123",
+    "cos_bucket": "kfp-test-bucket",
+    "tags": ["dev"],
+    "runtime_type": "KUBEFLOW_PIPELINES",
+    "engine": "Argo",
+    "auth_type": "DEX_STATIC_PASSWORDS",
+    "cos_auth_type": "USER_CREDENTIALS",
+    "user_namespace": "kubeflow-user-example-com",
+    "api_username": "a-user",
+    "api_password": "t0ps3cr3t"
+  },
+  "schema_name": "kfp"
+}
