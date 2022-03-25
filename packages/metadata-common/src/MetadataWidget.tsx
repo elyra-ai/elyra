@@ -353,6 +353,7 @@ export class MetadataWidget extends ReactWidget {
   props: IMetadataWidgetProps;
   schemas?: IDictionary<any>[];
   titleContext?: string;
+  refreshButtonTooltip?: string;
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -485,6 +486,7 @@ export class MetadataWidget extends ReactWidget {
               titleContext={this.titleContext}
               appendToTitle={this.props.appendToTitle}
               refreshMetadata={this.refreshMetadata}
+              refreshButtonTooltip={this.refreshButtonTooltip}
             />
           </header>
           <UseSignal signal={this.renderSignal} initialArgs={[]}>

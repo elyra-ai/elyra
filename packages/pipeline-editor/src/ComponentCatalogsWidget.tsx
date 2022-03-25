@@ -24,7 +24,9 @@ import {
   IMetadataActionButton
 } from '@elyra/metadata-common';
 import { RequestErrors } from '@elyra/ui-components';
-import { refreshIcon } from '@jupyterlab/ui-components';
+import { JupyterFrontEnd } from '@jupyterlab/application';
+import { IThemeManager } from '@jupyterlab/apputils';
+import { LabIcon, refreshIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
 
@@ -51,7 +53,7 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
   actionButtons(metadata: IMetadata): IMetadataActionButton[] {
     return [
       {
-        title: 'Refresh',
+        title: 'Reload components from catalog',
         icon: refreshIcon,
         onClick: (): void => {
           PipelineService.refreshComponentsCache(metadata.name)
@@ -67,17 +69,45 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
 }
 
 /**
+ * ComponentCatalogsWidget props.
+ */
+export interface IComponentCatalogsWidgetProps extends IMetadataWidgetProps {
+  app: JupyterFrontEnd;
+  themeManager?: IThemeManager;
+  display_name: string;
+  schemaspace: string;
+  icon: LabIcon;
+  titleContext?: string;
+  appendToTitle?: boolean;
+  refreshCallback?: () => void;
+}
+
+/**
  * A widget for displaying runtime images.
  */
 export class ComponentCatalogsWidget extends MetadataWidget {
-  constructor(props: IMetadataWidgetProps) {
+  refreshButtonTooltip: string;
+  refreshCallback?: () => void;
+
+  constructor(props: IComponentCatalogsWidgetProps) {
     super(props);
+    this.refreshCallback = props.refreshCallback;
+    this.refreshButtonTooltip =
+      'Refresh list and reload components from all catalogs';
   }
+
+  // wrapper function that refreshes the palette after calling updateMetadata
+  updateMetadataAndRefresh = (): void => {
+    super.updateMetadata();
+    if (this.refreshCallback) {
+      this.refreshCallback();
+    }
+  };
 
   refreshMetadata(): void {
     PipelineService.refreshComponentsCache()
       .then((response: any): void => {
-        super.updateMetadata();
+        this.updateMetadataAndRefresh();
       })
       .catch(error => handleError(error));
   }
@@ -98,7 +128,7 @@ export class ComponentCatalogsWidget extends MetadataWidget {
     return (
       <ComponentCatalogsDisplay
         metadata={metadata}
-        updateMetadata={this.updateMetadata}
+        updateMetadata={this.updateMetadataAndRefresh}
         openMetadataEditor={this.openMetadataEditor}
         schemaspace={COMPONENT_CATALOGS_SCHEMASPACE}
         sortMetadata={true}
