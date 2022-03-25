@@ -111,10 +111,8 @@ async def test_runtime_types_resources(jp_fetch):
         assert runtime_type_resources.get('icon') == resources_instance.icon_endpoint
 
 
-@pytest.mark.xfail(reason="This test appears to be side-affected "
-                          "by 'cli/test_pipeline_app.py::test_validate_with_missing_kfp_component'")
 async def test_double_refresh(jp_fetch):
-    # Ensure that attempts to refresh the compnonent cache while another is in progress result in 409
+    # Ensure that attempts to refresh the component cache while another is in progress result in 409
 
     await cli_catalog_instance(jp_fetch)
 
