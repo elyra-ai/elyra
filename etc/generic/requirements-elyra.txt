@@ -2,6 +2,7 @@
 ipykernel==5.3.0
 ipython==7.16.3
 ipython-genutils==0.2.0
+Jinja2==3.0.3
 jupyter-client==6.1.6
 jupyter-core==4.6.3
 minio==7.1.2
@@ -35,7 +36,6 @@ urllib3==1.26.5
 #idna==2.9
 #importlib-metadata==1.6.1
 #jedi==0.17.0
-#Jinja2==2.11.2
 #jsonschema==3.2.0
 #MarkupSafe==1.1.1
 #mistune==0.8.4
