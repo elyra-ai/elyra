@@ -159,7 +159,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
         try:
             max_reader_threads = int(os.getenv(self.max_readers_env, max_reader_threads))
         except ValueError:
-            pass
+            self.log.info(f"Unable to parse environmental variable {self.max_readers_env}, "
+                          f"using the default value of {self.max_threads_default}")
         return max_reader_threads
 
     def __init__(self, file_types: List[str], **kwargs):
@@ -311,7 +312,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
             "abstract method 'get_hash_keys()' must be implemented"
         )
 
-    def read_component_definitions(self, catalog_instance: Metadata) -> List[EntryData]:
+    def read_component_definitions(self, catalog_instance: Metadata) -> List[CatalogEntry]:
         """
         This function compiles the definitions of all catalog entries in a given catalog.
 

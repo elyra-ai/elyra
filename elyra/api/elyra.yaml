@@ -324,12 +324,21 @@ paths:
   /elyra/pipeline/components/cache:
     put:
       tags:
-        - pipeline
         - component
       summary: Initiates a refresh of the entire component cache.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComponentCacheResource'
       responses:
-        200:
+        204:
           description: The refresh request was initiated successfully.
+        400:
+          description: Invalid request, malformed body.
+        409:
+          description: Cache refresh is in progress - try request later.
 
   /elyra/pipeline/components/cache/{catalog}:
     parameters:
@@ -341,12 +350,19 @@ paths:
           type: string
     put:
       tags:
-        - pipeline
         - component
       summary: Initiates a refresh of the given component catalog.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComponentCacheResource'
       responses:
-        200:
+        204:
           description: The refresh request was initiated successfully.
+        400:
+          description: Invalid request, malformed body.
         404:
           description: Catalog not found.
 
@@ -726,8 +742,6 @@ components:
                 type: object
                 description: JSON consisting of information pertaining to where the issue occurred.
 
-
-
     RuntimeTypeResources:
       description: The set of properties comprising a runtime type resource entity.
       required:
@@ -782,3 +796,15 @@ components:
           description: A list of output file names.
           items:
             type: string
+
+    ComponentCacheResource:
+      description: The request body for refreshing the component cache.
+      required:
+        - action
+      type: object
+      properties:
+        action:
+          type: string
+          description: The action to carry out on the cache.  Only 'refresh' is supported.
+          enum:
+            - refresh

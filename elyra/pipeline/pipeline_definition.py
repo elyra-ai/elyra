@@ -247,6 +247,7 @@ class Node(AppDataBase):
         """
         if self.type == 'execution_node':
             return self._node['app_data'].get('component_source', None)
+        return None
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """

@@ -24,6 +24,7 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import CatalogEntry
+from elyra.pipeline.catalog_connector import EntryData
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
@@ -187,6 +188,10 @@ def test_parse_kfp_component_file():
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
+
+    # Ensure description is rendered even with an unescaped character
+    description = 'This component description contains an unescaped " character'
+    assert properties_json['current_parameters']['component_description'] == description
 
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
@@ -364,16 +369,65 @@ def test_parse_kfp_component_file_no_inputs():
     assert properties_json['current_parameters']['component_source'] == component_source
 
 
-async def test_parse_components_invalid_file():
-
+async def test_parse_components_not_a_file():
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
     # Get path to an invalid component definition file and read contents
-    path = _get_resource_path('kfp_test_operator_invalid.yaml')
+    path = _get_resource_path('kfp_test_operator_not_a_file.yaml')
     entry_data = reader.get_entry_data({"path": path}, {})
     assert entry_data is None
+
+
+async def test_parse_components_invalid_yaml(caplog):
+    # Get resource path and read definition (by-pass catalog reader functionality)
+    path = _get_resource_path('kfp_test_invalid_component.yaml')
+    with open(path, 'r') as f:
+        definition = f.read()
+
+    # Manually construct catalog_entry_data object and catalog instance
+    catalog_entry_data = {"path": path}
+    catalog_type = "local-file-catalog"
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
+
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition=definition)
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
+
+    # Parse the component entry
+    parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
+    component = parser.parse(catalog_entry)
+
+    # Failed YAML schema validation returns None
+    assert component is None
+
+    # Assert validation error is captured appropriately in log
+    assert "Invalid format of YAML definition for component" in caplog.text
+    assert "Failed validating 'type'" in caplog.text
+    assert "On instance['inputs'][0]['name']:\n    2" in caplog.text
+
+    caplog.clear()
+
+    # Modify file to get expected error in YAML safe_load
+    new_definition = "key with no mapping\n" + definition
+    catalog_entry.entry_data.definition = new_definition
+
+    # Re-parse with new definition content
+    component = parser.parse(catalog_entry)
+
+    # Failed YAML safe_load returns None
+    assert component is None
+
+    # Assert load error is captured appropriately in log
+    assert "Could not load YAML definition for component" in caplog.text
+    assert "mapping values are not allowed here" in caplog.text
 
 
 async def test_parse_components_additional_metatypes():
