@@ -181,7 +181,6 @@ def test_subcommand_with_no_nodes(subcommand, kubeflow_pipelines_runtime_instanc
 
         result = runner.invoke(pipeline, invoke_parameters)
         assert result.exit_code != 0
-        assert "At least one node must exist in the primary pipeline." in result.output
 
 
 def test_describe_with_no_nodes():
@@ -218,8 +217,8 @@ def test_describe_with_kfp_components():
     assert result.exit_code == 0
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_validate_with_kfp_components(kubeflow_pipelines_runtime_instance, component_cache_instance):
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_validate_with_kfp_components(jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance):
     runner = CliRunner()
     pipeline_file_path = Path(__file__).parent / 'resources' / 'pipelines' / 'kfp_3_node_custom.pipeline'
     result = runner.invoke(pipeline, ['validate',
@@ -249,7 +248,7 @@ def test_describe_with_missing_kfp_component():
         assert result.exit_code == 0
 
 
-def test_validate_with_missing_kfp_component(kubeflow_pipelines_runtime_instance):
+def test_validate_with_missing_kfp_component(jp_environ, kubeflow_pipelines_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
         valid_file_path = Path(__file__).parent / 'resources' / 'pipelines' / 'kfp_3_node_custom.pipeline'
@@ -365,9 +364,8 @@ def test_export_incompatible_runtime_config(kubeflow_pipelines_runtime_instance,
            "match the pipeline's runtime type 'APACHE_AIRFLOW'." in result.output
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_export_kubeflow_output_option(kubeflow_pipelines_runtime_instance,
-                                       component_cache_instance):
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_export_kubeflow_output_option(jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance):
     """Verify that the '--output' option works as expected for Kubeflow Pipelines"""
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -495,9 +493,8 @@ def test_export_airflow_output_option(airflow_runtime_instance):
                "was not specified." in result.output, result.output
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_export_kubeflow_overwrite_option(kubeflow_pipelines_runtime_instance,
-                                          component_cache_instance):
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_export_kubeflow_overwrite_option(jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance):
     """Verify that the '--overwrite' option works as expected for Kubeflow Pipelines"""
     runner = CliRunner()
     with runner.isolated_filesystem():

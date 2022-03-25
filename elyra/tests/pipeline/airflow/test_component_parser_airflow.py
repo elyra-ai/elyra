@@ -14,7 +14,8 @@
 # limitations under the License.
 #
 import os
-
+from subprocess import CompletedProcess
+from subprocess import run
 
 from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 from conftest import TEST_CATALOG_NAME
@@ -47,22 +48,16 @@ def _get_resource_path(filename):
     return resource_path
 
 
-@pytest.mark.parametrize('component_cache_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_component_catalog_can_load_components_from_registries(component_cache_instance):
-    components = ComponentCache.instance().get_all_components(RUNTIME_PROCESSOR)
+@pytest.mark.parametrize('catalog_instance', [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_component_catalog_can_load_components_from_registries(catalog_instance, component_cache):
+    components = component_cache.get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0
 
 
-def test_modify_component_catalogs(metadata_manager_with_teardown):
-    # Initialize a ComponentCache instance and wait for all worker threads to compete
-    component_catalog = ComponentCache.instance()
-    component_catalog.wait_for_all_cache_updates()
-
-    # Get initial set of components from the current active registries
-    initial_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-
-    # Components must be sorted by id for the equality comparison with later component lists
-    initial_components = sorted(initial_components, key=lambda component: component.id)
+@pytest.mark.parametrize('create_inprocess', [True, False])
+async def test_modify_component_catalogs(component_cache, metadata_manager_with_teardown, create_inprocess):
+    # Get initial set of components
+    initial_components = component_cache.get_all_components(RUNTIME_PROCESSOR)
 
     # Create new registry instance with a single URL-based component
     urls = ["https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/"
@@ -79,17 +74,23 @@ def test_modify_component_catalogs(metadata_manager_with_teardown):
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    if create_inprocess:
+        metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    else:
+        res: CompletedProcess = run(['elyra-metadata', 'install', 'component-catalogs',
+                                     f'--schema_name={registry_instance.schema_name}',
+                                     f'--json={registry_instance.to_json()}',
+                                     f'--name={TEST_CATALOG_NAME}'])
+        assert res.returncode == 0
 
     # Wait for update to complete
-    component_catalog.wait_for_all_cache_updates()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get new set of components from all active registries, including added test registry
-    added_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-    added_components = sorted(added_components, key=lambda component: component.id)
-    assert len(added_components) > len(initial_components)
+    components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(components_after_create) == len(initial_components) + 3
 
-    added_component_names = [component.name for component in added_components]
+    added_component_names = [component.name for component in components_after_create]
     assert 'TestOperator' in added_component_names
     assert 'TestOperatorNoInputs' not in added_component_names
 
@@ -99,14 +100,13 @@ def test_modify_component_catalogs(metadata_manager_with_teardown):
     metadata_manager_with_teardown.update(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
-    component_catalog.wait_for_all_cache_updates()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get set of components from all active registries, including modified test registry
-    modified_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-    modified_components = sorted(modified_components, key=lambda component: component.id)
-    assert len(modified_components) > len(added_components)
+    components_after_update = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(components_after_update) == len(initial_components) + 4
 
-    modified_component_names = [component.name for component in modified_components]
+    modified_component_names = [component.name for component in components_after_update]
     assert 'TestOperator' in modified_component_names
     assert 'TestOperatorNoInputs' in modified_component_names
 
@@ -114,30 +114,17 @@ def test_modify_component_catalogs(metadata_manager_with_teardown):
     metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
 
     # Wait for update to complete
-    component_catalog.wait_for_all_cache_updates()
+    component_cache.wait_for_all_cache_tasks()
 
-    post_delete_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-    post_delete_components = sorted(post_delete_components, key=lambda component: component.id)
-    assert len(post_delete_components) == len(initial_components)
-
-    # Check that the list of component ids is the same as before addition of the test registry
-    initial_component_ids = [component.id for component in initial_components]
-    post_delete_component_ids = [component.id for component in post_delete_components]
-    assert post_delete_component_ids == initial_component_ids
-
-    # Check that component palette is the same as before addition of the test registry
-    initial_palette = ComponentCache.to_canvas_palette(initial_components)
-    post_delete_palette = ComponentCache.to_canvas_palette(post_delete_components)
-    assert initial_palette == post_delete_palette
+    # Check that components remaining after delete are the same as before the new catalog was added
+    components_after_remove = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(components_after_remove) == len(initial_components)
 
 
-def test_directory_based_component_catalog(metadata_manager_with_teardown):
-    # Initialize a ComponentCache instance and wait for all worker threads to compete
-    component_catalog = ComponentCache.instance()
-    component_catalog.wait_for_all_cache_updates()
-
-    # Get initial set of components from the current active registries
-    initial_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
+@pytest.mark.parametrize('create_inprocess', [True, False])
+async def test_directory_based_component_catalog(component_cache, metadata_manager_with_teardown, create_inprocess):
+    # Get initial set of components
+    initial_components = component_cache.get_all_components(RUNTIME_PROCESSOR)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')
@@ -152,19 +139,30 @@ def test_directory_based_component_catalog(metadata_manager_with_teardown):
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    if create_inprocess:
+        metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    else:
+        res: CompletedProcess = run(['elyra-metadata', 'install', 'component-catalogs',
+                                     f'--schema_name={registry_instance.schema_name}',
+                                     f'--json={registry_instance.to_json()}',
+                                     f'--name={TEST_CATALOG_NAME}'])
+        assert res.returncode == 0
 
     # Wait for update to complete
-    component_catalog.wait_for_all_cache_updates()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get new set of components from all active registries, including added test registry
-    added_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-    assert len(added_components) > len(initial_components)
+    components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(components_after_create) == len(initial_components) + 5
 
     # Check that all relevant components from the new registry have been added
-    added_component_names = [component.name for component in added_components]
+    added_component_names = [component.name for component in components_after_create]
     assert 'TestOperator' in added_component_names
     assert 'TestOperatorNoInputs' in added_component_names
+
+    # Delete the test registry and wait for updates to complete
+    metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
+    component_cache.wait_for_all_cache_tasks()
 
 
 def test_parse_airflow_component_file():
