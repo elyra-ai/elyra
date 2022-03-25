@@ -38,9 +38,9 @@ export class MetadataCommonService {
     // instance names and find the next available one
     // using '<source-instance-name>-Copy<N>'
     let base_name = metadataInstance.display_name;
-    const match = metadataInstance.display_name.match(/([^-]+)-Copy\d+$/);
+    const match = metadataInstance.display_name.match(/-Copy\d+$/);
     if (match !== null) {
-      base_name = match[1];
+      base_name = base_name.replace(/-Copy\d+$/, '');
     }
     let count = 1;
 

@@ -23,6 +23,7 @@ import tempfile
 import time
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Union
 
 import autopep8
@@ -46,7 +47,7 @@ from elyra.util.github import GithubClient
 try:
     from elyra.util.gitlab import GitLabClient
 except ImportError:
-    pass
+    pass  # Gitlab package is not installed, ignore and use only GitHub
 from elyra.util.gitutil import SupportedGitTypes
 from elyra.util.path import get_absolute_path
 
@@ -495,10 +496,11 @@ be fully qualified (i.e., prefixed with their package names).
             converted_value = json.dumps(converted_value)
         return converted_value
 
-    def _get_node_name(self, operations_list: list, node_id: str) -> str:
+    def _get_node_name(self, operations_list: list, node_id: str) -> Optional[str]:
         for operation in operations_list:
             if operation['id'] == node_id:
                 return operation['notebook']
+        return None
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
