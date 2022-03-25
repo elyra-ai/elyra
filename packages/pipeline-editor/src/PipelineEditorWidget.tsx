@@ -510,7 +510,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     );
     const new_env_vars = await ContentParser.getEnvVars(
       path
-    ).then((response: any) => response.map((str: string) => (str = str + '=')));
+    ).then((response: any) => response.map((str: string) => str + '='));
 
     const env_vars = args.elyra_env_vars ?? [];
     const merged_env_vars = [

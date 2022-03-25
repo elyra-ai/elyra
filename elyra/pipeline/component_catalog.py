@@ -571,9 +571,14 @@ class ComponentCache(SingletonConfigurable):
 
         for catalog_entry in catalog_entries:
             # Parse the entry to get a fully qualified Component object
-            parsed_components = parser.parse(catalog_entry) or []
-            for component in parsed_components:
-                components[component.id] = component
+            try:
+                parsed_components = parser.parse(catalog_entry) or []
+            except Exception as e:
+                self.log.warning(f"Could not parse definition for component with identifying information: "
+                                 f"'{catalog_entry.entry_reference}' -> {str(e)}")
+            else:
+                for component in parsed_components:
+                    components[component.id] = component
 
         return components
 

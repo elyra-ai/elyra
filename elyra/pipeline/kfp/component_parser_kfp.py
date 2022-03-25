@@ -19,6 +19,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from jsonschema import validate
+from jsonschema import ValidationError
 import yaml
 
 from elyra.pipeline.catalog_connector import CatalogEntry
@@ -26,6 +28,7 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ControllerMap
+from elyra.pipeline.kfp.kfp_component_utils import component_yaml_schema
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -58,7 +61,7 @@ class KfpComponentParser(ComponentParser):
         return [component]
 
     def _parse_properties(self, component_yaml: Dict[str, Any]) -> List[ComponentParameter]:
-        properties: List[ComponentParameter] = list()
+        properties: List[ComponentParameter] = []
 
         # NOTE: Currently no runtime-specific properties are needed
         # properties.extend(self.get_runtime_specific_properties())
@@ -163,11 +166,21 @@ class KfpComponentParser(ComponentParser):
         Convert component_definition string to YAML object
         """
         try:
-            return yaml.safe_load(catalog_entry.entry_data.definition)
+            results = yaml.safe_load(catalog_entry.entry_data.definition)
         except Exception as e:
             self.log.warning(f"Could not load YAML definition for component with identifying information: "
                              f"'{catalog_entry.entry_reference}' -> {str(e)}")
             return None
+
+        try:
+            # Validate against component YAML schema
+            validate(instance=results, schema=component_yaml_schema)
+        except ValidationError as ve:
+            self.log.warning(f"Invalid format of YAML definition for component with identifying information: "
+                             f"'{catalog_entry.entry_reference}' -> {str(ve)}")
+            return None
+
+        return results
 
     def _is_path_based_parameter(self, parameter_name: str, component_body: Dict[str, Any]) -> bool:
         """

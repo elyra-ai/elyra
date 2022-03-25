@@ -1,4 +1,5 @@
 name: Test Operator
+description: 'This component description contains an unescaped " character'
 inputs:
 - {name: test_string_no_default, description: 'The test command description', type: String}
 - {name: test_string_default_value, description: 'The test command description', type: String, default: 'default'}
