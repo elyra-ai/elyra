@@ -98,7 +98,8 @@ export const commandIDs = {
   saveDocManager: 'docmanager:save',
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
-  addFileToPipeline: 'pipeline-editor:add-node'
+  addFileToPipeline: 'pipeline-editor:add-node',
+  openViewer: 'elyra-code-viewer:open'
 };
 
 const getAllPaletteNodes = (palette: any): any[] => {
@@ -209,17 +210,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
 
-  // TODO: DELETE THIS
-  const __doNotUseInFutureMapTypeToRandomProcessor__ = (():
-    | string
-    | undefined => {
-    const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
-    return schema?.name;
-  })();
-
-  const { data: palette, error: paletteError } = usePalette(
-    __doNotUseInFutureMapTypeToRandomProcessor__
-  );
+  const { data: palette, error: paletteError } = usePalette(type);
 
   const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
 
@@ -526,19 +517,80 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
   };
 
+  const handleOpenComponentDef = useCallback(
+    (componentId: string, componentSource: string) => {
+      // Show error dialog if the component does not exist
+      if (!componentId) {
+        const dialogBody = [];
+        try {
+          const componentSourceJson = JSON.parse(componentSource);
+          dialogBody.push(`catalog_type: ${componentSourceJson.catalog_type}`);
+          for (const [key, value] of Object.entries(
+            componentSourceJson.component_ref
+          )) {
+            dialogBody.push(`${key}: ${value}`);
+          }
+        } catch {
+          dialogBody.push(componentSource);
+        }
+        return showDialog({
+          title: 'Component not found',
+          body: (
+            <p>
+              This node uses a component that is not stored in your component
+              registry.
+              {dialogBody.map((line, i) => (
+                <span key={i}>
+                  <br />
+                  {line}
+                </span>
+              ))}
+              <br />
+              <br />
+              <a
+                href="https://elyra.readthedocs.io/en/latest/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Learn more...
+              </a>
+            </p>
+          ),
+          buttons: [Dialog.okButton()]
+        });
+      }
+      return PipelineService.getComponentDef(type, componentId)
+        .then(res => {
+          const nodeDef = getAllPaletteNodes(palette).find(
+            n => n.id === componentId
+          );
+          commands.execute(commandIDs.openViewer, {
+            content: res.content,
+            mimeType: res.mimeType,
+            label: nodeDef?.label ?? componentId
+          });
+        })
+        .catch(e => RequestErrors.serverError(e));
+    },
+    [commands, palette, type]
+  );
+
   const onDoubleClick = (data: any): void => {
     for (let i = 0; i < data.selectedObjectIds.length; i++) {
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
       );
-      if (!node?.app_data?.component_parameters?.filename) {
-        continue;
+      const nodeDef = getAllPaletteNodes(palette).find(n => n.op === node?.op);
+      if (node?.app_data?.component_parameters?.filename) {
+        commands.execute(commandIDs.openDocManager, {
+          path: PipelineService.getWorkspaceRelativeNodePath(
+            contextRef.current.path,
+            node.app_data.component_parameters.filename
+          )
+        });
+      } else if (!nodeDef?.app_data?.parameter_refs?.['filehandler']) {
+        handleOpenComponentDef(nodeDef?.id, node?.app_data?.component_source);
       }
-      const path = PipelineService.getWorkspaceRelativeNodePath(
-        contextRef.current.path,
-        node.app_data.component_parameters.filename
-      );
-      commands.execute(commandIDs.openDocManager, { path });
     }
   };
 
@@ -784,11 +836,24 @@ const PipelineWrapper: React.FC<IProps> = ({
             )
           });
           break;
+        case 'openComponentDef':
+          handleOpenComponentDef(
+            args.payload.componentId,
+            args.payload.componentSource
+          );
+          break;
         default:
           break;
       }
     },
-    [handleSubmission, handleClearPipeline, panelOpen, shell, commands]
+    [
+      handleSubmission,
+      handleClearPipeline,
+      panelOpen,
+      shell,
+      commands,
+      handleOpenComponentDef
+    ]
   );
 
   const toolbar = {

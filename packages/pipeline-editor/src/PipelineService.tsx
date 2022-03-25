@@ -42,6 +42,11 @@ export interface ISchema {
   runtime_type: string;
 }
 
+interface IComponentDef {
+  content: string;
+  mimeType: string;
+}
+
 enum ContentType {
   notebook = 'execute-notebook-node',
   python = 'execute-python-node',
@@ -121,6 +126,15 @@ export class PipelineService {
     } catch (error) {
       Promise.reject(error);
     }
+  }
+
+  static async getComponentDef(
+    type = 'local',
+    componentID: string
+  ): Promise<IComponentDef> {
+    return await RequestHandler.makeGetRequest<IComponentDef>(
+      `elyra/pipeline/components/${type}/${componentID}`
+    );
   }
 
   /**
