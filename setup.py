@@ -73,7 +73,7 @@ setup_args = dict(
         'click>=7.1.1,<8',  # Required by kfp 1.6.3
         'colorama',
         'entrypoints>=0.3',
-        'jinja2>=2.11',
+        'jinja2>=2.11,<3.1',  # Cap due to breaking changes See pallets/jinja/issues/1629
         'jsonschema>=3.2.0',
         'jupyter_core>=4.0,<5.0',
         'jupyter_client>=6.1.7',
