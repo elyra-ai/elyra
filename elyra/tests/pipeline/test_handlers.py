@@ -17,15 +17,14 @@ import asyncio
 import json
 import os
 
-import jupyter_core
-
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
-from elyra.metadata.metadata import Metadata
-from elyra.metadata.schemaspaces import ComponentCatalogs
+import jupyter_core
 import pytest
 import requests
 from tornado.httpclient import HTTPClientError
 
+from elyra.metadata.metadata import Metadata
+from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.tests.pipeline import resources
@@ -95,8 +94,8 @@ async def test_get_component_properties_config(jp_fetch):
     assert payload == properties
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-async def test_get_component_properties_definition(component_cache_instance, jp_fetch, caplog):
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+async def test_get_component_properties_definition(catalog_instance, jp_fetch, caplog):
     # Ensure the definition for a component can be found
     component_url = "https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/" \
                     "kfp-example-components-connector/kfp_examples_connector/resources/download_data.yaml"
