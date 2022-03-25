@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 3.1.4 - 03/25/2022
+
+- Update Jinja2 dependencies
+
 ## Release 3.1.3 - 12/01/2021
 
 - Update release script
