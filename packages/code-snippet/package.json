@@ -1,6 +1,6 @@
 {
   "name": "@elyra/code-snippet-extension",
-  "version": "3.2.4-dev",
+  "version": "3.2.4",
   "description": "JupyterLab extension - Reusable code snippets for your Notebook and Python Scripts",
   "keywords": [
     "jupyter",
@@ -34,9 +34,9 @@
     "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
-    "@elyra/metadata-common": "3.2.4-dev",
-    "@elyra/services": "3.2.4-dev",
-    "@elyra/ui-components": "3.2.4-dev",
+    "@elyra/metadata-common": "3.2.4",
+    "@elyra/services": "3.2.4",
+    "@elyra/ui-components": "3.2.4",
     "@jupyterlab/application": "^3.0.0",
     "@jupyterlab/apputils": "^3.0.0",
     "@jupyterlab/cells": "^3.0.0",
