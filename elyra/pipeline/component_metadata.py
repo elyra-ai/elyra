@@ -44,14 +44,19 @@ class ComponentCatalogMetadata(Metadata):
     def post_save(self, **kwargs: Any) -> None:
         try:  # Modify components associated with this catalog on creates and updates.
             component_catalog.ComponentCache.instance().update(catalog=self, action='modify')
-        except Exception as ex:
-            print(ex)
+        except Exception:
+            # An attempted component cache update will fail silently with most errors
+            # logged from the ComponentCache class methods. However, a log message
+            # should eventually be added here as well
             pass
 
     def post_delete(self, **kwargs: Any) -> None:
         try:  # Remove components associated with this catalog on deletes.
             component_catalog.ComponentCache.instance().update(catalog=self, action='delete')
         except Exception:
+            # An attempted component cache update will fail silently with most errors
+            # logged from the ComponentCache class methods. However, a log message
+            # should eventually be added here as well
             pass
 
 
