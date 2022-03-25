@@ -1,5 +1,9 @@
 # Changelog
 
+## Release 3.5.4 - 03/25/2022
+
+- Update Jinja2 dependencies
+
 ## Release 3.5.3 - 02/03/2022
 
 - Restore dependency cap on click and pin black - [#2446](https://github.com/elyra-ai/elyra/pull/2446)
