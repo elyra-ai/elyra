@@ -1,5 +1,10 @@
 # Changelog
 
+## Release 3.6.1 - 03/25/2022
+
+- Update release script for 3.6.x branch
+- Update Jinja2 dependencies
+
 ## Release 3.6.0 - 02/08/2022
 
 - Update built-in connector reference - [#2457](https://github.com/elyra-ai/elyra/pull/2457)
