@@ -508,8 +508,8 @@ class RuntimePipelineProcessor(PipelineProcessor):
         if value.startswith('{') and value.endswith('}'):
             try:
                 converted_dict = ast.literal_eval(value)
-            except Exception:
-                pass
+            except(ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+                pass  # Can raise any of these exceptions
 
         # Value could not be successfully converted to dictionary
         if not isinstance(converted_dict, dict):
@@ -535,8 +535,8 @@ class RuntimePipelineProcessor(PipelineProcessor):
         if value.startswith('[') and value.endswith(']'):
             try:
                 converted_list = ast.literal_eval(value)
-            except Exception:
-                pass
+            except(ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+                pass  # Can raise any of these exceptions
 
         # Value could not be successfully converted to list
         if not isinstance(converted_list, list):

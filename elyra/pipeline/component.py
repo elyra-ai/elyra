@@ -387,7 +387,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 if data_type in ['dict', 'dictionary']:
                     data_type = "dictionary"
                     default_value = {}
-                elif data_type in ['list', 'set', 'array', 'arr']:
+                else:  # data_type is one of ['list', 'set', 'array', 'arr']
                     data_type = "list"
                     default_value = []
 

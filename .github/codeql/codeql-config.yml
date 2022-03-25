@@ -1,0 +1,11 @@
+name: "Elyra CodeQL config"
+
+queries:
+  - uses: security-and-quality
+
+paths-ignore:
+  - elyra/tests
+  - node_modules
+  - packages/services/src/test
+  - packages/pipeline-editor/src/tests
+  - tests

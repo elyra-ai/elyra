@@ -39,7 +39,7 @@ def _empty_or_whitespaces_only(a_string: str) -> bool:
     only whitespaces.
 
     :param a_string: string to be evaluated
-    :type string: str
+    :type: str
     :return: True if a_string is None or contains only whitespaces
     :rtype: Boolean
     """
@@ -138,7 +138,7 @@ class AuthenticationError(Exception):
 
     def __init__(self,
                  message: str,
-                 provider: Optional[str] = None,
+                 provider: Optional[SupportedAuthProviders] = None,
                  request_history: Optional[List[Tuple[str, requests.Response]]] = None):
         """
         Create a new AuthenticationError exception. The throw-er should
@@ -149,7 +149,7 @@ class AuthenticationError(Exception):
         :type message: str
         :param provider: if the error is raised by an implementation of AbstractAuthenticator,
          use the value of _type; optional, defaults to None
-        :type provider: Optional[str], optional
+        :type provider: Optional[SupportedAuthProviders], optional
         :param request_history: , defaults to None
         :type request_history: Optional[List[Dict[str, requests.Response]]], optional
         """
@@ -187,7 +187,7 @@ class AuthenticationError(Exception):
         return output
 
 
-class KFPAuthenticator():
+class KFPAuthenticator:
     """
     Use this class to authenticate with Kubeflow Pipelines. The authenticate
     method delegates the actual authentication to an implementation of the
@@ -207,7 +207,7 @@ class KFPAuthenticator():
         :type api_endpoint: str
         :param auth_type_str Identifies the authentication type to be performed. If the provided value
          is in the SupportedAuthProviders enum, authentication is performed.
-        :type auth_type: str
+        :type auth_type_str: str
         :param runtime_config_name: Runtime configuration name where kf_endpoint is specified.
         :type runtime_config_name: str
         :param auth_parm_1: First authorization parameter from the runtime config, defaults to None
@@ -314,7 +314,7 @@ class AbstractAuthenticator(ABC):
     @abstractmethod
     def authenticate(self,
                      kf_endpoint: str,
-                     runtime_config_name: str) -> Optional[str]:
+                     runtime_config_name: str) -> Optional[SupportedAuthProviders]:
         """
         Attempt to authenticate with the specified Kubeflow endpoint. The caller
         expects the implementing method to behave as follows:
@@ -343,7 +343,7 @@ class NoAuthenticationAuthenticator(AbstractAuthenticator):
 
     def authenticate(self,
                      kf_endpoint: str,
-                     runtime_config_name: str) -> Optional[str]:
+                     runtime_config_name: str) -> Optional[SupportedAuthProviders]:
         """
         Confirms that the specified kf_endpoint can be accessed
         without authentication.
@@ -377,8 +377,8 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
     def authenticate(self,
                      kf_endpoint: str,
                      runtime_config_name: str,
-                     username: str,
-                     password: str) -> Optional[str]:
+                     username: str = None,
+                     password: str = None) -> Optional[str]:
         """
         Authenticate using static password authentication. An AuthenticationError is raised
         if (1) kf_endpoint is unsecured (2) kf_endpoint does not
@@ -505,8 +505,8 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
     def authenticate(self,
                      kf_endpoint: str,
                      runtime_config_name: str,
-                     username: str,
-                     password: str) -> Optional[str]:
+                     username: str = None,
+                     password: str = None) -> Optional[str]:
         """
         Authenticate using LDAP. An AuthenticationError is raised
         if (1) kf_endpoint is unsecured (2) kf_endpoint does not
@@ -707,11 +707,11 @@ class DEXLegacyAuthenticator(AbstractAuthenticator):
     def authenticate(self,
                      kf_endpoint: str,
                      runtime_config_name: str,
-                     username: Optional[str],
-                     password: Optional[str]) -> Optional[str]:
+                     username: Optional[str] = None,
+                     password: Optional[str] = None) -> Optional[str]:
         """
         Authentication using the following flow:
-         - detect wether Kubeflow endpoint is secured
+         - detect whether Kubeflow endpoint is secured
          - if endpoint is secured, try to authenticate if a username and password were provided
 
         :param kf_endpoint: Kubeflow API endpoint to verify
