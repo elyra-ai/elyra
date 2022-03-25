@@ -68,7 +68,7 @@ def dependency_exists(command) -> bool:
     """Returns true if a command exists on the system"""
     try:
         check_run(["which", command])
-    except:
+    except subprocess.CalledProcessError:
         return False
 
     return True
@@ -187,7 +187,6 @@ def update_version_to_dev() -> None:
     global config
 
     new_version = config.new_version
-    new_npm_version = config.new_npm_version
     dev_version = config.dev_version
     dev_npm_version = config.dev_npm_version
 
@@ -393,7 +392,7 @@ def generate_changelog() -> None:
 
         # copy the remaining changelog at the bottom of the new content
         with io.open(changelog_backup_path) as old_changelog:
-            line = old_changelog.readline() # ignore first line as title
+            old_changelog.readline()  # ignore first line as title
             line = old_changelog.readline()
             while line:
                 changelog.write(line)
@@ -409,6 +408,7 @@ def prepare_extensions_release() -> None:
 
 
     extensions = {'elyra-code-snippet-extension':['code-snippet-extension', 'metadata-extension', 'theme-extension'],
+                  'elyra-code-viewer-extension': ['elyra-code-viewer-extension'],
                   'elyra-pipeline-editor-extension':['pipeline-editor-extension', 'metadata-extension', 'theme-extension'],
                   'elyra-python-editor-extension':['python-editor-extension', 'metadata-extension', 'theme-extension'],
                   'elyra-r-editor-extension':['r-editor-extension', 'metadata-extension', 'theme-extension']}
@@ -547,6 +547,8 @@ def publish_release(working_dir) -> None:
         f'{config.work_dir}/kfp-notebook/dist/kfp-notebook-{config.new_version}.tar.gz',
         f'{config.work_dir}/elyra-code-snippet-extension/dist/elyra_code_snippet_extension-{config.new_version}-py3-none-any.whl',
         f'{config.work_dir}/elyra-code-snippet-extension/dist/elyra-code-snippet-extension-{config.new_version}.tar.gz',
+        f'{config.work_dir}/elyra-code-viewer-extension/dist/elyra_code_viewer_extension-{config.new_version}-py3-none-any.whl',
+        f'{config.work_dir}/elyra-code-viewer-extension/dist/elyra-code-viewer-extension-{config.new_version}.tar.gz',
         f'{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra_pipeline_editor_extension-{config.new_version}-py3-none-any.whl',
         f'{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra-pipeline-editor-extension-{config.new_version}.tar.gz',
         f'{config.work_dir}/elyra-python-editor-extension/dist/elyra_python_editor_extension-{config.new_version}-py3-none-any.whl',

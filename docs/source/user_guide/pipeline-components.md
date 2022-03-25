@@ -175,10 +175,10 @@ elyra-kfp-examples-catalog       kubeflow_pipelines_examples  /.../Jupyter/metad
 
 #### Adding a component catalog
 
-To add a component catalog entry run `elyra-metadata install component-catalogs`.
+To add a component catalog entry run `elyra-metadata create component-catalogs`.
 
 ```bash
-$ elyra-metadata install component-catalogs \
+$ elyra-metadata create component-catalogs \
        --display_name="filter components" \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
@@ -191,18 +191,17 @@ Refer to section [Configuration properties](#configuration-properties) for param
 
 #### Modifying a component catalog entry
 
-To replace a component catalog entry run `elyra-metadata install component-catalogs` and specify the `--replace` option:
+To replace a component catalog entry run `elyra-metadata update component-catalogs`:
 
 ```bash
-$ elyra-metadata install component-catalogs \
+$ elyra-metadata update component-catalogs \
        --name="filter_components" \
        --display_name="filter components" \
        --description="filter text in files" \
        --runtime_type=KUBEFLOW_PIPELINES \
        --schema_name="url-catalog"\
        --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
-       --categories='["file operations"]' \
-       --replace
+       --categories='["file operations"]'
 ```
 
 Note: You must specify all property values, not only the ones that you want to modify.
@@ -222,9 +221,9 @@ The above example will export all component catalogs to the "/tmp/foo/component-
 
 Note that you must specify the `--directory` option.
 
-There are two flags that can be specified when exporting metadata:
-1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
-2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the metadata.
+There are two flags that can be specified when exporting component catalogs:
+1. To include invalid component catalogs, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the component catalogs.
 
 #### Removing a component catalog entry
 

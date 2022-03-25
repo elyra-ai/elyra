@@ -26,7 +26,6 @@ interface IFilterMetadataProps {
 }
 
 interface IFilterMetadataState {
-  show: boolean;
   selectedTags: string[];
   searchValue: string;
 }
@@ -49,7 +48,7 @@ export class FilterTools extends React.Component<
 > {
   constructor(props: IFilterMetadataProps) {
     super(props);
-    this.state = { show: false, selectedTags: [], searchValue: '' };
+    this.state = { selectedTags: [], searchValue: '' };
     this.createFilterBox = this.createFilterBox.bind(this);
     this.renderFilterOption = this.renderFilterOption.bind(this);
     this.renderTags = this.renderTags.bind(this);
@@ -61,7 +60,6 @@ export class FilterTools extends React.Component<
 
   componentDidMount(): void {
     this.setState({
-      show: false,
       selectedTags: [],
       searchValue: ''
     });

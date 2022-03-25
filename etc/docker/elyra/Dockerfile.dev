@@ -68,7 +68,7 @@ RUN cd /tmp/elyra \
 
 # Install example component catalogs
 #  - this wail fail if the 'kfp-examples' pip extra is not installed
-RUN elyra-metadata install component-catalogs \
+RUN elyra-metadata create component-catalogs \
     --schema_name=elyra-kfp-examples-catalog  \
     --display_name="Kubeflow Pipelines examples" \
     --runtime_type=KUBEFLOW_PIPELINES \
