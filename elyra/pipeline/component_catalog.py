@@ -54,7 +54,7 @@ WORKER_THREAD_WARNING_THRESHOLD = int(os.getenv("ELYRA_WORKER_THREAD_WARNING_THR
 
 
 # Define custom type to describe the component cache
-ComponentCacheType = Dict[str, Dict[str, Dict[str, Union[Component, Dict[str, Union[str, List[str]]]]]]]
+ComponentCacheType = Dict[str, Dict[str, Dict[str, Dict[str, Union[Component, str, List[str]]]]]]
 
 
 class RefreshInProgressError(Exception):
@@ -687,5 +687,5 @@ class ManifestFileChangeHandler(FileSystemEventHandler):
                         schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
                     ).get(name=catalog)
 
-                self.component_cache.update_queue.put((catalog_instance, action))
+                self.component_cache.update(catalog=catalog_instance, action=action)
             self.component_cache.update_manifest(filename=event.src_path)  # clear the manifest
