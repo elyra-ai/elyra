@@ -104,7 +104,7 @@ export class RequestHandler {
    */
   static async makePutRequest<T = any>(
     requestPath: string,
-    requestBody?: any,
+    requestBody: any,
     longRequestDialog?: Dialog<any>
   ): Promise<T> {
     return this.makeServerRequest(
@@ -203,7 +203,7 @@ export class RequestHandler {
             },
             // handle 404 if the server is not found
             (reason: any) => {
-              if (response.status === 404) {
+              if (response.status === 404 || response.status === 409) {
                 response['requestPath'] = requestPath;
                 return reject(response);
               } else if (response.status === 204) {

@@ -34,6 +34,13 @@ export const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 
 const COMPONENT_CATALOGS_CLASS = 'elyra-metadata-component-catalogs';
 
+const handleError = (error: any): void => {
+  // silently eat a 409, the server will log in in the console
+  if (error.status !== 409) {
+    RequestErrors.serverError(error);
+  }
+};
+
 /**
  * A React Component for displaying the runtime images list.
  */
@@ -51,7 +58,7 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
             .then((response: any): void => {
               this.props.updateMetadata();
             })
-            .catch(error => RequestErrors.serverError(error));
+            .catch(error => handleError(error));
         }
       },
       ...super.actionButtons(metadata)
@@ -72,7 +79,7 @@ export class ComponentCatalogsWidget extends MetadataWidget {
       .then((response: any): void => {
         super.updateMetadata();
       })
-      .catch(error => RequestErrors.serverError(error));
+      .catch(error => handleError(error));
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {

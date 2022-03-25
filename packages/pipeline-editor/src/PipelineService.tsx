@@ -131,7 +131,8 @@ export class PipelineService {
    */
   static async refreshComponentsCache(catalogName?: string): Promise<void> {
     return await RequestHandler.makePutRequest(
-      `elyra/pipeline/components/cache${catalogName ? '/' + catalogName : ''}`
+      `elyra/pipeline/components/cache${catalogName ? '/' + catalogName : ''}`,
+      JSON.stringify({ action: 'refresh' })
     );
   }
 
