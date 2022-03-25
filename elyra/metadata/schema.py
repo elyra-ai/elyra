@@ -38,7 +38,6 @@ from jsonschema import validate
 from jsonschema import ValidationError
 from traitlets.config import LoggingConfigurable
 from traitlets.config import SingletonConfigurable
-from traitlets import Type  # noqa H306
 
 from elyra.metadata.error import SchemaNotFoundError
 
