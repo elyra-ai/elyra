@@ -93,7 +93,7 @@ export or submit a pipeline with these custom components.
 
 Pipeline files include references to components, but not the component definitions. If you open a pipeline in the Visual Pipeline Editor, Elyra tries to match these component references with it's local component inventory. If a component reference cannot be resolved, an error message is displayed providing information you can use to locate the component.
 
-The error message includes a key that identifies the catalog type, which made the component available in the environment where the pipeline was created. 
+The error message includes a key that identifies the catalog type that made the component available in the environment where the pipeline was created. Each catalog type has its own set of keys that are used to resolve a component reference. 
 
 #### Filesystem catalog (type: `local-file-catalog`)
 
