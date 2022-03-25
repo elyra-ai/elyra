@@ -44,7 +44,7 @@ const R = 'r';
 const R_EDITOR_NAMESPACE = 'elyra-r-script-editor-extension';
 
 const commandIDs = {
-  createNewRFile: 'script-editor:create-new-r-file',
+  createNewREditor: 'script-editor:create-new-r-editor',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
@@ -198,13 +198,13 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     /**
-     * Create new r file from launcher and file menu
+     * Create new r editor from launcher and file menu
      */
 
     // Add a r launcher
     if (launcher) {
       launcher.add({
-        command: commandIDs.createNewRFile,
+        command: commandIDs.createNewREditor,
         category: 'Elyra',
         rank: 5
       });
@@ -213,7 +213,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (menu) {
       // Add new r file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
-        [{ command: commandIDs.createNewRFile, args: { isMenu: true } }],
+        [{ command: commandIDs.createNewREditor, args: { isMenu: true } }],
         93
       );
     }
@@ -234,15 +234,10 @@ const extension: JupyterFrontEndPlugin<void> = {
         });
     };
 
-    // Add a command to create new R file
-    app.commands.addCommand(commandIDs.createNewRFile, {
-      label: args =>
-        args['isPalette']
-          ? 'New R Editor'
-          : args.isMenu
-          ? 'R File'
-          : 'R Editor',
-      caption: 'Create a new R file',
+    // Add a command to create new R editor
+    app.commands.addCommand(commandIDs.createNewREditor, {
+      label: args => (args['isPalette'] ? 'New R Editor' : 'R Editor'),
+      caption: 'Create a new R Editor',
       icon: args => (args['isPalette'] ? undefined : rIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
@@ -251,7 +246,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     palette.addItem({
-      command: commandIDs.createNewRFile,
+      command: commandIDs.createNewREditor,
       args: { isPalette: true },
       category: 'Elyra'
     });

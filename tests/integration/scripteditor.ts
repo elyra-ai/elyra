@@ -58,7 +58,7 @@ describe('Script Editor tests', () => {
     cy.findByText(/^new$/i).click();
 
     cy.get(
-      '[data-command="script-editor:create-new-python-file"] > .lm-Menu-itemLabel'
+      '[data-command="script-editor:create-new-python-editor"] > .lm-Menu-itemLabel'
     ).click();
   });
 
@@ -181,10 +181,10 @@ describe('Script Editor tests', () => {
     cy.findByRole('menuitem', { name: /file/i }).click();
     cy.findByText(/^new$/i).click();
     cy.get(
-      '[data-command="script-editor:create-new-r-file"] svg[data-icon="elyra:rIcon"]'
+      '[data-command="script-editor:create-new-r-editor"] svg[data-icon="elyra:rIcon"]'
     );
     cy.get(
-      '[data-command="script-editor:create-new-python-file"] svg[data-icon="elyra:pyIcon"]'
+      '[data-command="script-editor:create-new-python-editor"] svg[data-icon="elyra:pyIcon"]'
     );
 
     // Check python icons from launcher & file explorer
@@ -211,7 +211,7 @@ describe('Script Editor tests', () => {
     cy.findByText(/^new$/i).click();
 
     cy.get(
-      '[data-command="script-editor:create-new-r-file"] > .lm-Menu-itemLabel'
+      '[data-command="script-editor:create-new-r-editor"] > .lm-Menu-itemLabel'
     ).click();
   });
 
