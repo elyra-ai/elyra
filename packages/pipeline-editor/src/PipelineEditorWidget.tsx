@@ -545,6 +545,15 @@ const PipelineWrapper: React.FC<IProps> = ({
                   {line}
                 </span>
               ))}
+              <br />
+              <br />
+              <a
+                href="https://elyra.readthedocs.io/en/latest/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Learn more...
+              </a>
             </p>
           ),
           buttons: [Dialog.okButton()]
