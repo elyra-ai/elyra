@@ -25,8 +25,7 @@ import {
 } from '@jupyterlab/application';
 import {
   IThemeManager,
-  ICommandPalette,
-  MainAreaWidget
+  ICommandPalette
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
