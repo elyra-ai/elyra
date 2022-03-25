@@ -363,6 +363,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             )
 
         return KfpPipelineProcessorResponse(
+            run_id=run.id,
             run_url=f"{api_endpoint}/#/runs/details/{run.id}",
             object_storage_url=f"{cos_endpoint}",
             object_storage_path=f"/{cos_bucket}/{cos_directory}",
@@ -723,3 +724,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 class KfpPipelineProcessorResponse(PipelineProcessorResponse):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     _name = 'kfp'
+
+    def __init__(self, run_id, run_url, object_storage_url, object_storage_path):
+        super().__init__(run_url, object_storage_url, object_storage_path)
+        self.run_id = run_id
+
+    def to_json(self):
+        response = super().to_json()
+        response['run_id'] = self.run_id
+        return response

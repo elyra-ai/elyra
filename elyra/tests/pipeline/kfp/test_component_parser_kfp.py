@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 import os
 from subprocess import CompletedProcess
 from subprocess import run
@@ -196,7 +197,7 @@ def test_parse_kfp_component_file():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
+    component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == \
            {'StringControl': '', 'activeControl': 'StringControl'}
@@ -308,7 +309,7 @@ def test_parse_kfp_component_url():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
+    component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
     assert properties_json['current_parameters']['elyra_parameters'] == \
@@ -365,7 +366,7 @@ def test_parse_kfp_component_file_no_inputs():
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
+    component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
 
 
@@ -451,7 +452,7 @@ async def test_parse_components_additional_metatypes():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, {"url": url}, catalog_instance, ['url'])
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
 
     # Parse the component entry
     parser = KfpComponentParser()
@@ -461,7 +462,7 @@ async def test_parse_components_additional_metatypes():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
+    component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_training_features'] == 'None'  # inputPath
     assert properties_json['current_parameters']['elyra_training_labels'] == 'None'  # inputPath

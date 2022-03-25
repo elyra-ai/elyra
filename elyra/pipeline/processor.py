@@ -81,6 +81,12 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
 
+    def is_valid_runtime_type(self, runtime_type_name: str) -> bool:
+        for processor in self._processors.values():
+            if processor.type.name == runtime_type_name:
+                return True
+        return False
+
     def get_runtime_types_resources(self) -> List[RuntimeTypeResources]:
         """Returns the set of resource instances for each active runtime type"""
 
@@ -104,38 +110,41 @@ class PipelineProcessorManager(SingletonConfigurable):
         self.root_dir = get_expanded_path(kwargs.get('root_dir'))
         self._registry = PipelineProcessorRegistry.instance()
 
-    def _get_processor_for_runtime(self, runtime_name: str):
+    def get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)
         return processor
 
     def is_supported_runtime(self, runtime_name: str) -> bool:
         return self._registry.is_valid_processor(runtime_name)
 
+    def is_supported_runtime_type(self, runtime_type_name) -> bool:
+        return self._registry.is_valid_runtime_type(runtime_type_name)
+
     def get_runtime_type(self, runtime_name: str) -> RuntimeProcessorType:
-        processor = self._get_processor_for_runtime(runtime_name)
+        processor = self.get_processor_for_runtime(runtime_name)
         return processor.type
 
-    async def get_components(self, runtime_name):
-        processor = self._get_processor_for_runtime(runtime_name)
+    async def get_components(self, runtime):
+        processor = self.get_processor_for_runtime(runtime_name=runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
         return res
 
-    async def get_component(self, runtime_name, component_id):
-        processor = self._get_processor_for_runtime(runtime_name)
+    async def get_component(self, runtime, component_id):
+        processor = self.get_processor_for_runtime(runtime_name=runtime)
 
         res = await asyncio.get_event_loop().\
             run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
         return res
 
     async def process(self, pipeline):
-        processor = self._get_processor_for_runtime(pipeline.runtime)
+        processor = self.get_processor_for_runtime(pipeline.runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.process, pipeline)
         return res
 
     async def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        processor = self._get_processor_for_runtime(pipeline.runtime)
+        processor = self.get_processor_for_runtime(pipeline.runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(
             None, processor.export, pipeline, pipeline_export_format, pipeline_export_path, overwrite)

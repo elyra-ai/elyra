@@ -55,7 +55,8 @@ class KfpComponentParser(ComponentParser):
             id=catalog_entry.id,
             name=component_yaml.get('name'),
             description=description,
-            properties=component_properties
+            properties=component_properties,
+            file_extension=self._file_types[0]
         )
 
         return [component]

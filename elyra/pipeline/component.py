@@ -16,6 +16,7 @@
 from abc import abstractmethod
 from enum import Enum
 from importlib import import_module
+import json
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
@@ -223,7 +224,7 @@ class Component(object):
             else:
                 parameter_refs = {}
 
-        if extensions and not parameter_refs.get('filehandler'):
+        if self._catalog_type == "elyra" and extensions and not parameter_refs.get('filehandler'):
             Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
                                    no entry in the 'parameter_ref' dictionary for 'filehandler' and \
                                    cannot participate in drag and drop functionality as a result.")
@@ -259,7 +260,7 @@ class Component(object):
         this component originates and the reference information used to
         locate it within that catalog.
         """
-        return str({
+        return json.dumps({
             "catalog_type": self.catalog_type,
             "component_ref": self.component_reference
         })
@@ -308,6 +309,14 @@ class Component(object):
     @property
     def output_properties(self) -> List[ComponentParameter]:
         return [prop for prop in self._properties if prop.data_type == 'outputpath']
+
+    @property
+    def file_extension(self) -> Optional[str]:
+        """
+        The file extension of the definition file representing this
+        Component.
+        """
+        return self.extensions[0] if self.extensions else None
 
     @staticmethod
     def _log_warning(msg: str, logger: Optional[Logger] = None):

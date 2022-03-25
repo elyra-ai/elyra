@@ -69,6 +69,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         mimeType: mimetype
       });
       widget.title.label = args.label || 'Code Viewer';
+      widget.title.caption = widget.title.label;
 
       // Get the fileType based on the mimetype to determine the icon
       const fileType = toArray(app.docRegistry.fileTypes()).find(fileType => {

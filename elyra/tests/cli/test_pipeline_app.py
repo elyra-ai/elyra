@@ -269,6 +269,45 @@ def test_validate_with_missing_kfp_component(jp_environ, kubeflow_pipelines_runt
         assert result.exit_code != 0
 
 # ------------------------------------------------------------------
+# tests for 'submit' command
+# ------------------------------------------------------------------
+
+
+def test_submit_invalid_monitor_interval_option(kubeflow_pipelines_runtime_instance):
+    """Verify that the '--monitor-timeout' option works as expected"""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # dummy pipeline - it's not used
+        pipeline_file_path = Path(__file__).parent / 'resources' / 'pipelines' / 'kfp_3_node_custom.pipeline'
+        assert pipeline_file_path.is_file()
+
+        # this should fail: '--monitor-timeout' must be an integer
+        invalid_option_value = 'abc'
+        result = runner.invoke(pipeline, ['submit',
+                                          str(pipeline_file_path),
+                                          '--runtime-config',
+                                          kubeflow_pipelines_runtime_instance,
+                                          '--monitor-timeout',
+                                          invalid_option_value])
+        assert result.exit_code != 0
+        assert f"Invalid value for '--monitor-timeout': '{invalid_option_value}' is not "\
+               "a valid integer" in result.output
+
+        # this should fail: '--monitor-timeout' must be a positive integer
+        invalid_option_value = 0
+        result = runner.invoke(pipeline, ['submit',
+                                          str(pipeline_file_path),
+                                          '--runtime-config',
+                                          kubeflow_pipelines_runtime_instance,
+                                          '--monitor-timeout',
+                                          invalid_option_value])
+        assert result.exit_code != 0
+        assert f"Invalid value for '--monitor-timeout': '{invalid_option_value}' is not "\
+               "a positive integer" in result.output
+
+# ------------------------------------------------------------------
+# end tests for 'submit' command
+# ------------------------------------------------------------------
 # tests for 'export' command
 # ------------------------------------------------------------------
 

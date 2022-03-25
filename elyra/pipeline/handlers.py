@@ -16,6 +16,7 @@
 from datetime import datetime
 from http.client import responses
 import json
+import mimetypes
 from typing import List
 from typing import Optional
 
@@ -32,9 +33,17 @@ from elyra.pipeline.component_catalog import RefreshInProgressError
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.util.http import HttpErrorMixin
+
+
+MIMETYPE_MAP = {
+    ".yaml": "text/x-yaml",
+    ".py": "text/x-python",
+    None: "text/plain"
+}
 
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
@@ -141,13 +150,31 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipelines editor component configuration"""
 
     @web.authenticated
-    async def get(self, processor):
-        self.log.debug(f'Retrieving pipeline components for: {processor} runtime')
+    async def get(self, runtime_type):
+        self.log.debug(f"Retrieving pipeline components for runtime type: {runtime_type}")
 
-        if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
-            raise web.HTTPError(400, f"Invalid processor name '{processor}'")
+        processor_manager = PipelineProcessorManager.instance()
+        if processor_manager.is_supported_runtime(runtime_type):
+            # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
+            # 'airflow'). This case and its associated functions should eventually be removed
+            # in favor of using the RuntimeProcessorType name in the request path.
+            self.log.warning(f"Deprecation warning: when calling endpoint '{self.request.path}' "
+                             f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
+                             f"instead of shorthand name (e.g., 'kfp', 'airflow')")
+            runtime_processor_type = processor_manager.get_runtime_type(runtime_type)
+        elif processor_manager.is_supported_runtime_type(runtime_type):
+            # The request path uses the appropriate RuntimeProcessorType name. Use this
+            # to get the RuntimeProcessorType instance to pass to get_all_components
+            runtime_processor_type = RuntimeProcessorType.get_instance_by_name(runtime_type)
+        else:
+            raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
-        components: List[Component] = await PipelineProcessorManager.instance().get_components(processor)
+        # Include generic components for all runtime types
+        components: List[Component] = ComponentCache.get_generic_components()
+
+        # Add additional runtime-type-specific components, if present
+        components.extend(ComponentCache.instance().get_all_components(platform=runtime_processor_type))
+
         palette_json = ComponentCache.to_canvas_palette(components=components)
 
         self.set_status(200)
@@ -158,24 +185,66 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipeline component_id properties"""
 
-    @web.authenticated
-    async def get(self, processor, component_id):
-        self.log.debug(f'Retrieving pipeline component properties for component: {component_id}')
+    def get_mimetype(self, ext: Optional[str]) -> str:
+        """
+        Get the MIME type for the component definition content.
+        """
+        if ext == '.yml':
+            ext = '.yaml'
 
-        if PipelineProcessorManager.instance().is_supported_runtime(processor) is False:
-            raise web.HTTPError(400, f"Invalid processor name '{processor}'")
+        # Get mimetype from mimetypes map or built-in mimetypes package; default to plaintext
+        mimetype = MIMETYPE_MAP.get(ext, mimetypes.guess_type(f"file{ext}")[0]) or "text/plain"
+        return mimetype
+
+    @web.authenticated
+    async def get(self, runtime_type, component_id):
+        self.log.debug(f'Retrieving pipeline component properties for component: {component_id}')
 
         if not component_id:
             raise web.HTTPError(400, "Missing component ID")
 
-        component: Optional[Component] = \
-            await PipelineProcessorManager.instance().get_component(processor, component_id)
-        properties_json = ComponentCache.to_canvas_properties(component)
+        processor_manager = PipelineProcessorManager.instance()
+        if processor_manager.is_supported_runtime(runtime_type):
+            # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
+            # 'airflow'). This case and its associated functions should eventually be removed
+            # in favor of using the RuntimeProcessorType name in the request path.
+            self.log.warning(f"Deprecation warning: when calling endpoint '{self.request.path}' "
+                             f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
+                             f"instead of shorthand name (e.g., 'kfp', 'airflow')")
+            runtime_processor_type = processor_manager.get_runtime_type(runtime_type)
+        elif processor_manager.is_supported_runtime_type(runtime_type):
+            # The request path uses the appropriate RuntimeProcessorType name. Use this
+            # to get the RuntimeProcessorType instance to pass to get_component
+            runtime_processor_type = RuntimeProcessorType.get_instance_by_name(runtime_type)
+        else:
+            raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
+
+        # Try to get component_id as a generic component; assigns None if id is not a generic component
+        component: Optional[Component] = ComponentCache.get_generic_component(component_id)
+
+        # Try to retrieve a runtime-type-specific component; assigns None if not found
+        if not component:
+            component = ComponentCache.instance() \
+                .get_component(platform=runtime_processor_type, component_id=component_id)
+
+        if not component:
+            raise web.HTTPError(404, f"Component '{component_id}' not found")
+
+        if self.request.path.endswith("/properties"):
+            # Return complete set of component properties
+            json_response = ComponentCache.to_canvas_properties(component)
+        else:
+            # Return component definition content
+            json_response = json.dumps(
+                {
+                    "content": component.definition,
+                    "mimeType": self.get_mimetype(component.file_extension)
+                }
+            )
 
         self.set_status(200)
         self.set_header("Content-Type", 'application/json')
-
-        await self.finish(properties_json)
+        await self.finish(json_response)
 
 
 class PipelineValidationHandler(HttpErrorMixin, APIHandler):

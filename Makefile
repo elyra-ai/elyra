@@ -69,10 +69,10 @@ uninstall-src: # Uninstalls source extensions if they're still installed
 	- jupyter labextension uninstall --no-build @elyra/python-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/r-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/code-viewer-extension
+	- jupyter labextension unlink --no-build @elyra/pipeline-services
+	- jupyter labextension unlink --no-build @elyra/pipeline-editor
 
 uninstall: uninstall-src
-	- jupyter labextension unlink @elyra/pipeline-services
-	- jupyter labextension unlink @elyra/pipeline-editor
 	$(PYTHON_PIP) uninstall -y jupyterlab-git
 	$(PYTHON_PIP) uninstall -y nbdime
 	$(PYTHON_PIP) uninstall -y jupyter-lsp
@@ -121,14 +121,10 @@ lint: lint-ui lint-server ## Run linters
 dev-link:
 	yarn link @elyra/pipeline-services
 	yarn link @elyra/pipeline-editor
-	cd node_modules/@elyra/pipeline-editor && jupyter labextension link --no-build .
-	cd node_modules/@elyra/pipeline-services && jupyter labextension link --no-build .
 
 dev-unlink:
 	yarn unlink @elyra/pipeline-services
 	yarn unlink @elyra/pipeline-editor
-	jupyter labextension uninstall @elyra/pipeline-services
-	jupyter labextension uninstall @elyra/pipeline-editor
 	yarn install --force
 
 ## Build and install targets

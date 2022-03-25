@@ -507,7 +507,7 @@ class ComponentCache(SingletonConfigurable):
         for catalog_name, catalog_properties in catalogs.items():
             components.extend(list(catalog_properties.get('components', {}).values()))
 
-        if not components:
+        if not components and platform != RuntimeProcessorType.LOCAL:
             self.log.error(f"No components could be found in any catalog for platform type '{platform.name}'.")
 
         return components
@@ -593,7 +593,7 @@ class ComponentCache(SingletonConfigurable):
         return list(ComponentCache._generic_components.values())
 
     @staticmethod
-    def get_generic_component(component_id: str) -> Component:
+    def get_generic_component(component_id: str) -> Optional[Component]:
         return ComponentCache._generic_components.get(component_id)
 
     @staticmethod
