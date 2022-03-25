@@ -419,8 +419,14 @@ class ComponentCache(SingletonConfigurable):
         """Triggers a refresh of all catalogs in the component cache.
 
         Raises RefreshInProgressError if a complete refresh is in progress.
+        Note that we do not preclude non-server processes from performing a
+        complete refresh.  In such cases, each of the catalog entries will be
+        written to the manifest, which will be placed into the update queue.
+        As a result, non-server applications could by-pass the "refresh in progress"
+        constraint, but we're assuming a CLI application won't be as likely to
+        "pound" refresh like a UI application can.
         """
-        if self.cache_manager.is_refreshing():
+        if self.is_server_process and self.cache_manager.is_refreshing():
             raise RefreshInProgressError()
         catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
         for catalog in catalogs:
