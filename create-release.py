@@ -38,6 +38,7 @@ VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_rele
 DEFAULT_GIT_URL = 'git@github.com:elyra-ai/elyra.git'
 DEFAULT_EXTENSION_PACKAGE_GIT_URL = 'git@github.com:elyra-ai/elyra-package-template.git'
 DEFAULT_BUILD_DIR = 'build/release'
+GIT_BRANCH = 'v3.6.x'
 
 
 class DependencyException(Exception):
@@ -276,6 +277,8 @@ def checkout_code() -> None:
     os.makedirs(config.work_dir)
     print(f'Cloning : {config.git_url} to {config.work_dir}')
     check_run(['git', 'clone', config.git_url], cwd=config.work_dir)
+    print(f'Checking out branch : {config.git_branch} in {config.source_dir}')
+    check_run(['git', 'checkout', '-b', config.git_branch, f'origin/{config.git_branch}'], cwd=config.source_dir)
     check_run(['git', 'config', 'user.name', config.git_user_name], cwd=config.source_dir)
     check_run(['git', 'config', 'user.email', config.git_user_email], cwd=config.source_dir)
 
@@ -606,6 +609,7 @@ def initialize_config(args=None) -> SimpleNamespace:
 
     configuration = {
         'goal': args.goal,
+        'git_branch': GIT_BRANCH,
         'git_url': DEFAULT_GIT_URL,
         'git_extension_package_url': DEFAULT_EXTENSION_PACKAGE_GIT_URL,
         'git_hash': 'HEAD',
@@ -651,6 +655,8 @@ def print_config() -> None:
         print(f'RC number \t\t -> {config.rc}')
     if config.beta is not None:
         print(f'Beta number \t\t -> {config.beta}')
+    if config.git_branch is not None:
+        print(f'Branch \t\t\t -> {config.git_branch}')
     print(f'Dev Version \t\t -> {config.dev_version}')
     print(f'Dev NPM Version \t -> {config.dev_npm_version}')
     print(f'Release Tag \t\t -> {config.tag}')
