@@ -40,7 +40,7 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { addIcon, LabIcon } from '@jupyterlab/ui-components';
+import { addIcon, IRankedMenu, LabIcon } from '@jupyterlab/ui-components';
 
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
@@ -285,6 +285,8 @@ const extension: JupyterFrontEndPlugin<void> = {
 
         // Add the command to the launcher
         if (launcher) {
+          const fileMenuItems: IRankedMenu.IItemOptions[] = [];
+
           for (const t of resolvedTypes as any) {
             launcher.add({
               command: openPipelineEditorCommand,
@@ -292,16 +294,15 @@ const extension: JupyterFrontEndPlugin<void> = {
               args: { runtimeType: t },
               rank: t.id === 'LOCAL' ? 1 : 2
             });
-            menu.fileMenu.newMenu.addGroup(
-              [
-                {
-                  command: openPipelineEditorCommand,
-                  args: { runtimeType: t, isMenu: true }
-                }
-              ],
-              t.id === 'LOCAL' ? 90 : 91
-            );
+
+            fileMenuItems.push({
+              command: openPipelineEditorCommand,
+              args: { runtimeType: t, isMenu: true },
+              rank: t.id === 'LOCAL' ? 90 : 91
+            });
           }
+
+          menu.fileMenu.newMenu.addGroup(fileMenuItems);
         }
       })
       .catch(error => RequestErrors.serverError(error));

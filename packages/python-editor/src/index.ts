@@ -216,7 +216,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       // const scriptEditorMenu = new Menu({ commands: app.commands });
       // scriptEditorMenu.addItem({
       //   command: commandIDs.createNewPythonEditor,
-      //   args: {}
+      //   args: { isMenu: true }
       // });
       // menu.addMenu(scriptEditorMenu, { rank: 92 });
 
