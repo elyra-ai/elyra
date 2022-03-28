@@ -50,6 +50,9 @@ class EntryData(object):
     file_extension: str = None
 
     def __init__(self, definition: str, file_extension: Optional[str] = None, **kwargs):
+        if isinstance(definition, (bytes, bytearray)):
+            definition = definition.decode("utf-8")
+
         self.definition = definition
         self.file_extension = file_extension
 
