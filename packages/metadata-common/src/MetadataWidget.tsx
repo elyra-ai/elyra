@@ -128,7 +128,7 @@ export class MetadataDisplay<
     });
   };
 
-  actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
+  actionButtons(metadata: IMetadata): IMetadataActionButton[] {
     return [
       {
         title: 'Edit',
@@ -167,7 +167,7 @@ export class MetadataDisplay<
         }
       }
     ];
-  };
+  }
 
   /**
    * Classes that extend MetadataWidget should override this
@@ -353,6 +353,7 @@ export class MetadataWidget extends ReactWidget {
   props: IMetadataWidgetProps;
   schemas?: IDictionary<any>[];
   titleContext?: string;
+  refreshButtonTooltip?: string;
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -363,6 +364,7 @@ export class MetadataWidget extends ReactWidget {
     this.titleContext = props.titleContext;
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
+    this.refreshMetadata = this.refreshMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
     this.renderDisplay = this.renderDisplay.bind(this);
     this.addMetadata = this.addMetadata.bind(this);
@@ -407,6 +409,10 @@ export class MetadataWidget extends ReactWidget {
     this.fetchMetadata().then((metadata: any[]) => {
       this.renderSignal.emit(metadata);
     });
+  }
+
+  refreshMetadata(): void {
+    this.updateMetadata();
   }
 
   // Triggered when the widget button on side panel is clicked
@@ -479,7 +485,8 @@ export class MetadataWidget extends ReactWidget {
               addMetadata={this.addMetadata}
               titleContext={this.titleContext}
               appendToTitle={this.props.appendToTitle}
-              refreshMetadata={this.updateMetadata}
+              refreshMetadata={this.refreshMetadata}
+              refreshButtonTooltip={this.refreshButtonTooltip}
             />
           </header>
           <UseSignal signal={this.renderSignal} initialArgs={[]}>

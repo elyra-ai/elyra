@@ -99,6 +99,7 @@ export const commandIDs = {
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node',
+  refreshPalette: 'pipeline-editor:refresh-palette',
   openViewer: 'elyra-code-viewer:open'
 };
 
@@ -144,6 +145,7 @@ class PipelineEditorWidget extends ReactWidget {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<this, any>;
+  refreshPaletteSignal: Signal<this, any>;
   context: Context;
   settings: ISettingRegistry.ISettings;
 
@@ -153,6 +155,7 @@ class PipelineEditorWidget extends ReactWidget {
     this.shell = options.shell;
     this.commands = options.commands;
     this.addFileToPipelineSignal = options.addFileToPipelineSignal;
+    this.refreshPaletteSignal = options.refreshPaletteSignal;
     this.context = options.context;
     this.settings = options.settings;
   }
@@ -165,6 +168,7 @@ class PipelineEditorWidget extends ReactWidget {
         shell={this.shell}
         commands={this.commands}
         addFileToPipelineSignal={this.addFileToPipelineSignal}
+        refreshPaletteSignal={this.refreshPaletteSignal}
         widgetId={this.parent?.id}
         settings={this.settings}
       />
@@ -178,6 +182,7 @@ interface IProps {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<PipelineEditorWidget, any>;
+  refreshPaletteSignal: Signal<PipelineEditorWidget, any>;
   settings?: ISettingRegistry.ISettings;
   widgetId?: string;
 }
@@ -188,6 +193,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   shell,
   commands,
   addFileToPipelineSignal,
+  refreshPaletteSignal,
   settings,
   widgetId
 }) => {
@@ -210,7 +216,21 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
 
-  const { data: palette, error: paletteError } = usePalette(type);
+  const {
+    data: palette,
+    error: paletteError,
+    mutate: mutatePalette
+  } = usePalette(type);
+
+  useEffect(() => {
+    const handleMutateSignal = (): void => {
+      mutatePalette();
+    };
+    refreshPaletteSignal.connect(handleMutateSignal);
+    return (): void => {
+      refreshPaletteSignal.disconnect(handleMutateSignal);
+    };
+  }, [refreshPaletteSignal, mutatePalette]);
 
   const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
 
@@ -1093,6 +1113,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<this, any>;
+  refreshPaletteSignal: Signal<this, any>;
   settings: ISettingRegistry.ISettings;
 
   constructor(options: any) {
@@ -1101,6 +1122,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     this.shell = options.shell;
     this.commands = options.commands;
     this.addFileToPipelineSignal = new Signal<this, any>(this);
+    this.refreshPaletteSignal = new Signal<this, any>(this);
     this.settings = options.settings;
   }
 
@@ -1112,6 +1134,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       browserFactory: this.browserFactory,
       context: context,
       addFileToPipelineSignal: this.addFileToPipelineSignal,
+      refreshPaletteSignal: this.refreshPaletteSignal,
       settings: this.settings
     };
     const content = new PipelineEditorWidget(props);

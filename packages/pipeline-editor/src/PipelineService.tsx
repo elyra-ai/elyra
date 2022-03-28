@@ -138,6 +138,19 @@ export class PipelineService {
   }
 
   /**
+   * Submit a request to refresh the component cache. If catalogName is given
+   * only refreshes the given catalog
+   *
+   * @param catalogName
+   */
+  static async refreshComponentsCache(catalogName?: string): Promise<void> {
+    return await RequestHandler.makePutRequest(
+      `elyra/pipeline/components/cache${catalogName ? '/' + catalogName : ''}`,
+      JSON.stringify({ action: 'refresh' })
+    );
+  }
+
+  /**
    * Creates a Dialog for passing to makeServerRequest
    */
   static getWaitDialog(

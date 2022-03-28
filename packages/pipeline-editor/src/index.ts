@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { MetadataWidget } from '@elyra/metadata-common';
 import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
 import { RequestHandler } from '@elyra/services';
 import {
@@ -40,8 +39,12 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { addIcon, LabIcon } from '@jupyterlab/ui-components';
+import { addIcon, LabIcon, refreshIcon } from '@jupyterlab/ui-components';
 
+import {
+  COMPONENT_CATALOGS_SCHEMASPACE,
+  ComponentCatalogsWidget
+} from './ComponentCatalogsWidget';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 import {
@@ -56,7 +59,6 @@ import '../style/index.css';
 const PIPELINE_EDITOR = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 const PLUGIN_ID = '@elyra/pipeline-editor-extension:plugin';
 
 const createRemoteIcon = async ({
@@ -159,6 +161,14 @@ const extension: JupyterFrontEndPlugin<void> = {
       icon: addIcon,
       execute: args => {
         pipelineEditorFactory.addFileToPipelineSignal.emit(args);
+      }
+    });
+    const refreshPaletteCommand: string = commandIDs.refreshPalette;
+    app.commands.addCommand(refreshPaletteCommand, {
+      label: 'Refresh Pipeline Palette',
+      icon: refreshIcon,
+      execute: args => {
+        pipelineEditorFactory.refreshPaletteSignal.emit(args);
       }
     });
     app.contextMenu.addItem({
@@ -364,13 +374,16 @@ const extension: JupyterFrontEndPlugin<void> = {
     restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
     app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
 
-    const componentCatalogWidget = new MetadataWidget({
+    const componentCatalogWidget = new ComponentCatalogsWidget({
       app,
       themeManager,
       display_name: 'Component Catalogs', // TODO: This info should come from the server for all schemaspaces
       schemaspace: COMPONENT_CATALOGS_SCHEMASPACE,
       icon: componentCatalogIcon,
-      titleContext: 'component catalog'
+      titleContext: 'component catalog',
+      refreshCallback: (): void => {
+        app.commands.execute(commandIDs.refreshPalette);
+      }
     });
     const componentCatalogWidgetID = `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`;
     componentCatalogWidget.id = componentCatalogWidgetID;
