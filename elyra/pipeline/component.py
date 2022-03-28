@@ -27,6 +27,7 @@ from typing import Tuple
 
 from traitlets.config import LoggingConfigurable
 
+from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -351,9 +352,9 @@ class ComponentParser(LoggingConfigurable):  # ABC
         return self._file_types
 
     @abstractmethod
-    def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
+    def parse(self, catalog_entry: CatalogEntry) -> Optional[List[Component]]:
         """
-        Parse a component definition given in the registry entry and return
+        Parse a component definition given in the catalog entry and return
         a list of fully-qualified Component objects
         """
         raise NotImplementedError()
