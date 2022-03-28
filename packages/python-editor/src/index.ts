@@ -36,6 +36,7 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
+// import { Menu } from '@lumino/widgets';
 
 import { PythonEditor } from './PythonEditor';
 
@@ -212,6 +213,13 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     if (menu) {
       // Add new python editor creation to the file menu
+      // const scriptEditorMenu = new Menu({ commands: app.commands });
+      // scriptEditorMenu.addItem({
+      //   command: commandIDs.createNewPythonEditor,
+      //   args: {}
+      // });
+      // menu.addMenu(scriptEditorMenu, { rank: 92 });
+
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewPythonEditor, args: { isMenu: true } }],
         92
