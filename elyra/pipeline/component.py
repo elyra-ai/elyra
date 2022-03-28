@@ -27,6 +27,14 @@ from typing import Tuple
 
 from traitlets.config import LoggingConfigurable
 
+# Rather than importing only the CatalogEntry class needed in the Component parse
+# type hint below, the catalog_connector module must be imported in its
+# entirety in order to avoid a circular reference issue
+try:
+    from elyra.pipeline import catalog_connector
+except ImportError:
+    import sys
+    catalog_connector = sys.modules[__package__ + '.catalog_connector']
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -351,9 +359,9 @@ class ComponentParser(LoggingConfigurable):  # ABC
         return self._file_types
 
     @abstractmethod
-    def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
+    def parse(self, catalog_entry: 'catalog_connector.CatalogEntry') -> Optional[List[Component]]:
         """
-        Parse a component definition given in the registry entry and return
+        Parse a component definition given in the catalog entry and return
         a list of fully-qualified Component objects
         """
         raise NotImplementedError()
