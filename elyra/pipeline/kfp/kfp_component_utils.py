@@ -19,7 +19,7 @@ component_yaml_schema = {
             "type": "string"
         },
         "description": {
-            "type": "string"
+            "type": ["string", "null"]
         },
         "inputs": {
             "type": "array",
@@ -30,13 +30,13 @@ component_yaml_schema = {
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": ["string", "null"]
                     },
                     "type": {
-                        "type": "string"
+                        "type": ["string", "null"]
                     },
                     "optional": {
-                        "type": "boolean"
+                        "type": ["boolean", "null"]
                     }
                 }
             },
@@ -51,13 +51,13 @@ component_yaml_schema = {
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": ["string", "null"]
                     },
                     "type": {
-                        "type": "string"
+                        "type": ["string", "null"]
                     },
                     "optional": {
-                        "type": "boolean"
+                        "type": ["boolean", "null"]
                     }
                 }
             },
@@ -75,27 +75,13 @@ component_yaml_schema = {
                         "command": {
                             "type": "array",
                             "items": {
-                                "OneOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "object"
-                                    }
-                                ]
+                                "type": ["string", "object"]
                             }
                         },
                         "args": {
                             "type": "array",
                             "items": {
-                                "OneOf": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "object"
-                                    }
-                                ]
+                                "type": ["string", "object"]
                             }
                         }
                     }
