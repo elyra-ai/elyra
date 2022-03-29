@@ -34,6 +34,7 @@ from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.parser import PipelineParser
@@ -225,6 +226,15 @@ def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
         raise click.ClickException(f'Error processing pipeline: \n {re} \n {re.__cause__}')
 
 
+def _build_component_cache():
+    """Initialize a ComponentCache instance and wait for it to complete all tasks"""
+
+    with yaspin(text="Initializing the component cache..."):
+        component_cache = ComponentCache.instance(emulate_server_app=True)
+        component_cache.load()
+        component_cache.wait_for_all_cache_tasks()
+
+
 def validate_pipeline_path(ctx, param, value):
     """Callback for pipeline_path parameter"""
     if not value.is_file():
@@ -281,6 +291,8 @@ def validate(pipeline_path, runtime_config='local'):
     click.echo()
 
     print_banner("Elyra Pipeline Validation")
+
+    _build_component_cache()
 
     runtime = _get_runtime_schema_name(runtime_config)
 
@@ -340,6 +352,8 @@ def submit(json_option, pipeline_path, runtime_config_name,
     click.echo()
 
     print_banner("Elyra Pipeline Submission")
+
+    _build_component_cache()
 
     runtime_config = _get_runtime_config(runtime_config_name)
 
@@ -572,6 +586,8 @@ def export(pipeline_path, runtime_config, output, overwrite):
 
     click.echo()
     print_banner("Elyra pipeline export")
+
+    _build_component_cache()
 
     rtc = _get_runtime_config(runtime_config)
     runtime_schema = rtc.schema_name
