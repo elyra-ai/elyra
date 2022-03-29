@@ -29,7 +29,7 @@ SHELL:=/bin/bash
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
 
-TAG:=3.7.0rc0
+TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 
