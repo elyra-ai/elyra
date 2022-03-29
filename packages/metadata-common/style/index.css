@@ -346,6 +346,14 @@ button.elyra-inputTag {
   font-size: var(--jp-content-font-size3);
 }
 
+legend#root__noCategory__title {
+  display: none;
+}
+
+.form-group input[readonly] {
+  background: var(--jp-border-color3);
+}
+
 .form-group.field.field-object {
   width: 100%;
 }

@@ -20,18 +20,56 @@ import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import Form, { ArrayFieldTemplateProps, IChangeEvent } from '@rjsf/core';
 import * as React from 'react';
 
+/**
+ * Props passed to the FormEditor.
+ */
 interface IFormEditorProps {
+  /**
+   * Schema for form fields to be displayed.
+   */
+
   schema: any;
-  onChange: (formData: any) => void;
-  setInvalid: (invalid: boolean) => void;
+
+  /**
+   * Handler to update form data / error state in parent component.
+   */
+  onChange: (formData: any, invalid: boolean) => void;
+
+  /**
+   * Editor services to create new editors in code fields.
+   */
   editorServices: IEditorServices | null;
+
+  /**
+   * Translator for internationalization
+   */
   translator: ITranslator;
+
+  /**
+   * Registry to retrieve custom renderers.
+   */
   componentRegistry?: IFormComponentRegistry;
+
+  /**
+   * Metadata that already exists (if there is any)
+   */
   originalData?: any;
+
+  /**
+   * All existing tags to give as options.
+   */
   allTags?: string[];
+
+  /**
+   * All existing languages to give as options.
+   */
   languageOptions?: string[];
 }
 
+/**
+ * React component that allows for custom add / remove buttons in the array
+ * field component.
+ */
 const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
   return (
     <div className={props.className}>
@@ -86,10 +124,14 @@ const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
   );
 };
 
+/**
+ * React component that wraps the RJSF form editor component.
+ * Creates a uiSchema from given uihints and passes relevant information
+ * to the custom renderers.
+ */
 export const FormEditor: React.FC<IFormEditorProps> = ({
   schema,
   onChange,
-  setInvalid,
   editorServices,
   componentRegistry,
   translator,
@@ -100,6 +142,9 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   const [formData, setFormData] = React.useState(originalData ?? ({} as any));
   const [tags, setTags] = React.useState(allTags);
 
+  /**
+   * Generate the uiSchema from uihints in the schema.
+   */
   const uiSchema: any = {};
   for (const category in schema?.properties) {
     const properties = schema.properties[category];
@@ -132,8 +177,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       noHtml5Validate={true}
       onChange={(e: IChangeEvent<any>): void => {
         setFormData(e.formData);
-        onChange(e.formData);
-        setInvalid(e.errors.length > 0 || false);
+        onChange(e.formData, e.errors.length > 0 || false);
       }}
       liveValidate={true}
     />

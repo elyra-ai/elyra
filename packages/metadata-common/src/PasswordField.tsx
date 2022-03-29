@@ -17,6 +17,9 @@ import { viewIcon, viewOffIcon } from '@elyra/ui-components';
 import { Field } from '@rjsf/core';
 import React from 'react';
 
+/**
+ * React component to edit and display password fields. Adds a button to hide / show text input.
+ */
 export const PasswordField: Field = props => {
   const { StringField } = props.registry.fields;
   const [showPassword, setShowPassword] = React.useState(false);

@@ -38,25 +38,88 @@ import { FormEditor } from './FormEditor';
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
 const DIRTY_CLASS = 'jp-mod-dirty';
 
+/**
+ * Props for the Metadata Editor component.
+ */
 interface IMetadataEditorProps {
+  /**
+   * Schema name used for schema lookup and save
+   */
   schemaName: string;
+
+  /**
+   * Schemaspace also used for schema lookup and saving.
+   */
   schemaspace: string;
+
+  /**
+   * Name of metadata to edit (undefined if new metadata)
+   */
   name?: string;
-  code?: string[];
+
+  /**
+   * Callback to handle updates after saving metadata.
+   */
   onSave: () => void;
+
+  /**
+   * Editor services to create code editor for code fields.
+   */
   editorServices: IEditorServices | null;
+
+  /**
+   * Translator for internationalization.
+   */
   translator: ITranslator;
+
+  /**
+   * Status for handling unsaved changes through JupyterLab
+   */
   status: ILabStatus;
+
+  /**
+   * Component registry to use custom field renderers.
+   */
   componentRegistry?: IFormComponentRegistry;
+
+  /**
+   * Theme manager for custom themes.
+   */
   themeManager?: IThemeManager;
 }
 
+/**
+ * Props for the metadata editor component.
+ */
 interface IMetadataEditorComponentProps extends IMetadataEditorProps {
+  /**
+   * Schema including the metadata wrapper and other fields like display name.
+   */
   schemaTop: any;
+
+  /**
+   * Metadata that has already been defined (if this is not a new instance)
+   */
   initialMetadata: any;
+
+  /**
+   * Handler for setting dirty state in the parent component.
+   */
   setDirty: (dirty: boolean) => void;
+
+  /**
+   * Handler to trigger close after saving.
+   */
   close: () => void;
+
+  /**
+   * All tags defined between all metadata instances.
+   */
   allTags: string[];
+
+  /**
+   * Function to find default choices based on uihints and existing values for that field.
+   */
   getDefaultChoices: (fieldName: string) => string[];
 }
 
@@ -86,6 +149,10 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   const [metadata, setMetadata] = React.useState(initialMetadata);
   const displayName = initialMetadata?.['_noCategory']?.['display_name'];
   const referenceURL = schemaTop.uihints?.reference_url;
+
+  /**
+   * Saves metadata through either put or post request.
+   */
   const saveMetadata = (): void => {
     if (invalidForm) {
       return;
@@ -125,6 +192,11 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
     headerText = `Add new ${schemaTop.title}`;
   }
 
+  /**
+   * Removes category wrappers in the data before sending to the server.
+   * @param newFormData - Form data with category wrappers.
+   * @returns - Form data as the server expects it.
+   */
   const flattenFormData = (newFormData: any): any => {
     const flattened: { [id: string]: any } = {};
     for (const category in newFormData) {
@@ -135,6 +207,9 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
     return flattened;
   };
 
+  /**
+   * Triggers save and close on pressing enter key (outside of a text area)
+   */
   const onKeyPress: React.KeyboardEventHandler = (
     event: React.KeyboardEvent
   ) => {
@@ -143,6 +218,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
       saveMetadata();
     }
   };
+
   return (
     <ThemeProvider themeManager={themeManager}>
       <div onKeyPress={onKeyPress} className={ELYRA_METADATA_EDITOR_CLASS}>
@@ -157,14 +233,12 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
         </p>
         <FormEditor
           schema={schema}
-          onChange={(formData: any): void => {
+          onChange={(formData: any, invalid: boolean): void => {
             setMetadata(formData);
+            setInvalidForm(invalid);
             setDirty(true);
           }}
           componentRegistry={componentRegistry}
-          setInvalid={(invalid: boolean): void => {
-            setInvalidForm(invalid);
-          }}
           translator={translator}
           editorServices={editorServices}
           originalData={metadata}
@@ -195,6 +269,10 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   );
 };
 
+/**
+ * Widget wrapper around the metadata editor components. Handles preparing
+ * the schema and metadata for the component.
+ */
 export class MetadataEditorWidget extends ReactWidget {
   props: IMetadataEditorProps;
   widgetClass: string;
@@ -218,12 +296,18 @@ export class MetadataEditorWidget extends ReactWidget {
     void this.loadSchemaAndMetadata();
   }
 
+  /**
+   * Loads schema and metadata and adds categories.
+   */
   async loadSchemaAndMetadata(): Promise<void> {
     try {
+      // Load all schema and all metadata in schemaspace.
       const allSchema = await MetadataService.getSchema(this.props.schemaspace);
       const allMetadata = (this.allMetadata = await MetadataService.getMetadata(
         this.props.schemaspace
       ));
+
+      // Loads all tags to display as options in the editor.
       this.allTags = allMetadata.reduce((acc: string[], metadata: any) => {
         if (metadata.metadata.tags) {
           acc.push(
@@ -234,10 +318,14 @@ export class MetadataEditorWidget extends ReactWidget {
         }
         return acc;
       }, []);
+
+      // Finds schema based on schemaName.
       const schema =
         allSchema.find((s: any) => {
           return s.name === this.props.schemaName;
         }) ?? {};
+
+      // Sets const fields to readonly.
       const properties = schema.properties.metadata.properties;
       for (const prop in properties) {
         if (properties[prop].const !== undefined) {
@@ -247,7 +335,10 @@ export class MetadataEditorWidget extends ReactWidget {
           };
         }
       }
+
       const metadata = allMetadata.find((m: any) => m.name === this.props.name);
+
+      // Adds categories as wrapper objects in the schema.
       const metadataWithCategories: { [id: string]: any } = {};
       const schemaPropertiesByCategory: { [id: string]: any } = {
         _noCategory: {
@@ -262,6 +353,8 @@ export class MetadataEditorWidget extends ReactWidget {
           required: ['display_name']
         }
       };
+
+      // Adds required fields to the wrapper required fields.
       const requiredCategories: string[] = [];
       for (const schemaProperty in schema.properties.metadata.properties) {
         const properties =
@@ -307,6 +400,9 @@ export class MetadataEditorWidget extends ReactWidget {
     }
   }
 
+  /**
+   * Puts the display name field in focus.
+   */
   setFormFocus(): void {
     const isFocused = document
       .querySelector(`.${this.widgetClass}`)
@@ -332,6 +428,10 @@ export class MetadataEditorWidget extends ReactWidget {
     this.setFormFocus();
   }
 
+  /**
+   * Sets the state to dirty to enable changing the display and
+   * add warnings when closing with unsaved changes.
+   */
   handleDirtyState(dirty: boolean): void {
     this.dirty = dirty;
     if (dirty && !this.clearDirty) {
