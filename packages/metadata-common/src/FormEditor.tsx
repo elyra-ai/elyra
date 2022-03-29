@@ -118,7 +118,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       formData={formData}
       formContext={{
         editorServices: editorServices,
-        language: formData?.language ?? '',
+        language: formData?.['Source']?.language ?? '',
         allTags: tags,
         updateAllTags: (updatedTags: string[]): void => {
           setTags(updatedTags);

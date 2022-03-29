@@ -299,8 +299,7 @@ export class MetadataEditorWidget extends ReactWidget {
       this.schema.properties.metadata.properties = schemaPropertiesByCategory;
       this.schema.properties.metadata.required = requiredCategories;
       this.metadata = metadataWithCategories;
-      this.title.label =
-        this.metadata?.display_name ?? `New ${this.schema.title}`;
+      this.title.label = metadata?.display_name ?? `New ${this.schema.title}`;
       this.loading = false;
       this.update();
     } catch (error) {
@@ -368,16 +367,13 @@ export class MetadataEditorWidget extends ReactWidget {
 
   getDefaultChoices(fieldName: string): any[] {
     const schema = this.schema.properties.metadata;
-    if (!schema.properties?.[fieldName]) {
-      return [];
-    }
-    let defaultChoices = schema.properties[fieldName].enum;
-    if (!defaultChoices) {
-      defaultChoices =
-        Object.assign(
-          [],
-          schema.properties[fieldName].uihints.default_choices
-        ) || [];
+    for (const category in schema.properties) {
+      const properties = schema.properties[category].properties[fieldName];
+      if (!properties) {
+        continue;
+      }
+      const defaultChoices =
+        Object.assign([], properties.uihints.default_choices) || [];
       for (const otherMetadata of this.allMetadata) {
         if (
           // Don't include the current metadata
@@ -394,8 +390,9 @@ export class MetadataEditorWidget extends ReactWidget {
           defaultChoices.push(otherMetadata.metadata[fieldName]);
         }
       }
+      return defaultChoices;
     }
-    return defaultChoices;
+    return [];
   }
 
   render(): React.ReactElement {
