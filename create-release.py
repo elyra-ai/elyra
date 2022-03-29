@@ -176,6 +176,10 @@ def update_version_to_release() -> None:
             r"https://elyra.readthedocs.io/en/latest/user_guide/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/")
 
+        sed(_source('packages/pipeline-editor/src/PipelineEditorWidget.tsx'),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/")
+
         check_run(["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"], cwd=config.source_dir)
         check_run(["yarn", "version", "--new-version", new_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
 
@@ -408,7 +412,7 @@ def prepare_extensions_release() -> None:
 
 
     extensions = {'elyra-code-snippet-extension':['code-snippet-extension', 'metadata-extension', 'theme-extension'],
-                  'elyra-code-viewer-extension': ['elyra-code-viewer-extension'],
+                  'elyra-code-viewer-extension': ['code-viewer-extension'],
                   'elyra-pipeline-editor-extension':['pipeline-editor-extension', 'metadata-extension', 'theme-extension'],
                   'elyra-python-editor-extension':['python-editor-extension', 'metadata-extension', 'theme-extension'],
                   'elyra-r-editor-extension':['r-editor-extension', 'metadata-extension', 'theme-extension']}

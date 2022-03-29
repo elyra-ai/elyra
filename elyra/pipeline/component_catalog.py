@@ -15,6 +15,8 @@
 #
 import json
 from logging import Logger
+import os
+from pathlib import Path
 from queue import Empty
 from queue import Queue
 from threading import Event
@@ -23,14 +25,19 @@ import time
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Union
 
 import entrypoints
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Template
+from jupyter_core.paths import jupyter_runtime_dir
 from traitlets.config import SingletonConfigurable
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 from elyra.metadata.manager import MetadataManager
+from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
@@ -38,48 +45,132 @@ from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
-BLOCKING_TIMEOUT = 5
+BLOCKING_TIMEOUT = 0.5
 NONBLOCKING_TIMEOUT = 0.10
-CATALOG_UPDATE_TIMEOUT = 15
+# Issue warnings if catalog update takes longer than this value in seconds
+CATALOG_UPDATE_TIMEOUT = int(os.getenv("ELYRA_CATALOG_UPDATE_TIMEOUT", 15))
+# Issue warnings when outstanding worker thread counts exceed this value
+WORKER_THREAD_WARNING_THRESHOLD = int(os.getenv("ELYRA_WORKER_THREAD_WARNING_THRESHOLD", 10))
 
 
-class CacheUpdateManagerThread(Thread):
-    def __init__(self, log: Logger, component_cache: Dict[str, Dict], cache_task_queue: Queue):
+# Define custom type to describe the component cache
+ComponentCacheType = Dict[str, Dict[str, Dict[str, Dict[str, Union[Component, str, List[str]]]]]]
+
+
+class RefreshInProgressError(Exception):
+    def __init__(self):
+        super().__init__("A catalog refresh is in progress.  Try the request later.")
+
+
+class RefreshQueue(Queue):
+    """Entries are associated with a complete refresh of the Component Cache."""
+    _refreshing: bool
+
+    def __init__(self):
+        super().__init__()
+        self._refreshing = False
+
+    @property
+    def refreshing(self) -> bool:
+        return self._refreshing
+
+    @refreshing.setter
+    def refreshing(self, value: bool) -> None:
+        self._refreshing = value
+
+    def get(self, block: bool = True, timeout: Optional[float] = None):
+        """Overrides the superclass method to set the refreshing property to false when empty."""
+        try:
+            entry = super().get(block=block, timeout=timeout)
+        except Empty:
+            self.refreshing = False
+            raise
+        return entry
+
+    def put(self, item, block=True, timeout=None):
+        """Overrides the superclass method to set the refreshing property to true."""
+        super().put(item, block=block, timeout=timeout)
+        self.refreshing = True
+
+
+class UpdateQueue(Queue):
+    """Entries are associated with a single update of the Component Cache.
+
+    This class merely exists to distinguish it from the RefreshQueue instance.
+    """
+    pass
+
+
+class CacheUpdateManager(Thread):
+    """
+    Primary thread for maintaining consistency of the component cache.
+
+    The component cache manager maintains the cache queue, whose entries are a
+    tuple of 'catalog' and 'action'.  The 'catalog' is a catalog instance against
+    which the 'action' is applied. The 'action' is one of 'modify' or 'delete'.
+    For 'delete' the components of the referenced catalog are removed. For 'modify'
+    the components of the referenced catalog are inserted or updated (depending on
+    its prior existence).
+    """
+    def __init__(self,
+                 log: Logger,
+                 component_cache: ComponentCacheType,
+                 refresh_queue: RefreshQueue,
+                 update_queue: UpdateQueue):
         super().__init__()
 
-        self.setDaemon(True)
+        self.daemon = True
+        self.name = "CacheUpdateManager"
 
-        self.log = log
-        self._component_cache = component_cache
-        self._cache_task_queue = cache_task_queue
+        self.log: Logger = log
+        self._component_cache: ComponentCacheType = component_cache
+        self._refresh_queue: RefreshQueue = refresh_queue
+        self._update_queue: UpdateQueue = update_queue
+        self._check_refresh_queue = False
+        self._threads: List[CacheUpdateWorker] = []
 
-        self._threads: List[CacheUpdateThread] = []
-
-        self.stop_event = Event()
+        self.stop_event: Event = Event()  # Set when server process stops
 
     def run(self):
-        outstanding_threads = False
-
+        """Process queue queue entries until server is stopped."""
         while not self.stop_event.is_set():
+            self.manage_cache_tasks()
+
+    def manage_cache_tasks(self):
+        """
+        Check the cache queue for a cache update action and start
+        a corresponding worker thread to complete the update
+        """
+        outstanding_threads = self._has_outstanding_threads()
+        try:
+            # Get a task from the cache queue, waiting less if we have active threads.
             timeout = NONBLOCKING_TIMEOUT if outstanding_threads else BLOCKING_TIMEOUT
-            try:
-                # Get a task from the queue
-                catalog, operation = self._cache_task_queue.get(timeout=timeout)
 
-            except Empty:
-                # No task exists in the queue, proceed to check for thread execution
-                pass
-
+            # Toggle between refresh and update queues so as to prevent starvation.
+            self._check_refresh_queue = not self._check_refresh_queue
+            if self._check_refresh_queue:
+                catalog, action = self._refresh_queue.get(timeout=timeout)
             else:
-                # Create and start a thread for the task
-                updater_thread = CacheUpdateThread(self._component_cache, self._cache_task_queue, catalog, operation)
-                updater_thread.start()
+                catalog, action = self._update_queue.get(timeout=timeout)
 
-                self._threads.append(updater_thread)
+        except Empty:
+            # No task exists in the cache queue, proceed to check for thread execution
+            pass
 
-            outstanding_threads = self.check_outstanding_threads()
+        else:
+            # Create and start a thread for the task
+            updater_thread = CacheUpdateWorker(
+                self._component_cache,
+                self._refresh_queue if self._check_refresh_queue else self._update_queue,
+                catalog,
+                action
+            )
+            updater_thread.start()
+            queue_clause = "refreshing" if self._check_refresh_queue else "updating"
+            self.log.debug(f"CacheUpdateWorker {queue_clause} catalog: '{updater_thread.name}', action: '{action}'...")
+            self._threads.append(updater_thread)
 
-    def check_outstanding_threads(self) -> bool:
+    def _has_outstanding_threads(self) -> bool:
         """
         Join finished threads and report on long-running threads as needed.
         """
@@ -101,8 +192,12 @@ class CacheUpdateManagerThread(Thread):
                                      f"after {cumulative_run_time} seconds ...")
 
             else:
+                self.log.debug(f"CacheUpdateWorker completed for catalog: '{thread.name}', action: '{thread.action}'.")
                 # Thread has been joined and can be removed from the list
                 self._threads.remove(thread)
+
+                # Mark cache task as complete
+                thread.queue.task_done()
 
                 # Report successful join for threads that have previously logged a
                 # cache update duration warning
@@ -110,60 +205,122 @@ class CacheUpdateManagerThread(Thread):
                     self.log.info(f"Cache update for catalog '{thread.name}' has "
                                   f"completed after {cumulative_run_time} seconds")
 
+            if len(self._threads) > WORKER_THREAD_WARNING_THRESHOLD:
+                self.log.warning(f"CacheUpdateWorker outstanding threads threshold "
+                                 f"({WORKER_THREAD_WARNING_THRESHOLD}) has been exceeded. "
+                                 f"{len(self._threads)} threads are outstanding.  This may "
+                                 f"indicate a possible issue.")
+
         return outstanding_threads
 
+    def is_refreshing(self) -> bool:
+        return self._refresh_queue.refreshing
+
+    def init_refresh(self) -> None:
+        self._refresh_queue.refreshing = True
+
     def stop(self):
-        """
-        Trigger completion of the manager thread.
-        """
+        """Trigger completion of the manager thread."""
+        self._refresh_queue.refreshing = False
         self.stop_event.set()
+        self.log.debug("CacheUpdateManager stopped.")
 
 
-class CacheUpdateThread(Thread):
+class CacheUpdateWorker(Thread):
+    """Spawned by the CacheUpdateManager to perform work against the component cache."""
     def __init__(self,
-                 component_cache: Dict[str, Dict],
+                 component_cache: ComponentCacheType,
                  queue: Queue,
                  catalog: ComponentCatalogMetadata,
-                 operation: Optional[str] = None):
+                 action: Optional[str] = None):
 
         super().__init__()
 
-        self.setDaemon(True)
-        self.name = catalog.name
+        self.daemon = True
+        self.name = catalog.name  # Let the name of the thread reflect the catalog being managed
 
-        self._component_cache = component_cache
-        self._queue = queue
+        self._component_cache: ComponentCacheType = component_cache
 
         # Task-specific properties
-        self._catalog = catalog
-        self._operation = operation
+        self.queue: Queue = queue
+        self.catalog: ComponentCatalogMetadata = catalog
+        self.action: str = action
 
         # Thread metadata
         self.task_start_time = time.time()
         self.last_warn_time = self.task_start_time
 
+        # Prepare component cache for modification
+        runtime_type = None
+        if self.catalog.metadata:
+            runtime_type = self.catalog.runtime_type.name
+        self.prepare_cache_for_catalog(runtime_type)
+
     def run(self):
-        # Add sub-dictionary for this platform type if not present
-        if not self._component_cache.get(self._catalog.runtime_type.name):
-            self._component_cache[self._catalog.runtime_type.name] = {}
+        """Apply the relative action to the given catalog entry in the cache."""
+        if self.action == 'delete':
+            # Check all runtime types in cache for an entry of the given name.
+            # If found, remove only the components from this catalog
+            for runtime_type in self._component_cache:
+                if self.catalog.name in self._component_cache[runtime_type]:
+                    self._component_cache[runtime_type].pop(self.catalog.name, None)
+                    break
+        else:  # 'modify' - replace (or add) components from the given catalog an update its status
+            runtime_type = self.catalog.runtime_type.name
+            catalog_state = self._component_cache[runtime_type][self.catalog.name].get('status')
+            try:
+                # Replace all components for the given catalog
+                self._component_cache[runtime_type][self.catalog.name]['components'] = \
+                    ComponentCache.instance().read_component_catalog(self.catalog)
+                catalog_state['state'] = "current"
+                catalog_state['errors'] = []  # reset any errors that may have been present
+            except Exception as e:
+                # Update state with an 'error' action and the relevant message
+                catalog_state['state'] = "error"
+                catalog_state['errors'].append(str(e))
 
-        if self._operation == 'delete':
-            # Remove only the components from this catalog
-            self._component_cache[self._catalog.runtime_type.name].pop(self._catalog.name, None)
-        else:
-            # Replace all components for the given catalog
-            self._component_cache[self._catalog.runtime_type.name][self._catalog.name] = \
-                ComponentCache.instance().read_component_catalog(self._catalog)
+    def prepare_cache_for_catalog(self, runtime_type: Optional[str] = None):
+        """
+        Add entries to the component cache for the runtime type and/or catalog
+        of focus for this thread, and set the catalog state to 'updating'.
+        """
+        if self.action == 'delete':
+            # On 'delete' the runtime_type parameter will be None and since catalog names
+            # are essentially unique across runtime types, we can break out of this loop
+            # on first occurrence and let _that_ runtime type be used in the following code.
+            for runtime_type in self._component_cache:
+                if self.catalog.name in self._component_cache[runtime_type]:
+                    break
 
-        self._queue.task_done()
+        # Add sub-dictionary for this runtime type if not present
+        if not self._component_cache.get(runtime_type):
+            self._component_cache[runtime_type] = {}
+
+        # Add sub-dictionary for this catalog if not present - this will occur when
+        # a catalog instance is created, so we're essentially adding a placeholder.
+        if not self._component_cache[runtime_type].get(self.catalog.name):
+            self._component_cache[runtime_type][self.catalog.name] = {
+                "components": {},
+                "status": {
+                    "state": "updating",
+                    "errors": []
+                }
+            }
+        else:  # Set state to 'updating' for an existing entry
+            self._component_cache[runtime_type][self.catalog.name]['status']['state'] = 'updating'
 
 
 class ComponentCache(SingletonConfigurable):
+    """Represents the cache of component definitions indexed by runtime-type, then by catalog name."""
+
     # The component_cache is indexed at the top level by runtime type name, e.g. 'APACHE_AIRFLOW',
-    # and has as it's value another dictionary. At the second level, each sub-dictionary is indexed by
-    # a ComponentCatalogMetadata instance name and its value is also a sub-dictionary. This lowest
-    # level dictionary is indexed by component id and maps to the corresponding Component object.
-    _component_cache: Dict[str, Dict[str, Dict[str, Component]]] = {}
+    # and has as its value another dictionary. At the second level, each sub-dictionary is indexed by
+    # a ComponentCatalogMetadata instance name; its value is also a sub-dictionary. This sub-dictionary
+    # consists of two additional dictionaries: 1.) one with key "components" whose dictionary is
+    # indexed by component id and maps to the corresponding Component object, and 2.) one with key
+    # "status" and value of a final sub-dictionary with key-value pairs "state":"<current/updating/errors>"
+    # and "errors":["<error1>", "<error2>", ...] to dynamically indicate the status of this catalog instance
+    _component_cache: ComponentCacheType = {}
 
     _generic_category_label = "Elyra"
     _generic_components: Dict[str, Component] = {
@@ -195,36 +352,150 @@ class ComponentCache(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self._cache_task_queue = Queue()
+        self.is_server_process = ComponentCache._determine_server_process(**kwargs)
+        self.manifest_dir = jupyter_runtime_dir()
+        # Ensure queue attribute exists for non-server instances as well.
+        self.refresh_queue: Optional[RefreshQueue] = None
+        self.update_queue: Optional[UpdateQueue] = None
+        if self.is_server_process:
+            self.refresh_queue = RefreshQueue()
+            self.update_queue = UpdateQueue()
 
-        # Start a thread to manage updates to the component cache
-        self._cache_manager = CacheUpdateManagerThread(self.log, self._component_cache, self._cache_task_queue)
-        self._cache_manager.name = "CacheUpdateManager"
-        self._cache_manager.start()
+            # Set up watchdog for manifest file for out-of-process updates
+            self.observer = Observer()
+            self.observer.schedule(ManifestFileChangeHandler(self), self.manifest_dir)
 
-        self._build_cache()
+            # Start a thread to manage updates to the component cache
+            manager = CacheUpdateManager(
+                self.log,
+                self._component_cache,
+                self.refresh_queue,
+                self.update_queue
+            )
+            self.cache_manager = manager
+            self.cache_manager.start()
+            self.log.debug("CacheUpdateManager started...")
+        else:
+            self.manifest_filename = os.path.join(self.manifest_dir, f"elyra-component-manifest-{os.getpid()}.json")
 
-    def _build_cache(self):
+    @staticmethod
+    def _determine_server_process(**kwargs) -> bool:
+        """Determines if this process is a server (extension) process."""
+        app_names = ['ServerApp', 'ElyraApp']
+        is_server_process = False
+        if 'parent' in kwargs and kwargs['parent'].__class__.__name__ in app_names:
+            is_server_process = True
+        elif 'emulate_server_app' in kwargs and kwargs['emulate_server_app']:  # Used in unittests
+            is_server_process = True
+
+        return is_server_process
+
+    def load(self):
         """
-        Reads through all ComponentCatalogMetadata instances to build the initial component cache
+        Completes a series of actions during system startup, such as creating
+        the component manifest file and triggering the build of the component
+        cache for existing ComponentCatalog metadata instances.
         """
+        # Proceed only if singleton instance has been created
+        if self.initialized:
+            # The cache manager will work on manifest and cache tasks on an
+            # in-process basis as load() is only called during startup from
+            # the server process.
+            if self.is_server_process:
+                # Remove all existing manifest files from previous processes
+                self._remove_all_manifest_files()
 
-        all_catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
-        for catalog in all_catalogs:
-            self.update_cache_for_catalog(catalog)
+                # Start the watchdog if it's not alive, prevents redundant starts
+                if not self.observer.is_alive():
+                    self.observer.start()
 
-    def update_cache_for_catalog(self, catalog: ComponentCatalogMetadata, operation: Optional[str] = None):
+                # Fetch all component catalog instances and trigger their add to the
+                # component cache if this is not already happening (it seems some server
+                # test fixtures could be loading the server extensions multiple times).
+                if not self.cache_manager.is_refreshing():
+                    self.refresh()
+
+    def refresh(self):
+        """Triggers a refresh of all catalogs in the component cache.
+
+        Raises RefreshInProgressError if a complete refresh is in progress.
+        Note that we do not preclude non-server processes from performing a
+        complete refresh.  In such cases, each of the catalog entries will be
+        written to the manifest, which will be placed into the update queue.
+        As a result, non-server applications could by-pass the "refresh in progress"
+        constraint, but we're assuming a CLI application won't be as likely to
+        "pound" refresh like a UI application can.
         """
-        Triggers an update of the component cache for the given ComponentCatalogMetadata instance.
-        """
-        self._cache_task_queue.put((catalog, operation))
+        if self.is_server_process and self.cache_manager.is_refreshing():
+            raise RefreshInProgressError()
+        catalogs = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID).get_all()
+        for catalog in catalogs:
+            self._insert_request(self.refresh_queue, catalog, 'modify')
 
-    def wait_for_all_cache_updates(self):
+    def update(self, catalog: Metadata, action: str):
+        """
+        Triggers an update of the component cache for the given catalog name.  If this is a non-server
+        process, the entry is written to the manifest file where it will be "processed" by the watchdog
+        and inserted into the component cache queue, otherwise we update the cache queue directly.
+        """
+        self._insert_request(self.update_queue, catalog, action)
+
+    def _insert_request(self, queue: Queue, catalog: Metadata, action: str):
+        """
+        If running as a server process, the request is submitted to the desired queue, otherwise
+        it is posted to the manifest where the server process (if running) can detect the manifest
+        file update and send the request to the update queue.
+
+        Note that any calls to ComponentCache.refresh() from non-server processes will still
+        perform the refresh, but via the update queue rather than the refresh queue.  We could,
+        instead, raise NotImplementedError in such cases, but we may want the ability to refresh
+        the entire component cache from a CLI utility and the current implementation would allow that.
+        """
+        if self.is_server_process:
+            queue.put((catalog, action))
+        else:
+            manifest: Dict[str, str] = self._load_manifest()
+            manifest[catalog.name] = action
+            self.update_manifest(manifest=manifest)
+
+    def _remove_all_manifest_files(self):
+        """
+        Remove all existing manifest files in the Jupyter runtimes directory.
+        """
+        manifest_files = Path(self.manifest_dir).glob('**/elyra-component-manifest-*.json')
+        for file in manifest_files:
+            os.remove(str(file))
+
+    def _load_manifest(self, filename: Optional[str] = None) -> Dict[str, str]:
+        """Read and return the contents of a manifest file.
+
+        If 'filename' is not provided, this process's manifest file will be read.
+        """
+        filename = filename or self.manifest_filename
+        if not os.path.isfile(filename):
+            self.log.debug(f"Manifest file '{filename}' doesn't exist and will be created.")
+            return {}
+        with open(filename, 'r') as f:
+            manifest: Dict[str, str] = json.load(f)
+        self.log.debug(f"Reading manifest '{manifest}' from file '{filename}'")
+        return manifest
+
+    def update_manifest(self, filename: Optional[str] = None, manifest: Optional[Dict[str, str]] = None) -> None:
+        """Update the manifest file with the given entry."""
+        filename = filename or self.manifest_filename
+        manifest = manifest or {}
+        self.log.debug(f"Updating manifest '{manifest}' to file '{filename}'")
+        with open(filename, 'w') as f:
+            json.dump(manifest, f, indent=2)
+
+    def wait_for_all_cache_tasks(self):
         """
         Block execution and wait for all tasks in the cache task update queue to complete.
         Primarily used for testing.
         """
-        self._cache_task_queue.join()
+        if self.is_server_process:
+            self.update_queue.join()
+            self.refresh_queue.join()
 
     def get_all_components(self, platform: RuntimeProcessorType) -> List[Component]:
         """
@@ -232,11 +503,11 @@ class ComponentCache(SingletonConfigurable):
         """
         components: List[Component] = []
 
-        platform_components = self._component_cache.get(platform.name, {})
-        for catalog_name, catalog_components in platform_components.items():
-            components.extend(list(catalog_components.values()))
+        catalogs = self._component_cache.get(platform.name, {})
+        for catalog_name, catalog_properties in catalogs.items():
+            components.extend(list(catalog_properties.get('components', {}).values()))
 
-        if not components:
+        if not components and platform != RuntimeProcessorType.LOCAL:
             self.log.error(f"No components could be found in any catalog for platform type '{platform.name}'.")
 
         return components
@@ -247,9 +518,9 @@ class ComponentCache(SingletonConfigurable):
         """
         component: Optional[Component] = None
 
-        platform_components = self._component_cache.get(platform.name, {})
-        for catalog_name, catalog_components in platform_components.items():
-            component = catalog_components.get(component_id)
+        catalogs = self._component_cache.get(platform.name, {})
+        for catalog_name, catalog_properties in catalogs.items():
+            component = catalog_properties.get('components', {}).get(component_id)
             if component:
                 break
 
@@ -322,7 +593,7 @@ class ComponentCache(SingletonConfigurable):
         return list(ComponentCache._generic_components.values())
 
     @staticmethod
-    def get_generic_component(component_id: str) -> Component:
+    def get_generic_component(component_id: str) -> Optional[Component]:
         return ComponentCache._generic_components.get(component_id)
 
     @staticmethod
@@ -383,3 +654,38 @@ class ComponentCache(SingletonConfigurable):
 
         canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)
+
+
+class ManifestFileChangeHandler(FileSystemEventHandler):
+    """Watchdog handler that filters on .json files within specific metadata directories."""
+
+    def __init__(self, component_cache: ComponentCache, **kwargs):
+        super().__init__(**kwargs)
+        self.component_cache = component_cache
+        self.log = component_cache.log
+
+    def dispatch(self, event):
+        """Dispatches delete and modification events pertaining to the manifest filename"""
+        if "elyra-component-manifest" in event.src_path:
+            super().dispatch(event)
+
+    def on_modified(self, event):
+        """Fires when the component manifest file is modified."""
+        self.log.debug(f"ManifestFileChangeHandler: file '{event.src_path}' has been modified.")
+        manifest = self.component_cache._load_manifest(filename=event.src_path)
+        if manifest:  # only update the manifest if there is work to do
+            for catalog, action in manifest.items():
+                self.log.debug(f"ManifestFileChangeHandler: inserting ({catalog},{action}) into update queue...")
+                if action == 'delete':
+                    # The metadata instance has already been deleted, so we must
+                    # fabricate an instance that only consists of a catalog name
+                    catalog_instance = ComponentCatalogMetadata(name=catalog)
+
+                else:  # cache_action == 'modify':
+                    # Fetch the catalog instance associated with this action
+                    catalog_instance = MetadataManager(
+                        schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID
+                    ).get(name=catalog)
+
+                self.component_cache.update(catalog=catalog_instance, action=action)
+            self.component_cache.update_manifest(filename=event.src_path)  # clear the manifest

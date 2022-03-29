@@ -101,6 +101,9 @@ class FileMetadataCache(SingletonConfigurable):
             self.observed_dirs = set()  # Tracks which directories are being watched
             self.observer = Observer()
             self.observer.start()
+        else:
+            self.log.info("The file metadata cache is currently disabled via configuration. "
+                          "Set FileMetadataCache.enabled=True to enable instance caching.")
 
     def __len__(self) -> int:
         """Return the number of running kernels."""
@@ -264,7 +267,7 @@ class FileMetadataStore(MetadataStore):
         # Write out the instance
         try:
             with jupyter_core.paths.secure_write(resource) as f:
-                f.write(json.dumps(metadata, indent=2))  # Only persist necessary items
+                json.dump(metadata, f, indent=2)  # Only persist necessary items
         except Exception as ex:
             self._rollback(resource, renamed_resource)
             raise ex from ex

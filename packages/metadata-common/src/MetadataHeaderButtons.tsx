@@ -38,6 +38,7 @@ export interface IMetadataHeaderButtonsProps {
   titleContext?: string;
   appendToTitle?: boolean;
   refreshMetadata: () => void;
+  refreshButtonTooltip?: string;
 }
 
 const StyledButton = styled(Button)({
@@ -84,7 +85,7 @@ export const MetadataHeaderButtons = (
             props.refreshMetadata();
             setOpen(false);
           }}
-          title="Refresh list"
+          title={props.refreshButtonTooltip ?? 'Refresh list'}
         >
           <refreshIcon.react tag="span" elementPosition="center" width="16px" />
         </StyledButton>
