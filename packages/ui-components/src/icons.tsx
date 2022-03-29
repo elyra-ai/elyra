@@ -33,8 +33,8 @@ import runtimesSvg from '../style/icons/runtimes.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
 import tagIconSvg from '../style/icons/tag.svg';
 import trashIconSvg from '../style/icons/trashIcon.svg';
-import viewIconSvg from '../style/icons/view.svg';
 import viewOffIconSvg from '../style/icons/view--off.svg';
+import viewIconSvg from '../style/icons/view.svg';
 
 export const importIcon = new LabIcon({
   name: 'elyra:import',

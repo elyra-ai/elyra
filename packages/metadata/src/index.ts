@@ -29,18 +29,14 @@ import {
   JupyterFrontEndPlugin,
   ILabStatus
 } from '@jupyterlab/application';
-import {
-  IThemeManager,
-  ICommandPalette,
-  MainAreaWidget
-} from '@jupyterlab/apputils';
+import { IThemeManager, ICommandPalette } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
+import { ITranslator } from '@jupyterlab/translation';
 import {
   textEditorIcon,
   LabIcon,
   IFormComponentRegistry
 } from '@jupyterlab/ui-components';
-import { ITranslator } from '@jupyterlab/translation';
 
 import { find } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';

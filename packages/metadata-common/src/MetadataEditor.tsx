@@ -25,8 +25,8 @@ import {
   IThemeManager
 } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import { ITranslator } from '@jupyterlab/translation';
+import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { Message } from '@lumino/messaging';
@@ -83,15 +83,8 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
 
   const schema = schemaTop.properties.metadata;
 
-  React.useEffect(() => {
-    if (initialMetadata?.metadata) {
-      initialMetadata.metadata['display_name'] =
-        initialMetadata['display_name'];
-    }
-    setMetadata(initialMetadata);
-  }, [initialMetadata]);
-  const [metadata, setMetadata] = React.useState(initialMetadata?.metadata);
-  const displayName = initialMetadata?.['display_name'];
+  const [metadata, setMetadata] = React.useState(initialMetadata);
+  const displayName = initialMetadata?.['_noCategory']?.['display_name'];
   const referenceURL = schemaTop.uihints?.reference_url;
   const saveMetadata = (): void => {
     if (invalidForm) {
@@ -132,7 +125,7 @@ const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
     headerText = `Add new ${schemaTop.title}`;
   }
 
-  const flattenFormData = (newFormData: any) => {
+  const flattenFormData = (newFormData: any): any => {
     const flattened: { [id: string]: any } = {};
     for (const category in newFormData) {
       for (const property in newFormData[category]) {
@@ -269,6 +262,7 @@ export class MetadataEditorWidget extends ReactWidget {
           required: ['display_name']
         }
       };
+      const requiredCategories: string[] = [];
       for (const schemaProperty in schema.properties.metadata.properties) {
         const properties =
           schema.properties.metadata.properties[schemaProperty];
@@ -289,13 +283,21 @@ export class MetadataEditorWidget extends ReactWidget {
         }
         if (schema.properties.metadata.required?.includes(schemaProperty)) {
           schemaPropertiesByCategory[category].required.push(schemaProperty);
+          if (!requiredCategories.includes(category)) {
+            requiredCategories.push(category);
+          }
         }
         schemaPropertiesByCategory[category]['properties'][
           schemaProperty
         ] = properties;
       }
+      if (metadataWithCategories['_noCategory']) {
+        metadataWithCategories['_noCategory']['display_name'] =
+          metadata?.['display_name'];
+      }
       this.schema = schema;
       this.schema.properties.metadata.properties = schemaPropertiesByCategory;
+      this.schema.properties.metadata.required = requiredCategories;
       this.metadata = metadataWithCategories;
       this.title.label =
         this.metadata?.display_name ?? `New ${this.schema.title}`;

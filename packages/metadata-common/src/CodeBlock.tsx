@@ -29,7 +29,7 @@ export const CodeBlock: Field = props => {
 
   React.useEffect(() => {
     const handleChange = (args: any): void => {
-      props.formContext.onChange?.(args.text.split('\n'));
+      props.onChange(args.text.split('\n'));
     };
 
     if (codeBlockRef.current !== null) {

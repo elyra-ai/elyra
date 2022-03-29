@@ -15,8 +15,8 @@
  */
 
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import { ITranslator } from '@jupyterlab/translation';
+import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import Form, { ArrayFieldTemplateProps, IChangeEvent } from '@rjsf/core';
 import * as React from 'react';
 
@@ -32,7 +32,7 @@ interface IFormEditorProps {
   languageOptions?: string[];
 }
 
-const ArrayTemplate = (props: ArrayFieldTemplateProps) => {
+const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
   return (
     <div className={props.className}>
       <props.TitleField
