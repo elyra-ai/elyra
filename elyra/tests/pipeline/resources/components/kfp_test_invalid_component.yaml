@@ -1,0 +1,15 @@
+name: Test Invalid Operator
+inputs:
+- {name: 2, description: 'The test command description', type: String}
+outputs:
+- {name: Filtered text}
+implementation:
+  container:
+    image: alpine
+    command:
+    - sh
+    - -ec
+    - |
+      text_path=$0
+    - {inputValue: 2}
+    - {outputPath: Filtered text}

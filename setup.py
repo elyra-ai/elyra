@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import os
-import sys
 
 from jupyter_packaging import get_data_files
 from setuptools import setup, find_packages
@@ -43,7 +42,7 @@ data_files_spec = [
 ]
 
 runtime_extras = {
-    'kfp-tekton': ['kfp-tekton~=1.1.1', ],
+    'kfp-tekton': ['kfp-tekton~=1.2.0', ],  # See elyra-ai/elyra/pull/2034 for fix pack pinning
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
     'kfp-examples': ['elyra-examples-kfp-catalog'],
@@ -63,43 +62,44 @@ setup_args = dict(
     data_files=get_data_files(data_files_spec),
     packages=find_packages(),
     install_requires=[
-        'autopep8>=1.5.0,<1.5.6',
-        'click>=7.1.1,<8',
+        'autopep8>=1.5.0',
+        'click>=8',  # elyra-ai/elyra#2579
         'colorama',
         'deprecation',
         'entrypoints>=0.3',
-        'jinja2>=2.11',
-        'jsonschema>=3.2.0',
-        'jupyter_core>=4.0,<5.0',
+        'jinja2>=2.11,<3.1',  # Cap due to breaking changes, see elyra-ai/elyra#2586
+        'jsonschema>=3.2.0,<4.0',  # Cap from kfp
+        'jupyter_core>=4.6.0',
         'jupyter_client>=6.1.7',
         'jupyter-packaging>=0.10',
         'jupyter_server>=1.7.0',
-        'jupyterlab~=3.3.0',
-        'jupyterlab-git~=0.32',
+        'jupyterlab>=3.3.0',
+        'jupyterlab-git~=0.32',  # Avoid breaking 1.x changes
         'jupyterlab-lsp>=3.8.0',
         'jupyter-resource-usage>=0.5.1',
-        'minio>=7.0.0,<8.0.0',
+        'minio>=7.0.0',
         'nbclient>=0.5.1',
         'nbconvert>=5.6.1',
-        'nbdime~=3.1',
+        'nbdime~=3.1',  # Cap from jupyterlab-git
         'nbformat>=5.1.2',
         'networkx>=2.5.1',
         'papermill>=2.3.4',
         'python-lsp-server[all]>=1.1.0',
-        'pyyaml>=5.3.1,<6.0',
-        'requests>=2.25.1,<3.0',
+        'pyyaml>=5.3.1,<6.0',  # Cap from kfp
+        'requests>=2.25.1',
         'rfc3986-validator>=0.1.1',
         'tornado>=6.1.0',
+        'typing-extensions>=3.10,<4',  # Cap from kfp
         'traitlets>=4.3.2',
         'urllib3>=1.26.5',
         'watchdog>=2.1.3',
         'websocket-client',
         'yaspin',
         # KFP runtime dependencies
-        'kfp>=1.7.0,<2.0,!=1.7.2',
+        'kfp>=1.7.0,<2.0,!=1.7.2',  # We cap the SDK to <2.0 due to possible breaking changes
         # Airflow runtime dependencies
         'pygithub',
-        'black<=21.12b0',
+        'black<=21.12b0',  # Cap due to psf/black#2846
     ],
     extras_require={
         'test': ['elyra-examples-airflow-catalog', 'elyra-examples-kfp-catalog', 'pytest', 'pytest-tornasync'],

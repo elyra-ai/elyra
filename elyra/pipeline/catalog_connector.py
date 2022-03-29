@@ -47,9 +47,14 @@ class EntryData(object):
     at minimum, includes the string definition of the corresponding component(s)
     """
     definition: str = None
+    file_extension: str = None
 
-    def __init__(self, definition: str, **kwargs):
+    def __init__(self, definition: str, file_extension: Optional[str] = None, **kwargs):
+        if isinstance(definition, (bytes, bytearray)):
+            definition = definition.decode("utf-8")
+
         self.definition = definition
+        self.file_extension = file_extension
 
 
 class AirflowEntryData(EntryData):
@@ -59,8 +64,8 @@ class AirflowEntryData(EntryData):
     """
     package_name: str = None
 
-    def __init__(self, definition: str, **kwargs):
-        super().__init__(definition, **kwargs)
+    def __init__(self, definition: str, file_extension: Optional[str] = None, **kwargs):
+        super().__init__(definition, file_extension, **kwargs)
         self.package_name = kwargs.get('package_name')
 
 
@@ -120,7 +125,12 @@ class CatalogEntry(object):
         hash_digest = f"{hashlib.sha256(hash_str.encode()).hexdigest()[:12]}"
         return f"{self.catalog_type}:{hash_digest}"
 
-    def get_component(self, id: str, name: str, description: str, properties: List[ComponentParameter]) -> Component:
+    def get_component(self,
+                      id: str,
+                      name: str,
+                      description: str,
+                      properties: List[ComponentParameter],
+                      file_extension: str) -> Component:
         """
         Construct a Component object given the arguments (as parsed from the definition file)
         and the relevant information from the catalog from which the component originates.
@@ -134,7 +144,8 @@ class CatalogEntry(object):
             "component_reference": self.entry_reference,
             "definition": self.entry_data.definition,
             "runtime_type": self.runtime_type,
-            "categories": self.categories
+            "categories": self.categories,
+            "extensions": [self.entry_data.file_extension or file_extension]
         }
 
         if isinstance(self.entry_data, AirflowEntryData):
@@ -159,7 +170,8 @@ class ComponentCatalogConnector(LoggingConfigurable):
         try:
             max_reader_threads = int(os.getenv(self.max_readers_env, max_reader_threads))
         except ValueError:
-            pass
+            self.log.info(f"Unable to parse environmental variable {self.max_readers_env}, "
+                          f"using the default value of {self.max_threads_default}")
         return max_reader_threads
 
     def __init__(self, file_types: List[str], **kwargs):
@@ -311,7 +323,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
             "abstract method 'get_hash_keys()' must be implemented"
         )
 
-    def read_component_definitions(self, catalog_instance: Metadata) -> List[EntryData]:
+    def read_component_definitions(self, catalog_instance: Metadata) -> List[CatalogEntry]:
         """
         This function compiles the definitions of all catalog entries in a given catalog.
 

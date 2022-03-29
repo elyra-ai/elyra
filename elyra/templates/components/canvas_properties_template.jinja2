@@ -25,7 +25,7 @@
         }
     {% endif %},
 {% endfor %}
-      "component_source": "{{ component.component_source }}"
+      "component_source": {{ component.component_source|tojson|safe }}
     },
     "parameters": [
       {% if component.description %}{

@@ -27,6 +27,7 @@ export const GENERIC_CATEGORY_ID = 'Elyra';
 interface IReturn<T> {
   data?: T | undefined;
   error?: any;
+  mutate?: any;
 }
 
 type IRuntimeImagesResponse = IRuntimeImage[];
@@ -228,7 +229,10 @@ export const componentFetcher = async (type: string): Promise<any> => {
 export const usePalette = (type = 'local'): IReturn<any> => {
   const { data: runtimeImages, error: runtimeError } = useRuntimeImages();
 
-  const { data: palette, error: paletteError } = useSWR(type, componentFetcher);
+  const { data: palette, error: paletteError, mutate: mutate } = useSWR(
+    type,
+    componentFetcher
+  );
 
   let updatedPalette;
   if (palette !== undefined) {
@@ -252,5 +256,9 @@ export const usePalette = (type = 'local'): IReturn<any> => {
     });
   }
 
-  return { data: updatedPalette, error: runtimeError ?? paletteError };
+  return {
+    data: updatedPalette,
+    error: runtimeError ?? paletteError,
+    mutate: mutate
+  };
 };

@@ -109,7 +109,7 @@ To format the output as JSON run `elyra-metadata list runtimes --json`. Note tha
 To create a runtime configuration for a Kubeflow Pipelines deployment:
 
 ```bash
-elyra-metadata install runtimes \
+elyra-metadata create runtimes \
        --schema_name=kfp \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
@@ -129,11 +129,10 @@ Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-con
 
 #### Modifying a runtime configuration
 
-To edit a runtime configuration, use the `--replace` option along with `--name` and `--schema_name` (to locate the instance), followed by the modified property values.  In this case, we're updating the `api_password` and `tags` properties:
+To edit a runtime configuration, use the `update` command along with `--name` and `--schema_name` (to locate the instance), followed by the modified property values.  In this case, we're updating the `api_password` and `tags` properties:
 
 ```bash
-elyra-metadata install runtimes \
-       --replace \
+elyra-metadata update runtimes \
        --name="my_kubeflow_pipelines_runtime" \
        --schema_name=kfp \
        --api_password=mynewpassword \
@@ -155,9 +154,9 @@ The above example will export all runtime configurations to the "/tmp/foo/runtim
 
 Note that you must specify the `--directory` option. 
 
-There are two flags that can be specified when exporting metadata:
-1. To exclude invalid metadata and only export valid metadata, use the `--valid-only` flag. 
-2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtimes" directory before exporting the metadata.
+There are two flags that can be specified when exporting runtime configurations:
+1. To include invalid runtime configurations, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtimes" directory before exporting the runtime configurations.
 
 #### Deleting a runtime configuration
 

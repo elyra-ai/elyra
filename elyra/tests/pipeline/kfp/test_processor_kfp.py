@@ -17,7 +17,6 @@ import os
 import tarfile
 from unittest import mock
 
-from conftest import KFP_COMPONENT_CACHE_INSTANCE
 from kfp import compiler as kfp_argo_compiler
 import pytest
 import yaml
@@ -36,14 +35,14 @@ from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
 
 @pytest.fixture
-def processor(setup_factory_data, component_cache_instance):
+def processor(setup_factory_data):
     processor = KfpPipelineProcessor(os.getcwd())
     return processor
 
 
 @pytest.fixture
 def pipeline():
-    ComponentCache.instance().wait_for_all_cache_updates()
+    ComponentCache.instance().wait_for_all_cache_tasks()
     pipeline_resource = _read_pipeline_resource(
         'resources/sample_pipelines/pipeline_3_node_sample.json')
     return PipelineParser.parse(pipeline_resource)
@@ -275,7 +274,6 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
     # Define the appropriate reader for a URL-type component definition
     kfp_supported_file_types = [".yaml"]
@@ -291,7 +289,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     component_definition = entry_data.definition
 
     # Instantiate a url-based component
-    component_id = 'url-catalog:7f0546b6135c'
+    component_id = 'test_component'
     component = Component(id=component_id,
                           name="Filter text",
                           description="",
@@ -302,8 +300,14 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
                           categories=[],
                           properties=[])
 
-    # Replace cached component registry with single url-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name]['some_catalog_name'] = {component_id: component}
+    # Fabricate the component cache to include single filename-based component for testing
+    ComponentCache.instance()._component_cache[processor._type.name] = {
+        "spoofed_catalog": {
+            "components": {
+                component_id: component
+            }
+        }
+    }
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
@@ -353,7 +357,6 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     assert pipeline_template['inputs']['artifacts'][0]['raw']['data'] == operation_params['text']
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
@@ -370,7 +373,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     component_definition = entry_data.definition
 
     # Instantiate a file-based component
-    component_id = "elyra-kfp-examples-catalog:a08014f9252f"
+    component_id = "test-component"
     component = Component(id=component_id,
                           name="Download data",
                           description="",
@@ -381,8 +384,14 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
                           properties=[],
                           categories=[])
 
-    # Replace cached component registry with single filename-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name]['some_catalog_name'] = {component_id: component}
+    # Fabricate the component cache to include single filename-based component for testing
+    ComponentCache.instance()._component_cache[processor._type.name] = {
+        "spoofed_catalog": {
+            "components": {
+                component_id: component
+            }
+        }
+    }
 
     # Construct hypothetical operation for component
     operation_name = "Download data test"

@@ -162,12 +162,12 @@ It should also be noted that individual object-valued properties can optionally 
 
 Should a failure be encountered relative to a complex schema, the properties identified as complex will be identified in the tool's usage statement.  They will refer to a note at the bottom of the usage statement indicating that these approaches should be used.
 
-Finally, when updating instances using the `--replace` option.  You are not required to include unchanged values on the command line.  Instead, the existing object is read and any properties provided on the command line, or included in the bulk JSON data, are applied to the existing properties.
+Finally, when updating instances using the `update` command, you are not required to include unchanged values on the command line.  Instead, the existing object is read and any properties provided on the command line, or included in the bulk JSON data, are applied to the existing properties.
 
 ### Working with pipelines
 
 In Elyra, [a pipeline](pipelines.md) is a representation of a
-workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow.
+workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow. The `elyra-pipeline` CLI is used to run pipelines, validate pipelines, describe pipelines, or export pipelines.
 
 #### Getting help
 
@@ -182,9 +182,11 @@ To learn more about a specific command, e.g. `run`, run
 $ elyra-pipeline run --help
 ```
 
-#### Running pipelines
-
 Refer to the topics below for detailed information on how to use `elyra-pipeline` to
  - [Display pipeline information summary](pipelines.html#running-a-pipeline-using-the-command-line)
- - [Run a pipeline locally](pipelines.html#running-a-pipeline-using-the-command-line)
- - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-using-the-command-line)
+ - [Run a pipeline locally](pipelines.html#running-a-pipeline-from-the-command-line-interface)
+ - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-from-the-command-line-interface)
+ - [Export a pipeline](pipelines.html#exporting-a-pipeline-from-the-command-line-interface)
+
+
+

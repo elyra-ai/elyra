@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 import os
+from subprocess import CompletedProcess
+from subprocess import run
 
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 from conftest import TEST_CATALOG_NAME
@@ -22,6 +25,7 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import CatalogEntry
+from elyra.pipeline.catalog_connector import EntryData
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
@@ -41,22 +45,17 @@ def _get_resource_path(filename):
     return resource_path
 
 
-@pytest.mark.parametrize('component_cache_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_component_catalog_can_load_components_from_registries(component_cache_instance):
-    components = ComponentCache.instance().get_all_components(RUNTIME_PROCESSOR)
+@pytest.mark.parametrize('catalog_instance', [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_component_catalog_load(component_cache, catalog_instance):
+    components = component_cache.get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0
 
 
-def test_modify_component_catalogs(metadata_manager_with_teardown):
-    # Initialize a ComponentCache instance and wait for all worker threads to compete
-    component_catalog = ComponentCache.instance()
-    component_catalog.wait_for_all_cache_updates()
-
-    # Get initial set of components from the current active registries
-    initial_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-
-    # Components must be sorted by id for the equality comparison with later component lists
-    initial_components = sorted(initial_components, key=lambda component: component.id)
+@pytest.mark.parametrize('create_inprocess', [True, False])
+async def test_modify_component_catalogs(jp_environ, component_cache,
+                                         metadata_manager_with_teardown, create_inprocess):
+    # Get initial set of components
+    initial_components = component_cache.get_all_components(RUNTIME_PROCESSOR)
 
     # Create new registry instance with a single URL-based component
     paths = [_get_resource_path('kfp_test_operator.yaml')]
@@ -72,33 +71,38 @@ def test_modify_component_catalogs(metadata_manager_with_teardown):
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    if create_inprocess:
+        metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    else:
+        res: CompletedProcess = run(['elyra-metadata', 'install', 'component-catalogs',
+                                     f'--schema_name={registry_instance.schema_name}',
+                                     f'--json={registry_instance.to_json()}',
+                                     f'--name={TEST_CATALOG_NAME}'])
+        assert res.returncode == 0
 
     # Wait for update to complete
-    component_catalog.wait_for_all_cache_updates()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get new set of components from all active registries, including added test registry
-    added_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-    added_components = sorted(added_components, key=lambda component: component.id)
-    assert len(added_components) > len(initial_components)
+    components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(components_after_create) == len(initial_components) + 1
 
-    added_component_names = [component.name for component in added_components]
+    added_component_names = [component.name for component in components_after_create]
     assert 'Test Operator' in added_component_names
     assert 'Test Operator No Inputs' not in added_component_names
 
-    # Modify the test registry to add an additional path to
+    # Modify the test registry to add a path to the catalog instance
     paths.append(_get_resource_path('kfp_test_operator_no_inputs.yaml'))
     metadata_manager_with_teardown.update(TEST_CATALOG_NAME, registry_instance)
 
     # Wait for update to complete
-    component_catalog.wait_for_all_cache_updates()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get set of components from all active registries, including modified test registry
-    modified_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-    modified_components = sorted(modified_components, key=lambda component: component.id)
-    assert len(modified_components) > len(added_components)
+    components_after_update = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(components_after_update) == len(initial_components) + 2
 
-    modified_component_names = [component.name for component in modified_components]
+    modified_component_names = [component.name for component in components_after_update]
     assert 'Test Operator' in modified_component_names
     assert 'Test Operator No Inputs' in modified_component_names
 
@@ -106,30 +110,17 @@ def test_modify_component_catalogs(metadata_manager_with_teardown):
     metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
 
     # Wait for update to complete
-    component_catalog.wait_for_all_cache_updates()
+    component_cache.wait_for_all_cache_tasks()
 
-    post_delete_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-    post_delete_components = sorted(post_delete_components, key=lambda component: component.id)
-    assert len(post_delete_components) == len(initial_components)
-
-    # Check that the list of component ids is the same as before addition of the test registry
-    initial_component_ids = [component.id for component in initial_components]
-    post_delete_component_ids = [component.id for component in post_delete_components]
-    assert post_delete_component_ids == initial_component_ids
-
-    # Check that component palette is the same as before addition of the test registry
-    initial_palette = ComponentCache.to_canvas_palette(post_delete_components)
-    post_delete_palette = ComponentCache.to_canvas_palette(initial_components)
-    assert initial_palette == post_delete_palette
+    # Check that components remaining after delete are the same as before the new catalog was added
+    components_after_remove = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(components_after_remove) == len(initial_components)
 
 
-def test_directory_based_component_catalog(metadata_manager_with_teardown):
-    # Initialize a ComponentCache instance and wait for all worker threads to compete
-    component_catalog = ComponentCache.instance()
-    component_catalog.wait_for_all_cache_updates()
-
-    # Get initial set of components from the current active registries
-    initial_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
+@pytest.mark.parametrize('create_inprocess', [True, False])
+async def test_directory_based_component_catalog(component_cache, metadata_manager_with_teardown, create_inprocess):
+    # Get initial set of components
+    initial_components = component_cache.get_all_components(RUNTIME_PROCESSOR)
 
     # Create new directory-based registry instance with components in ../../test/resources/components
     registry_path = _get_resource_path('')
@@ -144,20 +135,31 @@ def test_directory_based_component_catalog(metadata_manager_with_teardown):
                                  display_name="New Test Registry",
                                  metadata=instance_metadata)
 
-    metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    if create_inprocess:
+        metadata_manager_with_teardown.create(TEST_CATALOG_NAME, registry_instance)
+    else:
+        res: CompletedProcess = run(['elyra-metadata', 'install', 'component-catalogs',
+                                     f'--schema_name={registry_instance.schema_name}',
+                                     f'--json={registry_instance.to_json()}',
+                                     f'--name={TEST_CATALOG_NAME}'])
+        assert res.returncode == 0
 
     # Wait for update to complete
-    component_catalog.wait_for_all_cache_updates()
+    component_cache.wait_for_all_cache_tasks()
 
     # Get new set of components from all active registries, including added test registry
-    added_components = component_catalog.get_all_components(RUNTIME_PROCESSOR)
-    assert len(added_components) > len(initial_components)
+    components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(components_after_create) == len(initial_components) + 4
 
     # Check that all relevant components from the new registry have been added
-    added_component_names = [component.name for component in added_components]
+    added_component_names = [component.name for component in components_after_create]
     assert 'Filter text' in added_component_names
     assert 'Test Operator' in added_component_names
     assert 'Test Operator No Inputs' in added_component_names
+
+    # Delete the test registry and wait for updates to complete
+    metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)
+    component_cache.wait_for_all_cache_tasks()
 
 
 def test_parse_kfp_component_file():
@@ -188,10 +190,14 @@ def test_parse_kfp_component_file():
     component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
+    # Ensure description is rendered even with an unescaped character
+    description = 'This component description contains an unescaped " character'
+    assert properties_json['current_parameters']['component_description'] == description
+
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
+    component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_test_string_no_default'] == \
            {'StringControl': '', 'activeControl': 'StringControl'}
@@ -303,7 +309,7 @@ def test_parse_kfp_component_url():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
+    component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_notebook'] == 'None'   # Default value for type `inputpath`
     assert properties_json['current_parameters']['elyra_parameters'] == \
@@ -360,20 +366,69 @@ def test_parse_kfp_component_file_no_inputs():
     # Ensure that template still renders the two common parameters correctly
     assert properties_json['current_parameters']['label'] == ""
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
+    component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
 
 
-async def test_parse_components_invalid_file():
-
+async def test_parse_components_not_a_file():
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
     # Get path to an invalid component definition file and read contents
-    path = _get_resource_path('kfp_test_operator_invalid.yaml')
+    path = _get_resource_path('kfp_test_operator_not_a_file.yaml')
     entry_data = reader.get_entry_data({"path": path}, {})
     assert entry_data is None
+
+
+async def test_parse_components_invalid_yaml(caplog):
+    # Get resource path and read definition (by-pass catalog reader functionality)
+    path = _get_resource_path('kfp_test_invalid_component.yaml')
+    with open(path, 'r') as f:
+        definition = f.read()
+
+    # Manually construct catalog_entry_data object and catalog instance
+    catalog_entry_data = {"path": path}
+    catalog_type = "local-file-catalog"
+    catalog_instance = ComponentCatalogMetadata(
+        schema_name=catalog_type,
+        metadata={
+            "categories": ['Test'],
+            "runtime_type": RUNTIME_PROCESSOR.name
+        }
+    )
+
+    # Build the catalog entry data structures required for parsing
+    entry_data = EntryData(definition=definition)
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['path'])
+
+    # Parse the component entry
+    parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
+    component = parser.parse(catalog_entry)
+
+    # Failed YAML schema validation returns None
+    assert component is None
+
+    # Assert validation error is captured appropriately in log
+    assert "Invalid format of YAML definition for component" in caplog.text
+    assert "Failed validating 'type'" in caplog.text
+    assert "On instance['inputs'][0]['name']:\n    2" in caplog.text
+
+    caplog.clear()
+
+    # Modify file to get expected error in YAML safe_load
+    new_definition = "key with no mapping\n" + definition
+    catalog_entry.entry_data.definition = new_definition
+
+    # Re-parse with new definition content
+    component = parser.parse(catalog_entry)
+
+    # Failed YAML safe_load returns None
+    assert component is None
+
+    # Assert load error is captured appropriately in log
+    assert "Could not load YAML definition for component" in caplog.text
+    assert "mapping values are not allowed here" in caplog.text
 
 
 async def test_parse_components_additional_metatypes():
@@ -397,7 +452,7 @@ async def test_parse_components_additional_metatypes():
 
     # Build the catalog entry data structures required for parsing
     entry_data = reader.get_entry_data(catalog_entry_data, {})
-    catalog_entry = CatalogEntry(entry_data, {"url": url}, catalog_instance, ['url'])
+    catalog_entry = CatalogEntry(entry_data, catalog_entry_data, catalog_instance, ['url'])
 
     # Parse the component entry
     parser = KfpComponentParser()
@@ -407,7 +462,7 @@ async def test_parse_components_additional_metatypes():
     # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
     assert properties_json['current_parameters']['label'] == ''
 
-    component_source = str({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
+    component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json['current_parameters']['component_source'] == component_source
     assert properties_json['current_parameters']['elyra_training_features'] == 'None'  # inputPath
     assert properties_json['current_parameters']['elyra_training_labels'] == 'None'  # inputPath

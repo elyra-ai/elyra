@@ -136,11 +136,14 @@ export class IconUtil {
     let svgstr = icon.svgstr;
 
     if (fillColor) {
-      svgstr = svgstr.replace(/fill="[^(none)]+?"/gi, `fill="${fillColor}"`);
+      svgstr = svgstr.replace(
+        /fill="(?:(?!none).)+?"/gi,
+        `fill="${fillColor}"`
+      );
     }
     if (strokeColor) {
       svgstr = svgstr.replace(
-        /stroke="[^(none)]+?"/gi,
+        /stroke="(?:(?!none).)+?"/gi,
         `stroke="${strokeColor}"`
       );
     }
