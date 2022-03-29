@@ -262,7 +262,7 @@ def pipeline():
     Run Elyra pipelines in your local environment or submit them to an external service,
     such as Kubeflow Pipelines or Apache Airflow.
 
-    Find more information at: https://elyra.readthedocs.io/en/latest/
+    Find more information at: https://elyra.readthedocs.io/en/v3.7.0rc0/
     """
     pass
 
