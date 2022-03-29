@@ -357,7 +357,15 @@ button.elyra-inputTag {
 .elyra-passwordFieldButton {
   border: none;
   border-radius: 5px;
-  background: none;
+  background: var(--jp-cell-editor-active-background);
+  position: absolute;
+  right: 1px;
+  bottom: 7px;
+}
+
+.elyra-passwordField {
+  position: relative;
+  display: flex;
 }
 
 .elyra-passwordFieldButton:hover {
@@ -379,13 +387,13 @@ input.elyra-inputTag {
   height: 15px;
 }
 
-.form-group input,
-.form-group select {
+.form-group .form-control {
   padding: 8px;
   border: 1px solid var(--jp-border-color1);
   border-radius: 4px;
   font-size: var(--jp-content-font-size2);
   margin-top: 10px;
+  width: 100%;
 }
 
 .elyra-metadataEditor-saveButton button {
@@ -419,7 +427,13 @@ li.text-danger {
 }
 
 form.rjsf {
-  width: 90%;
+  width: 100%;
+}
+
+fieldset#root > div > fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 label.control-label {

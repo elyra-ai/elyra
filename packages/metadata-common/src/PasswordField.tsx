@@ -27,7 +27,7 @@ export const PasswordField: Field = props => {
       {props.schema.description && (
         <p className="field-description">{props.schema.description}</p>
       )}
-      <div style={{ display: 'flex' }}>
+      <div className="elyra-passwordField">
         <StringField
           {...props}
           uiSchema={{
