@@ -268,6 +268,19 @@ def test_validate_with_missing_kfp_component(jp_environ, kubeflow_pipelines_runt
         assert "[Error][Calculate data hash] - This component was not found in the catalog." in result.output
         assert result.exit_code != 0
 
+
+def test_validate_with_no_runtime_config():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        pipeline_file_path = Path(__file__).parent / 'resources' / 'pipelines' / 'kfp_3_node_custom.pipeline'
+        result = runner.invoke(pipeline, ['validate', str(pipeline_file_path)])
+
+        assert "Validating pipeline..." in result.output
+        assert "[Error] - This pipeline contains at least one runtime-specific component, " \
+               "but pipeline runtime is 'local'" in result.output
+        assert result.exit_code != 0
+
+
 # ------------------------------------------------------------------
 # tests for 'submit' command
 # ------------------------------------------------------------------
