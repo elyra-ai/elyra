@@ -34,6 +34,7 @@ from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.parser import PipelineParser
@@ -102,6 +103,13 @@ def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
         return schema['display_name']
     except Exception as e:
         raise click.ClickException(f'Invalid runtime configuration: {schema_name}\n {e}')
+
+
+def _get_pipeline_runtime_type(pipeline_definition: dict) -> Optional[str]:
+    """Return the runtime type name associated with the given pipeline"""
+    return pipeline_definition.get('pipelines', [{}])[0] \
+        .get('app_data', {}) \
+        .get('runtime_type')
 
 
 def _validate_pipeline_runtime(primary_pipeline: Pipeline, runtime: str) -> bool:
@@ -225,6 +233,14 @@ def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
         raise click.ClickException(f'Error processing pipeline: \n {re} \n {re.__cause__}')
 
 
+def _build_component_cache():
+    """Initialize a ComponentCache instance and wait for it to complete all tasks"""
+    with yaspin(text="Initializing the component cache..."):
+        component_cache = ComponentCache.instance(emulate_server_app=True)
+        component_cache.load()
+        component_cache.wait_for_all_cache_tasks()
+
+
 def validate_pipeline_path(ctx, param, value):
     """Callback for pipeline_path parameter"""
     if not value.is_file():
@@ -286,6 +302,10 @@ def validate(pipeline_path, runtime_config='local'):
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
+
+    pipeline_runtime_type = _get_pipeline_runtime_type(pipeline_definition)
+    if pipeline_runtime_type:
+        _build_component_cache()
 
     try:
         _validate_pipeline_definition(pipeline_definition)
@@ -349,6 +369,10 @@ def submit(json_option, pipeline_path, runtime_config_name,
         _preprocess_pipeline(pipeline_path,
                              runtime=runtime_schema,
                              runtime_config=runtime_config_name)
+
+    pipeline_runtime_type = _get_pipeline_runtime_type(pipeline_definition)
+    if pipeline_runtime_type:
+        _build_component_cache()
 
     try:
         _validate_pipeline_definition(pipeline_definition)
@@ -582,9 +606,7 @@ def export(pipeline_path, runtime_config, output, overwrite):
 
     # Verify that the pipeline's runtime type is compatible with the
     # runtime configuration
-    pipeline_runtime_type = pipeline_definition.get('pipelines', [{}])[0]\
-                                               .get('app_data', {})\
-                                               .get('runtime_type', 'Generic')
+    pipeline_runtime_type = _get_pipeline_runtime_type(pipeline_definition)
     if pipeline_runtime_type and\
        pipeline_runtime_type != 'Generic' and\
        pipeline_runtime_type != runtime_type:
@@ -632,6 +654,9 @@ def export(pipeline_path, runtime_config, output, overwrite):
     if output_file.exists() and not overwrite:
         raise click.ClickException(f"Output file '{str(output_file)}' exists and "
                                    "option '--overwrite' was not specified.")
+
+    if pipeline_runtime_type:
+        _build_component_cache()
 
     # validate the pipeline
     try:
