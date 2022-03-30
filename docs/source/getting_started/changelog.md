@@ -1,5 +1,11 @@
 # Changelog
 
+## Release 3.7.0 - 03/30/2022
+
+- Update Launcher to work with other languages - [#2613](https://github.com/elyra-ai/elyra/pull/2613)
+- Add ComponentCache load to relevant pipeline app commands - [#2611](https://github.com/elyra-ai/elyra/pull/2611)
+- Update Elyra menu items - [#2596](https://github.com/elyra-ai/elyra/pull/2596)
+
 ## Release 3.7.0rc0 - 03/28/2022
 
 - Fix typo in  release script
