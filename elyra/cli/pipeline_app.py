@@ -292,12 +292,12 @@ def validate(pipeline_path, runtime_config='local'):
 
     print_banner("Elyra Pipeline Validation")
 
-    _build_component_cache()
-
     runtime = _get_runtime_schema_name(runtime_config)
 
     pipeline_definition = \
         _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
+
+    _build_component_cache()
 
     try:
         _validate_pipeline_definition(pipeline_definition)
@@ -353,8 +353,6 @@ def submit(json_option, pipeline_path, runtime_config_name,
 
     print_banner("Elyra Pipeline Submission")
 
-    _build_component_cache()
-
     runtime_config = _get_runtime_config(runtime_config_name)
 
     runtime_schema = runtime_config.schema_name
@@ -363,6 +361,8 @@ def submit(json_option, pipeline_path, runtime_config_name,
         _preprocess_pipeline(pipeline_path,
                              runtime=runtime_schema,
                              runtime_config=runtime_config_name)
+
+    _build_component_cache()
 
     try:
         _validate_pipeline_definition(pipeline_definition)
@@ -587,8 +587,6 @@ def export(pipeline_path, runtime_config, output, overwrite):
     click.echo()
     print_banner("Elyra pipeline export")
 
-    _build_component_cache()
-
     rtc = _get_runtime_config(runtime_config)
     runtime_schema = rtc.schema_name
     runtime_type = rtc.metadata.get('runtime_type')
@@ -648,6 +646,8 @@ def export(pipeline_path, runtime_config, output, overwrite):
     if output_file.exists() and not overwrite:
         raise click.ClickException(f"Output file '{str(output_file)}' exists and "
                                    "option '--overwrite' was not specified.")
+
+    _build_component_cache()
 
     # validate the pipeline
     try:
