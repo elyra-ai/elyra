@@ -285,6 +285,17 @@ class PipelineValidationManager(SingletonConfigurable):
                 # Checks pipeline node types are compatible with the runtime selected
                 for sub_pipeline in pipeline_definition.pipelines:
                     for node in sub_pipeline.nodes:
+                        if node.op not in ComponentCache.get_generic_component_ops() and pipeline_runtime == "local":
+                            response.add_message(severity=ValidationSeverity.Error,
+                                                 message_type="invalidNodeType",
+                                                 message="This pipeline contains at least one runtime-specific "
+                                                         "component, but pipeline runtime is 'local'. Specify a "
+                                                         "runtime config or remove runtime-specific components "
+                                                         "from the pipeline",
+                                                 data={"nodeID": node.id,
+                                                       "nodeOpName": node.op,
+                                                       "pipelineId": sub_pipeline.id})
+                            break
                         if node.type == "execution_node" and node.op not in supported_ops:
                             response.add_message(severity=ValidationSeverity.Error,
                                                  message_type="invalidNodeType",

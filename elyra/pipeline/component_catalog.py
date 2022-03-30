@@ -597,6 +597,10 @@ class ComponentCache(SingletonConfigurable):
         return ComponentCache._generic_components.get(component_id)
 
     @staticmethod
+    def get_generic_component_ops() -> List[str]:
+        return [component.op for component in ComponentCache.get_generic_components()]
+
+    @staticmethod
     def load_jinja_template(template_name: str) -> Template:
         """
         Loads the jinja template of the given name from the
@@ -647,7 +651,7 @@ class ComponentCache(SingletonConfigurable):
         If component_id is one of the generic set, generic template is rendered,
         otherwise, the  runtime-specific property template is rendered
         """
-        if component.id in ('notebook', 'python-script', 'r-script'):
+        if ComponentCache.get_generic_component(component.id) is not None:
             template = ComponentCache.load_jinja_template('generic_properties_template.jinja2')
         else:
             template = ComponentCache.load_jinja_template('canvas_properties_template.jinja2')
