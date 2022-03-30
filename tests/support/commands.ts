@@ -225,8 +225,8 @@ Cypress.Commands.add('closeTab', (index: number): void => {
     .click();
 });
 
-Cypress.Commands.add('createNewScriptFile', (language: string): void => {
+Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
   cy.get(
-    `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} file"]:visible`
+    `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
   ).click();
 });

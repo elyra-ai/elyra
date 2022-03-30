@@ -40,10 +40,10 @@ describe('Elyra launcher is in use', () => {
     );
     // Script editor extension is available
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"]:visible'
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python Editor"]:visible'
     );
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R file"]:visible'
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R Editor"]:visible'
     );
     // Documentation link is available
     cy.get(
