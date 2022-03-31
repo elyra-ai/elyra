@@ -23,6 +23,9 @@ from logging import Logger
 import os
 import re
 from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Set
 
 try:  # typing.final is not available in python < 3.8 so create a dummy decorator in those cases
     from typing import final
@@ -31,10 +34,6 @@ except ImportError:
     def final(meth):
         return meth
 
-
-from typing import List
-from typing import Optional
-from typing import Set
 
 from entrypoints import get_group_all
 from jsonschema import draft7_format_checker
