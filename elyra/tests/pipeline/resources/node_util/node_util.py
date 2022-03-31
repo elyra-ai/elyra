@@ -54,7 +54,7 @@ class OutputNodeFile(NodeFile):
 
         # Don't enforce output file existence here - break idempotency
         # if os.path.exists(self.filename):
-        #    raise FileExistsError("File '{}' already exists!".format(self.filename))
+        #    raise FileExistsError(f"File '{self.filename}' already exists!")
 
     def write(self, data) -> None:
         with open(self.filename, "w+") as f:

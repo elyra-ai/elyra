@@ -189,10 +189,10 @@ def update_version_to_dev() -> None:
         sed(_source("README.md"), rf"elyra:{new_version} ", "elyra:dev ")
         sed(_source("etc/docker/kubeflow/README.md"), rf"kf-notebook:{new_version}", "kf-notebook:dev")
         # this does not goes back to dev
-        # sed(source('README.md'), r"/v[0-9].[0-9].[0-9]", "/v{}".format(dev_version))
+        # sed(source('README.md'), rf"/v[0-9].[0-9].[0-9]", "/v{dev_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra:{new_version} ", "elyra:dev ")
         # this does not goes back to dev
-        # sed(source('docs/source/getting_started/installation.md'), r"/v[0-9].[0-9].[0-9]", "/v{}".format(dev_version))
+        # sed(source('docs/source/getting_started/installation.md'), rf"/v[0-9].[0-9].[0-9]", "/v{dev_version}")
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.tag}", "master")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"{new_version}", "dev")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", "master")
