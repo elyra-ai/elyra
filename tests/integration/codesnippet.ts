@@ -47,9 +47,7 @@ describe('Code Snippet tests', () => {
       .should('be.visible');
 
     // Fields marked as required should be highlighted
-    cy.get(
-      '.elyra-MuiFormHelperText-root.elyra-Mui-error, .MuiFormHelperText-root.Mui-error'
-    ).as('required-warnings');
+    cy.get('.error-detail li.text-danger').as('required-warnings');
     cy.get('@required-warnings').should('have.length', 2);
   });
 
@@ -417,10 +415,10 @@ const insert = (snippetName: string): void => {
 
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
   cy.get('.elyra-metadataEditor')
-    .find('.elyra-form-DropDown-item .elyra-MuiOutlinedInput-root')
+    .find('.elyra-form-DropDown-item option')
     .first()
     .click();
-  cy.get('.elyra-MuiAutocomplete-listbox')
+  cy.get('.elyra-form-DropDown-item input')
     .contains(`${lang}`)
     .click();
 };

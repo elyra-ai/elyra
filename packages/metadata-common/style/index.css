@@ -45,10 +45,6 @@
   cursor: pointer;
 }
 
-.elyra-metadataHeader-button.MuiButtonGroup-groupedTextHorizontal:not(:last-child) {
-  border-right: none;
-}
-
 .elyra-metadataHeader [fill] {
   fill: var(--jp-ui-font-color1);
 }

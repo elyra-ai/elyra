@@ -56,6 +56,7 @@ export const DropDown: Field = props => {
           handleChange(event.target.value);
         }}
         value={current ?? ''}
+        className="form-control"
         list={`${label}-dataList`}
         placeholder={
           placeholder || `Create or select ${label.toLocaleLowerCase()}`
