@@ -18,8 +18,8 @@ import io
 import zipfile
 
 from elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector import (
-    AirflowPackageCatalogConnector,
-)  # noqa:E501
+    AirflowPackageCatalogConnector
+)
 from elyra.pipeline.catalog_connector import AirflowEntryData
 
 AIRFLOW_1_10_15_PKG_URL = (
