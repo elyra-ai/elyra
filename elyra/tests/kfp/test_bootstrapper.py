@@ -610,7 +610,7 @@ def test_convert_notebook_to_html(tmpdir):
         with open(notebook_output_html_file, "r") as html_file:
             html_data = html_file.read()
             assert html_data.startswith("<!DOCTYPE html>")
-            assert "&quot;TEST_ENV_VAR1&quot;" in html_data  # from os.getenv("TEST_ENV_VAR1")
+            assert "&apos;TEST_ENV_VAR1&apos;" in html_data  # from os.getenv("TEST_ENV_VAR1")
             assert html_data.endswith("</html>\n")
 
 

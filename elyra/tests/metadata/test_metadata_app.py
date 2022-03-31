@@ -1144,7 +1144,7 @@ def test_export_inaccessible_directory(script_runner, mock_data_dir):
     ret = script_runner.run("elyra-metadata", "export", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
     assert ret.success is False
     assert (
-        f"Error creating directory structure for '{directory_parameter}/" + f"{METADATA_TEST_SCHEMASPACE}': "
+        f"Error creating directory structure for '{directory_parameter}/{METADATA_TEST_SCHEMASPACE}': "
         in ret.stdout
     )
     assert any(ele in ret.stdout for ele in ["Read-only file system: ", "Permission denied: ", "Access Denied: "])
