@@ -417,8 +417,11 @@ const editSnippetLanguage = (snippetName: string, lang: string): void => {
   cy.get('.elyra-metadataEditor')
     .find('.elyra-form-DropDown-item option')
     .first()
-    .click();
-  cy.get('.elyra-form-DropDown-item input')
-    .contains(`${lang}`)
+    .should('have.value', lang);
+  cy.get('.elyra-metadataEditor')
+    .find('.elyra-metadataEditor-form-language input')
+    .type(lang);
+  cy.get('.elyra-metadataEditor-form-language input')
+    .should('have.value', lang)
     .click();
 };
