@@ -18,7 +18,7 @@ import io
 import zipfile
 
 from elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_catalog_connector import (
-    AirflowProviderPackageCatalogConnector,
+    AirflowProviderPackageCatalogConnector,  # noqa: H301
 )
 from elyra.pipeline.catalog_connector import AirflowEntryData
 
