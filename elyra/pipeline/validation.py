@@ -478,9 +478,9 @@ class PipelineValidationManager(SingletonConfigurable):
                     # "value": the node ID of the parent node containing the output
                     # "option": the name of the key (which is an output) of the above referenced node
                     if (
-                        not isinstance(node_param, dict)
-                        or len(node_param) != 2
-                        or set(node_param.keys()) != {"value", "option"}
+                        not isinstance(node_param, dict) or
+                        len(node_param) != 2 or
+                        set(node_param.keys()) != {"value", "option"}
                     ):
                         response.add_message(
                             severity=ValidationSeverity.Error,

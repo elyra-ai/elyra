@@ -58,8 +58,8 @@ class GitLabClient(LoggingConfigurable):
         except GitlabError as gle:
             self.log.error(f"Error accessing project {self.project_name}: {gle}")
             raise RuntimeError(
-                f"Error accessing repository {self.project_name}: {gle}. "
-                + "Please validate your runtime configuration details and retry."
+                f"Error accessing repository {self.project_name}: {gle}. " +
+                "Please validate your runtime configuration details and retry."
             ) from gle
 
     def upload_dag(self, pipeline_filepath: str, pipeline_name: str) -> None:
@@ -93,8 +93,8 @@ class GitLabClient(LoggingConfigurable):
         except GitlabError as gle:
             self.log.error(f"Error uploading DAG to branch {self.branch}: {gle}")
             raise RuntimeError(
-                f"Error uploading DAG to branch {self.branch}: {gle} "
-                + "Please validate your runtime configuration details and try again."
+                f"Error uploading DAG to branch {self.branch}: {gle} " +
+                "Please validate your runtime configuration details and try again."
             ) from gle
 
     @staticmethod

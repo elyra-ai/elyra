@@ -44,7 +44,6 @@ from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.github import GithubClient
-
 try:
     from elyra.util.gitlab import GitLabClient
 except ImportError:
@@ -348,11 +347,11 @@ be fully qualified (i.e., prefixed with their package names).
                     )
 
                     if (
-                        property_value
-                        and str(property_value)[0] == "{"
-                        and str(property_value)[-1] == "}"
-                        and isinstance(json.loads(json.dumps(property_value)), dict)
-                        and set(json.loads(json.dumps(property_value)).keys()) == {"value", "option"}
+                        property_value and
+                        str(property_value)[0] == "{" and
+                        str(property_value)[-1] == "}" and
+                        isinstance(json.loads(json.dumps(property_value)), dict) and
+                        set(json.loads(json.dumps(property_value)).keys()) == {"value", "option"}
                     ):
                         parent_node_name = self._get_node_name(
                             target_ops, json.loads(json.dumps(property_value))["value"]

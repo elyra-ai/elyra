@@ -95,9 +95,9 @@ class ComponentParameter(object):
 
         # Check description for information about 'required' parameter
         if "not optional" in description.lower() or (
-            "required" in description.lower()
-            and "not required" not in description.lower()
-            and "n't required" not in description.lower()
+            "required" in description.lower() and
+            "not required" not in description.lower() and
+            "n't required" not in description.lower()
         ):
             required = True
 
