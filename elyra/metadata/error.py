@@ -24,7 +24,7 @@ class MetadataNotFoundError(Exception):
     """
 
     def __init__(self, schemaspace: str, name: str):
-        super().__init__("No such instance named '{}' was found in the {} schemaspace.".format(name, schemaspace))
+        super().__init__(f"No such instance named '{name}' was found in the {schemaspace} schemaspace.")
 
 
 class MetadataExistsError(Exception):
@@ -35,7 +35,7 @@ class MetadataExistsError(Exception):
     """
 
     def __init__(self, schemaspace: str, name: str):
-        super().__init__("An instance named '{}' already exists in the {} schemaspace.".format(name, schemaspace))
+        super().__init__(f"An instance named '{name}' already exists in the {schemaspace} schemaspace.")
 
 
 class SchemaNotFoundError(Exception):
@@ -46,4 +46,4 @@ class SchemaNotFoundError(Exception):
     """
 
     def __init__(self, schemaspace: str, name: str):
-        super().__init__("No such schema named '{}' was found in the {} schemaspace.".format(name, schemaspace))
+        super().__init__(f"No such schema named '{name}' was found in the {schemaspace} schemaspace.")

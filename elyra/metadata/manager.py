@@ -129,7 +129,7 @@ class MetadataManager(LoggingConfigurable):
         instance_list = self.metadata_store.fetch_instances(name=name)
         metadata_dict = instance_list[0]
 
-        self.log.debug("Removing metadata resource '{}' from schemaspace '{}'.".format(name, self.schemaspace))
+        self.log.debug(f"Removing metadata resource '{name}' from schemaspace '{self.schemaspace}'.")
 
         metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
         metadata.pre_delete()  # Allow class instances to handle delete
@@ -152,7 +152,7 @@ class MetadataManager(LoggingConfigurable):
         schema_name = metadata_dict.get("schema_name")
         if not schema_name:
             raise ValueError(
-                "Instance '{}' in the {} schemaspace is missing a 'schema_name' field!".format(name, self.schemaspace)
+                f"Instance '{name}' in the {self.schemaspace} schemaspace is missing a 'schema_name' field!"
             )
 
         schema = self._get_schema(schema_name)  # returns a value or throws
@@ -161,9 +161,7 @@ class MetadataManager(LoggingConfigurable):
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
             first_line = str(ve).partition("\n")[0]
-            msg = "Validation failed for instance '{}' using the {} schema with error: {}.".format(
-                name, schema_name, first_line
-            )
+            msg = f"Validation failed for instance '{name}' using the {schema_name} schema with error: {first_line}."
             self.log.error(msg)
             raise ValidationError(msg) from ve
 
@@ -190,11 +188,9 @@ class MetadataManager(LoggingConfigurable):
             schema_file = os.path.join(os.path.dirname(__file__), "schemas", schema_name + ".json")
             if not os.path.exists(schema_file):
                 self.log.error(
-                    "The file for schema '{}' is missing from its expected location: '{}'".format(
-                        schema_name, schema_file
-                    )
+                    f"The file for schema '{schema_name}' is missing from its expected location: '{schema_file}'"
                 )
-                raise SchemaNotFoundError("The file for schema '{}' is missing!".format(schema_name))
+                raise SchemaNotFoundError(f"The file for schema '{schema_name}' is missing!")
 
         return schema_json
 

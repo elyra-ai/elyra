@@ -57,9 +57,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         try:
             instance = self._validate_body(schemaspace)
             self.log.debug(
-                "MetadataHandler: Creating metadata instance '{}' in schemaspace '{}'...".format(
-                    instance.name, schemaspace
-                )
+                f"MetadataHandler: Creating metadata instance '{instance.name}' in schemaspace '{schemaspace}'..."
             )
             metadata_manager = MetadataManager(schemaspace=schemaspace, parent=parent)
             metadata = metadata_manager.create(instance.name, instance)
@@ -86,13 +84,13 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         required_fields = ["schema_name", "metadata"]
         for field in required_fields:
             if field not in body:
-                raise SyntaxError("Insufficient information - '{}' is missing from request body.".format(field))
+                raise SyntaxError(f"Insufficient information - '{field}' is missing from request body.")
 
         # Ensure there is at least one of name or a display_name
         one_of_fields = ["name", "display_name"]
         if set(body).isdisjoint(one_of_fields):
             raise SyntaxError(
-                "Insufficient information - request body requires one of the following: {}.".format(one_of_fields)
+                f"Insufficient information - request body requires one of the following: {one_of_fields}."
             )
 
         instance = Metadata.from_dict(schemaspace, {**body})
@@ -135,11 +133,11 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
             # Check if name is in the payload and varies from resource, if so, raise 400
             if "name" in payload and payload["name"] != resource:
                 raise NotImplementedError(
-                    "The attempt to rename instance '{}' to '{}' is not supported.".format(resource, payload["name"])
+                    f"The attempt to rename instance '{resource}' to '{payload['name']}' is not supported."
                 )
             instance = Metadata.from_dict(schemaspace, {**payload})
             self.log.debug(
-                "MetadataHandler: Updating metadata instance '{}' in schemaspace '{}'...".format(resource, schemaspace)
+                f"MetadataHandler: Updating metadata instance '{resource}' in schemaspace '{schemaspace}'..."
             )
             metadata = metadata_manager.update(resource, instance)
         except (ValidationError, ValueError, NotImplementedError) as err:
@@ -161,7 +159,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
 
         try:
             self.log.debug(
-                "MetadataHandler: Deleting metadata instance '{}' in schemaspace '{}'...".format(resource, schemaspace)
+                f"MetadataHandler: Deleting metadata instance '{resource}' in schemaspace '{schemaspace}'..."
             )
             metadata_manager = MetadataManager(schemaspace=schemaspace, parent=parent)
             metadata_manager.remove(resource)

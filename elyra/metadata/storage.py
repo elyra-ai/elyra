@@ -233,16 +233,15 @@ class FileMetadataStore(MetadataStore):
                             else:
                                 continue
 
-                        if metadata.get("name") in resources.keys():
+                        md_name = metadata.get("name")
+                        if md_name in resources.keys():
                             # If we're replacing an instance, let that be known via debug
+                            from_resource = resources[md_name].get("resource")
+                            md_resource = metadata.get("resource")
                             self.log.debug(
-                                "Replacing metadata instance '{}' from '{}' with '{}'.".format(
-                                    metadata.get("name"),
-                                    resources[metadata.get("name")].get("resource"),
-                                    metadata.get("resource"),
-                                )
+                                f"Replacing metadata instance '{md_name}' from '{from_resource}' with '{md_resource}'."
                             )
-                        resources[metadata.get("name")] = metadata
+                        resources[md_name] = metadata
 
         if name:
             if name in resources.keys():  # check if we have a match.
@@ -259,12 +258,12 @@ class FileMetadataStore(MetadataStore):
 
         Create is the default behavior, while updates are performed when for_update is True.
         """
-        metadata_resource_name = "{}.json".format(name)
+        metadata_resource_name = f"{name}.json"
         resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)
 
         # If the preferred metadata directory is not present, create it and note it.
         if not os.path.exists(self.preferred_metadata_dir):
-            self.log.debug("Creating metadata directory: {}".format(self.preferred_metadata_dir))
+            self.log.debug(f"Creating metadata directory: {self.preferred_metadata_dir}")
             os.makedirs(self.preferred_metadata_dir, mode=0o700, exist_ok=True)
 
         # Prepare for persistence, check existence, etc.
@@ -283,9 +282,7 @@ class FileMetadataStore(MetadataStore):
             raise ex from ex
         else:
             self.log.debug(
-                "{action} metadata instance: {resource}".format(
-                    action="Updated" if for_update else "Created", resource=resource
-                )
+                f"{'Updated' if for_update else 'Created'} metadata instance: {resource}"
             )
 
         # Confirm persistence so in case there are issues, we can rollback
@@ -302,11 +299,11 @@ class FileMetadataStore(MetadataStore):
             # the first directory in the list (i.e., most "near" the user)
             if not self._remove_allowed(metadata):
                 self.log.error(
-                    "Removal of instance '{}' from the {} schemaspace is not permitted!  "
-                    "Resource conflict at '{}' ".format(name, self.schemaspace, resource)
+                    f"Removal of instance '{name}' from the {self.schemaspace} schemaspace is not permitted!  "
+                    f"Resource conflict at '{resource}' "
                 )
                 raise PermissionError(
-                    "Removal of instance '{}' from the {} schemaspace is not permitted!".format(name, self.schemaspace)
+                    f"Removal of instance '{name}' from the {self.schemaspace} schemaspace is not permitted!"
                 )
             os.remove(resource)
             self.cache.remove_item(resource)
@@ -315,9 +312,7 @@ class FileMetadataStore(MetadataStore):
         """Prepare to create resource, ensure it doesn't exist in the hierarchy."""
         if os.path.exists(resource):
             self.log.error(
-                "An instance named '{}' already exists in the {} schemaspace at {}.".format(
-                    name, self.schemaspace, resource
-                )
+                f"An instance named '{name}' already exists in the {self.schemaspace} schemaspace at {resource}."
             )
             raise MetadataExistsError(self.schemaspace, name)
 
@@ -327,9 +322,8 @@ class FileMetadataStore(MetadataStore):
             resources = self.fetch_instances(name)
             # Instance exists at other (protected) level and this is a create - throw exception
             self.log.error(
-                "An instance named '{}' already exists in the {} schemaspace at {}.".format(
-                    name, self.schemaspace, resources[0].get("resource")
-                )
+                f"An instance named '{name}' already exists in the {self.schemaspace} "
+                f"schemaspace at {resources[0].get('resource')}."
             )
             raise MetadataExistsError(self.schemaspace, name)
         except MetadataNotFoundError:  # doesn't exist elsewhere, so we're good.
@@ -342,7 +336,7 @@ class FileMetadataStore(MetadataStore):
             # We're updating so we need to rename the current file to allow restore on errs
             renamed_resource = resource + str(time.time())
             os.rename(resource, renamed_resource)
-            self.log.debug("Renamed resource for instance '{}' to: '{}'".format(name, renamed_resource))
+            self.log.debug(f"Renamed resource for instance '{name}' to: '{renamed_resource}'")
         return renamed_resource
 
     def _rollback(self, resource: str, renamed_resource: str) -> None:
@@ -362,7 +356,7 @@ class FileMetadataStore(MetadataStore):
         try:
             metadata = self._load_resource(resource)
         except Exception as ex:
-            self.log.error("Removing metadata instance '{}' due to previous error.".format(resource))
+            self.log.error(f"Removing metadata instance '{resource}' due to previous error.")
             self._rollback(resource, renamed_resource)
             raise ex from ex
 

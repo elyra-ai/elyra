@@ -94,11 +94,11 @@ class SchemaspaceList(SchemaspaceBase):
             print(metadata_instances)
         else:
             if not metadata_instances:
-                print("No metadata instances found for {}".format(self.schemaspace))
+                print(f"No metadata instances found for {self.schemaspace}")
                 return
 
             validity_clause = "includes invalid" if include_invalid else "valid only"
-            print("Available metadata instances for {} ({}):".format(self.schemaspace, validity_clause))
+            print(f"Available metadata instances for {self.schemaspace} ({validity_clause}):")
 
             sorted_instances = sorted(metadata_instances, key=lambda inst: (inst.schema_name, inst.name))
             # pad to width of longest instance
@@ -130,7 +130,7 @@ class SchemaspaceList(SchemaspaceBase):
             for instance in sorted_instances:
                 invalid = ""
                 if instance.reason and len(instance.reason) > 0:
-                    invalid = "**INVALID** ({})".format(instance.reason)
+                    invalid = f"**INVALID** ({instance.reason})"
                 print(
                     "%s   %s  %s  %s"
                     % (

@@ -101,15 +101,13 @@ class Metadata(object):
             instance = metadata_class(**metadata_dict)
             if not isinstance(instance, Metadata):
                 raise ValueError(
-                    "The metadata_class_name ('{}') for schema '{}' must be a subclass of '{}'!".format(
-                        metadata_class_name, schema_name, cls.__name__
-                    )
+                    f"The metadata_class_name ('{metadata_class_name}') for "
+                    f"schema '{schema_name}' must be a subclass of '{cls.__name__}'!"
                 )
         except TypeError as te:
             raise ValueError(
-                "The metadata_class_name ('{}') for schema '{}' must be a subclass of '{}'!".format(
-                    metadata_class_name, schema_name, cls.__name__
-                )
+                f"The metadata_class_name ('{metadata_class_name}') for "
+                f"schema '{schema_name}' must be a subclass of '{cls.__name__}'!"
             ) from te
         return instance
 
