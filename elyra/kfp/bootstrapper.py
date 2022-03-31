@@ -220,9 +220,7 @@ class FileOpBase(ABC):
             except ValueError as ve:
                 # The file content could not be parsed. Log a warning
                 # and treat this as a non-fatal error.
-                logger.warning(
-                    f"Ignoring incompatible {str(src)} produced by {self.filepath}: {ve} {str(ve)}"
-                )
+                logger.warning(f"Ignoring incompatible {str(src)} produced by {self.filepath}: {ve} {str(ve)}")
             except Exception as ex:
                 # Something is wrong with the user-generated metadata file.
                 # Log a warning and treat this as a non-fatal error.

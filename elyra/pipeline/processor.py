@@ -411,9 +411,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
             ) from ex
         except MaxRetryError as ex:
             cos_endpoint = runtime_configuration.metadata.get("cos_endpoint")
-            self.log.error(
-                f"Connection was refused when attempting to connect to : {cos_endpoint}", exc_info=True
-            )
+            self.log.error(f"Connection was refused when attempting to connect to : {cos_endpoint}", exc_info=True)
             raise RuntimeError(
                 f"Connection was refused when attempting to upload artifacts to : '{cos_endpoint}'. "
                 "Please check your object storage settings."

@@ -300,9 +300,7 @@ class ExecuteFileOp(ContainerOp):
         trimmed_artifact_list = []
         for artifact_name in pipeline_array:
             if INOUT_SEPARATOR in artifact_name:  # if INOUT_SEPARATOR is in name, throw since this is our separator
-                raise ValueError(
-                    f"Illegal character ({INOUT_SEPARATOR}) found in filename '{artifact_name}'."
-                )
+                raise ValueError(f"Illegal character ({INOUT_SEPARATOR}) found in filename '{artifact_name}'.")
             trimmed_artifact_list.append(artifact_name.strip())
         return INOUT_SEPARATOR.join(trimmed_artifact_list)
 

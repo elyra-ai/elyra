@@ -34,8 +34,8 @@ class KfpMetadata(RuntimesMetadata):
             # - api_username and api_password present -> use DEX Legacy
             # - otherwise -> use no authentication type
             if (
-                len(self.metadata.get("api_username", "").strip()) == 0 or
-                len(self.metadata.get("api_password", "").strip()) == 0
+                len(self.metadata.get("api_username", "").strip()) == 0
+                or len(self.metadata.get("api_password", "").strip()) == 0
             ):
                 self.metadata["auth_type"] = SupportedAuthProviders.NO_AUTHENTICATION.name
             else:
@@ -74,24 +74,24 @@ class KfpMetadata(RuntimesMetadata):
 
             if kfp_auth_provider == SupportedAuthProviders.NO_AUTHENTICATION:
                 if (
-                    len(self.metadata.get("api_username", "").strip()) > 0 or
-                    len(self.metadata.get("api_password", "").strip()) > 0
+                    len(self.metadata.get("api_username", "").strip()) > 0
+                    or len(self.metadata.get("api_password", "").strip()) > 0
                 ):
                     raise ValueError(
                         "Username and password are not supported " "for the selected Kubeflow authentication type."
                     )
             elif kfp_auth_provider == SupportedAuthProviders.DEX_STATIC_PASSWORDS:
                 if (
-                    len(self.metadata.get("api_username", "").strip()) == 0 or
-                    len(self.metadata.get("api_password", "").strip()) == 0
+                    len(self.metadata.get("api_username", "").strip()) == 0
+                    or len(self.metadata.get("api_password", "").strip()) == 0
                 ):
                     raise ValueError(
                         "A username and password are required " "for the selected Kubeflow authentication type."
                     )
             elif kfp_auth_provider == SupportedAuthProviders.DEX_LDAP:
                 if (
-                    len(self.metadata.get("api_username", "").strip()) == 0 or
-                    len(self.metadata.get("api_password", "").strip()) == 0
+                    len(self.metadata.get("api_username", "").strip()) == 0
+                    or len(self.metadata.get("api_password", "").strip()) == 0
                 ):
                     raise ValueError(
                         "A username and password are required " "for the selected Kubeflow authentication type."
@@ -105,8 +105,8 @@ class KfpMetadata(RuntimesMetadata):
                     raise ValueError("A password requires a username " "for the selected Kubeflow authentication type.")
             elif kfp_auth_provider == SupportedAuthProviders.KUBERNETES_SERVICE_ACCOUNT_TOKEN:
                 if (
-                    len(self.metadata.get("api_username", "").strip()) > 0 or
-                    len(self.metadata.get("api_password", "").strip()) > 0
+                    len(self.metadata.get("api_username", "").strip()) > 0
+                    or len(self.metadata.get("api_password", "").strip()) > 0
                 ):
                     raise ValueError(
                         "Username and password are not supported " "for the selected Kubeflow authentication type."
@@ -119,8 +119,8 @@ class KfpMetadata(RuntimesMetadata):
 
         if self.metadata["cos_auth_type"] == "USER_CREDENTIALS":
             if (
-                len(self.metadata.get("cos_username", "").strip()) == 0 or
-                len(self.metadata.get("cos_password", "").strip()) == 0
+                len(self.metadata.get("cos_username", "").strip()) == 0
+                or len(self.metadata.get("cos_password", "").strip()) == 0
             ):
                 raise ValueError(
                     "A username and password are required " "for the selected Object Storage authentication type."
@@ -131,9 +131,9 @@ class KfpMetadata(RuntimesMetadata):
                 )
         elif self.metadata["cos_auth_type"] == "KUBERNETES_SECRET":
             if (
-                len(self.metadata.get("cos_username", "").strip()) == 0 or
-                len(self.metadata.get("cos_password", "").strip()) == 0 or
-                len(self.metadata.get("cos_secret", "").strip()) == 0
+                len(self.metadata.get("cos_username", "").strip()) == 0
+                or len(self.metadata.get("cos_password", "").strip()) == 0
+                or len(self.metadata.get("cos_secret", "").strip()) == 0
             ):
                 raise ValueError(
                     "Username, password, and Kubernetes secret are required "
@@ -141,9 +141,9 @@ class KfpMetadata(RuntimesMetadata):
                 )
         elif self.metadata["cos_auth_type"] == "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS":
             if (
-                len(self.metadata.get("cos_username", "").strip()) > 0 or
-                len(self.metadata.get("cos_password", "").strip()) > 0 or
-                len(self.metadata.get("cos_secret", "").strip()) > 0
+                len(self.metadata.get("cos_username", "").strip()) > 0
+                or len(self.metadata.get("cos_password", "").strip()) > 0
+                or len(self.metadata.get("cos_secret", "").strip()) > 0
             ):
                 raise ValueError(
                     "Username, password, and Kubernetes secret are not supported "

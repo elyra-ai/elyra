@@ -155,12 +155,12 @@ class Operation(object):
     def __eq__(self, other: "Operation") -> bool:
         if isinstance(self, other.__class__):
             return (
-                self.id == other.id and
-                self.type == other.type and
-                self.classifier == other.classifier and
-                self.name == other.name and
-                self.parent_operation_ids == other.parent_operation_ids and
-                self.component_params == other.component_params
+                self.id == other.id
+                and self.type == other.type
+                and self.classifier == other.classifier
+                and self.name == other.name
+                and self.parent_operation_ids == other.parent_operation_ids
+                and self.component_params == other.component_params
             )
         return False
 
@@ -432,11 +432,11 @@ class Pipeline(object):
     def __eq__(self, other: "Pipeline") -> bool:
         if isinstance(self, other.__class__):
             return (
-                self.id == other.id and
-                self.name == other.name and
-                self.source == other.source and
-                self.description == other.description and
-                self.runtime == other.runtime and
-                self.runtime_config == other.runtime_config and
-                self.operations == other.operations
+                self.id == other.id
+                and self.name == other.name
+                and self.source == other.source
+                and self.description == other.description
+                and self.runtime == other.runtime
+                and self.runtime_config == other.runtime_config
+                and self.operations == other.operations
             )

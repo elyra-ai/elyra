@@ -336,9 +336,9 @@ class AirflowComponentParser(ComponentParser):
                             data_type = arg.annotation.value.id
 
                     elif (
-                        isinstance(arg.annotation.slice, (ast.Tuple, ast.Index)) and
-                        isinstance(arg.annotation.value, ast.Name) and
-                        arg.annotation.value.id != "Optional"
+                        isinstance(arg.annotation.slice, (ast.Tuple, ast.Index))
+                        and isinstance(arg.annotation.value, ast.Name)
+                        and arg.annotation.value.id != "Optional"
                     ):
                         # arg is of the form `<arg>: <multi-valued_type>`
                         # e.g. `env: Dict[str, str]` or `env: List[bool]`
@@ -355,9 +355,9 @@ class AirflowComponentParser(ComponentParser):
                         data_type = arg.annotation.slice.value.id
 
                     elif (
-                        isinstance(arg.annotation.slice, ast.Index) and
-                        isinstance(arg.annotation.slice.value, ast.Subscript) and
-                        isinstance(arg.annotation.slice.value.value, ast.Name)
+                        isinstance(arg.annotation.slice, ast.Index)
+                        and isinstance(arg.annotation.slice.value, ast.Subscript)
+                        and isinstance(arg.annotation.slice.value.value, ast.Name)
                     ):
                         # arg is of the form `<arg>: Optional[<multi-valued_type>]`
                         # e.g. `env = Optional[Dict[str, str]]` or `env = Optional[List[int]]`

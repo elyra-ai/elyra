@@ -36,8 +36,8 @@ class CosClient(LoggingConfigurable):
             if access_key is None or secret_key is None:
                 # use env variables for authentication
                 if (
-                    len(os.environ.get("AWS_ACCESS_KEY_ID", "").strip()) == 0 or
-                    len(os.environ.get("AWS_SECRET_ACCESS_KEY", "").strip()) == 0
+                    len(os.environ.get("AWS_ACCESS_KEY_ID", "").strip()) == 0
+                    or len(os.environ.get("AWS_SECRET_ACCESS_KEY", "").strip()) == 0
                 ):
                     raise RuntimeError(
                         "Cannot connect to object storage. No credentials "

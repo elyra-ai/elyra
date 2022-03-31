@@ -492,9 +492,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug(
-                    f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}"
-                )
+                self.log.debug(f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}")
 
                 target_ops[operation.id] = ExecuteFileOp(
                     name=sanitized_operation_name,

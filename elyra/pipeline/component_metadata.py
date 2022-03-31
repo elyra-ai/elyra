@@ -16,6 +16,7 @@
 from typing import Any
 
 from elyra.metadata.metadata import Metadata
+
 # Rather than importing only the ComponentCache class needed in the post_save and
 # post_delete hooks below, the component_catalog module must be imported in its
 # entirety in order to avoid a circular reference issue
@@ -23,8 +24,10 @@ try:
     from elyra.pipeline import component_catalog
 except ImportError:
     import sys
+
     component_catalog = sys.modules[__package__ + ".component_catalog"]
-from elyra.pipeline.runtime_type import RuntimeProcessorType
+
+from elyra.pipeline.runtime_type import RuntimeProcessorType  # noqa:I202
 
 
 class ComponentRegistryMetadata(Metadata):

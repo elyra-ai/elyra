@@ -44,11 +44,13 @@ from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.github import GithubClient
+
 try:
     from elyra.util.gitlab import GitLabClient
 except ImportError:
     pass  # Gitlab package is not installed, ignore and use only GitHub
-from elyra.util.gitutil import SupportedGitTypes
+
+from elyra.util.gitutil import SupportedGitTypes  # noqa:I202
 from elyra.util.path import get_absolute_path
 
 
@@ -242,9 +244,7 @@ be fully qualified (i.e., prefixed with their package names).
             if isinstance(operation, GenericOperation):
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug(
-                    f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}"
-                )
+                self.log.debug(f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}")
 
                 # Collect env variables
                 pipeline_envs = self._collect_envs(
@@ -345,11 +345,11 @@ be fully qualified (i.e., prefixed with their package names).
                     )
 
                     if (
-                        property_value and
-                        str(property_value)[0] == "{" and
-                        str(property_value)[-1] == "}" and
-                        isinstance(json.loads(json.dumps(property_value)), dict) and
-                        set(json.loads(json.dumps(property_value)).keys()) == {"value", "option"}
+                        property_value
+                        and str(property_value)[0] == "{"
+                        and str(property_value)[-1] == "}"
+                        and isinstance(json.loads(json.dumps(property_value)), dict)
+                        and set(json.loads(json.dumps(property_value)).keys()) == {"value", "option"}
                     ):
                         parent_node_name = self._get_node_name(
                             target_ops, json.loads(json.dumps(property_value))["value"]
