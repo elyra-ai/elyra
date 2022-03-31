@@ -716,8 +716,9 @@ class SchemaspaceExport(SchemaspaceBase):
 
         if not metadata_instances:
             print(
-                f"No metadata instances found for schemaspace '{self.schemaspace}'"
-                f" and schema '{schema_name}'" if schema_name else ""
+                f"No metadata instances found for schemaspace '{self.schemaspace}'" f" and schema '{schema_name}'"
+                if schema_name
+                else ""
             )
             print(f"Nothing exported to '{directory}'")
             return
@@ -739,10 +740,11 @@ class SchemaspaceExport(SchemaspaceBase):
                     [os.remove(f) for f in files if os.path.isfile(f)]
 
         print(
-            f"Exporting metadata instances for schemaspace '{self.schemaspace}'"
-            f" and schema '{schema_name}'" if schema_name else ""
-            " (includes invalid)" if include_invalid else " (valid only)"
-            f" to '{dest_directory}'"
+            f"Exporting metadata instances for schemaspace '{self.schemaspace}'" f" and schema '{schema_name}'"
+            if schema_name
+            else "" " (includes invalid)"
+            if include_invalid
+            else " (valid only)" f" to '{dest_directory}'"
         )
         num_valid_exported = 0
         num_invalid_exported = 0
@@ -758,10 +760,11 @@ class SchemaspaceExport(SchemaspaceBase):
 
         total_exported = num_valid_exported + num_invalid_exported
         print(
-            f"Exported {total_exported} "
-            f"instances" if total_exported > 1 else "instance"
-            f" ({num_invalid_exported} of which "
-            f"is" if num_invalid_exported == 1 else "are invalid)"
+            f"Exported {total_exported} " f"instances"
+            if total_exported > 1
+            else "instance" f" ({num_invalid_exported} of which " f"is"
+            if num_invalid_exported == 1
+            else "are invalid)"
         )
 
 

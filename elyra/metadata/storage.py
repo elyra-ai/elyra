@@ -281,9 +281,7 @@ class FileMetadataStore(MetadataStore):
             self._rollback(resource, renamed_resource)
             raise ex from ex
         else:
-            self.log.debug(
-                f"{'Updated' if for_update else 'Created'} metadata instance: {resource}"
-            )
+            self.log.debug(f"{'Updated' if for_update else 'Created'} metadata instance: {resource}")
 
         # Confirm persistence so in case there are issues, we can rollback
         metadata = self._confirm_persistence(resource, renamed_resource)
