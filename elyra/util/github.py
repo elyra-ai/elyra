@@ -57,7 +57,7 @@ class GithubClient(LoggingConfigurable):
         except GithubException as e:
             self.log.error(f'Error accessing repository {self.repo_name}: {e.data["message"]} ({e.status})')
             raise RuntimeError(
-                f'Error accessing repository {self.repo_name}: {e.data["message"]} ({e.status}). ' +
+                f'Error accessing repository {self.repo_name}: {e.data["message"]} ({e.status}). '
                 "Please validate your runtime configuration details and retry."
             ) from e
 
@@ -88,7 +88,7 @@ class GithubClient(LoggingConfigurable):
         except GithubException as e:
             self.log.error(f'Error uploading DAG to branch {self.branch}: {e.data["message"]} ({e.status})')
             raise RuntimeError(
-                f'Error uploading DAG to branch {self.branch}: {e.data["message"]} ({e.status}). ' +
+                f'Error uploading DAG to branch {self.branch}: {e.data["message"]} ({e.status}). '
                 "Please validate your runtime configuration details and retry."
             ) from e
 
