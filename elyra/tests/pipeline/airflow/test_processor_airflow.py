@@ -192,7 +192,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                 if f"op_{node['id'].replace('-', '_')} = KubernetesPodOperator(" in file_as_lines[i]:
                     sub_list_line_counter = 0
                     # Gets sub-list slice starting where the Notebook Op starts
-                    for line in file_as_lines[i + 1 :]:
+                    for line in file_as_lines[i + 1:]:
                         if "namespace=" in line:
                             assert sample_metadata["metadata"]["user_namespace"] == read_key_pair(line)["value"]
                         elif "cos_endpoint=" in line:
@@ -209,16 +209,16 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                             for env in component_parameters["env_vars"]:
                                 var, value = env.split("=")
                                 # Gets sub-list slice starting where the env vars starts
-                                for env_line in file_as_lines[i + sub_list_line_counter + 2 :]:
+                                for env_line in file_as_lines[i + sub_list_line_counter + 2:]:
                                     if "AWS_ACCESS_KEY_ID" in env_line:
                                         assert (
-                                            sample_metadata["metadata"]["cos_username"]
-                                            == read_key_pair(env_line, sep=":")["value"]
+                                            sample_metadata["metadata"]["cos_username"] ==
+                                            read_key_pair(env_line, sep=":")["value"]
                                         )
                                     elif "AWS_SECRET_ACCESS_KEY" in env_line:
                                         assert (
-                                            sample_metadata["metadata"]["cos_password"]
-                                            == read_key_pair(env_line, sep=":")["value"]
+                                            sample_metadata["metadata"]["cos_password"] ==
+                                            read_key_pair(env_line, sep=":")["value"]
                                         )
                                     elif var in env_line:
                                         assert var == read_key_pair(env_line, sep=":")["key"]
@@ -299,7 +299,7 @@ def test_create_file_custom_components(
                     for parameter in component_parameters:
                         # Find 'parameter=' clause in file_as_lines list
                         r = re.compile(rf"\s*{parameter}=.*")
-                        assert len(list(filter(r.match, file_as_lines[i + 1 :]))) > 0
+                        assert len(list(filter(r.match, file_as_lines[i + 1:]))) > 0
 
 
 @pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
@@ -341,24 +341,24 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
     # Verify tree structure is correct
     assert not ordered_dict["cded6818-e601-4fd8-b6b9-c9fdf1fd1fca"].get("parent_operation_ids")
     assert (
-        ordered_dict["bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"].get("parent_operation_ids").pop()
-        == "cded6818-e601-4fd8-b6b9-c9fdf1fd1fca"
+        ordered_dict["bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"].get("parent_operation_ids").pop() ==
+        "cded6818-e601-4fd8-b6b9-c9fdf1fd1fca"
     )
     assert (
-        ordered_dict["6f5c2ece-1977-48a1-847f-099b327c6ed1"].get("parent_operation_ids").pop()
-        == "cded6818-e601-4fd8-b6b9-c9fdf1fd1fca"
+        ordered_dict["6f5c2ece-1977-48a1-847f-099b327c6ed1"].get("parent_operation_ids").pop() ==
+        "cded6818-e601-4fd8-b6b9-c9fdf1fd1fca"
     )
     assert (
-        ordered_dict["4ef63a48-a27c-4d1e-a0ee-2fbbdbe3be74"].get("parent_operation_ids").pop()
-        == "cded6818-e601-4fd8-b6b9-c9fdf1fd1fca"
+        ordered_dict["4ef63a48-a27c-4d1e-a0ee-2fbbdbe3be74"].get("parent_operation_ids").pop() ==
+        "cded6818-e601-4fd8-b6b9-c9fdf1fd1fca"
     )
     assert (
-        ordered_dict["4f7ae91b-682e-476c-8664-58412336b31f"].get("parent_operation_ids").pop()
-        == "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
+        ordered_dict["4f7ae91b-682e-476c-8664-58412336b31f"].get("parent_operation_ids").pop() ==
+        "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
     )
     assert (
-        ordered_dict["f82c4699-b392-4a3e-92b0-45d9e11126fe"].get("parent_operation_ids").pop()
-        == "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
+        ordered_dict["f82c4699-b392-4a3e-92b0-45d9e11126fe"].get("parent_operation_ids").pop() ==
+        "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
     )
     assert ordered_dict["137d3d2f-4224-42d9-b8c6-cbee9ff2872d"].get("parent_operation_ids") == [
         "4ef63a48-a27c-4d1e-a0ee-2fbbdbe3be74",
@@ -366,8 +366,8 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
     ]
     assert not ordered_dict["779c2630-64bf-47ca-8a98-9ac8a60e85f7"].get("parent_operation_ids")
     assert (
-        ordered_dict["0a7eff92-fe2a-411c-92a6-73d6f3810516"].get("parent_operation_ids").pop()
-        == "779c2630-64bf-47ca-8a98-9ac8a60e85f7"
+        ordered_dict["0a7eff92-fe2a-411c-92a6-73d6f3810516"].get("parent_operation_ids").pop() ==
+        "779c2630-64bf-47ca-8a98-9ac8a60e85f7"
     )
     assert ordered_dict["92a7a247-1131-489c-8c3e-1e2389d4c673"].get("parent_operation_ids") == [
         "f82c4699-b392-4a3e-92b0-45d9e11126fe",
@@ -388,12 +388,12 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                     var, value = env.split("=")
                     assert ordered_dict[key]["pipeline_envs"][var] == value
                 assert (
-                    ordered_dict[key]["pipeline_envs"]["AWS_ACCESS_KEY_ID"]
-                    == sample_metadata["metadata"]["cos_username"]
+                    ordered_dict[key]["pipeline_envs"]["AWS_ACCESS_KEY_ID"] ==
+                    sample_metadata["metadata"]["cos_username"]
                 )
                 assert (
-                    ordered_dict[key]["pipeline_envs"]["AWS_SECRET_ACCESS_KEY"]
-                    == sample_metadata["metadata"]["cos_password"]
+                    ordered_dict[key]["pipeline_envs"]["AWS_SECRET_ACCESS_KEY"] ==
+                    sample_metadata["metadata"]["cos_password"]
                 )
                 for arg in ["inputs", "outputs"]:
                     if node["app_data"].get(arg):

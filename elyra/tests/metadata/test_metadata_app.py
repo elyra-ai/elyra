@@ -1198,7 +1198,7 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert (
         f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}' "
-        + f"(includes invalid) to '{export_directory}'"
+        f"(includes invalid) to '{export_directory}'"
         in ret.stdout
     )
     assert "Exported 3 instances (2 of which are invalid)" in ret.stdout
@@ -1222,7 +1222,7 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert (
         f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}' "
-        + f"(includes invalid) to '{export_directory}'"
+        f"(includes invalid) to '{export_directory}'"
         in ret.stdout
     )
     assert "Exported 3 instances (2 of which are invalid)" in ret.stdout
@@ -1243,7 +1243,7 @@ def test_export_no_schema_with_instances(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert (
         f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}' "
-        + f"(valid only) to '{export_directory}'"
+        f"(valid only) to '{export_directory}'"
         in ret.stdout
     )
     assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
@@ -1287,7 +1287,7 @@ def test_export_with_schema_with_instances(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert (
         f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'"
-        + f" and schema 'metadata-test' (includes invalid) to '{export_directory}'"
+        f" and schema 'metadata-test' (includes invalid) to '{export_directory}'"
         in ret.stdout
     )
     assert "Exported 2 instances (1 of which is invalid)" in ret.stdout
@@ -1315,7 +1315,7 @@ def test_export_with_schema_with_instances(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" in ret.stdout
     assert (
         f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'"
-        + f" and schema 'metadata-test' (valid only) to '{export_directory}'"
+        f" and schema 'metadata-test' (valid only) to '{export_directory}'"
         in ret.stdout
     )
     assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
@@ -1376,7 +1376,7 @@ def test_export_without_clean(script_runner, mock_data_dir):
     assert f"Creating directory structure for '{export_directory}'" not in ret.stdout
     assert (
         f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'"
-        + f" and schema 'metadata-test' (valid only) to '{export_directory}'"
+        f" and schema 'metadata-test' (valid only) to '{export_directory}'"
         in ret.stdout
     )
     assert "Exported 1 instance (0 of which are invalid)" in ret.stdout
@@ -1452,7 +1452,7 @@ def test_export_clean(script_runner, mock_data_dir):
     assert f"Cleaning out all files in '{export_directory}'" in ret.stdout
     assert (
         f"Exporting metadata instances for schemaspace '{METADATA_TEST_SCHEMASPACE}'"
-        + f" and schema 'metadata-test' (valid only) to '{export_directory}'"
+        f" and schema 'metadata-test' (valid only) to '{export_directory}'"
         in ret.stdout
     )
     assert "Exported 1 instance (0 of which are invalid)" in ret.stdout

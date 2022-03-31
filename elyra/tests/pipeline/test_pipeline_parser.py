@@ -139,8 +139,8 @@ def test_pipeline_with_comments():
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/" "pipeline_3_node_sample_with_comments.json")
     pipeline = PipelineParser().parse(pipeline_json)
     assert (
-        pipeline.operations["d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c"].doc
-        == "Generate community stats and then aggregate them on an overview dashboard"
+        pipeline.operations["d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c"].doc ==
+        "Generate community stats and then aggregate them on an overview dashboard"
     )
 
 
