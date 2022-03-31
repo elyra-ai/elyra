@@ -31,21 +31,20 @@ class AirflowMetadata(RuntimesMetadata):
 
         update_required = False
 
-        if self.metadata.get('git_type') is None:
+        if self.metadata.get("git_type") is None:
             # Inject git_type property for metadata persisted using Elyra < 3.5:
-            self.metadata['git_type'] = SupportedGitTypes.GITHUB.name
+            self.metadata["git_type"] = SupportedGitTypes.GITHUB.name
             update_required = True
 
-        if self.metadata.get('cos_auth_type') is None:
+        if self.metadata.get("cos_auth_type") is None:
             # Inject cos_auth_type property for metadata persisted using Elyra < 3.4:
             # - cos_username and cos_password must be present
             # - cos_secret may be present (above statement also applies in this case)
-            if self.metadata.get('cos_username') and\
-               self.metadata.get('cos_password'):
-                if len(self.metadata.get('cos_secret', '')) == 0:
-                    self.metadata['cos_auth_type'] = 'USER_CREDENTIALS'
+            if self.metadata.get("cos_username") and self.metadata.get("cos_password"):
+                if len(self.metadata.get("cos_secret", "")) == 0:
+                    self.metadata["cos_auth_type"] = "USER_CREDENTIALS"
                 else:
-                    self.metadata['cos_auth_type'] = 'KUBERNETES_SECRET'
+                    self.metadata["cos_auth_type"] = "KUBERNETES_SECRET"
                 update_required = True
 
         if update_required:
@@ -62,27 +61,39 @@ class AirflowMetadata(RuntimesMetadata):
         """
         super().pre_save(**kwargs)
 
-        if self.metadata.get('cos_auth_type') is None:
+        if self.metadata.get("cos_auth_type") is None:
             # nothing to do
             return
 
-        if self.metadata['cos_auth_type'] == 'USER_CREDENTIALS':
-            if len(self.metadata.get('cos_username', '').strip()) == 0 or\
-               len(self.metadata.get('cos_password', '').strip()) == 0:
-                raise ValueError('A username and password are required '
-                                 'for the selected Object Storage authentication type.')
-            if len(self.metadata.get('cos_secret', '').strip()) > 0:
-                raise ValueError('Kubernetes secrets are not supported '
-                                 'for the selected Object Storage authentication type.')
-        elif self.metadata['cos_auth_type'] == 'KUBERNETES_SECRET':
-            if len(self.metadata.get('cos_username', '').strip()) == 0 or\
-               len(self.metadata.get('cos_password', '').strip()) == 0 or\
-               len(self.metadata.get('cos_secret', '').strip()) == 0:
-                raise ValueError('Username, password, and Kubernetes secret are required '
-                                 'for the selected Object Storage authentication type.')
-        elif self.metadata['cos_auth_type'] == 'AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS':
-            if len(self.metadata.get('cos_username', '').strip()) > 0 or\
-               len(self.metadata.get('cos_password', '').strip()) > 0 or\
-               len(self.metadata.get('cos_secret', '').strip()) > 0:
-                raise ValueError('Username, password, and Kubernetes secret are not supported '
-                                 'for the selected Object Storage authentication type.')
+        if self.metadata["cos_auth_type"] == "USER_CREDENTIALS":
+            if (
+                len(self.metadata.get("cos_username", "").strip()) == 0
+                or len(self.metadata.get("cos_password", "").strip()) == 0
+            ):
+                raise ValueError(
+                    "A username and password are required " "for the selected Object Storage authentication type."
+                )
+            if len(self.metadata.get("cos_secret", "").strip()) > 0:
+                raise ValueError(
+                    "Kubernetes secrets are not supported " "for the selected Object Storage authentication type."
+                )
+        elif self.metadata["cos_auth_type"] == "KUBERNETES_SECRET":
+            if (
+                len(self.metadata.get("cos_username", "").strip()) == 0
+                or len(self.metadata.get("cos_password", "").strip()) == 0
+                or len(self.metadata.get("cos_secret", "").strip()) == 0
+            ):
+                raise ValueError(
+                    "Username, password, and Kubernetes secret are required "
+                    "for the selected Object Storage authentication type."
+                )
+        elif self.metadata["cos_auth_type"] == "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS":
+            if (
+                len(self.metadata.get("cos_username", "").strip()) > 0
+                or len(self.metadata.get("cos_password", "").strip()) > 0
+                or len(self.metadata.get("cos_secret", "").strip()) > 0
+            ):
+                raise ValueError(
+                    "Username, password, and Kubernetes secret are not supported "
+                    "for the selected Object Storage authentication type."
+                )

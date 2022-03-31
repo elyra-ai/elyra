@@ -28,35 +28,31 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 setup_args = dict(
     name="{{package-name}}",
-    version='{{version}}',
+    version="{{version}}",
     url="https://github.com/elyra-ai/elyra",
     description="Elyra provides AI Centric extensions to JupyterLab",
     long_description=long_desc,
     author="Elyra Maintainers",
     license="Apache License Version 2.0",
-    data_files=get_data_files([
-        {{data-files}}
-    ]),
+    data_files=get_data_files([{{data - files}}]),
     packages=find_packages(),
-    install_requires=[
-        {{install-requires}}
-    ],
+    install_requires=[{{install - requires}}],
     include_package_data=True,
     classifiers=(
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        'Topic :: Software Development',
-        'Topic :: Software Development :: Libraries',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Software Development",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ),
     entry_points={},
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     setup(**setup_args)

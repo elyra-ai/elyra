@@ -23,11 +23,15 @@ from logging import Logger
 import os
 import re
 from typing import Dict
+
 try:  # typing.final is not available in python < 3.8 so create a dummy decorator in those cases
     from typing import final
 except ImportError:
+
     def final(meth):
         return meth
+
+
 from typing import List
 from typing import Optional
 from typing import Set
@@ -47,16 +51,17 @@ METADATA_TEST_SCHEMASPACE = "metadata-tests"  # exposed via METADATA_TESTING env
 
 class SchemaManager(SingletonConfigurable):
     """Singleton used to store all schemas for all metadata types.
-       Note: we currently don't refresh these entries.
+    Note: we currently don't refresh these entries.
     """
+
     # Maps SchemaspaceID AND SchemaspaceName to Schemaspace instance (two entries from Schemaspace instance)
-    schemaspaces: Dict[str, 'Schemaspace']
+    schemaspaces: Dict[str, "Schemaspace"]
 
     # Maps SchemaspaceID to ShemaspaceName
     schemaspace_id_to_name: Dict[str, str]
 
     # Maps SchemaspaceID to mapping of schema name to SchemasProvider
-    schemaspace_schemasproviders: Dict[str, Dict[str, 'SchemasProvider']]
+    schemaspace_schemasproviders: Dict[str, Dict[str, "SchemasProvider"]]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -71,8 +76,8 @@ class SchemaManager(SingletonConfigurable):
         self.metadata_testing_enabled = bool(os.getenv("METADATA_TESTING", 0))
 
         self._meta_schema: dict
-        schema_file = os.path.join(os.path.dirname(__file__), 'schemas', 'meta-schema.json')
-        with io.open(schema_file, 'r', encoding='utf-8') as f:
+        schema_file = os.path.join(os.path.dirname(__file__), "schemas", "meta-schema.json")
+        with io.open(schema_file, "r", encoding="utf-8") as f:
             self._meta_schema = json.load(f)
         self._load_schemaspace_schemas()
 
@@ -118,26 +123,28 @@ class SchemaManager(SingletonConfigurable):
         schema_json = schemas.get(schema_name)
         return copy.deepcopy(schema_json)
 
-    def get_schemaspace(self, schemaspace_name_or_id: str) -> 'Schemaspace':
+    def get_schemaspace(self, schemaspace_name_or_id: str) -> "Schemaspace":
         """Returns the Schemaspace instance associated with the given name or id."""
         self._validate_schemaspace(schemaspace_name_or_id)
         schemaspace = self.schemaspaces.get(schemaspace_name_or_id.lower())
         return copy.deepcopy(schemaspace)
 
-    def get_schemasproviders(self, schemaspace_id: str) -> Dict[str, 'SchemasProvider']:
-        """Returns a dictionary of schema name to SchemasProvider instance within a given schemaspace. """
+    def get_schemasproviders(self, schemaspace_id: str) -> Dict[str, "SchemasProvider"]:
+        """Returns a dictionary of schema name to SchemasProvider instance within a given schemaspace."""
         return self.schemaspace_schemasproviders.get(schemaspace_id, {})
 
     def clear_all(self) -> None:
-        """Primarily used for testing, this method reloads schemas from initial values. """
+        """Primarily used for testing, this method reloads schemas from initial values."""
         self.log.debug("SchemaManager: Reloading all schemas for all schemaspaces.")
         self._load_schemaspace_schemas()
 
     def _validate_schemaspace(self, schemaspace_name_or_id: str) -> None:
         """Ensures the schemaspace is valid and raises ValueError if it is not."""
         if schemaspace_name_or_id.lower() not in self.schemaspaces:
-            raise ValueError(f"The schemaspace name or id '{schemaspace_name_or_id}' is not "
-                             f"in the list of valid schemaspaces: '{self.get_schemaspace_names()}'!")
+            raise ValueError(
+                f"The schemaspace name or id '{schemaspace_name_or_id}' is not "
+                f"in the list of valid schemaspaces: '{self.get_schemaspace_names()}'!"
+            )
 
     def _load_schemaspace_schemas(self):
         """Gets Schemaspaces and SchemasProviders via entrypoints and validates/loads their schemas."""
@@ -164,8 +171,9 @@ class SchemaManager(SingletonConfigurable):
                 self.log.debug(f"Loading schemaspace '{schemaspace.name}'...")
                 schemaspace_instance = schemaspace.load()(parent=self.parent)  # Load an instance
                 if not isinstance(schemaspace_instance, Schemaspace):
-                    raise ValueError(f"Schemaspace instance '{schemaspace.name}' is not an "
-                                     f"instance of '{Schemaspace.__name__}'!")
+                    raise ValueError(
+                        f"Schemaspace instance '{schemaspace.name}' is not an " f"instance of '{Schemaspace.__name__}'!"
+                    )
                 # validate the name
                 # To prevent a name-to-id lookup, just store the same instance in two locations
                 self.schemaspaces[schemaspace_instance.id.lower()] = schemaspace_instance
@@ -189,8 +197,10 @@ class SchemaManager(SingletonConfigurable):
                 self.log.debug(f"Loading SchemasProvider '{schemas_provider_ep.name}'...")
                 schemas_provider = schemas_provider_ep.load()()  # Load an instance
                 if not isinstance(schemas_provider, SchemasProvider):
-                    raise ValueError(f"SchemasProvider instance '{schemas_provider_ep.name}' is not an "
-                                     f"instance of '{SchemasProvider.__name__}'!")
+                    raise ValueError(
+                        f"SchemasProvider instance '{schemas_provider_ep.name}' is not an "
+                        f"instance of '{SchemasProvider.__name__}'!"
+                    )
                 schemas = schemas_provider.get_schemas()
                 for schema in schemas:
                     try:
@@ -199,15 +209,21 @@ class SchemaManager(SingletonConfigurable):
                         schema_name = schema.get("name")
                         # Ensure that both schemaspace id and name are registered and both point to same instance
                         if schemaspace_id not in self.schemaspaces:
-                            raise ValueError(f"Schema '{schema_name}' references a schemaspace "
-                                             f"'{schemaspace_id}' that is not loaded!")
+                            raise ValueError(
+                                f"Schema '{schema_name}' references a schemaspace "
+                                f"'{schemaspace_id}' that is not loaded!"
+                            )
                         if schemaspace_name not in self.schemaspaces:
-                            raise ValueError(f"Schema '{schema_name}' references a schemaspace "
-                                             f"'{schemaspace_name}' that is not loaded!")
+                            raise ValueError(
+                                f"Schema '{schema_name}' references a schemaspace "
+                                f"'{schemaspace_name}' that is not loaded!"
+                            )
                         if self.schemaspaces[schemaspace_id] != self.schemaspaces[schemaspace_name.lower()]:
-                            raise ValueError(f"Schema '{schema_name}' references a schemaspace name "
-                                             f"'{schemaspace_name}' and a schemaspace id '{schemaspace_id}' "
-                                             f"that are associated with different Schemaspace instances!")
+                            raise ValueError(
+                                f"Schema '{schema_name}' references a schemaspace name "
+                                f"'{schemaspace_name}' and a schemaspace id '{schemaspace_id}' "
+                                f"that are associated with different Schemaspace instances!"
+                            )
 
                         schema = self.schemaspaces[schemaspace_id].filter_schema(schema)
                         self._validate_schema(schemaspace_name, schema_name, schema)
@@ -218,13 +234,16 @@ class SchemaManager(SingletonConfigurable):
                         self.schemaspace_schemasproviders[schemaspace_id] = providers
 
                     except Exception as schema_err:
-                        self.log.error(f"Error loading schema '{schema.get('name', '??')}' for SchemasProvider "
-                                       f"'{schemas_provider_ep.name}' - {schema_err}")
+                        self.log.error(
+                            f"Error loading schema '{schema.get('name', '??')}' for SchemasProvider "
+                            f"'{schemas_provider_ep.name}' - {schema_err}"
+                        )
 
             except Exception as provider_err:
                 # log and ignore initialization errors
-                self.log.error(f"Error loading schemas for SchemasProvider "
-                               f"'{schemas_provider_ep.name}' - {provider_err}")
+                self.log.error(
+                    f"Error loading schemas for SchemasProvider " f"'{schemas_provider_ep.name}' - {provider_err}"
+                )
 
     def _validate_schema(self, schemaspace_name: str, schema_name: str, schema: dict):
         """Validates the given schema against the meta-schema."""
@@ -233,21 +252,23 @@ class SchemaManager(SingletonConfigurable):
             validate(instance=schema, schema=self._meta_schema, format_checker=draft7_format_checker)
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
-            first_line = str(ve).partition('\n')[0]
-            msg = f"Validation failed for schema '{schema_name}' of " \
-                  f"schemaspace '{schemaspace_name}' with error: {first_line}."
+            first_line = str(ve).partition("\n")[0]
+            msg = (
+                f"Validation failed for schema '{schema_name}' of "
+                f"schemaspace '{schemaspace_name}' with error: {first_line}."
+            )
             self.log.error(msg)
             raise ValidationError(msg) from ve
 
     @staticmethod
     def _get_schemaspaces():
         """Wrapper around entrypoints.get_group_all() - primarily to facilitate testing."""
-        return get_group_all('metadata.schemaspaces')
+        return get_group_all("metadata.schemaspaces")
 
     @staticmethod
     def _get_schemas_providers():
         """Wrapper around entrypoints.get_group_all() - primarily to facilitate testing."""
-        return get_group_all('metadata.schemas_providers')
+        return get_group_all("metadata.schemas_providers")
 
 
 class Schemaspace(LoggingConfigurable):
@@ -259,12 +280,14 @@ class Schemaspace(LoggingConfigurable):
     _deprecated: bool
     _deprecated_schema_names: Set[str]
 
-    def __init__(self,
-                 schemaspace_id: str,
-                 name: str,
-                 display_name: Optional[str] = None,
-                 description: Optional[str] = "",
-                 **kwargs):
+    def __init__(
+        self,
+        schemaspace_id: str,
+        name: str,
+        display_name: Optional[str] = None,
+        description: Optional[str] = "",
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         self._schemas = {}
@@ -331,9 +354,9 @@ class Schemaspace(LoggingConfigurable):
     def add_schema(self, schema: Dict) -> None:
         """Associates the given schema to this schemaspace"""
         assert isinstance(schema, dict), "Parameter 'schema' is not a dictionary!"
-        self._schemas[schema.get('name')] = schema
-        if schema.get('deprecated', False):
-            self._deprecated_schema_names.add(schema.get('name'))
+        self._schemas[schema.get("name")] = schema
+        if schema.get("deprecated", False):
+            self._deprecated_schema_names.add(schema.get("name"))
 
     @final
     def migrate(self, *args, **kwargs) -> List[str]:
@@ -356,7 +379,7 @@ class Schemaspace(LoggingConfigurable):
 
     @staticmethod
     def _validate_id(id) -> bool:
-        """Validate that id is uuidv4 compliant """
+        """Validate that id is uuidv4 compliant"""
         is_valid = False
         uuidv4_regex = re.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
         if uuidv4_regex.match(id):
@@ -366,7 +389,7 @@ class Schemaspace(LoggingConfigurable):
 
     @staticmethod
     def _validate_name(name) -> bool:
-        """Validate that the name adheres to the criteria (alphanumeric, dash, underscore only) """
+        """Validate that the name adheres to the criteria (alphanumeric, dash, underscore only)"""
         is_valid = False
         name_regex = re.compile("^[A-Za-z][0-9A-Za-z_-]*[0-9A-Za-z]$", re.I)
         if name_regex.match(name):
@@ -381,7 +404,7 @@ class SchemasProvider(ABC):
     log: Logger
 
     def __init__(self, *args, **kwargs):
-        self.log = getLogger('ElyraApp')
+        self.log = getLogger("ElyraApp")
 
     @abstractmethod
     def get_schemas(self) -> List[Dict]:

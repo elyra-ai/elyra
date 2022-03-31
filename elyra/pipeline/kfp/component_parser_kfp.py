@@ -45,18 +45,18 @@ class KfpComponentParser(ComponentParser):
 
         # Assign component_id and description
         description = ""
-        if component_yaml.get('description'):
+        if component_yaml.get("description"):
             # Remove whitespace characters and replace with spaces
-            description = ' '.join(component_yaml.get('description').split())
+            description = " ".join(component_yaml.get("description").split())
 
         component_properties = self._parse_properties(component_yaml)
 
         component = catalog_entry.get_component(
             id=catalog_entry.id,
-            name=component_yaml.get('name'),
+            name=component_yaml.get("name"),
             description=description,
             properties=component_properties,
-            file_extension=self._file_types[0]
+            file_extension=self._file_types[0],
         )
 
         return [component]
@@ -70,8 +70,8 @@ class KfpComponentParser(ComponentParser):
         # Then loop through and create custom properties
         # Get parameter sub-dictionaries from YAML object
 
-        input_params = component_yaml.get('inputs', [])
-        output_params = component_yaml.get('outputs', [])
+        input_params = component_yaml.get("inputs", [])
+        output_params = component_yaml.get("outputs", [])
 
         all_params = {"inputs": input_params, "outputs": output_params}
 
@@ -81,66 +81,73 @@ class KfpComponentParser(ComponentParser):
                 # KFP components default to being required unless otherwise stated.
                 # Reference: https://www.kubeflow.org/docs/components/pipelines/reference/component-spec/#interface
                 required = True
-                if param.get('optional') is True:
+                if param.get("optional") is True:
                     required = False
 
                 # Assign parsed data type (default to string)
-                data_type_parsed = param.get('type', 'string')
+                data_type_parsed = param.get("type", "string")
 
                 # # define adjusted type as either inputPath or outputPath
                 data_type_adjusted = data_type_parsed
-                if self._is_path_based_parameter(param.get('name'), component_yaml):
+                if self._is_path_based_parameter(param.get("name"), component_yaml):
                     data_type_adjusted = f"{param_type[:-1]}Path"
 
                 data_type_info = self.determine_type_information(data_type_adjusted)
 
                 if data_type_info.undetermined:
-                    self.log.debug(f"Data type from parsed data ('{data_type_parsed}') could not be determined. "
-                                   f"Proceeding as if 'string' was detected.")
+                    self.log.debug(
+                        f"Data type from parsed data ('{data_type_parsed}') could not be determined. "
+                        f"Proceeding as if 'string' was detected."
+                    )
 
                 if not data_type_info.required:
                     required = data_type_info.required
 
                 # Get value if provided
-                raw_value = param.get('default', '')
+                raw_value = param.get("default", "")
 
                 # Adjust any double quoted default values to use single quotes to avoid json parsing errors
-                value = raw_value.replace('"', '\'')
+                value = raw_value.replace('"', "'")
 
                 # Set parameter ref (id) and display name
-                ref_name = param.get('name').lower().replace(' ', '_')
-                display_name = param.get('name')
+                ref_name = param.get("name").lower().replace(" ", "_")
+                display_name = param.get("name")
 
-                description = param.get('description', '')
+                description = param.get("description", "")
 
-                if data_type_info.data_type != 'inputpath':
+                if data_type_info.data_type != "inputpath":
                     # Add parsed data type hint to description in parenthesis
-                    description = self._format_description(description=description,
-                                                           data_type=data_type_parsed)
+                    description = self._format_description(description=description, data_type=data_type_parsed)
 
-                if data_type_info.data_type == 'outputpath':
+                if data_type_info.data_type == "outputpath":
                     ref_name = f"output_{ref_name}"
 
                 one_of_control_types = data_type_info.one_of_control_types
                 default_control_type = data_type_info.control_id
-                if data_type_info.data_type == 'inputvalue':
+                if data_type_info.data_type == "inputvalue":
                     data_type_info.control_id = "OneOfControl"
-                    one_of_control_types = [(default_control_type, data_type_info.default_data_type,
-                                             ControllerMap[default_control_type].value),
-                                            ("NestedEnumControl", "inputpath",
-                                             ControllerMap["NestedEnumControl"].value)]
+                    one_of_control_types = [
+                        (
+                            default_control_type,
+                            data_type_info.default_data_type,
+                            ControllerMap[default_control_type].value,
+                        ),
+                        ("NestedEnumControl", "inputpath", ControllerMap["NestedEnumControl"].value),
+                    ]
 
-                component_params = ComponentParameter(id=ref_name,
-                                                      name=display_name,
-                                                      data_type=data_type_info.data_type,
-                                                      default_data_type=data_type_info.default_data_type,
-                                                      value=(value or data_type_info.default_value),
-                                                      description=description,
-                                                      control=data_type_info.control,
-                                                      control_id=data_type_info.control_id,
-                                                      one_of_control_types=one_of_control_types,
-                                                      default_control_type=default_control_type,
-                                                      required=required)
+                component_params = ComponentParameter(
+                    id=ref_name,
+                    name=display_name,
+                    data_type=data_type_info.data_type,
+                    default_data_type=data_type_info.default_data_type,
+                    value=(value or data_type_info.default_value),
+                    description=description,
+                    control=data_type_info.control,
+                    control_id=data_type_info.control_id,
+                    one_of_control_types=one_of_control_types,
+                    default_control_type=default_control_type,
+                    required=required,
+                )
 
                 properties.append(component_params)
 
@@ -169,16 +176,20 @@ class KfpComponentParser(ComponentParser):
         try:
             results = yaml.safe_load(catalog_entry.entry_data.definition)
         except Exception as e:
-            self.log.warning(f"Could not load YAML definition for component with identifying information: "
-                             f"'{catalog_entry.entry_reference}' -> {str(e)}")
+            self.log.warning(
+                f"Could not load YAML definition for component with identifying information: "
+                f"'{catalog_entry.entry_reference}' -> {str(e)}"
+            )
             return None
 
         try:
             # Validate against component YAML schema
             validate(instance=results, schema=component_yaml_schema)
         except ValidationError as ve:
-            self.log.warning(f"Invalid format of YAML definition for component with identifying information: "
-                             f"'{catalog_entry.entry_reference}' -> {str(ve)}")
+            self.log.warning(
+                f"Invalid format of YAML definition for component with identifying information: "
+                f"'{catalog_entry.entry_reference}' -> {str(ve)}"
+            )
             return None
 
         return results
@@ -191,7 +202,7 @@ class KfpComponentParser(ComponentParser):
         :param component_body: the component YAML contents
         """
         # Get component_body['implementation']['container'] sub-dictionary if it exists
-        component_impl = component_body.get('implementation', {}).get('container', {})
+        component_impl = component_body.get("implementation", {}).get("container", {})
 
         # Get list of component commands/arguments
         commands_and_args = component_impl.get("command", []) + component_impl.get("args", [])
@@ -224,16 +235,16 @@ class KfpComponentParser(ComponentParser):
         # considered as `inputValues` unless the parent method is unable to determine the
         # type e.g. kfp path-based types
         data_type_info.default_data_type = data_type_info.data_type
-        data_type_info.data_type = 'inputvalue'
+        data_type_info.data_type = "inputvalue"
 
         if data_type_info.undetermined:
-            if 'inputpath' in data_type_info.parsed_data:
-                data_type_info.data_type = 'inputpath'
+            if "inputpath" in data_type_info.parsed_data:
+                data_type_info.data_type = "inputpath"
                 data_type_info.control_id = "NestedEnumControl"
                 data_type_info.undetermined = False
                 data_type_info.default_value = None
-            elif 'outputpath' in data_type_info.parsed_data:
-                data_type_info.data_type = 'outputpath'
+            elif "outputpath" in data_type_info.parsed_data:
+                data_type_info.data_type = "outputpath"
                 data_type_info.required = False
                 data_type_info.control = "readonly"
                 data_type_info.undetermined = False

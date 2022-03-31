@@ -18,11 +18,11 @@ from typing import List
 
 
 class SupportedGitTypes(Enum):
-    GITHUB = 'GitHub'
-    GITLAB = 'GitLab'
+    GITHUB = "GitHub"
+    GITLAB = "GitLab"
 
     @staticmethod
-    def get_default_type() -> 'SupportedGitTypes':
+    def get_default_type() -> "SupportedGitTypes":
         """
         Returns the "default" enum member
         :return: default enum member
@@ -31,7 +31,7 @@ class SupportedGitTypes(Enum):
         return SupportedGitTypes.GITHUB
 
     @staticmethod
-    def get_enabled_types() -> List['SupportedGitTypes']:
+    def get_enabled_types() -> List["SupportedGitTypes"]:
         """
         Returns all enabled types
         :return: List of enabled types
@@ -40,13 +40,14 @@ class SupportedGitTypes(Enum):
         enabled_types = [SupportedGitTypes.GITHUB]
         try:
             from elyra.util.gitlab import GitLabClient  # noqa: F401
+
             enabled_types.append(SupportedGitTypes.GITLAB)
         except ImportError:
             pass  # Gitlab package is not installed, ignore and use only GitHub
         return enabled_types
 
     @staticmethod
-    def is_enabled(git_type: 'SupportedGitTypes') -> bool:
+    def is_enabled(git_type: "SupportedGitTypes") -> bool:
         """
         :param git_type: A member of SupportedGitTypes
         :type git_type: SupportedGitTypes
@@ -56,7 +57,7 @@ class SupportedGitTypes(Enum):
         return git_type in SupportedGitTypes.get_enabled_types()
 
     @staticmethod
-    def get_instance_by_name(name: str) -> 'SupportedGitTypes':
+    def get_instance_by_name(name: str) -> "SupportedGitTypes":
         """
         Returns an enumeration member of SupportedGitTypes
         corresponding to the given name.
@@ -67,4 +68,4 @@ class SupportedGitTypes(Enum):
         try:
             return SupportedGitTypes[name]
         except KeyError:
-            raise ValueError(f'\'{name}\' is not a valid {SupportedGitTypes.__name__}')
+            raise ValueError(f"'{name}' is not a valid {SupportedGitTypes.__name__}")

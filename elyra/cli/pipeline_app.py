@@ -51,15 +51,17 @@ from elyra.pipeline.validation import ValidationSeverity
 # custom exit code - a timeout occurred
 EXIT_TIMEDOUT = 124
 
-SEVERITY = {ValidationSeverity.Error: 'Error',
-            ValidationSeverity.Warning: 'Warning',
-            ValidationSeverity.Hint: 'Hint',
-            ValidationSeverity.Information: 'Information'}
+SEVERITY = {
+    ValidationSeverity.Error: "Error",
+    ValidationSeverity.Warning: "Warning",
+    ValidationSeverity.Hint: "Hint",
+    ValidationSeverity.Information: "Information",
+}
 
 
 def _get_runtime_config(runtime_config_name: Optional[str]) -> Optional[RuntimesMetadata]:
     """Fetch runtime configuration for the specified name"""
-    if not runtime_config_name or runtime_config_name == 'local':
+    if not runtime_config_name or runtime_config_name == "local":
         # No runtime configuration was specified or it is local.
         # Cannot use metadata manager to determine the runtime type.
         return None
@@ -67,23 +69,23 @@ def _get_runtime_config(runtime_config_name: Optional[str]) -> Optional[Runtimes
         metadata_manager = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_NAME)
         return metadata_manager.get(runtime_config_name)
     except Exception as e:
-        raise click.ClickException(f'Invalid runtime configuration: {runtime_config_name}\n {e}')
+        raise click.ClickException(f"Invalid runtime configuration: {runtime_config_name}\n {e}")
 
 
 def _get_runtime_type(runtime_config_name: Optional[str]) -> Optional[str]:
     """Get runtime type for the provided runtime configuration name"""
     runtime_config = _get_runtime_config(runtime_config_name)
     if runtime_config:
-        return runtime_config.metadata.get('runtime_type')
+        return runtime_config.metadata.get("runtime_type")
     return None
 
 
 def _get_runtime_schema_name(runtime_config_name: Optional[str]) -> Optional[str]:
     """Get runtime schema name for the provided runtime configuration name"""
-    if not runtime_config_name or runtime_config_name == 'local':
+    if not runtime_config_name or runtime_config_name == "local":
         # No runtime configuration was specified or it is local.
         # Cannot use metadata manager to determine the runtime type.
-        return 'local'
+        return "local"
     runtime_config = _get_runtime_config(runtime_config_name)
     if runtime_config:
         return runtime_config.schema_name
@@ -92,7 +94,7 @@ def _get_runtime_schema_name(runtime_config_name: Optional[str]) -> Optional[str
 
 def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
     """Return the display name for the specified runtime schema_name"""
-    if not schema_name or schema_name == 'local':
+    if not schema_name or schema_name == "local":
         # No schame name was  specified or it is local.
         # Cannot use metadata manager to determine the display name.
         return schema_name
@@ -100,16 +102,14 @@ def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
     try:
         schema_manager = SchemaManager.instance()
         schema = schema_manager.get_schema(Runtimes.RUNTIMES_SCHEMASPACE_NAME, schema_name)
-        return schema['display_name']
+        return schema["display_name"]
     except Exception as e:
-        raise click.ClickException(f'Invalid runtime configuration: {schema_name}\n {e}')
+        raise click.ClickException(f"Invalid runtime configuration: {schema_name}\n {e}")
 
 
 def _get_pipeline_runtime_type(pipeline_definition: dict) -> Optional[str]:
     """Return the runtime type name associated with the given pipeline"""
-    return pipeline_definition.get('pipelines', [{}])[0] \
-        .get('app_data', {}) \
-        .get('runtime_type')
+    return pipeline_definition.get("pipelines", [{}])[0].get("app_data", {}).get("runtime_type")
 
 
 def _validate_pipeline_runtime(primary_pipeline: Pipeline, runtime: str) -> bool:
@@ -126,9 +126,9 @@ def _validate_pipeline_runtime(primary_pipeline: Pipeline, runtime: str) -> bool
     return is_valid
 
 
-def _preprocess_pipeline(pipeline_path: str,
-                         runtime: Optional[str] = None,
-                         runtime_config: Optional[str] = None) -> dict:
+def _preprocess_pipeline(
+    pipeline_path: str, runtime: Optional[str] = None, runtime_config: Optional[str] = None
+) -> dict:
     pipeline_path = os.path.expanduser(pipeline_path)
     pipeline_abs_path = os.path.join(os.getcwd(), pipeline_path)
     pipeline_dir = os.path.dirname(pipeline_abs_path)
@@ -150,7 +150,7 @@ def _preprocess_pipeline(pipeline_path: str,
     try:
         for pipeline in pipeline_definition.pipelines:
             for node in pipeline.nodes:
-                filename = node.get_component_parameter('filename')
+                filename = node.get_component_parameter("filename")
                 if filename:
                     abs_path = os.path.join(pipeline_dir, filename)
                     node.set_component_parameter("filename", abs_path)
@@ -173,27 +173,27 @@ def _preprocess_pipeline(pipeline_path: str,
 def _print_issues(issues):
     # print validation issues
 
-    for issue in sorted(issues, key=itemgetter('severity')):
+    for issue in sorted(issues, key=itemgetter("severity")):
         severity = f" [{SEVERITY[issue.get('severity')]}]"
-        prefix = ''
-        postfix = ''
-        if issue.get('data'):
-            if issue['data'].get('nodeName'):
+        prefix = ""
+        postfix = ""
+        if issue.get("data"):
+            if issue["data"].get("nodeName"):
                 # issue is associated with a single node; display it
                 prefix = f"[{issue['data'].get('nodeName')}]"
-            if issue['data'].get('propertyName'):
+            if issue["data"].get("propertyName"):
                 # issue is associated with a node property; display it
                 prefix = f"{prefix}[{issue['data'].get('propertyName')}]"
-            if issue['data'].get('value'):
+            if issue["data"].get("value"):
                 # issue is caused by the value of a node property; display it
                 postfix = f"The current property value is '{issue['data'].get('value')}'."
-            elif issue['data'].get('nodeNames') and isinstance(issue['data']['nodeNames'], list):
+            elif issue["data"].get("nodeNames") and isinstance(issue["data"]["nodeNames"], list):
                 # issue is associated with multiple nodes
-                postfix = 'Nodes: '
-                separator = ''
-                for nn in issue['data']['nodeNames']:
+                postfix = "Nodes: "
+                separator = ""
+                for nn in issue["data"]["nodeNames"]:
                     postfix = f"{postfix}{separator}'{nn}'"
-                    separator = ', '
+                    separator = ", "
         output = f"{severity}{prefix} - {issue['message']} {postfix}"
         click.echo(output)
 
@@ -206,10 +206,11 @@ def _validate_pipeline_definition(pipeline_definition: PipelineDefinition):
     click.echo("Validating pipeline...")
     # validate pipeline
     validation_response = asyncio.get_event_loop().run_until_complete(
-        PipelineValidationManager.instance().validate(pipeline=pipeline_definition))
+        PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
+    )
 
     # print validation issues
-    issues = validation_response.to_json().get('issues')
+    issues = validation_response.to_json().get("issues")
     _print_issues(issues)
 
     if validation_response.has_fatal:
@@ -225,12 +226,13 @@ def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             response = asyncio.get_event_loop().run_until_complete(
-                PipelineProcessorManager.instance().process(pipeline_object))
+                PipelineProcessorManager.instance().process(pipeline_object)
+            )
             return response
     except ValueError as ve:
-        raise click.ClickException(f'Error parsing pipeline: \n {ve}')
+        raise click.ClickException(f"Error parsing pipeline: \n {ve}")
     except RuntimeError as re:
-        raise click.ClickException(f'Error processing pipeline: \n {re} \n {re.__cause__}')
+        raise click.ClickException(f"Error processing pipeline: \n {re} \n {re.__cause__}")
 
 
 def _build_component_cache():
@@ -245,7 +247,7 @@ def validate_pipeline_path(ctx, param, value):
     """Callback for pipeline_path parameter"""
     if not value.is_file():
         raise click.BadParameter(f"'{value}' is not a file.")
-    if value.suffix != '.pipeline':
+    if value.suffix != ".pipeline":
         raise click.BadParameter(f"'{value}' is not a .pipeline file.")
     return value
 
@@ -272,7 +274,7 @@ def print_version():
 
 
 @click.group()
-@click.version_option(__version__, message='v%(version)s')
+@click.version_option(__version__, message="v%(version)s")
 def pipeline():
     """
     Run Elyra pipelines in your local environment or submit them to an external service,
@@ -284,13 +286,9 @@ def pipeline():
 
 
 @click.command()
-@click.option('--runtime-config',
-              required=False,
-              help='Runtime config where the pipeline should be processed')
-@click.argument('pipeline_path',
-                type=Path,
-                callback=validate_pipeline_path)
-def validate(pipeline_path, runtime_config='local'):
+@click.option("--runtime-config", required=False, help="Runtime config where the pipeline should be processed")
+@click.argument("pipeline_path", type=Path, callback=validate_pipeline_path)
+def validate(pipeline_path, runtime_config="local"):
     """
     Validate pipeline
     """
@@ -300,8 +298,7 @@ def validate(pipeline_path, runtime_config='local'):
 
     runtime = _get_runtime_schema_name(runtime_config)
 
-    pipeline_definition = \
-        _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
+    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
 
     pipeline_runtime_type = _get_pipeline_runtime_type(pipeline_definition)
     if pipeline_runtime_type:
@@ -326,33 +323,32 @@ def validate_timeout_option(ctx, param, value):
 
 
 @click.command()
-@click.argument('pipeline_path',
-                type=Path,
-                callback=validate_pipeline_path)
-@click.option('--json',
-              'json_option',
-              is_flag=True,
-              required=False,
-              help='Display pipeline summary in JSON format')
-@click.option('--runtime-config',
-              'runtime_config_name',
-              required=True,
-              help='Runtime config where the pipeline should be processed')
-@click.option('--monitor',
-              'monitor_option',
-              is_flag=True,
-              required=False,
-              help='Monitor the pipeline run (Supported for Kubeflow Pipelines only)')
-@click.option('--monitor-timeout',
-              'timeout_option',
-              type=int,
-              default=60,
-              show_default=True,
-              required=False,
-              help='Monitoring timeout in minutes.',
-              callback=validate_timeout_option)
-def submit(json_option, pipeline_path, runtime_config_name,
-           monitor_option, timeout_option):
+@click.argument("pipeline_path", type=Path, callback=validate_pipeline_path)
+@click.option("--json", "json_option", is_flag=True, required=False, help="Display pipeline summary in JSON format")
+@click.option(
+    "--runtime-config",
+    "runtime_config_name",
+    required=True,
+    help="Runtime config where the pipeline should be processed",
+)
+@click.option(
+    "--monitor",
+    "monitor_option",
+    is_flag=True,
+    required=False,
+    help="Monitor the pipeline run (Supported for Kubeflow Pipelines only)",
+)
+@click.option(
+    "--monitor-timeout",
+    "timeout_option",
+    type=int,
+    default=60,
+    show_default=True,
+    required=False,
+    help="Monitoring timeout in minutes.",
+    callback=validate_timeout_option,
+)
+def submit(json_option, pipeline_path, runtime_config_name, monitor_option, timeout_option):
     """
     Submit a pipeline to be executed on the server
     """
@@ -365,10 +361,9 @@ def submit(json_option, pipeline_path, runtime_config_name,
 
     runtime_schema = runtime_config.schema_name
 
-    pipeline_definition = \
-        _preprocess_pipeline(pipeline_path,
-                             runtime=runtime_schema,
-                             runtime_config=runtime_config_name)
+    pipeline_definition = _preprocess_pipeline(
+        pipeline_path, runtime=runtime_schema, runtime_config=runtime_config_name
+    )
 
     pipeline_runtime_type = _get_pipeline_runtime_type(pipeline_definition)
     if pipeline_runtime_type:
@@ -387,13 +382,13 @@ def submit(json_option, pipeline_path, runtime_config_name,
             msg = []
             # If there's a git_url attr, assume Apache Airflow DAG repo.
             # TODO: this will need to be revisited once front-end is decoupled from runtime platforms.
-            if hasattr(response, 'git_url'):
+            if hasattr(response, "git_url"):
                 msg.append(f"Apache Airflow DAG has been pushed to: {response.git_url}")
             msg.extend(
                 [
                     f"Check the status of your job at: {response.run_url}",
                     f"The results and outputs are in the {response.object_storage_path} ",
-                    f"working directory in {response.object_storage_url}"
+                    f"working directory in {response.object_storage_url}",
                 ]
             )
             print_info("Job submission succeeded", msg)
@@ -405,58 +400,58 @@ def submit(json_option, pipeline_path, runtime_config_name,
             print(json.dumps(response.to_json(), indent=4))
 
     # Start pipeline run monitoring, if requested
-    if runtime_schema == 'kfp' and monitor_option:
-        minute_str = 'minutes' if timeout_option > 1 else 'minute'
+    if runtime_schema == "kfp" and monitor_option:
+        minute_str = "minutes" if timeout_option > 1 else "minute"
         try:
-            msg = f"Monitoring status of pipeline run '{response.run_id}' for up to "\
-                  f"{timeout_option} {minute_str}..."
+            msg = (
+                f"Monitoring status of pipeline run '{response.run_id}' for up to " f"{timeout_option} {minute_str}..."
+            )
             with yaspin(text=msg):
-                status = _monitor_kfp_submission(runtime_config,
-                                                 runtime_config_name,
-                                                 response.run_id,
-                                                 timeout_option)
+                status = _monitor_kfp_submission(runtime_config, runtime_config_name, response.run_id, timeout_option)
         except TimeoutError:
-            click.echo('Monitoring was stopped because the timeout threshold '
-                       f'({timeout_option} {minute_str}) was exceeded. The pipeline is still running.')
+            click.echo(
+                "Monitoring was stopped because the timeout threshold "
+                f"({timeout_option} {minute_str}) was exceeded. The pipeline is still running."
+            )
             exit(EXIT_TIMEDOUT)
         else:
             # The following are known KFP states: 'succeeded', 'failed', 'skipped',
             # 'error'. Treat 'unknown' as error. Exit with appropriate status code.
-            click.echo(f'Monitoring ended with run status: {status}')
-            if status.lower() not in ['succeeded', 'skipped']:
+            click.echo(f"Monitoring ended with run status: {status}")
+            if status.lower() not in ["succeeded", "skipped"]:
                 # Click appears to use non-zero exit codes 1 (ClickException)
                 # and 2 (UsageError). Terminate.
                 exit(click.ClickException.exit_code)
 
 
-def _monitor_kfp_submission(runtime_config: dict,
-                            runtime_config_name: str,
-                            run_id: str,
-                            timeout: int) -> str:
+def _monitor_kfp_submission(runtime_config: dict, runtime_config_name: str, run_id: str, timeout: int) -> str:
     """Monitor the status of a Kubeflow Pipelines run"""
 
     try:
         # Authenticate with the KFP server
-        auth_info = \
-            KFPAuthenticator().authenticate(runtime_config.metadata['api_endpoint'].rstrip('/'),
-                                            auth_type_str=runtime_config.metadata.get('auth_type'),
-                                            runtime_config_name=runtime_config_name,
-                                            auth_parm_1=runtime_config.metadata.get('api_username'),
-                                            auth_parm_2=runtime_config.metadata.get('api_password'))
+        auth_info = KFPAuthenticator().authenticate(
+            runtime_config.metadata["api_endpoint"].rstrip("/"),
+            auth_type_str=runtime_config.metadata.get("auth_type"),
+            runtime_config_name=runtime_config_name,
+            auth_parm_1=runtime_config.metadata.get("api_username"),
+            auth_parm_2=runtime_config.metadata.get("api_password"),
+        )
     except AuthenticationError as ae:
         if ae.get_request_history() is not None:
-            click.echo('An authentication error was raised. Diagnostic information follows.')
+            click.echo("An authentication error was raised. Diagnostic information follows.")
             click.echo(ae.request_history_to_string())
-        raise click.ClickException(f'Kubeflow authentication failed: {ae}')
+        raise click.ClickException(f"Kubeflow authentication failed: {ae}")
 
     try:
         # Create a Kubeflow Pipelines client. There is no need to use a Tekton client,
         # because the monitoring API is agnostic.
-        client = ArgoClient(host=runtime_config.metadata['api_endpoint'].rstrip('/'),
-                            cookies=auth_info.get('cookies', None),
-                            credentials=auth_info.get('credentials', None),
-                            existing_token=auth_info.get('existing_token', None),
-                            namespace=runtime_config.metadata.get('user_namespace'))
+        client = ArgoClient(
+            host=runtime_config.metadata["api_endpoint"].rstrip("/"),
+            cookies=auth_info.get("cookies", None),
+            credentials=auth_info.get("credentials", None),
+            existing_token=auth_info.get("existing_token", None),
+            namespace=runtime_config.metadata.get("user_namespace"),
+        )
         # wait for the run to complete or timeout (API uses seconds as unit - convert)
         run_details = client.wait_for_run_completion(run_id, timeout * 60)
     except TimeoutError:
@@ -464,21 +459,15 @@ def _monitor_kfp_submission(runtime_config: dict,
         raise
     except Exception as ex:
         # log error and return 'unknown' status
-        click.echo(f'Monitoring failed: {type(ex)}: {ex}')
-        return 'unknown'
+        click.echo(f"Monitoring failed: {type(ex)}: {ex}")
+        return "unknown"
     else:
         return run_details.run.status
 
 
 @click.command()
-@click.option('--json',
-              'json_option',
-              is_flag=True,
-              required=False,
-              help='Display pipeline summary in JSON format')
-@click.argument('pipeline_path',
-                type=Path,
-                callback=validate_pipeline_path)
+@click.option("--json", "json_option", is_flag=True, required=False, help="Display pipeline summary in JSON format")
+@click.argument("pipeline_path", type=Path, callback=validate_pipeline_path)
 def run(json_option, pipeline_path):
     """
     Run a pipeline in your local environment
@@ -487,8 +476,7 @@ def run(json_option, pipeline_path):
 
     print_banner("Elyra Pipeline Local Run")
 
-    pipeline_definition = \
-        _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
+    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local", runtime_config="local")
 
     try:
         _validate_pipeline_definition(pipeline_definition)
@@ -507,14 +495,8 @@ def run(json_option, pipeline_path):
 
 
 @click.command()
-@click.option('--json',
-              'json_option',
-              is_flag=True,
-              required=False,
-              help='Display pipeline summary in JSON format')
-@click.argument('pipeline_path',
-                type=Path,
-                callback=validate_pipeline_path)
+@click.option("--json", "json_option", is_flag=True, required=False, help="Display pipeline summary in JSON format")
+@click.argument("pipeline_path", type=Path, callback=validate_pipeline_path)
 def describe(json_option, pipeline_path):
     """
     Display pipeline summary
@@ -530,15 +512,14 @@ def describe(json_option, pipeline_path):
     pipeline_keys = ["name", "description", "type", "version", "nodes", "file_dependencies", "component_dependencies"]
     iter_keys = {"file_dependencies", "component_dependencies"}
 
-    pipeline_definition = \
-        _preprocess_pipeline(pipeline_path, runtime='local', runtime_config='local')
+    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local", runtime_config="local")
 
     primary_pipeline = PipelineDefinition(pipeline_definition=pipeline_definition).primary_pipeline
 
     describe_dict = OrderedDict()
 
     describe_dict["name"] = primary_pipeline.name
-    describe_dict["description"] = primary_pipeline.get_property('description')
+    describe_dict["description"] = primary_pipeline.get_property("description")
     describe_dict["type"] = primary_pipeline.type
     describe_dict["version"] = primary_pipeline.version
     describe_dict["nodes"] = len(primary_pipeline.nodes)
@@ -554,7 +535,7 @@ def describe(json_option, pipeline_path):
 
     if not json_option:
         for key in pipeline_keys:
-            readable_key = ' '.join(key.title().split('_'))
+            readable_key = " ".join(key.title().split("_"))
             if key in iter_keys:
                 click.echo(f"{readable_key}:")
                 if describe_dict.get(key, set()) == set():
@@ -575,20 +556,15 @@ def describe(json_option, pipeline_path):
 
 
 @click.command()
-@click.argument('pipeline_path',
-                type=Path,
-                callback=validate_pipeline_path)
-@click.option('--runtime-config',
-              required=True,
-              help='Runtime configuration name.')
-@click.option('--output',
-              required=False,
-              type=Path,
-              help='Exported file name (including optional path). Defaults to '
-                   ' the current directory and the pipeline name.')
-@click.option('--overwrite',
-              is_flag=True,
-              help='Overwrite output file if it already exists.')
+@click.argument("pipeline_path", type=Path, callback=validate_pipeline_path)
+@click.option("--runtime-config", required=True, help="Runtime configuration name.")
+@click.option(
+    "--output",
+    required=False,
+    type=Path,
+    help="Exported file name (including optional path). Defaults to " " the current directory and the pipeline name.",
+)
+@click.option("--overwrite", is_flag=True, help="Overwrite output file if it already exists.")
 def export(pipeline_path, runtime_config, output, overwrite):
     """
     Export a pipeline to a runtime-specific format
@@ -599,23 +575,21 @@ def export(pipeline_path, runtime_config, output, overwrite):
 
     rtc = _get_runtime_config(runtime_config)
     runtime_schema = rtc.schema_name
-    runtime_type = rtc.metadata.get('runtime_type')
+    runtime_type = rtc.metadata.get("runtime_type")
 
-    pipeline_definition = \
-        _preprocess_pipeline(pipeline_path, runtime=runtime_schema, runtime_config=runtime_config)
+    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime=runtime_schema, runtime_config=runtime_config)
 
     # Verify that the pipeline's runtime type is compatible with the
     # runtime configuration
     pipeline_runtime_type = _get_pipeline_runtime_type(pipeline_definition)
-    if pipeline_runtime_type and\
-       pipeline_runtime_type != 'Generic' and\
-       pipeline_runtime_type != runtime_type:
-        raise click.BadParameter(f"The runtime configuration type '{runtime_type}' does not match "
-                                 f"the pipeline's runtime type '{pipeline_runtime_type}'.",
-                                 param_hint='--runtime-config')
+    if pipeline_runtime_type and pipeline_runtime_type != "Generic" and pipeline_runtime_type != runtime_type:
+        raise click.BadParameter(
+            f"The runtime configuration type '{runtime_type}' does not match "
+            f"the pipeline's runtime type '{pipeline_runtime_type}'.",
+            param_hint="--runtime-config",
+        )
 
-    resources = RuntimeTypeResources.get_instance_by_type(
-        RuntimeProcessorType.get_instance_by_name(runtime_type))
+    resources = RuntimeTypeResources.get_instance_by_type(RuntimeProcessorType.get_instance_by_name(runtime_type))
     supported_export_formats = resources.get_export_extensions()
     if len(supported_export_formats) == 0:
         raise click.ClickException(f"Runtime type '{runtime_type}' does not support export.")
@@ -623,7 +597,7 @@ def export(pipeline_path, runtime_config, output, overwrite):
     # If, in the future, a runtime supports multiple export output formats,
     # the user can choose one. For now, choose the only option.
     selected_export_format = supported_export_formats[0]
-    selected_export_format_suffix = f'.{selected_export_format}'
+    selected_export_format_suffix = f".{selected_export_format}"
 
     # generate output file name from the user-provided input
     if output is None:
@@ -647,13 +621,13 @@ def export(pipeline_path, runtime_config, output, overwrite):
         try:
             output_file.parent.mkdir(parents=True, exist_ok=True)
         except Exception as ex:
-            raise click.BadParameter(f'Cannot create output directory: {ex}',
-                                     param_hint='--output')
+            raise click.BadParameter(f"Cannot create output directory: {ex}", param_hint="--output")
 
     # handle output overwrite
     if output_file.exists() and not overwrite:
-        raise click.ClickException(f"Output file '{str(output_file)}' exists and "
-                                   "option '--overwrite' was not specified.")
+        raise click.ClickException(
+            f"Output file '{str(output_file)}' exists and " "option '--overwrite' was not specified."
+        )
 
     if pipeline_runtime_type:
         _build_component_cache()
@@ -664,7 +638,7 @@ def export(pipeline_path, runtime_config, output, overwrite):
     except Exception:
         raise click.ClickException("Pipeline validation FAILED. The pipeline was not exported.")
 
-    with yaspin(text='Exporting pipeline ...'):
+    with yaspin(text="Exporting pipeline ..."):
         try:
             # parse pipeline
             pipeline_object = PipelineParser().parse(pipeline_definition)
@@ -672,14 +646,14 @@ def export(pipeline_path, runtime_config, output, overwrite):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 asyncio.get_event_loop().run_until_complete(
-                    PipelineProcessorManager.instance().export(pipeline_object,
-                                                               selected_export_format,
-                                                               str(output_file),
-                                                               True))
+                    PipelineProcessorManager.instance().export(
+                        pipeline_object, selected_export_format, str(output_file), True
+                    )
+                )
         except ValueError as ve:
-            raise click.ClickException(f'Error parsing pipeline: \n {ve}')
+            raise click.ClickException(f"Error parsing pipeline: \n {ve}")
         except RuntimeError as re:
-            raise click.ClickException(f'Error exporting pipeline: \n {re} \n {re.__cause__}')
+            raise click.ClickException(f"Error exporting pipeline: \n {re} \n {re.__cause__}")
 
     click.echo(f"Pipeline was exported to '{str(output_file)}'.")
 

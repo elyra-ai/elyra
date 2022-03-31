@@ -99,6 +99,7 @@ lint-dependencies:
 
 lint-server: lint-dependencies
 	flake8 elyra
+	black --check --diff --color .
 
 prettier-check-ui:
 	yarn prettier:check

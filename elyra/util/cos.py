@@ -35,12 +35,16 @@ class CosClient(LoggingConfigurable):
             # runtime configurations.
             if access_key is None or secret_key is None:
                 # use env variables for authentication
-                if len(os.environ.get('AWS_ACCESS_KEY_ID', '').strip()) == 0 or\
-                   len(os.environ.get('AWS_SECRET_ACCESS_KEY', '').strip()) == 0:
-                    raise RuntimeError('Cannot connect to object storage. No credentials '
-                                       ' were provided and environment variables '
-                                       ' AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not '
-                                       ' properly defined.')
+                if (
+                    len(os.environ.get("AWS_ACCESS_KEY_ID", "").strip()) == 0
+                    or len(os.environ.get("AWS_SECRET_ACCESS_KEY", "").strip()) == 0
+                ):
+                    raise RuntimeError(
+                        "Cannot connect to object storage. No credentials "
+                        " were provided and environment variables "
+                        " AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are not "
+                        " properly defined."
+                    )
                 else:
                     cred_provider = providers.EnvAWSProvider()
             else:
@@ -52,39 +56,39 @@ class CosClient(LoggingConfigurable):
             self.endpoint = endpoint
             self.bucket = bucket
         else:
-            auth_type = config.metadata['cos_auth_type']
-            self.endpoint = urlparse(config.metadata['cos_endpoint'])
-            self.bucket = config.metadata['cos_bucket']
-            if auth_type in ['USER_CREDENTIALS', 'KUBERNETES_SECRET']:
+            auth_type = config.metadata["cos_auth_type"]
+            self.endpoint = urlparse(config.metadata["cos_endpoint"])
+            self.bucket = config.metadata["cos_bucket"]
+            if auth_type in ["USER_CREDENTIALS", "KUBERNETES_SECRET"]:
                 cred_provider = providers.StaticProvider(
-                    access_key=config.metadata['cos_username'],
-                    secret_key=config.metadata['cos_password'],
+                    access_key=config.metadata["cos_username"],
+                    secret_key=config.metadata["cos_password"],
                 )
-            elif auth_type == 'AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS':
-                if os.environ.get('AWS_ROLE_ARN') is None or\
-                   os.environ.get('AWS_WEB_IDENTITY_TOKEN_FILE') is None:
-                    raise RuntimeError('Cannot connect to object storage. '
-                                       f'Authentication provider \'{auth_type}\' requires '
-                                       'environment variables AWS_ROLE_ARN and AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS.')
+            elif auth_type == "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS":
+                if os.environ.get("AWS_ROLE_ARN") is None or os.environ.get("AWS_WEB_IDENTITY_TOKEN_FILE") is None:
+                    raise RuntimeError(
+                        "Cannot connect to object storage. "
+                        f"Authentication provider '{auth_type}' requires "
+                        "environment variables AWS_ROLE_ARN and AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS."
+                    )
                 # Verify that AWS_WEB_IDENTITY_TOKEN_FILE exists
-                if Path(os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']).is_file() is False:
-                    raise RuntimeError('Cannot connect to object storage. The value of environment '
-                                       'variable AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS references '
-                                       f"'{os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']}', which is not a valid file.")
+                if Path(os.environ["AWS_WEB_IDENTITY_TOKEN_FILE"]).is_file() is False:
+                    raise RuntimeError(
+                        "Cannot connect to object storage. The value of environment "
+                        "variable AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS references "
+                        f"'{os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']}', which is not a valid file."
+                    )
                 cred_provider = providers.IamAwsProvider()
             else:
-                raise RuntimeError('Cannot connect to object storage. '
-                                   f'Authentication provider \'{auth_type}\' is not supported.')
+                raise RuntimeError(
+                    "Cannot connect to object storage. " f"Authentication provider '{auth_type}' is not supported."
+                )
 
         # Infer secure from the endpoint's scheme.
-        self.secure = self.endpoint.scheme == 'https'
+        self.secure = self.endpoint.scheme == "https"
 
         # get minio client
-        self.client = minio.Minio(
-            self.endpoint.netloc,
-            secure=self.secure,
-            credentials=cred_provider
-        )
+        self.client = minio.Minio(self.endpoint.netloc, secure=self.secure, credentials=cred_provider)
 
         # Make a bucket with the make_bucket API call.
         try:
@@ -109,8 +113,10 @@ class CosClient(LoggingConfigurable):
         except ValueError as ex:
             # providers.IamAwsProvider raises this if something bad happened
             if isinstance(cred_provider, providers.IamAwsProvider):
-                raise RuntimeError(f'Cannot connect to object storage: {ex}. Verify that '
-                                   f'environment variable AWS_WEB_IDENTITY_TOKEN_FILE contains a valid value.')
+                raise RuntimeError(
+                    f"Cannot connect to object storage: {ex}. Verify that "
+                    f"environment variable AWS_WEB_IDENTITY_TOKEN_FILE contains a valid value."
+                )
             else:
                 raise ex
 
@@ -124,11 +130,9 @@ class CosClient(LoggingConfigurable):
         """
 
         try:
-            self.client.fput_object(bucket_name=self.bucket,
-                                    object_name=file_name,
-                                    file_path=file_path)
+            self.client.fput_object(bucket_name=self.bucket, object_name=file_name, file_path=file_path)
         except BaseException as ex:
-            self.log.error('Error uploading file {} to bucket {}'.format(file_path, self.bucket), exc_info=True)
+            self.log.error("Error uploading file {} to bucket {}".format(file_path, self.bucket), exc_info=True)
             raise ex from ex
 
     def upload_file_to_dir(self, dir, file_name, file_path):
@@ -152,11 +156,9 @@ class CosClient(LoggingConfigurable):
         :return:
         """
         try:
-            self.client.fget_object(bucket_name=self.bucket,
-                                    object_name=file_name,
-                                    file_path=file_path)
+            self.client.fget_object(bucket_name=self.bucket, object_name=file_name, file_path=file_path)
         except BaseException as ex:
-            self.log.error('Error reading file {} from bucket {}'.format(file_name, self.bucket), exc_info=True)
+            self.log.error("Error reading file {} from bucket {}".format(file_name, self.bucket), exc_info=True)
             raise ex from ex
 
     def download_file_from_dir(self, dir, file_name, file_path):

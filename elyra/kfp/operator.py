@@ -39,46 +39,51 @@ and have python3
 
 # Inputs and Outputs separator character.  If updated,
 # same-named variable in bootstrapper.py must be updated!
-INOUT_SEPARATOR = ';'
+INOUT_SEPARATOR = ";"
 
 ELYRA_GITHUB_ORG = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
-ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "master" if 'dev' in __version__ else "v" + __version__)
-ELYRA_PIP_CONFIG_URL = os.getenv('ELYRA_PIP_CONFIG_URL', 'https://raw.githubusercontent.com/{org}/elyra/'
-                                                         '{branch}/etc/kfp/pip.conf'.
-                                                         format(org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH))
-ELYRA_BOOTSTRAP_SCRIPT_URL = os.getenv('ELYRA_BOOTSTRAP_SCRIPT_URL', 'https://raw.githubusercontent.com/{org}/'
-                                                                     'elyra/{branch}/elyra/kfp/bootstrapper.py'.
-                                                                     format(org=ELYRA_GITHUB_ORG,
-                                                                            branch=ELYRA_GITHUB_BRANCH))
-ELYRA_REQUIREMENTS_URL = os.getenv('ELYRA_REQUIREMENTS_URL', 'https://raw.githubusercontent.com/{org}/'
-                                                             'elyra/{branch}/etc/generic/requirements-elyra.txt'.
-                                                             format(org=ELYRA_GITHUB_ORG,
-                                                                    branch=ELYRA_GITHUB_BRANCH))
+ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "master" if "dev" in __version__ else "v" + __version__)
+ELYRA_PIP_CONFIG_URL = os.getenv(
+    "ELYRA_PIP_CONFIG_URL",
+    "https://raw.githubusercontent.com/{org}/elyra/"
+    "{branch}/etc/kfp/pip.conf".format(org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH),
+)
+ELYRA_BOOTSTRAP_SCRIPT_URL = os.getenv(
+    "ELYRA_BOOTSTRAP_SCRIPT_URL",
+    "https://raw.githubusercontent.com/{org}/"
+    "elyra/{branch}/elyra/kfp/bootstrapper.py".format(org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH),
+)
+ELYRA_REQUIREMENTS_URL = os.getenv(
+    "ELYRA_REQUIREMENTS_URL",
+    "https://raw.githubusercontent.com/{org}/"
+    "elyra/{branch}/etc/generic/requirements-elyra.txt".format(org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH),
+)
 
 
 class ExecuteFileOp(ContainerOp):
-
-    def __init__(self,
-                 pipeline_name: str,
-                 experiment_name: str,
-                 notebook: str,
-                 cos_endpoint: str,
-                 cos_bucket: str,
-                 cos_directory: str,
-                 cos_dependencies_archive: str,
-                 pipeline_version: Optional[str] = '',
-                 pipeline_source: Optional[str] = None,
-                 pipeline_outputs: Optional[List[str]] = None,
-                 pipeline_inputs: Optional[List[str]] = None,
-                 pipeline_envs: Optional[Dict[str, str]] = None,
-                 requirements_url: Optional[str] = None,
-                 bootstrap_script_url: Optional[str] = None,
-                 emptydir_volume_size: Optional[str] = None,
-                 cpu_request: Optional[str] = None,
-                 mem_request: Optional[str] = None,
-                 gpu_limit: Optional[str] = None,
-                 workflow_engine: Optional[str] = 'argo',
-                 **kwargs):
+    def __init__(
+        self,
+        pipeline_name: str,
+        experiment_name: str,
+        notebook: str,
+        cos_endpoint: str,
+        cos_bucket: str,
+        cos_directory: str,
+        cos_dependencies_archive: str,
+        pipeline_version: Optional[str] = "",
+        pipeline_source: Optional[str] = None,
+        pipeline_outputs: Optional[List[str]] = None,
+        pipeline_inputs: Optional[List[str]] = None,
+        pipeline_envs: Optional[Dict[str, str]] = None,
+        requirements_url: Optional[str] = None,
+        bootstrap_script_url: Optional[str] = None,
+        emptydir_volume_size: Optional[str] = None,
+        cpu_request: Optional[str] = None,
+        mem_request: Optional[str] = None,
+        gpu_limit: Optional[str] = None,
+        workflow_engine: Optional[str] = "argo",
+        **kwargs,
+    ):
         """Create a new instance of ContainerOp.
         Args:
           pipeline_name: pipeline that this op belongs to
@@ -135,16 +140,16 @@ class ExecuteFileOp(ContainerOp):
         """
         self.emptydir_volume_name = "workspace"
         self.emptydir_volume_size = emptydir_volume_size
-        self.python_user_lib_path = ''
-        self.python_user_lib_path_target = ''
-        self.python_pip_config_url = ''
+        self.python_user_lib_path = ""
+        self.python_user_lib_path_target = ""
+        self.python_pip_config_url = ""
 
         if self.emptydir_volume_size:
             self.container_work_dir_root_path = "/opt/app-root/src/"
             self.container_python_dir_name = "python3/"
             self.container_work_dir = self.container_work_dir_root_path + self.container_work_dir_name
             self.python_user_lib_path = self.container_work_dir + self.container_python_dir_name
-            self.python_user_lib_path_target = '--target=' + self.python_user_lib_path
+            self.python_user_lib_path_target = "--target=" + self.python_user_lib_path
             self.python_pip_config_url = ELYRA_PIP_CONFIG_URL
 
         if not self.bootstrap_script_url:
@@ -153,54 +158,60 @@ class ExecuteFileOp(ContainerOp):
         if not self.requirements_url:
             self.requirements_url = ELYRA_REQUIREMENTS_URL
 
-        if 'name' not in kwargs:
+        if "name" not in kwargs:
             raise TypeError("You need to provide a name for the operation.")
-        elif not kwargs.get('name'):
+        elif not kwargs.get("name"):
             raise ValueError("You need to provide a name for the operation.")
 
-        if 'image' not in kwargs:
+        if "image" not in kwargs:
             raise ValueError("You need to provide an image.")
 
         if not notebook:
             raise ValueError("You need to provide a notebook.")
 
-        if 'arguments' not in kwargs:
-            """ If no arguments are passed, we use our own.
-                If ['arguments'] are set, we assume container's ENTRYPOINT is set and dependencies are installed
-                NOTE: Images being pulled must have python3 available on PATH and cURL utility
+        if "arguments" not in kwargs:
+            """If no arguments are passed, we use our own.
+            If ['arguments'] are set, we assume container's ENTRYPOINT is set and dependencies are installed
+            NOTE: Images being pulled must have python3 available on PATH and cURL utility
             """
 
-            argument_list.append('mkdir -p {container_work_dir} && cd {container_work_dir} && '
-                                 'curl -H "Cache-Control: no-cache" -L {bootscript_url} --output bootstrapper.py && '
-                                 'curl -H "Cache-Control: no-cache" -L {reqs_url} --output requirements-elyra.txt && '
-                                 .format(container_work_dir=self.container_work_dir,
-                                         bootscript_url=self.bootstrap_script_url,
-                                         reqs_url=self.requirements_url)
-                                 )
+            argument_list.append(
+                "mkdir -p {container_work_dir} && cd {container_work_dir} && "
+                'curl -H "Cache-Control: no-cache" -L {bootscript_url} --output bootstrapper.py && '
+                'curl -H "Cache-Control: no-cache" -L {reqs_url} --output requirements-elyra.txt && '.format(
+                    container_work_dir=self.container_work_dir,
+                    bootscript_url=self.bootstrap_script_url,
+                    reqs_url=self.requirements_url,
+                )
+            )
 
             if self.emptydir_volume_size:
-                argument_list.append('mkdir {container_python_dir} && cd {container_python_dir} && '
-                                     'curl -H "Cache-Control: no-cache" -L {python_pip_config_url} '
-                                     '--output pip.conf && cd .. &&'
-                                     .format(python_pip_config_url=self.python_pip_config_url,
-                                             container_python_dir=self.container_python_dir_name)
-                                     )
+                argument_list.append(
+                    "mkdir {container_python_dir} && cd {container_python_dir} && "
+                    'curl -H "Cache-Control: no-cache" -L {python_pip_config_url} '
+                    "--output pip.conf && cd .. &&".format(
+                        python_pip_config_url=self.python_pip_config_url,
+                        container_python_dir=self.container_python_dir_name,
+                    )
+                )
 
-            argument_list.append('python3 -m pip install {python_user_lib_path_target} packaging && '
-                                 'python3 -m pip freeze > requirements-current.txt && '
-                                 'python3 bootstrapper.py '
-                                 '--cos-endpoint {cos_endpoint} '
-                                 '--cos-bucket {cos_bucket} '
-                                 '--cos-directory "{cos_directory}" '
-                                 '--cos-dependencies-archive "{cos_dependencies_archive}" '
-                                 '--file "{notebook}" '
-                                 .format(cos_endpoint=self.cos_endpoint,
-                                         cos_bucket=self.cos_bucket,
-                                         cos_directory=self.cos_directory,
-                                         cos_dependencies_archive=self.cos_dependencies_archive,
-                                         notebook=self.notebook,
-                                         python_user_lib_path_target=self.python_user_lib_path_target)
-                                 )
+            argument_list.append(
+                "python3 -m pip install {python_user_lib_path_target} packaging && "
+                "python3 -m pip freeze > requirements-current.txt && "
+                "python3 bootstrapper.py "
+                "--cos-endpoint {cos_endpoint} "
+                "--cos-bucket {cos_bucket} "
+                '--cos-directory "{cos_directory}" '
+                '--cos-dependencies-archive "{cos_dependencies_archive}" '
+                '--file "{notebook}" '.format(
+                    cos_endpoint=self.cos_endpoint,
+                    cos_bucket=self.cos_bucket,
+                    cos_directory=self.cos_directory,
+                    cos_dependencies_archive=self.cos_dependencies_archive,
+                    notebook=self.notebook,
+                    python_user_lib_path_target=self.python_user_lib_path_target,
+                )
+            )
 
             if self.pipeline_inputs:
                 inputs_str = self._artifact_list_to_str(self.pipeline_inputs)
@@ -213,8 +224,8 @@ class ExecuteFileOp(ContainerOp):
             if self.emptydir_volume_size:
                 argument_list.append('--user-volume-path "{}" '.format(self.python_user_lib_path))
 
-            kwargs['command'] = ['sh', '-c']
-            kwargs['arguments'] = "".join(argument_list)
+            kwargs["command"] = ["sh", "-c"]
+            kwargs["arguments"] = "".join(argument_list)
 
         super().__init__(**kwargs)
 
@@ -227,17 +238,19 @@ class ExecuteFileOp(ContainerOp):
         # If crio volume size is found then assume kubeflow pipelines environment is using CRI-o as
         # its container runtime
         if self.emptydir_volume_size:
-            self.add_volume(V1Volume(empty_dir=V1EmptyDirVolumeSource(
-                                     medium="",
-                                     size_limit=self.emptydir_volume_size),
-                                     name=self.emptydir_volume_name))
+            self.add_volume(
+                V1Volume(
+                    empty_dir=V1EmptyDirVolumeSource(medium="", size_limit=self.emptydir_volume_size),
+                    name=self.emptydir_volume_name,
+                )
+            )
 
-            self.container.add_volume_mount(V1VolumeMount(mount_path=self.container_work_dir_root_path,
-                                                          name=self.emptydir_volume_name))
+            self.container.add_volume_mount(
+                V1VolumeMount(mount_path=self.container_work_dir_root_path, name=self.emptydir_volume_name)
+            )
 
             # Append to PYTHONPATH location of elyra dependencies in installed in Volume
-            self.container.add_env_variable(V1EnvVar(name='PYTHONPATH',
-                                                     value=self.python_user_lib_path))
+            self.container.add_env_variable(V1EnvVar(name="PYTHONPATH", value=self.python_user_lib_path))
 
         if self.cpu_request:
             self.container.set_cpu_request(cpu=str(cpu_request))
@@ -246,71 +259,66 @@ class ExecuteFileOp(ContainerOp):
             self.container.set_memory_request(memory=str(mem_request) + "G")
 
         if self.gpu_limit:
-            gpu_vendor = self.pipeline_envs.get('GPU_VENDOR', 'nvidia')
+            gpu_vendor = self.pipeline_envs.get("GPU_VENDOR", "nvidia")
             self.container.set_gpu_limit(gpu=str(gpu_limit), vendor=gpu_vendor)
 
         # Generate unique ELYRA_RUN_NAME value and expose it as an environment
         # variable in the container
         if not workflow_engine:
-            raise ValueError('workflow_engine is missing and needs to be specified.')
-        if workflow_engine.lower() == 'argo':
+            raise ValueError("workflow_engine is missing and needs to be specified.")
+        if workflow_engine.lower() == "argo":
             # attach RUN_ID_PLACEHOLDER as run name
             # '{{workflow.annotations.pipelines.kubeflow.org/run_name}}' variable
             # cannot be resolved by Argo in KF 1.4
             run_name_placeholder = RUN_ID_PLACEHOLDER
-            self.container.add_env_variable(V1EnvVar(name='ELYRA_RUN_NAME',
-                                                     value=run_name_placeholder))
-        elif workflow_engine.lower() == 'tekton':
+            self.container.add_env_variable(V1EnvVar(name="ELYRA_RUN_NAME", value=run_name_placeholder))
+        elif workflow_engine.lower() == "tekton":
             try:
                 from kfp_tekton import TektonClient  # noqa: F401
             except ImportError:
                 raise ValueError(
-                    'kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.'
+                    "kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine."
                 )
 
             # For Tekton derive the value from the specified pod annotation
-            annotation = 'pipelines.kubeflow.org/run_name'
+            annotation = "pipelines.kubeflow.org/run_name"
             field_path = f"metadata.annotations['{annotation}']"
-            self.container.add_env_variable(V1EnvVar(name='ELYRA_RUN_NAME',
-                                                     value_from=V1EnvVarSource(
-                                                         field_ref=V1ObjectFieldSelector(field_path=field_path))))
+            self.container.add_env_variable(
+                V1EnvVar(
+                    name="ELYRA_RUN_NAME",
+                    value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(field_path=field_path)),
+                )
+            )
         else:
-            raise ValueError(f'{workflow_engine} is not a supported workflow engine.')
+            raise ValueError(f"{workflow_engine} is not a supported workflow engine.")
 
         # Attach metadata to the pod
         # Node type (a static type for this op)
-        self.add_pod_label('elyra/node-type',
-                           ExecuteFileOp._normalize_label_value(
-                               'notebook-script'))
+        self.add_pod_label("elyra/node-type", ExecuteFileOp._normalize_label_value("notebook-script"))
         # Pipeline name
-        self.add_pod_label('elyra/pipeline-name',
-                           ExecuteFileOp._normalize_label_value(self.pipeline_name))
+        self.add_pod_label("elyra/pipeline-name", ExecuteFileOp._normalize_label_value(self.pipeline_name))
         # Pipeline version
-        self.add_pod_label('elyra/pipeline-version',
-                           ExecuteFileOp._normalize_label_value(self.pipeline_version))
+        self.add_pod_label("elyra/pipeline-version", ExecuteFileOp._normalize_label_value(self.pipeline_version))
         # Experiment name
-        self.add_pod_label('elyra/experiment-name',
-                           ExecuteFileOp._normalize_label_value(self.experiment_name))
+        self.add_pod_label("elyra/experiment-name", ExecuteFileOp._normalize_label_value(self.experiment_name))
         # Pipeline node name
-        self.add_pod_label('elyra/node-name',
-                           ExecuteFileOp._normalize_label_value(kwargs.get('name')))
+        self.add_pod_label("elyra/node-name", ExecuteFileOp._normalize_label_value(kwargs.get("name")))
         # Pipeline node file
-        self.add_pod_annotation('elyra/node-file-name',
-                                self.notebook)
+        self.add_pod_annotation("elyra/node-file-name", self.notebook)
 
         # Identify the pipeline source, which can be a
         # pipeline file (mypipeline.pipeline), a Python
         # script or notebook that was submitted
         if self.pipeline_source is not None:
-            self.add_pod_annotation('elyra/pipeline-source',
-                                    self.pipeline_source)
+            self.add_pod_annotation("elyra/pipeline-source", self.pipeline_source)
 
     def _artifact_list_to_str(self, pipeline_array):
         trimmed_artifact_list = []
         for artifact_name in pipeline_array:
             if INOUT_SEPARATOR in artifact_name:  # if INOUT_SEPARATOR is in name, throw since this is our separator
-                raise \
-                    ValueError("Illegal character ({}) found in filename '{}'.".format(INOUT_SEPARATOR, artifact_name))
+                raise ValueError(
+                    "Illegal character ({}) found in filename '{}'.".format(INOUT_SEPARATOR, artifact_name)
+                )
             trimmed_artifact_list.append(artifact_name.strip())
         return INOUT_SEPARATOR.join(trimmed_artifact_list)
 
@@ -325,7 +333,7 @@ class ExecuteFileOp(ContainerOp):
         """
 
         if value is None or len(value) == 0:
-            return ''   # nothing to do
+            return ""  # nothing to do
 
         max_length = 63
         # This char is added at the front and/or back
@@ -333,13 +341,13 @@ class ExecuteFileOp(ContainerOp):
         # is invalid. For example a value of "-abc"
         # is converted to "a-abc". The specified character
         # must meet the label value constraints.
-        valid_char = 'a'
+        valid_char = "a"
         # This char is used to replace invalid characters
         # that are in the "middle" of value. For example
         # a value of "abc%def" is converted to "abc_def".
         # The specified character must meet the label value
         # constraints.
-        valid_middle_char = '_'
+        valid_middle_char = "_"
 
         # must begin with [0-9a-zA-Z]
         valid_chars = string.ascii_letters + string.digits
@@ -359,9 +367,9 @@ class ExecuteFileOp(ContainerOp):
                 value = value[:-1] + valid_char
 
         # middle chars must be [0-9a-zA-Z\-_.]
-        valid_chars = valid_chars + '-_.'
+        valid_chars = valid_chars + "-_."
 
-        newstr = ''
+        newstr = ""
         for c in range(len(value)):
             if value[c] not in valid_chars:
                 newstr = newstr + valid_middle_char

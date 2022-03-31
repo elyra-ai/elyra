@@ -23,45 +23,47 @@ from elyra.tests.pipeline.util import _read_pipeline_resource
 @pytest.fixture
 def valid_operation():
     component_parameters = {
-        'filename': '{{filename}}',
-        'runtime_image': '{{runtime_image}}',
-        'env_vars': ["var1=var1", "var2=var2"],
-        'dependencies': ["a.txt", "b.txt", "c.txt"],
-        'outputs': ["d.txt", "e.txt", "f.txt"]
+        "filename": "{{filename}}",
+        "runtime_image": "{{runtime_image}}",
+        "env_vars": ["var1=var1", "var2=var2"],
+        "dependencies": ["a.txt", "b.txt", "c.txt"],
+        "outputs": ["d.txt", "e.txt", "f.txt"],
     }
-    return GenericOperation(id='{{uuid}}',
-                            type='execution_node',
-                            classifier='execute-notebook-node',
-                            name='{{label}}',
-                            component_params=component_parameters)
+    return GenericOperation(
+        id="{{uuid}}",
+        type="execution_node",
+        classifier="execute-notebook-node",
+        name="{{label}}",
+        component_params=component_parameters,
+    )
 
 
 def test_valid_pipeline(valid_operation):
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
 
-    assert pipeline.name == '{{name}}'
-    assert pipeline.runtime == '{{runtime}}'
-    assert pipeline.runtime_config == '{{runtime-config}}'
+    assert pipeline.name == "{{name}}"
+    assert pipeline.runtime == "{{runtime}}"
+    assert pipeline.runtime_config == "{{runtime-config}}"
     assert len(pipeline.operations) == 1
-    assert pipeline.operations['{{uuid}}'] == valid_operation
+    assert pipeline.operations["{{uuid}}"] == valid_operation
 
 
 def test_pipeline_with_dirty_list_values(valid_operation):
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_with_invalid_list_values.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_with_invalid_list_values.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
 
-    assert pipeline.name == '{{name}}'
-    assert pipeline.runtime == '{{runtime}}'
-    assert pipeline.runtime_config == '{{runtime-config}}'
+    assert pipeline.name == "{{name}}"
+    assert pipeline.runtime == "{{runtime}}"
+    assert pipeline.runtime_config == "{{runtime-config}}"
     assert len(pipeline.operations) == 1
-    assert pipeline.operations['{{uuid}}'] == valid_operation
+    assert pipeline.operations["{{uuid}}"] == valid_operation
 
 
 def test_multinode_pipeline():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_3_node_sample.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_3_node_sample.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
 
@@ -69,7 +71,7 @@ def test_multinode_pipeline():
 
 
 def test_supernode_pipeline():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_with_supernode.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_with_supernode.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
 
@@ -106,63 +108,64 @@ def test_supernode_pipeline():
 
 
 def test_multiple_pipeline_definition():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/'
-                                            'pipeline_multiple_pipeline_definitions.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/" "pipeline_multiple_pipeline_definitions.json")
 
     with pytest.raises(ValueError):
         PipelineParser().parse(pipeline_json)
 
 
 def test_pipeline_operations_and_handle_artifact_file_details():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_3_node_sample.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_3_node_sample.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
 
     assert len(pipeline.operations) == 3
 
     for op in pipeline.operations.values():
-        assert '.' not in op.name
+        assert "." not in op.name
 
 
 def test_pipeline_with_dependencies():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/'
-                                            'pipeline_3_node_sample_with_dependencies.json')
+    pipeline_json = _read_pipeline_resource(
+        "resources/sample_pipelines/" "pipeline_3_node_sample_with_dependencies.json"
+    )
 
     pipeline = PipelineParser().parse(pipeline_json)
 
-    assert len(pipeline.operations['acc4527d-7cc8-4c16-b520-5aa0f50a2e34'].parent_operation_ids) == 2
+    assert len(pipeline.operations["acc4527d-7cc8-4c16-b520-5aa0f50a2e34"].parent_operation_ids) == 2
 
 
 def test_pipeline_with_comments():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/'
-                                            'pipeline_3_node_sample_with_comments.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/" "pipeline_3_node_sample_with_comments.json")
     pipeline = PipelineParser().parse(pipeline_json)
-    assert pipeline.operations['d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c'].doc \
+    assert (
+        pipeline.operations["d52ddfb4-dd0e-47ac-abc7-fa30bb95d45c"].doc
         == "Generate community stats and then aggregate them on an overview dashboard"
+    )
 
 
 def test_pipeline_global_attributes():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
 
-    assert pipeline.name == '{{name}}'
-    assert pipeline.runtime == '{{runtime}}'
-    assert pipeline.runtime_config == '{{runtime-config}}'
+    assert pipeline.name == "{{name}}"
+    assert pipeline.runtime == "{{runtime}}"
+    assert pipeline.runtime_config == "{{runtime-config}}"
 
 
 def test_missing_pipeline_name_should_default_to_untitled():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['app_data']['properties'].pop('name')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["app_data"]["properties"].pop("name")
 
     pipeline = PipelineParser().parse(pipeline_json)
 
-    assert pipeline.name == 'untitled'
+    assert pipeline.name == "untitled"
 
 
 def test_missing_pipeline_runtime():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['app_data'].pop('runtime')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["app_data"].pop("runtime")
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_json)
@@ -171,8 +174,8 @@ def test_missing_pipeline_runtime():
 
 
 def test_missing_pipeline_runtime_configuration():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['app_data'].pop('runtime_config')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["app_data"].pop("runtime_config")
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_json)
@@ -181,8 +184,8 @@ def test_missing_pipeline_runtime_configuration():
 
 
 def test_missing_operation_id():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['nodes'][0].pop('id')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["nodes"][0].pop("id")
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_json)
@@ -191,8 +194,8 @@ def test_missing_operation_id():
 
 
 def test_missing_operation_type():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['nodes'][0].pop('type')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["nodes"][0].pop("type")
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_json)
@@ -201,8 +204,8 @@ def test_missing_operation_type():
 
 
 def test_invalid_node_type():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['nodes'][0]['type'] = 'foo'
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["nodes"][0]["type"] = "foo"
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_json)
@@ -211,8 +214,8 @@ def test_invalid_node_type():
 
 
 def test_missing_operation_filename():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['nodes'][0]['app_data']['component_parameters'].pop('filename')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["nodes"][0]["app_data"]["component_parameters"].pop("filename")
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_json)
@@ -221,8 +224,8 @@ def test_missing_operation_filename():
 
 
 def test_missing_operation_image():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['nodes'][0]['app_data']['component_parameters'].pop('runtime_image')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["nodes"][0]["app_data"]["component_parameters"].pop("runtime_image")
 
     with pytest.raises(ValueError) as e:
         PipelineParser().parse(pipeline_json)

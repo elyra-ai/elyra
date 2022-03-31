@@ -1,0 +1,8 @@
+[tool.black]
+# you can play around with line-length to see what you think suits elyra best
+# black defaults to 88, but projects often chose larger values (for example, airflow uses 110)
+line-length = 120
+
+# this tells black what features of python can be used to clean up code
+# targeting 'py37' ensures we support python 3.7
+target-version = ['py37', 'py38', 'py39', 'py310']

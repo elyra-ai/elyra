@@ -54,13 +54,13 @@ from elyra.util.path import get_absolute_path
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
-    _name = 'kfp'
+    _name = "kfp"
 
     # Provide users with the ability to identify a writable directory in the
     # running container where the notebook | script is executed. The location
     # must exist and be known before the container is started.
     # Defaults to `/tmp`
-    WCD = os.getenv('ELYRA_WRITABLE_CONTAINER_DIR', '/tmp').strip().rstrip('/')
+    WCD = os.getenv("ELYRA_WRITABLE_CONTAINER_DIR", "/tmp").strip().rstrip("/")
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, **kwargs)
@@ -78,42 +78,42 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Runtime Configs
         ################
         runtime_configuration = self._get_metadata_configuration(
-            schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
-            name=pipeline.runtime_config
+            schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
         )
 
         # unpack Kubeflow Pipelines configs
-        api_endpoint = runtime_configuration.metadata['api_endpoint'].rstrip('/')
-        api_username = runtime_configuration.metadata.get('api_username')
-        api_password = runtime_configuration.metadata.get('api_password')
-        user_namespace = runtime_configuration.metadata.get('user_namespace')
-        engine = runtime_configuration.metadata.get('engine')
-        if engine == 'Tekton' and not TektonClient:
+        api_endpoint = runtime_configuration.metadata["api_endpoint"].rstrip("/")
+        api_username = runtime_configuration.metadata.get("api_username")
+        api_password = runtime_configuration.metadata.get("api_password")
+        user_namespace = runtime_configuration.metadata.get("user_namespace")
+        engine = runtime_configuration.metadata.get("engine")
+        if engine == "Tekton" and not TektonClient:
             raise ValueError(
                 "Python package `kfp-tekton` is not installed. "
                 "Please install using `elyra[kfp-tekton]` to use Tekton engine."
             )
 
         # unpack Cloud Object Storage configs
-        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-        cos_bucket = runtime_configuration.metadata['cos_bucket']
+        cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
+        cos_bucket = runtime_configuration.metadata["cos_bucket"]
 
         # Determine which provider to use to authenticate with Kubeflow
-        auth_type = runtime_configuration.metadata.get('auth_type')
+        auth_type = runtime_configuration.metadata.get("auth_type")
 
         try:
-            auth_info = \
-                KFPAuthenticator().authenticate(api_endpoint,
-                                                auth_type_str=auth_type,
-                                                runtime_config_name=pipeline.runtime_config,
-                                                auth_parm_1=api_username,
-                                                auth_parm_2=api_password)
-            self.log.debug(f'Authenticator returned {auth_info}')
+            auth_info = KFPAuthenticator().authenticate(
+                api_endpoint,
+                auth_type_str=auth_type,
+                runtime_config_name=pipeline.runtime_config,
+                auth_parm_1=api_username,
+                auth_parm_2=api_password,
+            )
+            self.log.debug(f"Authenticator returned {auth_info}")
         except AuthenticationError as ae:
             if ae.get_request_history() is not None:
-                self.log.info('An authentication error was raised. Diagnostic information follows.')
+                self.log.info("An authentication error was raised. Diagnostic information follows.")
                 self.log.info(ae.request_history_to_string())
-            raise RuntimeError(f'Kubeflow authentication failed: {ae}')
+            raise RuntimeError(f"Kubeflow authentication failed: {ae}")
 
         #############
         # Create Kubeflow Client
@@ -122,26 +122,28 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             if engine == "Tekton":
                 client = TektonClient(
                     host=api_endpoint,
-                    cookies=auth_info.get('cookies', None),
-                    credentials=auth_info.get('credentials', None),
-                    existing_token=auth_info.get('existing_token', None),
-                    namespace=user_namespace
+                    cookies=auth_info.get("cookies", None),
+                    credentials=auth_info.get("credentials", None),
+                    existing_token=auth_info.get("existing_token", None),
+                    namespace=user_namespace,
                 )
             else:
                 client = ArgoClient(
                     host=api_endpoint,
-                    cookies=auth_info.get('cookies', None),
-                    credentials=auth_info.get('credentials', None),
-                    existing_token=auth_info.get('existing_token', None),
-                    namespace=user_namespace
+                    cookies=auth_info.get("cookies", None),
+                    credentials=auth_info.get("credentials", None),
+                    existing_token=auth_info.get("existing_token", None),
+                    namespace=user_namespace,
                 )
         except Exception as ex:
             # a common cause of these errors is forgetting to include `/pipeline` or including it with an 's'
             api_endpoint_obj = urlsplit(api_endpoint)
             if api_endpoint_obj.path != "/pipeline":
                 api_endpoint_tip = api_endpoint_obj._replace(path="/pipeline").geturl()
-                tip_string = f" - [TIP: did you mean to set '{api_endpoint_tip}' as the endpoint, " \
-                             f"take care not to include 's' at end]"
+                tip_string = (
+                    f" - [TIP: did you mean to set '{api_endpoint_tip}' as the endpoint, "
+                    f"take care not to include 's' at end]"
+                )
             else:
                 tip_string = ""
 
@@ -186,7 +188,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         with tempfile.TemporaryDirectory() as temp_dir:
             self.log.debug(f"Created temporary directory at: {temp_dir}")
-            pipeline_path = os.path.join(temp_dir, f'{pipeline_name}.tar.gz')
+            pipeline_path = os.path.join(temp_dir, f"{pipeline_name}.tar.gz")
 
             #############
             # Get Pipeline ID
@@ -226,7 +228,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     pipeline_name=pipeline_name,
                     pipeline_version=pipeline_version_name,
                     experiment_name=experiment_name,
-                    cos_directory=cos_directory
+                    cos_directory=cos_directory,
                 )
 
                 # collect pipeline configuration information
@@ -235,16 +237,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # compile the pipeline
                 if engine == "Tekton":
                     kfp_tekton_compiler.TektonCompiler().compile(
-                        pipeline_function,
-                        pipeline_path,
-                        pipeline_conf=pipeline_conf
+                        pipeline_function, pipeline_path, pipeline_conf=pipeline_conf
                     )
                 else:
-                    kfp_argo_compiler.Compiler().compile(
-                        pipeline_function,
-                        pipeline_path,
-                        pipeline_conf=pipeline_conf
-                    )
+                    kfp_argo_compiler.Compiler().compile(pipeline_function, pipeline_path, pipeline_conf=pipeline_conf)
             except RuntimeError:
                 raise
             except Exception as ex:
@@ -266,7 +262,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     kfp_pipeline = client.upload_pipeline(
                         pipeline_package_path=pipeline_path,
                         pipeline_name=pipeline_name,
-                        description=pipeline_description
+                        description=pipeline_description,
                     )
 
                     # extract the ID of the pipeline we created
@@ -281,7 +277,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     kfp_pipeline = client.upload_pipeline_version(
                         pipeline_package_path=pipeline_path,
                         pipeline_version_name=pipeline_version_name,
-                        pipeline_id=pipeline_id
+                        pipeline_id=pipeline_id,
                     )
 
                     # extract the id of the "pipeline version" that was created
@@ -292,8 +288,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 api_endpoint_obj = urlsplit(api_endpoint)
                 if api_endpoint_obj.path != "/pipeline":
                     api_endpoint_tip = api_endpoint_obj._replace(path="/pipeline").geturl()
-                    tip_string = f" - [TIP: did you mean to set '{api_endpoint_tip}' as the endpoint, " \
-                                 f"take care not to include 's' at end]"
+                    tip_string = (
+                        f" - [TIP: did you mean to set '{api_endpoint_tip}' as the endpoint, "
+                        f"take care not to include 's' at end]"
+                    )
                 else:
                     tip_string = ""
 
@@ -312,10 +310,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 t0 = time.time()
 
                 # create a new experiment (if already exists, this a no-op)
-                experiment = client.create_experiment(
-                    name=experiment_name,
-                    namespace=user_namespace
-                )
+                experiment = client.create_experiment(name=experiment_name, namespace=user_namespace)
 
             except Exception as ex:
                 raise RuntimeError(
@@ -336,10 +331,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # create pipeline run (or specified pipeline version)
                 run = client.run_pipeline(
-                    experiment_id=experiment.id,
-                    job_name=job_name,
-                    pipeline_id=pipeline_id,
-                    version_id=version_id
+                    experiment_id=experiment.id, job_name=job_name, pipeline_id=pipeline_id, version_id=version_id
                 )
 
             except Exception as ex:
@@ -357,9 +349,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 )
 
             self.log_pipeline_info(
-                pipeline_name,
-                f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}",
-                duration=time.time() - t0
+                pipeline_name, f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}", duration=time.time() - t0
             )
 
         return KfpPipelineProcessorResponse(
@@ -378,18 +368,19 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         pipeline_name = pipeline.name
         # Unique location on COS where the pipeline run artifacts
         # will be stored
-        cos_directory = f'{pipeline_name}-{timestamp}'
+        cos_directory = f"{pipeline_name}-{timestamp}"
 
         # Since pipeline_export_path may be relative to the notebook directory, ensure
         # we're using its absolute form.
         absolute_pipeline_export_path = get_absolute_path(self.root_dir, pipeline_export_path)
 
-        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
-                                                                 name=pipeline.runtime_config)
+        runtime_configuration = self._get_metadata_configuration(
+            schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
+        )
 
-        engine = runtime_configuration.metadata.get('engine')
-        if engine == 'Tekton' and not TektonClient:
-            raise ValueError('kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.')
+        engine = runtime_configuration.metadata.get("engine")
+        if engine == "Tekton" and not TektonClient:
+            raise ValueError("kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.")
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
@@ -400,10 +391,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Exported pipeline is not associated with an experiment
             # or a version. The association is established when the
             # pipeline is imported into KFP by the user.
-            pipeline_function = lambda: self._cc_pipeline(pipeline,
-                                                          pipeline_name,
-                                                          cos_directory=cos_directory)  # nopep8
-            if engine == 'Tekton':
+            pipeline_function = lambda: self._cc_pipeline(
+                pipeline, pipeline_name, cos_directory=cos_directory
+            )  # nopep8
+            if engine == "Tekton":
                 self.log.info("Compiling pipeline for Tekton engine")
                 kfp_tekton_compiler.TektonCompiler().compile(pipeline_function, absolute_pipeline_export_path)
             else:
@@ -414,12 +405,16 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         except Exception as ex:
             if ex.__cause__:
                 raise RuntimeError(str(ex)) from ex
-            raise RuntimeError('Error pre-processing pipeline {} for export at {}'.
-                               format(pipeline_name, absolute_pipeline_export_path), str(ex)) from ex
+            raise RuntimeError(
+                "Error pre-processing pipeline {} for export at {}".format(
+                    pipeline_name, absolute_pipeline_export_path
+                ),
+                str(ex),
+            ) from ex
 
-        self.log_pipeline_info(pipeline_name,
-                               f"pipeline exported: {pipeline_export_path}",
-                               duration=(time.time() - t0_all))
+        self.log_pipeline_info(
+            pipeline_name, f"pipeline exported: {pipeline_export_path}", duration=(time.time() - t0_all)
+        )
 
         return pipeline_export_path  # Return the input value, not its absolute form
 
@@ -431,37 +426,35 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         """
         envs = super()._collect_envs(operation, **kwargs)
         # Only Unix-style path spec is supported.
-        envs['ELYRA_WRITABLE_CONTAINER_DIR'] = self.WCD
+        envs["ELYRA_WRITABLE_CONTAINER_DIR"] = self.WCD
         return envs
 
-    def _cc_pipeline(self,
-                     pipeline,
-                     pipeline_name,
-                     pipeline_version='',
-                     experiment_name='',
-                     cos_directory=None,
-                     export=False):
+    def _cc_pipeline(
+        self, pipeline, pipeline_name, pipeline_version="", experiment_name="", cos_directory=None, export=False
+    ):
 
-        runtime_configuration = self._get_metadata_configuration(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID,
-                                                                 name=pipeline.runtime_config)
+        runtime_configuration = self._get_metadata_configuration(
+            schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
+        )
 
-        cos_endpoint = runtime_configuration.metadata['cos_endpoint']
-        cos_username = runtime_configuration.metadata.get('cos_username')
-        cos_password = runtime_configuration.metadata.get('cos_password')
-        cos_secret = runtime_configuration.metadata.get('cos_secret')
-        cos_bucket = runtime_configuration.metadata.get('cos_bucket')
+        cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
+        cos_username = runtime_configuration.metadata.get("cos_username")
+        cos_password = runtime_configuration.metadata.get("cos_password")
+        cos_secret = runtime_configuration.metadata.get("cos_secret")
+        cos_bucket = runtime_configuration.metadata.get("cos_bucket")
         if cos_directory is None:
             cos_directory = pipeline_name
 
-        engine = runtime_configuration.metadata['engine']
+        engine = runtime_configuration.metadata["engine"]
 
-        self.log_pipeline_info(pipeline_name,
-                               f"processing pipeline dependencies to: {cos_endpoint} "
-                               f"bucket: {cos_bucket} folder: {cos_directory}")
+        self.log_pipeline_info(
+            pipeline_name,
+            f"processing pipeline dependencies to: {cos_endpoint} " f"bucket: {cos_bucket} folder: {cos_directory}",
+        )
         t0_all = time.time()
 
-        emptydir_volume_size = ''
-        container_runtime = bool(os.getenv('CRIO_RUNTIME', 'False').lower() == 'true')
+        emptydir_volume_size = ""
+        container_runtime = bool(os.getenv("CRIO_RUNTIME", "False").lower() == "true")
 
         # Create dictionary that maps component Id to its ContainerOp instance
         target_ops = {}
@@ -486,7 +479,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             if container_runtime:
                 # Volume size to create when using CRI-o, NOTE: IBM Cloud minimum is 20Gi
-                emptydir_volume_size = '20Gi'
+                emptydir_volume_size = "20Gi"
 
             sanitized_operation_name = self._sanitize_operation_name(operation.name)
 
@@ -495,46 +488,50 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             if isinstance(operation, GenericOperation):
 
                 # Collect env variables
-                pipeline_envs = self._collect_envs(operation,
-                                                   cos_secret=cos_secret,
-                                                   cos_username=cos_username,
-                                                   cos_password=cos_password)
+                pipeline_envs = self._collect_envs(
+                    operation, cos_secret=cos_secret, cos_username=cos_username, cos_password=cos_password
+                )
 
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug("Creating pipeline component:\n {op} archive : {archive}".format(
-                               op=operation, archive=operation_artifact_archive))
+                self.log.debug(
+                    "Creating pipeline component:\n {op} archive : {archive}".format(
+                        op=operation, archive=operation_artifact_archive
+                    )
+                )
 
-                target_ops[operation.id] = ExecuteFileOp(name=sanitized_operation_name,
-                                                         pipeline_name=pipeline_name,
-                                                         experiment_name=experiment_name,
-                                                         notebook=operation.filename,
-                                                         cos_endpoint=cos_endpoint,
-                                                         cos_bucket=cos_bucket,
-                                                         cos_directory=cos_directory,
-                                                         cos_dependencies_archive=operation_artifact_archive,
-                                                         pipeline_version=pipeline_version,
-                                                         pipeline_source=pipeline.source,
-                                                         pipeline_inputs=operation.inputs,
-                                                         pipeline_outputs=operation.outputs,
-                                                         pipeline_envs=pipeline_envs,
-                                                         emptydir_volume_size=emptydir_volume_size,
-                                                         cpu_request=operation.cpu,
-                                                         mem_request=operation.memory,
-                                                         gpu_limit=operation.gpu,
-                                                         workflow_engine=engine,
-                                                         image=operation.runtime_image,
-                                                         file_outputs={
-                                                             'mlpipeline-metrics':
-                                                                 '{}/mlpipeline-metrics.json'
-                                                                 .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']),  # noqa
-                                                             'mlpipeline-ui-metadata':
-                                                                 '{}/mlpipeline-ui-metadata.json'
-                                                                 .format(pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR'])  # noqa
-                                                         })
+                target_ops[operation.id] = ExecuteFileOp(
+                    name=sanitized_operation_name,
+                    pipeline_name=pipeline_name,
+                    experiment_name=experiment_name,
+                    notebook=operation.filename,
+                    cos_endpoint=cos_endpoint,
+                    cos_bucket=cos_bucket,
+                    cos_directory=cos_directory,
+                    cos_dependencies_archive=operation_artifact_archive,
+                    pipeline_version=pipeline_version,
+                    pipeline_source=pipeline.source,
+                    pipeline_inputs=operation.inputs,
+                    pipeline_outputs=operation.outputs,
+                    pipeline_envs=pipeline_envs,
+                    emptydir_volume_size=emptydir_volume_size,
+                    cpu_request=operation.cpu,
+                    mem_request=operation.memory,
+                    gpu_limit=operation.gpu,
+                    workflow_engine=engine,
+                    image=operation.runtime_image,
+                    file_outputs={
+                        "mlpipeline-metrics": "{}/mlpipeline-metrics.json".format(
+                            pipeline_envs["ELYRA_WRITABLE_CONTAINER_DIR"]
+                        ),  # noqa
+                        "mlpipeline-ui-metadata": "{}/mlpipeline-ui-metadata.json".format(
+                            pipeline_envs["ELYRA_WRITABLE_CONTAINER_DIR"]
+                        ),  # noqa
+                    },
+                )
 
                 if operation.doc:
-                    target_ops[operation.id].add_pod_annotation('elyra/node-user-doc', operation.doc)
+                    target_ops[operation.id].add_pod_annotation("elyra/node-user-doc", operation.doc)
 
                 # TODO Can we move all of this to apply to non-standard components as well? Test when servers are up
                 if cos_secret and not export:
@@ -542,18 +539,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 image_namespace = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
                 for image_instance in image_namespace:
-                    if image_instance.metadata['image_name'] == operation.runtime_image and \
-                            image_instance.metadata.get('pull_policy'):
-                        target_ops[operation.id].container. \
-                            set_image_pull_policy(image_instance.metadata['pull_policy'])
+                    if image_instance.metadata["image_name"] == operation.runtime_image and image_instance.metadata.get(
+                        "pull_policy"
+                    ):
+                        target_ops[operation.id].container.set_image_pull_policy(image_instance.metadata["pull_policy"])
 
-                self.log_pipeline_info(pipeline_name,
-                                       f"processing operation dependencies for id: {operation.id}",
-                                       operation_name=operation.name)
+                self.log_pipeline_info(
+                    pipeline_name,
+                    f"processing operation dependencies for id: {operation.id}",
+                    operation_name=operation.name,
+                )
 
-                self._upload_dependencies_to_object_store(runtime_configuration,
-                                                          cos_directory,
-                                                          operation)
+                self._upload_dependencies_to_object_store(runtime_configuration, cos_directory, operation)
 
             # If operation is a "non-standard" component, load it's spec and create operation with factory function
             else:
@@ -565,32 +562,38 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     # Get corresponding property's value from parsed pipeline
                     property_value = operation.component_params.get(component_property.ref)
 
-                    self.log.debug(f"Processing component parameter '{component_property.name}' "
-                                   f"of type '{component_property.data_type}'")
+                    self.log.debug(
+                        f"Processing component parameter '{component_property.name}' "
+                        f"of type '{component_property.data_type}'"
+                    )
 
                     if component_property.data_type == "inputpath":
-                        output_node_id = property_value['value']
-                        output_node_parameter_key = property_value['option'].replace("elyra_output_", "")
-                        operation.component_params[component_property.ref] = \
-                            target_ops[output_node_id].outputs[output_node_parameter_key]
+                        output_node_id = property_value["value"]
+                        output_node_parameter_key = property_value["option"].replace("elyra_output_", "")
+                        operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
+                            output_node_parameter_key
+                        ]
                     elif component_property.data_type == "inputvalue":
-                        active_property = property_value['activeControl']
+                        active_property = property_value["activeControl"]
                         active_property_value = property_value.get(active_property, None)
 
                         # If the value is not found, assign it the default value assigned in parser
                         if active_property_value is None:
                             active_property_value = component_property.value
 
-                        if isinstance(active_property_value, dict) and \
-                                set(active_property_value.keys()) == {'value', 'option'}:
-                            output_node_id = active_property_value['value']
-                            output_node_parameter_key = active_property_value['option'].replace("elyra_output_", "")
-                            operation.component_params[component_property.ref] = \
-                                target_ops[output_node_id].outputs[output_node_parameter_key]
-                        elif component_property.default_data_type == 'dictionary':
+                        if isinstance(active_property_value, dict) and set(active_property_value.keys()) == {
+                            "value",
+                            "option",
+                        }:
+                            output_node_id = active_property_value["value"]
+                            output_node_parameter_key = active_property_value["option"].replace("elyra_output_", "")
+                            operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
+                                output_node_parameter_key
+                            ]
+                        elif component_property.default_data_type == "dictionary":
                             processed_value = self._process_dictionary_value(active_property_value)
                             operation.component_params[component_property.ref] = processed_value
-                        elif component_property.default_data_type == 'list':
+                        elif component_property.default_data_type == "list":
                             processed_value = self._process_list_value(active_property_value)
                             operation.component_params[component_property.ref] = processed_value
                         else:
@@ -606,8 +609,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
-                    comp_spec_inputs = [inputs.name.lower().replace(" ", "_") for
-                                        inputs in factory_function.component_spec.inputs]
+                    comp_spec_inputs = [
+                        inputs.name.lower().replace(" ", "_") for inputs in factory_function.component_spec.inputs
+                    ]
 
                     # Remove inputs and outputs from params dict
                     # TODO: need to have way to retrieve only required params
@@ -657,7 +661,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         :rtype: kfp.dsl import PipelineConf
         """
 
-        self.log.debug('Generating pipeline configuration ...')
+        self.log.debug("Generating pipeline configuration ...")
         pipeline_conf = PipelineConf()
 
         #
@@ -672,9 +676,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         for operation in pipeline.operations.values():
             if isinstance(operation, GenericOperation):
                 for image_instance in image_namespace:
-                    if image_instance.metadata['image_name'] == operation.runtime_image:
-                        if image_instance.metadata.get('pull_secret'):
-                            container_image_pull_secret_names.append(image_instance.metadata.get('pull_secret'))
+                    if image_instance.metadata["image_name"] == operation.runtime_image:
+                        if image_instance.metadata.get("pull_secret"):
+                            container_image_pull_secret_names.append(image_instance.metadata.get("pull_secret"))
                         break
 
         if len(container_image_pull_secret_names) > 0:
@@ -684,8 +688,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             for secret_name in list(set(container_image_pull_secret_names)):
                 container_image_pull_secrets.append(k8s_client.V1ObjectReference(name=secret_name))
             pipeline_conf.set_image_pull_secrets(container_image_pull_secrets)
-            self.log.debug(f'Added {len(container_image_pull_secrets)}'
-                           ' image pull secret(s) to the pipeline configuration.')
+            self.log.debug(
+                f"Added {len(container_image_pull_secrets)}" " image pull secret(s) to the pipeline configuration."
+            )
 
         return pipeline_conf
 
@@ -695,7 +700,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         In KFP, only letters, numbers, spaces, "_", and "-" are allowed in name.
         :param name: name of the operation
         """
-        return re.sub('-+', '-', re.sub('[^-_0-9A-Za-z ]+', '-', name)).lstrip('-').rstrip('-')
+        return re.sub("-+", "-", re.sub("[^-_0-9A-Za-z ]+", "-", name)).lstrip("-").rstrip("-")
 
     @staticmethod
     def _sanitize_param_name(name: str) -> str:
@@ -709,21 +714,21 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         normalized_name = name.lower()
 
         # remove non-word characters
-        normalized_name = re.sub(r'[\W_]', ' ', normalized_name)
+        normalized_name = re.sub(r"[\W_]", " ", normalized_name)
 
         # no double spaces, leading or trailing spaces
-        normalized_name = re.sub(' +', ' ', normalized_name).strip()
+        normalized_name = re.sub(" +", " ", normalized_name).strip()
 
         # no leading digits
-        if re.match(r'\d', normalized_name):
-            normalized_name = 'n' + normalized_name
+        if re.match(r"\d", normalized_name):
+            normalized_name = "n" + normalized_name
 
-        return normalized_name.replace(' ', '_')
+        return normalized_name.replace(" ", "_")
 
 
 class KfpPipelineProcessorResponse(PipelineProcessorResponse):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
-    _name = 'kfp'
+    _name = "kfp"
 
     def __init__(self, run_id, run_url, object_storage_url, object_storage_path):
         super().__init__(run_url, object_storage_url, object_storage_path)
@@ -731,5 +736,5 @@ class KfpPipelineProcessorResponse(PipelineProcessorResponse):
 
     def to_json(self):
         response = super().to_json()
-        response['run_id'] = self.run_id
+        response["run_id"] = self.run_id
         return response

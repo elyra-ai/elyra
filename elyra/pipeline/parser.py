@@ -26,7 +26,6 @@ from elyra.pipeline.pipeline_definition import PipelineDefinition
 
 
 class PipelineParser(LoggingConfigurable):
-
     def __init__(self, root_dir="", **kwargs):
         super().__init__(**kwargs)
         self.root_dir = root_dir
@@ -55,22 +54,26 @@ class PipelineParser(LoggingConfigurable):
 
         source = primary_pipeline.source
 
-        description = primary_pipeline.get_property('description')
+        description = primary_pipeline.get_property("description")
 
-        pipeline_object = Pipeline(id=primary_pipeline.id,
-                                   name=primary_pipeline.name,
-                                   runtime=runtime,
-                                   runtime_config=runtime_config,
-                                   source=source,
-                                   description=description)
+        pipeline_object = Pipeline(
+            id=primary_pipeline.id,
+            name=primary_pipeline.name,
+            runtime=runtime,
+            runtime_config=runtime_config,
+            source=source,
+            description=description,
+        )
         self._nodes_to_operations(pipeline_definition, pipeline_object, primary_pipeline.nodes)
         return pipeline_object
 
-    def _nodes_to_operations(self,
-                             pipeline_definition: PipelineDefinition,
-                             pipeline_object: Pipeline,
-                             nodes: List[Node],
-                             super_node: Optional[Node] = None) -> None:
+    def _nodes_to_operations(
+        self,
+        pipeline_definition: PipelineDefinition,
+        pipeline_object: Pipeline,
+        nodes: List[Node],
+        super_node: Optional[Node] = None,
+    ) -> None:
         """
         Converts each execution_node of the pipeline to its corresponding operation.
 
@@ -107,12 +110,10 @@ class PipelineParser(LoggingConfigurable):
             self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.name, pipeline_object.name))
             pipeline_object.operations[operation.id] = operation
 
-    def _super_node_to_operations(self,
-                                  pipeline_definition: PipelineDefinition,
-                                  node: Node,
-                                  pipeline_object: Pipeline,
-                                  super_node: Node) -> None:
-        """Converts nodes within a super_node to operations. """
+    def _super_node_to_operations(
+        self, pipeline_definition: PipelineDefinition, node: Node, pipeline_object: Pipeline, super_node: Node
+    ) -> None:
+        """Converts nodes within a super_node to operations."""
 
         # get pipeline corresponding to super_node
         pipeline_id = node.subflow_pipeline_id
@@ -136,7 +137,8 @@ class PipelineParser(LoggingConfigurable):
             classifier=node.op,
             name=node.label,
             parent_operation_ids=parent_operations,
-            component_params=node.get("component_parameters", {}))
+            component_params=node.get("component_parameters", {}),
+        )
 
     @staticmethod
     def _get_port_node_id(link: Dict) -> [None, str]:
@@ -146,13 +148,13 @@ class PipelineParser(LoggingConfigurable):
         embedded in the port_id_ref value.
         """
         node_id = None
-        if 'port_id_ref' in link:
-            if link['port_id_ref'] == 'outPort':  # Regular execution node
-                if 'node_id_ref' in link:
-                    node_id = link['node_id_ref']
-            elif link['port_id_ref'].endswith('_outPort'):  # Super node
+        if "port_id_ref" in link:
+            if link["port_id_ref"] == "outPort":  # Regular execution node
+                if "node_id_ref" in link:
+                    node_id = link["node_id_ref"]
+            elif link["port_id_ref"].endswith("_outPort"):  # Super node
                 # node_id_ref is the super-node, but the prefix of port_id_ref, is the actual node-id
-                node_id = link['port_id_ref'].split('_')[0]
+                node_id = link["port_id_ref"].split("_")[0]
         return node_id
 
     @staticmethod
@@ -161,8 +163,8 @@ class PipelineParser(LoggingConfigurable):
         Gets a list of node_ids corresponding to the linked out ports on the input node.
         """
         input_node_ids = []
-        if 'links' in node_input:
-            for link in node_input['links']:
+        if "links" in node_input:
+            for link in node_input["links"]:
                 node_id = PipelineParser._get_port_node_id(link)
                 if node_id:
                     input_node_ids.append(node_id)
@@ -175,11 +177,11 @@ class PipelineParser(LoggingConfigurable):
         For super_nodes, the node to use has an id of the embedded_node_id suffixed with '_inPort'.
         """
         links = []
-        if 'inputs' in node:
-            for node_input in node['inputs']:
+        if "inputs" in node:
+            for node_input in node["inputs"]:
                 if embedded_node_id:  # node is a super_node, handle matches to {embedded_node_id}_inPort
-                    input_id = node_input.get('id')
-                    if input_id == embedded_node_id + '_inPort':
+                    input_id = node_input.get("id")
+                    if input_id == embedded_node_id + "_inPort":
                         links.extend(PipelineParser._get_input_node_ids(node_input))
                 else:
                     links.extend(PipelineParser._get_input_node_ids(node_input))
