@@ -753,7 +753,7 @@ def test_error_metadata_not_found():
     try:
         raise MetadataNotFoundError(schemaspace, resource)
     except MetadataNotFoundError as mnfe:
-        assert str(mnfe) == "No such instance named '{}' was found in the {} schemaspace.".format(resource, schemaspace)
+        assert str(mnfe) == f"No such instance named '{resource}' was found in the {schemaspace} schemaspace."
 
 
 def test_error_metadata_exists():
@@ -762,7 +762,7 @@ def test_error_metadata_exists():
     try:
         raise MetadataExistsError(schemaspace, resource)
     except MetadataExistsError as mee:
-        assert str(mee) == "An instance named '{}' already exists in the {} schemaspace.".format(resource, schemaspace)
+        assert str(mee) == f"An instance named '{resource}' already exists in the {schemaspace} schemaspace."
 
 
 def test_error_schema_not_found():
@@ -771,7 +771,7 @@ def test_error_schema_not_found():
     try:
         raise SchemaNotFoundError(schemaspace, resource)
     except SchemaNotFoundError as snfe:
-        assert str(snfe) == "No such schema named '{}' was found in the {} schemaspace.".format(resource, schemaspace)
+        assert str(snfe) == f"No such schema named '{resource}' was found in the {schemaspace} schemaspace."
 
 
 def test_cache_init():
@@ -941,7 +941,7 @@ def _remove_schemaspace(store_manager: MetadataStore, schemaspace_location: str)
 def _compose_instance_location(store_manager: MetadataStore, location: str, name: str) -> str:
     """Compose location of the named instance in a storage-independent manner"""
     if isinstance(store_manager, FileMetadataStore):
-        location = os.path.join(location, "{}.json".format(name))
+        location = os.path.join(location, f"{name}.json")
     elif isinstance(store_manager, MockMetadataStore):
         location = None
     return location

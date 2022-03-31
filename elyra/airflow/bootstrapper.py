@@ -61,7 +61,7 @@ class FileOpBase(ABC):
         elif ".r" in filepath:
             return RFileOp(**kwargs)
         else:
-            raise ValueError("Unsupported file type: {}".format(filepath))
+            raise ValueError(f"Unsupported file type: {filepath}")
 
     def __init__(self, **kwargs: Any) -> None:
         """Initializes the FileOpBase instance"""
@@ -231,7 +231,7 @@ class NotebookFileOp(FileOpBase):
             self.process_outputs()
         except Exception as ex:
             # log in case of errors
-            logger.error("Unexpected error: {}".format(sys.exc_info()[0]))
+            logger.error(f"Unexpected error: {sys.exc_info()[0]}")
 
             NotebookFileOp.convert_notebook_to_html(notebook_output, notebook_html)
             self.put_file_to_object_storage(notebook_output, notebook)
@@ -287,8 +287,8 @@ class PythonFileOp(FileOpBase):
             self.process_outputs()
         except Exception as ex:
             # log in case of errors
-            logger.error("Unexpected error: {}".format(sys.exc_info()[0]))
-            logger.error("Error details: {}".format(ex))
+            logger.error(f"Unexpected error: {sys.exc_info()[0]}")
+            logger.error(f"Error details: {ex}")
 
             self.put_file_to_object_storage(python_script_output, python_script_output)
             raise ex
@@ -316,8 +316,8 @@ class RFileOp(FileOpBase):
             self.process_outputs()
         except Exception as ex:
             # log in case of errors
-            logger.error("Unexpected error: {}".format(sys.exc_info()[0]))
-            logger.error("Error details: {}".format(ex))
+            logger.error(f"Unexpected error: {sys.exc_info()[0]}")
+            logger.error(f"Error details: {ex}")
 
             self.put_file_to_object_storage(r_script_output, r_script_output)
             raise ex

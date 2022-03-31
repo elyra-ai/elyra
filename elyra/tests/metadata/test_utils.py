@@ -201,7 +201,7 @@ def create_instance(metadata_store: MetadataStore, location: str, name: str, con
             setattr(metadata_store, "instances", dict())
             instances = metadata_store.instances
         if not isinstance(content, dict):
-            content = {"display_name": name, "reason": "JSON failed to load for instance '{}'".format(name)}
+            content = {"display_name": name, "reason": f"JSON failed to load for instance '{name}'"}
         instances[name] = content
     return resource
 
@@ -211,7 +211,7 @@ def get_instance(instances, field, value):
     for inst in instances:
         if inst[field] == value:
             return inst
-    assert False, "Value '{}' for field '{}' was not found in instances!".format(value, field)
+    assert False, f"Value '{value}' for field '{field}' was not found in instances!"
 
 
 class PropertyTester(object):

@@ -243,9 +243,7 @@ be fully qualified (i.e., prefixed with their package names).
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug(
-                    "Creating pipeline component:\n {op} archive : {archive}".format(
-                        op=operation, archive=operation_artifact_archive
-                    )
+                    f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}"
                 )
 
                 # Collect env variables

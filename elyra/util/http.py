@@ -61,16 +61,14 @@ class HttpErrorMixin(object):
                     if isinstance(exception.args[0], Exception):
                         reply[
                             "message"
-                        ] = "Error. The server sent an invalid response.\
+                        ] = f"Error. The server sent an invalid response.\
                             \nPlease open an issue and provide this error message,\
                             any error details, and any related JupyterLab log messages.\
-                            \n\nError found:\n{}".format(
-                            str(exception.args[0])
-                        )
+                            \n\nError found:\n{str(exception.args[0])}"
                     else:
                         reply["message"] = str(exception.args[0])
                 else:
-                    reply["message"] = "{}: {}".format(exception.__class__.__name__, str(exception))
+                    reply["message"] = f"{exception.__class__.__name__}: {str(exception)}"
                 reply["traceback"] = "".join(traceback.format_exception(*exc_info))
 
             # Construct the custom reason, if defined

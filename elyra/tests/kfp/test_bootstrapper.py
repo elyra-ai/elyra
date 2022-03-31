@@ -235,7 +235,7 @@ def remove_file(filename, fail_ok=True):
         os.remove(filename)
     except OSError as ose:
         if fail_ok is False:
-            raise AssertionError("Cannot remove {}: {} {}".format(filename, str(ose), ose))
+            raise AssertionError(f"Cannot remove {filename}: {str(ose)} {ose}")
 
 
 def test_process_metrics_method_not_writable_dir(monkeypatch, s3_setup, tmpdir):
@@ -251,7 +251,7 @@ def test_process_metrics_method_not_writable_dir(monkeypatch, s3_setup, tmpdir):
     try:
         monkeypatch.setenv("ELYRA_WRITABLE_CONTAINER_DIR", "/good/time/to/fail")
         argument_dict = {
-            "cos-endpoint": "http://" + MINIO_HOST_PORT,
+            "cos-endpoint": f"http://{MINIO_HOST_PORT}",
             "cos-bucket": "test-bucket",
             "cos-directory": "test-directory",
             "cos-dependencies-archive": "test-archive.tgz",
@@ -262,9 +262,8 @@ def test_process_metrics_method_not_writable_dir(monkeypatch, s3_setup, tmpdir):
         }
         main_method_setup_execution(monkeypatch, s3_setup, tmpdir, argument_dict)
     except Exception as ex:
-        print("Writable dir test failed: {} {}".format(str(ex), ex))
+        print(f"Writable dir test failed: {str(ex)} {ex}")
         assert False
-
     assert output_metadata_file.exists() is False
 
 
@@ -308,9 +307,7 @@ def test_process_metrics_method_no_metadata_file(monkeypatch, s3_setup, tmpdir):
             assert metadata["outputs"][0]["storage"] == "inline"
             assert metadata["outputs"][0]["type"] == "markdown"
             assert (
-                "{}/{}/{}".format(
-                    argument_dict["cos-endpoint"], argument_dict["cos-bucket"], argument_dict["cos-directory"]
-                )
+                f"{argument_dict['cos-endpoint']}/{argument_dict['cos-bucket']}/{argument_dict['cos-directory']}"
                 in metadata["outputs"][0]["source"]
             )
             assert argument_dict["cos-dependencies-archive"] in metadata["outputs"][0]["source"]
@@ -319,7 +316,7 @@ def test_process_metrics_method_no_metadata_file(monkeypatch, s3_setup, tmpdir):
     except Exception as ex:
         # Potential reasons for failures:
         # file not found, invalid JSON
-        print('Validation of "{}" failed: {}'.format(str(ex), ex))
+        print(f'Validation of "{str(ex)}" failed: {ex}')
         assert False
 
 
@@ -378,9 +375,7 @@ def test_process_metrics_method_valid_metadata_file(monkeypatch, s3_setup, tmpdi
                     assert output["storage"] == "inline"
                     assert output["type"] == "markdown"
                     assert (
-                        "{}/{}/{}".format(
-                            argument_dict["cos-endpoint"], argument_dict["cos-bucket"], argument_dict["cos-directory"]
-                        )
+                        f"{argument_dict['cos-endpoint']}/{argument_dict['cos-bucket']}/{argument_dict['cos-directory']}"  # noqa
                         in output["source"]
                     )
                     assert argument_dict["cos-dependencies-archive"] in output["source"]
@@ -392,7 +387,7 @@ def test_process_metrics_method_valid_metadata_file(monkeypatch, s3_setup, tmpdi
     except Exception as ex:
         # Potential reasons for failures:
         # file not found, invalid JSON
-        print('Validation of "{}" failed: {}'.format(str(ex), ex))
+        print(f'Validation of "{str(ex)}" failed: {ex}')
         assert False
 
 
@@ -403,7 +398,7 @@ def test_process_metrics_method_invalid_metadata_file(monkeypatch, s3_setup, tmp
     the node's script | notebook generated an invalid metadata file.
     """
     argument_dict = {
-        "cos-endpoint": "http://" + MINIO_HOST_PORT,
+        "cos-endpoint": f"http://{MINIO_HOST_PORT}",
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-archive.tgz",
@@ -446,9 +441,7 @@ def test_process_metrics_method_invalid_metadata_file(monkeypatch, s3_setup, tmp
             assert metadata["outputs"][0]["storage"] == "inline"
             assert metadata["outputs"][0]["type"] == "markdown"
             assert (
-                "{}/{}/{}".format(
-                    argument_dict["cos-endpoint"], argument_dict["cos-bucket"], argument_dict["cos-directory"]
-                )
+                f"{argument_dict['cos-endpoint']}/{argument_dict['cos-bucket']}/{argument_dict['cos-directory']}"
                 in metadata["outputs"][0]["source"]
             )
             assert argument_dict["cos-dependencies-archive"] in metadata["outputs"][0]["source"]
@@ -457,13 +450,13 @@ def test_process_metrics_method_invalid_metadata_file(monkeypatch, s3_setup, tmp
     except Exception as ex:
         # Potential reasons for failures:
         # file not found, invalid JSON
-        print('Validation of "{}" failed: {}'.format(str(ex), ex))
+        print(f'Validation of "{str(ex)}" failed: {ex}')
         assert False
 
 
 def test_fail_bad_notebook_main_method(monkeypatch, s3_setup, tmpdir):
     argument_dict = {
-        "cos-endpoint": "http://" + MINIO_HOST_PORT,
+        "cos-endpoint": f"http://{MINIO_HOST_PORT}",
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-bad-archiveB.tgz",

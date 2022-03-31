@@ -254,23 +254,23 @@ def validate_pipeline_path(ctx, param, value):
 
 def print_banner(title):
     click.echo(Fore.CYAN + "────────────────────────────────────────────────────────────────" + Style.RESET_ALL)
-    click.echo(Fore.CYAN + " {}".format(title) + Style.RESET_ALL)
+    click.echo(f"{Fore.CYAN} {title}{Style.RESET_ALL}")
     click.echo(Fore.CYAN + "────────────────────────────────────────────────────────────────" + Style.RESET_ALL)
     click.echo()
 
 
 def print_info(title, info_list):
-    click.echo(Fore.CYAN + "❯ {}".format(title) + Style.RESET_ALL)
+    click.echo(f"{Fore.CYAN}❯ {title}{Style.RESET_ALL}")
     for info_item in info_list:
         if isinstance(info_item, str):
-            click.echo("  {}".format(info_item))
+            click.echo(f"  {info_item}")
         else:
-            click.echo("  {}: {}".format(info_item[0], info_item[1]))
+            click.echo(f"  {info_item[0]}: {info_item[1]}")
     click.echo()
 
 
 def print_version():
-    print_info("Version", ["elyra {}".format(__version__)])
+    print_info("Version", [f"elyra {__version__}"])
 
 
 @click.group()

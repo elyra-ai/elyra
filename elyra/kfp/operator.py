@@ -45,18 +45,16 @@ ELYRA_GITHUB_ORG = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
 ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "master" if "dev" in __version__ else "v" + __version__)
 ELYRA_PIP_CONFIG_URL = os.getenv(
     "ELYRA_PIP_CONFIG_URL",
-    "https://raw.githubusercontent.com/{org}/elyra/"
-    "{branch}/etc/kfp/pip.conf".format(org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH),
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/elyra/{ELYRA_GITHUB_BRANCH}/etc/kfp/pip.conf",
 )
 ELYRA_BOOTSTRAP_SCRIPT_URL = os.getenv(
     "ELYRA_BOOTSTRAP_SCRIPT_URL",
-    "https://raw.githubusercontent.com/{org}/"
-    "elyra/{branch}/elyra/kfp/bootstrapper.py".format(org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH),
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/elyra/{ELYRA_GITHUB_BRANCH}/elyra/kfp/bootstrapper.py",
 )
 ELYRA_REQUIREMENTS_URL = os.getenv(
     "ELYRA_REQUIREMENTS_URL",
-    "https://raw.githubusercontent.com/{org}/"
-    "elyra/{branch}/etc/generic/requirements-elyra.txt".format(org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH),
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/"
+    "elyra/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra.txt",
 )
 
 
@@ -176,53 +174,39 @@ class ExecuteFileOp(ContainerOp):
             """
 
             argument_list.append(
-                "mkdir -p {container_work_dir} && cd {container_work_dir} && "
-                'curl -H "Cache-Control: no-cache" -L {bootscript_url} --output bootstrapper.py && '
-                'curl -H "Cache-Control: no-cache" -L {reqs_url} --output requirements-elyra.txt && '.format(
-                    container_work_dir=self.container_work_dir,
-                    bootscript_url=self.bootstrap_script_url,
-                    reqs_url=self.requirements_url,
-                )
+                f"mkdir -p {self.container_work_dir} && cd {self.container_work_dir} && "
+                f'curl -H "Cache-Control: no-cache" -L {self.bootstrap_script_url} --output bootstrapper.py && '
+                f'curl -H "Cache-Control: no-cache" -L {self.requirements_url} --output requirements-elyra.txt && '
             )
 
             if self.emptydir_volume_size:
                 argument_list.append(
-                    "mkdir {container_python_dir} && cd {container_python_dir} && "
-                    'curl -H "Cache-Control: no-cache" -L {python_pip_config_url} '
-                    "--output pip.conf && cd .. &&".format(
-                        python_pip_config_url=self.python_pip_config_url,
-                        container_python_dir=self.container_python_dir_name,
-                    )
+                    f"mkdir {self.container_python_dir_name} && cd {self.container_python_dir_name} && "
+                    f'curl -H "Cache-Control: no-cache" -L {self.python_pip_config_url} '
+                    "--output pip.conf && cd .. &&"
                 )
 
             argument_list.append(
-                "python3 -m pip install {python_user_lib_path_target} packaging && "
+                f"python3 -m pip install {self.python_user_lib_path_target} packaging && "
                 "python3 -m pip freeze > requirements-current.txt && "
                 "python3 bootstrapper.py "
-                "--cos-endpoint {cos_endpoint} "
-                "--cos-bucket {cos_bucket} "
-                '--cos-directory "{cos_directory}" '
-                '--cos-dependencies-archive "{cos_dependencies_archive}" '
-                '--file "{notebook}" '.format(
-                    cos_endpoint=self.cos_endpoint,
-                    cos_bucket=self.cos_bucket,
-                    cos_directory=self.cos_directory,
-                    cos_dependencies_archive=self.cos_dependencies_archive,
-                    notebook=self.notebook,
-                    python_user_lib_path_target=self.python_user_lib_path_target,
-                )
+                f"--cos-endpoint {self.cos_endpoint} "
+                f"--cos-bucket {self.cos_bucket} "
+                f'--cos-directory "{self.cos_directory}" '
+                f'--cos-dependencies-archive "{self.cos_dependencies_archive}" '
+                f'--file "{self.notebook}" '
             )
 
             if self.pipeline_inputs:
                 inputs_str = self._artifact_list_to_str(self.pipeline_inputs)
-                argument_list.append('--inputs "{}" '.format(inputs_str))
+                argument_list.append(f'--inputs "{inputs_str}" ')
 
             if self.pipeline_outputs:
                 outputs_str = self._artifact_list_to_str(self.pipeline_outputs)
-                argument_list.append('--outputs "{}" '.format(outputs_str))
+                argument_list.append(f'--outputs "{outputs_str}" ')
 
             if self.emptydir_volume_size:
-                argument_list.append('--user-volume-path "{}" '.format(self.python_user_lib_path))
+                argument_list.append(f'--user-volume-path "{self.python_user_lib_path}" ')
 
             kwargs["command"] = ["sh", "-c"]
             kwargs["arguments"] = "".join(argument_list)
@@ -317,7 +301,7 @@ class ExecuteFileOp(ContainerOp):
         for artifact_name in pipeline_array:
             if INOUT_SEPARATOR in artifact_name:  # if INOUT_SEPARATOR is in name, throw since this is our separator
                 raise ValueError(
-                    "Illegal character ({}) found in filename '{}'.".format(INOUT_SEPARATOR, artifact_name)
+                    f"Illegal character ({INOUT_SEPARATOR}) found in filename '{artifact_name}'."
                 )
             trimmed_artifact_list.append(artifact_name.strip())
         return INOUT_SEPARATOR.join(trimmed_artifact_list)

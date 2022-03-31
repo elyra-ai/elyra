@@ -897,7 +897,7 @@ def test_update_complex(script_runner, mock_data_dir, complex_keyword):
 def test_list_help(script_runner):
     ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--help")
     assert ret.success is False
-    assert "List installed metadata for {}.".format(METADATA_TEST_SCHEMASPACE) in ret.stdout
+    assert f"List installed metadata for {METADATA_TEST_SCHEMASPACE}." in ret.stdout
 
 
 def test_list_bad_argument(script_runner):
@@ -913,7 +913,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split("\n")
     assert len(lines) == 2  # always 2 more than the actual runtime count
-    assert "No metadata instances found for {}".format(METADATA_TEST_SCHEMASPACE) in lines[0]
+    assert f"No metadata instances found for {METADATA_TEST_SCHEMASPACE}" in lines[0]
 
     valid = Metadata(**valid_metadata_json)
     resource = metadata_manager.create("valid", valid)
@@ -930,7 +930,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split("\n")
     assert len(lines) == 9  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_SCHEMASPACE)
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
     line_elements = [line.split() for line in lines[4:8]]
     assert line_elements[0][0] == "metadata-test"
     assert line_elements[0][1] == "another"
@@ -954,7 +954,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split("\n")
     assert len(lines) == 10  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for {} (includes invalid):".format(METADATA_TEST_SCHEMASPACE)
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (includes invalid):"
     line_elements = [line.split() for line in lines[4:9]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "invalid"
@@ -970,7 +970,7 @@ def test_list_instances(script_runner, mock_data_dir):
     assert ret.success
     lines = ret.stdout.split("\n")
     assert len(lines) == 7  # always 5 more than the actual runtime count
-    assert lines[0] == "Available metadata instances for {} (valid only):".format(METADATA_TEST_SCHEMASPACE)
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (valid only):"
     line_elements = [line.split() for line in lines[4:6]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "valid"

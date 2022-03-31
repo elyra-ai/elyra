@@ -95,9 +95,9 @@ class PipelineParser(LoggingConfigurable):
             elif node.type == "binding":  # We can ignore binding nodes since we're able to determine links w/o
                 continue
             elif node.type == "model_node":
-                raise NotImplementedError("Node type '{}' is currently not supported!".format(node.type))
+                raise NotImplementedError(f"Node type '{node.type}' is currently not supported!")
             elif node.type != "execution_node":
-                raise ValueError("Node type '{}' is invalid!".format(node.type))
+                raise ValueError(f"Node type '{node.type}' is invalid!")
             # parse each node as a pipeline operation
 
             operation = self._create_pipeline_operation(node, super_node)
@@ -107,7 +107,7 @@ class PipelineParser(LoggingConfigurable):
             if comment:
                 operation.doc = comment
 
-            self.log.debug("Adding operation for '{}' to pipeline: {}".format(operation.name, pipeline_object.name))
+            self.log.debug(f"Adding operation for '{operation.name}' to pipeline: {pipeline_object.name}")
             pipeline_object.operations[operation.id] = operation
 
     def _super_node_to_operations(

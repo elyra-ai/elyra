@@ -114,7 +114,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         )
 
     def initialize_settings(self):
-        self.log.info("Config {}".format(self.config))
+        self.log.info(f"Config {self.config}")
         # Instantiate singletons with appropriate parent to enable configurability, and convey
         # root_dir to PipelineProcessorManager.
         PipelineProcessorRegistry.instance(root_dir=self.settings["server_root_dir"], parent=self)

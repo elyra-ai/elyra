@@ -67,7 +67,7 @@ class FileOpBase(ABC):
         elif ".r" in filepath:
             return RFileOp(**kwargs)
         else:
-            raise ValueError("Unsupported file type: {}".format(filepath))
+            raise ValueError(f"Unsupported file type: {filepath}")
 
     def __init__(self, **kwargs: Any) -> None:
         """Initializes the FileOpBase instance"""
@@ -174,7 +174,7 @@ class FileOpBase(ABC):
         except Exception:
             # output_path doesn't meet the requirements
             # treat this as a non-fatal error and log a warning
-            logger.warning('Cannot create files in "{}".'.format(output_path))
+            logger.warning(f'Cannot create files in "{output_path}".')
             OpUtil.log_operation_info("Aborted metrics and metadata processing", time.time() - t0)
             return
 
@@ -199,14 +199,14 @@ class FileOpBase(ABC):
         for filename in [kfp_ui_metadata_filename, kfp_metrics_filename]:
             try:
                 src = Path(".") / filename
-                logger.debug("Processing {} ...".format(src))
+                logger.debug(f"Processing {src} ...")
                 # try to load the file, if one was created by the
                 # notebook or script
                 with open(src, "r") as f:
                     metadata = json.load(f)
 
                 # the file exists and contains valid JSON
-                logger.debug("File content: {}".format(json.dumps(metadata)))
+                logger.debug(f"File content: {json.dumps(metadata)}")
 
                 target = output_path / filename
                 # try to save the file in the destination location
@@ -216,17 +216,17 @@ class FileOpBase(ABC):
                 # The script | notebook didn't produce the file
                 # we are looking for. This is not an error condition
                 # that needs to be handled.
-                logger.debug("{} produced no file named {}".format(self.filepath, src))
+                logger.debug(f"{self.filepath} produced no file named {src}")
             except ValueError as ve:
                 # The file content could not be parsed. Log a warning
                 # and treat this as a non-fatal error.
                 logger.warning(
-                    "Ignoring incompatible {} produced by {}: {} {}".format(str(src), self.filepath, ve, str(ve))
+                    f"Ignoring incompatible {str(src)} produced by {self.filepath}: {ve} {str(ve)}"
                 )
             except Exception as ex:
                 # Something is wrong with the user-generated metadata file.
                 # Log a warning and treat this as a non-fatal error.
-                logger.warning("Error processing {} produced by {}: {} {}".format(str(src), self.filepath, ex, str(ex)))
+                logger.warning(f"Error processing {str(src)} produced by {self.filepath}: {ex} {str(ex)}")
 
         #
         # Augment kfp_ui_metadata_filename with Elyra-specific information:
@@ -248,23 +248,23 @@ class FileOpBase(ABC):
         # Define HREF for COS bucket:
         # <COS_URL>/<BUCKET_NAME>/<COS_DIRECTORY>
         bucket_url = urljoin(
-            urlunparse(self.cos_endpoint), "{}/{}/".format(self.cos_bucket, self.input_params.get("cos-directory", ""))
+            urlunparse(self.cos_endpoint), f"{self.cos_bucket}/{self.input_params.get('cos-directory', '')}/"
         )
 
         # add Elyra metadata to 'outputs'
         metadata["outputs"].append(
             {
                 "storage": "inline",
-                "source": "## Inputs for {}\n"
-                "[{}]({})".format(self.filepath, self.input_params["cos-dependencies-archive"], bucket_url),
+                "source": f"## Inputs for {self.filepath}\n"
+                f"[{self.input_params['cos-dependencies-archive']}]({bucket_url})",
                 "type": "markdown",
             }
         )
 
         # print the content of the augmented metadata file
-        logger.debug("Output UI metadata: {}".format(json.dumps(metadata)))
+        logger.debug(f"Output UI metadata: {json.dumps(metadata)}")
 
-        logger.debug("Saving UI metadata file as {} ...".format(ui_metadata_output))
+        logger.debug(f"Saving UI metadata file as {ui_metadata_output} ...")
 
         # Save [updated] KFP UI metadata file
         with open(ui_metadata_output, "w") as f:
@@ -361,7 +361,7 @@ class NotebookFileOp(FileOpBase):
             self.process_outputs()
         except Exception as ex:
             # log in case of errors
-            logger.error("Unexpected error: {}".format(sys.exc_info()[0]))
+            logger.error(f"Unexpected error: {sys.exc_info()[0]}")
 
             NotebookFileOp.convert_notebook_to_html(notebook_output, notebook_html)
             self.put_file_to_object_storage(notebook_output, notebook)
@@ -463,8 +463,8 @@ class PythonFileOp(FileOpBase):
             self.process_outputs()
         except Exception as ex:
             # log in case of errors
-            logger.error("Unexpected error: {}".format(sys.exc_info()[0]))
-            logger.error("Error details: {}".format(ex))
+            logger.error(f"Unexpected error: {sys.exc_info()[0]}")
+            logger.error(f"Error details: {ex}")
 
             self.put_file_to_object_storage(python_script_output, python_script_output)
             raise ex
@@ -492,8 +492,8 @@ class RFileOp(FileOpBase):
             self.process_outputs()
         except Exception as ex:
             # log in case of errors
-            logger.error("Unexpected error: {}".format(sys.exc_info()[0]))
-            logger.error("Error details: {}".format(ex))
+            logger.error(f"Unexpected error: {sys.exc_info()[0]}")
+            logger.error(f"Error details: {ex}")
 
             self.put_file_to_object_storage(r_script_output, r_script_output)
             raise ex

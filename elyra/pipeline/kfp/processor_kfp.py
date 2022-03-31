@@ -406,9 +406,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             if ex.__cause__:
                 raise RuntimeError(str(ex)) from ex
             raise RuntimeError(
-                "Error pre-processing pipeline {} for export at {}".format(
-                    pipeline_name, absolute_pipeline_export_path
-                ),
+                f"Error pre-processing pipeline {pipeline_name} for export at {absolute_pipeline_export_path}",
                 str(ex),
             ) from ex
 
@@ -495,9 +493,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
                 self.log.debug(
-                    "Creating pipeline component:\n {op} archive : {archive}".format(
-                        op=operation, archive=operation_artifact_archive
-                    )
+                    f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}"
                 )
 
                 target_ops[operation.id] = ExecuteFileOp(
@@ -521,12 +517,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     workflow_engine=engine,
                     image=operation.runtime_image,
                     file_outputs={
-                        "mlpipeline-metrics": "{}/mlpipeline-metrics.json".format(
-                            pipeline_envs["ELYRA_WRITABLE_CONTAINER_DIR"]
-                        ),  # noqa
-                        "mlpipeline-ui-metadata": "{}/mlpipeline-ui-metadata.json".format(
-                            pipeline_envs["ELYRA_WRITABLE_CONTAINER_DIR"]
-                        ),  # noqa
+                        "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
+                        "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
                     },
                 )
 

@@ -132,7 +132,7 @@ class CosClient(LoggingConfigurable):
         try:
             self.client.fput_object(bucket_name=self.bucket, object_name=file_name, file_path=file_path)
         except BaseException as ex:
-            self.log.error("Error uploading file {} to bucket {}".format(file_path, self.bucket), exc_info=True)
+            self.log.error(f"Error uploading file {file_path} to bucket {self.bucket}", exc_info=True)
             raise ex from ex
 
     def upload_file_to_dir(self, dir, file_name, file_path):
@@ -158,7 +158,7 @@ class CosClient(LoggingConfigurable):
         try:
             self.client.fget_object(bucket_name=self.bucket, object_name=file_name, file_path=file_path)
         except BaseException as ex:
-            self.log.error("Error reading file {} from bucket {}".format(file_name, self.bucket), exc_info=True)
+            self.log.error(f"Error reading file {file_name} from bucket {self.bucket}", exc_info=True)
             raise ex from ex
 
     def download_file_from_dir(self, dir, file_name, file_path):

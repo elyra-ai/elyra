@@ -33,15 +33,13 @@ ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "master" if "dev" in __ve
 
 ELYRA_BOOTSCRIPT_URL = os.getenv(
     "ELYRA_BOOTSTRAP_SCRIPT_URL",
-    "https://raw.githubusercontent.com/{org}/elyra/{branch}/elyra/airflow/bootstrapper.py".format(
-        org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH
-    ),
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/elyra/{ELYRA_GITHUB_BRANCH}/elyra/airflow/bootstrapper.py",
 )
 
 ELYRA_REQUIREMENTS_URL = os.getenv(
     "ELYRA_REQUIREMENTS_URL",
-    "https://raw.githubusercontent.com/{org}/"
-    "elyra/{branch}/etc/generic/requirements-elyra.txt".format(org=ELYRA_GITHUB_ORG, branch=ELYRA_GITHUB_BRANCH),
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/"
+    f"elyra/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra.txt",
 )
 
 
@@ -101,11 +99,11 @@ class BootscriptBuilder(object):
 
         if self.inputs:
             inputs_str = self._artifact_list_to_str(self.inputs)
-            self.arguments.append("--inputs '{}' ".format(inputs_str))
+            self.arguments.append(f"--inputs '{inputs_str}' ")
 
         if self.outputs:
             outputs_str = self._artifact_list_to_str(self.outputs)
-            self.arguments.append("--outputs '{}' ".format(outputs_str))
+            self.arguments.append(f"--outputs '{outputs_str}' ")
 
         argument_string = "".join(self.arguments)
 
@@ -116,7 +114,7 @@ class BootscriptBuilder(object):
         for artifact_name in pipeline_array:
             if INOUT_SEPARATOR in artifact_name:  # if INOUT_SEPARATOR is in name, throw since this is our separator
                 raise ValueError(
-                    "Illegal character ({}) found in filename '{}'.".format(INOUT_SEPARATOR, artifact_name)
+                    f"Illegal character ({INOUT_SEPARATOR}) found in filename '{artifact_name}'."
                 )
             trimmed_artifact_list.append(artifact_name.strip())
         return INOUT_SEPARATOR.join(trimmed_artifact_list)

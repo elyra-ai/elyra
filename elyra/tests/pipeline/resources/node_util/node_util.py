@@ -35,7 +35,7 @@ class InputNodeFile(NodeFile):
         self.data = None
 
         if not os.path.exists(self.filename):
-            raise FileNotFoundError("File '{}' does not exist!".format(self.filename))
+            raise FileNotFoundError(f"File '{self.filename}' does not exist!")
 
     def read(self) -> str:
         with open(self.filename) as f:
@@ -84,7 +84,7 @@ class ExecutionNode(ABC):
         # Validate its extension and that the file exists.
         self.validate_extension()
         if not os.path.exists(self.filename):
-            raise FileNotFoundError("ExecutionNode filename '{}' does not exist!".format(self.filename))
+            raise FileNotFoundError(f"ExecutionNode filename '{self.filename}' does not exist!")
 
     def run(self) -> None:
         self.process_inputs("INPUT_FILENAMES")
@@ -150,13 +150,13 @@ class ExecutionNode(ABC):
     @abstractmethod
     def expected_extension(self) -> str:
         raise NotImplementedError(
-            "Method 'expected_extension()' must be implemented by subclass '{}'!".format(self.__class__.__name__)
+            f"Method 'expected_extension()' must be implemented by subclass '{self.__class__.__name__}'!"
         )
 
     def validate_extension(self) -> None:
         if self.expected_extension() != self.extension:
             raise ValueError(
-                "Filename '{}' does not have a proper extension: '{}'".format(self.filename, self.expected_extension())
+                f"Filename '{self.filename}' does not have a proper extension: '{self.expected_extension()}'"
             )
 
 
