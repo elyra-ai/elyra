@@ -416,8 +416,8 @@ const insert = (snippetName: string): void => {
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
   cy.get('.elyra-metadataEditor')
     .find('.elyra-form-DropDown-item option')
-    .first()
-    .should('have.value', lang);
+    .then(list => Cypress._.map(list, 'value'))
+    .should('include', lang);
   cy.get('.elyra-metadataEditor')
     .find('.elyra-metadataEditor-form-language input')
     .type(lang);
