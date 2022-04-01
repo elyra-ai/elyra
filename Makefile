@@ -99,7 +99,7 @@ lint-dependencies:
 
 lint-server: lint-dependencies
 	flake8 elyra
-	black --check --diff --color .
+	black --check --diff --color . || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
 
 black-format: # Apply black formatter to Python source code
 	black .
