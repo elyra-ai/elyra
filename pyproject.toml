@@ -1,0 +1,6 @@
+[tool.black]
+# max line length; same as 'max-line-length' in setup.cfg
+line-length = 120
+
+# Python versions that should be supported by the produced output
+target-version = ['py37', 'py38', 'py39', 'py310']

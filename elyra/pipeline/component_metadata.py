@@ -16,6 +16,7 @@
 from typing import Any
 
 from elyra.metadata.metadata import Metadata
+
 # Rather than importing only the ComponentCache class needed in the post_save and
 # post_delete hooks below, the component_catalog module must be imported in its
 # entirety in order to avoid a circular reference issue
@@ -23,8 +24,10 @@ try:
     from elyra.pipeline import component_catalog
 except ImportError:
     import sys
-    component_catalog = sys.modules[__package__ + '.component_catalog']
-from elyra.pipeline.runtime_type import RuntimeProcessorType
+
+    component_catalog = sys.modules[__package__ + ".component_catalog"]
+
+from elyra.pipeline.runtime_type import RuntimeProcessorType  # noqa:I202
 
 
 class ComponentRegistryMetadata(Metadata):
@@ -39,11 +42,11 @@ class ComponentCatalogMetadata(Metadata):
 
     @property
     def runtime_type(self) -> RuntimeProcessorType:
-        return RuntimeProcessorType.get_instance_by_name(self.metadata['runtime_type'])
+        return RuntimeProcessorType.get_instance_by_name(self.metadata["runtime_type"])
 
     def post_save(self, **kwargs: Any) -> None:
         try:  # Modify components associated with this catalog on creates and updates.
-            component_catalog.ComponentCache.instance().update(catalog=self, action='modify')
+            component_catalog.ComponentCache.instance().update(catalog=self, action="modify")
         except Exception:
             # An attempted component cache update will fail silently with most errors
             # logged from the ComponentCache class methods. However, a log message
@@ -52,7 +55,7 @@ class ComponentCatalogMetadata(Metadata):
 
     def post_delete(self, **kwargs: Any) -> None:
         try:  # Remove components associated with this catalog on deletes.
-            component_catalog.ComponentCache.instance().update(catalog=self, action='delete')
+            component_catalog.ComponentCache.instance().update(catalog=self, action="delete")
         except Exception:
             # An attempted component cache update will fail silently with most errors
             # logged from the ComponentCache class methods. However, a log message

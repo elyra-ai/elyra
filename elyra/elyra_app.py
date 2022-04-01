@@ -56,7 +56,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     name = "elyra"
     version = __version__
     description = "Elyra Server"
-    extension_url = '/lab'
+    extension_url = "/lab"
     load_other_extensions = True
 
     classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentCatalogConnector, ComponentCache]
@@ -81,44 +81,45 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         component_regex = r"(?P<component_id>[\w\.\-:%]+)"
         catalog_regex = r"(?P<catalog>[\w\.\-:]+)"
 
-        self.handlers.extend([
-            # API
-            (f'/{self.name}/{YamlSpecHandler.get_resource_metadata()[0]}', YamlSpecHandler),
-
-            # Content
-            (f'/{self.name}/contents/properties{path_regex}', ContentHandler),
-
-            # Metadata
-            (f'/{self.name}/metadata/{schemaspace_regex}', MetadataHandler),
-            (f'/{self.name}/metadata/{schemaspace_regex}/{resource_regex}', MetadataResourceHandler),
-            (f'/{self.name}/schema/{schemaspace_regex}', SchemaHandler),
-            (f'/{self.name}/schema/{schemaspace_regex}/{resource_regex}', SchemaResourceHandler),
-            (f'/{self.name}/schemaspace', SchemaspaceHandler),
-            (f'/{self.name}/schemaspace/{schemaspace_regex}', SchemaspaceResourceHandler),
-
-            # Pipeline
-            (f'/{self.name}/pipeline/components/cache', ComponentCacheHandler),
-            (f'/{self.name}/pipeline/components/cache/{catalog_regex}', ComponentCacheCatalogHandler),
-            (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),
-            (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}',
-             PipelineComponentPropertiesHandler),
-            (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
-             PipelineComponentPropertiesHandler),
-
-            (f'/{self.name}/pipeline/export', PipelineExportHandler),
-            (f'/{self.name}/pipeline/runtimes/types', PipelineRuntimeTypesHandler),
-            (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
-            (f'/{self.name}/pipeline/validate', PipelineValidationHandler),
-
-        ])
+        self.handlers.extend(
+            [
+                # API
+                (f"/{self.name}/{YamlSpecHandler.get_resource_metadata()[0]}", YamlSpecHandler),
+                # Content
+                (f"/{self.name}/contents/properties{path_regex}", ContentHandler),
+                # Metadata
+                (f"/{self.name}/metadata/{schemaspace_regex}", MetadataHandler),
+                (f"/{self.name}/metadata/{schemaspace_regex}/{resource_regex}", MetadataResourceHandler),
+                (f"/{self.name}/schema/{schemaspace_regex}", SchemaHandler),
+                (f"/{self.name}/schema/{schemaspace_regex}/{resource_regex}", SchemaResourceHandler),
+                (f"/{self.name}/schemaspace", SchemaspaceHandler),
+                (f"/{self.name}/schemaspace/{schemaspace_regex}", SchemaspaceResourceHandler),
+                # Pipeline
+                (f"/{self.name}/pipeline/components/cache", ComponentCacheHandler),
+                (f"/{self.name}/pipeline/components/cache/{catalog_regex}", ComponentCacheCatalogHandler),
+                (f"/{self.name}/pipeline/components/{processor_regex}", PipelineComponentHandler),
+                (
+                    f"/{self.name}/pipeline/components/{processor_regex}/{component_regex}",
+                    PipelineComponentPropertiesHandler,
+                ),
+                (
+                    f"/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties",
+                    PipelineComponentPropertiesHandler,
+                ),
+                (f"/{self.name}/pipeline/export", PipelineExportHandler),
+                (f"/{self.name}/pipeline/runtimes/types", PipelineRuntimeTypesHandler),
+                (f"/{self.name}/pipeline/schedule", PipelineSchedulerHandler),
+                (f"/{self.name}/pipeline/validate", PipelineValidationHandler),
+            ]
+        )
 
     def initialize_settings(self):
-        self.log.info('Config {}'.format(self.config))
+        self.log.info(f"Config {self.config}")
         # Instantiate singletons with appropriate parent to enable configurability, and convey
         # root_dir to PipelineProcessorManager.
-        PipelineProcessorRegistry.instance(root_dir=self.settings['server_root_dir'], parent=self)
-        PipelineProcessorManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
-        PipelineValidationManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
+        PipelineProcessorRegistry.instance(root_dir=self.settings["server_root_dir"], parent=self)
+        PipelineProcessorManager.instance(root_dir=self.settings["server_root_dir"], parent=self)
+        PipelineValidationManager.instance(root_dir=self.settings["server_root_dir"], parent=self)
         FileMetadataCache.instance(parent=self)
         ComponentCache.instance(parent=self).load()
         SchemaManager.instance(parent=self)

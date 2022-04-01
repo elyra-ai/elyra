@@ -216,11 +216,11 @@ describe('Code Snippet tests', () => {
     cy.wait(100);
   });
 
-  it('should insert a python code snippet into python file', () => {
+  it('should insert a python code snippet into python editor', () => {
     createValidCodeSnippet(snippetName);
 
     // Open blank python file
-    cy.createNewScriptFile('Python');
+    cy.createNewScriptEditor('Python');
 
     cy.wait(1500);
 
@@ -232,11 +232,11 @@ describe('Code Snippet tests', () => {
     cy.get('span.cm-string').contains(/test/i);
   });
 
-  it('should fail to insert a java code snippet into python file', () => {
+  it('should fail to insert a java code snippet into python editor', () => {
     createValidCodeSnippet(snippetName, 'Java');
 
     // Open blank python file
-    cy.createNewScriptFile('Python');
+    cy.createNewScriptEditor('Python');
 
     cy.wait(500);
 

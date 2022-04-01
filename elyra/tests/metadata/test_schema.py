@@ -34,19 +34,19 @@ os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
 
 
 schemaspace_map = {
-    'metadata-tests': ('elyra.tests.metadata.test_utils', 'MetadataTestSchemaspace'),
-    'byo_schemaspace_bad_id': ('elyra.tests.metadata.test_utils', 'BYOSchemaspaceBadId'),
-    'byo.schemaspace-bad.name': ('elyra.tests.metadata.test_utils', 'BYOSchemaspaceBadName'),
-    'byo.schemaspace_CaseSensitiveName': ('elyra.tests.metadata.test_utils', 'BYOSchemaspaceCaseSensitiveName'),
-    'byo-schemaspace': ('elyra.tests.metadata.test_utils', 'BYOSchemaspace'),
-    'byo-schemaspace-bad-class': ('elyra.tests.metadata.test_utils', 'BYOSchemaspaceBadClass'),
-    'byo-schemaspace-throws': ('elyra.tests.metadata.test_utils', 'BYOSchemaspaceThrows'),
+    "metadata-tests": ("elyra.tests.metadata.test_utils", "MetadataTestSchemaspace"),
+    "byo_schemaspace_bad_id": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceBadId"),
+    "byo.schemaspace-bad.name": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceBadName"),
+    "byo.schemaspace_CaseSensitiveName": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceCaseSensitiveName"),
+    "byo-schemaspace": ("elyra.tests.metadata.test_utils", "BYOSchemaspace"),
+    "byo-schemaspace-bad-class": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceBadClass"),
+    "byo-schemaspace-throws": ("elyra.tests.metadata.test_utils", "BYOSchemaspaceThrows"),
 }
 schemas_provider_map = {
-    'metadata-tests': ('elyra.tests.metadata.test_utils', 'MetadataTestSchemasProvider'),
-    'byo-schemas-provider-throws': ('elyra.tests.metadata.test_utils', 'BYOSchemasProviderThrows'),
-    'byo-schemas-provider-bad-class': ('elyra.tests.metadata.test_utils', 'BYOSchemasProviderBadClass'),
-    'byo-schemas-provider': ('elyra.tests.metadata.test_utils', 'BYOSchemasProvider'),
+    "metadata-tests": ("elyra.tests.metadata.test_utils", "MetadataTestSchemasProvider"),
+    "byo-schemas-provider-throws": ("elyra.tests.metadata.test_utils", "BYOSchemasProviderThrows"),
+    "byo-schemas-provider-bad-class": ("elyra.tests.metadata.test_utils", "BYOSchemasProviderBadClass"),
+    "byo-schemas-provider": ("elyra.tests.metadata.test_utils", "BYOSchemasProvider"),
 }
 
 
@@ -71,8 +71,8 @@ def mock_get_schemas_providers(ep_map: Optional[dict] = None) -> List[EntryPoint
 @pytest.fixture
 def byo_schemaspaces(monkeypatch):
     """Setup the BYO Schemaspaces and SchemasProviders, returning the SchemaManager instance."""
-    monkeypatch.setattr(SchemaManager, '_get_schemaspaces', mock_get_schemaspaces)
-    monkeypatch.setattr(SchemaManager, '_get_schemas_providers', mock_get_schemas_providers)
+    monkeypatch.setattr(SchemaManager, "_get_schemaspaces", mock_get_schemaspaces)
+    monkeypatch.setattr(SchemaManager, "_get_schemas_providers", mock_get_schemas_providers)
     yield  # We must clear the SchemaManager instance else follow-on tests will be side-effected
     SchemaManager.clear_instance()
 
@@ -90,6 +90,7 @@ def test_validate_factory_schemas():
 
 
 # ########################## SchemaManager, Schemaspace and SchemasProvider Tests ###########################
+
 
 def test_schemaspace_display_name():
     """Ensures that display_name properly defaults from name (or not when provided itself)."""
@@ -112,7 +113,7 @@ def test_schema_no_side_effect():
     for name, schema in schemas.items():
         if name == "metadata-test":
             orig_schema = copy.deepcopy(schema_mgr.get_schema(METADATA_TEST_SCHEMASPACE_ID, name))  # capture good copy
-            schema['metadata_class_name'] = "bad_class"
+            schema["metadata_class_name"] = "bad_class"
             assert schema != orig_schema
 
             fresh_schema = schema_mgr.get_schema(METADATA_TEST_SCHEMASPACE_ID, name)
@@ -126,7 +127,7 @@ def test_byo_schema(byo_schemaspaces):
     byo_ss = schema_mgr.get_schemaspace(BYOSchemaspace.BYO_SCHEMASPACE_ID)
     assert len(byo_ss.schemas) == 2
     for name, schema in byo_ss.schemas.items():
-        assert schema['name'] in ['byo-test-0', 'byo-test-1']
+        assert schema["name"] in ["byo-test-0", "byo-test-1"]
 
 
 def test_schemaspace_case_sensitive_name_id(byo_schemaspaces, caplog):
@@ -159,15 +160,16 @@ def validate_log_output(caplog: pytest.LogCaptureFixture, expected_entry: str) -
     # Ensure there are two valid schemas and make sure our bad one is not in the list.
     assert len(byo_ss.schemas) == 2
     for name, schema in byo_ss.schemas.items():
-        assert schema['name'] in ['byo-test-0', 'byo-test-1']
+        assert schema["name"] in ["byo-test-0", "byo-test-1"]
     return byo_ss  # in case caller wants to check other things.
 
 
 def test_schemaspace_bad_name(byo_schemaspaces, caplog):
     """Ensure a Schemaspace with a bad name (not alphanumeric, w/ dash, underscore) is handled cleanly."""
 
-    validate_log_output(caplog, "The 'name' property (byo.schemaspace-bad.name) must "
-                                "be alphanumeric with dash or underscore only!")
+    validate_log_output(
+        caplog, "The 'name' property (byo.schemaspace-bad.name) must " "be alphanumeric with dash or underscore only!"
+    )
 
 
 def test_schemaspace_bad_class(byo_schemaspaces, caplog):
@@ -185,8 +187,11 @@ def test_schemaspace_throws(byo_schemaspaces, caplog):
 def test_schemasprovider_bad_class(byo_schemaspaces, caplog):
     """Ensure a bad SchemasProvider class doesn't affect the loads of other schemas."""
 
-    validate_log_output(caplog, "SchemasProvider instance 'byo-schemas-provider-bad-class' is not an "
-                                f"instance of '{SchemasProvider.__name__}'!")
+    validate_log_output(
+        caplog,
+        "SchemasProvider instance 'byo-schemas-provider-bad-class' is not an "
+        f"instance of '{SchemasProvider.__name__}'!",
+    )
 
 
 def test_schemasprovider_throws(byo_schemaspaces, caplog):
@@ -196,10 +201,13 @@ def test_schemasprovider_throws(byo_schemaspaces, caplog):
 
 
 def test_schemasprovider_no_schemaspace(byo_schemaspaces, caplog):
-    """Ensure SchemasProvider that references a non-existent schemaspace doesn't affect the loads of other schemas. """
+    """Ensure SchemasProvider that references a non-existent schemaspace doesn't affect the loads of other schemas."""
 
-    byo_ss = validate_log_output(caplog, "Schema 'byo-test-unknown_schemaspace' references a schemaspace "
-                                         f"'{NON_EXISTENT_SCHEMASPACE_ID}' that is not loaded!")
+    byo_ss = validate_log_output(
+        caplog,
+        "Schema 'byo-test-unknown_schemaspace' references a schemaspace "
+        f"'{NON_EXISTENT_SCHEMASPACE_ID}' that is not loaded!",
+    )
     assert len(byo_ss.schemas) == 2
     for name, schema in byo_ss.schemas.items():
-        assert schema['name'] != 'byo-test-unknown_schemaspace'
+        assert schema["name"] != "byo-test-unknown_schemaspace"

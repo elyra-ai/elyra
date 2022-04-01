@@ -17,12 +17,16 @@
 import io
 import zipfile
 
-from elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector import AirflowPackageCatalogConnector  # noqa:E501
+from elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector import (
+    AirflowPackageCatalogConnector,  # noqa:H301
+)
 from elyra.pipeline.catalog_connector import AirflowEntryData
 
-AIRFLOW_1_10_15_PKG_URL = 'https://files.pythonhosted.org/packages/f0/3a/'\
-                          'f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/'\
-                          'apache_airflow-1.10.15-py2.py3-none-any.whl'
+AIRFLOW_1_10_15_PKG_URL = (
+    "https://files.pythonhosted.org/packages/f0/3a/"
+    "f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/"
+    "apache_airflow-1.10.15-py2.py3-none-any.whl"
+)
 
 AIRFLOW_SUPPORTED_FILE_TYPES = [".py"]
 
@@ -33,13 +37,12 @@ def test_empty_workdir():
     after 'get_catalog_entries' was invoked.)
     """
     apc = AirflowPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
-    assert hasattr(apc, 'tmp_archive_dir') is False
+    assert hasattr(apc, "tmp_archive_dir") is False
     apc.get_hash_keys()
-    assert hasattr(apc, 'tmp_archive_dir') is False
-    cd = apc.get_entry_data({'file': 'dummyfile'},
-                            {})
+    assert hasattr(apc, "tmp_archive_dir") is False
+    cd = apc.get_entry_data({"file": "dummyfile"}, {})
     assert cd is None
-    assert hasattr(apc, 'tmp_archive_dir') is False
+    assert hasattr(apc, "tmp_archive_dir") is False
 
 
 def test_get_hash_keys():
@@ -48,7 +51,7 @@ def test_get_hash_keys():
     """
     hk = AirflowPackageCatalogConnector.get_hash_keys()
     assert len(hk) == 1
-    assert hk[0] == 'file'
+    assert hk[0] == "file"
 
 
 def test_invalid_download_input(requests_mock):
@@ -58,31 +61,28 @@ def test_invalid_download_input(requests_mock):
     apc = AirflowPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
 
     # Input is an invalid URL/host.
-    requests_mock.get('http://no.such.host/a-file', real_http=True)
-    ce = apc.get_catalog_entries({'airflow_package_download_url':
-                                  'http://no.such.host/a-file'})
+    requests_mock.get("http://no.such.host/a-file", real_http=True)
+    ce = apc.get_catalog_entries({"airflow_package_download_url": "http://no.such.host/a-file"})
     assert len(ce) == 0
 
     # Input is a valid URL but does not include a filename.
-    requests_mock.get('http://server.domain.com', text='a-file-content')
-    ce = apc.get_catalog_entries({'airflow_package_download_url':
-                                  'http://server.domain.com/'})
+    requests_mock.get("http://server.domain.com", text="a-file-content")
+    ce = apc.get_catalog_entries({"airflow_package_download_url": "http://server.domain.com/"})
     assert len(ce) == 0
 
     # Input is a valid URL, but does not return a ZIP-compressed file.
-    requests_mock.get('http://server.domain.com/a-file', text='another-file-content')
-    ce = apc.get_catalog_entries({'airflow_package_download_url':
-                                  'http://server.domain.com/a-file'})
+    requests_mock.get("http://server.domain.com/a-file", text="another-file-content")
+    ce = apc.get_catalog_entries({"airflow_package_download_url": "http://server.domain.com/a-file"})
     assert len(ce) == 0
 
     # Input is a valid URL and a ZIP-compressed file, but is not an Airflow built distribution.
     zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.writestr('dummy_file.txt', 'I am a dummy file, living in a ZIP archive.')
-    requests_mock.get('http://server.domain.com/a-zip-file', content=zip_buffer.getvalue())
-    ce = apc.get_catalog_entries({'airflow_package_download_url':
-                                  'http://server.domain.com/a-zip-file'})
+    with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr("dummy_file.txt", "I am a dummy file, living in a ZIP archive.")
+    requests_mock.get("http://server.domain.com/a-zip-file", content=zip_buffer.getvalue())
+    ce = apc.get_catalog_entries({"airflow_package_download_url": "http://server.domain.com/a-zip-file"})
     assert len(ce) == 0
+
 
 # -----------------------------------
 # Long running test(s)
@@ -95,21 +95,20 @@ def test_1_10_15_distribution():
     """
     apc = AirflowPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
     # get catalog entries for the specified distribution
-    ces = apc.get_catalog_entries({'airflow_package_download_url': AIRFLOW_1_10_15_PKG_URL})
+    ces = apc.get_catalog_entries({"airflow_package_download_url": AIRFLOW_1_10_15_PKG_URL})
     # this distribution should contain 37 Python scripts with operator definitions
     assert len(ces) == 37
     # each entry must contain two keys
     for entry in ces:
         # built distribution package file name
-        assert entry.get('airflow_package') == 'apache_airflow-1.10.15-py2.py3-none-any.whl'
+        assert entry.get("airflow_package") == "apache_airflow-1.10.15-py2.py3-none-any.whl"
         # a Python script
-        assert entry.get('file', '').endswith('.py')
+        assert entry.get("file", "").endswith(".py")
 
     # fetch and validate the first entry
-    ce = apc.get_entry_data({'file': ces[0]['file']},
-                            {})
+    ce = apc.get_entry_data({"file": ces[0]["file"]}, {})
 
     assert ce is not None
     assert isinstance(ce, AirflowEntryData)
     assert ce.definition is not None
-    assert ce.package_name.startswith('airflow.operators.')
+    assert ce.package_name.startswith("airflow.operators.")
