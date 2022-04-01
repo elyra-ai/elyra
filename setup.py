@@ -64,40 +64,40 @@ setup_args = dict(
     data_files=get_data_files(data_files_spec),
     packages=find_packages(),
     install_requires=[
-        'autopep8>=1.5.0',
-        'click>=8',  # elyra-ai/elyra#2579
-        'colorama',
-        'deprecation',
-        'entrypoints>=0.3',
-        'jinja2>=3',
-        'jsonschema>=3.2.0,<4.0',  # Cap from kfp
-        'jupyter_core>=4.6.0',
-        'jupyter_client>=6.1.7',
-        'jupyter-packaging>=0.10',
-        'jupyter_server>=1.7.0',
-        'jupyterlab>=3.3.0',
-        'jupyterlab-git~=0.32',  # Avoid breaking 1.x changes
-        'jupyterlab-lsp>=3.8.0',
-        'jupyter-resource-usage>=0.5.1',
-        'MarkupSafe>=2.1',
-        'minio>=7.0.0',
-        'nbclient>=0.5.1',
-        'nbconvert>=6.4.5',
-        'nbdime~=3.1',  # Cap from jupyterlab-git
-        'nbformat>=5.1.2',
-        'networkx>=2.5.1',
-        'papermill>=2.3.4',
-        'python-lsp-server[all]>=1.1.0',
-        'pyyaml>=5.3.1,<6.0',  # Cap from kfp
-        'requests>=2.25.1',
-        'rfc3986-validator>=0.1.1',
-        'tornado>=6.1.0',
-        'typing-extensions>=3.10,<4',  # Cap from kfp
-        'traitlets>=4.3.2',
-        'urllib3>=1.26.5',
-        'watchdog>=2.1.3',
-        'websocket-client',
-        'yaspin',
+        "autopep8>=1.5.0",
+        "click>=8",  # elyra-ai/elyra#2579
+        "colorama",
+        "deprecation",
+        "entrypoints>=0.3",
+        "jinja2>=3",
+        "jsonschema>=3.2.0,<4.0",  # Cap from kfp
+        "jupyter_core>=4.6.0",
+        "jupyter_client>=6.1.7",
+        "jupyter-packaging>=0.10",
+        "jupyter_server>=1.7.0",
+        "jupyterlab>=3.3.0",
+        "jupyterlab-git~=0.32",  # Avoid breaking 1.x changes
+        "jupyterlab-lsp>=3.8.0",
+        "jupyter-resource-usage>=0.5.1",
+        "MarkupSafe>=2.1",
+        "minio>=7.0.0",
+        "nbclient>=0.5.1",
+        "nbconvert>=6.4.5",
+        "nbdime~=3.1",  # Cap from jupyterlab-git
+        "nbformat>=5.1.2",
+        "networkx>=2.5.1",
+        "papermill>=2.3.4",
+        "python-lsp-server[all]>=1.1.0",
+        "pyyaml>=5.3.1,<6.0",  # Cap from kfp
+        "requests>=2.25.1",
+        "rfc3986-validator>=0.1.1",
+        "tornado>=6.1.0",
+        "typing-extensions>=3.10,<4",  # Cap from kfp
+        "traitlets>=4.3.2",
+        "urllib3>=1.26.5",
+        "watchdog>=2.1.3",
+        "websocket-client",
+        "yaspin",
         # KFP runtime dependencies
         "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
         # Airflow runtime dependencies
