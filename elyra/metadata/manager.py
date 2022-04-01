@@ -239,7 +239,7 @@ class MetadataManager(LoggingConfigurable):
                 self._rollback(name, Metadata.from_dict(self.schemaspace, metadata_dict), "create", ex)
             raise ex
 
-        return metadata_post_op
+        return self.get(name)  # Retrieve updated/new instance so load hook can be called
 
     def _rollback(self, name: str, orig_value: Union[Metadata, Dict], operation: str, exception: Exception):
         """Rolls back the original value depending on the operation.

@@ -276,7 +276,7 @@ export namespace DebuggerEditorHandler {
     }
     const cmEditor = editor as CodeMirrorEditor;
     cmEditor.doc.eachLine(line => {
-      if ((line as Private.ILineInfo).gutterMarkers) {
+      if (((line as unknown) as Private.ILineInfo).gutterMarkers) {
         cmEditor.editor.setGutterMarker(line, 'breakpoints', null);
       }
     });

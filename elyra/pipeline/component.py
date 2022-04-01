@@ -16,6 +16,7 @@
 from abc import abstractmethod
 from enum import Enum
 from importlib import import_module
+import json
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
@@ -26,6 +27,14 @@ from typing import Tuple
 
 from traitlets.config import LoggingConfigurable
 
+# Rather than importing only the CatalogEntry class needed in the Component parse
+# type hint below, the catalog_connector module must be imported in its
+# entirety in order to avoid a circular reference issue
+try:
+    from elyra.pipeline import catalog_connector
+except ImportError:
+    import sys
+    catalog_connector = sys.modules[__package__ + '.catalog_connector']
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -223,7 +232,7 @@ class Component(object):
             else:
                 parameter_refs = {}
 
-        if extensions and not parameter_refs.get('filehandler'):
+        if self._catalog_type == "elyra" and extensions and not parameter_refs.get('filehandler'):
             Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
                                    no entry in the 'parameter_ref' dictionary for 'filehandler' and \
                                    cannot participate in drag and drop functionality as a result.")
@@ -259,7 +268,7 @@ class Component(object):
         this component originates and the reference information used to
         locate it within that catalog.
         """
-        return str({
+        return json.dumps({
             "catalog_type": self.catalog_type,
             "component_ref": self.component_reference
         })
@@ -309,6 +318,14 @@ class Component(object):
     def output_properties(self) -> List[ComponentParameter]:
         return [prop for prop in self._properties if prop.data_type == 'outputpath']
 
+    @property
+    def file_extension(self) -> Optional[str]:
+        """
+        The file extension of the definition file representing this
+        Component.
+        """
+        return self.extensions[0] if self.extensions else None
+
     @staticmethod
     def _log_warning(msg: str, logger: Optional[Logger] = None):
         if logger:
@@ -342,9 +359,9 @@ class ComponentParser(LoggingConfigurable):  # ABC
         return self._file_types
 
     @abstractmethod
-    def parse(self, registry_entry: SimpleNamespace) -> Optional[List[Component]]:
+    def parse(self, catalog_entry: 'catalog_connector.CatalogEntry') -> Optional[List[Component]]:
         """
-        Parse a component definition given in the registry entry and return
+        Parse a component definition given in the catalog entry and return
         a list of fully-qualified Component objects
         """
         raise NotImplementedError()
@@ -378,7 +395,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 if data_type in ['dict', 'dictionary']:
                     data_type = "dictionary"
                     default_value = {}
-                elif data_type in ['list', 'set', 'array', 'arr']:
+                else:  # data_type is one of ['list', 'set', 'array', 'arr']
                     data_type = "list"
                     default_value = []
 

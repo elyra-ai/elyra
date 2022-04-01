@@ -88,7 +88,8 @@ class AirflowComponentParser(ComponentParser):
                 id=component_id,
                 name=component_class,
                 description=DEFAULT_DESCRIPTION,
-                properties=component_properties
+                properties=component_properties,
+                file_extension=self._file_types[0]
             )
 
             components.append(component)

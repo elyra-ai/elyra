@@ -285,6 +285,17 @@ class PipelineValidationManager(SingletonConfigurable):
                 # Checks pipeline node types are compatible with the runtime selected
                 for sub_pipeline in pipeline_definition.pipelines:
                     for node in sub_pipeline.nodes:
+                        if node.op not in ComponentCache.get_generic_component_ops() and pipeline_runtime == "local":
+                            response.add_message(severity=ValidationSeverity.Error,
+                                                 message_type="invalidNodeType",
+                                                 message="This pipeline contains at least one runtime-specific "
+                                                         "component, but pipeline runtime is 'local'. Specify a "
+                                                         "runtime config or remove runtime-specific components "
+                                                         "from the pipeline",
+                                                 data={"nodeID": node.id,
+                                                       "nodeOpName": node.op,
+                                                       "pipelineId": sub_pipeline.id})
+                            break
                         if node.type == "execution_node" and node.op not in supported_ops:
                             response.add_message(severity=ValidationSeverity.Error,
                                                  message_type="invalidNodeType",
@@ -686,7 +697,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                  message="The pipeline contains a circular dependency between nodes.",
                                  data={})
 
-    def _get_pipeline_id(self, pipeline: dict, node_id: str) -> str:
+    def _get_pipeline_id(self, pipeline: dict, node_id: str) -> Optional[str]:
         """
         Given a node ID, returns the pipeline ID of where the node is currently connected to
         :param pipeline: pipeline definition where the link is located
@@ -699,6 +710,7 @@ class PipelineValidationManager(SingletonConfigurable):
             for node in node_list:
                 if node['id'] == node_id:
                     return single_pipeline['id']
+        return None
 
     async def _get_component_properties(self, pipeline_runtime: str, components: dict, node_op: str) -> Dict:
         """
@@ -746,7 +758,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
         return node_name_list
 
-    def _get_node_labels(self, pipeline: dict, link_ids: List[str]) -> List[str]:
+    def _get_node_labels(self, pipeline: dict, link_ids: List[str]) -> Optional[List[str]]:
         """
         Returns the names (labels) of the nodes that are connected by
         the specified link_ids.
@@ -770,7 +782,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                     node_labels.append(self._get_node_label(node))
         return node_labels
 
-    def _get_node_label(self, node: dict) -> str:
+    def _get_node_label(self, node: dict) -> Optional[str]:
         """
         Returns the label for the provided node or None if the information
         cannot be derived from the inpuit dictionary.
@@ -808,7 +820,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 return parameter['data']['required']
         return False
 
-    def _get_component_type(self, property_dict: dict, node_property: str, control_id: str = '') -> str:
+    def _get_component_type(self, property_dict: dict, node_property: str, control_id: str = '') -> Optional[str]:
         """
         Helper function to determine the type of a node property
         :param property_dict: a dictionary containing the full list of property parameters and descriptions
@@ -822,6 +834,7 @@ class PipelineValidationManager(SingletonConfigurable):
                     return prop['data']['controls'][control_id].get('format', 'string')
                 else:
                     return prop['data'].get('format', 'string')
+        return None
 
     def _get_parent_id_list(self, pipeline_definition: PipelineDefinition,
                             node_id_list: list, parent_list: list) -> List:

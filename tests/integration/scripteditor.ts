@@ -36,8 +36,8 @@ describe('Script Editor tests', () => {
 
   // Python Tests
 
-  it('opens blank Python file from launcher', () => {
-    cy.createNewScriptFile('Python');
+  it('opens blank Python editor from launcher', () => {
+    cy.createNewScriptEditor('Python');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 
@@ -53,12 +53,12 @@ describe('Script Editor tests', () => {
     openFileAndCheckContent('py');
   });
 
-  it('opens blank Python file from menu', () => {
+  it('opens blank Python editor from menu', () => {
     cy.findByRole('menuitem', { name: /file/i }).click();
     cy.findByText(/^new$/i).click();
 
     cy.get(
-      '[data-command="script-editor:create-new-python-file"] > .lm-Menu-itemLabel'
+      '[data-command="script-editor:create-new-python-editor"] > .lm-Menu-itemLabel'
     ).click();
   });
 
@@ -84,8 +84,8 @@ describe('Script Editor tests', () => {
   });
 
   it('click the Run as Pipeline button on unsaved file should display save dialog', () => {
-    // Create new python file
-    cy.createNewScriptFile('Python');
+    // Create new python editor
+    cy.createNewScriptEditor('Python');
 
     // Add some text to the editor (wait code editor to load)
     cy.wait(1000);
@@ -149,7 +149,7 @@ describe('Script Editor tests', () => {
 
   // check for error message running an invalid code
   it('checks for Error message', () => {
-    cy.createNewScriptFile('Python');
+    cy.createNewScriptEditor('Python');
 
     // Add some code with syntax error to the editor (wait code editor to load)
     cy.wait(1000);
@@ -177,7 +177,7 @@ describe('Script Editor tests', () => {
 
   // R Tests
   it('opens blank R file from launcher', () => {
-    cy.createNewScriptFile('R');
+    cy.createNewScriptEditor('R');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
   });
 
@@ -198,15 +198,15 @@ describe('Script Editor tests', () => {
     cy.findByRole('menuitem', { name: /file/i }).click();
     cy.findByText(/^new$/i).click();
     cy.get(
-      '[data-command="script-editor:create-new-r-file"] svg[data-icon="elyra:rIcon"]'
+      '[data-command="script-editor:create-new-r-editor"] svg[data-icon="elyra:rIcon"]'
     );
     cy.get(
-      '[data-command="script-editor:create-new-python-file"] svg[data-icon="elyra:pyIcon"]'
+      '[data-command="script-editor:create-new-python-editor"] svg[data-icon="elyra:pyIcon"]'
     );
 
     // Check python icons from launcher & file explorer
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python file"] svg[data-icon="elyra:pyIcon"]'
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python Editor"] svg[data-icon="elyra:pyIcon"]'
     ).click();
     cy.get(
       '#filebrowser [title*="Name: untitled1.py"] svg[data-icon="elyra:pyIcon"]'
@@ -215,7 +215,7 @@ describe('Script Editor tests', () => {
 
     // Check r icons from launcher & file explorer
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R file"] svg[data-icon="elyra:rIcon"]'
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R Editor"] svg[data-icon="elyra:rIcon"]'
     ).click();
     cy.get(
       '#filebrowser [title*="Name: untitled1.r"] svg[data-icon="elyra:rIcon"]'
@@ -228,7 +228,7 @@ describe('Script Editor tests', () => {
     cy.findByText(/^new$/i).click();
 
     cy.get(
-      '[data-command="script-editor:create-new-r-file"] > .lm-Menu-itemLabel'
+      '[data-command="script-editor:create-new-r-editor"] > .lm-Menu-itemLabel'
     ).click();
   });
 

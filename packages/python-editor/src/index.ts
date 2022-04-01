@@ -44,7 +44,7 @@ const PYTHON = 'python';
 const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
 
 const commandIDs = {
-  createNewPythonFile: 'script-editor:create-new-python-file',
+  createNewPythonEditor: 'script-editor:create-new-python-editor',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
@@ -199,23 +199,23 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     /**
-     * Create new python file from launcher and file menu
+     * Create new python editor from launcher and file menu
      */
 
     // Add a python launcher
     if (launcher) {
       launcher.add({
-        command: commandIDs.createNewPythonFile,
+        command: commandIDs.createNewPythonEditor,
         category: 'Elyra',
         rank: 4
       });
     }
 
     if (menu) {
-      // Add new python file creation to the file menu
+      // Add new python editor creation to the file menu
       menu.fileMenu.newMenu.addGroup(
-        [{ command: commandIDs.createNewPythonFile, args: { isMenu: true } }],
-        30
+        [{ command: commandIDs.createNewPythonEditor, args: { isMenu: true } }],
+        92
       );
     }
 
@@ -235,15 +235,11 @@ const extension: JupyterFrontEndPlugin<void> = {
         });
     };
 
-    // Add a command to create new Python file
-    app.commands.addCommand(commandIDs.createNewPythonFile, {
+    // Add a command to create new Python editor
+    app.commands.addCommand(commandIDs.createNewPythonEditor, {
       label: args =>
-        args['isPalette']
-          ? 'New Python Editor'
-          : args.isMenu
-          ? 'Python File'
-          : 'Python Editor',
-      caption: 'Create a new Python file',
+        args['isPalette'] ? 'New Python Editor' : 'Python Editor',
+      caption: 'Create a new Python Editor',
       icon: args => (args['isPalette'] ? undefined : pyIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
@@ -252,7 +248,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     palette.addItem({
-      command: commandIDs.createNewPythonFile,
+      command: commandIDs.createNewPythonEditor,
       args: { isPalette: true },
       category: 'Elyra'
     });

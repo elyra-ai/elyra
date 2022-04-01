@@ -1481,13 +1481,13 @@
     seedrandom "3.0.5"
     uuid "8.3.0"
 
-"@elyra/pipeline-editor@~1.6.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.6.0.tgz#133f244c2245f00f1ee021f844bfe6a45be42594"
-  integrity sha512-RCm8b5Cg6EnZLrXMTUPNlFWj3RXyUCBW8v6YX5bRWDTOodlrwZqPWdABYP2depusY238NvegJb9e4k9EEpMnjA==
+"@elyra/pipeline-editor@~1.7.0":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.7.0.tgz#3aca91825723359e5fcc9570e6be03ebff366153"
+  integrity sha512-qEQMlfskGpofg+NxxIcETTjVx1drFalDzPiHZHvXr8eqCmGS8hWsxbMATSKO1b18G62XHIgbva97SU7tYIk8UA==
   dependencies:
     "@elyra/canvas" "11.0.0"
-    "@elyra/pipeline-services" "^1.6.0"
+    "@elyra/pipeline-services" "^1.7.0"
     downshift "^6.1.2"
     immer "^9.0.7"
     nanoid "^3.1.20"
@@ -1502,10 +1502,10 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.50.tgz#70bb760e80628f74b7415dcb28aedff0b2767c27"
   integrity sha512-HvmzuEftj5K34glqMDBFwyrrOuFdzIuzjNXExOYLcCQzMNWInaxa0szqemfOiiqyGxAs/tTfMVGyTfEx2XI8dg==
 
-"@elyra/pipeline-services@^1.6.0", "@elyra/pipeline-services@~1.6.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.6.0.tgz#1aecaff81b66d690c60fc7b542a69d3ed5749167"
-  integrity sha512-INUZDAZoe3Fvw6dnET+EgzDuY4j6SR9xx7a0CXofX4ehd6TWbO5neppoCeEt0IsqOrnN/eGUaDJ4lsl/sv6awA==
+"@elyra/pipeline-services@^1.7.0", "@elyra/pipeline-services@~1.7.0":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.7.0.tgz#6ec269a0790862ac7d5d8a7f9980100c295c190d"
+  integrity sha512-4h4VOe7u7MR4jPpJxyqnoLhVVTGCT0WVMKdpuL0aKGUa2Lj0j0TCJignsMb4AFbkq5f7GnOSHLAz9zVd57ylpA==
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
@@ -4078,10 +4078,10 @@
     "@types/node" "*"
     "@types/responselike" "*"
 
-"@types/codemirror@^0.0.109":
-  version "0.0.109"
-  resolved "https://registry.yarnpkg.com/@types/codemirror/-/codemirror-0.0.109.tgz#89d575ff1c7b462c4c3b8654f8bb38e5622e9036"
-  integrity sha512-cSdiHeeLjvGn649lRTNeYrVCDOgDrtP+bDDSFDd1TF+i0jKGPDRozno2NOJ9lTniso+taiv4kiVS8dgM8Jm5lg==
+"@types/codemirror@^5.60.5":
+  version "5.60.5"
+  resolved "https://registry.yarnpkg.com/@types/codemirror/-/codemirror-5.60.5.tgz#5b989a3b4bbe657458cf372c92b6bfda6061a2b7"
+  integrity sha512-TiECZmm8St5YxjFUp64LK0c8WU5bxMDt9YaAek1UqUb9swrSCoJhh92fWu1p3mTEqlHjhB5sY7OFBhWroJXZVg==
   dependencies:
     "@types/tern" "*"
 
@@ -14044,9 +14044,9 @@ minimist-options@^3.0.1:
     is-plain-obj "^1.1.0"
 
 minimist@^1.1.1, minimist@^1.1.3, minimist@^1.2.0, minimist@^1.2.5, minimist@~1.2.0:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
-  integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
+  integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
 
 minipass-collect@^1.0.2:
   version "1.0.2"
