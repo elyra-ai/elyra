@@ -54,7 +54,7 @@ ELYRA_BOOTSTRAP_SCRIPT_URL = os.getenv(
 ELYRA_REQUIREMENTS_URL = os.getenv(
     "ELYRA_REQUIREMENTS_URL",
     f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/"
-    "elyra/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra.txt",
+    f"elyra/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra.txt",
 )
 
 
