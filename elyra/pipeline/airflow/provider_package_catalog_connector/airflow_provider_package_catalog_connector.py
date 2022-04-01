@@ -59,104 +59,119 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         # Read the user-defined 'airflow_provider_package_download_url', which is a required
         # input defined in the 'airflow-provider-package-catalog-catalog.json' schema file.
         # Example value: https://files.pythonhosted.org/packages/a3/57/443a4fb0a52dcfc93bcd410e5c661d5683a8a651914934e490613460713f/apache_airflow_providers_amazon-2.6.0-py3-none-any.whl # noqa: E501
-        airflow_provider_package_download_url = catalog_metadata['airflow_provider_package_download_url'].strip()
+        airflow_provider_package_download_url = catalog_metadata["airflow_provider_package_download_url"].strip()
         # extract the package name, e.g. 'apache_airflow_providers_amazon-2.6.0-py3-none-any.whl'
         airflow_provider_package_name = Path(urlparse(airflow_provider_package_download_url).path).name
         # extract the provider name, e.g. 'apache_airflow_providers_amazon'
-        m = re.match('[^-]+', airflow_provider_package_name)
+        m = re.match("[^-]+", airflow_provider_package_name)
         if m:
             airflow_provider_name = m.group(0)
         else:
             airflow_provider_name = airflow_provider_package_name
 
         if not airflow_provider_name:
-            self.log.error('Error. The Airflow provider package connector is not configured properly. '
-                           f'The provider package download URL \'{airflow_provider_package_download_url}\' '
-                           'does not include a file name.')
+            self.log.error(
+                "Error. The Airflow provider package connector is not configured properly. "
+                f"The provider package download URL '{airflow_provider_package_download_url}' "
+                "does not include a file name."
+            )
             return operator_key_list
 
         # tmp_archive_dir is used to store the downloaded archive and as working directory
-        if hasattr(self, 'tmp_archive_dir'):
+        if hasattr(self, "tmp_archive_dir"):
             # if the directory exists remove it in case the archive content has changed
             shutil.rmtree(self.tmp_archive_dir.name, ignore_errors=True)
         self.tmp_archive_dir = Path(mkdtemp())
 
         try:
-            self.log.debug(f'Downloading provider package from \'{airflow_provider_package_download_url}\' ...')
+            self.log.debug(f"Downloading provider package from '{airflow_provider_package_download_url}' ...")
 
             # download archive
             try:
-                response = requests.get(airflow_provider_package_download_url,
-                                        timeout=AirflowProviderPackageCatalogConnector.REQUEST_TIMEOUT,
-                                        allow_redirects=True)
+                response = requests.get(
+                    airflow_provider_package_download_url,
+                    timeout=AirflowProviderPackageCatalogConnector.REQUEST_TIMEOUT,
+                    allow_redirects=True,
+                )
             except Exception as ex:
-                self.log.error('Error. The Airflow provider package connector is not configured properly. '
-                               f'Download of \'{airflow_provider_package_download_url}\' failed: '
-                               f'{ex}')
+                self.log.error(
+                    "Error. The Airflow provider package connector is not configured properly. "
+                    f"Download of '{airflow_provider_package_download_url}' failed: "
+                    f"{ex}"
+                )
                 return operator_key_list
 
             if response.status_code != 200:
                 # download failed. Log error and abort processing
-                self.log.error('Error. The Airflow provider package connector is not configured properly. '
-                               f'Download of \'{airflow_provider_package_download_url}\' '
-                               f'failed. HTTP response code: {response.status_code}')
+                self.log.error(
+                    "Error. The Airflow provider package connector is not configured properly. "
+                    f"Download of '{airflow_provider_package_download_url}' "
+                    f"failed. HTTP response code: {response.status_code}"
+                )
                 return operator_key_list
 
             # save downloaded archive
             archive = str(self.tmp_archive_dir / airflow_provider_package_name)
-            self.log.debug(f'Saving downloaded archive in \'{archive}\' ...')
-            with open(archive, 'wb') as archive_fh:
+            self.log.debug(f"Saving downloaded archive in '{archive}' ...")
+            with open(archive, "wb") as archive_fh:
                 archive_fh.write(response.content)
 
             # extract archive
-            self.log.debug(f'Extracting Airflow provider archive \'{archive}\' ...')
+            self.log.debug(f"Extracting Airflow provider archive '{archive}' ...")
             try:
-                with zipfile.ZipFile(archive, 'r') as zip_ref:
+                with zipfile.ZipFile(archive, "r") as zip_ref:
                     zip_ref.extractall(self.tmp_archive_dir)
             except Exception as ex:
-                self.log.error('Error. The Airflow provider package connector is not configured properly. '
-                               f'Error extracting downloaded Airflow provider archive \'{archive}\': '
-                               f'{ex}')
+                self.log.error(
+                    "Error. The Airflow provider package connector is not configured properly. "
+                    f"Error extracting downloaded Airflow provider archive '{archive}': "
+                    f"{ex}"
+                )
                 os.remove(archive)
                 return operator_key_list
 
             # delete archive
-            self.log.debug(f'Deleting downloaded Airflow provider archive \'{archive}\' ...')
+            self.log.debug(f"Deleting downloaded Airflow provider archive '{archive}' ...")
             os.remove(archive)
 
             # Locate 'get_provider_info.py' in the extracted archive.
             # It identifies Python modules that contain operator class definitions.
-            pl = list(self.tmp_archive_dir.glob('**/get_provider_info.py'))
+            pl = list(self.tmp_archive_dir.glob("**/get_provider_info.py"))
             if len(pl) != 1:
                 # No such file or more than one file was found. Cannot proceed.
-                self.log.error('Error. The Airflow provider package connector is not configured properly. '
-                               f'The archive \'{archive}\' '
-                               f'contains {len(pl)} file(s) named \'get_provider_info.py\'.')
+                self.log.error(
+                    "Error. The Airflow provider package connector is not configured properly. "
+                    f"The archive '{archive}' "
+                    f"contains {len(pl)} file(s) named 'get_provider_info.py'."
+                )
                 # return empty list
                 return operator_key_list
             get_provider_info_file_location = pl[0]
 
             # extract module names from get_provider_info.py
-            with open(get_provider_info_file_location, 'r') as gpi_file:
+            with open(get_provider_info_file_location, "r") as gpi_file:
                 f = gpi_file.read()
             namespace = {}
             exec(f, namespace)
             try:
                 # try to run the 'get_provider_info' method
-                return_dict = namespace['get_provider_info']()
+                return_dict = namespace["get_provider_info"]()
             except KeyError:
                 # no method with this name is defined in get_provider_info.py
-                self.log.error('Error. Cannot invoke \' get_provider_info\' method '
-                               f'in \'{get_provider_info_file_location}\'.')
+                self.log.error(
+                    "Error. Cannot invoke ' get_provider_info' method " f"in '{get_provider_info_file_location}'."
+                )
                 return operator_key_list
 
             python_scripts = []
-            for operator_entry in return_dict.get('operators', []):
-                for m in operator_entry['python-modules']:
+            for operator_entry in return_dict.get("operators", []):
+                for m in operator_entry["python-modules"]:
                     python_scripts.append(f'{m.replace(".", sep)}.py')
             if len(python_scripts) == 0:
-                self.log.warning(f'Airflow provider package \'{airflow_provider_package_name}\' '
-                                 'does not include any operator definitions.')
+                self.log.warning(
+                    f"Airflow provider package '{airflow_provider_package_name}' "
+                    "does not include any operator definitions."
+                )
                 return operator_key_list
 
             #
@@ -169,8 +184,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             imported_operator_classes: List[str] = []  # Imported operator classes
             # Process each Python script ...
             for script in python_scripts:
-                self.log.debug(f'Parsing \'{script}\' ...')
-                with open(self.tmp_archive_dir / script, 'r') as source_code:
+                self.log.debug(f"Parsing '{script}' ...")
+                with open(self.tmp_archive_dir / script, "r") as source_code:
                     # parse source code
                     tree = ast.parse(source_code.read())
                     # Process imports and class definitions
@@ -184,16 +199,15 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                             # example: 'from airflow.models import BaseOperator'
                             node_module = node.module
                             for name in node.names:
-                                self.log.debug(f'Detected an IMPORT FROM: {node_module} -> {name.name}')
-                                if 'airflow.models' == node_module and name.name == 'BaseOperator':
+                                self.log.debug(f"Detected an IMPORT FROM: {node_module} -> {name.name}")
+                                if "airflow.models" == node_module and name.name == "BaseOperator":
                                     imported_operator_classes.append(name.name)
                                 else:
                                     # Look for package imports that match one of the following patters:
                                     #  - airflow.providers.*.operators.
                                     #  - airflow.operators.*
                                     # Add the associated class names to imported_operator_classes
-                                    m_patterns = [r'airflow\.providers\.[a-z_]+\.operators',
-                                                  r'airflow\.operators\.']
+                                    m_patterns = [r"airflow\.providers\.[a-z_]+\.operators", r"airflow\.operators\."]
                                     for pattern in m_patterns:
                                         match = re.match(pattern, node_module)
                                         if match:
@@ -203,7 +217,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                             # Determine whether this class extends the BaseOperator class
                             # based on previously identified imports
                             class_node = node
-                            self.log.debug(f'Analyzing class \'{class_node.name}\' in {script} ...')
+                            self.log.debug(f"Analyzing class '{class_node.name}' in {script} ...")
                             # determine whether class extends one of the imported operator classes
                             if len(class_node.bases) == 0:
                                 # This class does not extend other classes. It therefore cannot be
@@ -214,8 +228,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                                 if isinstance(base, ast.Name):
                                     key = base.id
                                 elif isinstance(base, ast.Attribute):
-                                    key = f'{base.value.id}.{base.attr}'
-                                self.log.debug(f'Class {class_node.name} extends {key}')
+                                    key = f"{base.value.id}.{base.attr}"
+                                self.log.debug(f"Class {class_node.name} extends {key}")
                                 if key in imported_operator_classes:
                                     # This class extends the Airflow BaseOperator.
                                     extends = True
@@ -227,10 +241,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                             if extends is False:
                                 # Further analysis is required after all imports
                                 # and classes were processed.
-                                classes_to_analyze[class_node.name] = {
-                                    'node': class_node,
-                                    'file': script
-                                }
+                                classes_to_analyze[class_node.name] = {"node": class_node, "file": script}
 
             # Initial analysis is completed. Repeat analysis for
             # for classes in 'classes_to_analyze', as they might extend
@@ -243,14 +254,13 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                 # assume that analysis is complete until proven otherwise
                 analysis_complete = True
                 for class_name in list(classes_to_analyze.keys()):
-                    script_name = classes_to_analyze[class_name]['file']
-                    self.log.debug(f'Re-analyzing class \'{class_name}\' in '
-                                   f"'{script_name}\'... ")
-                    for base in classes_to_analyze[class_name]['node'].bases:
+                    script_name = classes_to_analyze[class_name]["file"]
+                    self.log.debug(f"Re-analyzing class '{class_name}' in " f"'{script_name}'... ")
+                    for base in classes_to_analyze[class_name]["node"].bases:
                         if isinstance(base, ast.Name):
                             key = base.id
                         elif isinstance(base, ast.Attribute):
-                            key = f'{base.value.id}.{base.attr}'
+                            key = f"{base.value.id}.{base.attr}"
                         if key in extends_baseoperator:
                             # this class extends BaseOperator
                             extends_baseoperator.append(class_name)
@@ -266,27 +276,34 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
             # Populate return data structure
             for script in scripts_with_operator_class:
-                operator_key_list.append({
-                    'provider_package': airflow_provider_package_name,
-                    'provider': airflow_provider_name,
-                    'file': script})
+                operator_key_list.append(
+                    {
+                        "provider_package": airflow_provider_package_name,
+                        "provider": airflow_provider_name,
+                        "file": script,
+                    }
+                )
 
-            self.log.debug(f'Operator key list: {operator_key_list}')
+            self.log.debug(f"Operator key list: {operator_key_list}")
 
             # Dump stats
-            self.log.debug(f'Analysis of \'{airflow_provider_package_download_url}\' completed. '
-                           f'Located {len(extends_baseoperator)} operator class(es) '
-                           f'in {len(python_scripts)} Python script(s).')
+            self.log.debug(
+                f"Analysis of '{airflow_provider_package_download_url}' completed. "
+                f"Located {len(extends_baseoperator)} operator class(es) "
+                f"in {len(python_scripts)} Python script(s)."
+            )
 
         except Exception as ex:
-            self.log.error('Error retrieving operator list from Airflow provider package '
-                           f'\'{airflow_provider_package_download_url}\': {ex}')
+            self.log.error(
+                "Error retrieving operator list from Airflow provider package "
+                f"'{airflow_provider_package_download_url}': {ex}"
+            )
 
         return operator_key_list
 
-    def get_entry_data(self,
-                       catalog_entry_data: Dict[str, Any],
-                       catalog_metadata: Dict[str, Any]) -> Optional[EntryData]:
+    def get_entry_data(
+        self, catalog_entry_data: Dict[str, Any], catalog_metadata: Dict[str, Any]
+    ) -> Optional[EntryData]:
         """
         Fetch the script identified by catalog_entry_data['file']
 
@@ -298,28 +315,28 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         :returns: An AirflowEntryData containing the definition and metadata, if found
         """
 
-        operator_file_name = catalog_entry_data['file']
+        operator_file_name = catalog_entry_data["file"]
 
-        if hasattr(self, 'tmp_archive_dir') is False:
+        if hasattr(self, "tmp_archive_dir") is False:
             # This method was invoked before 'get_catalog_entries'. Therefore
             # there is nothing that can be done. Log error and return None
-            self.log.error('Error. Cannot fetch operator source code. The '
-                           'Airflow provider package archive was not found.')
+            self.log.error(
+                "Error. Cannot fetch operator source code. The " "Airflow provider package archive was not found."
+            )
             return None
 
         # Compose package name from operator_file_name, e.g.
         # 'airflow/providers/ssh/operators/ssh.py' => 'airflow.providers.ssh.operators.ssh'
-        package = '.'.join(Path(operator_file_name).with_suffix('').parts)
+        package = ".".join(Path(operator_file_name).with_suffix("").parts)
 
         # load operator source using the provided key
         operator_source = self.tmp_archive_dir / operator_file_name
-        self.log.debug(f'Reading operator source \'{operator_source}\' ...')
+        self.log.debug(f"Reading operator source '{operator_source}' ...")
         try:
-            with open(operator_source, 'r') as source:
-                return AirflowEntryData(definition=source.read(),
-                                        package_name=package)
+            with open(operator_source, "r") as source:
+                return AirflowEntryData(definition=source.read(), package_name=package)
         except Exception as ex:
-            self.log.error(f'Error reading operator source \'{operator_source}\': {ex}')
+            self.log.error(f"Error reading operator source '{operator_source}': {ex}")
 
         return None
 
@@ -330,8 +347,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
         hash value for item returned by get_catalog_entries
 
         :returns: a list of keys
-      """
+        """
         # Example key values:
         # - provider: 'apache_airflow_providers_ssh'
         # - file: 'airflow/providers/ssh/operators/ssh.py'
-        return ['provider', 'file']
+        return ["provider", "file"]

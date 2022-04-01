@@ -80,7 +80,7 @@ class TestOperator(BaseOperator):
         fallback_type=None,
         long_description_property=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
 
@@ -112,20 +112,20 @@ class DeriveFromTestOperator(TestOperator):
     """
 
     def __init__(
-            self,
-            *,
-            str_no_default: str,
-            bool_no_default: bool,
-            int_no_default: int,
-            str_not_in_docstring: str,
-            bool_not_in_docstring: bool,
-            int_not_in_docstring: int,
-            str_default: str = "default",
-            bool_default: bool = True,
-            int_default: int = 2,
-            str_optional_default: Optional[str] = "optional default",
-            list_optional_default: Optional[List] = None,
-            **kwargs
+        self,
+        *,
+        str_no_default: str,
+        bool_no_default: bool,
+        int_no_default: int,
+        str_not_in_docstring: str,
+        bool_not_in_docstring: bool,
+        int_not_in_docstring: int,
+        str_default: str = "default",
+        bool_default: bool = True,
+        int_default: int = 2,
+        str_optional_default: Optional[str] = "optional default",
+        list_optional_default: Optional[List] = None,
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -155,18 +155,18 @@ class DeriveFromImportedOperator(ImportedOperator):
     """
 
     def __init__(
-            self,
-            *,
-            dict_no_default: Dict,
-            list_no_default: List,
-            dict_optional_no_default: Optional[Dict[str, str]],
-            list_optional_no_default: Optional[List[int]],
-            nested_dict_default: Dict[str, Dict[str, str]] = None,
-            list_default: List[str] = None,
-            list_optional_default: Optional[List[str]] = None,
-            list_not_in_docstring: List[str],
-            dict_not_in_docstring: Dict[str, str],
-            **kwargs
+        self,
+        *,
+        dict_no_default: Dict,
+        list_no_default: List,
+        dict_optional_no_default: Optional[Dict[str, str]],
+        list_optional_no_default: Optional[List[int]],
+        nested_dict_default: Dict[str, Dict[str, str]] = None,
+        list_default: List[str] = None,
+        list_optional_default: Optional[List[str]] = None,
+        list_not_in_docstring: List[str],
+        dict_not_in_docstring: Dict[str, str],
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -180,11 +180,7 @@ class HelperClass1:
     derive from an Operator class
     """
 
-    def __init__(
-            self,
-            myvar1,
-            *args,
-            **kwargs):
+    def __init__(self, myvar1, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
 
@@ -194,9 +190,5 @@ class HelperClass2(object):
     derive from an Operator class
     """
 
-    def __init__(
-            self,
-            myvar2,
-            *args,
-            **kwargs):
+    def __init__(self, myvar2, *args, **kwargs):
         super().__init__(*args, **kwargs)

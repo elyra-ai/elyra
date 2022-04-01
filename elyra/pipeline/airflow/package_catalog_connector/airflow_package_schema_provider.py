@@ -33,17 +33,18 @@ class AirflowPackageSchemasProvider(SchemasProvider):
         Return the Apache Airflow package catalog connector schema
         """
         # use Elyra logger
-        log = logging.getLogger('ElyraApp')
+        log = logging.getLogger("ElyraApp")
         catalog_schema_defs = []
         try:
             # load catalog schema definition
-            catalog_connector_schema_file = Path(__file__).parent / 'airflow-package-catalog.json'
-            log.debug(f'Reading Airflow package catalog connector schema from {catalog_connector_schema_file}')
-            with open(catalog_connector_schema_file, 'r') as fp:
+            catalog_connector_schema_file = Path(__file__).parent / "airflow-package-catalog.json"
+            log.debug(f"Reading Airflow package catalog connector schema from {catalog_connector_schema_file}")
+            with open(catalog_connector_schema_file, "r") as fp:
                 catalog_connector_schema = json.load(fp)
                 catalog_schema_defs.append(catalog_connector_schema)
         except Exception as ex:
-            log.error('Error reading Airflow package catalog connector '
-                      f'schema {catalog_connector_schema_file}: {ex}')
+            log.error(
+                "Error reading Airflow package catalog connector " f"schema {catalog_connector_schema_file}: {ex}"
+            )
 
         return catalog_schema_defs

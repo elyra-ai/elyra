@@ -39,7 +39,7 @@ class ElyraEngine(NBClientEngine):
         stderr_file=None,
         start_timeout=60,
         execution_timeout=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Performs the actual execution of the parameterized notebook.  Note that kwargs may
@@ -59,12 +59,12 @@ class ElyraEngine(NBClientEngine):
         """
 
         # Exclude parameters that named differently downstream
-        safe_kwargs = remove_args(['timeout', 'startup_timeout', 'kernel_env', 'kernel_cwd'], **kwargs)
+        safe_kwargs = remove_args(["timeout", "startup_timeout", "kernel_env", "kernel_cwd"], **kwargs)
 
         # Nicely handle preprocessor arguments prioritizing values set by engine
         final_kwargs = merge_kwargs(
             safe_kwargs,
-            timeout=execution_timeout or kwargs.get('timeout'),
+            timeout=execution_timeout or kwargs.get("timeout"),
             startup_timeout=start_timeout,
             kernel_name=kernel_name,
             log=logger,
@@ -73,11 +73,11 @@ class ElyraEngine(NBClientEngine):
             stderr_file=stderr_file,
         )
 
-        kernel_kwargs = {'env': kwargs.get('kernel_env')}
+        kernel_kwargs = {"env": kwargs.get("kernel_env")}
         # Only include kernel_name and set path if GatewayKernelManager will be used
-        kernel_manager_class = final_kwargs.get('kernel_manager_class')
-        if kernel_manager_class == 'jupyter_server.gateway.managers.GatewayKernelManager':
-            kernel_kwargs['kernel_name'] = kernel_name
-            kernel_kwargs['path'] = kwargs.get('kernel_cwd')
+        kernel_manager_class = final_kwargs.get("kernel_manager_class")
+        if kernel_manager_class == "jupyter_server.gateway.managers.GatewayKernelManager":
+            kernel_kwargs["kernel_name"] = kernel_name
+            kernel_kwargs["path"] = kwargs.get("kernel_cwd")
 
         return PapermillNotebookClient(nb_man, **final_kwargs).execute(**kernel_kwargs)

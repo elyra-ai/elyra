@@ -15,7 +15,7 @@
 #
 
 .PHONY: help purge uninstall-src uninstall clean
-.PHONY: lint-dependencies lint-server prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
+.PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
 .PHONY: build-dependencies yarn-install build-ui package-ui build-server install-server-package install-server
 .PHONY: install install-all install-examples install-gitlab-dependency check-install watch release
@@ -99,6 +99,10 @@ lint-dependencies:
 
 lint-server: lint-dependencies
 	flake8 elyra
+	black --check --diff --color . || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
+
+black-format: # Apply black formatter to Python source code
+	black .
 
 prettier-check-ui:
 	yarn prettier:check

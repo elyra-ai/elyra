@@ -19,7 +19,7 @@ import os
 
 
 def get_absolute_path(root_dir: str, path: str) -> str:
-    """Checks if path is absolute or not.  If not absolute, `path` is appended to `root_dir`. """
+    """Checks if path is absolute or not.  If not absolute, `path` is appended to `root_dir`."""
 
     absolute_path = os.path.normpath(path)
     if not os.path.isabs(absolute_path):

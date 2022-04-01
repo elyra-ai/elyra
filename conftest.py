@@ -22,24 +22,18 @@ from elyra.pipeline.component_catalog import ComponentCache
 
 pytest_plugins = ["jupyter_server.pytest_plugin"]
 
-TEST_CATALOG_NAME = 'new_test_catalog'
+TEST_CATALOG_NAME = "new_test_catalog"
 
 KFP_COMPONENT_CACHE_INSTANCE = {
     "display_name": "KFP Example Components",
-    "metadata": {
-        "runtime_type": "KUBEFLOW_PIPELINES",
-        "categories": ["examples"]
-    },
-    "schema_name": "elyra-kfp-examples-catalog"
+    "metadata": {"runtime_type": "KUBEFLOW_PIPELINES", "categories": ["examples"]},
+    "schema_name": "elyra-kfp-examples-catalog",
 }
 
 AIRFLOW_COMPONENT_CACHE_INSTANCE = {
     "display_name": "Airflow Example Components",
-    "metadata": {
-        "runtime_type": "APACHE_AIRFLOW",
-        "categories": ["examples"]
-    },
-    "schema_name": "elyra-airflow-examples-catalog"
+    "metadata": {"runtime_type": "APACHE_AIRFLOW", "categories": ["examples"]},
+    "schema_name": "elyra-airflow-examples-catalog",
 }
 
 
@@ -94,12 +88,4 @@ def metadata_manager_with_teardown(jp_environ):
 # Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)
 @pytest.fixture
 def jp_server_config():
-    return {
-        "ServerApp": {
-            "jpserver_extensions": {
-                "elyra": True
-            }
-        }
-    }
-
-
+    return {"ServerApp": {"jpserver_extensions": {"elyra": True}}}

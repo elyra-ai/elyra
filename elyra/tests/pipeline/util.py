@@ -29,14 +29,15 @@ def _read_pipeline_resource(pipeline_filename):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
     pipeline_path = os.path.join(root, pipeline_filename)
 
-    with open(pipeline_path, 'r') as f:
+    with open(pipeline_path, "r") as f:
         pipeline_json = json.load(f)
 
     return pipeline_json
 
 
 class NodeBase(object):
-    """Represents a node of a constructed pipeline based on files in resources/node_util. """
+    """Represents a node of a constructed pipeline based on files in resources/node_util."""
+
     id: str
     name: str
     outputs: List[str]
@@ -49,10 +50,14 @@ class NodeBase(object):
     filename: str
     pipeline_name: str  # Set during pipeline construction
 
-    def __init__(self, name: str, num_outputs: Optional[int] = 0,
-                 input_nodes: Optional[List[Any]] = None,
-                 image_name: Optional[str] = None,
-                 fail: Optional[bool] = False):
+    def __init__(
+        self,
+        name: str,
+        num_outputs: Optional[int] = 0,
+        input_nodes: Optional[List[Any]] = None,
+        image_name: Optional[str] = None,
+        fail: Optional[bool] = False,
+    ):
         self.id = str(uuid.uuid4())
         self.name = name
         self.fail = fail
@@ -68,7 +73,7 @@ class NodeBase(object):
                 self.inputs.extend(node.outputs)
                 self.parent_operations.append(node.id)
 
-        self.dependencies = ['node_util/*']
+        self.dependencies = ["node_util/*"]
 
     def get_operation(self) -> GenericOperation:
 
@@ -92,45 +97,62 @@ class NodeBase(object):
         self.env_vars.append("ELYRA_RUNTIME_ENV=bogus_runtime")
 
         component_parameters = {
-            'filename': self.filename,
-            'runtime_image': self.image_name or "NA",
-            'dependencies': self.dependencies,
-            'env_vars': self.env_vars,
-            'inputs': self.inputs,
-            'outputs': self.outputs
+            "filename": self.filename,
+            "runtime_image": self.image_name or "NA",
+            "dependencies": self.dependencies,
+            "env_vars": self.env_vars,
+            "inputs": self.inputs,
+            "outputs": self.outputs,
         }
-        return GenericOperation(self.id, 'execution_node', self.name, self.classifier,
-                                parent_operation_ids=self.parent_operations,
-                                component_params=component_parameters)
+        return GenericOperation(
+            self.id,
+            "execution_node",
+            self.name,
+            self.classifier,
+            parent_operation_ids=self.parent_operations,
+            component_params=component_parameters,
+        )
 
 
 class NotebookNode(NodeBase):
-    def __init__(self, name: str, num_outputs: Optional[int] = 0,
-                 input_nodes: Optional[List[Any]] = None,
-                 image_name: Optional[str] = None,
-                 fail: Optional[bool] = False):
+    def __init__(
+        self,
+        name: str,
+        num_outputs: Optional[int] = 0,
+        input_nodes: Optional[List[Any]] = None,
+        image_name: Optional[str] = None,
+        fail: Optional[bool] = False,
+    ):
 
         super().__init__(name, num_outputs=num_outputs, input_nodes=input_nodes, image_name=image_name, fail=fail)
-        self.classifier = 'execute-notebook-node'
+        self.classifier = "execute-notebook-node"
         self.filename = f"{self.name}.ipynb"
 
 
 class PythonNode(NodeBase):
-    def __init__(self, name: str, num_outputs: Optional[int] = 0,
-                 input_nodes: Optional[List[Any]] = None,
-                 image_name: Optional[str] = None,
-                 fail: Optional[bool] = False):
+    def __init__(
+        self,
+        name: str,
+        num_outputs: Optional[int] = 0,
+        input_nodes: Optional[List[Any]] = None,
+        image_name: Optional[str] = None,
+        fail: Optional[bool] = False,
+    ):
 
         super().__init__(name, num_outputs=num_outputs, input_nodes=input_nodes, image_name=image_name, fail=fail)
-        self.classifier = 'execute-python-node'
+        self.classifier = "execute-python-node"
         self.filename = f"{self.name}.py"
 
 
-def construct_pipeline(name: str, nodes: List[NodeBase], location: str,
-                       runtime_type: Optional[str] = 'local',
-                       runtime_config: Optional[str] = 'local') -> Pipeline:
+def construct_pipeline(
+    name: str,
+    nodes: List[NodeBase],
+    location: str,
+    runtime_type: Optional[str] = "local",
+    runtime_config: Optional[str] = "local",
+) -> Pipeline:
     """Returns an instance of a local Pipeline consisting of each node and populates the
-       specified location with the necessary files to run the pipeline from that location.
+    specified location with the necessary files to run the pipeline from that location.
     """
     pipeline = Pipeline(str(uuid.uuid4()), name, runtime_type, runtime_config)
     for node in nodes:
@@ -138,15 +160,15 @@ def construct_pipeline(name: str, nodes: List[NodeBase], location: str,
         pipeline.operations[node.id] = node.get_operation()
         # copy the node file into the "working directory"
         if isinstance(node, NotebookNode):
-            src_file = os.path.join(os.path.dirname(__file__), 'resources/node_util/node.ipynb')
+            src_file = os.path.join(os.path.dirname(__file__), "resources/node_util/node.ipynb")
         elif isinstance(node, PythonNode):
-            src_file = os.path.join(os.path.dirname(__file__), 'resources/node_util/node.py')
+            src_file = os.path.join(os.path.dirname(__file__), "resources/node_util/node.py")
         else:
             assert False, f"Invalid node type detected: {node.__class__.__name__}"
 
         shutil.copy(src_file, os.path.join(location, node.filename))
 
     # copy the node_util directory into the "working directory"
-    shutil.copytree(os.path.join(os.path.dirname(__file__), 'resources/node_util'), os.path.join(location, 'node_util'))
+    shutil.copytree(os.path.join(os.path.dirname(__file__), "resources/node_util"), os.path.join(location, "node_util"))
 
     return pipeline

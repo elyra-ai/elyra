@@ -24,8 +24,7 @@ class TestOperatorNoInputs(BaseOperator):
     properties when rendered as a component)
     """
 
-    def __init__(self,
-                 *args, **kwargs):
+    def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
 

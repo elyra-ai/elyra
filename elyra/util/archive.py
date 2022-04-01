@@ -20,12 +20,12 @@ import tarfile
 import tempfile
 
 
-WILDCARDS = ['*', '?', '[']
+WILDCARDS = ["*", "?", "["]
 
 
 def create_project_temp_dir():
     temp_dir = tempfile.gettempdir()
-    project_temp_dir = os.path.join(temp_dir, 'elyra')
+    project_temp_dir = os.path.join(temp_dir, "elyra")
     if not os.path.exists(project_temp_dir):
         os.mkdir(project_temp_dir)
     return project_temp_dir
@@ -37,7 +37,7 @@ def directory_in_list(directory, filenames):
 
 
 def has_wildcards(filename):
-    """Returns True if the filename contains wildcard characters per https://docs.python.org/3/library/fnmatch.html """
+    """Returns True if the filename contains wildcard characters per https://docs.python.org/3/library/fnmatch.html"""
     return len(set(WILDCARDS) & set(list(filename))) > 0
 
 
@@ -61,7 +61,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
         """Filter files from the generated archive"""
         if tarinfo.type == tarfile.DIRTYPE:
             # ignore hidden directories (e.g. ipynb checkpoints and/or trash contents)
-            if any(dir.startswith('.') for dir in tarinfo.name.split('/')):
+            if any(dir.startswith(".") for dir in tarinfo.name.split("/")):
                 return None
             # always return the base directory (empty string) otherwise tar will be empty
             elif not tarinfo.name:
