@@ -63,11 +63,11 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByLabelText(/^name/i).type(`${type} Test Runtime`);
 
   if (type === 'kfp') {
-    cy.findByLabelText(/kubeflow .* endpoint \*/i).type(
+    cy.get('input#root_KubeflowPipelines_api_endpoint').type(
       'https://kubernetes-service.ibm.com/pipeline'
     );
   } else {
-    cy.findByLabelText(/airflow .* endpoint/i).type(
+    cy.get('input#root_Airflow_api_endpoint').type(
       'https://kubernetes-service.ibm.com/pipeline'
     );
     cy.findByLabelText(/github .* repository \*/i).type('akchinstc/test-repo');

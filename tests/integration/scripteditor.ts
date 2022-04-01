@@ -299,7 +299,7 @@ const openFile = (fileExtension: string): void => {
 
 //open file and check contents
 const openFileAndCheckContent = (fileExtension: string): void => {
-  openFile('py');
+  openFile(fileExtension);
   // Ensure that the file contents are as expected
   cy.get('span[role="presentation"]').should($span => {
     expect($span.get(0).innerText).to.eq("print('Hello Elyra')");
