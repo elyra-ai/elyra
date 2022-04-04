@@ -21,7 +21,7 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
-import { ILauncher, LauncherModel } from '@jupyterlab/launcher';
+import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ITranslator } from '@jupyterlab/translation';
 import { launcherIcon } from '@jupyterlab/ui-components';
@@ -29,7 +29,7 @@ import { launcherIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
 
-import { Launcher } from './launcher';
+import { Launcher, LauncherModel } from './launcher';
 import '../style/index.css';
 
 const ELYRA_THEME_NAMESPACE = 'elyra-theme-extension';
