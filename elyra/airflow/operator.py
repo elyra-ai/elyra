@@ -83,7 +83,7 @@ class BootscriptBuilder(object):
     @property
     def container_cmd(self):
 
-        common_curl_options = '--fail -H "Cache-Control: no-cache"'
+        common_curl_options = "--fail -H 'Cache-Control: no-cache'"
 
         self.arguments = [
             f"mkdir -p {self.container_work_dir} && cd {self.container_work_dir} && "
