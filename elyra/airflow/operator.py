@@ -82,10 +82,15 @@ class BootscriptBuilder(object):
 
     @property
     def container_cmd(self):
+
+        common_curl_options = '--fail -H "Cache-Control: no-cache"'
+
         self.arguments = [
             f"mkdir -p {self.container_work_dir} && cd {self.container_work_dir} && "
-            f"curl -H 'Cache-Control: no-cache' -L {ELYRA_BOOTSCRIPT_URL} --output bootstrapper.py && "
-            f"curl -H 'Cache-Control: no-cache' -L {ELYRA_REQUIREMENTS_URL} "
+            f"echo 'Downloading {ELYRA_BOOTSCRIPT_URL}' && "
+            f"curl {common_curl_options} -L {ELYRA_BOOTSCRIPT_URL} --output bootstrapper.py && "
+            f"echo 'Downloading {ELYRA_REQUIREMENTS_URL}' && "
+            f"curl {common_curl_options} -L {ELYRA_REQUIREMENTS_URL} "
             f"--output requirements-elyra.txt && "
             "python3 -m pip install packaging && "
             "python3 -m pip freeze > requirements-current.txt && "
