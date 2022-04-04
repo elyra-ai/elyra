@@ -27,7 +27,7 @@ Refer to [the documentation](https://elyra.readthedocs.io/en/latest/recipes/usin
 
 To build a custom version of this container image:
 1. Clone this repository
-2. Build the image using the `Dockerfile` or `Dockerfile.dev` in the `etc/docker/kubeflow` directory:
-   - (Option 1) Run `make kf-notebook-image TAG=3.X.X` to build with Elyra version `3.X.X`
-   - (Option 2) Run `make kf-notebook-image TAG=dev` to build with Elyra from your local source
+2. Build the image using the `Dockerfile` or `Dockerfile.dev`:
+   - (Option 1) In the repository root directory run `make kf-notebook-image TAG=3.X.X` to build with Elyra version `3.X.X`
+   - (Option 2) In the repository root directory run `make kf-notebook-image TAG=dev` to build with Elyra from your local source
 3. The container image is automatically tagged with `elyra/kf-notebook:$TAG` and `quay.io/elyra/kf-notebook:$TAG`
