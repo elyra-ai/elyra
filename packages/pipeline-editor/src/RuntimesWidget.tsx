@@ -92,7 +92,8 @@ class RuntimesDisplay extends MetadataDisplay<
           <br />
         </span>
       );
-    } else if (metadata.schema_name === 'kfp') {
+    }
+    if (metadata.schema_name === 'kfp') {
       if (metadata.metadata.public_api_endpoint) {
         // user specified a public API endpoint. use it instead of the API endpoint
         apiEndpoint = addTrailingSlash(metadata.metadata.public_api_endpoint);
