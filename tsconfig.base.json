@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "module": "esnext",
+    "module": "commonjs",
     "jsx": "react",
     "allowJs": true,
     "skipLibCheck": true,
