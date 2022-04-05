@@ -52,7 +52,7 @@ export class LauncherModel extends JupyterLauncherModel {
     this._items.forEach(item => {
       if (item.command === CommandIDs.createNewPythonEditor) {
         pyEditorInstalled = true;
-      } else if (item.command === CommandIDs.createNewPythonEditor) {
+      } else if (item.command === CommandIDs.createNewREditor) {
         rEditorInstalled = true;
       }
     });
