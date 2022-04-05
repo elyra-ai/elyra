@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,10 +203,10 @@ export class RequestHandler {
             },
             // handle 404 if the server is not found
             (reason: any) => {
-              if (response.status == 404) {
+              if (response.status === 404 || response.status === 409) {
                 response['requestPath'] = requestPath;
                 return reject(response);
-              } else if (response.status == 204) {
+              } else if (response.status === 204) {
                 resolve({});
               } else {
                 return reject(reason);

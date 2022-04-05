@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import {
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 import { ILauncher, LauncherModel } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import { ITranslator } from '@jupyterlab/translation';
 import { launcherIcon } from '@jupyterlab/ui-components';
 
 import { toArray } from '@lumino/algorithm';
@@ -47,11 +48,12 @@ const CommandIDs = {
 const extension: JupyterFrontEndPlugin<ILauncher> = {
   id: ELYRA_THEME_NAMESPACE,
   autoStart: true,
-  requires: [ILabShell, IMainMenu],
+  requires: [ITranslator, ILabShell, IMainMenu],
   optional: [ICommandPalette],
   provides: ILauncher,
   activate: (
     app: JupyterFrontEnd,
+    translator: ITranslator,
     labShell: ILabShell,
     mainMenu: IMainMenu,
     palette: ICommandPalette | null
@@ -79,10 +81,11 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
     // Use custom Elyra launcher
     const { commands } = app;
+    const trans = translator.load('jupyterlab');
     const model = new LauncherModel();
 
     commands.addCommand(CommandIDs.create, {
-      label: 'New Launcher',
+      label: trans.__('New Launcher'),
       execute: (args: any) => {
         const cwd = args['cwd'] ? String(args['cwd']) : '';
         const id = `launcher-${Private.id++}`;
@@ -90,11 +93,17 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
           labShell.add(item, 'main', { ref: id });
         };
 
-        const launcher = new Launcher({ model, cwd, callback, commands });
+        const launcher = new Launcher({
+          model,
+          cwd,
+          callback,
+          commands,
+          translator
+        });
 
         launcher.model = model;
         launcher.title.icon = launcherIcon;
-        launcher.title.label = 'Launcher';
+        launcher.title.label = trans.__('Launcher');
 
         const main = new MainAreaWidget({ content: launcher });
 
@@ -114,7 +123,10 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     });
 
     if (palette) {
-      palette.addItem({ command: CommandIDs.create, category: 'Launcher' });
+      palette.addItem({
+        command: CommandIDs.create,
+        category: trans.__('Launcher')
+      });
     }
 
     commands.addCommand(CommandIDs.openHelp, {

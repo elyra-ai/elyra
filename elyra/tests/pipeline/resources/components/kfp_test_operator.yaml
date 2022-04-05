@@ -1,6 +1,7 @@
 name: Test Operator
+description: 'This component description contains an unescaped " character'
 inputs:
-- {name: test_string_no_default, description: 'The test command description', type: String}
+- {name: test_string_no_default, description: , type: String}
 - {name: test_string_default_value, description: 'The test command description', type: String, default: 'default'}
 - {name: test_string_default_empty, description: 'The test command description', type: String, default: ''}
 - {name: test_bool_default, description: 'The test command description', type: Bool}
@@ -9,6 +10,9 @@ inputs:
 - {name: test_int_default, description: 'The test command description', type: Integer}
 - {name: test_int_zero, description: 'The test command description', type: Integer, default: '0'}
 - {name: test_int_non_zero, description: 'The test command description', type: Integer, default: '1'}
+- {name: test_float_default, description: 'The test command description', type: Float}
+- {name: test_float_zero, description: 'The test command description', type: Float, default: '0.0'}
+- {name: test_float_non_zero, description: 'The test command description', type: Float, default: '1.0'}
 - {name: test_dict_default, description: 'The test command description', type: Dict}
 - {name: test_list_default, description: 'The test command description', type: List}
 - {name: test_required_property, description: 'The test command description', type: String, optional: false}

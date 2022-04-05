@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ os.getenv("VAR1")
 os.environ["VAR2"]
 os.environ.get("VAR3")
 
-print(os.environ['VAR4'])
-print(os.getenv("VAR5", 'localhost'))
+print(os.environ["VAR4"])
+print(os.getenv("VAR5", "localhost"))
 
-os.environ['VAR6'] = "value6"
-print(os.environ.get('VAR7', 'value7'))
-os.getenv('VAR8')
+os.environ["VAR6"] = "value6"
+print(os.environ.get("VAR7", "value7"))
+os.getenv("VAR8")
 
 os.environ["VAR1"] = "newvalue"  # os.environ["VAR9"] = "value"
 

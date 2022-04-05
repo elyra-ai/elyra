@@ -65,12 +65,12 @@
           },
           "comments": []
         },
-        "version": 5,
-        "runtime": "airflow",
+        "version": 7,
         "properties": {
           "name": "aa_invalid_node_op",
           "runtime": "Apache Airflow"
-        }
+        },
+        "runtime_type": "APACHE_AIRFLOW"
       },
       "runtime_ref": ""
     }

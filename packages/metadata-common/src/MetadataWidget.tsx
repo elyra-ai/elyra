@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,15 @@ import {
   showDialog,
   UseSignal
 } from '@jupyterlab/apputils';
-import { editIcon, LabIcon } from '@jupyterlab/ui-components';
+import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 
 import React from 'react';
 
-import { AddMetadataButton } from './AddMetadataButton';
 import { FilterTools } from './FilterTools';
+import { MetadataCommonService } from './MetadataCommonService';
+import { MetadataHeaderButtons } from './MetadataHeaderButtons';
 
 /**
  * The CSS class added to metadata widgets.
@@ -127,7 +128,7 @@ export class MetadataDisplay<
     });
   };
 
-  actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
+  actionButtons(metadata: IMetadata): IMetadataActionButton[] {
     return [
       {
         title: 'Edit',
@@ -142,6 +143,21 @@ export class MetadataDisplay<
         }
       },
       {
+        title: 'Duplicate',
+        icon: copyIcon,
+        onClick: (): void => {
+          MetadataCommonService.duplicateMetadataInstance(
+            this.props.schemaspace,
+            metadata,
+            this.props.metadata
+          )
+            .then((response: any): void => {
+              this.props.updateMetadata();
+            })
+            .catch(error => RequestErrors.serverError(error));
+        }
+      },
+      {
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
@@ -151,7 +167,7 @@ export class MetadataDisplay<
         }
       }
     ];
-  };
+  }
 
   /**
    * Classes that extend MetadataWidget should override this
@@ -337,6 +353,7 @@ export class MetadataWidget extends ReactWidget {
   props: IMetadataWidgetProps;
   schemas?: IDictionary<any>[];
   titleContext?: string;
+  refreshButtonTooltip?: string;
 
   constructor(props: IMetadataWidgetProps) {
     super();
@@ -347,6 +364,7 @@ export class MetadataWidget extends ReactWidget {
     this.titleContext = props.titleContext;
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
+    this.refreshMetadata = this.refreshMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
     this.renderDisplay = this.renderDisplay.bind(this);
     this.addMetadata = this.addMetadata.bind(this);
@@ -393,6 +411,10 @@ export class MetadataWidget extends ReactWidget {
     });
   }
 
+  refreshMetadata(): void {
+    this.updateMetadata();
+  }
+
   // Triggered when the widget button on side panel is clicked
   onAfterShow(msg: Message): void {
     this.updateMetadata();
@@ -417,6 +439,18 @@ export class MetadataWidget extends ReactWidget {
    * @returns a rendered instance of `MetadataDisplay`
    */
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
+    if (Array.isArray(metadata) && !metadata.length) {
+      // Empty metadata
+      return (
+        <div>
+          <br />
+          <h6 className="elyra-no-metadata-msg">
+            Click the + button to add {this.props.display_name.toLowerCase()}
+          </h6>
+        </div>
+      );
+    }
+
     return (
       <MetadataDisplay
         metadata={metadata}
@@ -446,11 +480,13 @@ export class MetadataWidget extends ReactWidget {
               />
               <p> {this.props.display_name} </p>
             </div>
-            <AddMetadataButton
+            <MetadataHeaderButtons
               schemas={this.schemas}
               addMetadata={this.addMetadata}
               titleContext={this.titleContext}
               appendToTitle={this.props.appendToTitle}
+              refreshMetadata={this.refreshMetadata}
+              refreshButtonTooltip={this.refreshButtonTooltip}
             />
           </header>
           <UseSignal signal={this.renderSignal} initialArgs={[]}>

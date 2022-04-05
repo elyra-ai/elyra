@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ You can manage runtime image configurations using the [JupyterLab UI](#managing-
 
 ### Managing runtime image configurations using the JupyterLab UI
 
-Runtime image configurations can be added, modified, and removed in the _Runtime Images_ panel.
+Runtime image configurations can be added, modified, duplicated, and removed in the _Runtime Images_ panel.
 
 ![Runtime Images UI](../images/user_guide/runtime-image-conf/runtime-images-ui.png)
 
@@ -59,22 +59,31 @@ To access the panel in JupyterLab:
 
 To add a runtime image configuration:
 
-- Click `+` to add a runtime image.
-- Add the runtime image properties as appropriate.
+1. Open the `Runtime Images` panel.
+1. Click `+` to add a runtime image.
+1. Add the runtime image properties as appropriate.
 
 #### Modifying a runtime image configuration
 
 To edit a runtime image configuration:
 
-- Click the `edit` icon next to the runtime image name.
-- Modify the runtime image properties as desired.
+1. Open the `Runtime Images` panel.
+1. Click the `edit` icon next to the runtime image name.
+1. Modify the runtime image properties as desired.
+
+#### Duplicating a runtime image configuration
+
+To duplicate a runtime image configuration:
+1. Open the `Runtime Images` panel.
+1. Click the duplicate icon next to the runtime image configuration.
+1. Follow the steps in '[_Modifying a runtime image configuration_](#modifying-a-runtime-image-configuration)' to customize the duplicated configuration.
 
 #### Deleting a runtime image configuration
 
 To delete a runtime image configuration:
-
-- Click the `delete` icon next to the runtime image name.
-- Confirm deletion.
+1. Open the `Runtime Images` panel.
+1. Click the `delete` icon next to the runtime image name.
+1. Confirm deletion.
 
 ### Managing runtime image configurations using the Elyra CLI
 
@@ -98,7 +107,7 @@ runtime-image   anaconda               /Users/jdoe/.../jupyter/metadata/runtime-
 To add a runtime image configuration for the public `jdoe/my-image:1.0.0` container image:
 
 ```bash
-$ elyra-metadata install runtime-images --schema_name=runtime-image \
+$ elyra-metadata create runtime-images --schema_name=runtime-image \
        --name="my_image_name" \
        --display_name="My runtime image" \
        --description="My custom runtime container image" \
@@ -107,16 +116,33 @@ $ elyra-metadata install runtime-images --schema_name=runtime-image \
 
 #### Modifying a runtime configuration
 
-To replace a runtime image configuration append the `--replace` option:
+To replace a runtime image configuration use the `update` command:
 
 ```bash
-$ elyra-metadata install runtime-images --schema_name=runtime-image \
+$ elyra-metadata update runtime-images --schema_name=runtime-image \
        --name="my_image_name" \
        --display_name="My runtime image" \
        --description="My other custom runtime container image" \
-       --image_name="jdoe/my-other-image:1.0.1" \
-       --replace
+       --image_name="jdoe/my-other-image:1.0.1"
 ```
+
+#### Exporting runtime image configurations
+
+To export runtime image configurations:
+
+```bash
+elyra-metadata export runtime-images \
+	--schema-name="runtime-image" \
+	--directory="/tmp/foo"
+```
+
+The above example will export all runtime image configurations to the "/tmp/foo/runtime-images" directory.
+
+Note that you must specify the `--directory` option.
+
+There are two flags that can be specified when exporting runtime image configurations:
+1. To include invalid runtime image configurations, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtime-images" directory before exporting the runtime image configurations.
 
 #### Deleting a runtime configuration
 

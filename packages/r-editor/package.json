@@ -1,6 +1,6 @@
 {
   "name": "@elyra/r-editor-extension",
-  "version": "3.4.0-dev",
+  "version": "3.8.0-dev",
   "description": "JupyterLab extension - Run R scripts using a kernel runtime",
   "keywords": [
     "jupyter",
@@ -25,27 +25,35 @@
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "scripts": {
-    "build": "tsc",
-    "clean": "rimraf lib",
+    "build": "jlpm run build:lib && jlpm run build:labextension:dev",
+    "build:prod": "jlpm run build:lib && jlpm run build:labextension",
+    "build:lib": "tsc",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "clean": "rimraf lib tsconfig.tsbuildinfo ../../dist/labextensions/@elyra/r-editor-extension",
+    "lab:dev": "jupyter labextension develop --overwrite ../../dist/labextensions/@elyra/r-editor-extension",
     "dist": "npm pack .",
     "prepare": "npm run build",
-    "watch": "tsc -w",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w",
+    "watch:labextension": "jupyter labextension watch .",
     "lab:install": "jupyter labextension install --no-build",
     "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
-    "@elyra/script-editor": "^3.4.0-dev",
-    "@elyra/ui-components": "^3.4.0-dev",
-    "@jupyterlab/application": "^3.0.0",
-    "@jupyterlab/apputils": "^3.0.0",
-    "@jupyterlab/codeeditor": "^3.0.0",
-    "@jupyterlab/docregistry": "^3.0.0",
-    "@jupyterlab/filebrowser": "^3.0.0",
-    "@jupyterlab/fileeditor": "^3.0.0",
-    "@jupyterlab/launcher": "^3.0.0",
-    "@jupyterlab/mainmenu": "^3.0.0",
-    "@jupyterlab/settingregistry": "^3.0.0",
-    "@lumino/coreutils": "^1.5.3"
+    "@elyra/script-editor": "3.8.0-dev",
+    "@elyra/ui-components": "3.8.0-dev",
+    "@jupyterlab/application": "^3.3.0",
+    "@jupyterlab/apputils": "^3.3.0",
+    "@jupyterlab/builder": "^3.3.0",
+    "@jupyterlab/codeeditor": "^3.3.0",
+    "@jupyterlab/docregistry": "^3.3.0",
+    "@jupyterlab/filebrowser": "^3.3.0",
+    "@jupyterlab/fileeditor": "^3.3.0",
+    "@jupyterlab/launcher": "^3.3.0",
+    "@jupyterlab/mainmenu": "^3.3.0",
+    "@jupyterlab/settingregistry": "^3.3.0",
+    "@lumino/coreutils": "^1.5.6"
   },
   "devDependencies": {
     "rimraf": "^3.0.2",
@@ -55,6 +63,7 @@
     "access": "public"
   },
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "outputDir": "../../dist/labextensions/@elyra/r-editor-extension"
   }
 }

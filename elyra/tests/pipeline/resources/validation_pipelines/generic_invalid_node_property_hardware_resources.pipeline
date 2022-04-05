@@ -360,7 +360,7 @@
           "runtime": null,
           "comments": []
         },
-        "version": 5,
+        "version": 7,
         "properties": {
           "name": "generic_invalid_node_property_hardware_resources",
           "runtime": "Generic"

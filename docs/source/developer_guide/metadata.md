@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -196,7 +196,7 @@ class SchemasProvider(ABC):
 ```
 When called, the `SchemasProvider` instance is responsible for producing a list of schemas.  These schemas must conform to the metadata service's _meta-schema_ and, as a result, will include the schemaspace name and schemaspace id to which they correspond, in addition to a `name` property representing that schema's name.  The `SchemaManager` uses this meta-information to confirm the schemaspace has been loaded and register that schema with the schemaspace following its successful validation against the meta-schema.
 
-Some `SchemasProvider` instances may have schema information which is dynamic, based on the active configuration of the system.  In such cases, they are responsible for returning information pertinent to the current configuration.  For example, the _component-registry_ schema (of the _component-registries_ schemaspace) includes an enumerated property named `runtime`.  However, the values/choices included in the `enum` are a function of what packages are configured.  As a result, the `get_schemas()` method for the _component-registries_ `SchemasProvider` determines, based on installed packages, which entries to add to the `runtime` enumeration.
+Some `SchemasProvider` instances may have schema information which is dynamic, based on the active configuration of the system.  In such cases, they are responsible for returning information pertinent to the current configuration.  For example, a schema may use an `enum` that holds a set of values pertinent to the system's configuration.  In this case, the `SchemasProvider` may alter its static schema to dynamically update its enumerated property corresponding to the current runtime environment.  Note however, that care should be taken when dynamically altering schema since it could lead to instances that will no longer load because they (now) fail schema validation if the contents of the enum no longer satisfy previous instance values.  Of course, this may very well be proper behavior, depending on the intention.
 
 #### Registration
 Like `Schemaspaces`, `SchemasProvider` implementations are discovered via the entrypoints functionality.  When the `SchemaManager` starts, and after it loads all `Schemaspaces`, it fetches all entrypoint instances named by the group `'metadata.schemas_providers'`, and uses the entrypoint data to load each found instance.
@@ -224,3 +224,40 @@ Here's an example of what the component-registry schema provides:
 "metadata_class_name": "elyra.pipeline.component_metadata.ComponentRegistryMetadata"
 ```
 In this case, the `ComponentRegistry` module overrides the `post_save()` and `post_delete()` methods to update its component's cache.
+
+### Migration Strategies
+It's inevitable that schemas will change over time.  When such changes occur, the existing instances may be impacted such that they no longer conform to the schema or should belong to a different schema entirely.  That is, the instances need to be migrated to adhere to the updated schema.  This section covers two migration strategies, _Implicit Migration_ and _Explicit Migration_.
+
+#### Implicit Migration
+Implicit migration occurs _on the fly_, requiring no user intervention.  This form of migration typically occurs when the schema is altered to include a new required property or a schema within the schemaspace has been deprecated and existing instances should be associated with a different schema.  With implicit migrations, the instances will typically remain in their current schemaspace.
+
+The recommended approach in these scenarios is to leverage the `Metadata` subclass that can be associated with each instance.  By introducing a subclass via the `metadata_class_name` _meta-property_, applications can then use the `on_load()` method to hook the loading of instances, apply the necessary alterations, persist the updates, and return.
+
+For example, let's say that schema `foo` has been deprecated in favor of schema `bar` and that all instances of `foo` should be updated to instances of `bar`.  One could perform the following steps to ensure instances are migrated from `foo` to `bar`:
+1. Introduce a `metadata_class_name` to schema `foo`(if one doesn't exist already).
+2. Implement (or alter) the `on_load()` method.  This method needs to detect pre-migrated instances.  In this case, we're changing the instance's schema, so _any_ instance triggering this method is considered _pre-migrated_.  However, if the instance will remain under the schema, this is probably a good time to introduce an application-level _version_ indicator to determine if the instance is current or requires migration.
+3. Make the necessary changes, including the update of the `schema_name` field, and persist the changes using an appropriate `MetadataManager` instance (tied to the schemaspace), being sure to include the `for_migration=True` property in the `update()` method.
+
+```python
+    def on_load(self, **kwargs: Any) -> None:
+        """Perform implicit migration and update schema from 'foo' to 'bar' """
+
+        prev_schema = self.schema_name
+        self.schema_name = "bar"
+
+        getLogger('ServerApp').info(f"Migrating '{prev_schema}' instance '{self.name}' "
+                                    f"to schema '{self.schema_name}'...")
+        MetadataManager(schemaspace="my_schemaspace").update(self.name, self, for_migration=True)
+```
+With implicit migration, the application migrates the instance on load, so you should ensure the instances are "touched".  If that is an issue, you could use the `elyra-metadata` CLI to list the instances - triggering their migration.  For example: `elyra-metadata list my_schemaspace`
+
+#### Explicit Migration
+Explicit migration is typically necessary when the changes are more widespread.  Examples of such migration will be when instances need to _move_ from one schemaspace to another.  In such cases, implicit migration is not practical.
+
+An example of an explicit migration occurred in the Elyra 3.3 release when instances of the `component-registry` schema in schemaspace `component-registries` were migrated to different schemas (depending on a field's value) in a new schemaspace named `component-catalogs`.  In this case, we chose to use an explicit migration because there was no _application-level_ trigger to "touch" existing instances because the `component-registries` schemaspace was considered deprecated.
+
+Explicit migration centers around the schemaspace from which instances are being migrated.  This is because it is the only entity that knows it has instances.  This migration is accomplished via the base `Schemaspace` `migrate()` method.  This method is marked as `final` meaning that it cannot be overridden by `Schemaspace` subclasses, and it merely enumerates the schemas (and their providers) calling the `migrate()` method on the corresponding `SchemasProvider` subclass.
+
+When called `SchemasProvider.migrate()` enumerates instances of the given schema, updates those instances, persisting changes as necessary, and returns the list of migrated instances to the caller (i.e., the `migrate()` method on `Schemaspace`). (The code for the migration of `component-registry` instances to the `component-catalogs` schemaspace can be found [here](https://github.com/elyra-ai/elyra/blob/05bbdf22fa25b0a65f72c9054337f32fe5fde460/elyra/metadata/schemasproviders.py#L144-L212).)
+
+To drive explicit migration, the `elyra-metadata` CLI tool has been updated with a `migrate` command - which acts on the _pre-migration_ schemaspace.  This option essentially calls the `migrate()` method on the given `Schemaspace` instance - which then invokes the appropriate `SchemasProvider` to migrate its schema instances.  See [Migrating user-defined component registries to 3.3](../user_guide/pipeline-components.html#migrating-user-defined-component-registries-to-3-3) for details.

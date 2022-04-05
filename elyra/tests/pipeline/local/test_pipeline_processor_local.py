@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,16 +35,14 @@ def pipeline_dir(tmp_path):
 
 
 def test_pipeline_execution_order_in_complex_pipeline():
-    expected_operation_names = ['a', 'b', 'c', 'd', 'e', 'f', 'x', 'y', 'g', 'h']
-    pipeline_json = _read_pipeline_resource(
-        'resources/sample_pipelines/pipeline_dependency_complex.json')
+    expected_operation_names = ["a", "b", "c", "d", "e", "f", "x", "y", "g", "h"]
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_dependency_complex.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
     current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
     assert current_ordered_operation_names != expected_operation_names
 
-    operations = LocalPipelineProcessor.\
-        _sort_operations(operations_by_id=pipeline.operations)
+    operations = LocalPipelineProcessor._sort_operations(operations_by_id=pipeline.operations)
 
     ordered_operation_names = _get_operation_names(operations)
 
@@ -52,16 +50,14 @@ def test_pipeline_execution_order_in_complex_pipeline():
 
 
 def test_pipeline_execution_order_in_simple_pipeline():
-    expected_operation_names = ['f', 'a', 'c', 'g']
-    pipeline_json = _read_pipeline_resource(
-        'resources/sample_pipelines/pipeline_dependency_simple.json')
+    expected_operation_names = ["f", "a", "c", "g"]
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_dependency_simple.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
     current_ordered_operation_names = _get_operation_names(pipeline.operations.values())
     assert current_ordered_operation_names != expected_operation_names
 
-    operations = LocalPipelineProcessor.\
-        _sort_operations(operations_by_id=pipeline.operations)
+    operations = LocalPipelineProcessor._sort_operations(operations_by_id=pipeline.operations)
 
     ordered_operation_names = _get_operation_names(operations)
 
@@ -72,15 +68,14 @@ def test_pipeline_get_envs():
 
     # Ensure pipeline operation env lists are properly converted to dictionaries.
 
-    pipeline_json = _read_pipeline_resource(
-        'resources/sample_pipelines/pipeline_dependency_complex.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_dependency_complex.json")
 
     pipeline = PipelineParser().parse(pipeline_json)
 
     for op in pipeline.operations.values():
         assert isinstance(op, GenericOperation)
         op_envs = op.env_vars_as_dict()
-        assert op_envs['OP_NAME'] == op.name
+        assert op_envs["OP_NAME"] == op.name
 
 
 def test_pipeline_execution(pipeline_dir):
@@ -117,13 +112,15 @@ def test_pipeline_execution_missing_kernelspec(pipeline_dir):
 
     node1nb_file = os.path.join(pipeline_dir, pipeline.operations[node1.id].filename)
     nb = nbformat.read(node1nb_file, 4)
-    nb['metadata'].pop('kernelspec')
+    nb["metadata"].pop("kernelspec")
     nbformat.write(nb, node1nb_file)
 
     with pytest.raises(RuntimeError) as e:
         LocalPipelineProcessor(pipeline_dir).process(pipeline)
-    assert 'Error processing operation node1 (node1.ipynb): No kernel ' \
-           'name found in notebook and no override provided.' in str(e.value)
+    assert (
+        "Error processing operation node1 (node1.ipynb): No kernel "
+        "name found in notebook and no override provided." in str(e.value)
+    )
 
 
 def test_pipeline_execution_bad_notebook(pipeline_dir):
@@ -140,7 +137,7 @@ def test_pipeline_execution_bad_notebook(pipeline_dir):
 
     with pytest.raises(RuntimeError) as e:
         LocalPipelineProcessor(pipeline_dir).process(pipeline)
-    assert 'Error processing operation node3' in str(e.value)
+    assert "Error processing operation node3" in str(e.value)
 
     # Confirm outputs (and non-outputs)
     for node in processed_nodes:
@@ -166,7 +163,7 @@ def test_pipeline_execution_bad_python(pipeline_dir):
 
     with pytest.raises(RuntimeError) as e:
         LocalPipelineProcessor(pipeline_dir).process(pipeline)
-    assert 'Error processing operation node2' in str(e.value)
+    assert "Error processing operation node2" in str(e.value)
 
     # Confirm outputs (and non-outputs)
     for node in processed_nodes:

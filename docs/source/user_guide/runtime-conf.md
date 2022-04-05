@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,34 +31,54 @@ Note: Elyra is only tested with Kubeflow v1.2.x and v1.3.x and Apache Airflow v1
 
 ### Managing runtime configurations using the JupyterLab UI
 
-To create, edit, or delete runtime configurations using the UI select the `Runtimes` tab from the JupyterLab sidebar, or click the `Runtimes` button in the Pipeline Editor.
+Runtime configurations can be listed, added, modified, duplicated, and removed in the _Runtimes_ panel.
 
-  ![Access runtime configurations](../images/access-runtime-configurations.png)
+![Runtimes panel](../images/user_guide/runtime-conf/access-runtime-configurations.png)
+
+To access the panel in JupyterLab:
+
+- Select the `Runtimes` panel from the JupyterLab sidebar.
+
+  ![Open panel from sidebar](../images/user_guide/runtime-conf/sidebar-button.png)     
+
+  OR
+
+- Open the JupyterLab command palette (`Cmd/Ctrl + Shift + C`) and search for `manage runtimes`.
+
+  ![Open panel from command palette](../images/user_guide/runtime-conf/cmd-palette.png)
 
 #### Creating a runtime configuration
 
 To create a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click `+` to add a new runtime configuration and choose the desired runtime configuration type, e.g. Kubeflow Pipelines or Apache Airflow. 
-   ![Create runtime configuration](../images/runtime-create-config.png)
+   ![Create runtime configuration](../images/user_guide/runtime-conf/runtime-create-config.png)
 1. Provide a runtime configuration display name, an optional description, and tag the configuration to make it more easily discoverable. 
 1. Enter the Kubeflow Pipelines or Apache Airflow deployment information. Refer to section [Kubeflow Pipelines configuration settings](#kubeflow-pipelines-configuration-settings) or [Apache Airflow configuration settings](#apache-airflow-configuration-settings) for details.
 1. Enter the Cloud Storage connectivity information. Refer to section [Cloud Storage settings](#cloud-storage-settings) for details.
 1. Save the runtime configuration. The new entry is displayed in the list.
 1. Expand the entry and verify that you can access the Kubeflow Pipelines or Apache Airflow GUI and the Cloud Storage GUI using the displayed links.
-   ![Access runtime configuration](../images/runtime-access-config.png) 
+   ![Access runtime configuration](../images/user_guide/runtime-conf/runtime-access-config.png) 
 
 #### Modifying a runtime configuration
 
 To edit a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click the pencil next to the runtime configuration.
+
+#### Duplicating a runtime configuration
+
+To duplicate a runtime configuration:
+1. Open the `Runtimes` panel.
+1. Click the duplicate icon next to the runtime configuration.
+1. Follow the steps in '[_Modifying a runtime image configuration_](#modifying-a-runtime-configuration)' to customize the duplicated configuration.
 
 #### Deleting a runtime configuration
 
 To delete a runtime configuration:
-1. Select the `Runtimes` tab from the JupyterLab sidebar.
+1. Open the `Runtimes` panel.
 1. Click the trash can next to the runtime configuration.
+1. Confirm deletion.
 
 ### Managing runtime configurations using the Elyra CLI
 
@@ -89,7 +109,8 @@ To format the output as JSON run `elyra-metadata list runtimes --json`. Note tha
 To create a runtime configuration for a Kubeflow Pipelines deployment:
 
 ```bash
-elyra-metadata install runtimes \
+elyra-metadata create runtimes \
+       --schema_name=kfp \
        --display_name="My Kubeflow Pipelines Runtime" \
        --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
        --auth_type="DEX_STATIC_PASSWORDS" \
@@ -97,38 +118,45 @@ elyra-metadata install runtimes \
        --api_password=mypassword \
        --engine=Argo \
        --cos_endpoint=http://minio-service.kubeflow:9000 \
+       --cos_auth_type="USER_CREDENTIALS" \
        --cos_username=minio \
        --cos_password=minio123 \
        --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.0']" \
-       --schema_name=kfp
+       --tags="['kfp', 'v1.0']"
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters.
 
 #### Modifying a runtime configuration
 
-To edit a runtime configuration:
+To edit a runtime configuration, use the `update` command along with `--name` and `--schema_name` (to locate the instance), followed by the modified property values.  In this case, we're updating the `api_password` and `tags` properties:
 
 ```bash
-elyra-metadata install runtimes \
-       --replace \
+elyra-metadata update runtimes \
        --name="my_kubeflow_pipelines_runtime" \
-       --display_name="My Kubeflow Pipelines Runtime" \
-       --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
-       --auth_type="DEX_STATIC_PASSWORDS" \
-       --api_username=username@email.com \
+       --schema_name=kfp \
        --api_password=mynewpassword \
-       --engine=Argo \
-       --cos_endpoint=http://minio-service.kubeflow:9000 \
-       --cos_username=minio \
-       --cos_password=minio123 \
-       --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.1']" \
-       --schema_name=kfp
+       --tags="['kfp', 'v1.1']"
 ```
 
-Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 
+Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. 
+
+#### Exporting runtime configurations
+
+To export runtime configurations:
+
+```bash
+elyra-metadata export runtimes \
+	--directory="/tmp/foo"
+```
+
+The above example will export all runtime configurations to the "/tmp/foo/runtimes" directory.
+
+Note that you must specify the `--directory` option. 
+
+There are two flags that can be specified when exporting runtime configurations:
+1. To include invalid runtime configurations, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtimes" directory before exporting the runtime configurations.
 
 #### Deleting a runtime configuration
 
@@ -186,7 +214,7 @@ Example: `anonymous`
 ##### Kubeflow authentication type (auth_type)
 Authentication type Elyra uses to gain access to Kubeflow Pipelines. This setting is required. Supported types are:
 - No authentication (`NO_AUTHENTICATION`).
-- Kubernetes service account token (`KUBERNETES_SERVICE _ACCOUNT_TOKEN`). This authentication type is only supported if Elyra runs as a pod in Kubernetes, e.g. as a Kubeflow notebook server. You must configure a service account token in Kubernetes, as outlined [here](https://www.kubeflow.org/docs/components/pipelines/sdk/connect-api/#multi-user-mode).
+- Kubernetes service account token (`KUBERNETES_SERVICE_ACCOUNT_TOKEN`). This authentication type is only supported if Elyra runs as a pod in Kubernetes, e.g. as a Kubeflow notebook server. You must configure a service account token in Kubernetes, as outlined [here](https://www.kubeflow.org/docs/components/pipelines/sdk/connect-api/#multi-user-mode).
 - DEX configured for static password authentication (`DEX_STATIC_PASSWORDS`). This authentication requires a username and a password.
 - DEX configured for LDAP authentication (`DEX_LDAP`). This authentication requires a username and a  password.
 - DEX (`DEX_LEGACY`). Use this type only if none of the other authentication types applies or if your Kubeflow deployment is not configured for any other listed type. This authentication requires a username and a password.
@@ -235,15 +263,19 @@ The default namespace is `default`.
 
 Example: `anonymous`
 
+##### Git Type (git_type)
+
+Identifies which git type shall be used to store DAGs. Supported types are `GitHub` and `GitLab`. `GitLab` is only supported if the [`gitlab` dependency is installed](../getting_started/installation.html#packaging). This setting is required.
+
 ##### GitHub API Endpoint (github_api_endpoint)
 
-The GitHub (or GitHub Enterprise) API endpoint where the git client will attempt to connect. This setting is required. Keep the default  `https://api.github.com` for github.com
+The GitHub, GitHub Enterprise, GitLab, or GitLab Enterprise API endpoint where the git client will attempt to connect. This setting is required. Keep the default `https://api.github.com` for github.com or use `https://gitlab.com` for gitlab.com.
 
 Example: `https://api.private.githubenterprise.com`
 
 ##### GitHub DAG Repository (github_repo)
 
-The GitHub repository that Apache Airflow utilizes to store DAGs. This setting is required and the repository must exist.
+The GitHub repository or GitLab project that Apache Airflow utilizes to store DAGs. This setting is required. The specified repository/project must exist.
 
 Example: `user-or-org/dag-repo-name`
 
@@ -254,7 +286,7 @@ This setting is required and the branch must exist.
 Example: `dag-branch`
 
 ##### GitHub Personal Access Token (github_repo_token)
-A [GitHub personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. This setting is required. 
+For GitHub and GitHub Enterprise: [Personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to the GitHub DAG Repository. For GitLab and GitLab Enterprise: [Personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html), which has been granted `api` access to the project. This setting is required. 
 
 Example: `766f7c267519fee7c71d7f96bdf42e646dc65433`
 
@@ -263,12 +295,31 @@ Example: `766f7c267519fee7c71d7f96bdf42e646dc65433`
 This section defines the settings for the cloud storage that you want to associate with this runtime configuration.
 
 ##### Cloud Object Storage endpoint (cos_endpoint)
+
 This should be the URL address of your S3-compatible Object Storage. If running an Object Storage Service within a Kubernetes cluster (Minio), you can use the Kubernetes local DNS address. This setting is required.
 
 Example: `https://minio-service.kubeflow:9000`
 
+##### Cloud Object Storage bucket name (cos_bucket)
+
+Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
+
+Example: `test-bucket`
+
+> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
+and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
+Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
+
+##### Cloud Object Storage Authentication Type (cos_auth_type)
+
+Authentication type Elyra uses to gain access to Cloud Object Storage. This setting is required. Supported types are:
+- Username and password (`USER_CREDENTIALS`). This authentication type requires a username and password. Caution: this authentication mechanism exposes the credentials in plain text. When running Elyra on Kubernetes, it is highly recommended to use the `KUBERNETES_SECRET` authentication type instead.
+- Username, password, and Kubernetes secret (`KUBERNETES_SECRET`). This authentication type requires a username, password, and the name of an existing Kubernetes secret in the target runtime environment. Refer to section [Cloud Object Storage Credentials Secret](#cloud-object-storage-credentials-secret) for details.
+- IAM roles for service accounts (`AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS`). Supported for AWS only. Refer to the [AWS documentation](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) for details.
+
 ##### Cloud Object Storage Credentials Secret (cos_secret)
-(Optional) Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
+
+Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password.
 If specified, this secret must exist on the Kubernetes cluster hosting your pipeline runtime in order to successfully
 execute pipelines. This setting is optional but is recommended for use in shared environments to avoid exposing a user's 
 Cloud Object Storage credentials. 
@@ -291,23 +342,17 @@ data:
 ```
 
 ##### Cloud Object Storage username (cos_username)
-Username used to access the Object Storage. This setting is required.
+
+Username used to connect to Object Storage, if credentials are required for the selected authentication type.
 
 Example: `minio`
 
 ##### Cloud Object Storage password (cos_password)
-Password for cos_username. This setting is required.
+
+Password for cos_username, if credentials are required for the selected authentication type.
 
 Example: `minio123`
 
-##### Cloud Object Storage bucket name (cos_bucket)
-Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
-
-Example: `test-bucket`
-
-> If using IBM Cloud Object Storage, you must generate a set of [HMAC Credentials](https://cloud.ibm.com/docs/services/cloud-object-storage/hmac?topic=cloud-object-storage-uhc-hmac-credentials-main)
-and grant that key at least [Writer](https://cloud.ibm.com/docs/services/cloud-object-storage/iam?topic=cloud-object-storage-iam-bucket-permissions) level privileges.
-Specify `access_key_id` and `secret_access_key` as `cos_username` and `cos_password`, respectively.
 
 ### Verifying runtime configurations
 

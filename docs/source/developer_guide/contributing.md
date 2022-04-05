@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ Refer to the [cypress API](https://docs.cypress.io/api/api/table-of-contents.htm
 New integration tests can be added to `tests/integration`. 
 
 #### UI Unit tests
-To run all of the unit tests, use `make test-ui-unit` from the root directory. To run the unit tests for a specific Elyra package, simply run `jest` from that package's directory (under `packages/`). For writing tests, `jest` has a watch mode option: just run `jest --watch`. 
+To run all of the unit tests, use `make test-ui-unit` from the root directory. To run the unit tests for a specific Elyra package, simply run `jest` or `npm run test` from that package's directory (under `packages/`). To turn on the watch mode just run `jest --watch` or `npm run test --watch`.
 
 Elyra's unit tests test the various classes and objects used by Elyra extensions. Refer to the [jest API](https://jestjs.io/docs/en/getting-started) for more details. 
 
@@ -102,13 +102,8 @@ Then, in the `package.json`, add the following under `'scripts'`:
 ```
 And the following under `'dev_dependencies'`:
 ```
-"@jupyterlab/testutils": "^1.0.0",
-"@types/enzyme": "^3.10.5",
-"@types/enzyme-adapter-react-16": "^1.0.6",
+"@jupyterlab/testutils": "3.3.0",
 "@types/jest": "^23.3.11",
-"enzyme": "^3.11.0",
-"enzyme-adapter-react-16": "^1.15.3",
-"install": "^0.13.0",
 "jest": "^24.7.1",
 "jest-raw-loader": "^1.0.1",
 "ts-jest": "^24.0.2",

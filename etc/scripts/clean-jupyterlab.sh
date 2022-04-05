@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -72,11 +72,12 @@ rm -rf $ANACONDA_HOME/etc/jupyter
 rm -rf $ANACONDA_HOME/share/jupyter
 rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/etc/jupyter
 rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter/lab
+rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter/labextensions
 rm -rf $ANACONDA_HOME/envs/$CONDA_DEFAULT_ENV/share/jupyter/nbconvert
 echo " "
 
 echo "Installing/Updating JupyterLab"
-pip install --upgrade pip
+pip install --upgrade pip wheel
 pip install --upgrade tornado
 pip install --upgrade "jupyterlab$LAB_VERSION"
 echo " "

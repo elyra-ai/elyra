@@ -248,7 +248,7 @@
           "runtime": null,
           "comments": []
         },
-        "version": 5,
+        "version": 7,
         "properties": {
           "name": "generic_basic_pipeline_with_scripts",
           "runtime": "Generic"

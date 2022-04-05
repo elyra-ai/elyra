@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,11 @@ import {
   PipelineOutOfDateError,
   ThemeProvider
 } from '@elyra/pipeline-editor';
-import { migrate, validate } from '@elyra/pipeline-services';
+import {
+  migrate,
+  validate,
+  ComponentNotFoundError
+} from '@elyra/pipeline-services';
 import { ContentParser } from '@elyra/services';
 import {
   IconUtil,
@@ -44,10 +48,10 @@ import {
   DocumentWidget,
   Context
 } from '@jupyterlab/docregistry';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import 'carbon-components/css/carbon-components.min.css';
-
-import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
@@ -63,6 +67,7 @@ import {
 } from './EmptyPipelineContent';
 import { formDialogWidget } from './formDialogWidget';
 import {
+  componentFetcher,
   usePalette,
   useRuntimeImages,
   useRuntimesSchema
@@ -93,7 +98,9 @@ export const commandIDs = {
   saveDocManager: 'docmanager:save',
   submitScript: 'script-editor:submit',
   submitNotebook: 'notebook:submit',
-  addFileToPipeline: 'pipeline-editor:add-node'
+  addFileToPipeline: 'pipeline-editor:add-node',
+  refreshPalette: 'pipeline-editor:refresh-palette',
+  openViewer: 'elyra-code-viewer:open'
 };
 
 const getAllPaletteNodes = (palette: any): any[] => {
@@ -138,7 +145,9 @@ class PipelineEditorWidget extends ReactWidget {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<this, any>;
+  refreshPaletteSignal: Signal<this, any>;
   context: Context;
+  settings: ISettingRegistry.ISettings;
 
   constructor(options: any) {
     super(options);
@@ -146,7 +155,9 @@ class PipelineEditorWidget extends ReactWidget {
     this.shell = options.shell;
     this.commands = options.commands;
     this.addFileToPipelineSignal = options.addFileToPipelineSignal;
+    this.refreshPaletteSignal = options.refreshPaletteSignal;
     this.context = options.context;
+    this.settings = options.settings;
   }
 
   render(): any {
@@ -157,7 +168,9 @@ class PipelineEditorWidget extends ReactWidget {
         shell={this.shell}
         commands={this.commands}
         addFileToPipelineSignal={this.addFileToPipelineSignal}
+        refreshPaletteSignal={this.refreshPaletteSignal}
         widgetId={this.parent?.id}
+        settings={this.settings}
       />
     );
   }
@@ -169,6 +182,8 @@ interface IProps {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<PipelineEditorWidget, any>;
+  refreshPaletteSignal: Signal<PipelineEditorWidget, any>;
+  settings?: ISettingRegistry.ISettings;
   widgetId?: string;
 }
 
@@ -178,6 +193,8 @@ const PipelineWrapper: React.FC<IProps> = ({
   shell,
   commands,
   addFileToPipelineSignal,
+  refreshPaletteSignal,
+  settings,
   widgetId
 }) => {
   const ref = useRef<any>(null);
@@ -194,19 +211,26 @@ const PipelineWrapper: React.FC<IProps> = ({
     error: runtimesSchemaError
   } = useRuntimesSchema();
 
+  const doubleClickToOpenProperties =
+    settings?.composite['doubleClickToOpenProperties'] ?? true;
+
   const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
 
-  // TODO: DELETE THIS
-  const __doNotUseInFutureMapTypeToRandomProcessor__ = (():
-    | string
-    | undefined => {
-    const schema = runtimesSchema?.find((s: any) => s.runtime_type === type);
-    return schema?.name;
-  })();
+  const {
+    data: palette,
+    error: paletteError,
+    mutate: mutatePalette
+  } = usePalette(type);
 
-  const { data: palette, error: paletteError } = usePalette(
-    __doNotUseInFutureMapTypeToRandomProcessor__
-  );
+  useEffect(() => {
+    const handleMutateSignal = (): void => {
+      mutatePalette();
+    };
+    refreshPaletteSignal.connect(handleMutateSignal);
+    return (): void => {
+      refreshPaletteSignal.disconnect(handleMutateSignal);
+    };
+  }, [refreshPaletteSignal, mutatePalette]);
 
   const { data: runtimeImages, error: runtimeImagesError } = useRuntimeImages();
 
@@ -279,6 +303,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           PathExt.extname(pipeline_path)
         );
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
+        pipelineJson.pipelines[0].app_data.properties.runtime = runtimeDisplayName;
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -290,7 +315,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [runtimeImages]);
+  }, [runtimeImages, runtimeDisplayName]);
 
   const onChange = useCallback(
     (pipelineJson: any): void => {
@@ -349,28 +374,71 @@ const PipelineWrapper: React.FC<IProps> = ({
             </p>
           ),
           buttons: [Dialog.cancelButton(), Dialog.okButton()]
-        }).then(result => {
+        }).then(async result => {
           isDialogAlreadyShowing.current = false;
           if (result.button.accept) {
             // proceed with migration
             console.log('migrating pipeline');
-            const migratedPipeline = migrate(
-              contextRef.current.model.toJSON(),
-              pipeline => {
-                // function for updating to relative paths in v2
-                // uses location of filename as expected in v1
-                for (const node of pipeline.nodes) {
-                  node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                    contextRef.current.path,
-                    node.app_data.filename
-                  );
+            let migrationPalette = palette;
+            const pipelineJSON: any = contextRef.current.model.toJSON();
+            const oldRuntime = pipelineJSON?.pipelines[0].app_data.runtime;
+            if (oldRuntime === 'kfp' || oldRuntime === 'airflow') {
+              migrationPalette = await componentFetcher(oldRuntime);
+            }
+            try {
+              const migratedPipeline = migrate(
+                pipelineJSON,
+                migrationPalette,
+                pipeline => {
+                  // function for updating to relative paths in v2
+                  // uses location of filename as expected in v1
+                  for (const node of pipeline.nodes) {
+                    node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                      contextRef.current.path,
+                      node.app_data.filename
+                    );
+                  }
+                  return pipeline;
                 }
-                return pipeline;
+              );
+              contextRef.current.model.fromString(
+                JSON.stringify(migratedPipeline, null, 2)
+              );
+            } catch (migrationError) {
+              if (migrationError instanceof ComponentNotFoundError) {
+                showDialog({
+                  title: 'Pipeline migration aborted!',
+                  body: (
+                    <p>
+                      {' '}
+                      The pipeline you are trying to migrate uses example
+                      components, which are not <br />
+                      enabled in your environment. Complete the setup
+                      instructions in{' '}
+                      <a
+                        href="https://elyra.readthedocs.io/en/v3.7.0rc0/user_guide/pipeline-components.html#example-custom-components"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Example Custom Components
+                      </a>{' '}
+                      and try again.
+                    </p>
+                  ),
+                  buttons: [Dialog.okButton({ label: 'Close' })]
+                }).then(() => {
+                  shell.currentWidget?.close();
+                });
+              } else {
+                showDialog({
+                  title: 'Pipeline migration failed!',
+                  body: <p> {migrationError?.message || ''} </p>,
+                  buttons: [Dialog.okButton()]
+                }).then(() => {
+                  shell.currentWidget?.close();
+                });
               }
-            );
-            contextRef.current.model.fromString(
-              JSON.stringify(migratedPipeline, null, 2)
-            );
+            }
           } else {
             shell.currentWidget?.close();
           }
@@ -378,7 +446,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       } else {
         showDialog({
           title: 'Load pipeline failed!',
-          body: <p> {error || ''} </p>,
+          body: <p> {error?.message || ''} </p>,
           buttons: [Dialog.okButton()]
         }).then(() => {
           isDialogAlreadyShowing.current = false;
@@ -386,7 +454,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [shell.currentWidget]
+    [palette, shell.currentWidget]
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
@@ -453,7 +521,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     );
     const new_env_vars = await ContentParser.getEnvVars(
       path
-    ).then((response: any) => response.map((str: string) => (str = str + '=')));
+    ).then((response: any) => response.map((str: string) => str + '='));
 
     const env_vars = args.elyra_env_vars ?? [];
     const merged_env_vars = [
@@ -469,19 +537,80 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
   };
 
-  const handleOpenFile = (data: any): void => {
+  const handleOpenComponentDef = useCallback(
+    (componentId: string, componentSource: string) => {
+      // Show error dialog if the component does not exist
+      if (!componentId) {
+        const dialogBody = [];
+        try {
+          const componentSourceJson = JSON.parse(componentSource);
+          dialogBody.push(`catalog_type: ${componentSourceJson.catalog_type}`);
+          for (const [key, value] of Object.entries(
+            componentSourceJson.component_ref
+          )) {
+            dialogBody.push(`${key}: ${value}`);
+          }
+        } catch {
+          dialogBody.push(componentSource);
+        }
+        return showDialog({
+          title: 'Component not found',
+          body: (
+            <p>
+              This node uses a component that is not stored in your component
+              registry.
+              {dialogBody.map((line, i) => (
+                <span key={i}>
+                  <br />
+                  {line}
+                </span>
+              ))}
+              <br />
+              <br />
+              <a
+                href="https://elyra.readthedocs.io/en/v3.7.0rc0/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Learn more...
+              </a>
+            </p>
+          ),
+          buttons: [Dialog.okButton()]
+        });
+      }
+      return PipelineService.getComponentDef(type, componentId)
+        .then(res => {
+          const nodeDef = getAllPaletteNodes(palette).find(
+            n => n.id === componentId
+          );
+          commands.execute(commandIDs.openViewer, {
+            content: res.content,
+            mimeType: res.mimeType,
+            label: nodeDef?.label ?? componentId
+          });
+        })
+        .catch(e => RequestErrors.serverError(e));
+    },
+    [commands, palette, type]
+  );
+
+  const onDoubleClick = (data: any): void => {
     for (let i = 0; i < data.selectedObjectIds.length; i++) {
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
       );
-      if (!node?.app_data?.component_parameters?.filename) {
-        continue;
+      const nodeDef = getAllPaletteNodes(palette).find(n => n.op === node?.op);
+      if (node?.app_data?.component_parameters?.filename) {
+        commands.execute(commandIDs.openDocManager, {
+          path: PipelineService.getWorkspaceRelativeNodePath(
+            contextRef.current.path,
+            node.app_data.component_parameters.filename
+          )
+        });
+      } else if (!nodeDef?.app_data?.parameter_refs?.['filehandler']) {
+        handleOpenComponentDef(nodeDef?.id, node?.app_data?.component_source);
       }
-      const path = PipelineService.getWorkspaceRelativeNodePath(
-        contextRef.current.path,
-        node.app_data.component_parameters.filename
-      );
-      commands.execute(commandIDs.openDocManager, { path });
     }
   };
 
@@ -539,15 +668,17 @@ const PipelineWrapper: React.FC<IProps> = ({
         allowLocal: actionType === 'run'
       });
 
-      let title = `${actionType} pipeline`;
-      if (actionType === 'export' || type !== undefined) {
-        title = `${actionType} pipeline for ${runtimeDisplayName}`;
+      let title =
+        type !== undefined
+          ? `${actionType} pipeline for ${runtimeDisplayName}`
+          : `${actionType} pipeline`;
 
+      if (actionType === 'export' || type !== undefined) {
         if (!isRuntimeTypeAvailable(runtimeData, type)) {
           const res = await RequestErrors.noMetadataError(
             'runtime',
             `${actionType} pipeline.`,
-            runtimeDisplayName
+            type !== undefined ? runtimeDisplayName : undefined
           );
 
           if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {
@@ -597,7 +728,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       const dialogResult = await showFormDialog(dialogOptions);
 
-      if (dialogResult.value == null) {
+      if (dialogResult.value === null) {
         // When Cancel is clicked on the dialog, just return
         return;
       }
@@ -725,11 +856,24 @@ const PipelineWrapper: React.FC<IProps> = ({
             )
           });
           break;
+        case 'openComponentDef':
+          handleOpenComponentDef(
+            args.payload.componentId,
+            args.payload.componentSource
+          );
+          break;
         default:
           break;
       }
     },
-    [handleSubmission, handleClearPipeline, panelOpen, shell, commands]
+    [
+      handleSubmission,
+      handleClearPipeline,
+      panelOpen,
+      shell,
+      commands,
+      handleOpenComponentDef
+    ]
   );
 
   const toolbar = {
@@ -918,6 +1062,10 @@ const PipelineWrapper: React.FC<IProps> = ({
     shell.activateById(`elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`);
   };
 
+  const handleOpenSettings = (): void => {
+    commands.execute('settingeditor:open');
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Snackbar
@@ -938,16 +1086,21 @@ const PipelineWrapper: React.FC<IProps> = ({
           pipeline={pipeline}
           onAction={onAction}
           onChange={onChange}
-          onDoubleClickNode={handleOpenFile}
+          onDoubleClickNode={
+            doubleClickToOpenProperties ? undefined : onDoubleClick
+          }
           onError={onError}
           onFileRequested={onFileRequested}
           onPropertiesUpdateRequested={onPropertiesUpdateRequested}
           leftPalette={true}
         >
           {type === undefined ? (
-            <EmptyGenericPipeline />
+            <EmptyGenericPipeline onOpenSettings={handleOpenSettings} />
           ) : (
-            <EmptyPlatformSpecificPipeline onOpenCatalog={handleOpenCatalog} />
+            <EmptyPlatformSpecificPipeline
+              onOpenCatalog={handleOpenCatalog}
+              onOpenSettings={handleOpenSettings}
+            />
           )}
         </PipelineEditor>
       </Dropzone>
@@ -960,6 +1113,8 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<this, any>;
+  refreshPaletteSignal: Signal<this, any>;
+  settings: ISettingRegistry.ISettings;
 
   constructor(options: any) {
     super(options);
@@ -967,6 +1122,8 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     this.shell = options.shell;
     this.commands = options.commands;
     this.addFileToPipelineSignal = new Signal<this, any>(this);
+    this.refreshPaletteSignal = new Signal<this, any>(this);
+    this.settings = options.settings;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
@@ -976,7 +1133,9 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       commands: this.commands,
       browserFactory: this.browserFactory,
       context: context,
-      addFileToPipelineSignal: this.addFileToPipelineSignal
+      addFileToPipelineSignal: this.addFileToPipelineSignal,
+      refreshPaletteSignal: this.refreshPaletteSignal,
+      settings: this.settings
     };
     const content = new PipelineEditorWidget(props);
 

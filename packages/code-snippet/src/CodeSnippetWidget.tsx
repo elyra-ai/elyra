@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import {
   IMetadataDisplayProps,
   IMetadataDisplayState,
   IMetadataWidgetProps,
+  MetadataCommonService,
   MetadataDisplay,
   MetadataWidget,
   METADATA_ITEM
@@ -42,7 +43,12 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import * as nbformat from '@jupyterlab/nbformat';
 import { Notebook, NotebookModel, NotebookPanel } from '@jupyterlab/notebook';
-import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
+import {
+  copyIcon,
+  editIcon,
+  pasteIcon,
+  LabIcon
+} from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { MimeData } from '@lumino/coreutils';
@@ -107,7 +113,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
   // Handle code snippet insertion into an editor
   private insertCodeSnippet = async (snippet: IMetadata): Promise<void> => {
     const widget = this.props.getCurrentWidget();
-    const snippetStr = snippet.metadata.code.join('\n');
+    const codeSnippet = snippet.metadata.code.join('\n');
+    const snippetLanguage = snippet.metadata.language;
 
     if (widget === null) {
       return;
@@ -116,19 +123,19 @@ class CodeSnippetDisplay extends MetadataDisplay<
     if (this.isFileEditor(widget)) {
       const fileEditor = widget.content.editor;
       const markdownRegex = /^\.(md|mkdn?|mdown|markdown)$/;
+      const editorLanguage = this.getEditorLanguage(widget);
+
       if (
         PathExt.extname(widget.context.path).match(markdownRegex) !== null &&
-        snippet.metadata.language.toLowerCase() !== 'markdown'
+        snippetLanguage.toLowerCase() !== 'markdown'
       ) {
         fileEditor.replaceSelection?.(
-          this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
+          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet)
         );
-      } else if (widget.constructor.name === 'ScriptEditor') {
-        const editorLanguage =
-          widget.context.sessionContext.kernelPreference.language;
-        this.verifyLanguageAndInsert(snippet, editorLanguage ?? '', fileEditor);
+      } else if (editorLanguage) {
+        this.verifyLanguageAndInsert(snippet, editorLanguage, fileEditor);
       } else {
-        fileEditor.replaceSelection?.(snippetStr);
+        fileEditor.replaceSelection?.(codeSnippet);
       }
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget = widget as NotebookPanel;
@@ -153,13 +160,13 @@ class CodeSnippetDisplay extends MetadataDisplay<
         );
       } else if (
         notebookCell instanceof MarkdownCell &&
-        snippet.metadata.language.toLowerCase() !== 'markdown'
+        snippetLanguage.toLowerCase() !== 'markdown'
       ) {
         notebookCellEditor.replaceSelection?.(
-          this.addMarkdownCodeBlock(snippet.metadata.language, snippetStr)
+          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet)
         );
       } else {
-        notebookCellEditor.replaceSelection?.(snippetStr);
+        notebookCellEditor.replaceSelection?.(codeSnippet);
       }
       const cell = notebookWidget.model?.contentFactory.createCodeCell({});
       if (cell === undefined) {
@@ -178,6 +185,15 @@ class CodeSnippetDisplay extends MetadataDisplay<
     return (widget as DocumentWidget).content instanceof FileEditor;
   };
 
+  // Return the language of the editor or empty string
+  private getEditorLanguage = (
+    widget: DocumentWidget<FileEditor>
+  ): string | undefined => {
+    const editorLanguage =
+      widget.context.sessionContext.kernelPreference.language;
+    return editorLanguage === 'null' ? '' : editorLanguage;
+  };
+
   // Return the given code wrapped in a markdown code block
   private addMarkdownCodeBlock = (language: string, code: string): string => {
     return '```' + language + '\n' + code + '\n```';
@@ -189,21 +205,22 @@ class CodeSnippetDisplay extends MetadataDisplay<
     editorLanguage: string,
     editor: CodeEditor.IEditor
   ): Promise<void> => {
-    const snippetStr: string = snippet.metadata.code.join('\n');
+    const codeSnippet: string = snippet.metadata.code.join('\n');
+    const snippetLanguage = snippet.metadata.language;
     if (
       editorLanguage &&
-      snippet.metadata.language.toLowerCase() !== editorLanguage.toLowerCase()
+      snippetLanguage.toLowerCase() !== editorLanguage.toLowerCase()
     ) {
       const result = await this.showWarnDialog(
         editorLanguage,
         snippet.display_name
       );
       if (result.button.accept) {
-        editor.replaceSelection?.(snippetStr);
+        editor.replaceSelection?.(codeSnippet);
       }
     } else {
       // Language match or editorLanguage is unavailable
-      editor.replaceSelection?.(snippetStr);
+      editor.replaceSelection?.(codeSnippet);
     }
   };
 
@@ -372,8 +389,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
   actionButtons = (metadata: IMetadata): IMetadataActionButton[] => {
     return [
       {
-        title: 'Copy',
-        icon: copyIcon,
+        title: 'Copy to clipboard',
+        icon: pasteIcon,
         feedback: 'Copied!',
         onClick: (): void => {
           Clipboard.copyToSystem(metadata.metadata.code.join('\n'));
@@ -399,6 +416,21 @@ class CodeSnippetDisplay extends MetadataDisplay<
         }
       },
       {
+        title: 'Duplicate',
+        icon: copyIcon,
+        onClick: (): void => {
+          MetadataCommonService.duplicateMetadataInstance(
+            CODE_SNIPPET_SCHEMASPACE,
+            metadata,
+            this.props.metadata
+          )
+            .then((response: any): void => {
+              this.props.updateMetadata();
+            })
+            .catch(error => RequestErrors.serverError(error));
+        }
+      },
+      {
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
@@ -411,7 +443,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
                   this.props.shell.widgets('main'),
                   (value: Widget, index: number) => {
                     return (
-                      value.id ==
+                      value.id ===
                       `${METADATA_EDITOR_ID}:${CODE_SNIPPET_SCHEMASPACE}:${CODE_SNIPPET_SCHEMA}:${metadata.name}`
                     );
                   }
@@ -559,7 +591,7 @@ export class CodeSnippetWidget extends MetadataWidget {
         <div>
           <br />
           <h6 className="elyra-no-metadata-msg">
-            Click the + button to add a new Code Snippet
+            Click the + button to add {this.props.display_name.toLowerCase()}
           </h6>
         </div>
       );

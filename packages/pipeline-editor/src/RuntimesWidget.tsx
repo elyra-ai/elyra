@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,7 +160,7 @@ export class RuntimesWidget extends MetadataWidget {
         <div>
           <br />
           <h6 className="elyra-no-metadata-msg">
-            Click the + button to add a new Runtime
+            Click the + button to add {this.props.display_name.toLowerCase()}
           </h6>
         </div>
       );

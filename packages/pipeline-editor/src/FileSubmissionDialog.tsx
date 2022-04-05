@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,14 +87,28 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
       <div className="elyra-resourcesWrapper">
         <div className="elyra-resourceInput">
           <label htmlFor="cpu"> CPU:</label>
+          <div className="elyra-resourceInputDescription" id="cpu-description">
+            For CPU-intensive workloads, you can choose more than 1 CPU (e.g.
+            1.5).
+          </div>
           <input id="cpu" type="number" name="cpu" />
         </div>
         <div className="elyra-resourceInput">
           <label htmlFor="gpu"> GPU:</label>
+          <div className="elyra-resourceInputDescription" id="gpu-description">
+            For GPU-intensive workloads, you can choose more than 1 GPU. Must be
+            an integer.
+          </div>
           <input id="gpu" type="number" name="gpu" />
         </div>
         <div className="elyra-resourceInput">
           <label htmlFor="memory"> RAM (GB):</label>
+          <div
+            className="elyra-resourceInputDescription"
+            id="memory-description"
+          >
+            The total amount of RAM specified.
+          </div>
           <input id="memory" type="number" name="memory" />
         </div>
       </div>

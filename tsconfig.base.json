@@ -3,7 +3,7 @@
     "target": "es2015",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "commonjs",
-    "jsx": "react-jsx",
+    "jsx": "react",
     "allowJs": true,
     "skipLibCheck": true,
     "declaration": true,

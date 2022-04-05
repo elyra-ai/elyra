@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,21 @@ describe('Pipeline Editor tests', () => {
     cy.deleteFile('pipelines');
     cy.deleteFile('scripts');
 
-    // delete runtime configuration used for testing
-    cy.exec('elyra-metadata remove runtimes --name=test_runtime', {
+    // delete runtime configurations used for testing
+    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
       failOnNonZeroExit: false
     });
+    cy.exec('elyra-metadata remove runtimes --name=airflow_test_runtime', {
+      failOnNonZeroExit: false
+    });
+
+    // delete example catalogs used for testing
+    cy.exec(
+      'elyra-metadata remove component-catalogs --name=example_components',
+      {
+        failOnNonZeroExit: false
+      }
+    );
   });
 
   // TODO: Fix Test is actually failing
@@ -339,12 +350,16 @@ describe('Pipeline Editor tests', () => {
   it('should save runtime configuration', () => {
     cy.createPipeline();
 
-    // Create runtime configuration
-    cy.createRuntimeConfig();
+    // Create kfp runtime configuration
+    cy.createRuntimeConfig({ type: 'kfp' });
 
-    // validate it is now available
+    // Create airflow runtime configuration
+    cy.createRuntimeConfig({ type: 'airflow' });
+
+    // validate runtimes are now available
     cy.get('#elyra-metadata\\:runtimes').within(() => {
-      cy.findByText(/test runtime/i).should('exist');
+      cy.findByText(/kfp test runtime/i).should('exist');
+      cy.findByText(/airflow test runtime/i).should('exist');
     });
   });
 
@@ -434,20 +449,22 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should export pipeline as yaml', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig({ type: 'kfp' });
-
-    // go back to file browser
-    cy.findByRole('tab', { name: /file browser/i }).click();
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
 
     cy.openFile('helloworld.pipeline');
 
     // try to export valid pipeline
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
+    // check label for generic pipeline
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
+
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+
     cy.findByLabelText(/runtime configuration/i)
-      .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
-      .should('have.value', 'test_runtime');
+      .select('kfp_test_runtime')
+      .should('have.value', 'kfp_test_runtime');
 
     // Validate all export options are available
     cy.findByLabelText(/export pipeline as/i)
@@ -466,24 +483,26 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should export pipeline as python dsl', () => {
-    // Create runtime configuration
-    cy.createRuntimeConfig({ type: 'kfp' });
-
-    // go back to file browser
-    cy.findByRole('tab', { name: /file browser/i }).click();
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'airflow' });
 
     cy.openFile('helloworld.pipeline');
 
     // try to export valid pipeline
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
+    // check label for generic pipeline
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
+
+    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
+
     cy.findByLabelText(/runtime configuration/i)
-      .select('test_runtime') // there might be other runtimes present when testing locally, so manually select.
-      .should('have.value', 'test_runtime');
+      .select('airflow_test_runtime')
+      .should('have.value', 'airflow_test_runtime');
 
     // overwrite existing helloworld.py file
     cy.findByLabelText(/export pipeline as/i)
-      .select('KFP domain-specific language Python code')
+      .select('Airflow domain-specific language Python code')
       .should('have.value', 'py');
 
     cy.findByLabelText(/replace if file already exists/i)
@@ -534,33 +553,29 @@ describe('Pipeline Editor tests', () => {
     });
   });
 
-  /**
-   * Runtime-specific components are no longer included by default
-   * as of PR2286: https://github.com/elyra-ai/elyra/pull/2286.
-   *
-   * These tests will be revisited at a later time. See issue for
-   * more: https://github.com/elyra-ai/elyra/issues/2298
-   *
   it('kfp pipeline should display custom components', () => {
+    cy.createExampleComponentCatalog({ type: 'kfp' });
+
     cy.createPipeline({ type: 'kfp' });
-    cy.expandPaletteCategory({ type: 'kfp' });
+    cy.get('.palette-flyout-category[value="examples"]').click();
 
     const kfpCustomComponents = [
-      'local-directory-catalog\\:737915b826e9', // filter text
-      'local-directory-catalog\\:61e6f4141f65' // run notebook using papermill
+      'elyra-kfp-examples-catalog\\:61e6f4141f65', // run notebook using papermill
+      'elyra-kfp-examples-catalog\\:737915b826e9', // filter text
+      'elyra-kfp-examples-catalog\\:a08014f9252f', // download data
+      'elyra-kfp-examples-catalog\\:d68ec7fcdf46' // calculate data hash
     ];
 
     kfpCustomComponents.forEach(component => {
       cy.get(`#${component}`).should('exist');
     });
   });
-  **/
 
   it('kfp pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'kfp' });
     cy.savePipeline();
 
-    cy.createRuntimeConfig({ type: 'kfp' });
+    cy.installRuntimeConfig({ type: 'kfp' });
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
@@ -571,36 +586,11 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  /**
-   * Runtime-specific components are no longer included by default
-   * as of PR2286: https://github.com/elyra-ai/elyra/pull/2286.
-   *
-   * These tests will be revisited at a later time. See issue for
-   * more: https://github.com/elyra-ai/elyra/issues/2298
-   *
-  it('airflow pipeline should display custom components', () => {
-    cy.createPipeline({ type: 'airflow' });
-    cy.expandPaletteCategory({ type: 'airflow' });
-
-    const airflowCustomComponents = [
-      'url-catalog\\:49f8e61b78c3', // bash operator
-      'url-catalog\\:8bef428ea3cd', // email operator
-      'url-catalog\\:e97030fb448a', // http operator
-      'url-catalog\\:ff0d51b70719', // spark sql operator
-      'url-catalog\\:2756314f3ff5' // spark submit operator
-    ];
-
-    airflowCustomComponents.forEach(component => {
-      cy.get(`#${component}`).should('exist');
-    });
-  });
-  **/
-
   it('airflow pipeline should display expected export options', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.savePipeline();
 
-    cy.createRuntimeConfig();
+    cy.installRuntimeConfig({ type: 'airflow' });
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
@@ -611,22 +601,51 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  // TODO: Uncomment tests below once final values are in place
+  it('generic pipeline should display expected export options', () => {
+    cy.createPipeline();
+    cy.savePipeline();
 
-  // it('generic pipeline should display expected runtime', () => {
-  //   cy.createPipeline();
-  //   cy.get('.toolbar-icon-label').contains('Runtime: Generic');
-  // });
+    // Test Airflow export options
+    cy.installRuntimeConfig({ type: 'airflow' });
 
-  // it('kfp pipeline should display expected runtime', () => {
-  //   cy.createPipeline({ type: 'kfp' });
-  //   cy.get('.toolbar-icon-label').contains('Runtime: Kubeflow Pipelines');
-  // });
+    cy.findByRole('button', { name: /export pipeline/i }).click();
 
-  // it('airflow pipeline should display expected runtime', () => {
-  //   cy.createPipeline({ type: 'airflow' });
-  //   cy.get('.toolbar-icon-label').contains('Runtime: Apache Airflow');
-  // });
+    // Validate all export options are available for airflow
+    cy.findByLabelText(/runtime platform/i).select('APACHE_AIRFLOW');
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
+    cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Test KFP export options
+    cy.installRuntimeConfig({ type: 'kfp' });
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // Validate all export options are available for kfp
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+    cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
+    cy.findByRole('option', { name: /python/i }).should('not.exist');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('generic pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline();
+    cy.get('.toolbar-icon-label').contains(/runtime: generic/i);
+  });
+
+  it('kfp pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline({ type: 'kfp' });
+    cy.get('.toolbar-icon-label').contains(/runtime: kubeflow pipelines/i);
+  });
+
+  it('airflow pipeline toolbar should display expected runtime', () => {
+    cy.createPipeline({ type: 'airflow' });
+    cy.get('.toolbar-icon-label').contains(/runtime: apache airflow/i);
+  });
 });
 
 // ------------------------------

@@ -18,7 +18,7 @@
               "parameters": "{}",
               "packages_to_install": "",
               "input_data": ""
-              },
+            },
             "label": "Run notebook using papermill",
             "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/lib/python3.8/site-packages/elyra/pipeline/resources/kfp/run_notebook_using_papermill/component.yaml",
             "ui_data": {
@@ -76,7 +76,7 @@
             "component_parameters": {
               "text": "../B.txt",
               "pattern": ".*"
-              },
+            },
             "label": "Filter text",
             "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/lib/python3.8/site-packages/elyra/pipeline/resources/kfp/filter_text_using_shell_and_grep/component.yaml",
             "ui_data": {
@@ -174,12 +174,12 @@
           },
           "comments": []
         },
-        "version": 5,
-        "runtime": "kfp",
+        "version": 6,
         "properties": {
           "name": "kf_invalid_node_op_with_supernode",
           "runtime": "Kubeflow Pipelines"
-        }
+        },
+        "runtime_type": "KUBEFLOW_PIPELINES"
       },
       "runtime_ref": ""
     },
@@ -192,9 +192,9 @@
           "op": "invalid_node_op",
           "app_data": {
             "component_parameters": {
-                "text": "B.txt",
-                "pattern": ".*"
-              },
+              "text": "B.txt",
+              "pattern": ".*"
+            },
             "label": "Filter text",
             "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/lib/python3.8/site-packages/elyra/pipeline/resources/kfp/filter_text_using_shell_and_grep/component.yaml",
             "ui_data": {

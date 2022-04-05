@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import { Widget } from '@lumino/widgets';
 
 const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
 /*
- * Validate required dialog fields upon display
+ * Validate dialog fields upon display
  * - Provides a generic validation by checking if required form fields are populated
- * - Expect required fields in dialog body to contain attribute: data-form-required
+ * - Expects required fields in dialog body to contain attribute: data-form-required
+ * - Validates non-required numeric fields to only accept positive values
  *
  * @params
  *
@@ -39,106 +40,113 @@ export const showFormDialog = async (
   const dialogBody = options.body;
   const dialog = new Dialog(options);
 
+  // Get dialog default action button
+  const defaultButton = getDefaultButton(options, dialog.node);
+  defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+
   if (formValidationFunction) {
     formValidationFunction(dialog);
   } else {
     if (dialogBody instanceof Widget) {
-      const requiredFields: NodeListOf<any> = dialogBody.node.querySelectorAll(
-        '[data-form-required]'
-      );
+      const fieldsToBeValidated = new Set();
+      const validateDialogButton = (): void =>
+        isFormValid(fieldsToBeValidated)
+          ? enableButton(defaultButton)
+          : disableButton(defaultButton);
 
-      if (requiredFields && requiredFields.length > 0) {
-        // Keep track of all fields already validated. Start with an empty set.
-        const fieldsValidated = new Set();
-
-        // Override Dialog.handleEvent to prevent user from bypassing validation upon pressing the 'Enter' key
-        const dialogHandleEvent = dialog.handleEvent;
-        dialog.handleEvent = (event: Event): void => {
+      // Get elements that require validation and add event listeners
+      dialogBody.node
+        .querySelectorAll('select, input, textarea')
+        .forEach((element: any) => {
           if (
-            event instanceof KeyboardEvent &&
-            event.type === 'keydown' &&
-            event.keyCode === 13 &&
-            fieldsValidated.size !== requiredFields.length
+            element.hasAttribute('data-form-required') ||
+            element.type === 'number'
           ) {
-            // prevent action since Enter key is pressed and all fields are not validated
-            event.stopPropagation();
-            event.preventDefault();
-          } else {
-            dialogHandleEvent.call(dialog, event);
-          }
-        };
+            const elementTagName = element.tagName.toLowerCase();
 
-        // Get dialog default action button
-        const defaultButtonIndex =
-          options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
-        const defaultButton = dialog.node
-          .querySelector('.jp-Dialog-footer')
-          ?.getElementsByTagName('button')[defaultButtonIndex]!;
-
-        defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
-
-        requiredFields.forEach((element: any) => {
-          // First deal with the case the field has already been pre-populated
-          handleSingleFieldValidation(element, fieldsValidated);
-
-          const fieldType = element.tagName.toLowerCase();
-
-          if (fieldType === 'select') {
-            element.addEventListener('change', (event: Event) => {
-              handleSingleFieldValidation(event.target, fieldsValidated);
-              handleAllFieldsValidation(
-                fieldsValidated,
-                requiredFields,
-                defaultButton
+            if (elementTagName === 'select' || element.type === 'number') {
+              element.addEventListener('change', (event: Event) =>
+                validateDialogButton()
               );
-            });
-          } else if (fieldType === 'input' || fieldType === 'textarea') {
-            element.addEventListener('keyup', (event: Event) => {
-              handleSingleFieldValidation(event.target, fieldsValidated);
-              handleAllFieldsValidation(
-                fieldsValidated,
-                requiredFields,
-                defaultButton
+            }
+            if (['input', 'textarea'].includes(elementTagName)) {
+              element.addEventListener('keyup', (event: Event) =>
+                validateDialogButton()
               );
-            });
+            }
+
+            fieldsToBeValidated.add(element);
           }
         });
-        handleAllFieldsValidation(
-          fieldsValidated,
-          requiredFields,
-          defaultButton
-        );
-      }
+
+      preventDefaultDialogHandler(
+        () => isFormValid(fieldsToBeValidated),
+        dialog
+      );
+      validateDialogButton();
     }
   }
   return dialog.launch();
 };
 
-export const disableDialogButton = (button: HTMLButtonElement): void => {
+export const disableButton = (button: HTMLButtonElement): void => {
   button.setAttribute('disabled', 'disabled');
 };
 
-export const enableDialogButton = (button: HTMLButtonElement): void => {
+export const enableButton = (button: HTMLButtonElement): void => {
   button.removeAttribute('disabled');
 };
 
-// Update set of validated fields according to element value
-const handleSingleFieldValidation = (
-  element: any,
-  fieldsValidated: Set<any>
-): void => {
-  element.value.trim()
-    ? fieldsValidated.add(element)
-    : fieldsValidated.delete(element);
+const getDefaultButton = (
+  options: Partial<Dialog.IOptions<any>>,
+  node: HTMLElement
+): HTMLButtonElement => {
+  const defaultButtonIndex =
+    options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
+  return node
+    .querySelector('.jp-Dialog-footer')
+    ?.getElementsByTagName('button')[defaultButtonIndex]!;
 };
 
-// Only enable dialog button if all required fields are validated
-const handleAllFieldsValidation = (
-  fieldsValidated: Set<any>,
-  requiredFields: NodeListOf<any>,
-  button: HTMLButtonElement
+// Prevent user from bypassing validation upon pressing the 'Enter' key
+const preventDefaultDialogHandler = (
+  isFormValidFn: () => boolean,
+  dialog: Dialog<any>
 ): void => {
-  fieldsValidated.size === requiredFields.length
-    ? enableDialogButton(button)
-    : disableDialogButton(button);
+  const dialogHandleEvent = dialog.handleEvent;
+  dialog.handleEvent = (event: Event): void => {
+    if (
+      event instanceof KeyboardEvent &&
+      event.type === 'keydown' &&
+      event.keyCode === 13
+    ) {
+      // Prevent action when form dialog is not valid
+      if (!isFormValidFn()) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
+    } else {
+      dialogHandleEvent.call(dialog, event);
+    }
+  };
+};
+
+// Returns true if given element is valid
+const isFieldValid = (element: any): boolean => {
+  if (element.type === 'number') {
+    return element.value === '' || Number(element.value.trim()) > 0
+      ? true
+      : false;
+  }
+  return element.value.trim() ? true : false;
+};
+
+// Returns true if form dialog has all fields validated
+const isFormValid = (fieldToBeValidated: Set<any>): boolean => {
+  for (const field of fieldToBeValidated.values()) {
+    if (!isFieldValid(field)) {
+      return false;
+    }
+  }
+  return true;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import {
   Launcher as JupyterlabLauncher,
   ILauncher
 } from '@jupyterlab/launcher';
+import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 
 import { each } from '@lumino/algorithm';
@@ -30,7 +31,6 @@ import * as React from 'react';
  * The known categories of launcher items and their default ordering.
  */
 const ELYRA_CATEGORY = 'Elyra';
-const KNOWN_CATEGORIES = ['Notebook', 'Console', ELYRA_CATEGORY, 'Other'];
 
 export class Launcher extends JupyterlabLauncher {
   /**
@@ -38,6 +38,7 @@ export class Launcher extends JupyterlabLauncher {
    */
   constructor(options: ILauncher.IOptions) {
     super(options);
+    this._translator = this.translator.load('jupyterlab');
   }
 
   private replaceCategoryIcon(
@@ -83,9 +84,16 @@ export class Launcher extends JupyterlabLauncher {
 
     const categories: React.ReactElement<any>[] = [];
 
+    const knownCategories = [
+      this._translator.__('Notebook'),
+      this._translator.__('Console'),
+      ELYRA_CATEGORY,
+      this._translator.__('Other')
+    ];
+
     // Assemble the final ordered list of categories
-    // based on KNOWN_CATEGORIES.
-    each(KNOWN_CATEGORIES, (category, index) => {
+    // based on knownCategories.
+    each(knownCategories, (category, index) => {
       React.Children.forEach(launcherCategories, cat => {
         if (cat.key === category) {
           if (cat.key === ELYRA_CATEGORY) {
@@ -108,4 +116,6 @@ export class Launcher extends JupyterlabLauncher {
       </div>
     );
   }
+
+  private _translator: TranslationBundle;
 }

@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,16 +30,17 @@ class RuntimeProcessorType(Enum):
     enumeration and reflecting that entry in the corresponding runtime schema in order to
     fully integrate their processor with Elyra.
     """
-    LOCAL = 'Local'
-    KUBEFLOW_PIPELINES = 'Kubeflow Pipelines'
-    APACHE_AIRFLOW = 'Apache Airflow'
-    ARGO = 'Argo'
+
+    LOCAL = "Local"
+    KUBEFLOW_PIPELINES = "Kubeflow Pipelines"
+    APACHE_AIRFLOW = "Apache Airflow"
+    ARGO = "Argo"
     ######################################
     # Add new entry here for each new type
     ######################################
 
     @staticmethod
-    def get_instance_by_name(name: str) -> 'RuntimeProcessorType':
+    def get_instance_by_name(name: str) -> "RuntimeProcessorType":
         """Returns an instance of RuntimeProcessorType corresponding to the given name.
 
         Raises KeyError if parameter is not a name in the enumeration.
@@ -47,7 +48,7 @@ class RuntimeProcessorType(Enum):
         return RuntimeProcessorType.__members__[name]
 
     @staticmethod
-    def get_instance_by_value(value: str) -> 'RuntimeProcessorType':
+    def get_instance_by_value(value: str) -> "RuntimeProcessorType":
         """Returns an instance of RuntimeProcessorType corresponding to the given value.
 
         Raises KeyError if parameter is not a value in the enumeration.
@@ -60,12 +61,13 @@ class RuntimeProcessorType(Enum):
 
 class RuntimeTypeResources(object):
     """Base class for a runtime processor's information"""
+
     type: RuntimeProcessorType
     icon_endpoint: str
     export_file_types: List[Dict[str, str]]
 
     @classmethod
-    def get_instance_by_type(cls, runtime_type: RuntimeProcessorType) -> 'RuntimeTypeResources':
+    def get_instance_by_type(cls, runtime_type: RuntimeProcessorType) -> "RuntimeTypeResources":
         if runtime_type == RuntimeProcessorType.KUBEFLOW_PIPELINES:
             return KubeflowPipelinesResources()
         if runtime_type == RuntimeProcessorType.APACHE_AIRFLOW:
@@ -85,42 +87,53 @@ class RuntimeTypeResources(object):
         return self.type.value
 
     def to_dict(self) -> Dict[str, Any]:
-        d = dict(id=self.id,
-                 display_name=self.display_name,
-                 icon=self.icon_endpoint,
-                 export_file_types=self.export_file_types)
+        d = dict(
+            id=self.id,
+            display_name=self.display_name,
+            icon=self.icon_endpoint,
+            export_file_types=self.export_file_types,
+        )
         return d
+
+    def get_export_extensions(self) -> List[str]:
+        """
+        Return a list of supported export file extensions (as represented by the 'id'
+        key of each dictionary in the export_file_types list).
+        """
+        return [file_type.get("id") for file_type in self.export_file_types]
 
 
 class ArgoResources(RuntimeTypeResources):
-    """Holds static information relative to Argo processors """
+    """Holds static information relative to Argo processors"""
+
     type = RuntimeProcessorType.ARGO
     icon_endpoint = "static/elyra/argo.svg"
-    export_file_types = [{'id': 'py', 'display_name': 'Argo domain-specific language Python code'}]
+    export_file_types = [{"id": "py", "display_name": "Argo domain-specific language Python code"}]
 
 
 class ApacheAirflowResources(RuntimeTypeResources):
-    """Holds static information relative to Apache Airflow processors """
+    """Holds static information relative to Apache Airflow processors"""
+
     type = RuntimeProcessorType.APACHE_AIRFLOW
     icon_endpoint = "static/elyra/airflow.svg"
-    export_file_types = [{'id': 'py', 'display_name': 'Airflow domain-specific language Python code'}]
+    export_file_types = [{"id": "py", "display_name": "Airflow domain-specific language Python code"}]
 
 
 class KubeflowPipelinesResources(RuntimeTypeResources):
-    """Holds static information relative to Kubeflow Pipelines processors """
+    """Holds static information relative to Kubeflow Pipelines processors"""
+
     type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     icon_endpoint = "static/elyra/kubeflow.svg"
-    export_file_types = [
-        {'id': 'py', 'display_name': 'KFP domain-specific language Python code'},
-        {'id': 'yaml', 'display_name': 'KFP static configuration file (YAML formatted)'}
-    ]
+    export_file_types = [{"id": "yaml", "display_name": "KFP static configuration file (YAML formatted)"}]
 
 
 class LocalResources(RuntimeTypeResources):
-    """Holds static information relative to local processors """
+    """Holds static information relative to local processors"""
+
     type = RuntimeProcessorType.LOCAL
     icon_endpoint = "static/elyra/pipeline-flow.svg"
     export_file_types = []
+
 
 ###########################################################
 # Add new platform info definitions here for each new type

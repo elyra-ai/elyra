@@ -1,0 +1,19 @@
+# .github/release.yml
+# See https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: New Features
+      labels:
+        - kind:enhancement 
+    - title: Bug Fixes
+      labels:
+        - kind:bug
+    - title: Other
+      labels:
+        - "*"

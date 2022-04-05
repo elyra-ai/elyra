@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,5 +16,18 @@ limitations under the License.
 {% endcomment %}
 -->
 
-### elyra
-Builds the Elyra image for use as standalone or with JupyterHub. See [Deploying Elyra and JupyterHub in a Kubernetes environment](https://elyra.readthedocs.io/en/latest/recipes/deploying-elyra-in-a-jupyterhub-environment.html#deploying-elyra-jupyterhub-in-a-kubernetes-environment)
+### Elyra Docker Image
+
+Builds the Elyra image for use as standalone or with JupyterHub.
+
+See [Deploying Elyra and JupyterHub in a Kubernetes environment](https://elyra.readthedocs.io/en/latest/recipes/deploying-elyra-in-a-jupyterhub-environment.html#deploying-elyra-jupyterhub-in-a-kubernetes-environment)
+
+#### Building a custom container image
+
+To build a custom version of this container image:
+1. Clone this repository.
+1. [Optional] Add custom Python package requirements to `requirements.txt` in the `etc/docker/elyra` directory.
+1. Build the image using the `Dockerfile` or `Dockerfile.dev`:
+  - (Option 1) In the repository root directory run `make elyra-image TAG=3.X.X` to build with Elyra version `3.X.X`
+  - (Option 2) In the repository root directory run `make elyra-image TAG=dev` to build with Elyra from your local source
+1. The container image is automatically tagged with `elyra/elyra:$TAG` and `quay.io/elyra/elyra:$TAG`

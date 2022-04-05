@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,21 @@
  */
 
 import { componentCatalogIcon, dragDropIcon } from '@elyra/ui-components';
+import { settingsIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
 
 const HEADER_CLASS = 'empty-pipeline-header';
+const BUTTON_CLASS = 'empty-pipeline-button';
+const ICON_CLASS = 'empty-pipeline-icon';
 
-export const EmptyGenericPipeline: React.FC = () => {
+export interface IEmptyGenericPipelineProps {
+  onOpenSettings: () => void;
+}
+
+export const EmptyGenericPipeline: React.FC<IEmptyGenericPipelineProps> = ({
+  onOpenSettings
+}) => {
   return (
     <div>
       <dragDropIcon.react
@@ -32,51 +41,82 @@ export const EmptyGenericPipeline: React.FC = () => {
       <h3 className={HEADER_CLASS}>
         Start your new pipeline by dragging files from the file browser pane
       </h3>
+      <br />
+      <br />
+      <h3 className={HEADER_CLASS}>
+        Click{' '}
+        <button
+          title="Settings"
+          className={BUTTON_CLASS}
+          onClick={onOpenSettings}
+        >
+          <settingsIcon.react className={ICON_CLASS} tag="div" height="24px" />
+        </button>{' '}
+        to configure the pipeline editor.
+      </h3>
     </div>
   );
 };
 
 export interface IEmptyPlatformSpecificPipelineProps {
   onOpenCatalog: () => void;
+  onOpenSettings: () => void;
 }
 
 export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipelineProps> = ({
-  onOpenCatalog
+  onOpenCatalog,
+  onOpenSettings
 }) => {
-  const componentExamplesURL =
-    'https://github.com/elyra-ai/examples#custom-pipeline-component-examples';
+  // Note: the URL is rewritten by the release script by replacing `latest` with a
+  // specific version number, e.g. https://.../en/v3.6.0/user_guide/pi...
+  const customComponentsHelpTopicURL =
+    'https://elyra.readthedocs.io/en/v3.7.0rc0/user_guide/pipeline-components.html';
 
   return (
     <div>
-      <EmptyGenericPipeline />
+      <dragDropIcon.react
+        className="drag-drop-icon"
+        tag="div"
+        elementPosition="center"
+        height="120px"
+      />
       <h3 className={HEADER_CLASS}>
-        or add custom components by clicking the{' '}
-        <button
-          className={'open-component-catalog-button'}
-          onClick={onOpenCatalog}
-        >
+        Start your new pipeline by dragging files from the file browser pane or
+        add custom components by clicking the{' '}
+        <button className={BUTTON_CLASS} onClick={onOpenCatalog}>
           <componentCatalogIcon.react
-            className="component-catalog-icon"
+            className={ICON_CLASS}
             tag="div"
             height="24px"
           />
         </button>{' '}
         button.
-        <br />
-        <br />
       </h3>
       <h4 className={HEADER_CLASS}>
-        Refer to
+        Refer to the
         <a
-          href={componentExamplesURL}
+          href={customComponentsHelpTopicURL}
           target="_blank"
           rel="noopener noreferrer"
         >
           {' '}
-          component examples{' '}
+          &apos;pipeline components&apos; help topic{' '}
         </a>
-        for more details about adding custom components.
+        for details.
       </h4>
+      <br />
+      <br />
+      <h3 className={HEADER_CLASS}>
+        Click{' '}
+        <button
+          title="Settings"
+          className={BUTTON_CLASS}
+          onClick={onOpenSettings}
+        >
+          <settingsIcon.react className={ICON_CLASS} tag="div" height="24px" />
+        </button>{' '}
+        to configure the pipeline editor.
+      </h3>
     </div>
   );
 };

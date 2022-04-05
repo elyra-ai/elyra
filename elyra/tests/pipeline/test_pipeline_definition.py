@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from elyra.tests.pipeline.util import _read_pipeline_resource
 
 
 def test_valid_pipeline():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 
@@ -26,40 +26,40 @@ def test_valid_pipeline():
 
 
 def test_validation_flags_missing_schema_version():
-    _check_missing_pipeline_field('version', 'Pipeline schema version field is missing.')
+    _check_missing_pipeline_field("version", "Pipeline schema version field is missing.")
 
 
 def test_validation_flags_schema_version_has_wrong_type():
-    _check_pipeline_field_type('version', 3.0, "Pipeline schema version field should be a string.")
+    _check_pipeline_field_type("version", 3.0, "Pipeline schema version field should be a string.")
 
 
 def test_validation_flags_missing_pipelines_field():
-    _check_missing_pipeline_field('pipelines', "Pipeline is missing 'pipelines' field.")
+    _check_missing_pipeline_field("pipelines", "Pipeline is missing 'pipelines' field.")
 
 
 def test_validation_flags_pipelines_has_wrong_type():
-    _check_pipeline_field_type('pipelines', '', "Field 'pipelines' should be a list.")
+    _check_pipeline_field_type("pipelines", "", "Field 'pipelines' should be a list.")
 
 
 def test_validation_flags_pipelines_is_empty():
-    _check_pipeline_field_type('pipelines', list(), "Pipeline has zero length 'pipelines' field.")
+    _check_pipeline_field_type("pipelines", list(), "Pipeline has zero length 'pipelines' field.")
 
 
 def test_validation_flags_missing_primary_pipeline_field():
-    _check_missing_pipeline_field('primary_pipeline', "Could not determine the primary pipeline.")
+    _check_missing_pipeline_field("primary_pipeline", "Could not determine the primary pipeline.")
 
 
 def test_validation_flags_missing_primary_pipeline_nodes_field():
-    _check_missing_primary_pipeline_field('nodes', "At least one node must exist in the primary pipeline.")
+    _check_missing_primary_pipeline_field("nodes", "At least one node must exist in the primary pipeline.")
 
 
 def test_validation_flags_missing_app_data_field():
-    _check_missing_primary_pipeline_field('app_data', "Primary pipeline is missing the 'app_data' field.")
+    _check_missing_primary_pipeline_field("app_data", "Primary pipeline is missing the 'app_data' field.")
 
 
 def test_validation_flags_missing_version_field():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0]['app_data'].pop('version')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0]["app_data"].pop("version")
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 
@@ -68,28 +68,28 @@ def test_validation_flags_missing_version_field():
 
 
 def test_updates_to_primary_pipeline_updates_pipeline_definition():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
-    pipeline_definition.primary_pipeline.set('version', 3)
+    pipeline_definition.primary_pipeline.set("version", 3)
 
     assert pipeline_definition.primary_pipeline.version == 3
-    assert pipeline_definition.to_dict()['pipelines'][0]['app_data']['version'] == 3
+    assert pipeline_definition.to_dict()["pipelines"][0]["app_data"]["version"] == 3
 
 
 def test_updates_to_nodes_updates_pipeline_definition():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
     for node in pipeline_definition.primary_pipeline.nodes:
-        node.set_component_parameter('filename', 'foo')
+        node.set_component_parameter("filename", "foo")
 
-    for node in pipeline_definition.to_dict()['pipelines'][0]['nodes']:
-        assert node['app_data']['component_parameters']['filename'] == 'foo'
+    for node in pipeline_definition.to_dict()["pipelines"][0]["nodes"]:
+        assert node["app_data"]["component_parameters"]["filename"] == "foo"
 
 
 def _check_pipeline_correct_pipeline_name():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 
     primary_pipeline = pipeline_definition.primary_pipeline
@@ -98,18 +98,19 @@ def _check_pipeline_correct_pipeline_name():
 
 
 def _check_pipeline_correct_pipeline_alternative_name():
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid_alternative_name.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_alternative_name.json")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 
     primary_pipeline = pipeline_definition.primary_pipeline
 
     assert primary_pipeline.name == "{{alternative_name}}"
 
+
 # Utility questions
 
 
 def _check_missing_pipeline_field(field: str, error_msg: str):
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
     pipeline_json.pop(field)
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
@@ -119,7 +120,7 @@ def _check_missing_pipeline_field(field: str, error_msg: str):
 
 
 def _check_pipeline_field_type(field: str, wrong_type_value: any, error_msg: str):
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
     pipeline_json.pop(field)
     pipeline_json[field] = wrong_type_value
 
@@ -130,8 +131,8 @@ def _check_pipeline_field_type(field: str, wrong_type_value: any, error_msg: str
 
 
 def _check_missing_primary_pipeline_field(field: str, error_msg: str):
-    pipeline_json = _read_pipeline_resource('resources/sample_pipelines/pipeline_valid.json')
-    pipeline_json['pipelines'][0].pop(field)
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_json["pipelines"][0].pop(field)
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 

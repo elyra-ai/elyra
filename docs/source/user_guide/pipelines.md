@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -119,7 +119,7 @@ Note: You can rename the pipeline file in the JupyterLab _File Browser_.
 
 Pipelines can be run from the Visual Pipeline Editor and the `elyra-pipeline` command line interface. Before you can run a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
 
-**Running a pipeline from the Visual Pipeline Editor**
+#### Running a pipeline from the Visual Pipeline Editor
 
 To run a pipeline from the Visual Pipeline Editor:
 1. Click `Run Pipeline` in the editor's tool bar.
@@ -139,38 +139,36 @@ To run a pipeline from the Visual Pipeline Editor:
    - For local/JupyterLab execution all artifacts are stored in the local file system.
    - For Kubeflow Pipelines and Apache Airflow output artifacts for generic components are stored in the runtime configuration's designated object storage bucket.   
 
-**Running a pipeline from the command line interface**
+#### Running a pipeline from the command line interface
 
-The [`elyra-pipeline` command line interface](https://elyra.readthedocs.io/en/latest/user_guide/command-line-interface.html#working-with-pipelines)
-provides an informative command: `describe` and two execution commands: `run` and `submit`.
-
-Use the `elyra-pipeline describe` command to display pipeline details such as name, version, etc.
-
-```bash
-$ elyra-pipeline describe elyra-pipelines/a-notebook.pipeline
-```
-
-Use the `elyra-pipeline run` command to run a generic pipeline in your JupyterLab environment:
+Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `run` command to execute a generic pipeline in your JupyterLab environment.
 
 ```bash
 $ elyra-pipeline run elyra-pipelines/a-notebook.pipeline
 ```
 
-Use the `elyra-pipeline submit` command to run a generic or runtime-specific pipeline remotely on Kubeflow Pipelines or Apache Airflow, specifying a compatible runtime configuration as parameter:
+Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `submit` command to run a generic or runtime-specific pipeline remotely on Kubeflow Pipelines or Apache Airflow, specifying a compatible runtime configuration as parameter:
 
 ```bash
 $ elyra-pipeline submit elyra-pipelines/a-kubeflow.pipeline \
       --runtime-config kfp-shared-tekton
 ```
 
-Note: Refer to the [Managing runtime configurations using the Elyra CLI](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli) topic in the _User Guide_ for details on how to list and manage runtime configurations.
+For Kubeflow Pipelines the `--monitor` option is supported. If specified, the pipeline execution status is monitored for up to `--monitor-timeout` minutes (default: 60) and the `elyra-pipeline submit` command terminates as follows:
+- pipeline run completes successfully before `--monitor-timeout` is exceeded: exit code 0
+- pipeline run does not complete before `--monitor-timeout` is exceeded: exit code 124 (Note: the pipeline continues running on Kubeflow Pipelines, only monitoring is stopped.)
+- pipeline run on Kubeflow Pipelines fails before `--monitor-timeout` is exceeded: non-zero exit code but not 124
 
-### Exporting a pipeline
+Note: Refer to the [Managing runtime configurations using the Elyra CLI](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli) topic in the _User Guide_ for details on how to list and manage runtime configurations. If the specified `--runtime-config` is not compatible with the specified pipeline an error is raised.
+
+### Exporting pipelines
 
 When you export a pipeline Elyra only prepares it for later execution, but does not upload it to the Kubeflow Pipelines or Apache Airflow server. Export performs two tasks. 
-It packages dependencies for generic components and uploads them to cloud storage and it generates pipeline code for the target runtime. 
+It packages dependencies for generic components and uploads them to cloud storage, and it generates pipeline code for the target runtime. 
 
 Before you can export a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
+
+#### Exporting a pipeline from the Visual Pipeline Editor
 
 To export a pipeline from the Visual Pipeline Editor:
 1. Click `Export Pipeline` in the editor's tool bar.
@@ -183,4 +181,37 @@ To export a pipeline from the Visual Pipeline Editor:
    
    ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
 
-1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is monitoring.   
+1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is monitoring.
+
+
+#### Exporting a pipeline from the command line interface
+
+Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `export` command to export a pipeline to a runtime-specific format, such as YAML for Kubeflow Pipelines or Python DAG for Apache Airflow.
+
+```bash
+$ elyra-pipeline export a-notebook.pipeline --runtime-config kfp_dev_env --output /path/to/exported.yaml --overwrite
+```
+
+To learn more about supported parameters, run
+```bash
+$ elyra-pipeline export --help
+```
+
+Note: Refer to the [Managing runtime configurations using the Elyra CLI](runtime-conf.html#managing-runtime-configurations-using-the-elyra-cli) topic in the _User Guide_ for details on how to list and manage runtime configurations. If the specified `--runtime-config` is not compatible with the specified pipeline an error is raised.
+
+### Describing pipelines
+
+#### Describing a pipeline from the command line interface
+
+Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `describe` command to display pipeline information, such as description, version, and dependencies.
+
+```bash
+$ elyra-pipeline describe a-notebook.pipeline
+```
+
+To learn more about supported parameters, run
+```bash
+$ elyra-pipeline describe --help
+```
+
+

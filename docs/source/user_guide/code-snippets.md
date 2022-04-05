@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,43 +25,63 @@ You can manage code snippets using the [JupyterLab UI](#managing-code-snippets-u
 
 ### Managing code snippets using the JupyterLab UI
 
-To list, create, edit, delete, or insert code snippets using the UI select the `Code Snippets` tab from the JupyterLab sidebar.
+Code snippets can be listed, added, modified, duplicated, inserted, and removed in the _Code Snippets_ panel.
 
-![Code Snippets](../images/code-snippets.png)
+![Code Snippets](../images/user_guide/code-snippets/code-snippets-panel.png)
+
+To access the panel in JupyterLab:
+
+- Select the `Code Snippets` panel from the JupyterLab sidebar.
+
+  ![Open panel from sidebar](../images/user_guide/code-snippets/sidebar-button.png)     
+
+  OR
+
+- Open the JupyterLab command palette (`Cmd/Ctrl + Shift + C`) and search for `manage code snippets`.
+
+  ![Open panel from command palette](../images/user_guide/code-snippets/cmd-palette.png)
 
 #### Creating a code snippet
 
 To create a code snippet:
-1. Select the `Code Snippets` tab from the JupyterLab sidebar and click `+`. You can also highlight the desired text in the editor, right click, and choose `Save As Code Snippet` from the context menu.
-   ![Add code snippet from text](../images/add-code-snippet-from-text.png)
+1. Open the `Code Snippets` panel.
+1. Click `+`. You can also highlight the desired text in the editor, right click, and choose `Save As Code Snippet` from the context menu.
+   ![Add code snippet from text](../images/user_guide/code-snippets/add-code-snippet-from-text.png)
 
 1. Enter a code snippet display name, an optional description, and tag the code snippet to make it more easily discoverable.
 1. Define the code snippet. Refer to the [Code snippet properties](#code-snippet-properties) for details.
-   ![Add Code Snippets](../images/add-code-snippet.png)
+   ![Add Code Snippets](../images/user_guide/code-snippets/add-code-snippet.png)
 1. Save the code snippet. The new code snippet entry is displayed in the list. 
-1. Expand the entry to preview the snippet content
+1. Expand the entry to preview the snippet content.
 
 #### Modifying a code snippet
 
 To edit a code snippet:
-1. Select the `Code Snippets` tab from the JupyterLab sidebar.
+1. Open the `Code Snippets` panel.
 1. Click the pencil next to the code snippet entry.
+
+#### Dulicating a code snippet
+
+To duplicate a code snippet:
+1. Open the `Code Snippets` panel.
+1. Click the duplicate icon next to the code snippet entry.
+1. Follow the steps in '[_Modifying a code snippet_](#modifying-a-code-snippet)' to customize the duplicated code snippet.
 
 #### Deleting a code snippet
 
 To delete a code snippet:
-1. Select the `Code Snippets` tab from the JupyterLab sidebar.
+1. Open the `Code Snippets` panel.
 1. Click the trash can next to the code snippet entry.
 
 #### Using code snippets
 
 To search for a code snippet, type a keyword in the search bar or select one or more tags.
 
-  ![Search Code Snippets](../images/search-code-snippets.png)
+  ![Search Code Snippets](../images/user_guide/code-snippets/search-code-snippets.png)
 
 To insert the code snippet content into an open editor, click the insert button or use drag and drop. 
 
-  ![Insert Code Snippet](../images/insert-code-snippet.png)
+  ![Insert Code Snippet](../images/user_guide/code-snippets/insert-code-snippet.png)
 
 Code snippets are automatically added as code blocks in markdown files and notebook markdown cells.
 When inserting snippets into executable editors (e.g. a notebook code cell or a Python/R file editor), the extension will verify kernel language compatibility, warning the user when a mismatch is detected.
@@ -95,7 +115,7 @@ To format the output as JSON run `elyra-metadata list code-snippets --json`. Not
 To create a code snippet:
 
 ```bash
-elyra-metadata install code-snippets \
+elyra-metadata create code-snippets \
 	--display_name="Preview DataFrame" \
 	--description="Preview Pandas DataFrame" \
 	--tags="['Python', 'Pandas']" \
@@ -110,8 +130,7 @@ Refer to the [Code snippet properties](#code-snippet-properties) section for an 
 To modify a code snippet:
 
 ```bash
-elyra-metadata install code-snippets \
-	--replace \
+elyra-metadata update code-snippets \
 	--name="preview_dataframe" \
 	--display_name="Preview DataFrame" \
 	--description="Preview Pandas DataFrame" \
@@ -120,7 +139,24 @@ elyra-metadata install code-snippets \
 	--code="['# Display first 5 rows', 'df.head(5)']"
 ```
 
-Refer to the [Code snippet properties](#code-snippet-properties) section for an explanation of the parameters. Note that you must specify the `--name` parameter and the `--replace` parameter. 
+Refer to the [Code snippet properties](#code-snippet-properties) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 
+
+#### Exporting code snippets
+
+To export code snippets:
+
+```bash
+elyra-metadata export code-snippets \
+	--directory="/tmp/foo"
+```
+
+The above example will export all code snippets to the "/tmp/foo/code-snippets" directory.
+
+Note that you must specify the `--directory` option. 
+
+There are two flags that can be specified when exporting code snippets:
+1. To include invalid code snippets, use the `--include-invalid` flag.
+2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/code-snippets" directory before exporting the code snippets.
 
 #### Deleting a code snippet
 

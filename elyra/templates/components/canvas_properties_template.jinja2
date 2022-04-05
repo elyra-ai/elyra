@@ -1,6 +1,6 @@
 {
     "current_parameters": {
-      {% if component.description %}"component_description": "{{ component.description }}",{% endif %}
+      {% if component.description %}"component_description": {{ component.description|tojson|safe }},{% endif %}
       "label": "",
 {% for property in component.properties %}
         "elyra_{{ property.ref }}":
@@ -9,12 +9,15 @@
         "activeControl": "{{ property.default_control_type }}",
         "{{ property.default_control_type }}":
     {% endif %}
-    {% if property.data_type|lower == "bool" or property.data_type|lower == "boolean" %}
+    {% set property_data_type = property.data_type %}
+    {% if property.data_type == 'inputvalue' %}{% set property_data_type = property.default_data_type %}{% endif %}
+    {% if property.default_control_type == "EnumControl" %}
+        null
+    {% elif property_data_type|lower == "bool" or property_data_type|lower == "boolean" %}
         {{ property.value|lower }}
-    {% elif property.data_type|lower == "int" or property.data_type|lower == "integer" or property.data_type|lower == "number" %}
+    {% elif property_data_type|lower == "int" or property_data_type|lower == "integer" or
+            property_data_type|lower == "number" or property_data_type|lower == "float" %}
         {{ property.value }}
-    {% elif property.data_type|lower == "dict" or property.data_type|lower == "dictionary" %}
-        "{% raw %}{{% endraw %}{{ property.value }}{% raw %}}{% endraw %}"
     {% else %}
         "{{ property.value }}"
     {% endif %}
@@ -22,7 +25,7 @@
         }
     {% endif %},
 {% endfor %}
-      "component_source": "{{ component.component_source }}"
+      "component_source": {{ component.component_source|tojson|safe }}
     },
     "parameters": [
       {% if component.description %}{
@@ -53,6 +56,7 @@
             "default": " ",
             "placement": "on_panel"
           },
+          "label_visible": false,
           "data": {
             "required": false
           }
@@ -79,7 +83,7 @@
             "default": "{{ property.name }}"
           },
           "description": {
-            "default": "{{ property.description }}",
+            "default": {{ property.description|tojson|safe }},
             "placement": "on_panel"
           },
           "data": {
@@ -91,7 +95,12 @@
                     "format": "{{ control_data_type }}"
             {% if control == 'NestedEnumControl' %}
                     ,
-                    "allownooptions": false
+                    "allownooptions":
+                {% if property.allow_no_options %}
+                    true
+                {% else %}
+                    false
+                {% endif %}
             {% endif %}
                   }
             {% if loop.index != loop.length %}
@@ -124,7 +133,7 @@
             "default": "Component Source"
           },
           "description": {
-            "default": "Unique information used to identify this component.",
+            "default": " ",
             "placement": "on_panel"
           },
           "data": {}
@@ -145,13 +154,48 @@
               "type": "controls",
               "parameter_refs": ["label"]
             },
-{% for property in component.properties %}
+{% if component.input_properties|length > 0 %}
+            {
+              "id": "elyra_inputCategoryHeader",
+              "class_name": "elyra_categoryHeader",
+              "type": "textPanel",
+              "label": {
+                "default": "Inputs"
+              }
+            },
+    {% for property in component.input_properties %}
             {
               "id": "elyra_{{ property.ref }}",
               "type": "controls",
               "parameter_refs": ["elyra_{{ property.ref }}"]
             },
-{% endfor %}
+    {% endfor %}
+{% endif %}
+{% if component.output_properties|length > 0 %}
+            {
+              "id": "elyra_outputCategoryHeader",
+              "type": "textPanel",
+              "class_name": "elyra_categoryHeader",
+              "label": {
+                "default": "Outputs"
+              }
+            },
+    {% for property in component.output_properties %}
+            {
+              "id": "elyra_{{ property.ref }}",
+              "type": "controls",
+              "parameter_refs": ["elyra_{{ property.ref }}"]
+            },
+    {% endfor %}
+{% endif %}
+            {
+              "id": "elyra_component_sourceCategoryHeader",
+              "type": "textPanel",
+              "class_name": "elyra_categoryHeader",
+              "label": {
+                "default": "Component Source"
+              }
+            },
             {
               "id": "component_source",
               "type": "controls",

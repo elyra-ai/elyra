@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import os
 
 
 def get_absolute_path(root_dir: str, path: str) -> str:
-    """Checks if path is absolute or not.  If not absolute, `path` is appended to `root_dir`. """
+    """Checks if path is absolute or not.  If not absolute, `path` is appended to `root_dir`."""
 
     absolute_path = os.path.normpath(path)
     if not os.path.isabs(absolute_path):

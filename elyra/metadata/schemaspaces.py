@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,10 +21,12 @@ class Runtimes(Schemaspace):
     RUNTIMES_SCHEMASPACE_DISPLAY_NAME = "Runtimes"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=Runtimes.RUNTIMES_SCHEMASPACE_ID,
-                         name=Runtimes.RUNTIMES_SCHEMASPACE_NAME,
-                         display_name=Runtimes.RUNTIMES_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra runtime configurations")
+        super().__init__(
+            schemaspace_id=Runtimes.RUNTIMES_SCHEMASPACE_ID,
+            name=Runtimes.RUNTIMES_SCHEMASPACE_NAME,
+            display_name=Runtimes.RUNTIMES_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra runtime configurations",
+        )
 
 
 class RuntimeImages(Schemaspace):
@@ -33,10 +35,12 @@ class RuntimeImages(Schemaspace):
     RUNTIMES_IMAGES_SCHEMASPACE_DISPLAY_NAME = "Runtime Images"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID,
-                         name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME,
-                         display_name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra runtime images configurations")
+        super().__init__(
+            schemaspace_id=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID,
+            name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME,
+            display_name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra runtime images configurations",
+        )
 
 
 class CodeSnippets(Schemaspace):
@@ -45,10 +49,12 @@ class CodeSnippets(Schemaspace):
     CODE_SNIPPETS_SCHEMASPACE_DISPLAY_NAME = "Code Snippets"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID,
-                         name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_NAME,
-                         display_name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra code snippets configurations")
+        super().__init__(
+            schemaspace_id=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID,
+            name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_NAME,
+            display_name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra code snippets configurations",
+        )
 
 
 class ComponentCatalogs(Schemaspace):
@@ -57,26 +63,9 @@ class ComponentCatalogs(Schemaspace):
     COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME = "Component Catalogs"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID,
-                         name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME,
-                         display_name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra component catalog configurations")
-
-
-class ComponentRegistries(Schemaspace):
-    """DEPRECATED.  ComponentRegistries schemaspace is deprecated.
-
-    The schemaspace instance must remain until 3.4 to complete migration of potential
-    user-created registries.  Factory registries will not require migration.
-    """
-    COMPONENT_REGISTRIES_SCHEMASPACE_ID = "ae79159a-489d-4656-83a6-1adfbc567c70"
-    COMPONENT_REGISTRIES_SCHEMASPACE_NAME = "component-registries"
-    COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME = "Component Registries"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_ID,
-                         name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_NAME,
-                         display_name=ComponentRegistries.COMPONENT_REGISTRIES_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra component registries configurations")
-
-        self._deprecated = True
+        super().__init__(
+            schemaspace_id=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID,
+            name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME,
+            display_name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra component catalog configurations",
+        )

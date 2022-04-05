@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ limitations under the License.
 -->
 ## Tutorials and examples
 
-The community maintains a set of official tutorials and examples for many Elyra features.
+The community maintains a set of official tutorials and examples for many Elyra features. [Articles, blog posts, and other resources that are not part of the Elyra documentation are located here](published-resources.md).
 
 ### Tutorials
 
@@ -41,7 +41,8 @@ Learn how to [run generic pipelines on Apache Airflow](https://github.com/elyra-
 
 #### Run runtime-specific pipelines on Apache Airflow
 
-Runtime-specific pipelines for Apache Airflow is under development.
+Learn how to [run runtime-specific pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/master/pipelines/run-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
+
 
 #### Examples
 

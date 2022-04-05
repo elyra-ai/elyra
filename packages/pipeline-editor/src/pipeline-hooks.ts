@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ export const GENERIC_CATEGORY_ID = 'Elyra';
 interface IReturn<T> {
   data?: T | undefined;
   error?: any;
+  mutate?: any;
 }
 
 type IRuntimeImagesResponse = IRuntimeImage[];
@@ -160,7 +161,7 @@ const NodeIcons: Map<string, string> = new Map([
 
 // TODO: We should decouple components and properties to support lazy loading.
 // TODO: type this
-const componentFetcher = async (type: string): Promise<any> => {
+export const componentFetcher = async (type: string): Promise<any> => {
   const palettePromise = RequestHandler.makeGetRequest<
     IRuntimeComponentsResponse
   >(`elyra/pipeline/components/${type}`);
@@ -228,7 +229,10 @@ const componentFetcher = async (type: string): Promise<any> => {
 export const usePalette = (type = 'local'): IReturn<any> => {
   const { data: runtimeImages, error: runtimeError } = useRuntimeImages();
 
-  const { data: palette, error: paletteError } = useSWR(type, componentFetcher);
+  const { data: palette, error: paletteError, mutate: mutate } = useSWR(
+    type,
+    componentFetcher
+  );
 
   let updatedPalette;
   if (palette !== undefined) {
@@ -252,5 +256,9 @@ export const usePalette = (type = 'local'): IReturn<any> => {
     });
   }
 
-  return { data: updatedPalette, error: runtimeError ?? paletteError };
+  return {
+    data: updatedPalette,
+    error: runtimeError ?? paletteError,
+    mutate: mutate
+  };
 };

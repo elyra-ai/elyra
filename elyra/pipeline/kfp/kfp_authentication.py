@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ from urllib.parse import urlsplit
 
 from kfp.auth import KF_PIPELINES_SA_TOKEN_ENV
 from kfp.auth import KF_PIPELINES_SA_TOKEN_PATH
+from kfp.auth import ServiceAccountTokenVolumeCredentials
 import requests
 
 
@@ -38,7 +39,7 @@ def _empty_or_whitespaces_only(a_string: str) -> bool:
     only whitespaces.
 
     :param a_string: string to be evaluated
-    :type string: str
+    :type: str
     :return: True if a_string is None or contains only whitespaces
     :rtype: Boolean
     """
@@ -56,22 +57,22 @@ class SupportedAuthProviders(Enum):
 
     # KF is not secured
     # (See NoAuthenticationAuthenticator)
-    NO_AUTHENTICATION = 'No authentication'
+    NO_AUTHENTICATION = "No authentication"
     # KF is secured using KUBERNETES_SERVICE_ACCOUNT_TOKEN
     # (See K8sServiceAccountTokenAuthenticator implementation)
-    KUBERNETES_SERVICE_ACCOUNT_TOKEN = 'Kubernetes service account token'
+    KUBERNETES_SERVICE_ACCOUNT_TOKEN = "Kubernetes service account token"
     # KF is secured using DEX with static id/password
     # (See StaticPasswordKFPAuthenticator implementation)
-    DEX_STATIC_PASSWORDS = 'DEX (static passwords)'
+    DEX_STATIC_PASSWORDS = "DEX (static passwords)"
     # Supports DEX with LDAP authentication
     # (See DEXLDAPAuthenticator implementation)
-    DEX_LDAP = 'DEX (LDAP)'
+    DEX_LDAP = "DEX (LDAP)"
     # Supports multiple authentication mechanisms
     # (See DEXLegacyAuthenticator implementation)
-    DEX_LEGACY = 'DEX (legacy)'
+    DEX_LEGACY = "DEX (legacy)"
 
     @staticmethod
-    def get_default_provider() -> 'SupportedAuthProviders':
+    def get_default_provider() -> "SupportedAuthProviders":
         """
         Returns the "default" enum member (provider)
         :return: default enum member
@@ -89,7 +90,7 @@ class SupportedAuthProviders(Enum):
         return list(map(lambda c: c.name, SupportedAuthProviders))
 
     @staticmethod
-    def get_instance_by_name(name: str) -> 'SupportedAuthProviders':
+    def get_instance_by_name(name: str) -> "SupportedAuthProviders":
         """
         Returns an enumeration member of SupportedAuthProviders
         corresponding to the given name.
@@ -100,10 +101,10 @@ class SupportedAuthProviders(Enum):
         try:
             return SupportedAuthProviders[name]
         except KeyError:
-            raise ValueError(f'\'{name}\' is not a valid {SupportedAuthProviders.__name__}')
+            raise ValueError(f"'{name}' is not a valid {SupportedAuthProviders.__name__}")
 
     @staticmethod
-    def get_instance_by_value(value: str) -> 'SupportedAuthProviders':
+    def get_instance_by_value(value: str) -> "SupportedAuthProviders":
         """
         Returns an enumeration member of SupportedAuthProviders
         corresponding to the given value.
@@ -135,10 +136,12 @@ class AuthenticationError(Exception):
     was being processed.
     """
 
-    def __init__(self,
-                 message: str,
-                 provider: Optional[str] = None,
-                 request_history: Optional[List[Tuple[str, requests.Response]]] = None):
+    def __init__(
+        self,
+        message: str,
+        provider: Optional[SupportedAuthProviders] = None,
+        request_history: Optional[List[Tuple[str, requests.Response]]] = None,
+    ):
         """
         Create a new AuthenticationError exception. The throw-er should
         populate the request_history to allow for troubleshooting. List entry key is the (HTTP)
@@ -148,7 +151,7 @@ class AuthenticationError(Exception):
         :type message: str
         :param provider: if the error is raised by an implementation of AbstractAuthenticator,
          use the value of _type; optional, defaults to None
-        :type provider: Optional[str], optional
+        :type provider: Optional[SupportedAuthProviders], optional
         :param request_history: , defaults to None
         :type request_history: Optional[List[Dict[str, requests.Response]]], optional
         """
@@ -175,30 +178,36 @@ class AuthenticationError(Exception):
         output = None
         for request_entry in self._request_history or []:
             if output is None:
-                output = f'Request URL: {request_entry[0]} '\
-                         f'HTTP status code: {request_entry[1].status_code} '\
-                         f'response URL: {request_entry[1].url}'
+                output = (
+                    f"Request URL: {request_entry[0]} "
+                    f"HTTP status code: {request_entry[1].status_code} "
+                    f"response URL: {request_entry[1].url}"
+                )
             else:
-                output = f'{output}\n'\
-                         f'Request URL: {request_entry[0]} '\
-                         f'HTTP status code: {request_entry[1].status_code} '\
-                         f'response URL: {request_entry[1].url}'
+                output = (
+                    f"{output}\n"
+                    f"Request URL: {request_entry[0]} "
+                    f"HTTP status code: {request_entry[1].status_code} "
+                    f"response URL: {request_entry[1].url}"
+                )
         return output
 
 
-class KFPAuthenticator():
+class KFPAuthenticator:
     """
     Use this class to authenticate with Kubeflow Pipelines. The authenticate
     method delegates the actual authentication to an implementation of the
     AbstractAuthenticator class.
     """
 
-    def authenticate(self,
-                     api_endpoint: str,
-                     auth_type_str: str,
-                     runtime_config_name: str,
-                     auth_parm_1: Optional[str] = None,
-                     auth_parm_2: Optional[str] = None) -> Dict[str, Any]:
+    def authenticate(
+        self,
+        api_endpoint: str,
+        auth_type_str: str,
+        runtime_config_name: str,
+        auth_parm_1: Optional[str] = None,
+        auth_parm_2: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
         Try to authenticate with Kubeflow using the provided information.
 
@@ -206,7 +215,7 @@ class KFPAuthenticator():
         :type api_endpoint: str
         :param auth_type_str Identifies the authentication type to be performed. If the provided value
          is in the SupportedAuthProviders enum, authentication is performed.
-        :type auth_type: str
+        :type auth_type_str: str
         :param runtime_config_name: Runtime configuration name where kf_endpoint is specified.
         :type runtime_config_name: str
         :param auth_parm_1: First authorization parameter from the runtime config, defaults to None
@@ -218,24 +227,27 @@ class KFPAuthenticator():
         :rtype: Dict[str, str]
         """
 
-        kf_url = urlsplit(api_endpoint)._replace(path='').geturl()
+        kf_url = urlsplit(api_endpoint)._replace(path="").geturl()
 
         # return data structure for successful requests
         auth_info = {
-            'api_endpoint': kf_url,   # KF API endpoint, source: runtime config
-            'auth_type': None,        # Authentication type, source: runtime config
-            'kf_secured': False,      # Indicates whether KF API is secured
-            'cookies': None,          # passed to KFP SDK client as "cookies" param value
-            'existing_token': None    # passed to KFP SDK client as "existing_token" param value
+            "api_endpoint": kf_url,  # KF API endpoint, source: runtime config
+            "auth_type": None,  # Authentication type, source: runtime config
+            "kf_secured": False,  # Indicates whether KF API is secured
+            "cookies": None,  # passed to KFP SDK client as "cookies" param value
+            "credentials": None,  # passed to KFP SDK client as "credentials" param value
+            "existing_token": None,  # passed to KFP SDK client as "existing_token" param value
         }
 
         try:
             auth_type = SupportedAuthProviders.get_instance_by_name(auth_type_str)
-            auth_info['auth_type'] = auth_type.value
+            auth_info["auth_type"] = auth_type.value
         except ValueError:
             # the provided authentication type is not supported
-            raise AuthenticationError(f'Authentication type \'{auth_type_str}\' is not supported. '
-                                      f'Update runtime configuration \'{runtime_config_name}\' and try again.')
+            raise AuthenticationError(
+                f"Authentication type '{auth_type_str}' is not supported. "
+                f"Update runtime configuration '{runtime_config_name}' and try again."
+            )
 
         try:
             # Process the authentication request using the appropriate authenticator
@@ -244,59 +256,57 @@ class KFPAuthenticator():
 
             if auth_type == SupportedAuthProviders.NO_AUTHENTICATION:
                 # No authentication is performed. The authenticator returns None
-                NoAuthenticationAuthenticator().authenticate(kf_url,
-                                                             runtime_config_name)
+                NoAuthenticationAuthenticator().authenticate(kf_url, runtime_config_name)
             elif auth_type == SupportedAuthProviders.DEX_STATIC_PASSWORDS:
                 # static id/password checking; the authenticator returns
                 # a cookie value
-                auth_info['cookies'] =\
-                    DEXStaticPasswordAuthenticator().authenticate(kf_url,
-                                                                  runtime_config_name,
-                                                                  username=auth_parm_1,
-                                                                  password=auth_parm_2)
-                auth_info['kf_secured'] = True
+                auth_info["cookies"] = DEXStaticPasswordAuthenticator().authenticate(
+                    kf_url, runtime_config_name, username=auth_parm_1, password=auth_parm_2
+                )
+                auth_info["kf_secured"] = True
             elif auth_type == SupportedAuthProviders.DEX_LEGACY:
                 # see implementation for details; the authenticator returns
                 # a cookie value
-                auth_info['cookies'] =\
-                    DEXLegacyAuthenticator().authenticate(kf_url,
-                                                          runtime_config_name,
-                                                          username=auth_parm_1,
-                                                          password=auth_parm_2)
-                if auth_info.get('cookies') is not None:
-                    auth_info['kf_secured'] = True
+                auth_info["cookies"] = DEXLegacyAuthenticator().authenticate(
+                    kf_url, runtime_config_name, username=auth_parm_1, password=auth_parm_2
+                )
+                if auth_info.get("cookies") is not None:
+                    auth_info["kf_secured"] = True
 
             elif auth_type == SupportedAuthProviders.DEX_LDAP:
                 # DEX/LDAP authentication; the authenticator returns
                 # a cookie value
-                auth_info['cookies'] =\
-                    DEXLDAPAuthenticator().authenticate(kf_url,
-                                                        runtime_config_name,
-                                                        username=auth_parm_1,
-                                                        password=auth_parm_2)
-                if auth_info.get('cookies') is not None:
-                    auth_info['kf_secured'] = True
+                auth_info["cookies"] = DEXLDAPAuthenticator().authenticate(
+                    kf_url, runtime_config_name, username=auth_parm_1, password=auth_parm_2
+                )
+                if auth_info.get("cookies") is not None:
+                    auth_info["kf_secured"] = True
             elif auth_type == SupportedAuthProviders.KUBERNETES_SERVICE_ACCOUNT_TOKEN:
-                # see implementation for details; the authenticator returns None
-                K8sServiceAccountTokenAuthenticator().authenticate(kf_url,
-                                                                   runtime_config_name)
-                auth_info['kf_secured'] = True
+                # see implementation for details; the authenticator returns
+                # a ServiceAccountTokenVolumeCredentials
+                auth_info["credentials"] = K8sServiceAccountTokenAuthenticator().authenticate(
+                    kf_url, runtime_config_name
+                )
+                auth_info["kf_secured"] = True
             else:
                 # SupportedAuthProviders contains a member that is not yet
                 # associated with an implementation of AbstractAuthenticator
-                raise AuthenticationError(f'Support for authentication type \'{auth_type.name}\' is not implemented.')
+                raise AuthenticationError(f"Support for authentication type '{auth_type.name}' is not implemented.")
         except AuthenticationError:
             raise
         except Exception as ex:
-            raise AuthenticationError(f'Authentication using authentication type '
-                                      f'\'{auth_info["auth_type"]}\' failed: {ex}')
+            raise AuthenticationError(
+                f"Authentication using authentication type " f'\'{auth_info["auth_type"]}\' failed: {ex}'
+            )
 
         # sanity check: upon completion auth_info must not contain
         # incomplete or conflicting information
-        if auth_info.get('auth_type') is None or\
-           (auth_info.get('cookies') is not None and auth_info.get('existing_token') is not None):
-            raise AuthenticationError('A potential authentication implementation problem was detected. '
-                                      'Please create an issue.')
+        if auth_info.get("auth_type") is None or (
+            auth_info.get("cookies") is not None and auth_info.get("existing_token") is not None
+        ):
+            raise AuthenticationError(
+                "A potential authentication implementation problem was detected. " "Please create an issue."
+            )
         return auth_info
 
 
@@ -308,9 +318,7 @@ class AbstractAuthenticator(ABC):
     _type = None  # unique authenticator id
 
     @abstractmethod
-    def authenticate(self,
-                     kf_endpoint: str,
-                     runtime_config_name: str) -> Optional[str]:
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[SupportedAuthProviders]:
         """
         Attempt to authenticate with the specified Kubeflow endpoint. The caller
         expects the implementing method to behave as follows:
@@ -327,7 +335,7 @@ class AbstractAuthenticator(ABC):
         :return: an entity that provides the Kubeflow Pipelines SDK client access to the specified endpoint
         :rtype: Optional[str]
         """
-        raise NotImplementedError('Method AbstractAuthenticator.authenticate must be implemented.')
+        raise NotImplementedError("Method AbstractAuthenticator.authenticate must be implemented.")
 
 
 class NoAuthenticationAuthenticator(AbstractAuthenticator):
@@ -337,9 +345,7 @@ class NoAuthenticationAuthenticator(AbstractAuthenticator):
 
     _type = SupportedAuthProviders.NO_AUTHENTICATION
 
-    def authenticate(self,
-                     kf_endpoint: str,
-                     runtime_config_name: str) -> Optional[str]:
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[SupportedAuthProviders]:
         """
         Confirms that the specified kf_endpoint can be accessed
         without authentication.
@@ -356,10 +362,12 @@ class NoAuthenticationAuthenticator(AbstractAuthenticator):
         get_response = requests.get(kf_endpoint, allow_redirects=True)
 
         if len(get_response.history) > 0:
-            raise AuthenticationError(f'Authentication is required for Kubeflow at {kf_endpoint}. '
-                                      f'Update the authentication type setting in runtime configuration '
-                                      f'\'{runtime_config_name}\' and try again.',
-                                      provider=self._type)
+            raise AuthenticationError(
+                f"Authentication is required for Kubeflow at {kf_endpoint}. "
+                f"Update the authentication type setting in runtime configuration "
+                f"'{runtime_config_name}' and try again.",
+                provider=self._type,
+            )
         return None
 
 
@@ -370,11 +378,9 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
 
     _type = SupportedAuthProviders.DEX_STATIC_PASSWORDS
 
-    def authenticate(self,
-                     kf_endpoint: str,
-                     runtime_config_name: str,
-                     username: str,
-                     password: str) -> Optional[str]:
+    def authenticate(
+        self, kf_endpoint: str, runtime_config_name: str, username: str = None, password: str = None
+    ) -> Optional[str]:
         """
         Authenticate using static password authentication. An AuthenticationError is raised
         if (1) kf_endpoint is unsecured (2) kf_endpoint does not
@@ -394,11 +400,12 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
 
         # This code can be removed after the kfp runtime schema enforces that the values
         # for username and password are valid
-        if _empty_or_whitespaces_only(username) or\
-           _empty_or_whitespaces_only(password):
-            raise AuthenticationError(f'Credentials are required to perform this type of authentication. '
-                                      f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                      provider=self._type)
+        if _empty_or_whitespaces_only(username) or _empty_or_whitespaces_only(password):
+            raise AuthenticationError(
+                f"Credentials are required to perform this type of authentication. "
+                f"Update runtime configuration '{runtime_config_name}' and try again.",
+                provider=self._type,
+            )
 
         with requests.Session() as s:
 
@@ -410,20 +417,24 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
             resp = s.get(kf_endpoint, allow_redirects=True)
             request_history.append((kf_endpoint, resp))
             if resp.status_code != HTTPStatus.OK:
-                raise AuthenticationError(f'Error detecting whether Kubeflow server at {kf_endpoint} is secured: '
-                                          f'HTTP status code {resp.status_code}'
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
+                raise AuthenticationError(
+                    f"Error detecting whether Kubeflow server at {kf_endpoint} is secured: "
+                    f"HTTP status code {resp.status_code}"
+                    f"Update runtime configuration '{runtime_config_name}' and try again.",
+                    provider=self._type,
+                    request_history=request_history,
+                )
 
             if len(resp.history) == 0:
                 # if we were NOT redirected, then the endpoint is UNSECURED
                 # treat this as an error.
-                raise AuthenticationError(f'The Kubeflow server at {kf_endpoint} is not secured '
-                                          'using DEX static password. '
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
+                raise AuthenticationError(
+                    f"The Kubeflow server at {kf_endpoint} is not secured "
+                    "using DEX static password. "
+                    f"Update runtime configuration '{runtime_config_name}' and try again.",
+                    provider=self._type,
+                    request_history=request_history,
+                )
 
             ################
             # Get Dex Login URL
@@ -439,14 +450,15 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
             else:
                 # verify that KF is secured by static passwords
                 m = re.search(r"/auth/([^/]*)/?", redirect_url_obj.path)
-                if m and m.group(1) != 'local':
+                if m and m.group(1) != "local":
                     raise AuthenticationError(
-                        f'The Kubeflow server at {kf_endpoint} redirected to an unexpected HTTP path '
-                        f'(\'{redirect_url_obj.path}\'). Verify that Kubeflow is secured using \'{self._type.name}\''
-                        f' and, if necessary, update the authentication type in runtime configuration '
-                        f'\'{runtime_config_name}\'.',
+                        f"The Kubeflow server at {kf_endpoint} redirected to an unexpected HTTP path "
+                        f"('{redirect_url_obj.path}'). Verify that Kubeflow is secured using '{self._type.name}'"
+                        f" and, if necessary, update the authentication type in runtime configuration "
+                        f"'{runtime_config_name}'.",
                         provider=self._type,
-                        request_history=request_history)
+                        request_history=request_history,
+                    )
 
             # if we are at `/auth/local/login` path, then no further action is needed
             # (we can use it for login POST)
@@ -458,37 +470,38 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
                 resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
                 request_history.append((redirect_url_obj.geturl(), resp))
                 if resp.status_code != HTTPStatus.OK:
-                    raise AuthenticationError('Error redirecting to the DEX static password login page: '
-                                              f'HTTP status code {resp.status_code}.',
-                                              provider=self._type,
-                                              request_history=request_history)
+                    raise AuthenticationError(
+                        "Error redirecting to the DEX static password login page: "
+                        f"HTTP status code {resp.status_code}.",
+                        provider=self._type,
+                        request_history=request_history,
+                    )
                 # set the login url
                 dex_login_url = resp.url
 
             ################
             # Attempt Dex Login
             ################
-            resp = s.post(
-                dex_login_url,
-                data={"login": username, "password": password},
-                allow_redirects=True
-            )
+            resp = s.post(dex_login_url, data={"login": username, "password": password}, allow_redirects=True)
             request_history.append((dex_login_url, resp))
 
             if len(resp.history) == 0:
-                raise AuthenticationError('The credentials are probably invalid. '
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
+                raise AuthenticationError(
+                    "The credentials are probably invalid. "
+                    f"Update runtime configuration '{runtime_config_name}' and try again.",
+                    provider=self._type,
+                    request_history=request_history,
+                )
 
             # store the session cookies in a "key1=value1; key2=value2" string
             return "; ".join([f"{c.name}={c.value}" for c in s.cookies])
 
         # this code should never be reached; raise an error
-        raise AuthenticationError('An implementation problem was detected for DEX static password authentication. '
-                                  'Please create an issue.',
-                                  provider=self._type,
-                                  request_history=request_history)
+        raise AuthenticationError(
+            "An implementation problem was detected for DEX static password authentication. " "Please create an issue.",
+            provider=self._type,
+            request_history=request_history,
+        )
 
 
 class DEXLDAPAuthenticator(AbstractAuthenticator):
@@ -498,11 +511,9 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
 
     _type = SupportedAuthProviders.DEX_LDAP
 
-    def authenticate(self,
-                     kf_endpoint: str,
-                     runtime_config_name: str,
-                     username: str,
-                     password: str) -> Optional[str]:
+    def authenticate(
+        self, kf_endpoint: str, runtime_config_name: str, username: str = None, password: str = None
+    ) -> Optional[str]:
         """
         Authenticate using LDAP. An AuthenticationError is raised
         if (1) kf_endpoint is unsecured (2) kf_endpoint does not
@@ -522,11 +533,12 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
 
         # This code can be removed after the kfp runtime schema enforces that the values
         # for username and password are valid
-        if _empty_or_whitespaces_only(username) or\
-           _empty_or_whitespaces_only(password):
-            raise AuthenticationError(f'Credentials are required to perform this type of authentication. '
-                                      f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                      provider=self._type)
+        if _empty_or_whitespaces_only(username) or _empty_or_whitespaces_only(password):
+            raise AuthenticationError(
+                f"Credentials are required to perform this type of authentication. "
+                f"Update runtime configuration '{runtime_config_name}' and try again.",
+                provider=self._type,
+            )
 
         with requests.Session() as s:
 
@@ -538,20 +550,24 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
             resp = s.get(kf_endpoint, allow_redirects=True)
             request_history.append((kf_endpoint, resp))
             if resp.status_code != HTTPStatus.OK:
-                raise AuthenticationError(f'Error detecting whether Kubeflow server at {kf_endpoint} is secured: '
-                                          f'HTTP status code {resp.status_code}'
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
+                raise AuthenticationError(
+                    f"Error detecting whether Kubeflow server at {kf_endpoint} is secured: "
+                    f"HTTP status code {resp.status_code}"
+                    f"Update runtime configuration '{runtime_config_name}' and try again.",
+                    provider=self._type,
+                    request_history=request_history,
+                )
 
             if len(resp.history) == 0:
                 # if we were NOT redirected, then the endpoint is UNSECURED
                 # treat this as an error.
-                raise AuthenticationError(f'The Kubeflow server at {kf_endpoint} is not secured using DEX with LDAP. '
-                                          f'Update the authentication type in runtime configuration '
-                                          f'\'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
+                raise AuthenticationError(
+                    f"The Kubeflow server at {kf_endpoint} is not secured using DEX with LDAP. "
+                    f"Update the authentication type in runtime configuration "
+                    f"'{runtime_config_name}' and try again.",
+                    provider=self._type,
+                    request_history=request_history,
+                )
 
             ################
             # Get Dex Login URL
@@ -567,14 +583,15 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
             else:
                 # verify that KF is secured by LDAP
                 m = re.search(r"/auth/([^/]*)/?", redirect_url_obj.path)
-                if m and m.group(1) != 'ldap':
+                if m and m.group(1) != "ldap":
                     raise AuthenticationError(
-                        f'The Kubeflow server at {kf_endpoint} redirected to an unexpected HTTP path '
-                        f'(\'{redirect_url_obj.path}\'). Verify that Kubeflow is configured for \'{self._type.name}\''
-                        f' and, if necessary, update the authentication type in runtime configuration '
-                        f'\'{runtime_config_name}\'.',
+                        f"The Kubeflow server at {kf_endpoint} redirected to an unexpected HTTP path "
+                        f"('{redirect_url_obj.path}'). Verify that Kubeflow is configured for '{self._type.name}'"
+                        f" and, if necessary, update the authentication type in runtime configuration "
+                        f"'{runtime_config_name}'.",
                         provider=self._type,
-                        request_history=request_history)
+                        request_history=request_history,
+                    )
 
             # if we are at `/auth/ldap/login` path, then no further action is needed
             # (we can use it for login POST)
@@ -586,37 +603,37 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
                 resp = s.get(redirect_url_obj.geturl(), allow_redirects=True)
                 request_history.append((redirect_url_obj.geturl(), resp))
                 if resp.status_code != HTTPStatus.OK:
-                    raise AuthenticationError('Error redirecting to the DEX LDAP login page: '
-                                              f'HTTP status code {resp.status_code}.',
-                                              provider=self._type,
-                                              request_history=request_history)
+                    raise AuthenticationError(
+                        "Error redirecting to the DEX LDAP login page: " f"HTTP status code {resp.status_code}.",
+                        provider=self._type,
+                        request_history=request_history,
+                    )
                 # set the login url
                 dex_login_url = resp.url
 
             ################
             # Attempt Dex Login
             ################
-            resp = s.post(
-                dex_login_url,
-                data={"login": username, "password": password},
-                allow_redirects=True
-            )
+            resp = s.post(dex_login_url, data={"login": username, "password": password}, allow_redirects=True)
             request_history.append((dex_login_url, resp))
 
             if len(resp.history) == 0:
-                raise AuthenticationError('The DEX LDAP credentials are probably invalid. '
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
+                raise AuthenticationError(
+                    "The DEX LDAP credentials are probably invalid. "
+                    f"Update runtime configuration '{runtime_config_name}' and try again.",
+                    provider=self._type,
+                    request_history=request_history,
+                )
 
             # store the session cookies in a "key1=value1; key2=value2" string
             return "; ".join([f"{c.name}={c.value}" for c in s.cookies])
 
         # this code should never be reached; raise an error
-        raise AuthenticationError('An implementation problem was detected for LDAP authentication. '
-                                  'Please create an issue.',
-                                  provider=self._type,
-                                  request_history=request_history)
+        raise AuthenticationError(
+            "An implementation problem was detected for LDAP authentication. " "Please create an issue.",
+            provider=self._type,
+            request_history=request_history,
+        )
 
 
 class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
@@ -626,9 +643,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
 
     _type = SupportedAuthProviders.KUBERNETES_SERVICE_ACCOUNT_TOKEN
 
-    def authenticate(self,
-                     kf_endpoint: str,
-                     runtime_config_name: str) -> None:
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> ServiceAccountTokenVolumeCredentials:
         """
         Verify that service account token authentication can be performed.
         An AuthenticationError is raised if a problem is encountered that
@@ -640,6 +655,7 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
         :type runtime_config_name: str
         :raises AuthenticationError: A potential issue was detected that will
         likely cause a KFP client failure.
+        :return: ServiceAccountTokenVolumeCredentials
         """
 
         request_history = []
@@ -669,26 +685,28 @@ class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):
 
         # Running in a Kubernetes pod, kfp.Client can use a service account token
         # for authentication. Verify that a token file exists in the current environment.
-        service_account_token_path = os.environ.get(KF_PIPELINES_SA_TOKEN_ENV,
-                                                    KF_PIPELINES_SA_TOKEN_PATH)
+        service_account_token_path = os.environ.get(KF_PIPELINES_SA_TOKEN_ENV, KF_PIPELINES_SA_TOKEN_PATH)
 
         try:
-            with open(service_account_token_path, 'r') as token_file:
+            with open(service_account_token_path, "r") as token_file:
                 if len(token_file.read()) == 0:
-                    raise AuthenticationError(f'Kubernetes service account token file '
-                                              f'{service_account_token_path} is empty.',
-                                              provider=self._type,
-                                              request_history=request_history)
+                    raise AuthenticationError(
+                        f"Kubernetes service account token file " f"{service_account_token_path} is empty.",
+                        provider=self._type,
+                        request_history=request_history,
+                    )
         except AuthenticationError:
             raise
         except Exception as ex:
-            raise AuthenticationError(f'Kubernetes service account token could not be read '
-                                      f'from {service_account_token_path}: {ex}.',
-                                      provider=self._type,
-                                      request_history=request_history)
+            raise AuthenticationError(
+                f"Kubernetes service account token could not be read " f"from {service_account_token_path}: {ex}.",
+                provider=self._type,
+                request_history=request_history,
+            )
 
-        # Nothing needs to be passed to the KFP client
-        return None
+        # return a ServiceAccountTokenVolumeCredentials to be passed as the "credentials"
+        # argument of a `kfp.Client()` constructor
+        return ServiceAccountTokenVolumeCredentials(path=service_account_token_path)
 
 
 class DEXLegacyAuthenticator(AbstractAuthenticator):
@@ -698,14 +716,12 @@ class DEXLegacyAuthenticator(AbstractAuthenticator):
 
     _type = SupportedAuthProviders.DEX_LEGACY
 
-    def authenticate(self,
-                     kf_endpoint: str,
-                     runtime_config_name: str,
-                     username: Optional[str],
-                     password: Optional[str]) -> Optional[str]:
+    def authenticate(
+        self, kf_endpoint: str, runtime_config_name: str, username: Optional[str] = None, password: Optional[str] = None
+    ) -> Optional[str]:
         """
         Authentication using the following flow:
-         - detect wether Kubeflow endpoint is secured
+         - detect whether Kubeflow endpoint is secured
          - if endpoint is secured, try to authenticate if a username and password were provided
 
         :param kf_endpoint: Kubeflow API endpoint to verify
@@ -728,45 +744,49 @@ class DEXLegacyAuthenticator(AbstractAuthenticator):
         resp = requests.get(kf_endpoint)
         request_history.append((kf_endpoint, resp))
         if resp.status_code != HTTPStatus.OK:
-            raise AuthenticationError(f'Error detecting whether Kubeflow server at {kf_endpoint} is secured: '
-                                      'HTTP status code {resp.status_code}'
-                                      f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                      provider=self._type,
-                                      request_history=request_history)
+            raise AuthenticationError(
+                f"Error detecting whether Kubeflow server at {kf_endpoint} is secured: "
+                "HTTP status code {resp.status_code}"
+                f"Update runtime configuration '{runtime_config_name}' and try again.",
+                provider=self._type,
+                request_history=request_history,
+            )
 
         # If KF redirected to '/dex/auth/...
         # try to authenticate using the provided credentials
-        if 'dex/auth' in resp.url:
+        if "dex/auth" in resp.url:
 
             if _empty_or_whitespaces_only(username) or _empty_or_whitespaces_only(password):
-                raise AuthenticationError(f'Kubeflow server at {kf_endpoint} is secured: '
-                                          'username and password are required. '
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
+                raise AuthenticationError(
+                    f"Kubeflow server at {kf_endpoint} is secured: "
+                    "username and password are required. "
+                    f"Update runtime configuration '{runtime_config_name}' and try again.",
+                    provider=self._type,
+                    request_history=request_history,
+                )
 
             # Try to authenticate user by sending a request to the
             # redirect URL
             session = requests.Session()
             auth_url = resp.url
-            resp = session.post(auth_url,
-                                data={'login': username,
-                                      'password': password})
+            resp = session.post(auth_url, data={"login": username, "password": password})
             request_history.append((auth_url, resp))
 
             if resp.status_code != HTTPStatus.OK:
-                raise AuthenticationError(f'Authentication {auth_url} failed: '
-                                          f'HTTP status code {resp.status_code}'
-                                          f'Update runtime configuration \'{runtime_config_name}\' and try again.',
-                                          provider=self._type,
-                                          request_history=request_history)
+                raise AuthenticationError(
+                    f"Authentication {auth_url} failed: "
+                    f"HTTP status code {resp.status_code}"
+                    f"Update runtime configuration '{runtime_config_name}' and try again.",
+                    provider=self._type,
+                    request_history=request_history,
+                )
             # Capture authservice_session cookie, if one was returned
             # in the response
-            cookie_auth_key = 'authservice_session'
+            cookie_auth_key = "authservice_session"
             cookie_auth_value = session.cookies.get(cookie_auth_key)
 
             if cookie_auth_value:
-                return f'{cookie_auth_key}={cookie_auth_value}'
+                return f"{cookie_auth_key}={cookie_auth_value}"
 
         # The endpoint is not secured.
         return None

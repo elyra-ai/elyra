@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,9 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataCache
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
-from elyra.pipeline.component_catalog import ComponentCatalog
+from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.handlers import ComponentCacheCatalogHandler
+from elyra.pipeline.handlers import ComponentCacheHandler
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
@@ -54,10 +56,10 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     name = "elyra"
     version = __version__
     description = "Elyra Server"
-    extension_url = '/lab'
+    extension_url = "/lab"
     load_other_extensions = True
 
-    classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentCatalogConnector, ComponentCatalog]
+    classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentCatalogConnector, ComponentCache]
 
     # Local path to static files directory.
     static_paths = [
@@ -75,47 +77,59 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         schemaspace_regex = r"(?P<schemaspace>[\w\.\-]+)"
         resource_regex = r"(?P<resource>[\w\.\-]+)"
         path_regex = r"(?P<path>(?:(?:/[^/]+)+|/?))"  # same as jupyter server and will include a leading slash
-        processor_regex = r"(?P<processor>[\w]+)"
-        component_regex = r"(?P<component_id>[\w\.\-:]+)"
+        processor_regex = r"(?P<runtime_type>[\w]+)"
+        component_regex = r"(?P<component_id>[\w\.\-:%]+)"
+        catalog_regex = r"(?P<catalog>[\w\.\-:]+)"
 
-        self.handlers.extend([
-            # API
-            (f'/{self.name}/{YamlSpecHandler.get_resource_metadata()[0]}', YamlSpecHandler),
-
-            # Content
-            (f'/{self.name}/contents/properties{path_regex}', ContentHandler),
-
-            # Metadata
-            (f'/{self.name}/metadata/{schemaspace_regex}', MetadataHandler),
-            (f'/{self.name}/metadata/{schemaspace_regex}/{resource_regex}', MetadataResourceHandler),
-            (f'/{self.name}/schema/{schemaspace_regex}', SchemaHandler),
-            (f'/{self.name}/schema/{schemaspace_regex}/{resource_regex}', SchemaResourceHandler),
-            (f'/{self.name}/schemaspace', SchemaspaceHandler),
-            (f'/{self.name}/schemaspace/{schemaspace_regex}', SchemaspaceResourceHandler),
-
-            # Pipeline
-            (f'/{self.name}/pipeline/components/{processor_regex}', PipelineComponentHandler),
-            (f'/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties',
-             PipelineComponentPropertiesHandler),
-            (f'/{self.name}/pipeline/export', PipelineExportHandler),
-            (f'/{self.name}/pipeline/runtimes/types', PipelineRuntimeTypesHandler),
-            (f'/{self.name}/pipeline/schedule', PipelineSchedulerHandler),
-            (f'/{self.name}/pipeline/validate', PipelineValidationHandler),
-
-        ])
+        self.handlers.extend(
+            [
+                # API
+                (f"/{self.name}/{YamlSpecHandler.get_resource_metadata()[0]}", YamlSpecHandler),
+                # Content
+                (f"/{self.name}/contents/properties{path_regex}", ContentHandler),
+                # Metadata
+                (f"/{self.name}/metadata/{schemaspace_regex}", MetadataHandler),
+                (f"/{self.name}/metadata/{schemaspace_regex}/{resource_regex}", MetadataResourceHandler),
+                (f"/{self.name}/schema/{schemaspace_regex}", SchemaHandler),
+                (f"/{self.name}/schema/{schemaspace_regex}/{resource_regex}", SchemaResourceHandler),
+                (f"/{self.name}/schemaspace", SchemaspaceHandler),
+                (f"/{self.name}/schemaspace/{schemaspace_regex}", SchemaspaceResourceHandler),
+                # Pipeline
+                (f"/{self.name}/pipeline/components/cache", ComponentCacheHandler),
+                (f"/{self.name}/pipeline/components/cache/{catalog_regex}", ComponentCacheCatalogHandler),
+                (f"/{self.name}/pipeline/components/{processor_regex}", PipelineComponentHandler),
+                (
+                    f"/{self.name}/pipeline/components/{processor_regex}/{component_regex}",
+                    PipelineComponentPropertiesHandler,
+                ),
+                (
+                    f"/{self.name}/pipeline/components/{processor_regex}/{component_regex}/properties",
+                    PipelineComponentPropertiesHandler,
+                ),
+                (f"/{self.name}/pipeline/export", PipelineExportHandler),
+                (f"/{self.name}/pipeline/runtimes/types", PipelineRuntimeTypesHandler),
+                (f"/{self.name}/pipeline/schedule", PipelineSchedulerHandler),
+                (f"/{self.name}/pipeline/validate", PipelineValidationHandler),
+            ]
+        )
 
     def initialize_settings(self):
-        self.log.info('Config {}'.format(self.config))
+        self.log.info(f"Config {self.config}")
         # Instantiate singletons with appropriate parent to enable configurability, and convey
         # root_dir to PipelineProcessorManager.
-        PipelineProcessorRegistry.instance(root_dir=self.settings['server_root_dir'], parent=self)
-        PipelineProcessorManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
-        PipelineValidationManager.instance(root_dir=self.settings['server_root_dir'], parent=self)
+        PipelineProcessorRegistry.instance(root_dir=self.settings["server_root_dir"], parent=self)
+        PipelineProcessorManager.instance(root_dir=self.settings["server_root_dir"], parent=self)
+        PipelineValidationManager.instance(root_dir=self.settings["server_root_dir"], parent=self)
         FileMetadataCache.instance(parent=self)
+        ComponentCache.instance(parent=self).load()
         SchemaManager.instance(parent=self)
 
     def initialize_templates(self):
         pass
+
+    async def stop_extension(self):
+        if ComponentCache.initialized():
+            ComponentCache.instance(parent=self).cache_manager.stop()  # terminate CacheUpdateManager
 
 
 launch_instance = ElyraApp.launch_instance

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ interface IMetadataEditorTagProps {
 interface IMetadataEditorTagState {
   selectedTags: string[];
   tags: string[];
-  plusIconShouldHide: boolean;
   addingNewTag: boolean;
 }
 
@@ -48,7 +47,6 @@ export class MetadataEditorTags extends React.Component<
     this.state = {
       selectedTags: [],
       tags: [],
-      plusIconShouldHide: false,
       addingNewTag: false
     };
     this.renderTags = this.renderTags.bind(this);
@@ -59,7 +57,6 @@ export class MetadataEditorTags extends React.Component<
     this.setState({
       selectedTags: this.props.selectedTags ? this.props.selectedTags : [],
       tags: this.props.tags ? this.props.tags.sort() : [],
-      plusIconShouldHide: false,
       addingNewTag: false
     });
   }
@@ -112,7 +109,7 @@ export class MetadataEditorTags extends React.Component<
   }
 
   addTagOnClick(event: React.MouseEvent<HTMLInputElement>): void {
-    this.setState({ plusIconShouldHide: true, addingNewTag: true });
+    this.setState({ addingNewTag: true });
     const inputElement = event.target as HTMLInputElement;
     if (inputElement.value === 'Add Tag') {
       inputElement.value = '';
@@ -143,7 +140,6 @@ export class MetadataEditorTags extends React.Component<
         state => ({
           selectedTags: [...state.selectedTags, newTag],
           tags: [...state.tags, newTag],
-          plusIconShouldHide: false,
           addingNewTag: false
         }),
         this.handleOnChange
@@ -157,7 +153,7 @@ export class MetadataEditorTags extends React.Component<
     inputElement.style.width = '50px';
     inputElement.style.minWidth = '50px';
     inputElement.blur();
-    this.setState({ plusIconShouldHide: false, addingNewTag: false });
+    this.setState({ addingNewTag: false });
   }
 
   renderTags(): JSX.Element {

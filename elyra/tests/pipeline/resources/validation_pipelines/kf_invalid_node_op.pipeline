@@ -120,12 +120,12 @@
           },
           "comments": []
         },
-        "version": 5,
-        "runtime": "kfp",
+        "version": 6,
         "properties": {
           "name": "kf_invalid_node_op",
           "runtime": "Kubeflow Pipelines"
-        }
+        },
+        "runtime_type": "KUBEFLOW_PIPELINES"
       },
       "runtime_ref": ""
     }

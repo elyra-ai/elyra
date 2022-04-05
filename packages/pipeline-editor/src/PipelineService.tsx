@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,11 @@ export interface ISchema {
   runtime_type: string;
 }
 
+interface IComponentDef {
+  content: string;
+  mimeType: string;
+}
+
 enum ContentType {
   notebook = 'execute-notebook-node',
   python = 'execute-python-node',
@@ -70,7 +75,7 @@ export class PipelineService {
     const res = await RequestHandler.makeGetRequest(
       'elyra/pipeline/runtimes/types'
     );
-    return res.runtime_types;
+    return res.runtime_types.sort((a: any, b: any) => a.id.localeCompare(b.id));
   }
 
   /**
@@ -123,6 +128,28 @@ export class PipelineService {
     }
   }
 
+  static async getComponentDef(
+    type = 'local',
+    componentID: string
+  ): Promise<IComponentDef> {
+    return await RequestHandler.makeGetRequest<IComponentDef>(
+      `elyra/pipeline/components/${type}/${componentID}`
+    );
+  }
+
+  /**
+   * Submit a request to refresh the component cache. If catalogName is given
+   * only refreshes the given catalog
+   *
+   * @param catalogName
+   */
+  static async refreshComponentsCache(catalogName?: string): Promise<void> {
+    return await RequestHandler.makePutRequest(
+      `elyra/pipeline/components/cache${catalogName ? '/' + catalogName : ''}`,
+      JSON.stringify({ action: 'refresh' })
+    );
+  }
+
   /**
    * Creates a Dialog for passing to makeServerRequest
    */
@@ -159,7 +186,7 @@ export class PipelineService {
         dialogTitle = 'Job submission to ' + runtimeName + ' succeeded';
         dialogBody = (
           <p>
-            {response['platform'] == 'APACHE_AIRFLOW' ? (
+            {response['platform'] === 'APACHE_AIRFLOW' ? (
               <p>
                 Apache Airflow DAG has been pushed to the{' '}
                 <a
@@ -167,7 +194,7 @@ export class PipelineService {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  GitHub Repository.
+                  Git repository.
                 </a>
                 <br />
               </p>

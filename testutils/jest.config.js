@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,14 @@ const reuseFromUpstream = [
   'moduleFileExtensions'
 ];
 
+const esModules = [
+  'lib0',
+  'y\\-protocols',
+  'y\\-websocket',
+  'yjs',
+  '(@jupyterlab/.*)/'
+].join('|');
+
 const local = {
   globals: { 'ts-jest': { tsConfig: 'tsconfig.json' } },
   // eslint-disable-next-line no-useless-escape
@@ -32,7 +40,7 @@ const local = {
     '\\.(js|jsx)?$': '../../testutils/transform.js',
     '\\.svg$': 'jest-raw-loader'
   },
-  transformIgnorePatterns: ['/node_modules/(?!(@jupyterlab/.*)/)'],
+  transformIgnorePatterns: [`/node_modules/(?!${esModules}).+`],
   moduleNameMapper: {
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot)$': '@jupyterlab/testutils/lib/jest-file-mock.js'

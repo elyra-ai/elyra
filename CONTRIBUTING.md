@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ is organized and other information that is pertinent to contributing.
 It's encouraged that you look under the [Issues](https://github.com/elyra-ai/elyra/issues) tab for contribution opportunites.
 For those new to the project, we suggest looking under:
 
-- Issues tagged as [Good First Use](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
+- Issues tagged as [Good First Issue](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
 - Issues tagged as [Help Wanted](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22help+wanted%22 )
 - Issues tagged as [Good First Project](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+project%22)
 

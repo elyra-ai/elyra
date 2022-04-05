@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -272,10 +272,12 @@ span.bx--list-box__label {
 .elyra-resourcesWrapper {
   display: flex;
   flex-direction: row;
+  position: relative;
+  height: 110px;
 }
 
 .elyra-resourceInput {
-  width: 12%;
+  width: 22%;
   display: flex;
   flex-direction: column;
   padding-right: 9px;
@@ -671,8 +673,31 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   height: auto;
 }
 
+.elyra-dialog-form {
+  max-width: 700px;
+}
+
 .elyra-dialog-form input[type='text'] {
   width: 100%;
+}
+
+.elyra-dialog-form input,
+.elyra-dialog-form select.jp-mod-styled {
+  border-radius: 4px;
+}
+
+.elyra-resourceInputDescription {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#cpu,
+#gpu,
+#memory {
+  position: absolute;
+  vertical-align: baseline;
+  bottom: 0;
+  width: 20%;
 }
 
 /* fix a Safari bug where button margins default to 2px */
@@ -756,6 +781,11 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   cursor: initial;
 }
 
+.elyra-PipelineEditor .elyra_categoryHeader .panel-label {
+  font-size: var(--jp-content-font-size2);
+  padding-left: 33px;
+}
+
 /* fix font ligatures */
 .lsp-completer-theme-vscode {
   letter-spacing: normal;
@@ -771,12 +801,20 @@ a {
   text-align: center;
 }
 
-.component-catalog-icon {
+h3.empty-pipeline-header {
+  font-size: var(--jp-content-font-size5);
+}
+
+h4.empty-pipeline-header {
+  font-size: var(--jp-content-font-size3);
+}
+
+.empty-pipeline-icon {
   display: inline-block;
   vertical-align: middle;
 }
 
-.open-component-catalog-button {
+.empty-pipeline-button {
   display: inline-block;
   vertical-align: middle;
   pointer-events: auto;
@@ -784,10 +822,14 @@ a {
   padding: 0;
   border: none;
   background: none;
-  color: #8897a2;
+  color: var(--jp-brand-color1);
 }
 
-.open-component-catalog-button:hover {
+.empty-pipeline-button:hover {
   background-color: var(--jp-layout-color2);
   cursor: pointer;
+}
+
+.empty-pipeline-button .jp-icon3[fill] {
+  fill: var(--jp-brand-color1);
 }

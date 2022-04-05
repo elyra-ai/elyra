@@ -312,7 +312,7 @@
           "runtime": null,
           "comments": []
         },
-        "version": 5,
+        "version": 7,
         "properties": {
           "name": "generic_double_cycle",
           "runtime": "Generic"

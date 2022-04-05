@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,28 +19,31 @@
 class MetadataNotFoundError(Exception):
     """Raised when a metadata instance is not found.
 
-       Overrides FileNotFoundError to set contextual message text
-       and includes the corresponding schemaspace.
+    Overrides FileNotFoundError to set contextual message text
+    and includes the corresponding schemaspace.
     """
+
     def __init__(self, schemaspace: str, name: str):
-        super().__init__("No such instance named '{}' was found in the {} schemaspace.".format(name, schemaspace))
+        super().__init__(f"No such instance named '{name}' was found in the {schemaspace} schemaspace.")
 
 
 class MetadataExistsError(Exception):
     """Raised when a metadata instance unexpectedly exists.
 
-       Overrides FileExistsError to set contextual message text
-       and includes the corresponding schemaspace.
+    Overrides FileExistsError to set contextual message text
+    and includes the corresponding schemaspace.
     """
+
     def __init__(self, schemaspace: str, name: str):
-        super().__init__("An instance named '{}' already exists in the {} schemaspace.".format(name, schemaspace))
+        super().__init__(f"An instance named '{name}' already exists in the {schemaspace} schemaspace.")
 
 
 class SchemaNotFoundError(Exception):
     """Raised when a schema instance is not found.
 
-       Overrides FileNotFoundError to set contextual message text
-       and includes the corresponding schemaspace.
+    Overrides FileNotFoundError to set contextual message text
+    and includes the corresponding schemaspace.
     """
+
     def __init__(self, schemaspace: str, name: str):
-        super().__init__("No such schema named '{}' was found in the {} schemaspace.".format(name, schemaspace))
+        super().__init__(f"No such schema named '{name}' was found in the {schemaspace} schemaspace.")

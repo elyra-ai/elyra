@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,10 @@
 .elyra-metadataHeader-button:hover {
   background-color: var(--jp-layout-color2);
   cursor: pointer;
+}
+
+.elyra-metadataHeader-button.MuiButtonGroup-groupedTextHorizontal:not(:last-child) {
+  border-right: none;
 }
 
 .elyra-metadataHeader [fill] {
@@ -119,7 +123,7 @@
 .elyra-metadataEditor
   .elyra-metadataEditor-arrayInput
   li:not(.elyra-metadataEditor-arrayItemEditor)
-  .elyra-MuiInputBase-formControl {
+  .elyra-elyra-metadataHeaderMuiInputBase-formControl {
   background-color: var(--jp-border-color3);
 }
 
@@ -346,9 +350,6 @@ input.elyra-inputTag {
   width: 80px;
   height: 15px;
 }
-
-/* Cell tag styling */
-@import url('~@jupyterlab/celltags/style/base.css');
 
 .elyra-tags {
   margin-top: 8px;

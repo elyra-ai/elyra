@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:experimental
 #
-# Copyright 2018-2021 Elyra Authors
+# Copyright 2018-2022 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,26 +15,31 @@
 # limitations under the License.
 #
 
-# Ubuntu 18.04 LTS - Bionic
+# Ubuntu 20.04.2 LTS (Focal Fossa)
 # Repository: https://hub.docker.com/r/jupyterhub/k8s-singleuser-sample/tags
 FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
 ARG TAG="dev"
 
-USER root
+COPY requirements.txt .
 
-ADD start-elyra.sh /usr/local/bin/start-elyra.sh
+# Install Elyra and custom requirements
+RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
+    elyra[all]=="$TAG" \
+ && python3 -m pip install -r requirements.txt \   
+ && rm -rf $HOME/.cache/yarn \
+ && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules \
+ && rm requirements.txt
 
-RUN chmod ugo+x /usr/local/bin/start-elyra.sh
+# Install component examples catalogs
+#  - this wail fail if the 'kfp-examples' pip extra is not installed
+RUN elyra-metadata create component-catalogs \
+    --schema_name=elyra-kfp-examples-catalog  \
+    --display_name="Kubeflow Pipelines examples" \
+    --runtime_type=KUBEFLOW_PIPELINES \
+    --categories="['examples']"
 
-USER $NB_USER
-
-RUN python -m pip install --upgrade pandas numpy && \
-    python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver elyra[all]=="$TAG" && \
-    jupyter lab build
-
-# Comment out to hide the component examples for Kubeflow Pipelines and Apache Airflow
-RUN elyra-metadata install component-catalogs --schema_name=elyra-airflow-examples-catalog --display_name="Apache Airflow examples" --runtime_type=APACHE_AIRFLOW --categories="['examples']" && \
-    elyra-metadata install component-catalogs --schema_name=elyra-kfp-examples-catalog --display_name="Kubeflow Pipelines examples" --runtime_type=KUBEFLOW_PIPELINES --categories="['examples']"
+# Copy Elyra entrypoint
+COPY --chmod=0755 --chown=root:root start-elyra.sh /usr/local/bin/start-elyra.sh
 
 CMD ["/usr/local/bin/start-elyra.sh"]

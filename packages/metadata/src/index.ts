@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       const openWidget = find(
         app.shell.widgets('main'),
         (widget: Widget, index: number) => {
-          return widget.id == widgetId;
+          return widget.id === widgetId;
         }
       );
       if (openWidget) {
@@ -94,6 +94,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataEditorWidget.title.icon = textEditorIcon;
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
       metadataEditorWidget.titleContext = args.titleContext;
+      // TODO: add back MainAreaWidget for styling purposes
+      // const main = new MainAreaWidget({ content: metadataEditorWidget });
       app.shell.add(metadataEditorWidget, 'main');
     };
 
@@ -122,7 +124,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       metadataWidget.title.caption = args.display_name;
 
       if (
-        find(app.shell.widgets('left'), value => value.id === widgetId) ==
+        find(app.shell.widgets('left'), value => value.id === widgetId) ===
         undefined
       ) {
         app.shell.add(metadataWidget, 'left', { rank: 1000 });

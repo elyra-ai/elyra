@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ScriptEditorFactory, ScriptEditor } from '@elyra/script-editor';
+import { ScriptEditorWidgetFactory, ScriptEditor } from '@elyra/script-editor';
 import { rIcon } from '@elyra/ui-components';
 
 import {
@@ -24,7 +24,11 @@ import {
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-import { IDocumentWidget } from '@jupyterlab/docregistry';
+import {
+  IDocumentWidget,
+  DocumentRegistry,
+  DocumentWidget
+} from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -33,12 +37,14 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import { JSONObject } from '@lumino/coreutils';
 
+import { REditor } from './REditor';
+
 const R_FACTORY = 'R Editor';
 const R = 'r';
 const R_EDITOR_NAMESPACE = 'elyra-r-script-editor-extension';
 
 const commandIDs = {
-  createNewRFile: 'script-editor:create-new-r-file',
+  createNewREditor: 'script-editor:create-new-r-editor',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
 };
@@ -70,13 +76,19 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - r-editor extension is activated!');
 
-    const factory = new ScriptEditorFactory({
+    const factory = new ScriptEditorWidgetFactory({
       editorServices,
       factoryOptions: {
         name: R_FACTORY,
         fileTypes: [R],
         defaultFor: [R]
-      }
+      },
+      instanceCreator: (
+        options: DocumentWidget.IOptions<
+          FileEditor,
+          DocumentRegistry.ICodeModel
+        >
+      ): ScriptEditor => new REditor(options)
     });
 
     app.docRegistry.addFileType({
@@ -91,7 +103,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const { restored } = app;
 
     /**
-     * Track ScriptEditor widget on page refresh
+     * Track REditor widget on page refresh
      */
     const tracker = new WidgetTracker<ScriptEditor>({
       namespace: R_EDITOR_NAMESPACE
@@ -186,13 +198,13 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     /**
-     * Create new r file from launcher and file menu
+     * Create new r editor from launcher and file menu
      */
 
     // Add a r launcher
     if (launcher) {
       launcher.add({
-        command: commandIDs.createNewRFile,
+        command: commandIDs.createNewREditor,
         category: 'Elyra',
         rank: 5
       });
@@ -201,8 +213,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (menu) {
       // Add new r file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
-        [{ command: commandIDs.createNewRFile, args: { isMenu: true } }],
-        34
+        [{ command: commandIDs.createNewREditor, args: { isMenu: true } }],
+        93
       );
     }
 
@@ -222,15 +234,10 @@ const extension: JupyterFrontEndPlugin<void> = {
         });
     };
 
-    // Add a command to create new R file
-    app.commands.addCommand(commandIDs.createNewRFile, {
-      label: args =>
-        args['isPalette']
-          ? 'New R Editor'
-          : args.isMenu
-          ? 'R File'
-          : 'R Editor',
-      caption: 'Create a new R file',
+    // Add a command to create new R editor
+    app.commands.addCommand(commandIDs.createNewREditor, {
+      label: args => (args['isPalette'] ? 'New R Editor' : 'R Editor'),
+      caption: 'Create a new R Editor',
       icon: args => (args['isPalette'] ? undefined : rIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
@@ -239,7 +246,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     palette.addItem({
-      command: commandIDs.createNewRFile,
+      command: commandIDs.createNewREditor,
       args: { isPalette: true },
       category: 'Elyra'
     });

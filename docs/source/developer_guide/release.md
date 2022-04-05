@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ In order to perform a release, one will need to have publish access to
   - [elyra-python-editor-extension](https://pypi.org/manage/project/elyra-python-editor-extension/collaboration/)
   - [elyra-pipeline-editor-extension](https://pypi.org/manage/project/elyra-pipeline-editor-extension/collaboration/)
   - [elyra-code-snippet-extension](https://pypi.org/manage/project/elyra-code-snippet-extension/collaboration/)
+  - [elyra-code-viewer-extension](https://pypi.org/manage/project/elyra-code-viewer-extension/collaboration/)
   - [kfp-notebook](https://pypi.org/manage/project/kfp-notebook/collaboration/)
   - [airflow-notebook](https://pypi.org/manage/project/airflow-notebook/collaboration/)
 - Npm
@@ -157,6 +158,7 @@ create-release.py prepare --version 2.0.0 --dev-version 2.1.0 [--rc 0][--beta 0]
 ```bash
 elyra
 elyra-code-snippet-extension
+elyra-code-viewer-extension
 elyra-pipeline-editor-extension
 elyra-python-editor-extension
 elyra-r-editor-extension
@@ -199,6 +201,7 @@ docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && d
   - https://github.com/conda-forge/elyra-feedstock/pulls
   - https://github.com/conda-forge/elyra-server-feedstock/pulls
   - https://github.com/conda-forge/elyra-code-snippet-extension-feedstock/pulls
+  - https://github.com/conda-forge/elyra-code-viewer-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-pipeline-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-r-editor-extension-feedstock/pulls

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,14 +42,14 @@ describe('Code Snippet tests', () => {
     createInvalidCodeSnippet(snippetName);
 
     // Metadata editor should not close
-    cy.get(
-      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
-    ).should('be.visible');
+    cy.get('.lm-TabBar-tabLabel')
+      .contains('New Code Snippet')
+      .should('be.visible');
 
     // Fields marked as required should be highlighted
-    cy.get('.elyra-MuiFormHelperText-root.elyra-Mui-error').as(
-      'required-warnings'
-    );
+    cy.get(
+      '.elyra-MuiFormHelperText-root.elyra-Mui-error, .MuiFormHelperText-root.Mui-error'
+    ).as('required-warnings');
     cy.get('@required-warnings').should('have.length', 2);
   });
 
@@ -57,9 +57,9 @@ describe('Code Snippet tests', () => {
     createValidCodeSnippet(snippetName);
 
     // Metadata editor tab should not be visible
-    cy.get(
-      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
-    ).should('not.exist');
+    cy.get('.lm-TabBar-tabLabel')
+      .contains('New Code Snippet')
+      .should('not.exist');
 
     // Check new code snippet is displayed
     getSnippetByName(snippetName);
@@ -85,9 +85,9 @@ describe('Code Snippet tests', () => {
     cy.get('.elyra-metadataEditor-form-display_name').type('{enter}');
 
     // Metadata editor tab should not be visible
-    cy.get(
-      'li.lm-TabBar-tab[data-id="elyra-metadata-editor:code-snippets:code-snippet:new"]'
-    ).should('not.exist');
+    cy.get('.lm-TabBar-tabLabel')
+      .contains('New Code Snippet')
+      .should('not.exist');
 
     // Check new code snippet is displayed
     getSnippetByName(snippetName);
@@ -104,16 +104,47 @@ describe('Code Snippet tests', () => {
     deleteSnippet(snippetName);
   });
 
+  // Duplicate snippet
+  it('should duplicate existing Code Snippet', () => {
+    createValidCodeSnippet(snippetName);
+    cy.wait(500);
+    let snippetRef = getSnippetByName(snippetName);
+    expect(snippetRef).to.not.be.null;
+
+    // create a duplicate of this snippet
+    duplicateSnippet(snippetName);
+    cy.wait(100);
+    snippetRef = getSnippetByName(`${snippetName}-Copy1`);
+    expect(snippetRef).to.not.be.null;
+
+    // create another duplicate of this snippet
+    duplicateSnippet(snippetName);
+    cy.wait(100);
+    snippetRef = getSnippetByName(`${snippetName}-Copy2`);
+    expect(snippetRef).to.not.be.null;
+
+    // cleanup
+    deleteSnippet(snippetName);
+    deleteSnippet(`${snippetName}-Copy1`);
+    deleteSnippet(`${snippetName}-Copy2`);
+  });
+
   it('should have visible action buttons for existing code snippet', () => {
     createValidCodeSnippet(snippetName);
 
     const actionButtons = getActionButtonsElement(snippetName);
-    const buttonTitles = ['Copy', 'Insert', 'Edit', 'Delete'];
+    const buttonTitles = [
+      'Copy to clipboard',
+      'Insert',
+      'Edit',
+      'Duplicate',
+      'Delete'
+    ];
 
     // Check expected buttons to be visible
     buttonTitles.forEach((title: string) => {
       actionButtons.within(() => {
-        cy.get(`button[title=${title}]`).should('be.visible');
+        cy.get(`button[title="${title}"]`).should('be.visible');
       });
     });
   });
@@ -187,6 +218,43 @@ describe('Code Snippet tests', () => {
     cy.wait(100);
   });
 
+  it('should insert a python code snippet into python editor', () => {
+    createValidCodeSnippet(snippetName);
+
+    // Open blank python file
+    cy.createNewScriptEditor('Python');
+
+    cy.wait(1500);
+
+    // Insert snippet into python editor
+    insert(snippetName);
+
+    // Check if editor has the new code
+    cy.get('.CodeMirror:visible');
+    cy.get('span.cm-string').contains(/test/i);
+  });
+
+  it('should fail to insert a java code snippet into python editor', () => {
+    createValidCodeSnippet(snippetName, 'Java');
+
+    // Open blank python file
+    cy.createNewScriptEditor('Python');
+
+    cy.wait(500);
+
+    // Insert snippet into python editor
+    insert(snippetName);
+
+    // Check for language mismatch warning
+    cy.get('.jp-Dialog-header').contains(/warning/i);
+    // Dismiss the dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Check it did not insert the code
+    cy.get('.CodeMirror:visible');
+    cy.get('span.cm-string').should('not.exist');
+  });
+
   // DEV NOTE: Uncomment the tests below to run them locally
   // TODO: Investigate tests below only failing on CI
   // Steps: checkCodeMirror, closeTabWithoutSaving
@@ -219,50 +287,6 @@ describe('Code Snippet tests', () => {
   //   closeTabWithoutSaving();
   //   // NOTE: Save dialog isn't visible when this test runs on CI
   // });
-
-  //   it('Test inserting a code snippet into a python editor', () => {
-  //     openCodeSnippetExtension();
-  //     clickCreateNewSnippetButton();
-
-  //     const snippetName = 'test-code-snippet';
-  //     fillMetadaEditorForm(snippetName);
-
-  //     cy.wait(500);
-
-  //     // Open blank python file
-  //     cy.get(
-  //       '.jp-LauncherCard[title="Create a new python file"]:visible'
-  //     ).click();
-
-  //     cy.wait(500);
-
-  //     // Check widget is loaded
-  //     cy.get('.CodeMirror:visible');
-
-  //     insert(snippetName);
-
-  //     // Check if python editor has the new code
-  //     checkCodeMirror();
-
-  //     // Edit snippet language
-  //     getActionButtonsElement(snippetName).within(() => {
-  //       cy.get('button[title="Edit"]').click();
-  //     });
-  //     cy.wait(100);
-  //     editSnippetLanguage(snippetName, 'Java');
-  //     saveAndCloseMetadataEditor();
-
-  //     cy.wait(500);
-
-  //     insert(snippetName);
-
-  //     // Check for language mismatch warning
-  //     cy.get('.jp-Dialog-header').contains('Warning');
-  //     cy.get('button.jp-mod-accept').click();
-  //     cy.wait(100);
-
-  //     closeTabWithoutSaving();
-  //   });
 
   //   it('Test inserting a code snippet into a markdown file', () => {
   //     openCodeSnippetExtension();
@@ -319,14 +343,17 @@ const createInvalidCodeSnippet = (snippetName: string): any => {
   saveAndCloseMetadataEditor();
 };
 
-const populateCodeSnippetFields = (snippetName: string): any => {
+const populateCodeSnippetFields = (
+  snippetName: string,
+  language?: string
+): any => {
   clickCreateNewSnippetButton();
 
   // Name code snippet
   cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
 
   // Select python language from dropdown list
-  editSnippetLanguage(snippetName, 'Python');
+  editSnippetLanguage(snippetName, language ?? 'Python');
 
   // Add snippet code
   cy.get('.CodeMirror .CodeMirror-scroll:visible').type(
@@ -334,8 +361,11 @@ const populateCodeSnippetFields = (snippetName: string): any => {
   );
 };
 
-const createValidCodeSnippet = (snippetName: string): any => {
-  populateCodeSnippetFields(snippetName);
+const createValidCodeSnippet = (
+  snippetName: string,
+  language?: string
+): any => {
+  populateCodeSnippetFields(snippetName, language);
 
   saveAndCloseMetadataEditor();
 
@@ -360,6 +390,14 @@ const deleteSnippet = (snippetName: string): void => {
   // Confirm action in dialog
   cy.get('.jp-Dialog-header').contains(`Delete snippet '${snippetName}'?`);
   cy.get('button.jp-mod-accept').click();
+};
+
+const duplicateSnippet = (snippetName: string): void => {
+  // Find element by name
+  const item = getSnippetByName(snippetName);
+
+  // Click duplicate button
+  item.find('button[title="Duplicate"]').click();
 };
 
 const getActionButtonsElement = (snippetName: string): any => {

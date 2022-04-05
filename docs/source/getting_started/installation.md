@@ -1,6 +1,6 @@
-<!--
+  <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 - `elyra` - install the Elyra core features
 - `elyra[all]` - install core features and all dependencies
 - `elyra[kfp-tekton]` - install the Elyra core features and support for [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton)
+- `elyra[gitlab]` - install the Elyra core features and GitLab support for Apache Airflow pipelines
 - `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
-- `elyra[airflow-examples]` - install the Elyra core features and [Apache Airflow custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector)
 
 ### pip
 
@@ -50,7 +50,7 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 If you use `pip`, install Elyra with:
 
 ```bash
-pip3 install --upgrade elyra[all] && jupyter lab build
+pip3 install --upgrade elyra[all]
 ```
 
 If desired, you can install these Elyra extensions independently:
@@ -58,25 +58,31 @@ If desired, you can install these Elyra extensions independently:
 - [Pipeline Editor](https://pypi.org/project/elyra-pipeline-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-pipeline-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-pipeline-editor-extension
    ```
 
 - [Code Snippets](https://pypi.org/project/elyra-code-snippet-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-code-snippet-extension && jupyter lab build
+   pip3 install --upgrade elyra-code-snippet-extension
+   ```
+
+- [Code Viewer](https://pypi.org/project/elyra-code-viewer-extension/)
+
+   ```bash
+   pip3 install --upgrade elyra-code-viewer-extension
    ```
 
 - [Python Editor](https://pypi.org/project/elyra-python-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-python-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-python-editor-extension
    ```
 
 - [R Editor](https://pypi.org/project/elyra-r-editor-extension/)
 
    ```bash
-   pip3 install --upgrade elyra-r-editor-extension && jupyter lab build
+   pip3 install --upgrade elyra-r-editor-extension
    ```
 
 ### conda
@@ -84,28 +90,32 @@ If desired, you can install these Elyra extensions independently:
 If you use `conda`, install Elyra with:
 
 ```bash
-conda install -c conda-forge elyra[all] && jupyter lab build
+conda install -c conda-forge elyra[all]
 ```
 
 **NOTE:**
 The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton) dependency [is no longer installed by default](https://github.com/elyra-ai/elyra/pull/2043). To install this dependency, you must specify `elyra[all]` or `elyra[kfp-tekton]`.
 
-You can also install the Pipeline editor, Code Snippet, or Script editor extensions individually:
+You can also install the Pipeline editor, Code Snippet, Code Viewer, or Script editor extensions individually:
 
 ```bash
-conda install -c conda-forge elyra-pipeline-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-pipeline-editor-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-code-snippet-extension && jupyter lab build
+conda install -c conda-forge elyra-code-snippet-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-python-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-code-viewer-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-r-editor-extension && jupyter lab build
+conda install -c conda-forge elyra-python-editor-extension
+```
+
+```bash
+conda install -c conda-forge elyra-r-editor-extension
 ```
 
 **NOTE:** The R Editor extension is not yet available on `conda-forge` or `pip` package manager.
@@ -123,25 +133,6 @@ To verify an Elyra installation review the installed server extensions and lab e
 Verify that the `elyra` extension is installed.
 
 ```bash
-jupyter serverextension list
-```
-
-Should output:
-
-```
-config dir: /.../etc/jupyter
-    jupyter_resource_usage  enabled 
-    - Validating...
-      jupyter_resource_usage  OK
-    jupyterlab  enabled 
-    - Validating...
-      jupyterlab [version] OK
-    nbdime  enabled 
-    - Validating...
-      nbdime [version] OK
-```
-
-```
 jupyter server extension list
 ```
 
@@ -153,13 +144,16 @@ Config dir: /.../.jupyter
 Config dir: /.../etc/jupyter
     elyra enabled
     - Validating elyra...
-      elyra [version] OK
+      elyra  OK
     jupyter_lsp enabled
     - Validating jupyter_lsp...
       jupyter_lsp [version] OK
     jupyter_resource_usage enabled
     - Validating jupyter_resource_usage...
-      jupyter_resource_usage  OK
+      jupyter_resource_usage [version] OK
+    jupyter_server_mathjax enabled
+    - Validating jupyter_server_mathjax...
+      jupyter_server_mathjax  OK
     jupyterlab enabled
     - Validating jupyterlab...
       jupyterlab [version] OK
@@ -191,19 +185,20 @@ Should output:
 ```
 JupyterLab [version]
 /.../share/jupyter/labextensions
+        nbdime-jupyterlab [version] enabled OK
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
-        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
-
-Other labextensions (built into JupyterLab)
-   app dir: /.../share/jupyter/lab
         @elyra/code-snippet-extension [version] enabled OK
+        @elyra/code-viewer-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK
         @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
-        nbdime-jupyterlab [version] enabled OK 
+        @jupyterlab/git [version] enabled OK (python, jupyterlab-git)
+
+Other labextensions (built into JupyterLab)
+   app dir: /.../share/jupyter/lab
 ```
 
 ### Docker 
@@ -230,19 +225,19 @@ docker pull quay.io/elyra/elyra:dev
 
 #### Running Elyra container images
 
-Invocation example 1: Run the most recent Elyra development build in a Docker container. All changes are discarded when the Docker container is stopped.
+Invocation example 1: Run Elyra v3.3.0 in a Docker container. All changes are discarded when the Docker container is stopped.
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:3.3.0 jupyter lab --debug
 ```
 
-Invocation example 2: Run the most recent Elyra development build in a Docker container and mount the existing local `$HOME/jupyter-notebooks/` directory as JupyterLab work directory. This enables you to make existing notebooks and other files available in the Docker container. Only files in this working directory are retained when the Docker container is stopped. 
+Invocation example 2: Run Elyra v3.3.0 in a Docker container and mount the existing local `$HOME/jupyter-notebooks/` directory as JupyterLab work directory. This enables you to make existing notebooks and other files available in the Docker container. Only files in this working directory are retained when the Docker container is stopped. 
 
 ```
 docker run -it -p 8888:8888\
  -v ${HOME}/jupyter-notebooks/:/home/jovyan/work\
  -w /home/jovyan/work\
- elyra/elyra:dev jupyter lab --debug
+ elyra/elyra:3.3.0 jupyter lab --debug
 ```
 
 Invocation example 3: Same as above. In addition a local directory named `${HOME}/jupyter-data-dir` is mounted as the Jupyter data directory in the Docker container, storing all user-defined Elyra metadata artifacts you might create, such as code snippets, runtime configurations, or runtime images.
@@ -254,7 +249,7 @@ docker run -it -p 8888:8888\
  -v ${HOME}/jupyter-notebooks/:/home/jovyan/work\
  -w /home/jovyan/work\
  -v ${HOME}/jupyter-data-dir:/home/jovyan/.local/share/jupyter\
- elyra/elyra:dev jupyter lab --debug
+ elyra/elyra:3.3.0 jupyter lab --debug
 ```
 
 Open the displayed URL in your browser to start using JupyterLab and Elyra.

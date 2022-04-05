@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,38 @@ import '@testing-library/cypress/add-commands';
 
 import './../utils/snapshots/add-commands';
 
-// TODO: we shouldn't have to fill out the form for any test that isn't specifically
-// testing filling out forms.
+Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
+  const kfpRuntimeInstallCommand =
+    'elyra-metadata create runtimes \
+  --schema_name=kfp \
+  --display_name="KFP Test Runtime" \
+  --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+  --cos_endpoint=http://0.0.0.0:9000 \
+  --cos_username=minioadmin \
+  --cos_password=minioadmin \
+  --cos_bucket=test-bucket';
+
+  const airflowRuntimeInstallCommand =
+    'elyra-metadata create runtimes \
+  --schema_name=airflow \
+  --display_name="Airflow Test Runtime" \
+  --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+  --github_repo=akchinstc/test-repo \
+  --github_branch=main \
+  --github_repo_token=xxxxxxxx \
+  --github_api_endpoint=https://api.github.com \
+  --cos_endpoint=http://0.0.0.0:9000 \
+  --cos_username=minioadmin \
+  --cos_password=minioadmin \
+  --cos_bucket=test-bucket';
+
+  cy.exec(
+    type === 'kfp' ? kfpRuntimeInstallCommand : airflowRuntimeInstallCommand,
+    { failOnNonZeroExit: false }
+  );
+});
+
+// Only used for testing filling out form for runtime metadata editor
 Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByRole('tab', { name: /runtimes/i }).click();
   cy.findByRole('button', { name: /create new runtime/i }).click();
@@ -30,7 +60,7 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
     cy.findByRole('menuitem', { name: /apache airflow/i }).click();
   }
 
-  cy.findByLabelText(/^name/i).type('Test Runtime');
+  cy.findByLabelText(/^name/i).type(`${type} Test Runtime`);
 
   if (type === 'kfp') {
     cy.findByLabelText(/kubeflow .* endpoint \*/i).type(
@@ -42,7 +72,7 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
     );
     cy.findByLabelText(/github .* repository \*/i).type('akchinstc/test-repo');
     cy.findByLabelText(/github .* branch/i).type('main');
-    cy.findByLabelText(/github .* token/i).type('xxxxxxxx');
+    cy.findByLabelText(/personal access token/i).type('xxxxxxxx');
     // Check the default value is displayed on github api endpoint field
     cy.findByLabelText(/github .* endpoint/i).should(
       'have.value',
@@ -54,6 +84,38 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByLabelText(/object storage username/i).type('minioadmin');
   cy.findByLabelText(/object storage password/i).type('minioadmin');
   cy.findByLabelText(/object storage bucket/i).type('test-bucket');
+
+  // save it
+  cy.findByRole('button', { name: /save/i }).click();
+
+  // reset runtimes widget
+  cy.findByRole('tab', { name: /runtimes/i }).click();
+});
+
+Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
+  cy.on('fail', e => {
+    console.error(
+      `Example catalog connectors do not appear to be installed.\n${e}`
+    );
+    throw new Error(
+      `Example catalog connectors do not appear to be installed.\n${e}`
+    );
+  });
+
+  cy.findByRole('tab', { name: /component catalogs/i }).click();
+  cy.findByRole('button', { name: /create new component catalog/i }).click();
+
+  if (type === 'kfp') {
+    cy.findByRole('menuitem', {
+      name: /new kubeflow pipelines example components catalog/i
+    }).click();
+  } else {
+    cy.findByRole('menuitem', {
+      name: /new apache airflow example components catalog/i
+    }).click();
+  }
+
+  cy.findByLabelText(/^name/i).type('Example Components');
 
   // save it
   cy.findByRole('button', { name: /save/i }).click();
@@ -157,22 +219,14 @@ Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
   cy.get('[aria-label="Canvas"]').click({ force: true });
 });
 
-Cypress.Commands.add('expandPaletteCategory', ({ type } = {}): void => {
-  switch (type) {
-    case 'kfp':
-      cy.get('.palette-flyout-category[value="Preloaded KFP"]').click();
-      break;
-    case 'airflow':
-      cy.get('.palette-flyout-category[value="Preloaded Airflow"]').click();
-      break;
-    default:
-      cy.get('.palette-flyout-category[value="Elyra"]').click();
-      break;
-  }
-});
-
 Cypress.Commands.add('closeTab', (index: number): void => {
   cy.get('.lm-TabBar-tabCloseIcon:visible')
     .eq(index)
     .click();
+});
+
+Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
+  cy.get(
+    `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
+  ).click();
 });

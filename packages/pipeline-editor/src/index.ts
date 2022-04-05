@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 Elyra Authors
+ * Copyright 2018-2022 Elyra Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { MetadataWidget } from '@elyra/metadata-common';
 import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
 import { RequestHandler } from '@elyra/services';
 import {
@@ -39,8 +38,18 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-import { addIcon, LabIcon } from '@jupyterlab/ui-components';
+import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import {
+  addIcon,
+  IRankedMenu,
+  LabIcon,
+  refreshIcon
+} from '@jupyterlab/ui-components';
 
+import {
+  COMPONENT_CATALOGS_SCHEMASPACE,
+  ComponentCatalogsWidget
+} from './ComponentCatalogsWidget';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
 import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
 import {
@@ -55,7 +64,7 @@ import '../style/index.css';
 const PIPELINE_EDITOR = 'Pipeline Editor';
 const PIPELINE = 'pipeline';
 const PIPELINE_EDITOR_NAMESPACE = 'elyra-pipeline-editor-extension';
-const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
+const PLUGIN_ID = '@elyra/pipeline-editor-extension:plugin';
 
 const createRemoteIcon = async ({
   name,
@@ -82,19 +91,26 @@ const extension: JupyterFrontEndPlugin<void> = {
     ILauncher,
     IFileBrowserFactory,
     ILayoutRestorer,
-    IMainMenu
+    IMainMenu,
+    ISettingRegistry
   ],
   optional: [IThemeManager],
-  activate: (
+  activate: async (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     launcher: ILauncher,
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
     menu: IMainMenu,
+    registry: ISettingRegistry,
     themeManager?: IThemeManager
   ) => {
     console.log('Elyra - pipeline-editor extension is activated!');
+
+    // Fetch the initial state of the settings.
+    const settings = await registry
+      .load(PLUGIN_ID)
+      .catch(error => console.log(error));
 
     // Set up new widget Factory for .pipeline files
     const pipelineEditorFactory = new PipelineEditorFactory({
@@ -104,16 +120,20 @@ const extension: JupyterFrontEndPlugin<void> = {
       shell: app.shell,
       commands: app.commands,
       browserFactory: browserFactory,
-      serviceManager: app.serviceManager
+      serviceManager: app.serviceManager,
+      settings: settings
     });
 
     // Add the default behavior of opening the widget for .pipeline files
-    app.docRegistry.addFileType({
-      name: PIPELINE,
-      displayName: 'Pipeline',
-      extensions: ['.pipeline'],
-      icon: pipelineIcon
-    });
+    app.docRegistry.addFileType(
+      {
+        name: PIPELINE,
+        displayName: 'Pipeline',
+        extensions: ['.pipeline'],
+        icon: pipelineIcon
+      },
+      ['JSON']
+    );
     app.docRegistry.addWidgetFactory(pipelineEditorFactory);
 
     const tracker = new WidgetTracker<DocumentWidget>({
@@ -146,6 +166,14 @@ const extension: JupyterFrontEndPlugin<void> = {
       icon: addIcon,
       execute: args => {
         pipelineEditorFactory.addFileToPipelineSignal.emit(args);
+      }
+    });
+    const refreshPaletteCommand: string = commandIDs.refreshPalette;
+    app.commands.addCommand(refreshPaletteCommand, {
+      label: 'Refresh Pipeline Palette',
+      icon: refreshIcon,
+      execute: args => {
+        pipelineEditorFactory.refreshPaletteSignal.emit(args);
       }
     });
     app.contextMenu.addItem({
@@ -272,6 +300,8 @@ const extension: JupyterFrontEndPlugin<void> = {
 
         // Add the command to the launcher
         if (launcher) {
+          const fileMenuItems: IRankedMenu.IItemOptions[] = [];
+
           for (const t of resolvedTypes as any) {
             launcher.add({
               command: openPipelineEditorCommand,
@@ -279,16 +309,15 @@ const extension: JupyterFrontEndPlugin<void> = {
               args: { runtimeType: t },
               rank: t.id === 'LOCAL' ? 1 : 2
             });
-            menu.fileMenu.newMenu.addGroup(
-              [
-                {
-                  command: openPipelineEditorCommand,
-                  args: { runtimeType: t, isMenu: true }
-                }
-              ],
-              t.id === 'LOCAL' ? 30 : 31
-            );
+
+            fileMenuItems.push({
+              command: openPipelineEditorCommand,
+              args: { runtimeType: t, isMenu: true },
+              rank: t.id === 'LOCAL' ? 90 : 91
+            });
           }
+
+          menu.fileMenu.newMenu.addGroup(fileMenuItems);
         }
       })
       .catch(error => RequestErrors.serverError(error));
@@ -348,21 +377,26 @@ const extension: JupyterFrontEndPlugin<void> = {
     runtimeImagesWidget.title.icon = containerIcon;
     runtimeImagesWidget.title.caption = 'Runtime Images';
 
-    const componentCatalogWidget = new MetadataWidget({
+    restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
+    app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
+
+    const componentCatalogWidget = new ComponentCatalogsWidget({
       app,
       themeManager,
       display_name: 'Component Catalogs', // TODO: This info should come from the server for all schemaspaces
       schemaspace: COMPONENT_CATALOGS_SCHEMASPACE,
       icon: componentCatalogIcon,
-      titleContext: 'component catalog'
+      titleContext: 'component catalog',
+      refreshCallback: (): void => {
+        app.commands.execute(commandIDs.refreshPalette);
+      }
     });
     const componentCatalogWidgetID = `elyra-metadata:${COMPONENT_CATALOGS_SCHEMASPACE}`;
     componentCatalogWidget.id = componentCatalogWidgetID;
     componentCatalogWidget.title.icon = componentCatalogIcon;
     componentCatalogWidget.title.caption = 'Component Catalogs';
 
-    restorer.add(runtimeImagesWidget, runtimeImagesWidgetID);
-    app.shell.add(runtimeImagesWidget, 'left', { rank: 951 });
+    restorer.add(componentCatalogWidget, componentCatalogWidgetID);
     app.shell.add(componentCatalogWidget, 'left', { rank: 961 });
   }
 };

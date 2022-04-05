@@ -1,6 +1,6 @@
 <!--
 {% comment %}
-Copyright 2018-2021 Elyra Authors
+Copyright 2018-2022 Elyra Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,3 +23,10 @@ This page identifies scenarios we've encountered when building/running Elyra.
 
 This happens due to yarn not being happy with additional `@` in the path structure. We have seen this when the
 OS user has that symbol in its name (e.g. `user@domain.com`)
+
+- **Install fails with: zsh: no matches found: elyra[all]**
+
+This happens when trying to install Elyra via the Z Shell. The Z shell is the default shell on macOS versions of Catalina or later. Ensure that the argument is surrounded by single quotes as follows - this is not necessary when running on bash.
+```
+pip install --upgrade 'elyra[all]'
+```

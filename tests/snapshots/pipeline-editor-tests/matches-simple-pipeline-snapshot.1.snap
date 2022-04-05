@@ -8,11 +8,12 @@ Object {
       "app_data": Object {
         "properties": Object {
           "name": "simple",
+          "runtime": "Generic",
         },
         "ui_data": Object {
           "comments": Array [],
         },
-        "version": 5,
+        "version": 7,
       },
       "id": "primary",
       "nodes": Array [
@@ -27,7 +28,6 @@ Object {
               "filename": "helloworld.ipynb",
               "include_subdirectories": false,
               "outputs": Array [],
-              "runtime_image": "",
             },
             "label": "",
             "ui_data": Object {
