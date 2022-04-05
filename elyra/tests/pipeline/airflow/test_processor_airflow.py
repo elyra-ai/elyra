@@ -616,17 +616,17 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
 
     pipeline_def_operation = parsed_pipeline.operations[task_id]
     pipeline_def_operation_parameters = pipeline_def_operation.component_params_as_dict
-    pipeline_def_operation_endpoint_param = pipeline_def_operation_parameters["endpoint"]
+    pipeline_def_operation_bash_param = pipeline_def_operation_parameters["bash_command"]
 
-    assert pipeline_def_operation_endpoint_param["activeControl"] == "NestedEnumControl"
-    assert set(pipeline_def_operation_endpoint_param["NestedEnumControl"].keys()) == {"value", "option"}
-    assert pipeline_def_operation_endpoint_param["NestedEnumControl"]["value"] == upstream_task_id
+    assert pipeline_def_operation_bash_param["activeControl"] == "NestedEnumControl"
+    assert set(pipeline_def_operation_bash_param["NestedEnumControl"].keys()) == {"value", "option"}
+    assert pipeline_def_operation_bash_param["NestedEnumControl"]["value"] == upstream_task_id
 
     ordered_operations = processor._cc_pipeline(parsed_pipeline, pipeline_name="some-name")
     operation_parameters = ordered_operations[task_id]["component_params"]
-    operation_parameter_endpoint = operation_parameters["endpoint"]
+    operation_parameter_bash_command = operation_parameters["bash_command"]
 
-    assert operation_parameter_endpoint == "\"{{ ti.xcom_pull(task_ids='BashOperator_1') }}\""
+    assert operation_parameter_bash_command == "\"{{ ti.xcom_pull(task_ids='BashOperator_1') }}\""
 
 
 def test_scrub_invalid_characters(processor):
