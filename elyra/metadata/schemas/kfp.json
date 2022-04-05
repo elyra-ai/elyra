@@ -55,7 +55,7 @@
         },
         "public_api_endpoint": {
           "title": "Public Kubeflow Pipelines API Endpoint",
-          "description": "Kubeflow Pipelines API Endpoint",
+          "description": "The public Kubeflow Pipelines API endpoint",
           "type": "string",
           "format": "uri",
           "uihints": {
