@@ -75,29 +75,27 @@ class RuntimesDisplay extends MetadataDisplay<
       }
     }
 
-    if (metadata_props) {
-      if (metadata.schema_name === 'airflow') {
-        const githubRepoUrl =
-          getGithubURLFromAPI(metadata.metadata.github_api_endpoint) +
-          metadata.metadata.github_repo +
-          '/tree/' +
-          metadata.metadata.github_branch +
-          '/';
-        githubRepoElement = (
-          <span>
-            <h6>{metadata_props.github_repo.title}</h6>
-            <a href={githubRepoUrl} target="_blank" rel="noreferrer noopener">
-              {githubRepoUrl}
-            </a>
-            <br />
-            <br />
-          </span>
-        );
-      } else if (metadata.schema_name === 'kfp') {
-        if (metadata.metadata.public_api_endpoint) {
-          // user specified a public API endpoint. use it instead of the API endpoint
-          apiEndpoint = addTrailingSlash(metadata.metadata.public_api_endpoint);
-        }
+    if (metadata.schema_name === 'airflow' && metadata_props) {
+      const githubRepoUrl =
+        getGithubURLFromAPI(metadata.metadata.github_api_endpoint) +
+        metadata.metadata.github_repo +
+        '/tree/' +
+        metadata.metadata.github_branch +
+        '/';
+      githubRepoElement = (
+        <span>
+          <h6>{metadata_props.github_repo.title}</h6>
+          <a href={githubRepoUrl} target="_blank" rel="noreferrer noopener">
+            {githubRepoUrl}
+          </a>
+          <br />
+          <br />
+        </span>
+      );
+    } else if (metadata.schema_name === 'kfp') {
+      if (metadata.metadata.public_api_endpoint) {
+        // user specified a public API endpoint. use it instead of the API endpoint
+        apiEndpoint = addTrailingSlash(metadata.metadata.public_api_endpoint);
       }
     }
 
