@@ -104,7 +104,7 @@ setup_args = dict(
         "black<=21.12b0",  # Cap due to psf/black#2846
     ],
     extras_require={
-        "test": ["elyra-examples-airflow-catalog", "elyra-examples-kfp-catalog", "pytest", "pytest-tornasync"],
+        "test": ["elyra-examples-kfp-catalog", "pytest", "pytest-tornasync"],
         **runtime_extras,
     },
     include_package_data=True,

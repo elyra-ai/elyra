@@ -32,8 +32,14 @@ KFP_COMPONENT_CACHE_INSTANCE = {
 
 AIRFLOW_COMPONENT_CACHE_INSTANCE = {
     "display_name": "Airflow Example Components",
-    "metadata": {"runtime_type": "APACHE_AIRFLOW", "categories": ["examples"]},
-    "schema_name": "elyra-airflow-examples-catalog",
+    "metadata": {
+        "runtime_type": "APACHE_AIRFLOW",
+        "categories": ["examples"],
+        "paths": [
+            "https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/airflow-example-components-connector/airflow_examples_connector/resources/bash_operator.py"  # noqa
+        ],
+    },
+    "schema_name": "url-catalog",
 }
 
 
