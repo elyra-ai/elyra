@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# Operator source: https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py
+# This file has been modified from its original source to ensure it passes
+# Elyra linting. No functionality changes have been made.
+#
 
 
 from builtins import bytes
