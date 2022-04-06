@@ -510,7 +510,13 @@ class OpUtil(object):
 
         for package, ver in elyra_packages.items():
             if package in current_packages:
-                if "git+" in current_packages[package]:
+                if current_packages[package] is None:
+                    logger.warning(
+                        f"WARNING: Source package {package} found already installed as an "
+                        "editable package. This may conflict with the required version: "
+                        f"{ver} . Skipping..."
+                    )
+                elif "git+" in current_packages[package]:
                     logger.warning(
                         f"WARNING: Source package {package} found already installed from "
                         f"{current_packages[package]}. This may conflict with the required "
@@ -523,7 +529,7 @@ class OpUtil(object):
                     )
                 elif version.parse(ver) > version.parse(current_packages[package]):
                     logger.info(f"Updating {package} package from version {current_packages[package]} to {ver}...")
-                    to_install_list.append(package + "==" + ver)
+                    to_install_list.append(f"{package}=={ver}")
                 elif version.parse(ver) < version.parse(current_packages[package]):
                     logger.info(
                         f"Newer {package} package with version {current_packages[package]} "
@@ -531,17 +537,17 @@ class OpUtil(object):
                     )
             else:
                 logger.info(f"Package not found. Installing {package} package with version {ver}...")
-                to_install_list.append(package + "==" + ver)
+                to_install_list.append(f"{package}=={ver}")
 
         if to_install_list:
             if user_volume_path:
-                to_install_list.insert(0, "--target=" + user_volume_path)
+                to_install_list.insert(0, f"--target={user_volume_path}")
                 to_install_list.append("--no-cache-dir")
 
             subprocess.run([sys.executable, "-m", "pip", "install"] + to_install_list, check=True)
 
         if user_volume_path:
-            os.environ["PIP_CONFIG_FILE"] = user_volume_path + "/pip.conf"
+            os.environ["PIP_CONFIG_FILE"] = f"{user_volume_path}/pip.conf"
 
         subprocess.run([sys.executable, "-m", "pip", "freeze"])
         duration = time.time() - t0
@@ -557,8 +563,13 @@ class OpUtil(object):
                         package_name, package_version = line.strip("\n").split(sep=" @ ")
                     elif "===" in line:
                         package_name, package_version = line.strip("\n").split(sep="===")
-                    else:
+                    elif "==" in line:
                         package_name, package_version = line.strip("\n").split(sep="==")
+                    elif "-e" in line:
+                        package_name, package_version = line.strip(" \n"), None
+                    else:
+                        # Tolerate other formats but do not add to package list
+                        continue
 
                     package_dict[package_name] = package_version
 

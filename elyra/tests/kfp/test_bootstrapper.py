@@ -805,9 +805,15 @@ def test_requirements_file():
 
 
 def test_fail_requirements_file_bad_delimiter():
-    bad_requirements_file = "elyra/tests/kfp/resources/test-bad-requirements-elyra.txt"
-    with pytest.raises(ValueError):
-        bootstrapper.OpUtil.package_list_to_dict(bad_requirements_file)
+    bad_requirements_file = Path(__file__).parent / "resources/test-bad-requirements-elyra.txt"
+    with open(bad_requirements_file, "r") as f:
+        file_content = f.readlines()
+    valid_package_list = [
+        line.strip("\n").split("==")[0] for line in file_content if not line.startswith("#") and "==" in line
+    ]
+
+    package_dict = bootstrapper.OpUtil.package_list_to_dict(bad_requirements_file)
+    assert valid_package_list == list(package_dict.keys())
 
 
 def _fileChecksum(filename):
