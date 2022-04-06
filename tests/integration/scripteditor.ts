@@ -91,7 +91,7 @@ describe('Script Editor tests', () => {
     // Add some text to the editor
     cy.get('span[role="presentation"]').type('print("test")');
 
-    cy.wait(1000);
+    cy.wait(500);
     dismissAssistant();
 
     // Click Run as Pipeline button
@@ -148,7 +148,7 @@ describe('Script Editor tests', () => {
   it('checks for Error message', () => {
     cy.createNewScriptEditor('Python');
     cy.get('span[role="presentation"]').type('print"test"');
-    cy.wait(1000);
+    cy.wait(500);
     dismissAssistant();
     cy.get('button[title="Run"]').click();
     cy.findByText(/Error : SyntaxError/i).should('be.visible');
