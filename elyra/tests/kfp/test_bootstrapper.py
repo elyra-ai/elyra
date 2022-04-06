@@ -18,6 +18,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import subprocess
 from subprocess import CalledProcessError
 from subprocess import CompletedProcess
 from subprocess import run
@@ -796,12 +797,27 @@ def test_fail_missing_directory_parse_arguments():
         bootstrapper.OpUtil.parse_arguments(test_args)
 
 
-@pytest.mark.skip(reason="leaving as informational - not sure worth checking if reqs change")
-def test_requirements_file():
-    requirements_file = "elyra/tests/kfp/resources/test-requirements-elyra.txt"
-    correct_number_of_packages = 18
-    list_dict = bootstrapper.OpUtil.package_list_to_dict(requirements_file)
-    assert len(list_dict) == correct_number_of_packages
+def test_requirements_file(monkeypatch, tmpdir, caplog):
+    elyra_requirements_file = Path(__file__).parent / "resources/test-requirements-elyra.txt"
+    elyra_correct_number_of_packages = 19
+    elyra_list_dict = bootstrapper.OpUtil.package_list_to_dict(elyra_requirements_file)
+    assert len(elyra_list_dict) == elyra_correct_number_of_packages
+
+    current_requirements_file = Path(__file__).parent / "resources/test-requirements-current.txt"
+    current_correct_number_of_packages = 15
+    current_list_dict = bootstrapper.OpUtil.package_list_to_dict(current_requirements_file)
+    assert len(current_list_dict) == current_correct_number_of_packages
+
+    mocked_package_list_to_dict = mock.Mock(return_value="default", side_effect=[elyra_list_dict, current_list_dict])
+    monkeypatch.setattr(bootstrapper.OpUtil, "package_list_to_dict", mocked_package_list_to_dict)
+
+    mocked_subprocess_run = mock.Mock(return_value="default")
+    monkeypatch.setattr(subprocess, "run", mocked_subprocess_run)
+
+    bootstrapper.OpUtil.package_install(user_volume_path=str(tmpdir))
+    assert "WARNING: Source package 'jupyter-client' found already installed as an editable package" in caplog.text
+    assert "WARNING: Source package 'requests' found already installed as an editable package" in caplog.text
+    assert "WARNING: Source package 'tornado' found already installed from git" in caplog.text
 
 
 def test_fail_requirements_file_bad_delimiter():
