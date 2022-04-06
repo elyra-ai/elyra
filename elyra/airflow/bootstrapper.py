@@ -384,7 +384,7 @@ class OpUtil(object):
                         package_name, package_version = line.strip("\n").split(sep="===")
                     elif "==" in line:
                         package_name, package_version = line.strip("\n").split(sep="==")
-                    elif "-e" in line:
+                    elif line.startswith("-e "):
                         package_name, package_version = line.strip(" \n"), None
                     else:
                         # Tolerate other formats but do not add to package list
