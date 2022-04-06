@@ -49,7 +49,7 @@ export class LauncherModel extends JupyterLauncherModel {
     let pyEditorInstalled = false;
     let rEditorInstalled = false;
 
-    this._items.forEach(item => {
+    this.itemsList.forEach(item => {
       if (item.command === CommandIDs.createNewPythonEditor) {
         pyEditorInstalled = true;
       } else if (item.command === CommandIDs.createNewREditor) {
@@ -58,11 +58,11 @@ export class LauncherModel extends JupyterLauncherModel {
     });
 
     if (!pyEditorInstalled && !rEditorInstalled) {
-      return new ArrayIterator(this._items);
+      return new ArrayIterator(this.itemsList);
     }
 
     // Dont add tiles for new py and r files if their script editor is installed
-    this._items.forEach(item => {
+    this.itemsList.forEach(item => {
       if (
         !(
           item.command === CommandIDs.newFile &&
