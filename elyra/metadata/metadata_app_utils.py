@@ -388,6 +388,17 @@ class JSONOption(JSONBasedOption):
             "(e.g., --json=\"{'metadata': { 'value1', 'int2': 2 }}\""
         )
 
+    def set_value(self, value: str):
+        """Take the given value (json), and load it into a dictionary to ensure it parses as JSON."""
+        # Confirm that value a) is not None and b) specifies an existing file
+        if value is None:
+            self.bad_value = (
+                "Parameter '--json' requires a value with format JSON and no value was provided.  "
+                "Try again with an appropriate value."
+            )
+        else:
+            super().set_value(value)
+
 
 class FileOption(JSONBasedOption):
     """Represents a command-line option representing a file containing JSON."""
@@ -409,8 +420,26 @@ class FileOption(JSONBasedOption):
 
     def set_value(self, value: str):
         """Take the given value (file), open the file and load it into a dictionary to ensure it parses as JSON."""
-        self.filename = value
-        super().set_value(value)
+        # Confirm that value a) is not None and b) specifies an existing file
+        if value is None:
+            self.bad_value = (
+                "Parameter '--file' requires a file with format JSON and no value was provided.  "
+                "Try again with an appropriate value."
+            )
+        else:
+            if not os.path.isfile(value):
+                self.bad_value = (
+                    f"Parameter '--file' requires a file with format JSON and {value} is not a file.  "
+                    "Try again with an appropriate value."
+                )
+            else:
+                self.filename = value
+                super().set_value(value)
+
+    def handle_value_error(self, value: Any) -> None:
+        pre_amble = "Parameter '--file' requires a file with format: JSON "
+        post_amble = f'and "{value}" was given.  Try again with an appropriate value.'
+        self.bad_value = f"{pre_amble} {self.get_format_hint()} {post_amble}"
 
 
 class AppBase(object):
@@ -430,13 +459,23 @@ class AppBase(object):
 
     def _get_argv_mappings(self):
         """Walk argv and build mapping from argument to value for later processing."""
-        log_option = None
+        check_next_parameter: bool = False
+        log_option: Optional[str] = None
+        option: str = ""  # set to empty to satsify linter in check_next_parameter logic below
+        value: Optional[str]
         for arg in self.argv:
+            if check_next_parameter:
+                check_next_parameter = False
+                if not arg.startswith("--"):
+                    # if this doesn't specify a new argument,
+                    # set this value as the previous option's value
+                    self.argv_mappings[option] = arg
+                    continue
             if "=" in arg:
                 option, value = arg.split("=", 1)
             else:
                 option, value = arg, None
-            # Check for --debug or --log-level option.  if cound set, appropriate
+            # Check for --debug or --log-level option.  if found set, appropriate
             # log-level and skip.  Note this so we can alter self.argv after processing.
             if option == "--debug":
                 log_option = arg
@@ -446,6 +485,11 @@ class AppBase(object):
                 log_option = arg
                 logging.getLogger().setLevel(value)
                 continue
+            # Handle case where an argument specifies its parameter w/o an `=`
+            # to enable better flexibility and compatibility with other CLI tools.
+            if option.startswith("--") and value is None:
+                check_next_parameter = True
+
             self.argv_mappings[option] = value
         if log_option:
             self.argv.remove(log_option)
@@ -572,8 +616,16 @@ class AppBase(object):
         entry = cli_option
         value = self.argv_mappings.get(cli_option)
         if value:
+            # Determine if this value is associated with the option via '=' or
+            # a "floating" option/value pair
             entry = entry + "=" + value
-        self.argv.remove(entry)
+            if entry in self.argv:
+                self.argv.remove(entry)
+            else:  # remove both of the "floating" option/value pair
+                self.argv.remove(cli_option)
+                self.argv.remove(value)
+        else:
+            self.argv.remove(entry)
         self.argv_mappings.pop(cli_option)
 
     def print_help(self):
