@@ -440,7 +440,7 @@ def test_cc_pipeline_component_no_input(monkeypatch, processor, sample_metadata,
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
 
     # Assign test resource location
-    cpath = (Path(__file__).parent / ".." / "resources" / "components" / "no_inputs.yaml").resolve()
+    cpath = (Path(__file__).parent / ".." / "resources" / "components" / "kfp_test_operator_no_inputs.yaml").resolve()
     assert cpath.is_file()
     cpath = str(cpath)
 
