@@ -430,7 +430,7 @@ def test_processing_filename_runtime_specific_component(
     assert pipeline_template["container"]["command"][3] == operation_params["url"]
 
 
-def test_cc_pipeline_component_no_input(monkeypatch, processor, sample_metadata, tmpdir):
+def test_cc_pipeline_component_no_input(monkeypatch, processor, component_cache, sample_metadata, tmpdir):
     """
     Verifies that cc_pipeline can handle KFP component definitions that don't
     include any inputs
@@ -464,7 +464,7 @@ def test_cc_pipeline_component_no_input(monkeypatch, processor, sample_metadata,
     )
 
     # Fabricate the component cache to include single filename-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name] = {
+    component_cache._component_cache[processor._type.name] = {
         "spoofed_catalog": {"components": {component_id: component}}
     }
 
