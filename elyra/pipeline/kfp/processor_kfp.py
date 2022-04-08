@@ -603,7 +603,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
                     comp_spec_inputs = [
-                        inputs.name.lower().replace(" ", "_") for inputs in factory_function.component_spec.inputs
+                        inputs.name.lower().replace(" ", "_") for inputs in factory_function.component_spec.inputs or []
                     ]
 
                     # Remove inputs and outputs from params dict
