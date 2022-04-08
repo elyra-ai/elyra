@@ -26,7 +26,6 @@ from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
@@ -43,7 +42,6 @@ def processor(setup_factory_data):
 
 @pytest.fixture
 def pipeline():
-    ComponentCache.instance().wait_for_all_cache_tasks()
     pipeline_resource = _read_pipeline_resource("resources/sample_pipelines/pipeline_3_node_sample.json")
     return PipelineParser.parse(pipeline_resource)
 
@@ -274,7 +272,7 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
 
 
-def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+def test_processing_url_runtime_specific_component(monkeypatch, processor, component_cache, sample_metadata, tmpdir):
     # Define the appropriate reader for a URL-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
@@ -305,7 +303,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     )
 
     # Fabricate the component cache to include single filename-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name] = {
+    component_cache._component_cache[processor._type.name] = {
         "spoofed_catalog": {"components": {component_id: component}}
     }
 
@@ -351,7 +349,9 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     assert pipeline_template["inputs"]["artifacts"][0]["raw"]["data"] == operation_params["text"]
 
 
-def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+def test_processing_filename_runtime_specific_component(
+    monkeypatch, processor, component_cache, sample_metadata, tmpdir
+):
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
@@ -381,7 +381,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     )
 
     # Fabricate the component cache to include single filename-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name] = {
+    component_cache._component_cache[processor._type.name] = {
         "spoofed_catalog": {"components": {component_id: component}}
     }
 
