@@ -17,10 +17,7 @@ from elyra.elyra_app import ElyraApp
 
 
 def _jupyter_server_extension_points():
-    return [{
-        'module': 'elyra.elyra_app',
-        'app': ElyraApp
-    }]
+    return [{"module": "elyra.elyra_app", "app": ElyraApp}]
 
 
 load_jupyter_server_extension = ElyraApp.load_classic_server_extension

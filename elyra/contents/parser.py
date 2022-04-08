@@ -25,7 +25,7 @@ from traitlets.config import LoggingConfigurable
 
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
-F = TypeVar('F', bound='FileReader')
+F = TypeVar("F", bound="FileReader")
 
 
 class FileReader(LoggingConfigurable):
@@ -45,10 +45,10 @@ class FileReader(LoggingConfigurable):
     @property
     def language(self) -> str:
         file_extension = os.path.splitext(self._filepath)[-1]
-        if file_extension == '.py':
-            return 'python'
-        elif file_extension == '.r':
-            return 'r'
+        if file_extension == ".py":
+            return "python"
+        elif file_extension == ".r":
+            return "r"
         else:
             return None
 
@@ -71,10 +71,10 @@ class NotebookReader(FileReader):
             self._language = None
 
             try:
-                self._language = self._notebook['metadata']['kernelspec']['language'].lower()
+                self._language = self._notebook["metadata"]["kernelspec"]["language"].lower()
 
             except KeyError:
-                self.log.warning(f'No language metadata found in {self._filepath}')
+                self.log.warning(f"No language metadata found in {self._filepath}")
 
     @property
     def language(self) -> str:
@@ -83,7 +83,7 @@ class NotebookReader(FileReader):
     def read_next_code_chunk(self) -> List[str]:
         for cell in self._notebook.cells:
             if cell.source and cell.cell_type == "code":
-                yield cell.source.split('\n')
+                yield cell.source.split("\n")
 
 
 class ScriptParser(object):
@@ -116,7 +116,6 @@ class ScriptParser(object):
 
 
 class PythonScriptParser(ScriptParser):
-
     def search_expressions(self) -> Dict[str, List]:
         # TODO: add more key:list-of-regex pairs to parse for additional resources
         regex_dict = dict()
@@ -125,31 +124,31 @@ class PythonScriptParser(ScriptParser):
         # Second regex matches envvar assignments that use os.getenv("name", "value") with ow w/o default provided
         # Third regex matches envvar assignments that use os.environ.get("name", "value") with or w/o default provided
         # Both name and value are captured if possible
-        envs = [r"os\.environ\[[\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\](?:\s*=(?:\s*[\"'](.[^\"']*)?[\"'])?)*",
-                r"os\.getenv\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"'](?:\s*\,\s*[\"'](.[^\"']*)?[\"'])?",
-                r"os\.environ\.get\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"'](?:\s*\,(?:\s*[\"'](.[^\"']*)?[\"'])?)*"]
+        envs = [
+            r"os\.environ\[[\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"']\](?:\s*=(?:\s*[\"'](.[^\"']*)?[\"'])?)*",
+            r"os\.getenv\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"'](?:\s*\,\s*[\"'](.[^\"']*)?[\"'])?",
+            r"os\.environ\.get\([\"']([a-zA-Z_]+[A-Za-z0-9_]*)[\"'](?:\s*\,(?:\s*[\"'](.[^\"']*)?[\"'])?)*",
+        ]
         regex_dict["env_vars"] = envs
         return regex_dict
 
 
 class RScriptParser(ScriptParser):
-
     def search_expressions(self) -> Dict[str, List]:
         # TODO: add more key:list-of-regex pairs to parse for additional resources
         regex_dict = dict()
 
         # Tests for matches of the form Sys.setenv("key" = "value")
-        envs = [r"Sys\.setenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\s*=\s*[\"']*(.[^\"']*)?[\"']*\)",
-                r"Sys\.getenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\)(.)*"]
+        envs = [
+            r"Sys\.setenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\s*=\s*[\"']*(.[^\"']*)?[\"']*\)",
+            r"Sys\.getenv\([\"']*([a-zA-Z_]+[A-Za-z0-9_]*)[\"']*\)(.)*",
+        ]
         regex_dict["env_vars"] = envs
         return regex_dict
 
 
 class ContentParser(LoggingConfigurable):
-    parsers = {
-        'python': PythonScriptParser(),
-        'r': RScriptParser()
-    }
+    parsers = {"python": PythonScriptParser(), "r": RScriptParser()}
 
     def parse(self, filepath: str) -> dict:
         """Returns a model dictionary of all the regex matches for each key in the regex dictionary"""
@@ -178,9 +177,9 @@ class ContentParser(LoggingConfigurable):
         Validate file exists and is file (e.g. not a directory)
         """
         if not os.path.exists(filepath):
-            raise FileNotFoundError(f'No such file or directory: {filepath}')
+            raise FileNotFoundError(f"No such file or directory: {filepath}")
         if not os.path.isfile(filepath):
-            raise IsADirectoryError(f'Is a directory: {filepath}')
+            raise IsADirectoryError(f"Is a directory: {filepath}")
 
     def _get_reader(self, filepath: str):
         """
@@ -190,12 +189,12 @@ class ContentParser(LoggingConfigurable):
 
         self._validate_file(filepath)
 
-        if file_extension == '.ipynb':
+        if file_extension == ".ipynb":
             return NotebookReader(filepath)
-        elif file_extension in ['.py', '.r']:
+        elif file_extension in [".py", ".r"]:
             return FileReader(filepath)
         else:
-            raise ValueError(f'File type {file_extension} is not supported.')
+            raise ValueError(f"File type {file_extension} is not supported.")
 
     def _get_parser(self, language: str):
         """
@@ -206,5 +205,5 @@ class ContentParser(LoggingConfigurable):
             parser = self.parsers.get(language)
 
             if not parser:
-                self.log.warning(f'Content parser for {language} is not available.')
+                self.log.warning(f"Content parser for {language} is not available.")
         return parser

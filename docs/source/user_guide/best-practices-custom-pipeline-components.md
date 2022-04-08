@@ -27,6 +27,7 @@ limitations under the License.
 - [Python function-based components](https://www.kubeflow.org/docs/components/pipelines/sdk/python-function-components/) are not supported.
 - The [component specification](https://www.kubeflow.org/docs/components/pipelines/sdk/v2/component-development/#creating-a-component-specification) must be accessible to the Visual Pipeline Editor and can be stored locally or remotely. Refer to the 
 [Managing pipeline components topic](pipeline-components.html#managing-pipeline-components) for details.
+- If Kubeflow Pipelines is [configured with Argo as workflow engine and emissary executor as workflow executor](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#emissary-executor), the component specifiction must [meet the stated requirement](https://www.kubeflow.org/docs/components/pipelines/installation/choose-executor/#migrate-pipeline-components-to-run-on-emissary-executor). If Elyra detects a component that does not meet the requirement, a warning is logged.
 
 #### Best practices
 

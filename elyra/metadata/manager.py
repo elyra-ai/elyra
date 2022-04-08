@@ -36,10 +36,13 @@ from elyra.metadata.storage import MetadataStore
 class MetadataManager(LoggingConfigurable):
     """Manages the persistence and retrieval of metadata instances"""
 
-    metadata_store_class = Type(default_value=FileMetadataStore, config=True,
-                                klass=MetadataStore,
-                                help="""The metadata store class.  This is configurable to allow subclassing of
-                                the MetadataStore for customized behavior.""")
+    metadata_store_class = Type(
+        default_value=FileMetadataStore,
+        config=True,
+        klass=MetadataStore,
+        help="""The metadata store class.  This is configurable to allow subclassing of
+                                the MetadataStore for customized behavior.""",
+    )
 
     def __init__(self, schemaspace: str, **kwargs: Any):
         """
@@ -76,7 +79,7 @@ class MetadataManager(LoggingConfigurable):
                 if include_invalid and metadata.reason:
                     # If no schema-name is present, set to '{unknown}' since we can't make that determination.
                     if not metadata.schema_name:
-                        metadata.schema_name = '{unknown}'
+                        metadata.schema_name = "{unknown}"
                 else:  # go ahead and validate against the schema
                     self.validate(metadata.name, metadata)
                 instances.append(metadata)
@@ -84,9 +87,11 @@ class MetadataManager(LoggingConfigurable):
                 # Since we may not have a metadata instance due to a failure during `from_dict()`,
                 # instantiate a bad instance directly to use in the message and invalid result.
                 invalid_instance = Metadata(**metadata_dict)
-                self.log.warning(f"Fetch of instance '{invalid_instance.name}' "
-                                 f"of schemaspace '{self.schemaspace}' "
-                                 f"encountered an exception: {ex}")
+                self.log.warning(
+                    f"Fetch of instance '{invalid_instance.name}' "
+                    f"of schemaspace '{self.schemaspace}' "
+                    f"encountered an exception: {ex}"
+                )
                 if include_invalid and (not of_schema or invalid_instance.schema_name == of_schema):
                     # Export invalid instances if requested and if a schema was not specified
                     # or the specified schema matches the instance's schema.
@@ -124,7 +129,7 @@ class MetadataManager(LoggingConfigurable):
         instance_list = self.metadata_store.fetch_instances(name=name)
         metadata_dict = instance_list[0]
 
-        self.log.debug("Removing metadata resource '{}' from schemaspace '{}'.".format(name, self.schemaspace))
+        self.log.debug(f"Removing metadata resource '{name}' from schemaspace '{self.schemaspace}'.")
 
         metadata = Metadata.from_dict(self.schemaspace, metadata_dict)
         metadata.pre_delete()  # Allow class instances to handle delete
@@ -144,47 +149,48 @@ class MetadataManager(LoggingConfigurable):
         is not found, ValidationError will be raised.
         """
         metadata_dict = metadata.to_dict()
-        schema_name = metadata_dict.get('schema_name')
+        schema_name = metadata_dict.get("schema_name")
         if not schema_name:
-            raise ValueError("Instance '{}' in the {} schemaspace is missing a 'schema_name' field!".
-                             format(name, self.schemaspace))
+            raise ValueError(
+                f"Instance '{name}' in the {self.schemaspace} schemaspace is missing a 'schema_name' field!"
+            )
 
         schema = self._get_schema(schema_name)  # returns a value or throws
         try:
             validate(instance=metadata_dict, schema=schema, format_checker=draft7_format_checker)
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
-            first_line = str(ve).partition('\n')[0]
-            msg = "Validation failed for instance '{}' using the {} schema with error: {}.".\
-                format(name, schema_name, first_line)
+            first_line = str(ve).partition("\n")[0]
+            msg = f"Validation failed for instance '{name}' using the {schema_name} schema with error: {first_line}."
             self.log.error(msg)
             raise ValidationError(msg) from ve
 
     @staticmethod
     def get_normalized_name(name: str) -> str:
         # lowercase and replaces spaces with underscore
-        name = re.sub('\\s+', '_', name.lower())
+        name = re.sub("\\s+", "_", name.lower())
         # remove all invalid characters
-        name = re.sub('[^a-z0-9-_]+', '', name)
+        name = re.sub("[^a-z0-9-_]+", "", name)
         # begin with alpha
         if not name[0].isalpha():
-            name = 'a_' + name
+            name = "a_" + name
         # end with alpha numeric
         if not name[-1].isalnum():
-            name = name + '_0'
+            name = name + "_0"
         return name
 
     def _get_schema(self, schema_name: str) -> dict:
         """Loads the schema based on the schema_name and returns the loaded schema json.
-           Throws ValidationError if schema file is not present.
+        Throws ValidationError if schema file is not present.
         """
         schema_json = self.schema_mgr.get_schema(self.schemaspace, schema_name)
         if schema_json is None:
-            schema_file = os.path.join(os.path.dirname(__file__), 'schemas', schema_name + '.json')
+            schema_file = os.path.join(os.path.dirname(__file__), "schemas", schema_name + ".json")
             if not os.path.exists(schema_file):
-                self.log.error("The file for schema '{}' is missing from its expected location: '{}'".
-                               format(schema_name, schema_file))
-                raise SchemaNotFoundError("The file for schema '{}' is missing!".format(schema_name))
+                self.log.error(
+                    f"The file for schema '{schema_name}' is missing from its expected location: '{schema_file}'"
+                )
+                raise SchemaNotFoundError(f"The file for schema '{schema_name}' is missing!")
 
         return schema_json
 
@@ -201,12 +207,14 @@ class MetadataManager(LoggingConfigurable):
                 metadata.name = name
 
         if not name:  # At this point, name must be set
-            raise ValueError('Name of metadata was not provided.')
+            raise ValueError("Name of metadata was not provided.")
 
         match = re.search("^[a-z]([a-z0-9-_]*[a-z,0-9])?$", name)
         if match is None:
-            raise ValueError("Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
-                             "embedded hyphens ('-') and underscores ('_').")
+            raise ValueError(
+                "Name of metadata must be lowercase alphanumeric, beginning with alpha and can include "
+                "embedded hyphens ('-') and underscores ('_')."
+            )
 
         orig_value = None
         if for_update:
@@ -261,8 +269,10 @@ class MetadataManager(LoggingConfigurable):
             if isinstance(orig_value, dict):
                 orig_value = Metadata.from_dict(self.schemaspace, orig_value)
             self.metadata_store.store_instance(name, orig_value.prepare_write(), for_update=False)
-        self.log.warning(f"Rolled back metadata operation '{operation}' for instance '{name}' due to "
-                         f"failure in post-processing method: {exception}")
+        self.log.warning(
+            f"Rolled back metadata operation '{operation}' for instance '{name}' due to "
+            f"failure in post-processing method: {exception}"
+        )
 
     def _apply_defaults(self, metadata: Metadata) -> None:
         """If a given property has a default value defined, and that property is not currently represented,
@@ -301,7 +311,7 @@ class MetadataManager(LoggingConfigurable):
                             instance_properties[name] = default
 
         # Update default properties of instance properties
-        _update_instance("default", schema['properties']['metadata']['properties'], metadata.metadata)
+        _update_instance("default", schema["properties"]["metadata"]["properties"], metadata.metadata)
 
         # Update const properties of schema properties
-        _update_instance("const", schema['properties'], metadata)
+        _update_instance("const", schema["properties"], metadata)

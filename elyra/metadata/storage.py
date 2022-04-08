@@ -67,10 +67,12 @@ class MetadataStore(ABC):
 
 def caching_enabled(func):
     """Checks if file store cache is enabled.  If not, just return, else perform function."""
+
     def wrapped(self, *args, **kwargs):
         if not self.enabled:
             return
         return func(self, *args, **kwargs)
+
     return wrapped
 
 
@@ -84,11 +86,11 @@ class FileMetadataCache(SingletonConfigurable):
     The cache is implemented as a simple LRU cache using an OrderedDict.
     """
 
-    max_size = Integer(min=1, max=1024, default_value=128, config=True,
-                       help="The maximum number of entries allowed in the cache.")
+    max_size = Integer(
+        min=1, max=1024, default_value=128, config=True, help="The maximum number of entries allowed in the cache."
+    )
 
-    enabled = Bool(default_value=True, config=True,
-                   help="Caching is enabled (True) or disabled (False).")
+    enabled = Bool(default_value=True, config=True, help="Caching is enabled (True) or disabled (False).")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -102,8 +104,10 @@ class FileMetadataCache(SingletonConfigurable):
             self.observer = Observer()
             self.observer.start()
         else:
-            self.log.info("The file metadata cache is currently disabled via configuration. "
-                          "Set FileMetadataCache.enabled=True to enable instance caching.")
+            self.log.info(
+                "The file metadata cache is currently disabled via configuration. "
+                "Set FileMetadataCache.enabled=True to enable instance caching."
+            )
 
     def __len__(self) -> int:
         """Return the number of running kernels."""
@@ -158,7 +162,7 @@ class FileChangeHandler(FileSystemEventHandler):
         self.log = file_metadata_cache.log
 
     def dispatch(self, event):
-        """Dispatches delete and modification events pertaining to watched metadata instances. """
+        """Dispatches delete and modification events pertaining to watched metadata instances."""
         if event.src_path.endswith(".json"):
             super(FileChangeHandler, self).dispatch(event)
 
@@ -175,14 +179,15 @@ class FileChangeHandler(FileSystemEventHandler):
 
 
 class FileMetadataStore(MetadataStore):
-
     def __init__(self, schemaspace: str, **kwargs):
         super().__init__(schemaspace, **kwargs)
         self.cache = FileMetadataCache.instance()
         self.metadata_paths = FileMetadataStore.metadata_path(self.schemaspace.lower())
         self.preferred_metadata_dir = self.metadata_paths[0]
-        self.log.debug(f"Schemaspace '{self.schemaspace}' is using metadata directory: "
-                       f"{self.preferred_metadata_dir} from list: {self.metadata_paths}")
+        self.log.debug(
+            f"Schemaspace '{self.schemaspace}' is using metadata directory: "
+            f"{self.preferred_metadata_dir} from list: {self.metadata_paths}"
+        )
 
     def schemaspace_exists(self) -> bool:
         """Does the schemaspace exist in any of the dir paths?"""
@@ -220,19 +225,23 @@ class FileMetadataStore(MetadataStore):
                                 raise ex from ex
                             # else create a dictionary from what we have if including invalid, else continue
                             if include_invalid:
-                                metadata = {'name': os.path.splitext(os.path.basename(path))[0],
-                                            'resource': path,
-                                            'reason': ex.__class__.__name__}
+                                metadata = {
+                                    "name": os.path.splitext(os.path.basename(path))[0],
+                                    "resource": path,
+                                    "reason": ex.__class__.__name__,
+                                }
                             else:
                                 continue
 
-                        if metadata.get('name') in resources.keys():
+                        md_name = metadata.get("name")
+                        if md_name in resources.keys():
                             # If we're replacing an instance, let that be known via debug
-                            self.log.debug("Replacing metadata instance '{}' from '{}' with '{}'."
-                                           .format(metadata.get('name'),
-                                                   resources[metadata.get('name')].get('resource'),
-                                                   metadata.get('resource')))
-                        resources[metadata.get('name')] = metadata
+                            from_resource = resources[md_name].get("resource")
+                            md_resource = metadata.get("resource")
+                            self.log.debug(
+                                f"Replacing metadata instance '{md_name}' from '{from_resource}' with '{md_resource}'."
+                            )
+                        resources[md_name] = metadata
 
         if name:
             if name in resources.keys():  # check if we have a match.
@@ -249,12 +258,12 @@ class FileMetadataStore(MetadataStore):
 
         Create is the default behavior, while updates are performed when for_update is True.
         """
-        metadata_resource_name = '{}.json'.format(name)
+        metadata_resource_name = f"{name}.json"
         resource = os.path.join(self.preferred_metadata_dir, metadata_resource_name)
 
         # If the preferred metadata directory is not present, create it and note it.
         if not os.path.exists(self.preferred_metadata_dir):
-            self.log.debug("Creating metadata directory: {}".format(self.preferred_metadata_dir))
+            self.log.debug(f"Creating metadata directory: {self.preferred_metadata_dir}")
             os.makedirs(self.preferred_metadata_dir, mode=0o700, exist_ok=True)
 
         # Prepare for persistence, check existence, etc.
@@ -272,8 +281,7 @@ class FileMetadataStore(MetadataStore):
             self._rollback(resource, renamed_resource)
             raise ex from ex
         else:
-            self.log.debug("{action} metadata instance: {resource}".
-                           format(action="Updated" if for_update else "Created", resource=resource))
+            self.log.debug(f"{'Updated' if for_update else 'Created'} metadata instance: {resource}")
 
         # Confirm persistence so in case there are issues, we can rollback
         metadata = self._confirm_persistence(resource, renamed_resource)
@@ -282,24 +290,28 @@ class FileMetadataStore(MetadataStore):
 
     def delete_instance(self, metadata: dict) -> None:
         """Delete the named instance"""
-        name = metadata.get('name')
-        resource = metadata.get('resource')
+        name = metadata.get("name")
+        resource = metadata.get("resource")
         if resource:
             # Since multiple folders are in play, we only allow removal if the resource is in
             # the first directory in the list (i.e., most "near" the user)
             if not self._remove_allowed(metadata):
-                self.log.error("Removal of instance '{}' from the {} schemaspace is not permitted!  "
-                               "Resource conflict at '{}' ".format(name, self.schemaspace, resource))
-                raise PermissionError("Removal of instance '{}' from the {} schemaspace is not permitted!".
-                                      format(name, self.schemaspace))
+                self.log.error(
+                    f"Removal of instance '{name}' from the {self.schemaspace} schemaspace is not permitted!  "
+                    f"Resource conflict at '{resource}' "
+                )
+                raise PermissionError(
+                    f"Removal of instance '{name}' from the {self.schemaspace} schemaspace is not permitted!"
+                )
             os.remove(resource)
             self.cache.remove_item(resource)
 
     def _prepare_create(self, name: str, resource: str) -> None:
         """Prepare to create resource, ensure it doesn't exist in the hierarchy."""
         if os.path.exists(resource):
-            self.log.error("An instance named '{}' already exists in the {} schemaspace at {}.".
-                           format(name, self.schemaspace, resource))
+            self.log.error(
+                f"An instance named '{name}' already exists in the {self.schemaspace} schemaspace at {resource}."
+            )
             raise MetadataExistsError(self.schemaspace, name)
 
         # Although the resource doesn't exist in the preferred dir, it may exist at other levels.
@@ -307,8 +319,10 @@ class FileMetadataStore(MetadataStore):
         try:
             resources = self.fetch_instances(name)
             # Instance exists at other (protected) level and this is a create - throw exception
-            self.log.error("An instance named '{}' already exists in the {} schemaspace at {}.".
-                           format(name, self.schemaspace, resources[0].get('resource')))
+            self.log.error(
+                f"An instance named '{name}' already exists in the {self.schemaspace} "
+                f"schemaspace at {resources[0].get('resource')}."
+            )
             raise MetadataExistsError(self.schemaspace, name)
         except MetadataNotFoundError:  # doesn't exist elsewhere, so we're good.
             pass
@@ -320,11 +334,11 @@ class FileMetadataStore(MetadataStore):
             # We're updating so we need to rename the current file to allow restore on errs
             renamed_resource = resource + str(time.time())
             os.rename(resource, renamed_resource)
-            self.log.debug("Renamed resource for instance '{}' to: '{}'".format(name, renamed_resource))
+            self.log.debug(f"Renamed resource for instance '{name}' to: '{renamed_resource}'")
         return renamed_resource
 
     def _rollback(self, resource: str, renamed_resource: str) -> None:
-        """Rollback changes made during persistence (typically updates) and exceptions are encountered """
+        """Rollback changes made during persistence (typically updates) and exceptions are encountered"""
         self.cache.remove_item(resource)  # Clear the item from the cache, let it be re-added naturally
         if os.path.exists(resource):
             os.remove(resource)
@@ -340,7 +354,7 @@ class FileMetadataStore(MetadataStore):
         try:
             metadata = self._load_resource(resource)
         except Exception as ex:
-            self.log.error("Removing metadata instance '{}' due to previous error.".format(resource))
+            self.log.error(f"Removing metadata instance '{resource}' due to previous error.")
             self._rollback(resource, renamed_resource)
             raise ex from ex
 
@@ -349,9 +363,9 @@ class FileMetadataStore(MetadataStore):
         return metadata
 
     def _remove_allowed(self, metadata: dict) -> bool:
-        """Determines if the resource of the given instance is allowed to be removed. """
-        allowed_resource = os.path.join(self.preferred_metadata_dir, metadata.get('name'))
-        current_resource = os.path.splitext(metadata.get('resource'))[0]
+        """Determines if the resource of the given instance is allowed to be removed."""
+        allowed_resource = os.path.join(self.preferred_metadata_dir, metadata.get("name"))
+        current_resource = os.path.splitext(metadata.get("resource"))[0]
         return allowed_resource == current_resource
 
     def _load_resource(self, resource: str) -> Dict[str, Any]:
@@ -366,7 +380,7 @@ class FileMetadataStore(MetadataStore):
         name = os.path.splitext(os.path.basename(resource))[0]
 
         self.log.debug(f"Loading metadata instance from: '{resource}'")
-        with io.open(resource, 'r', encoding='utf-8') as f:
+        with io.open(resource, "r", encoding="utf-8") as f:
             try:
                 metadata_json = json.load(f)
             except ValueError as jde:  # JSONDecodeError is raised, but it derives from ValueError
@@ -374,13 +388,17 @@ class FileMetadataStore(MetadataStore):
                 # we aren't able to even instantiate an instance of Metadata.  Because errors are ignored
                 # when getting multiple items, it's okay to raise.  The singleton searches (by handlers)
                 # already catch ValueError and map to 400, so we're good there as well.
-                self.log.error(f"JSON failed to load for resource '{resource}' in the "
-                               f"{self.schemaspace} schemaspace with error: {jde}.")
-                raise ValueError(f"JSON failed to load for instance '{name}' in the "
-                                 f"{self.schemaspace} schemaspace with error: {jde}.") from jde
+                self.log.error(
+                    f"JSON failed to load for resource '{resource}' in the "
+                    f"{self.schemaspace} schemaspace with error: {jde}."
+                )
+                raise ValueError(
+                    f"JSON failed to load for instance '{name}' in the "
+                    f"{self.schemaspace} schemaspace with error: {jde}."
+                ) from jde
 
-            metadata_json['name'] = name
-            metadata_json['resource'] = resource
+            metadata_json["name"] = name
+            metadata_json["resource"] = resource
             self.cache.add_item(resource, metadata_json)
 
         return metadata_json
@@ -405,11 +423,8 @@ class FileMetadataStore(MetadataStore):
 
         paths = []
         # highest priority is env
-        if os.environ.get('ELYRA_METADATA_PATH'):
-            paths.extend(
-                p.rstrip(os.sep)
-                for p in os.environ['ELYRA_METADATA_PATH'].split(os.pathsep)
-            )
+        if os.environ.get("ELYRA_METADATA_PATH"):
+            paths.extend(p.rstrip(os.sep) for p in os.environ["ELYRA_METADATA_PATH"].split(os.pathsep))
         # then user dir
         paths.append(jupyter_core.paths.jupyter_data_dir())
 
@@ -425,5 +440,5 @@ class FileMetadataStore(MetadataStore):
         # add subdir, if requested.
         # Note, the 'metadata' parent dir is automatically added.
         if subdirs:
-            paths = [os.path.join(p, 'metadata', *subdirs) for p in paths]
+            paths = [os.path.join(p, "metadata", *subdirs) for p in paths]
         return paths

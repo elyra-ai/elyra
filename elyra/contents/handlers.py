@@ -28,6 +28,7 @@ from elyra.util.path import get_expanded_path
 
 class ContentHandler(HttpErrorMixin, APIHandler):
     """Handler to expose REST API to parse envs from a File"""
+
     content_parser: ContentParser = ContentParser()
 
     @web.authenticated
@@ -37,8 +38,8 @@ class ContentHandler(HttpErrorMixin, APIHandler):
         self.flush()
 
     @web.authenticated
-    async def get(self, path=''):
-        path = path or ''
+    async def get(self, path=""):
+        path = path or ""
         path = url_unescape(path)
 
         self.log.debug(f"Parsing file: {path}")
@@ -63,13 +64,13 @@ class ContentHandler(HttpErrorMixin, APIHandler):
     def _get_absolute_path(self, path: str) -> str:
         """Returns the absolute path of 'path' in relation to the configured root_dir.
 
-         Note: This version of `get_absolute_path` is used over the version in util/path.py because
-         'path' will have a leading `/` and therefore be considered absolute already when, within
-         this handler, it should always be a path relative to root_dir.
-         """
+        Note: This version of `get_absolute_path` is used over the version in util/path.py because
+        'path' will have a leading `/` and therefore be considered absolute already when, within
+        this handler, it should always be a path relative to root_dir.
+        """
 
-        root_dir = get_expanded_path(self.settings['server_root_dir'])
-        if path[0] == '/':  # if path starts with a slash, use the follow characters so join can be performed
+        root_dir = get_expanded_path(self.settings["server_root_dir"])
+        if path[0] == "/":  # if path starts with a slash, use the follow characters so join can be performed
             path = path[1:]
         absolute_path = os.path.normpath(os.path.join(root_dir, path))
         return absolute_path

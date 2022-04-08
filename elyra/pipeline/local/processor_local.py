@@ -50,9 +50,10 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     Note: Execution happens in-place and a ledger of runs will be available at $TMPFILE/elyra/pipeline-name-<timestamp>
     """
+
     _operation_processor_catalog: Dict
     _type = RuntimeProcessorType.LOCAL
-    _name = 'local'
+    _name = "local"
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(root_dir, **kwargs)
@@ -97,27 +98,30 @@ class LocalPipelineProcessor(PipelineProcessor):
                 t0 = time.time()
                 operation_processor = self._operation_processor_catalog[operation.classifier]
                 operation_processor.process(operation, elyra_run_name)
-                self.log_pipeline_info(pipeline.name, f"completed {operation.filename}",
-                                       operation_name=operation.name,
-                                       duration=(time.time() - t0))
+                self.log_pipeline_info(
+                    pipeline.name,
+                    f"completed {operation.filename}",
+                    operation_name=operation.name,
+                    duration=(time.time() - t0),
+                )
             except Exception as ex:
-                raise RuntimeError(f'Error processing operation {operation.name} {str(ex)}') from ex
+                raise RuntimeError(f"Error processing operation {operation.name} {str(ex)}") from ex
 
         self.log_pipeline_info(pipeline.name, "pipeline processed", duration=(time.time() - t0_all))
 
         return LocalPipelineProcessorResponse()
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        raise NotImplementedError('Local pipelines does not support export functionality')
+        raise NotImplementedError("Local pipelines does not support export functionality")
 
 
 class LocalPipelineProcessorResponse(PipelineProcessorResponse):
 
     _type = RuntimeProcessorType.LOCAL
-    _name = 'local'
+    _name = "local"
 
     def __init__(self):
-        super().__init__('', '', '')
+        super().__init__("", "", "")
 
 
 class OperationProcessor(ABC):
@@ -139,8 +143,8 @@ class OperationProcessor(ABC):
     def _collect_envs(operation: GenericOperation, elyra_run_name: str) -> Dict:
         envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
         envs.update(operation.env_vars_as_dict())
-        envs['ELYRA_RUNTIME_ENV'] = "local"  # Special case
-        envs['ELYRA_RUN_NAME'] = elyra_run_name
+        envs["ELYRA_RUNTIME_ENV"] = "local"  # Special case
+        envs["ELYRA_RUN_NAME"] = elyra_run_name
         return envs
 
 
@@ -163,26 +167,23 @@ class FileOperationProcessor(OperationProcessor):
     def get_valid_filepath(self, op_filename: str) -> str:
         filepath = get_absolute_path(self._root_dir, op_filename)
         if not os.path.exists(filepath):
-            raise FileNotFoundError(f'Could not find {filepath}')
+            raise FileNotFoundError(f"Could not find {filepath}")
         if not os.path.isfile(filepath):
-            raise ValueError(f'Not a file: {filepath}')
+            raise ValueError(f"Not a file: {filepath}")
         return filepath
 
-    def log_and_raise(self,
-                      file_name: str,
-                      ex: Exception,
-                      data_capture_msg: Optional[str] = None) -> None:
+    def log_and_raise(self, file_name: str, ex: Exception, data_capture_msg: Optional[str] = None) -> None:
         """Log and raise the exception that occurs when processing file_name.
 
         If the exception's message is longer than MAX_ERROR_LEN, it will be
         truncated with an ellipses (...) when raised.  The complete message
         will be logged.
         """
-        self.log.error(f'Error executing {file_name}: {str(ex)}')
+        self.log.error(f"Error executing {file_name}: {str(ex)}")
         if data_capture_msg:
             self.log.info(data_capture_msg)
         truncated_msg = FileOperationProcessor._truncate_msg(str(ex))
-        raise RuntimeError(f'({file_name}): {truncated_msg}') from ex
+        raise RuntimeError(f"({file_name}): {truncated_msg}") from ex
 
     @staticmethod
     def _truncate_msg(msg: str) -> str:
@@ -196,14 +197,14 @@ class FileOperationProcessor(OperationProcessor):
         if len(msg) < FileOperationProcessor.MAX_ERROR_LEN:
             return msg
         # locate the first whitespace from the 80th character and truncate from there
-        last_space = msg.rfind(' ', 0, FileOperationProcessor.MAX_ERROR_LEN)
+        last_space = msg.rfind(" ", 0, FileOperationProcessor.MAX_ERROR_LEN)
         if last_space >= 0:
             return msg[:last_space] + "..."
-        return msg[:FileOperationProcessor.MAX_ERROR_LEN]
+        return msg[: FileOperationProcessor.MAX_ERROR_LEN]
 
 
 class NotebookOperationProcessor(FileOperationProcessor):
-    _operation_name = 'execute-notebook-node'
+    _operation_name = "execute-notebook-node"
 
     def process(self, operation: GenericOperation, elyra_run_name: str):
         filepath = self.get_valid_filepath(operation.filename)
@@ -211,7 +212,7 @@ class NotebookOperationProcessor(FileOperationProcessor):
         file_dir = os.path.dirname(filepath)
         file_name = os.path.basename(filepath)
 
-        self.log.debug(f'Processing notebook: {filepath}')
+        self.log.debug(f"Processing notebook: {filepath}")
 
         # We'll always use the ElyraEngine.  This engine is essentially the default Papermill engine
         # but allows for environment variables to be passed to the kernel process (via 'kernel_env').
@@ -221,31 +222,29 @@ class NotebookOperationProcessor(FileOperationProcessor):
         # runs the notebook (cwd) and where the directory of the kernel process (kernel_cwd).  The latter
         # of which is important when EG is configured.
         additional_kwargs = dict()
-        additional_kwargs['engine_name'] = "ElyraEngine"
-        additional_kwargs['cwd'] = file_dir  # For local operations, papermill runs from this dir
-        additional_kwargs['kernel_cwd'] = file_dir
-        additional_kwargs['kernel_env'] = OperationProcessor._collect_envs(operation, elyra_run_name)
+        additional_kwargs["engine_name"] = "ElyraEngine"
+        additional_kwargs["cwd"] = file_dir  # For local operations, papermill runs from this dir
+        additional_kwargs["kernel_cwd"] = file_dir
+        additional_kwargs["kernel_env"] = OperationProcessor._collect_envs(operation, elyra_run_name)
         if GatewayClient.instance().gateway_enabled:
-            additional_kwargs['kernel_manager_class'] = 'jupyter_server.gateway.managers.GatewayKernelManager'
+            additional_kwargs["kernel_manager_class"] = "jupyter_server.gateway.managers.GatewayKernelManager"
 
         t0 = time.time()
         try:
-            papermill.execute_notebook(
-                filepath,
-                filepath,
-                **additional_kwargs
-            )
+            papermill.execute_notebook(filepath, filepath, **additional_kwargs)
         except papermill.PapermillExecutionError as pmee:
-            self.log.error(f'Error executing {file_name} in cell {pmee.exec_count}: ' +
-                           f'{str(pmee.ename)} {str(pmee.evalue)}')
-            raise RuntimeError(f'({file_name}) in cell {pmee.exec_count}: ' +
-                               f'{str(pmee.ename)} {str(pmee.evalue)}') from pmee
+            self.log.error(
+                f"Error executing {file_name} in cell {pmee.exec_count}: " + f"{str(pmee.ename)} {str(pmee.evalue)}"
+            )
+            raise RuntimeError(
+                f"({file_name}) in cell {pmee.exec_count}: " + f"{str(pmee.ename)} {str(pmee.evalue)}"
+            ) from pmee
         except Exception as ex:
             self.log_and_raise(file_name, ex)
 
         t1 = time.time()
-        duration = (t1 - t0)
-        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
+        duration = t1 - t0
+        self.log.debug(f"Execution of {file_name} took {duration:.3f} secs.")
 
 
 class ScriptOperationProcessor(FileOperationProcessor):
@@ -261,47 +260,49 @@ class ScriptOperationProcessor(FileOperationProcessor):
         file_dir = os.path.dirname(filepath)
         file_name = os.path.basename(filepath)
 
-        self.log.debug(f'Processing {self._script_type} script: {filepath}')
+        self.log.debug(f"Processing {self._script_type} script: {filepath}")
 
         argv = self.get_argv(filepath)
         envs = OperationProcessor._collect_envs(operation, elyra_run_name)
-        data_capture_msg = f"Data capture for previous error:\n"\
-                           f" command: {' '.join(argv)}\n"\
-                           f" working directory: {file_dir}\n"\
-                           f" environment variables: {envs}"
+        data_capture_msg = (
+            f"Data capture for previous error:\n"
+            f" command: {' '.join(argv)}\n"
+            f" working directory: {file_dir}\n"
+            f" environment variables: {envs}"
+        )
         t0 = time.time()
         try:
             run(argv, cwd=file_dir, env=envs, check=True, stderr=PIPE)
         except CalledProcessError as cpe:
             error_msg = str(cpe.stderr.decode())
-            self.log.error(f'Error executing {file_name}: {error_msg}')
+            self.log.error(f"Error executing {file_name}: {error_msg}")
             # Log process information to aid with troubleshooting
             self.log.info(data_capture_msg)
 
-            error_trim_index = error_msg.rfind('\n', 0, error_msg.rfind('Error'))
+            error_trim_index = error_msg.rfind("\n", 0, error_msg.rfind("Error"))
             if error_trim_index != -1:
-                raise RuntimeError(f'({file_name}): {error_msg[error_trim_index:].strip()}') from cpe
+                raise RuntimeError(f"({file_name}): {error_msg[error_trim_index:].strip()}") from cpe
             else:
-                raise RuntimeError(f'({file_name})') from cpe
+                raise RuntimeError(f"({file_name})") from cpe
         except Exception as ex:
             self.log_and_raise(file_name, ex, data_capture_msg)
 
         t1 = time.time()
-        duration = (t1 - t0)
-        self.log.debug(f'Execution of {file_name} took {duration:.3f} secs.')
+        duration = t1 - t0
+        self.log.debug(f"Execution of {file_name} took {duration:.3f} secs.")
 
 
 class PythonScriptOperationProcessor(ScriptOperationProcessor):
-    _operation_name = 'execute-python-node'
-    _script_type = 'Python'
+    _operation_name = "execute-python-node"
+    _script_type = "Python"
 
     def get_argv(self, file_path) -> List[str]:
         return [f"{sys.executable}", file_path]
 
 
 class RScriptOperationProcessor(ScriptOperationProcessor):
-    _operation_name = 'execute-r-node'
-    _script_type = 'R'
+    _operation_name = "execute-r-node"
+    _script_type = "R"
 
     def get_argv(self, file_path) -> List[str]:
-        return ['Rscript', file_path]
+        return ["Rscript", file_path]

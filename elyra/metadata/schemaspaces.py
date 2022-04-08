@@ -21,10 +21,12 @@ class Runtimes(Schemaspace):
     RUNTIMES_SCHEMASPACE_DISPLAY_NAME = "Runtimes"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=Runtimes.RUNTIMES_SCHEMASPACE_ID,
-                         name=Runtimes.RUNTIMES_SCHEMASPACE_NAME,
-                         display_name=Runtimes.RUNTIMES_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra runtime configurations")
+        super().__init__(
+            schemaspace_id=Runtimes.RUNTIMES_SCHEMASPACE_ID,
+            name=Runtimes.RUNTIMES_SCHEMASPACE_NAME,
+            display_name=Runtimes.RUNTIMES_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra runtime configurations",
+        )
 
 
 class RuntimeImages(Schemaspace):
@@ -33,10 +35,12 @@ class RuntimeImages(Schemaspace):
     RUNTIMES_IMAGES_SCHEMASPACE_DISPLAY_NAME = "Runtime Images"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID,
-                         name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME,
-                         display_name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra runtime images configurations")
+        super().__init__(
+            schemaspace_id=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID,
+            name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME,
+            display_name=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra runtime images configurations",
+        )
 
 
 class CodeSnippets(Schemaspace):
@@ -45,10 +49,12 @@ class CodeSnippets(Schemaspace):
     CODE_SNIPPETS_SCHEMASPACE_DISPLAY_NAME = "Code Snippets"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID,
-                         name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_NAME,
-                         display_name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra code snippets configurations")
+        super().__init__(
+            schemaspace_id=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID,
+            name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_NAME,
+            display_name=CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra code snippets configurations",
+        )
 
 
 class ComponentCatalogs(Schemaspace):
@@ -57,7 +63,9 @@ class ComponentCatalogs(Schemaspace):
     COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME = "Component Catalogs"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(schemaspace_id=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID,
-                         name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME,
-                         display_name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME,
-                         description="Schemaspace for instances of Elyra component catalog configurations")
+        super().__init__(
+            schemaspace_id=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID,
+            name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_NAME,
+            display_name=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra component catalog configurations",
+        )

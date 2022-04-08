@@ -27,24 +27,24 @@
 #
 import os
 
-master_doc = 'index'
+master_doc = "index"
 
 # -- Project information -----------------------------------------------------
 
-project = 'Elyra'
-copyright = '2022, Elyra Team'
-author = 'Elyra Team'
+project = "Elyra"
+copyright = "2022, Elyra Team"
+author = "Elyra Team"
 
-_version_py = os.path.join('..', '..', 'elyra', '_version.py')
+_version_py = os.path.join("..", "..", "elyra", "_version.py")
 version_ns = {}
 
-with open(_version_py, mode='r') as version_file:
+with open(_version_py, mode="r") as version_file:
     exec(version_file.read(), version_ns)
 
 # The short X.Y version.
-version = version_ns['__version__'][:6]
+version = version_ns["__version__"][:6]
 # The full version, including alpha/beta/rc tags.
-release = version_ns['__version__']
+release = version_ns["__version__"]
 
 
 # -- General configuration ---------------------------------------------------
@@ -59,18 +59,15 @@ extensions = [
     "versionwarning.extension",
 ]
 
-source_suffix = {
-    '.md': 'markdown',
-    '.rst': 'restructuredtext'
-}
+source_suffix = {".md": "markdown", ".rst": "restructuredtext"}
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -78,24 +75,22 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'analytics_id': 'UA-169426804-1',
+    "analytics_id": "UA-169426804-1",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
-html_css_files = [
-    "custom.css"
-]
+html_css_files = ["custom.css"]
 
 # -- Options for version warning
 
@@ -104,7 +99,8 @@ versionwarning_messages = {
     "latest": (
         "This document is for the development version. "
         'For the stable version documentation, see <a href="/en/stable/">here</a>.'
-    )}
+    )
+}
 
 # Show warning at top of page
 versionwarning_body_selector = "div.document"

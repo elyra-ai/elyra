@@ -23,13 +23,14 @@ from urllib3.util import parse_url
 
 
 class GithubClient(LoggingConfigurable):
-
-    def __init__(self,
-                 token: str,
-                 repo: str,
-                 branch: Optional[str] = None,
-                 server_url: Optional[str] = "https://api.github.com",
-                 **kwargs):
+    def __init__(
+        self,
+        token: str,
+        repo: str,
+        branch: Optional[str] = None,
+        server_url: Optional[str] = "https://api.github.com",
+        **kwargs,
+    ):
         """
         Creates a Github Client for Elyra
         :param token: Personal Access Token for use with Github
@@ -46,7 +47,7 @@ class GithubClient(LoggingConfigurable):
         super().__init__(**kwargs)
 
         # Remove trailing slash(es) from server URL to prevent failure
-        self.server_url = server_url.rstrip('/')
+        self.server_url = server_url.rstrip("/")
         self.repo_name = repo
         self.branch = branch
         self.client = Github(login_or_token=token, base_url=self.server_url)
@@ -55,12 +56,12 @@ class GithubClient(LoggingConfigurable):
             self.github_repository = self.client.get_repo(self.repo_name)
         except GithubException as e:
             self.log.error(f'Error accessing repository {self.repo_name}: {e.data["message"]} ({e.status})')
-            raise RuntimeError(f'Error accessing repository {self.repo_name}: {e.data["message"]} ({e.status}). ' +
-                               'Please validate your runtime configuration details and retry.') from e
+            raise RuntimeError(
+                f'Error accessing repository {self.repo_name}: {e.data["message"]} ({e.status}). '
+                "Please validate your runtime configuration details and retry."
+            ) from e
 
-    def upload_dag(self,
-                   pipeline_filepath: str,
-                   pipeline_name: str) -> None:
+    def upload_dag(self, pipeline_filepath: str, pipeline_name: str) -> None:
         """
         Push a DAG to a remote Github Repository
         :param pipeline_filepath: filepath to the location of the DAG in the local filesystem
@@ -72,25 +73,27 @@ class GithubClient(LoggingConfigurable):
             with open(pipeline_filepath) as input_file:
                 content = input_file.read()
 
-                self.github_repository.create_file(path=pipeline_name + ".py",
-                                                   message="Pushed DAG " + pipeline_name,
-                                                   content=content,
-                                                   branch=self.branch)
+                self.github_repository.create_file(
+                    path=pipeline_name + ".py",
+                    message="Pushed DAG " + pipeline_name,
+                    content=content,
+                    branch=self.branch,
+                )
 
-            self.log.info('Pipeline successfully added to the git queue')
+            self.log.info("Pipeline successfully added to the git queue")
 
         except FileNotFoundError as fnfe:
-            self.log.error(f'Unable to locate local DAG file to upload: {pipeline_filepath}: ' + str(fnfe))
-            raise RuntimeError(f'Unable to locate local DAG file to upload: {pipeline_filepath}: {str(fnfe)}') from fnfe
+            self.log.error(f"Unable to locate local DAG file to upload: {pipeline_filepath}: " + str(fnfe))
+            raise RuntimeError(f"Unable to locate local DAG file to upload: {pipeline_filepath}: {str(fnfe)}") from fnfe
         except GithubException as e:
             self.log.error(f'Error uploading DAG to branch {self.branch}: {e.data["message"]} ({e.status})')
-            raise RuntimeError(f'Error uploading DAG to branch {self.branch}: {e.data["message"]} ({e.status}). ' +
-                               'Please validate your runtime configuration details and retry.') from e
+            raise RuntimeError(
+                f'Error uploading DAG to branch {self.branch}: {e.data["message"]} ({e.status}). '
+                "Please validate your runtime configuration details and retry."
+            ) from e
 
     @staticmethod
-    def get_git_url(api_url: str,
-                    repository_name: str,
-                    repository_branch: str) -> str:
+    def get_git_url(api_url: str, repository_name: str, repository_branch: str) -> str:
         """
         Generates the URL to the location of the pushed DAG
         :param api_url: url of the GitHub API
@@ -102,12 +105,12 @@ class GithubClient(LoggingConfigurable):
         parsed_url = parse_url(api_url)
         scheme = parsed_url.scheme + ":/"
         host = parsed_url.host
-        port = ''
+        port = ""
 
-        if parsed_url.host.split('.')[0] == 'api':
-            host = ".".join(parsed_url.host.split('.')[1:])
+        if parsed_url.host.split(".")[0] == "api":
+            host = ".".join(parsed_url.host.split(".")[1:])
 
         if parsed_url.port:
-            port = ':' + parsed_url.port
+            port = ":" + parsed_url.port
 
-        return "/".join([scheme, host + port, repository_name, 'tree', repository_branch])
+        return "/".join([scheme, host + port, repository_name, "tree", repository_branch])

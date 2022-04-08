@@ -26,33 +26,34 @@ in Apache Airflow
 
 # Inputs and Outputs separator character.  If updated,
 # same-named variable in bootstrapper.py must be updated!
-INOUT_SEPARATOR = ';'
+INOUT_SEPARATOR = ";"
 
 ELYRA_GITHUB_ORG = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
-ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "master" if 'dev' in __version__ else "v" + __version__)
+ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "master" if "dev" in __version__ else "v" + __version__)
 
-ELYRA_BOOTSCRIPT_URL = os.getenv('ELYRA_BOOTSTRAP_SCRIPT_URL',
-                                 'https://raw.githubusercontent.com/{org}/elyra/{branch}/elyra/airflow/bootstrapper.py'.
-                                 format(org=ELYRA_GITHUB_ORG,
-                                        branch=ELYRA_GITHUB_BRANCH))
+ELYRA_BOOTSCRIPT_URL = os.getenv(
+    "ELYRA_BOOTSTRAP_SCRIPT_URL",
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/elyra/{ELYRA_GITHUB_BRANCH}/elyra/airflow/bootstrapper.py",
+)
 
-ELYRA_REQUIREMENTS_URL = os.getenv('ELYRA_REQUIREMENTS_URL',
-                                   'https://raw.githubusercontent.com/{org}/'
-                                   'elyra/{branch}/etc/generic/requirements-elyra.txt'.
-                                   format(org=ELYRA_GITHUB_ORG,
-                                          branch=ELYRA_GITHUB_BRANCH))
+ELYRA_REQUIREMENTS_URL = os.getenv(
+    "ELYRA_REQUIREMENTS_URL",
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/"
+    f"elyra/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra.txt",
+)
 
 
 class BootscriptBuilder(object):
-
-    def __init__(self,
-                 filename: str,
-                 cos_endpoint: str,
-                 cos_bucket: str,
-                 cos_directory: str,
-                 cos_dependencies_archive: str,
-                 inputs: Optional[List[str]] = None,
-                 outputs: Optional[List[str]] = None):
+    def __init__(
+        self,
+        filename: str,
+        cos_endpoint: str,
+        cos_bucket: str,
+        cos_directory: str,
+        cos_dependencies_archive: str,
+        inputs: Optional[List[str]] = None,
+        outputs: Optional[List[str]] = None,
+    ):
         """
         This helper builder constructs the bootstrapping arguments to be used as the driver for
         elyra's generic components in Apache Airflow
@@ -81,28 +82,35 @@ class BootscriptBuilder(object):
 
     @property
     def container_cmd(self):
-        self.arguments = [f"mkdir -p {self.container_work_dir} && cd {self.container_work_dir} && "
-                          f"curl -H 'Cache-Control: no-cache' -L {ELYRA_BOOTSCRIPT_URL} --output bootstrapper.py && "
-                          f"curl -H 'Cache-Control: no-cache' -L {ELYRA_REQUIREMENTS_URL} "
-                          f"--output requirements-elyra.txt && "
-                          "python3 -m pip install packaging && "
-                          "python3 -m pip freeze > requirements-current.txt && "
-                          "python3 bootstrapper.py "
-                          f"--cos-endpoint {self.cos_endpoint} "
-                          f"--cos-bucket {self.cos_bucket} "
-                          f"--cos-directory '{self.cos_directory}' "
-                          f"--cos-dependencies-archive '{self.cos_dependencies_archive}' "
-                          f"--file '{self.filename}' "]
+
+        common_curl_options = "--fail -H 'Cache-Control: no-cache'"
+
+        self.arguments = [
+            f"mkdir -p {self.container_work_dir} && cd {self.container_work_dir} && "
+            f"echo 'Downloading {ELYRA_BOOTSCRIPT_URL}' && "
+            f"curl {common_curl_options} -L {ELYRA_BOOTSCRIPT_URL} --output bootstrapper.py && "
+            f"echo 'Downloading {ELYRA_REQUIREMENTS_URL}' && "
+            f"curl {common_curl_options} -L {ELYRA_REQUIREMENTS_URL} "
+            f"--output requirements-elyra.txt && "
+            "python3 -m pip install packaging && "
+            "python3 -m pip freeze > requirements-current.txt && "
+            "python3 bootstrapper.py "
+            f"--cos-endpoint {self.cos_endpoint} "
+            f"--cos-bucket {self.cos_bucket} "
+            f"--cos-directory '{self.cos_directory}' "
+            f"--cos-dependencies-archive '{self.cos_dependencies_archive}' "
+            f"--file '{self.filename}' "
+        ]
 
         if self.inputs:
             inputs_str = self._artifact_list_to_str(self.inputs)
-            self.arguments.append("--inputs '{}' ".format(inputs_str))
+            self.arguments.append(f"--inputs '{inputs_str}' ")
 
         if self.outputs:
             outputs_str = self._artifact_list_to_str(self.outputs)
-            self.arguments.append("--outputs '{}' ".format(outputs_str))
+            self.arguments.append(f"--outputs '{outputs_str}' ")
 
-        argument_string = ''.join(self.arguments)
+        argument_string = "".join(self.arguments)
 
         return argument_string
 
@@ -110,7 +118,6 @@ class BootscriptBuilder(object):
         trimmed_artifact_list = []
         for artifact_name in pipeline_array:
             if INOUT_SEPARATOR in artifact_name:  # if INOUT_SEPARATOR is in name, throw since this is our separator
-                raise \
-                    ValueError("Illegal character ({}) found in filename '{}'.".format(INOUT_SEPARATOR, artifact_name))
+                raise ValueError(f"Illegal character ({INOUT_SEPARATOR}) found in filename '{artifact_name}'.")
             trimmed_artifact_list.append(artifact_name.strip())
         return INOUT_SEPARATOR.join(trimmed_artifact_list)
