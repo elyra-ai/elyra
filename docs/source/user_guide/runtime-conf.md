@@ -204,7 +204,15 @@ This section defines the settings for the Kubeflow Pipelines deployment that you
 
 The KubeFlow Pipelines API endpoint you want to utilize. This setting is required.
 
-Example: `https://kubernetes-service.ibm.com/pipeline`
+Example: `https://kubernetes-service.domain.com/pipeline`
+
+
+##### Public Kubeflow Pipelines API endpoint (public_api_endpoint)
+
+If the `KubeFlow Pipelines API endpoint` setting identifies a URL that can only be resolved within the Kubeflow cluster, Elyra cannot generate valid links to the Kubeflow Central Dashboard pipeline runs page. This is the case, for  example, if Kubeflow is configured to use `KUBERNETES_SERVICE_ACCOUNT_TOKEN` authentication. If a public URL is configured for the Kubeflow Central Dashboard, specify it as `Public Kubeflow Pipelines API endpoint`.
+
+Example: `https://public-kubernetes-service-url/pipeline`
+
 
 ##### Kubeflow Pipelines user namespace (user_namespace)
 The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if namespaces are defined in Kubeflow Pipelines. SEE NOTE.
