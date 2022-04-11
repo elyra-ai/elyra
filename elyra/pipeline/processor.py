@@ -35,6 +35,8 @@ from traitlets.config import Unicode
 from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
+from elyra.metadata.schema import SchemaManager
+from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
@@ -57,19 +59,23 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         self.root_dir = get_expanded_path(kwargs.get("root_dir"))
         # Register all known processors based on entrypoint configuration
         for processor in entrypoints.get_group_all("elyra.pipeline.processors"):
-            try:
-                # instantiate an actual instance of the processor
-                processor_instance = processor.load()(self.root_dir, parent=kwargs.get("parent"))  # Load an instance
-                self.log.info(
-                    f"Registering {processor.name} processor " f'"{processor.module_name}.{processor.object_name}"...'
-                )
-                self.add_processor(processor_instance)
-            except Exception as err:
-                # log and ignore initialization errors
-                self.log.error(
-                    f"Error registering {processor.name} processor "
-                    f'"{processor.module_name}.{processor.object_name}" - {err}'
-                )
+            if processor.name in SchemaManager.instance().get_schemasproviders(Runtimes.RUNTIMES_SCHEMASPACE_ID):
+                try:
+                    # instantiate an actual instance of the processor
+                    processor_instance = processor.load()(
+                        self.root_dir, parent=kwargs.get("parent")
+                    )  # Load an instance
+                    self.log.info(
+                        f"Registering {processor.name} processor "
+                        f'"{processor.module_name}.{processor.object_name}"...'
+                    )
+                    self.add_processor(processor_instance)
+                except Exception as err:
+                    # log and ignore initialization errors
+                    self.log.error(
+                        f"Error registering {processor.name} processor "
+                        f'"{processor.module_name}.{processor.object_name}" - {err}'
+                    )
 
     def add_processor(self, processor):
         self.log.debug(f"Registering {processor.type.value} runtime processor '{processor.name}'")

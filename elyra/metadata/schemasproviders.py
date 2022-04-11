@@ -29,6 +29,20 @@ except ImportError:
     # We may not have kfp-tekton available and that's okay!
     TektonClient = None
 
+try:
+    from kfp import compiler  # noqa
+except ImportError:
+    # KFP python package is not installed
+    compiler = None
+
+try:
+    # Check to see if Airflow package is installed, since we do not have any dependencies
+    # on any Airflow package, we use GitHub as our canary
+    from github import Github  # noqa
+except ImportError:
+    # Github package is not installed, we use GitHub as our default DAG repository
+    Github = None
+
 from elyra.metadata.schema import SchemasProvider
 from elyra.metadata.schemaspaces import CodeSnippets
 from elyra.metadata.schemaspaces import ComponentCatalogs
@@ -51,7 +65,7 @@ class ElyraSchemasProvider(SchemasProvider, metaclass=ABCMeta):
             schema_json = json.load(f)
             local_schemas.append(schema_json)
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.log = log.get_logger()
         # get set of registered runtimes
         self._runtime_processor_names = set()
@@ -82,17 +96,17 @@ class RuntimesSchemas(ElyraSchemasProvider):
         schemas = self.get_local_schemas_by_schemaspace(Runtimes.RUNTIMES_SCHEMASPACE_ID)
         for schema in schemas:
             if schema["name"] in self._runtime_processor_names:
-                runtime_schemas.append(schema)
-                if schema["name"] == "kfp":
+                if schema["name"] == "kfp" and compiler:
                     kfp_schema_present = True
-                elif schema["name"] == "airflow":
+                    runtime_schemas.append(schema)
+                elif schema["name"] == "airflow" and Github:
                     airflow_schema_present = True
+                    runtime_schemas.append(schema)
             else:
                 self.log.error(
                     f"No entrypoint with name '{schema['name']}' was found in group "
                     f"'elyra.pipeline.processor' to match the schema with the same name. Skipping..."
                 )
-
         if kfp_schema_present:  # Update the kfp engine enum to reflect current packages...
             # If TektonClient package is missing, navigate to the engine property
             # and remove 'tekton' entry if present and return updated result.
