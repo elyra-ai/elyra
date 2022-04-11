@@ -24,7 +24,7 @@ ARG TAG="dev"
 # Install Elyra
 # - with KFP Tekton support ('kfp-tekton')
 # - with component examples ('kfp-examples')
-RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
+RUN python -m pip install --quiet --no-cache-dir \
     elyra[kfp-tekton,kfp-examples]=="$TAG" \
     && rm -rf $HOME/.cache/yarn \
     && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
