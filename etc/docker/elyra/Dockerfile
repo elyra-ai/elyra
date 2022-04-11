@@ -24,7 +24,7 @@ ARG TAG="dev"
 COPY requirements.txt .
 
 # Install Elyra and custom requirements
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
+RUN python3 -m pip install --quiet --no-cache-dir \
     elyra[all]=="$TAG" \
  && python3 -m pip install -r requirements.txt \   
  && rm -rf $HOME/.cache/yarn \
