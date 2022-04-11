@@ -20,6 +20,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline.pipeline import Operation
+
 
 class AppDataBase(object):  # ABC
     """
@@ -320,6 +322,8 @@ class PipelineDefinition(object):
         if validate:
             self.validate()
 
+        self.propagate_global_properties()
+
     @property
     def id(self) -> str:
         """
@@ -431,6 +435,23 @@ class PipelineDefinition(object):
                         validation_issues.append("Node is missing 'component_parameters' field")
 
         return validation_issues
+
+    def propagate_global_properties(self):
+        """
+        For any global pipeline properties set (e.g. runtime image, volume), propagate
+        the values to any nodes that do not set their own value for that property.
+        """
+        global_properties = self.primary_pipeline.get_property("globals", {})
+        for global_prop, global_value in global_properties.items():
+            if not global_value:
+                continue
+
+            for pipeline in self.pipelines:
+                for node in pipeline.nodes:
+                    if Operation.is_generic_operation(node.op):
+                        node_value = node.get_component_parameter(global_prop)
+                        if not node_value:
+                            node.set_component_parameter(global_prop, global_value)
 
     def is_valid(self) -> bool:
         """
