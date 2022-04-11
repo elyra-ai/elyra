@@ -319,10 +319,11 @@ class PipelineDefinition(object):
             # supporting passing the pipeline definition directly
             self._pipeline_definition = pipeline_definition
 
+        validation_issues = []
         if validate:
-            self.validate()
+            validation_issues = self.validate()
 
-        if self.get_global_properties():
+        if not validation_issues and self.get_global_properties():
             self.propagate_global_properties()
 
     @property
