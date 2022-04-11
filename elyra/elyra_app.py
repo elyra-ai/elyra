@@ -37,6 +37,7 @@ from elyra.pipeline.handlers import ComponentCacheHandler
 from elyra.pipeline.handlers import PipelineComponentHandler
 from elyra.pipeline.handlers import PipelineComponentPropertiesHandler
 from elyra.pipeline.handlers import PipelineExportHandler
+from elyra.pipeline.handlers import PipelinePropertiesHandler
 from elyra.pipeline.handlers import PipelineRuntimeTypesHandler
 from elyra.pipeline.handlers import PipelineSchedulerHandler
 from elyra.pipeline.handlers import PipelineValidationHandler
@@ -98,6 +99,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
                 (f"/{self.name}/pipeline/components/cache", ComponentCacheHandler),
                 (f"/{self.name}/pipeline/components/cache/{catalog_regex}", ComponentCacheCatalogHandler),
                 (f"/{self.name}/pipeline/components/{processor_regex}", PipelineComponentHandler),
+                (f"/{self.name}/pipeline/components/{processor_regex}/properties", PipelinePropertiesHandler),
                 (
                     f"/{self.name}/pipeline/components/{processor_regex}/{component_regex}",
                     PipelineComponentPropertiesHandler,

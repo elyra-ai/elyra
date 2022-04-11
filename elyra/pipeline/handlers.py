@@ -16,10 +16,13 @@
 from datetime import datetime
 from http.client import responses
 import json
+from logging import Logger
 import mimetypes
 from typing import List
 from typing import Optional
 
+from jinja2 import Environment
+from jinja2 import PackageLoader
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado import web
@@ -40,6 +43,28 @@ from elyra.util.http import HttpErrorMixin
 
 
 MIMETYPE_MAP = {".yaml": "text/x-yaml", ".py": "text/x-python", None: "text/plain"}
+
+
+def get_runtime_processor_type(runtime_type: str, log: Logger, request_path: str) -> Optional[RuntimeProcessorType]:
+    """
+    TODO
+    """
+    processor_manager = PipelineProcessorManager.instance()
+    if processor_manager.is_supported_runtime(runtime_type):
+        # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
+        # 'airflow'). This case and its associated functions should eventually be removed
+        # in favor of using the RuntimeProcessorType name in the request path.
+        log.warning(
+            f"Deprecation warning: when calling endpoint '{request_path}' "
+            f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
+            f"instead of shorthand name (e.g., 'kfp', 'airflow')"
+        )
+        return processor_manager.get_runtime_type(runtime_type)
+    elif processor_manager.is_supported_runtime_type(runtime_type):
+        # The request path uses the appropriate RuntimeProcessorType name. Use this
+        # to get the RuntimeProcessorType instance to pass to get_all_components
+        return RuntimeProcessorType.get_instance_by_name(runtime_type)
+    return None
 
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
@@ -147,22 +172,8 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
     async def get(self, runtime_type):
         self.log.debug(f"Retrieving pipeline components for runtime type: {runtime_type}")
 
-        processor_manager = PipelineProcessorManager.instance()
-        if processor_manager.is_supported_runtime(runtime_type):
-            # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
-            # 'airflow'). This case and its associated functions should eventually be removed
-            # in favor of using the RuntimeProcessorType name in the request path.
-            self.log.warning(
-                f"Deprecation warning: when calling endpoint '{self.request.path}' "
-                f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
-                f"instead of shorthand name (e.g., 'kfp', 'airflow')"
-            )
-            runtime_processor_type = processor_manager.get_runtime_type(runtime_type)
-        elif processor_manager.is_supported_runtime_type(runtime_type):
-            # The request path uses the appropriate RuntimeProcessorType name. Use this
-            # to get the RuntimeProcessorType instance to pass to get_all_components
-            runtime_processor_type = RuntimeProcessorType.get_instance_by_name(runtime_type)
-        else:
+        runtime_processor_type = get_runtime_processor_type(runtime_type, self.log, self.request.path)
+        if not runtime_processor_type:
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
         # Include generic components for all runtime types
@@ -176,6 +187,27 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", "application/json")
         await self.finish(palette_json)
+
+
+class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose method calls to retrieve pipeline properties"""
+
+    @web.authenticated
+    async def get(self, runtime_type):
+        self.log.debug(f"Retrieving pipeline components for runtime type: {runtime_type}")
+
+        runtime_processor_type = get_runtime_processor_type(runtime_type, self.log, self.request.path)
+        if not runtime_processor_type:
+            raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
+
+        # Get pipeline properties json
+        jinja_loader = PackageLoader("elyra", "templates/pipeline")
+        template = Environment(loader=jinja_loader).get_template("pipeline_properties_template.jinja2")
+        pipeline_properties_json = json.loads(template.render())
+
+        self.set_status(200)
+        self.set_header("Content-Type", "application/json")
+        await self.finish(pipeline_properties_json)
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
@@ -199,22 +231,8 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         if not component_id:
             raise web.HTTPError(400, "Missing component ID")
 
-        processor_manager = PipelineProcessorManager.instance()
-        if processor_manager.is_supported_runtime(runtime_type):
-            # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
-            # 'airflow'). This case and its associated functions should eventually be removed
-            # in favor of using the RuntimeProcessorType name in the request path.
-            self.log.warning(
-                f"Deprecation warning: when calling endpoint '{self.request.path}' "
-                f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
-                f"instead of shorthand name (e.g., 'kfp', 'airflow')"
-            )
-            runtime_processor_type = processor_manager.get_runtime_type(runtime_type)
-        elif processor_manager.is_supported_runtime_type(runtime_type):
-            # The request path uses the appropriate RuntimeProcessorType name. Use this
-            # to get the RuntimeProcessorType instance to pass to get_component
-            runtime_processor_type = RuntimeProcessorType.get_instance_by_name(runtime_type)
-        else:
+        runtime_processor_type = get_runtime_processor_type(runtime_type, self.log, self.request.path)
+        if not runtime_processor_type:
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
         # Try to get component_id as a generic component; assigns None if id is not a generic component

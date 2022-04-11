@@ -1,0 +1,75 @@
+{
+  "current_parameters": {
+    "name": "",
+    "runtime": "",
+    "description": "",
+    "elyra_runtime_image": null
+  },
+  "parameters": [{ "id": "name" }, { "id": "runtime" }, { "id": "description" }, { "id": "elyra_runtime_image" }],
+  "uihints": {
+    "id": "nodeProperties",
+    "parameter_info": [
+      {
+        "control": "custom",
+        "custom_control_id": "DisplayControl",
+        "parameter_ref": "name",
+        "label": { "default": "Pipeline Name" }
+      },
+      {
+        "control": "custom",
+        "custom_control_id": "DisplayControl",
+        "parameter_ref": "runtime",
+        "label": { "default": "Pipeline Runtime" }
+      },
+      {
+        "control": "custom",
+        "custom_control_id": "StringControl",
+        "parameter_ref": "description",
+        "label": { "default": "Pipeline Description" },
+        "data": {
+          "placeholder": "Pipeline description",
+          "format": "multiline"
+        }
+      },
+      {
+        "parameter_ref": "elyra_runtime_image",
+        "control": "custom",
+        "custom_control_id": "EnumControl",
+        "label": { "default": "Runtime Image" },
+        "description": { "default": "Docker image used as execution environment." },
+        "data": {
+          "items": [],
+          "required": false
+        }
+      }
+    ],
+    "group_info": [
+      {
+        "id": "nodeGroupInfo",
+        "type": "panels",
+        "group_info": [
+          {
+            "id": "name",
+            "type": "controls",
+            "parameter_refs": ["name"]
+          },
+          {
+            "id": "runtime",
+            "type": "controls",
+            "parameter_refs": ["runtime"]
+          },
+          {
+            "id": "description",
+            "type": "controls",
+            "parameter_refs": ["description"]
+          },
+          {
+            "id": "elyra_runtime_image",
+            "type": "controls",
+            "parameter_refs": ["elyra_runtime_image"]
+          }
+        ]
+      }
+    ]
+  }
+}
