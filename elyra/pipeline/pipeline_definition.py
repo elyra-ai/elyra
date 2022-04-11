@@ -322,7 +322,8 @@ class PipelineDefinition(object):
         if validate:
             self.validate()
 
-        self.propagate_global_properties()
+        if self.get_global_properties():
+            self.propagate_global_properties()
 
     @property
     def id(self) -> str:
@@ -436,12 +437,19 @@ class PipelineDefinition(object):
 
         return validation_issues
 
+    def get_global_properties(self) -> Dict:
+        """
+        Retrieve the global properties associated with the pipeline
+        :return:
+        """
+        return self.primary_pipeline.get_property("globals", {})
+
     def propagate_global_properties(self):
         """
         For any global pipeline properties set (e.g. runtime image, volume), propagate
         the values to any nodes that do not set their own value for that property.
         """
-        global_properties = self.primary_pipeline.get_property("globals", {})
+        global_properties = self.get_global_properties()
         for global_prop, global_value in global_properties.items():
             if not global_value:
                 continue
