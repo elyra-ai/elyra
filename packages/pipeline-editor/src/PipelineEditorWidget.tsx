@@ -73,7 +73,6 @@ import {
   useRuntimesSchema
 } from './pipeline-hooks';
 import { PipelineExportDialog } from './PipelineExportDialog';
-import pipelineProperties from './pipelineProperties';
 import {
   PipelineService,
   RUNTIMES_SCHEMASPACE,
@@ -269,18 +268,6 @@ const PipelineWrapper: React.FC<IProps> = ({
       const nodes = pipelineJson?.pipelines?.[0]?.nodes;
       if (nodes?.length > 0) {
         for (const node of nodes) {
-          if (node?.app_data?.component_parameters?.runtime_image) {
-            const image = runtimeImages?.find(
-              i =>
-                i.metadata.image_name ===
-                node.app_data.component_parameters.runtime_image
-            );
-            if (image) {
-              node.app_data.component_parameters.runtime_image =
-                image.display_name;
-            }
-          }
-
           if (node?.app_data?.component_parameters) {
             for (const [key, val] of Object.entries(
               node?.app_data?.component_parameters
@@ -315,38 +302,15 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [runtimeImages, runtimeDisplayName]);
+  }, [runtimeDisplayName]);
 
-  const onChange = useCallback(
-    (pipelineJson: any): void => {
-      if (contextRef.current.isReady) {
-        if (pipelineJson?.pipelines?.[0]?.nodes) {
-          // map display names to IDs
-          const nodes = pipelineJson?.pipelines?.[0]?.nodes;
-          if (nodes?.length > 0) {
-            for (const node of nodes) {
-              if (node?.app_data?.component_parameters?.runtime_image) {
-                const image = runtimeImages?.find(
-                  i =>
-                    i.display_name ===
-                    node.app_data.component_parameters.runtime_image
-                );
-                if (image) {
-                  node.app_data.component_parameters.runtime_image =
-                    image.metadata.image_name;
-                }
-              }
-            }
-          }
-        }
-
-        contextRef.current.model.fromString(
-          JSON.stringify(pipelineJson, null, 2)
-        );
-      }
-    },
-    [runtimeImages]
-  );
+  const onChange = useCallback((pipelineJson: any): void => {
+    if (contextRef.current.isReady) {
+      contextRef.current.model.fromString(
+        JSON.stringify(pipelineJson, null, 2)
+      );
+    }
+  }, []);
 
   const isDialogAlreadyShowing = useRef(false);
   const onError = useCallback(
@@ -1081,7 +1045,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineEditor
           ref={ref}
           palette={palette}
-          pipelineProperties={pipelineProperties}
+          pipelineProperties={palette.properties}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}

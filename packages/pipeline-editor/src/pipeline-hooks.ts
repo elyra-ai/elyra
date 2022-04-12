@@ -69,6 +69,7 @@ export const useRuntimesSchema = (): IReturn<any> => {
 interface IRuntimeComponentsResponse {
   version: string;
   categories: IRuntimeComponent[];
+  properties: IComponentPropertiesResponse;
 }
 
 export interface IRuntimeComponent {
@@ -166,9 +167,19 @@ export const componentFetcher = async (type: string): Promise<any> => {
     IRuntimeComponentsResponse
   >(`elyra/pipeline/components/${type}`);
 
+  const pipelinePropertiesPromise = RequestHandler.makeGetRequest<
+    IComponentPropertiesResponse
+  >(`elyra/pipeline/components/${type}/properties`);
+
   const typesPromise = PipelineService.getRuntimeTypes();
 
-  const [palette, types] = await Promise.all([palettePromise, typesPromise]);
+  const [palette, pipelineProperties, types] = await Promise.all([
+    palettePromise,
+    pipelinePropertiesPromise,
+    typesPromise
+  ]);
+
+  palette.properties = pipelineProperties;
 
   // Gather list of component IDs to fetch properties for.
   const componentList: string[] = [];
@@ -226,6 +237,32 @@ export const componentFetcher = async (type: string): Promise<any> => {
   return palette;
 };
 
+const updateRuntimeImages = (
+  properties: any,
+  runtimeImages: IRuntimeImage[] | undefined
+): void => {
+  const runtimeImageIndex = properties.uihints.parameter_info.findIndex(
+    (p: any) => p.parameter_ref === 'elyra_runtime_image'
+  );
+
+  const imageNames = (runtimeImages ?? []).map(i => i.metadata.image_name);
+
+  const displayNames: { [key: string]: string } = {};
+
+  (runtimeImages ?? []).forEach((i: IRuntimeImage) => {
+    displayNames[i.metadata.image_name] = i.display_name;
+  });
+
+  if (runtimeImageIndex !== -1) {
+    properties.uihints.parameter_info[
+      runtimeImageIndex
+    ].data.labels = displayNames;
+    properties.uihints.parameter_info[
+      runtimeImageIndex
+    ].data.items = imageNames;
+  }
+};
+
 export const usePalette = (type = 'local'): IReturn<any> => {
   const { data: runtimeImages, error: runtimeError } = useRuntimeImages();
 
@@ -240,19 +277,10 @@ export const usePalette = (type = 'local'): IReturn<any> => {
       for (const category of draft.categories) {
         for (const node of category.node_types) {
           // update runtime images
-          const runtimeImageIndex = node.app_data.properties.uihints.parameter_info.findIndex(
-            (p: any) => p.parameter_ref === 'elyra_runtime_image'
-          );
-
-          const displayNames = (runtimeImages ?? []).map(i => i.display_name);
-
-          if (runtimeImageIndex !== -1) {
-            node.app_data.properties.uihints.parameter_info[
-              runtimeImageIndex
-            ].data.items = displayNames;
-          }
+          updateRuntimeImages(node.app_data.properties, runtimeImages);
         }
       }
+      updateRuntimeImages(draft.properties, runtimeImages);
     });
   }
 
