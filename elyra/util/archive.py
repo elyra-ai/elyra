@@ -46,18 +46,31 @@ def directory_prefixed(filename):
     return os.sep in filename and not filename.startswith(os.sep) and not filename.endswith(os.sep)
 
 
-def create_temp_archive(archive_name, source_dir, filenames=None, recursive=False, require_complete=False):
+def create_temp_archive(archive_name, source_dir, source_file, filenames=None, recursive=False, require_complete=False):
     """
     Create archive file with specified list of files
     :param archive_name: the name of the archive to be created
     :param source_dir: the root folder containing source files
+    :param source_file: the source filename
     :param filenames: the list of filenames, each of which can contain wildcards and/or specify subdirectories
     :param recursive: flag to include sub directories recursively
-    :param require_complete: flag to indicate an exception should be raise if all filenames are not included
+    :param require_complete: flag to indicate an exception should be raised if all filenames are not included
     :return: full path of the created archive
     """
 
     def tar_filter(tarinfo):
+        # TODO: remove print statements
+        print('***')
+        print('archive_name:')
+        print(archive_name)
+        print('source_dir:')
+        print(source_dir)
+        print('source_file:')
+        print(source_file)
+        print('filenames:')
+        print(filenames)
+        print('***')
+
         """Filter files from the generated archive"""
         if tarinfo.type == tarfile.DIRTYPE:
             # ignore hidden directories (e.g. ipynb checkpoints and/or trash contents)
@@ -114,13 +127,16 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
     matched_set = set()
     temp_dir = create_project_temp_dir()
     archive = os.path.join(temp_dir, archive_name)
+    wildcard_expression_list = ['{WILDCARDS[0]}.py', '{WILDCARDS[0]}.r']  # Supported script file extensions
+    wildcard_expression = len(filenames_set) == 1 and next(iter(filenames_set)) in wildcard_expression_list
 
     with tarfile.open(archive, "w:gz", dereference=True) as tar:
         tar.add(source_dir, arcname="", filter=tar_filter)
 
     if require_complete and not include_all:
-        # compare matched_set against filenames_set to ensure they're the same.
-        if len(filenames_set) > len(matched_set):
+        # Compare matched_set against filenames_set to ensure they're the same.
+        # Tolerate no matching files when a single filename is a wildcard_expression.
+        if len(filenames_set) > len(matched_set) and not wildcard_expression:
             raise FileNotFoundError(filenames_set - matched_set)  # Only include the missing filenames
 
     return archive
