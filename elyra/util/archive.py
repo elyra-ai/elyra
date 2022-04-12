@@ -59,18 +59,6 @@ def create_temp_archive(archive_name, source_dir, source_file, filenames=None, r
     """
 
     def tar_filter(tarinfo):
-        # TODO: remove print statements
-        print('***')
-        print('archive_name:')
-        print(archive_name)
-        print('source_dir:')
-        print(source_dir)
-        print('source_file:')
-        print(source_file)
-        print('filenames:')
-        print(filenames)
-        print('***')
-
         """Filter files from the generated archive"""
         if tarinfo.type == tarfile.DIRTYPE:
             # ignore hidden directories (e.g. ipynb checkpoints and/or trash contents)
