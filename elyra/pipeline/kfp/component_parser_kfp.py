@@ -163,7 +163,7 @@ class KfpComponentParser(ComponentParser):
                 name="Runtime Image",
                 data_type="string",
                 value="",
-                description="Docker image used as execution environment.",
+                description="Container image used as execution environment.",
                 control="readonly",
                 required=True,
             )
