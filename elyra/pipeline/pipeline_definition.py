@@ -527,3 +527,12 @@ class PipelineDefinition(object):
                 if node.type == "super_node":
                     supernode_list.append(node)
         return supernode_list
+
+    def get_global_property(self, name: str) -> Any:
+        """
+        Returns the value assigned to the specified global property
+        :param name: the name of the global property
+        :return:
+        """
+        global_properties = self.primary_pipeline.get_property("globals", {})
+        return global_properties.get(name)
