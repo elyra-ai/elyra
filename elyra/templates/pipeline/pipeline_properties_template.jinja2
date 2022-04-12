@@ -3,9 +3,26 @@
     "name": "",
     "runtime": "",
     "description": "",
-    "elyra_runtime_image": null
+    "elyra_runtime_image": null,
+    "elyra_env_vars": []
   },
-  "parameters": [{ "id": "name" }, { "id": "runtime" }, { "id": "description" }, { "id": "elyra_runtime_image" }],
+  "parameters": [
+    {
+      "id": "name"
+    },
+    {
+      "id": "runtime"
+    },
+    {
+      "id": "description"
+    },
+    {
+      "id": "elyra_runtime_image"
+    },
+    {
+      "id": "elyra_env_vars"
+    }
+  ],
   "uihints": {
     "id": "nodeProperties",
     "parameter_info": [
@@ -44,6 +61,22 @@
           "items": [],
           "required": false
         }
+      },
+      {
+        "parameter_ref": "elyra_env_vars",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Environment Variables"
+        },
+        "description": {
+          "default": "Environment variables to be set on the execution environment.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "env_var=VALUE",
+          "canRefresh": true
+        }
       }
     ],
     "group_info": [
@@ -70,6 +103,11 @@
             "id": "elyra_runtime_image",
             "type": "controls",
             "parameter_refs": ["elyra_runtime_image"]
+          },
+          {
+            "id": "elyra_env_vars",
+            "type": "controls",
+            "parameter_refs": ["elyra_env_vars"]
           }
         ]
       }
