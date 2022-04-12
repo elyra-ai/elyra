@@ -147,7 +147,7 @@ build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
 install-server-package:
-	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
+	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
