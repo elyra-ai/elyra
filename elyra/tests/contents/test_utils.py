@@ -26,7 +26,7 @@ def create_dir(location, dir_name):
             raise
 
 
-def create_file(location, file_name, content, subdir=''):
+def create_file(location, file_name, content, subdir=""):
     directory = os.path.join(location, subdir)
     try:
         os.makedirs(directory)
@@ -35,7 +35,7 @@ def create_file(location, file_name, content, subdir=''):
             raise
 
     resource = os.path.join(directory, file_name)
-    with open(resource, 'w', encoding='utf-8') as f:
+    with open(resource, "w", encoding="utf-8") as f:
         f.write(content)
 
 
@@ -48,17 +48,13 @@ expected_response = {
         "VAR5": "localhost",
         "VAR6": "6",
         "VAR7": "value7",
-        "VAR8": None
+        "VAR8": None,
     },
     "inputs": [],
-    "outputs": []
+    "outputs": [],
 }
 
-expected_response_empty = {
-    "env_vars": {},
-    "inputs": [],
-    "outputs": []
-}
+expected_response_empty = {"env_vars": {}, "inputs": [], "outputs": []}
 
 text_content = "This is a text file."
 
@@ -126,7 +122,7 @@ notebook_content = {
     "nbformat_minor": 5,
 }
 
-python_content = '''
+python_content = """
     import os
 
     os.getenv("VAR1")
@@ -141,9 +137,9 @@ python_content = '''
     os.getenv('VAR8')
 
     os.environ["VAR1"] = "newvalue"
-'''
+"""
 
-r_content = '''
+r_content = """
     Sys.setenv(VAR1 = "newvalue")
     Sys.getenv(VAR2)
 
@@ -155,7 +151,7 @@ r_content = '''
 
      Sys.setenv(VAR7 = "value7")
     Sys.getenv('VAR8')
-'''
+"""
 
 empty_notebook_content = {
     "cells": [

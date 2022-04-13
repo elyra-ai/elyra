@@ -22,18 +22,20 @@ from typing import List
 
 class NodeFile(object):
     """Base class for input and output node files"""
+
     def __init__(self, filename: str) -> None:
         self.filename = filename
 
 
 class InputNodeFile(NodeFile):
     """Given a filename, it ensures the file exists and can read its contents."""
+
     def __init__(self, filename: str) -> None:
         super().__init__(filename)
         self.data = None
 
         if not os.path.exists(self.filename):
-            raise FileNotFoundError("File '{}' does not exist!".format(self.filename))
+            raise FileNotFoundError(f"File '{self.filename}' does not exist!")
 
     def read(self) -> str:
         with open(self.filename) as f:
@@ -46,15 +48,16 @@ class InputNodeFile(NodeFile):
 
 class OutputNodeFile(NodeFile):
     """Given a filename, it ensures the file does not exist and will write data to that file."""
+
     def __init__(self, filename: str) -> None:
         super().__init__(filename)
 
         # Don't enforce output file existence here - break idempotency
         # if os.path.exists(self.filename):
-        #    raise FileExistsError("File '{}' already exists!".format(self.filename))
+        #    raise FileExistsError(f"File '{self.filename}' already exists!")
 
     def write(self, data) -> None:
-        with open(self.filename, 'w+') as f:
+        with open(self.filename, "w+") as f:
             f.write(data)
 
 
@@ -66,7 +69,7 @@ class ExecutionNode(ABC):
     extension = None
 
     def __init__(self) -> None:
-        self.filename = os.getenv('NODE_FILENAME')
+        self.filename = os.getenv("NODE_FILENAME")
         if not self.filename:
             raise ValueError("NODE_FILENAME environment variable must be set!")
 
@@ -76,12 +79,12 @@ class ExecutionNode(ABC):
         self.validate()
 
     def validate(self) -> None:
-        """Validate the filename as best as possible, depending on subclass. """
+        """Validate the filename as best as possible, depending on subclass."""
 
         # Validate its extension and that the file exists.
         self.validate_extension()
         if not os.path.exists(self.filename):
-            raise FileNotFoundError("ExecutionNode filename '{}' does not exist!".format(self.filename))
+            raise FileNotFoundError(f"ExecutionNode filename '{self.filename}' does not exist!")
 
     def run(self) -> None:
         self.process_inputs("INPUT_FILENAMES")
@@ -108,11 +111,11 @@ class ExecutionNode(ABC):
 
     def process_inputs(self, env_var: str) -> List[InputNodeFile]:
         """Given an environment variable `env_var`, that contains a SEMI-COLON-separated
-           list of filenames, it processes each entry by instantiating an instance of
-           InputNodeFile corresponding to each entry and returns the list of instances.
+        list of filenames, it processes each entry by instantiating an instance of
+        InputNodeFile corresponding to each entry and returns the list of instances.
         """
         inputs = []
-        filenames = os.getenv(env_var, "").split(';')
+        filenames = os.getenv(env_var, "").split(";")
 
         for filename in filenames:
             if filename:
@@ -121,17 +124,17 @@ class ExecutionNode(ABC):
         for input_file in inputs:
             payload = json.loads(input_file.read())
             print(f"FROM: {payload.get('node')}")
-            assert payload.get('run_name') == os.getenv("ELYRA_RUN_NAME")
+            assert payload.get("run_name") == os.getenv("ELYRA_RUN_NAME")
 
         return inputs
 
     def process_outputs(self, env_var: str) -> List[OutputNodeFile]:
         """Given an environment variable `env_var`, that contains a SEMI-COLON-separated
-           list of filenames, it processes each entry by instantiating an instance of
-           OutputNodeFile corresponding to each entry and returns the list of instances.
+        list of filenames, it processes each entry by instantiating an instance of
+        OutputNodeFile corresponding to each entry and returns the list of instances.
         """
         outputs = []
-        filenames = os.getenv(env_var, "").split(';')
+        filenames = os.getenv(env_var, "").split(";")
 
         for filename in filenames:
             if filename:
@@ -146,13 +149,15 @@ class ExecutionNode(ABC):
 
     @abstractmethod
     def expected_extension(self) -> str:
-        raise NotImplementedError("Method 'expected_extension()' must be implemented by subclass '{}'!".
-                                  format(self.__class__.__name__))
+        raise NotImplementedError(
+            f"Method 'expected_extension()' must be implemented by subclass '{self.__class__.__name__}'!"
+        )
 
     def validate_extension(self) -> None:
         if self.expected_extension() != self.extension:
-            raise ValueError("Filename '{}' does not have a proper extension: '{}'".
-                             format(self.filename, self.expected_extension()))
+            raise ValueError(
+                f"Filename '{self.filename}' does not have a proper extension: '{self.expected_extension()}'"
+            )
 
 
 class NotebookNode(ExecutionNode):

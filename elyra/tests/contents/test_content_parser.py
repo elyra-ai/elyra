@@ -28,11 +28,11 @@ def parse(filepath):
 
 
 def _get_variable_names(properties):
-    return list(properties['env_vars'].keys())
+    return list(properties["env_vars"].keys())
 
 
 def test_python_notebook():
-    expected_variable_names = ['VAR1', 'VAR2', 'VAR3', 'VAR4', 'VAR5', 'VAR6', 'VAR7', 'VAR8']
+    expected_variable_names = ["VAR1", "VAR2", "VAR3", "VAR4", "VAR5", "VAR6", "VAR7", "VAR8"]
     properties = parse("resources/parse_python.ipynb")
 
     variable_names = _get_variable_names(properties)
@@ -40,7 +40,7 @@ def test_python_notebook():
 
 
 def test_r_notebook():
-    expected_variable_names = ['VAR1', 'VAR2', 'VAR3', 'VAR4', 'VAR5', 'VAR6']
+    expected_variable_names = ["VAR1", "VAR2", "VAR3", "VAR4", "VAR5", "VAR6"]
     properties = parse("resources/parse_r.ipynb")
 
     variable_names = _get_variable_names(properties)
@@ -48,7 +48,7 @@ def test_r_notebook():
 
 
 def test_python_script():
-    expected_variable_names = ['VAR1', 'VAR2', 'VAR3', 'VAR4', 'VAR5', 'VAR6', 'VAR7', 'VAR8']
+    expected_variable_names = ["VAR1", "VAR2", "VAR3", "VAR4", "VAR5", "VAR6", "VAR7", "VAR8"]
     properties = parse("resources/parse.py")
 
     variable_names = _get_variable_names(properties)
@@ -56,7 +56,7 @@ def test_python_script():
 
 
 def test_r_script():
-    expected_variable_names = ['VAR1', 'VAR2', 'VAR3', 'VAR4', 'VAR5', 'VAR6']
+    expected_variable_names = ["VAR1", "VAR2", "VAR3", "VAR4", "VAR5", "VAR6"]
     properties = parse("resources/parse.r")
 
     variable_names = _get_variable_names(properties)

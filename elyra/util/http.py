@@ -25,8 +25,9 @@ from tornado import web
 
 class HttpErrorMixin(object):
     """Mixes `write_error` into tornado.web.RequestHandlers to respond with
-       JSON-formatted errors.
+    JSON-formatted errors.
     """
+
     def write_error(self, status_code, **kwargs):
         """Responds with an application/json error object.
 
@@ -46,38 +47,35 @@ class HttpErrorMixin(object):
         --------
         {"401", reason="Unauthorized", message="Invalid auth token"}
         """
-        exc_info = kwargs.get('exc_info')
-        message = ''
-        reason = responses.get(status_code, 'Unknown HTTP Error')
-        reply = {
-            'reason': reason,
-            'message': message,
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
+        exc_info = kwargs.get("exc_info")
+        message = ""
+        reason = responses.get(status_code, "Unknown HTTP Error")
+        reply = {"reason": reason, "message": message, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         if exc_info:
             exception = exc_info[1]
             # Get the custom message, if defined
             if isinstance(exception, web.HTTPError):
-                reply['message'] = exception.log_message or message
+                reply["message"] = exception.log_message or message
             else:
                 if isinstance(exception, Exception) and exception.args:
                     if isinstance(exception.args[0], Exception):
-                        reply['message'] = \
-                            "Error. The server sent an invalid response.\
+                        reply[
+                            "message"
+                        ] = f"Error. The server sent an invalid response.\
                             \nPlease open an issue and provide this error message,\
                             any error details, and any related JupyterLab log messages.\
-                            \n\nError found:\n{}".format(str(exception.args[0]))
+                            \n\nError found:\n{str(exception.args[0])}"
                     else:
-                        reply['message'] = str(exception.args[0])
+                        reply["message"] = str(exception.args[0])
                 else:
-                    reply['message'] = "{}: {}".format(exception.__class__.__name__, str(exception))
-                reply['traceback'] = ''.join(traceback.format_exception(*exc_info))
+                    reply["message"] = f"{exception.__class__.__name__}: {str(exception)}"
+                reply["traceback"] = "".join(traceback.format_exception(*exc_info))
 
             # Construct the custom reason, if defined
-            custom_reason = getattr(exception, 'reason', '')
+            custom_reason = getattr(exception, "reason", "")
             if custom_reason:
-                reply['reason'] = custom_reason
+                reply["reason"] = custom_reason
 
-        self.set_header('Content-Type', 'application/json')
-        self.set_status(status_code, reason=reply['reason'])
+        self.set_header("Content-Type", "application/json")
+        self.set_status(status_code, reason=reply["reason"])
         self.finish(json.dumps(reply))

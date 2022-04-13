@@ -89,7 +89,10 @@ describe('Script Editor tests', () => {
     cy.createNewScriptEditor('Python');
 
     // Add some text to the editor
-    cy.get('span[role="presentation"]').type('print("test")\n');
+    cy.get('span[role="presentation"]').type('print("test")');
+
+    cy.wait(500);
+    dismissAssistant();
 
     // Click Run as Pipeline button
     cy.findByText(/run as pipeline/i).click();
@@ -144,7 +147,9 @@ describe('Script Editor tests', () => {
   // test to check if output kernel has Error message for invalid code
   it('checks for Error message', () => {
     cy.createNewScriptEditor('Python');
-    cy.get('span[role="presentation"]').type('print"test"\n');
+    cy.get('span[role="presentation"]').type('print"test"');
+    cy.wait(500);
+    dismissAssistant();
     cy.get('button[title="Run"]').click();
     cy.findByText(/Error : SyntaxError/i).should('be.visible');
 
@@ -299,12 +304,24 @@ const openFile = (fileExtension: string): void => {
 
 //open file and check contents
 const openFileAndCheckContent = (fileExtension: string): void => {
-  openFile('py');
+  openFile(fileExtension);
   // Ensure that the file contents are as expected
   cy.get('span[role="presentation"]').should($span => {
-    expect($span.get(0).innerText).to.eq("print('Hello Elyra')");
+    expect($span.get(0).innerText).to.eq('print("Hello Elyra")');
   });
 
   // Close the file editor
   cy.closeTab(-1);
+};
+
+// Dismiss LSP code assistant box if visible
+const dismissAssistant = (): void => {
+  cy.get('body').then($body => {
+    if ($body.find('.lsp-completer').length > 0) {
+      // Dismiss code assistant box
+      cy.get('.CodeMirror-lines')
+        .first()
+        .type('{esc}');
+    }
+  });
 };

@@ -15,7 +15,7 @@
 #
 
 .PHONY: help purge uninstall-src uninstall clean
-.PHONY: lint-dependencies lint-server prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
+.PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
 .PHONY: build-dependencies yarn-install build-ui package-ui build-server install-server-package install-server
 .PHONY: install install-all install-examples install-gitlab-dependency check-install watch release
@@ -85,8 +85,6 @@ uninstall: uninstall-src
 	- jupyter lab clean
 	# remove Kubeflow Pipelines example components
 	- $(PYTHON_PIP) uninstall -y elyra-examples-kfp-catalog
-	# remove Apache Airflow example components
-	- $(PYTHON_PIP) uninstall -y elyra-examples-airflow-catalog
 	# remove GitLab dependency
 	- $(PYTHON_PIP) uninstall -y python-gitlab
 
@@ -99,6 +97,10 @@ lint-dependencies:
 
 lint-server: lint-dependencies
 	flake8 elyra
+	black --check --diff --color . || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
+
+black-format: # Apply black formatter to Python source code
+	black .
 
 prettier-check-ui:
 	yarn prettier:check
@@ -145,7 +147,7 @@ build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
 install-server-package:
-	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
+	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
@@ -157,9 +159,6 @@ install-examples: ## Install example pipeline components
 	# install Kubeflow Pipelines example components
 	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector
 	- $(PYTHON_PIP) install --upgrade elyra-examples-kfp-catalog
-	# install Apache Airflow example components
-	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector
-	- $(PYTHON_PIP) install --upgrade elyra-examples-airflow-catalog
 
 install-gitlab-dependency:
 	# install GitLab support for Airflow

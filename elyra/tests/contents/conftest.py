@@ -62,25 +62,25 @@ def create_text_file(jp_root_dir, text_filename):
     create_file(jp_root_dir, text_filename, text_content)
 
 
-@pytest.fixture(params=['', '@subdir'])  # Create in a "difficult" subdir https://github.com/elyra-ai/elyra/issues/2270
+@pytest.fixture(params=["", "@subdir"])  # Create in a "difficult" subdir https://github.com/elyra-ai/elyra/issues/2270
 def create_notebook_file(jp_root_dir, notebook_filename, request):
     create_file(jp_root_dir, notebook_filename, json.dumps(notebook_content), subdir=request.param)
     yield os.path.join(request.param, notebook_filename)
 
 
-@pytest.fixture(params=['', '@subdir'])  # Create in a "difficult" subdir https://github.com/elyra-ai/elyra/issues/2270
+@pytest.fixture(params=["", "@subdir"])  # Create in a "difficult" subdir https://github.com/elyra-ai/elyra/issues/2270
 def create_python_file(jp_root_dir, python_filename, request):
     create_file(jp_root_dir, python_filename, python_content, subdir=request.param)
     yield os.path.join(request.param, python_filename)
 
 
-@pytest.fixture(params=['', '@subdir'])  # Create in a "difficult" subdir https://github.com/elyra-ai/elyra/issues/2270
+@pytest.fixture(params=["", "@subdir"])  # Create in a "difficult" subdir https://github.com/elyra-ai/elyra/issues/2270
 def create_r_file(jp_root_dir, r_filename, request):
     create_file(jp_root_dir, r_filename, r_content, subdir=request.param)
     yield os.path.join(request.param, r_filename)
 
 
-@pytest.fixture(params=['', '@subdir'])  # Create in a "difficult" subdir https://github.com/elyra-ai/elyra/issues/2270
+@pytest.fixture(params=["", "@subdir"])  # Create in a "difficult" subdir https://github.com/elyra-ai/elyra/issues/2270
 def create_empty_notebook_file(jp_root_dir, notebook_filename, request):
     create_file(jp_root_dir, notebook_filename, json.dumps(empty_notebook_content), subdir=request.param)
     yield os.path.join(request.param, notebook_filename)
@@ -89,10 +89,4 @@ def create_empty_notebook_file(jp_root_dir, notebook_filename, request):
 # Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)
 @pytest.fixture
 def jp_server_config():
-    return {
-        "ServerApp": {
-            "jpserver_extensions": {
-                "elyra": True
-            }
-        }
-    }
+    return {"ServerApp": {"jpserver_extensions": {"elyra": True}}}

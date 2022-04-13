@@ -15,53 +15,33 @@
 
 component_yaml_schema = {
     "properties": {
-        "name": {
-            "type": "string"
-        },
-        "description": {
-            "type": ["string", "null"]
-        },
+        "name": {"type": "string"},
+        "description": {"type": ["string", "null"]},
         "inputs": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": ["string", "null"]
-                    },
-                    "type": {
-                        "type": ["string", "null"]
-                    },
-                    "optional": {
-                        "type": ["boolean", "null"]
-                    }
-                }
+                    "name": {"type": "string"},
+                    "description": {"type": ["string", "null"]},
+                    "type": {"type": ["string", "null"]},
+                    "optional": {"type": ["boolean", "null"]},
+                },
             },
-            "required": ["name"]
+            "required": ["name"],
         },
         "outputs": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": ["string", "null"]
-                    },
-                    "type": {
-                        "type": ["string", "null"]
-                    },
-                    "optional": {
-                        "type": ["boolean", "null"]
-                    }
-                }
+                    "name": {"type": "string"},
+                    "description": {"type": ["string", "null"]},
+                    "type": {"type": ["string", "null"]},
+                    "optional": {"type": ["boolean", "null"]},
+                },
             },
-            "required": ["name"]
+            "required": ["name"],
         },
         "implementation": {
             "type": "object",
@@ -69,24 +49,12 @@ component_yaml_schema = {
                 "container": {
                     "type": "object",
                     "properties": {
-                        "image": {
-                            "type": "string"
-                        },
-                        "command": {
-                            "type": "array",
-                            "items": {
-                                "type": ["string", "object"]
-                            }
-                        },
-                        "args": {
-                            "type": "array",
-                            "items": {
-                                "type": ["string", "object"]
-                            }
-                        }
-                    }
+                        "image": {"type": "string"},
+                        "command": {"type": "array", "items": {"type": ["string", "object"]}},
+                        "args": {"type": "array", "items": {"type": ["string", "object"]}},
+                    },
                 }
-            }
-        }
+            },
+        },
     }
 }

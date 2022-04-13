@@ -34,7 +34,8 @@ try:
     from elyra.pipeline import catalog_connector
 except ImportError:
     import sys
-    catalog_connector = sys.modules[__package__ + '.catalog_connector']
+
+    catalog_connector = sys.modules[__package__ + ".catalog_connector"]
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -43,19 +44,22 @@ class ComponentParameter(object):
     Represents a single property for a pipeline component
     """
 
-    def __init__(self, id: str,
-                 name: str,
-                 data_type: str,
-                 value: str,
-                 description: str,
-                 required: bool = False,
-                 control: str = "custom",
-                 control_id: str = "StringControl",
-                 one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
-                 default_control_type: str = "StringControl",
-                 default_data_type: str = "string",
-                 allow_no_options: Optional[bool] = False,
-                 items: Optional[List[str]] = None):
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        data_type: str,
+        value: str,
+        description: str,
+        required: bool = False,
+        control: str = "custom",
+        control_id: str = "StringControl",
+        one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
+        default_control_type: str = "StringControl",
+        default_data_type: str = "string",
+        allow_no_options: Optional[bool] = False,
+        items: Optional[List[str]] = None,
+    ):
         """
         :param id: Unique identifier for a property
         :param name: The name of the property for display
@@ -90,10 +94,11 @@ class ComponentParameter(object):
         self._items = items or []
 
         # Check description for information about 'required' parameter
-        if "not optional" in description.lower() or \
-                ("required" in description.lower() and
-                    "not required" not in description.lower() and
-                    "n't required" not in description.lower()):
+        if "not optional" in description.lower() or (
+            "required" in description.lower()
+            and "not required" not in description.lower()
+            and "n't required" not in description.lower()
+        ):
             required = True
 
         self._required = required
@@ -144,16 +149,16 @@ class ComponentParameter(object):
     @property
     def default_control_type(self) -> str:
         """
-            The `default_control_type` is the control type that will be displayed by default when
-            first opening the component's parameters in the pipeline editor.
+        The `default_control_type` is the control type that will be displayed by default when
+        first opening the component's parameters in the pipeline editor.
         """
         return self._default_control_type
 
     @property
     def default_data_type(self) -> str:
         """
-            The `default_data_type` is the first data type that is assigned to this specific parameter
-            after parsing the component specification.
+        The `default_data_type` is the first data type that is assigned to this specific parameter
+        after parsing the component specification.
         """
         return self._default_data_type
 
@@ -175,20 +180,22 @@ class Component(object):
     Represents a generic or runtime-specific component
     """
 
-    def __init__(self,
-                 id: str,
-                 name: str,
-                 description: Optional[str],
-                 catalog_type: str,
-                 component_reference: Any,
-                 definition: Optional[str] = None,
-                 runtime_type: Optional[str] = None,
-                 op: Optional[str] = None,
-                 categories: Optional[List[str]] = None,
-                 properties: Optional[List[ComponentParameter]] = None,
-                 extensions: Optional[List[str]] = None,
-                 parameter_refs: Optional[dict] = None,
-                 package_name: Optional[str] = None):
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        description: Optional[str],
+        catalog_type: str,
+        component_reference: Any,
+        definition: Optional[str] = None,
+        runtime_type: Optional[str] = None,
+        op: Optional[str] = None,
+        categories: Optional[List[str]] = None,
+        properties: Optional[List[ComponentParameter]] = None,
+        extensions: Optional[List[str]] = None,
+        parameter_refs: Optional[dict] = None,
+        package_name: Optional[str] = None,
+    ):
         """
         :param id: Unique identifier for a component
         :param name: The name of the component for display
@@ -226,16 +233,16 @@ class Component(object):
 
         if not parameter_refs:
             if self._catalog_type == "elyra":
-                parameter_refs = {
-                    "filehandler": "filename"
-                }
+                parameter_refs = {"filehandler": "filename"}
             else:
                 parameter_refs = {}
 
-        if self._catalog_type == "elyra" and extensions and not parameter_refs.get('filehandler'):
-            Component._log_warning(f"Component '{self._id}' specifies extensions '{extensions}' but \
+        if self._catalog_type == "elyra" and extensions and not parameter_refs.get("filehandler"):
+            Component._log_warning(
+                f"Component '{self._id}' specifies extensions '{extensions}' but \
                                    no entry in the 'parameter_ref' dictionary for 'filehandler' and \
-                                   cannot participate in drag and drop functionality as a result.")
+                                   cannot participate in drag and drop functionality as a result."
+            )
 
         self._extensions = extensions
         self._parameter_refs = parameter_refs
@@ -268,10 +275,7 @@ class Component(object):
         this component originates and the reference information used to
         locate it within that catalog.
         """
-        return json.dumps({
-            "catalog_type": self.catalog_type,
-            "component_ref": self.component_reference
-        })
+        return json.dumps({"catalog_type": self.catalog_type, "component_ref": self.component_reference})
 
     @property
     def definition(self) -> str:
@@ -312,11 +316,11 @@ class Component(object):
 
     @property
     def input_properties(self) -> List[ComponentParameter]:
-        return [prop for prop in self._properties if prop.data_type != 'outputpath']
+        return [prop for prop in self._properties if prop.data_type != "outputpath"]
 
     @property
     def output_properties(self) -> List[ComponentParameter]:
-        return [prop for prop in self._properties if prop.data_type == 'outputpath']
+        return [prop for prop in self._properties if prop.data_type == "outputpath"]
 
     @property
     def file_extension(self) -> Optional[str]:
@@ -338,17 +342,17 @@ class ComponentParser(LoggingConfigurable):  # ABC
     component_platform: RuntimeProcessorType = None
     _file_types: List[str] = None
     _parser_class_map: Dict[str, str] = {
-        'APACHE_AIRFLOW': 'elyra.pipeline.airflow.component_parser_airflow:AirflowComponentParser',
-        'KUBEFLOW_PIPELINES': 'elyra.pipeline.kfp.component_parser_kfp:KfpComponentParser'
+        "APACHE_AIRFLOW": "elyra.pipeline.airflow.component_parser_airflow:AirflowComponentParser",
+        "KUBEFLOW_PIPELINES": "elyra.pipeline.kfp.component_parser_kfp:KfpComponentParser",
     }
 
     @classmethod
-    def create_instance(cls, platform: RuntimeProcessorType) -> 'ComponentParser':
+    def create_instance(cls, platform: RuntimeProcessorType) -> "ComponentParser":
         """
         Class method that creates the appropriate instance of ComponentParser based on platform type name.
         """
         try:
-            module_name, class_name = cls._parser_class_map[platform.name].split(':')
+            module_name, class_name = cls._parser_class_map[platform.name].split(":")
             module = import_module(module_name)
             return getattr(module, class_name)()
         except Exception as e:
@@ -359,7 +363,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         return self._file_types
 
     @abstractmethod
-    def parse(self, catalog_entry: 'catalog_connector.CatalogEntry') -> Optional[List[Component]]:
+    def parse(self, catalog_entry: "catalog_connector.CatalogEntry") -> Optional[List[Component]]:
         """
         Parse a component definition given in the catalog entry and return
         a list of fully-qualified Component objects
@@ -388,11 +392,11 @@ class ComponentParser(LoggingConfigurable):  # ABC
         # Determine if this is a "container type"
         # Prefer types that occur in a clause of the form "[type] of ..." (i.e., "container" types)
         # E.g. "a dictionary of key/value pairs" will produce the type "dictionary"
-        container_types = ['dictionary', 'dict', 'set', 'list', 'array', 'arr']
+        container_types = ["dictionary", "dict", "set", "list", "array", "arr"]
         for option in container_types:
             if option in parsed_type_lowered:
                 data_type = option
-                if data_type in ['dict', 'dictionary']:
+                if data_type in ["dict", "dictionary"]:
                     data_type = "dictionary"
                     default_value = {}
                 else:  # data_type is one of ['list', 'set', 'array', 'arr']
@@ -400,53 +404,62 @@ class ComponentParser(LoggingConfigurable):  # ABC
                     default_value = []
 
                 # Since we know the type, create our return value and bail
-                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type=data_type,
-                                                                       default_value=default_value)
+                data_type_info = ComponentParser.create_data_type_info(
+                    parsed_data=parsed_type_lowered, data_type=data_type, default_value=default_value
+                )
                 break
         else:  # None of the container types were found...
             # Standardize type names
             if any(word in parsed_type_lowered for word in ["str", "string"]):
-                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type="string")
-            elif any(word in parsed_type_lowered for word in ['int', 'integer', 'number']):
-                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type="number",
-                                                                       control_id="NumberControl",
-                                                                       default_control_type="NumberControl",
-                                                                       default_value=0)
-            elif any(word in parsed_type_lowered for word in ['float']):
-                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type="number",
-                                                                       control_id="NumberControl",
-                                                                       default_control_type="NumberControl",
-                                                                       default_value=0.0)
-            elif any(word in parsed_type_lowered for word in ['bool', 'boolean']):
-                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type="boolean",
-                                                                       control_id="BooleanControl",
-                                                                       default_control_type="BooleanControl",
-                                                                       default_value=False)
+                data_type_info = ComponentParser.create_data_type_info(
+                    parsed_data=parsed_type_lowered, data_type="string"
+                )
+            elif any(word in parsed_type_lowered for word in ["int", "integer", "number"]):
+                data_type_info = ComponentParser.create_data_type_info(
+                    parsed_data=parsed_type_lowered,
+                    data_type="number",
+                    control_id="NumberControl",
+                    default_control_type="NumberControl",
+                    default_value=0,
+                )
+            elif any(word in parsed_type_lowered for word in ["float"]):
+                data_type_info = ComponentParser.create_data_type_info(
+                    parsed_data=parsed_type_lowered,
+                    data_type="number",
+                    control_id="NumberControl",
+                    default_control_type="NumberControl",
+                    default_value=0.0,
+                )
+            elif any(word in parsed_type_lowered for word in ["bool", "boolean"]):
+                data_type_info = ComponentParser.create_data_type_info(
+                    parsed_data=parsed_type_lowered,
+                    data_type="boolean",
+                    control_id="BooleanControl",
+                    default_control_type="BooleanControl",
+                    default_value=False,
+                )
             else:  # Let this be undetermined.  Callers should check for this status and adjust
-                data_type_info = ComponentParser.create_data_type_info(parsed_data=parsed_type_lowered,
-                                                                       data_type="string",
-                                                                       undetermined=True)
+                data_type_info = ComponentParser.create_data_type_info(
+                    parsed_data=parsed_type_lowered, data_type="string", undetermined=True
+                )
 
         return data_type_info
 
     @staticmethod
-    def create_data_type_info(parsed_data: str,
-                              data_type: str = 'string',
-                              default_data_type: str = 'string',
-                              data_label: str = None,
-                              default_value: Any = '',
-                              required: bool = True,
-                              one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
-                              control_id: str = 'StringControl',
-                              default_control_type: str = 'StringControl',
-                              allow_no_options: Optional[bool] = False,
-                              control: str = 'custom',
-                              undetermined: bool = False) -> SimpleNamespace:
+    def create_data_type_info(
+        parsed_data: str,
+        data_type: str = "string",
+        default_data_type: str = "string",
+        data_label: str = None,
+        default_value: Any = "",
+        required: bool = True,
+        one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
+        control_id: str = "StringControl",
+        default_control_type: str = "StringControl",
+        allow_no_options: Optional[bool] = False,
+        control: str = "custom",
+        undetermined: bool = False,
+    ) -> SimpleNamespace:
         """Returns a SimpleNamespace instance that contains the current state of data-type parsing.
 
         This method is called by ComponentParser.determine_type_information() and used by subclass
@@ -457,18 +470,20 @@ class ComponentParser(LoggingConfigurable):  # ABC
         are advised to attempt further parsing. In such cases, the rest of the attributes of the instance
         will reflect a 'string' data type as that is the most flexible data_type and, hence, the default.
         """
-        dti = SimpleNamespace(parsed_data=parsed_data,
-                              data_type=data_type,
-                              default_data_type=default_data_type,
-                              data_label=data_label or ControllerMap[control_id].value,
-                              default_value=default_value,
-                              required=required,
-                              default_control_type=default_control_type,
-                              one_of_control_types=one_of_control_types,
-                              control_id=control_id,
-                              allow_no_options=allow_no_options,
-                              control=control,
-                              undetermined=undetermined)
+        dti = SimpleNamespace(
+            parsed_data=parsed_data,
+            data_type=data_type,
+            default_data_type=default_data_type,
+            data_label=data_label or ControllerMap[control_id].value,
+            default_value=default_value,
+            required=required,
+            default_control_type=default_control_type,
+            one_of_control_types=one_of_control_types,
+            control_id=control_id,
+            allow_no_options=allow_no_options,
+            control=control,
+            undetermined=undetermined,
+        )
         return dti
 
 

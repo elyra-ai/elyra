@@ -1,0 +1,15 @@
+-e /path/to/jupyter-client
+jupyterlab-lsp==3.10.1
+jupyterlab-server==2.11.2
+keyring==23.0.1
+kfp==1.8.4
+kfp-notebook==0.24.0
+minio==7.1.2
+mistune==0.8.4
+mlx-component-catalog-connector==0.1.1
+--editable /requests
+-e git+https://git.repo/some_pkg.git@feature#egg=SomeEditableVCSPackage
+tornado @ git+https://git.repo/tornado@3de5ce17ab0493dcdf88b51e8727f580c08d6997
+traitlets==5.0.5
+typing-extensions==3.10.0.2
+urllib3==1.26.7

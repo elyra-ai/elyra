@@ -25,7 +25,7 @@ from elyra.metadata.schema import SchemaManager
 
 # Setup forward reference for type hint on return from class factory method.  See
 # https://stackoverflow.com/questions/39205527/can-you-annotate-return-type-when-value-is-instance-of-cls/39205612#39205612
-M = TypeVar('M', bound='Metadata')
+M = TypeVar("M", bound="Metadata")
 
 
 class Metadata(object):
@@ -37,12 +37,12 @@ class Metadata(object):
     reason = None
 
     def __init__(self, **kwargs: Any) -> None:
-        self.name = kwargs.get('name')
-        self.display_name = kwargs.get('display_name')
-        self.schema_name = kwargs.get('schema_name')
-        self.metadata = kwargs.get('metadata', {})
-        self.resource = kwargs.get('resource')
-        self.reason = kwargs.get('reason')
+        self.name = kwargs.get("name")
+        self.display_name = kwargs.get("display_name")
+        self.schema_name = kwargs.get("schema_name")
+        self.metadata = kwargs.get("metadata", {})
+        self.resource = kwargs.get("resource")
+        self.reason = kwargs.get("reason")
 
     def on_load(self, **kwargs: Any) -> None:
         """Called by MetadataManager after fetching the instance and prior to validation.
@@ -88,23 +88,27 @@ class Metadata(object):
 
     @classmethod
     def from_dict(cls: Type[M], schemaspace: str, metadata_dict: dict) -> M:
-        """Creates an appropriate instance of Metadata from a dictionary instance """
+        """Creates an appropriate instance of Metadata from a dictionary instance"""
 
         # Get the schema and look for metadata_class entry and use that, else Metadata.
-        metadata_class_name = 'elyra.metadata.metadata.Metadata'
-        schema_name = metadata_dict.get('schema_name')
+        metadata_class_name = "elyra.metadata.metadata.Metadata"
+        schema_name = metadata_dict.get("schema_name")
         if schema_name:
             schema = SchemaManager.instance().get_schema(schemaspace, schema_name)
-            metadata_class_name = schema.get('metadata_class_name', metadata_class_name)
+            metadata_class_name = schema.get("metadata_class_name", metadata_class_name)
         metadata_class = import_item(metadata_class_name)
         try:
             instance = metadata_class(**metadata_dict)
             if not isinstance(instance, Metadata):
-                raise ValueError("The metadata_class_name ('{}') for schema '{}' must be a subclass of '{}'!".
-                                 format(metadata_class_name, schema_name, cls.__name__))
+                raise ValueError(
+                    f"The metadata_class_name ('{metadata_class_name}') for "
+                    f"schema '{schema_name}' must be a subclass of '{cls.__name__}'!"
+                )
         except TypeError as te:
-            raise ValueError("The metadata_class_name ('{}') for schema '{}' must be a subclass of '{}'!".
-                             format(metadata_class_name, schema_name, cls.__name__)) from te
+            raise ValueError(
+                f"The metadata_class_name ('{metadata_class_name}') for "
+                f"schema '{schema_name}' must be a subclass of '{cls.__name__}'!"
+            ) from te
         return instance
 
     def to_dict(self, trim: bool = False) -> dict:
@@ -113,9 +117,9 @@ class Metadata(object):
         d = dict(name=self.name, display_name=self.display_name, metadata=self.metadata, schema_name=self.schema_name)
         if not trim:
             if self.resource:
-                d['resource'] = self.resource
+                d["resource"] = self.resource
             if self.reason:
-                d['reason'] = self.reason
+                d["reason"] = self.reason
 
         return d
 
@@ -125,7 +129,7 @@ class Metadata(object):
     def prepare_write(self) -> dict:
         """Prepares this instance for storage, stripping name, reason, and resource and converting to a dict"""
         prepared = self.to_dict(trim=True)  # we should also trim 'name' when storing
-        prepared.pop('name', None)
+        prepared.pop("name", None)
         return prepared
 
     def __repr__(self):
