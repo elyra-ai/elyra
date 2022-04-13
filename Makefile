@@ -31,7 +31,9 @@ PYTHON_PIP=$(PYTHON) -m pip
 
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
+ELYRA_IMAGE_LATEST=elyra/elyra:latest
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
+KF_NOTEBOOK_IMAGE_LATEST=elyra/kf-notebook:latest
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
@@ -233,6 +235,13 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
+	# If we're building a release, tag latest and push
+	if [ "$(TAG)" != "dev" ]; then \
+		docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
+		docker push docker.io/$(ELYRA_IMAGE_LATEST); \
+		docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
+		docker push quay.io/$(ELYRA_IMAGE_LATEST); \
+	fi
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
@@ -259,6 +268,13 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
+	# If we're building a release, tag latest and push
+	if [ "$(TAG)" != "dev" ]; then \
+		docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+	fi
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	docker images $(ELYRA_IMAGE)
