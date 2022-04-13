@@ -365,12 +365,14 @@ class RuntimePipelineProcessor(PipelineProcessor):
         filename = os.path.basename(operation.filename)
         dependencies = operation.dependencies
 
-        archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
-                                               source_dir=archive_source_dir,
-                                               source_file=filename,
-                                               filenames=dependencies,
-                                               recursive=operation.include_subdirectories,
-                                               require_complete=True)
+        archive_artifact = create_temp_archive(
+            archive_name=archive_artifact_name,
+            source_dir=archive_source_dir,
+            source_file=filename,
+            filenames=dependencies,
+            recursive=operation.include_subdirectories,
+            require_complete=True,
+        )
 
         return archive_artifact
 
