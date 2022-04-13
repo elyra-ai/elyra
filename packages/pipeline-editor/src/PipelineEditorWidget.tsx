@@ -761,21 +761,30 @@ const PipelineWrapper: React.FC<IProps> = ({
     return showDialog({
       title: 'Clear Pipeline',
       body: 'Are you sure you want to clear the pipeline?',
-      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
+      buttons: [
+        Dialog.cancelButton(),
+        Dialog.okButton({ label: 'Clear All' }),
+        Dialog.okButton({ label: 'Clear Canvas' })
+      ]
     }).then(result => {
       if (result.button.accept) {
         const newPipeline: any = contextRef.current.model.toJSON();
         if (newPipeline?.pipelines?.[0]?.nodes?.length > 0) {
           newPipeline.pipelines[0].nodes = [];
         }
-        const pipelineProperties =
-          newPipeline?.pipelines?.[0]?.app_data?.properties;
-        if (pipelineProperties) {
-          // Remove all fields of pipeline properties except for the name/runtime (readonly)
-          newPipeline.pipelines[0].app_data.properties = {
-            name: pipelineProperties.name,
-            runtime: pipelineProperties.runtime
-          };
+        // remove supernode pipelines
+        newPipeline.pipelines = [newPipeline.pipelines[0]];
+        // only clear pipeline properties when "Clear All" is selected
+        if (result.button.label === 'Clear All') {
+          const pipelineProperties =
+            newPipeline?.pipelines?.[0]?.app_data?.properties;
+          if (pipelineProperties) {
+            // Remove all fields of pipeline properties except for the name/runtime (readonly)
+            newPipeline.pipelines[0].app_data.properties = {
+              name: pipelineProperties.name,
+              runtime: pipelineProperties.runtime
+            };
+          }
         }
         contextRef.current.model.fromJSON(newPipeline);
       }
