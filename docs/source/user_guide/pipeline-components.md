@@ -175,34 +175,33 @@ elyra-kfp-examples-catalog       kubeflow_pipelines_examples  /.../Jupyter/metad
 
 #### Adding a component catalog
 
-To add a component catalog entry run `elyra-metadata install component-catalogs`.
+To add a component catalog entry run `elyra-metadata create component-catalogs`.
 
 ```bash
-$ elyra-metadata install component-catalogs \
-       --display_name="filter components" \
-       --description="filter text in files" \
-       --runtime_type=KUBEFLOW_PIPELINES \
-       --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
-       --categories='["filter content"]'
+$ elyra-metadata create component-catalogs \
+       --display_name "filter components" \
+       --description "filter text in files" \
+       --runtime_type KUBEFLOW_PIPELINES \
+       --schema_name "url-catalog"\
+       --paths "['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
+       --categories '["filter content"]'
 ```
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
 
 #### Modifying a component catalog entry
 
-To replace a component catalog entry run `elyra-metadata install component-catalogs` and specify the `--replace` option:
+To replace a component catalog entry run `elyra-metadata update component-catalogs`:
 
 ```bash
-$ elyra-metadata install component-catalogs \
-       --name="filter_components" \
-       --display_name="filter components" \
-       --description="filter text in files" \
-       --runtime_type=KUBEFLOW_PIPELINES \
-       --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
-       --categories='["file operations"]' \
-       --replace
+$ elyra-metadata update component-catalogs \
+       --name "filter_components" \
+       --display_name "filter components" \
+       --description "filter text in files" \
+       --runtime_type KUBEFLOW_PIPELINES \
+       --schema_name "url-catalog"\
+       --paths "['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
+       --categories='["file operations"]'
 ```
 
 Note: You must specify all property values, not only the ones that you want to modify.
@@ -214,8 +213,8 @@ Refer to section [Configuration properties](#configuration-properties) for param
 To export component catalogs:
 
 ```bash
-elyra-metadata export component-catalogs \
-	--directory="/tmp/foo"
+$ elyra-metadata export component-catalogs \
+	--directory "/tmp/foo"
 ```
 
 The above example will export all component catalogs to the "/tmp/foo/component-catalogs" directory.
@@ -247,7 +246,7 @@ To remove a component catalog entry and its component definitions from the Visua
 
 ```bash
 $ elyra-metadata remove component-catalogs \
-       --name="filter_components"
+       --name "filter_components"
 ```
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
@@ -280,7 +279,7 @@ component-registry   myoperators         /Users/jovyan/Library/Jupyter/metadata/
 ```
 You may find that some of these instances no longer apply.  If there are any that do not apply to 3.3, they can be removed individually:
 ```bash
-$ elyra-metadata remove component-registries --name=aa_custom
+$ elyra-metadata remove component-registries --name aa_custom
 
 Metadata instance 'aa_custom' removed from schemaspace 'component-registries'.
 ````

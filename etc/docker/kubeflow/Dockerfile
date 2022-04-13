@@ -24,14 +24,13 @@ ARG TAG="dev"
 # Install Elyra
 # - with KFP Tekton support ('kfp-tekton')
 # - with component examples ('kfp-examples')
-RUN python -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
-    elyra[kfp-tekton,kfp-examples]=="$TAG" \
+RUN python -m pip install --quiet --no-cache-dir elyra[kfp-tekton,kfp-examples]=="$TAG" \
     && rm -rf $HOME/.cache/yarn \
     && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
 
 # Install component examples catalog
 #  - this will fail if the 'kfp-examples' pip extra is not installed
-RUN elyra-metadata install component-catalogs \
+RUN elyra-metadata create component-catalogs \
     --schema_name=elyra-kfp-examples-catalog \
     --display_name="Kubeflow Pipelines examples" \
     --runtime_type=KUBEFLOW_PIPELINES \

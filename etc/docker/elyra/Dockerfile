@@ -24,8 +24,7 @@ ARG TAG="dev"
 COPY requirements.txt .
 
 # Install Elyra and custom requirements
-RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolver \
-    elyra[all]=="$TAG" \
+RUN python3 -m pip install --quiet --no-cache-dir elyra[all]=="$TAG" \
  && python3 -m pip install -r requirements.txt \   
  && rm -rf $HOME/.cache/yarn \
  && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules \
@@ -33,7 +32,7 @@ RUN python3 -m pip install --quiet --no-cache-dir --use-deprecated=legacy-resolv
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' pip extra is not installed
-RUN elyra-metadata install component-catalogs \
+RUN elyra-metadata create component-catalogs \
     --schema_name=elyra-kfp-examples-catalog  \
     --display_name="Kubeflow Pipelines examples" \
     --runtime_type=KUBEFLOW_PIPELINES \

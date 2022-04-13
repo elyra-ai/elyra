@@ -20,7 +20,7 @@ import './../utils/snapshots/add-commands';
 
 Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
   const kfpRuntimeInstallCommand =
-    'elyra-metadata install runtimes \
+    'elyra-metadata create runtimes \
   --schema_name=kfp \
   --display_name="KFP Test Runtime" \
   --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
@@ -30,7 +30,7 @@ Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
   --cos_bucket=test-bucket';
 
   const airflowRuntimeInstallCommand =
-    'elyra-metadata install runtimes \
+    'elyra-metadata create runtimes \
   --schema_name=airflow \
   --display_name="Airflow Test Runtime" \
   --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
@@ -225,8 +225,8 @@ Cypress.Commands.add('closeTab', (index: number): void => {
     .click();
 });
 
-Cypress.Commands.add('createNewScriptFile', (language: string): void => {
+Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
   cy.get(
-    `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} file"]:visible`
+    `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
   ).click();
 });

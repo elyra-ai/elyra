@@ -30,7 +30,7 @@ Object {
                 "output-1.csv",
                 "output-2.csv",
               ],
-              "runtime_image": "continuumio/anaconda3:2020.07",
+              "runtime_image": "continuumio/anaconda3:2021.11",
             },
             "label": "",
             "ui_data": Object {
@@ -81,7 +81,7 @@ Object {
               "filename": "consumer.ipynb",
               "include_subdirectories": false,
               "outputs": Array [],
-              "runtime_image": "continuumio/anaconda3:2020.07",
+              "runtime_image": "continuumio/anaconda3:2021.11",
             },
             "label": "",
             "ui_data": Object {
@@ -134,7 +134,7 @@ Object {
               "filename": "../scripts/setup.py",
               "include_subdirectories": false,
               "outputs": Array [],
-              "runtime_image": "continuumio/anaconda3:2020.07",
+              "runtime_image": "continuumio/anaconda3:2021.11",
             },
             "label": "",
             "ui_data": Object {
@@ -188,7 +188,7 @@ Object {
                 "input-1.csv",
                 "input-2.csv",
               ],
-              "runtime_image": "continuumio/anaconda3:2020.07",
+              "runtime_image": "continuumio/anaconda3:2021.11",
             },
             "label": "",
             "ui_data": Object {
@@ -242,7 +242,7 @@ Object {
                 "output-3.csv",
                 "output-4.csv",
               ],
-              "runtime_image": "continuumio/anaconda3:2020.07",
+              "runtime_image": "continuumio/anaconda3:2021.11",
             },
             "label": "",
             "ui_data": Object {

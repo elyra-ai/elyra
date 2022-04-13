@@ -50,23 +50,26 @@ elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
 
 class PipelineProcessorRegistry(SingletonConfigurable):
-    _processors: Dict[str, 'PipelineProcessor'] = {}
+    _processors: Dict[str, "PipelineProcessor"] = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get('root_dir'))
+        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
         # Register all known processors based on entrypoint configuration
-        for processor in entrypoints.get_group_all('elyra.pipeline.processors'):
+        for processor in entrypoints.get_group_all("elyra.pipeline.processors"):
             try:
                 # instantiate an actual instance of the processor
-                processor_instance = processor.load()(self.root_dir, parent=kwargs.get('parent'))  # Load an instance
-                self.log.info(f'Registering {processor.name} processor '
-                              f'"{processor.module_name}.{processor.object_name}"...')
+                processor_instance = processor.load()(self.root_dir, parent=kwargs.get("parent"))  # Load an instance
+                self.log.info(
+                    f"Registering {processor.name} processor " f'"{processor.module_name}.{processor.object_name}"...'
+                )
                 self.add_processor(processor_instance)
             except Exception as err:
                 # log and ignore initialization errors
-                self.log.error(f'Error registering {processor.name} processor '
-                               f'"{processor.module_name}.{processor.object_name}" - {err}')
+                self.log.error(
+                    f"Error registering {processor.name} processor "
+                    f'"{processor.module_name}.{processor.object_name}" - {err}'
+                )
 
     def add_processor(self, processor):
         self.log.debug(f"Registering {processor.type.value} runtime processor '{processor.name}'")
@@ -80,6 +83,12 @@ class PipelineProcessorRegistry(SingletonConfigurable):
 
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
+
+    def is_valid_runtime_type(self, runtime_type_name: str) -> bool:
+        for processor in self._processors.values():
+            if processor.type.name == runtime_type_name:
+                return True
+        return False
 
     def get_runtime_types_resources(self) -> List[RuntimeTypeResources]:
         """Returns the set of resource instances for each active runtime type"""
@@ -101,44 +110,49 @@ class PipelineProcessorManager(SingletonConfigurable):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get('root_dir'))
+        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
         self._registry = PipelineProcessorRegistry.instance()
 
-    def _get_processor_for_runtime(self, runtime_name: str):
+    def get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)
         return processor
 
     def is_supported_runtime(self, runtime_name: str) -> bool:
         return self._registry.is_valid_processor(runtime_name)
 
+    def is_supported_runtime_type(self, runtime_type_name) -> bool:
+        return self._registry.is_valid_runtime_type(runtime_type_name)
+
     def get_runtime_type(self, runtime_name: str) -> RuntimeProcessorType:
-        processor = self._get_processor_for_runtime(runtime_name)
+        processor = self.get_processor_for_runtime(runtime_name)
         return processor.type
 
-    async def get_components(self, runtime_name):
-        processor = self._get_processor_for_runtime(runtime_name)
+    async def get_components(self, runtime):
+        processor = self.get_processor_for_runtime(runtime_name=runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.get_components)
         return res
 
-    async def get_component(self, runtime_name, component_id):
-        processor = self._get_processor_for_runtime(runtime_name)
+    async def get_component(self, runtime, component_id):
+        processor = self.get_processor_for_runtime(runtime_name=runtime)
 
-        res = await asyncio.get_event_loop().\
-            run_in_executor(None, functools.partial(processor.get_component, component_id=component_id))
+        res = await asyncio.get_event_loop().run_in_executor(
+            None, functools.partial(processor.get_component, component_id=component_id)
+        )
         return res
 
     async def process(self, pipeline):
-        processor = self._get_processor_for_runtime(pipeline.runtime)
+        processor = self.get_processor_for_runtime(pipeline.runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(None, processor.process, pipeline)
         return res
 
     async def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
-        processor = self._get_processor_for_runtime(pipeline.runtime)
+        processor = self.get_processor_for_runtime(pipeline.runtime)
 
         res = await asyncio.get_event_loop().run_in_executor(
-            None, processor.export, pipeline, pipeline_export_format, pipeline_export_path, overwrite)
+            None, processor.export, pipeline, pipeline_export_format, pipeline_export_path, overwrite
+        )
         return res
 
 
@@ -188,11 +202,12 @@ class PipelineProcessorResponse(ABC):
         return self._object_storage_path
 
     def to_json(self):
-        return {"platform": self.type,
-                "run_url": self.run_url,
-                "object_storage_url": self.object_storage_url,
-                "object_storage_path": self.object_storage_path
-                }
+        return {
+            "platform": self.type,
+            "run_url": self.run_url,
+            "object_storage_url": self.object_storage_url,
+            "object_storage_path": self.object_storage_path,
+        }
 
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
@@ -202,10 +217,12 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
     root_dir = Unicode(allow_none=True)
 
-    enable_pipeline_info = Bool(config=True,
-                                default_value=(os.getenv('ELYRA_ENABLE_PIPELINE_INFO', 'true').lower() == 'true'),
-                                help="""Produces formatted logging of informational messages with durations
-                                (default=True). (ELYRA_ENABLE_PIPELINE_INFO env var)""")
+    enable_pipeline_info = Bool(
+        config=True,
+        default_value=(os.getenv("ELYRA_ENABLE_PIPELINE_INFO", "true").lower() == "true"),
+        help="""Produces formatted logging of informational messages with durations
+                                (default=True). (ELYRA_ENABLE_PIPELINE_INFO env var)""",
+    )
 
     def __init__(self, root_dir, **kwargs):
         super().__init__(**kwargs)
@@ -239,7 +256,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         Retrieve runtime-specific component details if component_id is not one of the generic set
         """
 
-        if component_id not in ('notebook', 'python-script', 'r-script'):
+        if component_id not in ("notebook", "python-script", "r-script"):
             return ComponentCache.instance().get_component(platform=self._type, component_id=component_id)
 
         return ComponentCache.get_generic_component(component_id)
@@ -271,10 +288,10 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                duration: float value representing the duration of the action being logged
         """
         if self.enable_pipeline_info:
-            duration = kwargs.get('duration')
+            duration = kwargs.get("duration")
             duration_clause = f"({duration:.3f} secs)" if duration else ""
 
-            operation_name = kwargs.get('operation_name')
+            operation_name = kwargs.get("operation_name")
             op_clause = f":'{operation_name}'" if operation_name else ""
 
             self.log.info(f"{self._name} '{pipeline_name}'{op_clause} - {action_clause} {duration_clause}")
@@ -308,9 +325,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
         ordered_operations = []
 
         for operation in operations_by_id.values():
-            PipelineProcessor._sort_operation_dependencies(operations_by_id,
-                                                           ordered_operations,
-                                                           operation)
+            PipelineProcessor._sort_operation_dependencies(operations_by_id, ordered_operations, operation)
 
         return ordered_operations
 
@@ -325,21 +340,20 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
             for parent_operation_id in operation.parent_operation_ids:
                 parent_operation = operations_by_id[parent_operation_id]
                 if parent_operation not in ordered_operations:
-                    PipelineProcessor._sort_operation_dependencies(operations_by_id,
-                                                                   ordered_operations,
-                                                                   parent_operation)
+                    PipelineProcessor._sort_operation_dependencies(
+                        operations_by_id, ordered_operations, parent_operation
+                    )
             ordered_operations.append(operation)
 
 
 class RuntimePipelineProcessor(PipelineProcessor):
-
     def __init__(self, root_dir: str, **kwargs):
         super().__init__(root_dir, **kwargs)
 
     def _get_dependency_archive_name(self, operation):
         artifact_name = os.path.basename(operation.filename)
         (name, ext) = os.path.splitext(artifact_name)
-        return name + '-' + operation.id + ".tar.gz"
+        return name + "-" + operation.id + ".tar.gz"
 
     def _get_dependency_source_dir(self, operation):
         return os.path.join(self.root_dir, os.path.dirname(operation.filename))
@@ -351,11 +365,13 @@ class RuntimePipelineProcessor(PipelineProcessor):
         dependencies = [os.path.basename(operation.filename)]
         dependencies.extend(operation.dependencies)
 
-        archive_artifact = create_temp_archive(archive_name=archive_artifact_name,
-                                               source_dir=archive_source_dir,
-                                               filenames=dependencies,
-                                               recursive=operation.include_subdirectories,
-                                               require_complete=True)
+        archive_artifact = create_temp_archive(
+            archive_name=archive_artifact_name,
+            source_dir=archive_source_dir,
+            filenames=dependencies,
+            recursive=operation.include_subdirectories,
+            require_complete=True,
+        )
 
         return archive_artifact
 
@@ -366,62 +382,80 @@ class RuntimePipelineProcessor(PipelineProcessor):
         try:
             t0 = time.time()
             dependency_archive_path = self._generate_dependency_archive(operation)
-            self.log_pipeline_info(pipeline_name,
-                                   f"generated dependency archive: {dependency_archive_path}",
-                                   operation_name=operation.name,
-                                   duration=(time.time() - t0))
+            self.log_pipeline_info(
+                pipeline_name,
+                f"generated dependency archive: {dependency_archive_path}",
+                operation_name=operation.name,
+                duration=(time.time() - t0),
+            )
 
             cos_client = CosClient(config=runtime_configuration)
 
             t0 = time.time()
-            cos_client.upload_file_to_dir(dir=cos_directory,
-                                          file_name=operation_artifact_archive,
-                                          file_path=dependency_archive_path)
-            self.log_pipeline_info(pipeline_name,
-                                   f"uploaded dependency archive to: {cos_directory}/{operation_artifact_archive}",
-                                   operation_name=operation.name,
-                                   duration=(time.time() - t0))
+            cos_client.upload_file_to_dir(
+                dir=cos_directory, file_name=operation_artifact_archive, file_path=dependency_archive_path
+            )
+            self.log_pipeline_info(
+                pipeline_name,
+                f"uploaded dependency archive to: {cos_directory}/{operation_artifact_archive}",
+                operation_name=operation.name,
+                duration=(time.time() - t0),
+            )
 
         except FileNotFoundError as ex:
-            self.log.error("Dependencies were not found building archive for operation: {}".
-                           format(operation.name), exc_info=True)
-            raise FileNotFoundError("Node '{}' referenced dependencies that were not found: {}".
-                                    format(operation.name, ex)) from ex
+            self.log.error(
+                f"Dependencies were not found building archive for operation: {operation.name}", exc_info=True
+            )
+            raise FileNotFoundError(
+                f"Node '{operation.name}' referenced dependencies that were not found: {ex}"
+            ) from ex
         except MaxRetryError as ex:
-            cos_endpoint = runtime_configuration.metadata.get('cos_endpoint')
-            self.log.error("Connection was refused when attempting to connect to : {}".
-                           format(cos_endpoint), exc_info=True)
-            raise RuntimeError("Connection was refused when attempting to upload artifacts to : '{}'. Please "
-                               "check your object storage settings. ".format(cos_endpoint)) from ex
+            cos_endpoint = runtime_configuration.metadata.get("cos_endpoint")
+            self.log.error(f"Connection was refused when attempting to connect to : {cos_endpoint}", exc_info=True)
+            raise RuntimeError(
+                f"Connection was refused when attempting to upload artifacts to : '{cos_endpoint}'. "
+                "Please check your object storage settings."
+            ) from ex
         except S3Error as ex:
-            msg_prefix = f'Error connecting to object storage: {ex.code}.'
+            msg_prefix = f"Error connecting to object storage: {ex.code}."
             if ex.code == "SignatureDoesNotMatch":
                 # likely cause: incorrect password
-                raise RuntimeError(f"{msg_prefix} Verify the password "
-                                   f"in runtime configuration '{runtime_configuration.display_name}' "
-                                   "and try again.") from ex
-            elif ex.code == 'InvalidAccessKeyId':
+                raise RuntimeError(
+                    f"{msg_prefix} Verify the password "
+                    f"in runtime configuration '{runtime_configuration.display_name}' "
+                    "and try again."
+                ) from ex
+            elif ex.code == "InvalidAccessKeyId":
                 # likely cause: incorrect user id
-                raise RuntimeError(f"{msg_prefix} Verify the username "
-                                   f"in runtime configuration '{runtime_configuration.display_name}' "
-                                   "and try again.") from ex
+                raise RuntimeError(
+                    f"{msg_prefix} Verify the username "
+                    f"in runtime configuration '{runtime_configuration.display_name}' "
+                    "and try again."
+                ) from ex
             else:
-                raise RuntimeError(f"{msg_prefix} Verify "
-                                   f"runtime configuration '{runtime_configuration.display_name}' "
-                                   "and try again.") from ex
+                raise RuntimeError(
+                    f"{msg_prefix} Verify "
+                    f"runtime configuration '{runtime_configuration.display_name}' "
+                    "and try again."
+                ) from ex
         except BaseException as ex:
-            self.log.error("Error uploading artifacts to object storage for operation: {}".
-                           format(operation.name), exc_info=True)
+            self.log.error(
+                f"Error uploading artifacts to object storage for operation: {operation.name}", exc_info=True
+            )
             raise ex from ex
 
     def _verify_cos_connectivity(self, runtime_configuration) -> None:
-        self.log.debug('Verifying cloud storage connectivity using runtime configuration '
-                       f"'{runtime_configuration.display_name}'.")
+        self.log.debug(
+            "Verifying cloud storage connectivity using runtime configuration "
+            f"'{runtime_configuration.display_name}'."
+        )
         try:
             CosClient(runtime_configuration)
         except Exception as ex:
-            raise RuntimeError(f'Error connecting to cloud storage: {ex}. Update runtime configuration '
-                               f'\'{runtime_configuration.display_name}\' and try again.')
+            raise RuntimeError(
+                f"Error connecting to cloud storage: {ex}. Update runtime configuration "
+                f"'{runtime_configuration.display_name}' and try again."
+            )
 
     def _get_metadata_configuration(self, schemaspace, name=None):
         """
@@ -434,8 +468,8 @@ class RuntimePipelineProcessor(PipelineProcessor):
             else:
                 return MetadataManager(schemaspace=schemaspace).get(name)
         except BaseException as err:
-            self.log.error(f'Error retrieving metadata configuration for {name}', exc_info=True)
-            raise RuntimeError(f'Error retrieving metadata configuration for {name}', err) from err
+            self.log.error(f"Error retrieving metadata configuration for {name}", exc_info=True)
+            raise RuntimeError(f"Error retrieving metadata configuration for {name}", err) from err
 
     def _verify_export_format(self, pipeline_export_format: str) -> None:
         """
@@ -496,11 +530,11 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return {}
 
         converted_dict = None
-        if value.startswith('{') and value.endswith('}'):
+        if value.startswith("{") and value.endswith("}"):
             try:
                 converted_dict = ast.literal_eval(value)
-            except Exception:
-                pass
+            except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+                pass  # Can raise any of these exceptions
 
         # Value could not be successfully converted to dictionary
         if not isinstance(converted_dict, dict):
@@ -523,11 +557,11 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return []
 
         converted_list = None
-        if value.startswith('[') and value.endswith(']'):
+        if value.startswith("[") and value.endswith("]"):
             try:
                 converted_list = ast.literal_eval(value)
-            except Exception:
-                pass
+            except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+                pass  # Can raise any of these exceptions
 
         # Value could not be successfully converted to list
         if not isinstance(converted_list, list):

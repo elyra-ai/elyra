@@ -35,20 +35,34 @@ class Operation(object):
     generic_node_types = ["execute-notebook-node", "execute-python-node", "execute-r-node"]
 
     @classmethod
-    def create_instance(cls, id: str, type: str, name: str, classifier: str,
-                        parent_operation_ids: Optional[List[str]] = None,
-                        component_params: Optional[Dict[str, Any]] = None) -> 'Operation':
-        """Class method that creates the appropriate instance of Operation based on inputs. """
+    def create_instance(
+        cls,
+        id: str,
+        type: str,
+        name: str,
+        classifier: str,
+        parent_operation_ids: Optional[List[str]] = None,
+        component_params: Optional[Dict[str, Any]] = None,
+    ) -> "Operation":
+        """Class method that creates the appropriate instance of Operation based on inputs."""
 
         if classifier in Operation.generic_node_types:
-            return GenericOperation(id, type, name, classifier,
-                                    parent_operation_ids=parent_operation_ids, component_params=component_params)
-        return Operation(id, type, name, classifier,
-                         parent_operation_ids=parent_operation_ids, component_params=component_params)
+            return GenericOperation(
+                id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
+            )
+        return Operation(
+            id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
+        )
 
-    def __init__(self, id: str, type: str, name: str, classifier: str,
-                 parent_operation_ids: Optional[List[str]] = None,
-                 component_params: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        id: str,
+        type: str,
+        name: str,
+        classifier: str,
+        parent_operation_ids: Optional[List[str]] = None,
+        component_params: Optional[Dict[str, Any]] = None,
+    ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -79,8 +93,8 @@ class Operation(object):
         self._doc = None
 
         # Scrub the inputs and outputs lists
-        self._component_params["inputs"] = Operation._scrub_list(component_params.get('inputs', []))
-        self._component_params["outputs"] = Operation._scrub_list(component_params.get('outputs', []))
+        self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
+        self._component_params["outputs"] = Operation._scrub_list(component_params.get("outputs", []))
 
     @property
     def id(self) -> str:
@@ -124,28 +138,30 @@ class Operation(object):
 
     @property
     def inputs(self) -> Optional[List[str]]:
-        return self._component_params.get('inputs')
+        return self._component_params.get("inputs")
 
     @inputs.setter
     def inputs(self, value: List[str]):
-        self._component_params['inputs'] = value
+        self._component_params["inputs"] = value
 
     @property
     def outputs(self) -> Optional[List[str]]:
-        return self._component_params.get('outputs')
+        return self._component_params.get("outputs")
 
     @outputs.setter
     def outputs(self, value: List[str]):
-        self._component_params['outputs'] = value
+        self._component_params["outputs"] = value
 
-    def __eq__(self, other: 'Operation') -> bool:
+    def __eq__(self, other: "Operation") -> bool:
         if isinstance(self, other.__class__):
-            return self.id == other.id and \
-                self.type == other.type and \
-                self.classifier == other.classifier and \
-                self.name == other.name and \
-                self.parent_operation_ids == other.parent_operation_ids and \
-                self.component_params == other.component_params
+            return (
+                self.id == other.id
+                and self.type == other.type
+                and self.classifier == other.classifier
+                and self.name == other.name
+                and self.parent_operation_ids == other.parent_operation_ids
+                and self.component_params == other.component_params
+            )
         return False
 
     def __str__(self) -> str:
@@ -153,10 +169,12 @@ class Operation(object):
         for key, value in self.component_params_as_dict.items():
             params += f"\t{key}: {value}, \n"
 
-        return f"componentID : {self.id} \n " \
-            f"name : {self.name} \n " \
-            f"parent_operation_ids : {self.parent_operation_ids} \n " \
+        return (
+            f"componentID : {self.id} \n "
+            f"name : {self.name} \n "
+            f"parent_operation_ids : {self.parent_operation_ids} \n "
             f"component_parameters: {{\n{params}}} \n"
+        )
 
     @staticmethod
     def _log_info(msg: str, logger: Optional[Logger] = None):
@@ -193,9 +211,15 @@ class GenericOperation(Operation):
     Represents a single operation in a pipeline representing a generic (built-in) component
     """
 
-    def __init__(self, id: str, type: str, name: str, classifier: str,
-                 parent_operation_ids: Optional[List[str]] = None,
-                 component_params: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        id: str,
+        type: str,
+        name: str,
+        classifier: str,
+        parent_operation_ids: Optional[List[str]] = None,
+        component_params: Optional[Dict[str, Any]] = None,
+    ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -226,29 +250,30 @@ class GenericOperation(Operation):
         Entries for other (non-built-in) component types are a function of the respective component.
         """
 
-        super().__init__(id, type, name, classifier,
-                         parent_operation_ids=parent_operation_ids, component_params=component_params)
+        super().__init__(
+            id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
+        )
 
-        if not component_params.get('filename'):
+        if not component_params.get("filename"):
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
-        if not component_params.get('runtime_image'):
+        if not component_params.get("runtime_image"):
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
-        if component_params.get('cpu') and not self._validate_range(component_params.get('cpu'), min_value=1):
+        if component_params.get("cpu") and not self._validate_range(component_params.get("cpu"), min_value=1):
             raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
-        if component_params.get('gpu') and not self._validate_range(component_params.get('gpu'), min_value=0):
+        if component_params.get("gpu") and not self._validate_range(component_params.get("gpu"), min_value=0):
             raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
-        if component_params.get('memory') and not self._validate_range(component_params.get('memory'), min_value=1):
+        if component_params.get("memory") and not self._validate_range(component_params.get("memory"), min_value=1):
             raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
 
         # Re-build object to include default values
-        self._component_params["filename"] = component_params.get('filename')
-        self._component_params["runtime_image"] = component_params.get('runtime_image')
-        self._component_params["dependencies"] = Operation._scrub_list(component_params.get('dependencies', []))
-        self._component_params["include_subdirectories"] = component_params.get('include_subdirectories', False)
-        self._component_params["env_vars"] = Operation._scrub_list(component_params.get('env_vars', []))
-        self._component_params["cpu"] = component_params.get('cpu')
-        self._component_params["gpu"] = component_params.get('gpu')
-        self._component_params["memory"] = component_params.get('memory')
+        self._component_params["filename"] = component_params.get("filename")
+        self._component_params["runtime_image"] = component_params.get("runtime_image")
+        self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
+        self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
+        self._component_params["env_vars"] = Operation._scrub_list(component_params.get("env_vars", []))
+        self._component_params["cpu"] = component_params.get("cpu")
+        self._component_params["gpu"] = component_params.get("gpu")
+        self._component_params["memory"] = component_params.get("memory")
 
     @property
     def name(self) -> str:
@@ -262,37 +287,37 @@ class GenericOperation(Operation):
 
     @property
     def filename(self) -> str:
-        return self._component_params.get('filename')
+        return self._component_params.get("filename")
 
     @property
     def runtime_image(self) -> str:
-        return self._component_params.get('runtime_image')
+        return self._component_params.get("runtime_image")
 
     @property
     def dependencies(self) -> Optional[List[str]]:
-        return self._component_params.get('dependencies')
+        return self._component_params.get("dependencies")
 
     @property
     def include_subdirectories(self) -> Optional[bool]:
-        return self._component_params.get('include_subdirectories')
+        return self._component_params.get("include_subdirectories")
 
     @property
     def env_vars(self) -> Optional[List[str]]:
-        return self._component_params.get('env_vars')
+        return self._component_params.get("env_vars")
 
     @property
     def cpu(self) -> Optional[str]:
-        return self._component_params.get('cpu')
+        return self._component_params.get("cpu")
 
     @property
     def memory(self) -> Optional[str]:
-        return self._component_params.get('memory')
+        return self._component_params.get("memory")
 
     @property
     def gpu(self) -> Optional[str]:
-        return self._component_params.get('gpu')
+        return self._component_params.get("gpu")
 
-    def __eq__(self, other: 'GenericOperation') -> bool:
+    def __eq__(self, other: "GenericOperation") -> bool:
         if isinstance(self, other.__class__):
             return super().__eq__(other)
         return False
@@ -315,12 +340,14 @@ class GenericOperation(Operation):
                     if len(nv_pair[1]) > 0:
                         envs[nv_pair[0]] = nv_pair[1]
                     else:
-                        Operation._log_info(f"Skipping inclusion of environment variable: "
-                                            f"`{nv_pair[0]}` has no value...",
-                                            logger=logger)
+                        Operation._log_info(
+                            f"Skipping inclusion of environment variable: " f"`{nv_pair[0]}` has no value...",
+                            logger=logger,
+                        )
                 else:
-                    Operation._log_warning(f"Could not process environment variable entry `{nv}`, skipping...",
-                                           logger=logger)
+                    Operation._log_warning(
+                        f"Could not process environment variable entry `{nv}`, skipping...", logger=logger
+                    )
         return envs
 
 
@@ -329,13 +356,15 @@ class Pipeline(object):
     Represents a single pipeline constructed in the pipeline editor
     """
 
-    def __init__(self,
-                 id: str,
-                 name: str,
-                 runtime: str,
-                 runtime_config: str,
-                 source: Optional[str] = None,
-                 description: Optional[str] = None):
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        runtime: str,
+        runtime_config: str,
+        source: Optional[str] = None,
+        description: Optional[str] = None,
+    ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
                    e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -349,11 +378,11 @@ class Pipeline(object):
         """
 
         if not name:
-            raise ValueError('Invalid pipeline: Missing pipeline name.')
+            raise ValueError("Invalid pipeline: Missing pipeline name.")
         if not runtime:
-            raise ValueError('Invalid pipeline: Missing runtime.')
+            raise ValueError("Invalid pipeline: Missing runtime.")
         if not runtime_config:
-            raise ValueError('Invalid pipeline: Missing runtime configuration.')
+            raise ValueError("Invalid pipeline: Missing runtime configuration.")
 
         self._id = id
         self._name = name
@@ -400,12 +429,14 @@ class Pipeline(object):
         """
         return self._description
 
-    def __eq__(self, other: 'Pipeline') -> bool:
+    def __eq__(self, other: "Pipeline") -> bool:
         if isinstance(self, other.__class__):
-            return self.id == other.id and \
-                self.name == other.name and \
-                self.source == other.source and \
-                self.description == other.description and \
-                self.runtime == other.runtime and \
-                self.runtime_config == other.runtime_config and \
-                self.operations == other.operations
+            return (
+                self.id == other.id
+                and self.name == other.name
+                and self.source == other.source
+                and self.description == other.description
+                and self.runtime == other.runtime
+                and self.runtime_config == other.runtime_config
+                and self.operations == other.operations
+            )

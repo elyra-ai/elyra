@@ -22,59 +22,56 @@ from elyra.pipeline.component_catalog import ComponentCache
 
 pytest_plugins = ["jupyter_server.pytest_plugin"]
 
-TEST_CATALOG_NAME = 'new_test_catalog'
+TEST_CATALOG_NAME = "new_test_catalog"
 
 KFP_COMPONENT_CACHE_INSTANCE = {
     "display_name": "KFP Example Components",
-    "metadata": {
-        "runtime_type": "KUBEFLOW_PIPELINES",
-        "categories": ["examples"]
-    },
-    "schema_name": "elyra-kfp-examples-catalog"
+    "metadata": {"runtime_type": "KUBEFLOW_PIPELINES", "categories": ["examples"]},
+    "schema_name": "elyra-kfp-examples-catalog",
 }
 
 AIRFLOW_COMPONENT_CACHE_INSTANCE = {
     "display_name": "Airflow Example Components",
     "metadata": {
         "runtime_type": "APACHE_AIRFLOW",
-        "categories": ["examples"]
+        "categories": ["examples"],
+        "paths": [
+            "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/bash_operator.py"  # noqa
+        ],
     },
-    "schema_name": "elyra-airflow-examples-catalog"
+    "schema_name": "url-catalog",
 }
 
 
 @pytest.fixture
-def component_cache_instance(request):
-    """Creates an instance of a component cache and removes after test."""
+def component_cache(jp_environ):
+    """
+    Initialize a component cache
+    """
+    # Create new instance and load the cache
+    component_cache = ComponentCache.instance(emulate_server_app=True)
+    component_cache.load()
 
-    # Create a ComponentCache instance to handle the cache update on metadata instance creation
-    component_catalog = ComponentCache.instance()
-
-    instance_name = "component_cache"
-    md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
-    # clean possible orphaned instance...
-    try:
-        md_mgr.remove(instance_name)
-    except Exception:
-        pass
-
-    # Attempt to create the instance
-    try:
-        component_cache_instance = md_mgr.create(instance_name, Metadata(**request.param))
-
-        # Wait for the cache update to complete
-        component_catalog.wait_for_all_cache_updates()
-
-        yield component_cache_instance.name
-        md_mgr.remove(component_cache_instance.name)
-
-    # Test was not parametrized, so component instance is not needed
-    except AttributeError:
-        yield None
+    yield component_cache
+    component_cache.cache_manager.stop()
+    ComponentCache.clear_instance()
 
 
 @pytest.fixture
-def metadata_manager_with_teardown():
+def catalog_instance(component_cache, request):
+    """Creates an instance of a component catalog and removes after test."""
+    instance_metadata = request.param
+
+    instance_name = "component_cache"
+    md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+    catalog = md_mgr.create(instance_name, Metadata(**instance_metadata))
+    component_cache.wait_for_all_cache_tasks()
+    yield catalog
+    md_mgr.remove(instance_name)
+
+
+@pytest.fixture
+def metadata_manager_with_teardown(jp_environ):
     """
     This fixture provides a MetadataManager instance for certain tests that modify the component
     catalog. This ensures the catalog instance is removed even when the test fails
@@ -90,3 +87,9 @@ def metadata_manager_with_teardown():
             metadata_manager.remove(TEST_CATALOG_NAME)
     except Exception:
         pass
+
+
+# Set Elyra server extension as enabled (overriding server_config fixture from jupyter_server)
+@pytest.fixture
+def jp_server_config():
+    return {"ServerApp": {"jpserver_extensions": {"elyra": True}}}

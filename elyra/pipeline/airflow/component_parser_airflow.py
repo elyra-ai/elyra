@@ -27,11 +27,11 @@ from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component import ControllerMap
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
-CONTROL_ID = 'OneOfControl'
+CONTROL_ID = "OneOfControl"
 DEFAULT_DATA_TYPE = "str"
 DEFAULT_REQUIRED = True
 DEFAULT_VALUE = None
-DEFAULT_DESCRIPTION = ''
+DEFAULT_DESCRIPTION = ""
 
 
 class AirflowComponentParser(ComponentParser):
@@ -59,7 +59,7 @@ class AirflowComponentParser(ComponentParser):
             return None
 
         for component_class, content in parsed_class_nodes.items():
-            if not content.get('init_function'):
+            if not content.get("init_function"):
                 # Without the init function, class can't be parsed for properties
                 self.log.warning(
                     f"Operator '{component_class}' associated with identifier '{entry_reference}' "
@@ -88,7 +88,8 @@ class AirflowComponentParser(ComponentParser):
                 id=component_id,
                 name=component_class,
                 description=DEFAULT_DESCRIPTION,
-                properties=component_properties
+                properties=component_properties,
+                file_extension=self._file_types[0],
             )
 
             components.append(component)
@@ -109,14 +110,15 @@ class AirflowComponentParser(ComponentParser):
 
         return {
             operator.name: {
-                'init_function': self._get_class_init_function_def(operator),
-                'docstring': self._get_class_docstring(operator) or ''
-            } for operator in operator_classes
+                "init_function": self._get_class_init_function_def(operator),
+                "docstring": self._get_class_docstring(operator) or "",
+            }
+            for operator in operator_classes
         }
 
-    def _filter_operator_classes(self,
-                                 class_def_nodes: List[ast.ClassDef],
-                                 import_from_nodes: List[ast.ImportFrom]) -> List[ast.ClassDef]:
+    def _filter_operator_classes(
+        self, class_def_nodes: List[ast.ClassDef], import_from_nodes: List[ast.ImportFrom]
+    ) -> List[ast.ClassDef]:
         """
         Analyze each ast.ClassDef object to determine whether it directly or indirectly
         extends the BaseOperator.
@@ -134,10 +136,10 @@ class AirflowComponentParser(ComponentParser):
         # indicating that this class does match a known Operator class as defined in
         # a provider package or core Airflow package
         regex_patterns = [
-            re.compile(r'airflow\.providers\.[a-zA-Z0-9_]+\.operators'),  # airflow.providers.*.operators (provider)
-            re.compile(r'airflow\.operators\.')  # airflow.operators.* (core Airflow package)
+            re.compile(r"airflow\.providers\.[a-zA-Z0-9_]+\.operators"),  # airflow.providers.*.operators (provider)
+            re.compile(r"airflow\.operators\."),  # airflow.operators.* (core Airflow package)
         ]
-        operator_bases = ['BaseOperator']
+        operator_bases = ["BaseOperator"]
         for module in import_from_nodes:
             if any(regex.match(module.module) for regex in regex_patterns):
                 operator_bases.extend([name.name for name in module.names])
@@ -145,7 +147,7 @@ class AirflowComponentParser(ComponentParser):
         # Determine whether each class directly extends the BaseOperator or whether it
         # must be further analyzed for indirect extension
         for node in class_def_nodes:
-            if not hasattr(node, 'bases') or len(node.bases) == 0:
+            if not hasattr(node, "bases") or len(node.bases) == 0:
                 # Class does not extend other classes; do not add to Operator list
                 continue
             if any(base.id in operator_bases for base in node.bases):
@@ -180,7 +182,7 @@ class AirflowComponentParser(ComponentParser):
         Get the ast.FunctionDef argument representing the init function for the given ClassDef
         """
         for body_item in operator_class.body:
-            if isinstance(body_item, ast.FunctionDef) and 'init' in body_item.name:
+            if isinstance(body_item, ast.FunctionDef) and "init" in body_item.name:
                 return body_item
         return None
 
@@ -199,9 +201,7 @@ class AirflowComponentParser(ComponentParser):
                     return body_item.value.s.strip()
         return None
 
-    def _parse_properties_from_init(self,
-                                    init_function: ast.FunctionDef,
-                                    docstring: str) -> List[ComponentParameter]:
+    def _parse_properties_from_init(self, init_function: ast.FunctionDef, docstring: str) -> List[ComponentParameter]:
         """
         Parse the init function and docstring of single operator class to create a list
         of ComponentParameter objects.
@@ -214,7 +214,7 @@ class AirflowComponentParser(ComponentParser):
 
         init_arguments = self._get_init_arguments(init_function)
         for arg_name, arg_attributes in init_arguments.items():
-            data_type_from_ast = arg_attributes.get('data_type')
+            data_type_from_ast = arg_attributes.get("data_type")
 
             description = self._parse_from_docstring("param", arg_name, docstring, DEFAULT_DESCRIPTION)
             data_type_parsed = self._parse_from_docstring("type", arg_name, docstring)
@@ -222,17 +222,18 @@ class AirflowComponentParser(ComponentParser):
             # Amend description to include type information as parsed, if available.
             # Otherwise, include the type information determined from the AST parse
             description = self._format_description(
-                description=description,
-                data_type=(data_type_parsed or data_type_from_ast)
+                description=description, data_type=(data_type_parsed or data_type_from_ast)
             )
 
             # Standardize data type information
             data_type_info = self.determine_type_information(data_type_parsed or data_type_from_ast)
             if data_type_info.undetermined:
-                self.log.debug(f"Data type from parsed data ('{(data_type_parsed or data_type_from_ast)}') "
-                               f"could not be determined. Proceeding as if "
-                               f"'{data_type_info.data_type}' was detected.")
-            elif 'xcom' in arg_name.lower() and data_type_info.data_type == 'boolean':
+                self.log.debug(
+                    f"Data type from parsed data ('{(data_type_parsed or data_type_from_ast)}') "
+                    f"could not be determined. Proceeding as if "
+                    f"'{data_type_info.data_type}' was detected."
+                )
+            elif "xcom" in arg_name.lower() and data_type_info.data_type == "boolean":
                 # Override a default of False for xcom push
                 data_type_info.default_value = True
 
@@ -240,20 +241,20 @@ class AirflowComponentParser(ComponentParser):
             default_control_type = data_type_info.control_id
             one_of_control_types = [
                 (default_control_type, data_type_info.data_type, ControllerMap[default_control_type].value),
-                ("NestedEnumControl", "inputpath", ControllerMap["NestedEnumControl"].value)
+                ("NestedEnumControl", "inputpath", ControllerMap["NestedEnumControl"].value),
             ]
 
             component_param = ComponentParameter(
                 id=arg_name,
                 name=arg_name,
                 data_type=data_type_info.data_type,
-                value=(arg_attributes.get('default_value') or data_type_info.default_value),
+                value=(arg_attributes.get("default_value") or data_type_info.default_value),
                 description=description,
                 default_control_type=default_control_type,
                 control_id=CONTROL_ID,
                 one_of_control_types=one_of_control_types,
                 allow_no_options=True,
-                required=arg_attributes.get('required')
+                required=arg_attributes.get("required"),
             )
             properties.append(component_param)
 
@@ -267,7 +268,7 @@ class AirflowComponentParser(ComponentParser):
         """
         # Retrieve positional arguments (not including 'self', 'args', and 'kwargs')
         # and any default values given
-        args_to_skip = ['self', '*', '*args', '**kwargs']
+        args_to_skip = ["self", "*", "*args", "**kwargs"]
         args = [argument for argument in init_function.args.args if argument.arg not in args_to_skip]
         arg_defaults = init_function.args.defaults
 
@@ -295,7 +296,7 @@ class AirflowComponentParser(ComponentParser):
             # but are ast.NameConstants or ast.Str/ast.Num objects (or None) in Python 3.7
             # and lower. ast.Constant and ast.NameConstant store the value of interest
             # here in the 'value' attribute
-            default_value = getattr(default, 'value', DEFAULT_VALUE)
+            default_value = getattr(default, "value", DEFAULT_VALUE)
             if default is not None:
                 if isinstance(default, ast.Str):
                     # The value of interest in this case is accessed by the 's' attribute
@@ -314,7 +315,7 @@ class AirflowComponentParser(ComponentParser):
 
             # Get data type directly from default value
             data_type = type(default_value).__name__
-            if data_type == 'NoneType':
+            if data_type == "NoneType":
                 # Get data from type hint if available
                 data_type = DEFAULT_DATA_TYPE
                 if isinstance(arg.annotation, ast.Name):
@@ -324,10 +325,7 @@ class AirflowComponentParser(ComponentParser):
 
                 elif isinstance(arg.annotation, ast.Subscript):
                     # arg is more complex
-                    if (
-                        isinstance(arg.annotation.slice, ast.Name) and
-                        isinstance(arg.annotation.value, ast.Name)
-                    ):
+                    if isinstance(arg.annotation.slice, ast.Name) and isinstance(arg.annotation.value, ast.Name):
                         if arg.annotation.value.id == "Optional":
                             # arg is of the form `<arg>: Optional[<single-valued_type>]`
                             # e.g. `env: Optional[str]` or `env: Optional[int]`
@@ -338,9 +336,9 @@ class AirflowComponentParser(ComponentParser):
                             data_type = arg.annotation.value.id
 
                     elif (
-                        isinstance(arg.annotation.slice, (ast.Tuple, ast.Index)) and
-                        isinstance(arg.annotation.value, ast.Name) and
-                        arg.annotation.value.id != 'Optional'
+                        isinstance(arg.annotation.slice, (ast.Tuple, ast.Index))
+                        and isinstance(arg.annotation.value, ast.Name)
+                        and arg.annotation.value.id != "Optional"
                     ):
                         # arg is of the form `<arg>: <multi-valued_type>`
                         # e.g. `env: Dict[str, str]` or `env: List[bool]`
@@ -348,9 +346,8 @@ class AirflowComponentParser(ComponentParser):
                         # python 3.8+ and ast.Index in python 3.7 and lower)
                         data_type = arg.annotation.value.id
 
-                    elif (
-                        isinstance(arg.annotation.slice, ast.Subscript) and
-                        isinstance(arg.annotation.slice.value, ast.Name)
+                    elif isinstance(arg.annotation.slice, ast.Subscript) and isinstance(
+                        arg.annotation.slice.value, ast.Name
                     ):
                         # arg is of the form `<arg>: Optional[<multi-valued_type>]`
                         # e.g. `env = Optional[Dict[str, str]]` or `env = Optional[List[int]]`
@@ -358,28 +355,21 @@ class AirflowComponentParser(ComponentParser):
                         data_type = arg.annotation.slice.value.id
 
                     elif (
-                        isinstance(arg.annotation.slice, ast.Index) and
-                        isinstance(arg.annotation.slice.value, ast.Subscript) and
-                        isinstance(arg.annotation.slice.value.value, ast.Name)
+                        isinstance(arg.annotation.slice, ast.Index)
+                        and isinstance(arg.annotation.slice.value, ast.Subscript)
+                        and isinstance(arg.annotation.slice.value.value, ast.Name)
                     ):
                         # arg is of the form `<arg>: Optional[<multi-valued_type>]`
                         # e.g. `env = Optional[Dict[str, str]]` or `env = Optional[List[int]]`
                         # In Python 3.7 and lower
                         data_type = arg.annotation.slice.value.value.id
 
-                    if (
-                        isinstance(arg.annotation.value, ast.Name) and
-                        arg.annotation.value.id == 'Optional'
-                    ):
+                    if isinstance(arg.annotation.value, ast.Name) and arg.annotation.value.id == "Optional":
                         # arg typehint includes the phrase 'Optional'
                         required = False
 
             # Insert AST-parsed (or default) values into dictionary
-            init_arg_dict[arg_name] = {
-                'data_type': data_type,
-                'default_value': default_value,
-                'required': required
-            }
+            init_arg_dict[arg_name] = {"data_type": data_type, "default_value": default_value, "required": required}
 
         return init_arg_dict
 
@@ -393,7 +383,7 @@ class AirflowComponentParser(ComponentParser):
         match = regex.search(class_def)
         if match:
             # Remove quotation marks and newline characters in preparation for eventual json.loads()
-            return match.group(1).strip().replace("\"", "'").replace("\n", " ").replace("\t", " ")
+            return match.group(1).strip().replace('"', "'").replace("\n", " ").replace("\t", " ")
         return default
 
     def get_runtime_specific_properties(self) -> List[ComponentParameter]:
@@ -419,10 +409,10 @@ class AirflowComponentParser(ComponentParser):
         Returns the portion of a file between the given line numbers
         """
         # Convert component definition to list of lines
-        component_def_as_lines = content.split('\n')
+        component_def_as_lines = content.split("\n")
 
         # Get subset of lines belonging to given operator class
         content_as_lines = component_def_as_lines[start_line:end_line]
 
         # Return as string
-        return '\n'.join(content_as_lines)
+        return "\n".join(content_as_lines)

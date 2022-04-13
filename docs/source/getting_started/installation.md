@@ -45,8 +45,6 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 
 ### pip
 
-**NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
-
 If you use `pip`, install Elyra with:
 
 ```bash
@@ -65,6 +63,12 @@ If desired, you can install these Elyra extensions independently:
 
    ```bash
    pip3 install --upgrade elyra-code-snippet-extension
+   ```
+
+- [Code Viewer](https://pypi.org/project/elyra-code-viewer-extension/)
+
+   ```bash
+   pip3 install --upgrade elyra-code-viewer-extension
    ```
 
 - [Python Editor](https://pypi.org/project/elyra-python-editor-extension/)
@@ -90,7 +94,7 @@ conda install -c conda-forge elyra[all]
 **NOTE:**
 The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton) dependency [is no longer installed by default](https://github.com/elyra-ai/elyra/pull/2043). To install this dependency, you must specify `elyra[all]` or `elyra[kfp-tekton]`.
 
-You can also install the Pipeline editor, Code Snippet, or Script editor extensions individually:
+You can also install the Pipeline editor, Code Snippet, Code Viewer, or Script editor extensions individually:
 
 ```bash
 conda install -c conda-forge elyra-pipeline-editor-extension
@@ -98,6 +102,10 @@ conda install -c conda-forge elyra-pipeline-editor-extension
 
 ```bash
 conda install -c conda-forge elyra-code-snippet-extension
+```
+
+```bash
+conda install -c conda-forge elyra-code-viewer-extension
 ```
 
 ```bash
@@ -179,6 +187,7 @@ JupyterLab [version]
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
         @elyra/code-snippet-extension [version] enabled OK
+        @elyra/code-viewer-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK

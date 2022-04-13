@@ -31,12 +31,12 @@ In Elyra, information such as a [runtime configuration](runtime-conf.md) or a [r
 To display the list of commands that `elyra-metadata` supports, run
 
 ```
-$ elyra-metadata -h
+$ elyra-metadata --help
 ```
 
 To learn more about a specific command, e.g. `list`, run
 ```
-$ elyra-metadata list -h
+$ elyra-metadata list --help
 ```
 
 #### Formatting list output
@@ -66,7 +66,6 @@ $ elyra-metadata list runtime-images --json | jq ".[].display_name"
 "Tensorflow 2.3.0 with GPU"
 "Pytorch 1.4 with CUDA-runtime"
 "Pandas on quay.io"
-
 ```
 
 #### List, create, update, export, and delete metadata
@@ -147,6 +146,8 @@ and `elyra-metadata` generates options corresponding to each of the `metadata` p
 	Code snippet code lines
 ```
 
+Tip: You can omit the `=` separator character. For example, `--description <string>`.
+
 When complex properties are present, the complexity of interpreting their semantics into CLI options is not sustainable.  To address this, two options can be used that bypass the per-property processing and allow you to create or update the instance directly.
 
 The `--file` option takes a filepath to a JSON-formatted file.  The file can contain the entire JSON including the higher-level system properties that reside outside the `metadata` stanza.  Or, it may contain only the JSON that comprises the `metadata` stanza.
@@ -159,12 +160,12 @@ It should also be noted that individual object-valued properties can optionally 
 
 Should a failure be encountered relative to a complex schema, the properties identified as complex will be identified in the tool's usage statement.  They will refer to a note at the bottom of the usage statement indicating that these approaches should be used.
 
-Finally, when updating instances using the `--replace` option.  You are not required to include unchanged values on the command line.  Instead, the existing object is read and any properties provided on the command line, or included in the bulk JSON data, are applied to the existing properties.
+Finally, when updating instances using the `update` command, you are not required to include unchanged values on the command line.  Instead, the existing object is read and any properties provided on the command line, or included in the bulk JSON data, are applied to the existing properties.
 
 ### Working with pipelines
 
 In Elyra, [a pipeline](pipelines.md) is a representation of a
-workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow.
+workflow that you run locally or remotely on Kubeflow Pipelines or Apache Airflow. The `elyra-pipeline` CLI is used to run pipelines, validate pipelines, describe pipelines, or export pipelines.
 
 #### Getting help
 
@@ -174,14 +175,16 @@ To display the list of commands that `elyra-pipeline` supports, run
 $ elyra-pipeline --help
 ```
 
-To learn more about a specific command, e.g. `run`, run
+To learn more about a specific command, e.g. `submit`, run
 ```
-$ elyra-pipeline run --help
+$ elyra-pipeline submit --help
 ```
-
-#### Running pipelines
 
 Refer to the topics below for detailed information on how to use `elyra-pipeline` to
  - [Display pipeline information summary](pipelines.html#running-a-pipeline-using-the-command-line)
- - [Run a pipeline locally](pipelines.html#running-a-pipeline-using-the-command-line)
- - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-using-the-command-line)
+ - [Run a pipeline locally](pipelines.html#running-a-pipeline-from-the-command-line-interface)
+ - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-from-the-command-line-interface)
+ - [Export a pipeline](pipelines.html#exporting-a-pipeline-from-the-command-line-interface)
+
+
+

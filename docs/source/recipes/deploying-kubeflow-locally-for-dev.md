@@ -92,15 +92,15 @@ These endpoints will be used to configure your Elyra metadata runtime with the
 command below:
 
 ```bash
-elyra-metadata install runtimes \
-       --schema_name=kfp \
-       --name=kfp-local \
-       --display_name="Kubeflow Pipeline (local)" \
-       --api_endpoint=http://localhost:31380/pipeline \
-       --cos_endpoint=http://minio-service.kubeflow.svc.cluster.local:9000 \
-       --cos_username=minio \
-       --cos_password=minio123 \
-       --cos_bucket=covid
+$ elyra-metadata create runtimes \
+       --schema_name kfp \
+       --name kfp-local \
+       --display_name "Kubeflow Pipeline (local)" \
+       --api_endpoint http://localhost:31380/pipeline \
+       --cos_endpoint http://minio-service.kubeflow.svc.cluster.local:9000 \
+       --cos_username minio \
+       --cos_password minio123 \
+       --cos_bucket covid
 ```
 
 ## Troubleshooting

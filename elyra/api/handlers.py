@@ -20,11 +20,9 @@ from tornado import web
 
 
 class BaseSpecHandler(web.StaticFileHandler, APIHandler):
-
     @staticmethod
     def get_resource_metadata():
-        """Returns the (resource, mime-type) for the handlers spec.
-        """
+        """Returns the (resource, mime-type) for the handlers spec."""
         pass
 
     def initialize(self):
@@ -43,6 +41,5 @@ class YamlSpecHandler(BaseSpecHandler):
 
     @staticmethod
     def get_resource_metadata():
-        """Returns the (resource, mime-type) for the handlers spec.
-        """
-        return 'elyra.yaml', 'text/x-yaml'
+        """Returns the (resource, mime-type) for the handlers spec."""
+        return "elyra.yaml", "text/x-yaml"
