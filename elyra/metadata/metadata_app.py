@@ -980,24 +980,12 @@ class Import(SubcommandBase):
 
 
 class MetadataApp(AppBase):
-<<<<<<< HEAD
-    """Lists, installs, removes, migrates, exports and imports metadata for a given schemaspace."""
-=======
-    """Lists, creates, updates, removes, migrates and exports metadata for a given schemaspace."""
->>>>>>> master
+    """Lists, creates, updates, removes, migrates, exports and imports metadata for a given schemaspace."""
 
     name = "elyra-metadata"
     description = """Manage Elyra metadata."""
 
     subcommands = {
-<<<<<<< HEAD
-        'list': (List, List.description.splitlines()[0]),
-        'install': (Install, Install.description.splitlines()[0]),
-        'remove': (Remove, Remove.description.splitlines()[0]),
-        'migrate': (Migrate, Migrate.description.splitlines()[0]),
-        'export': (Export, Export.description.splitlines()[0]),
-        'import': (Import, Import.description.splitlines()[0])
-=======
         "list": (List, List.description.splitlines()[0]),
         "create": (Create, Create.description.splitlines()[0]),
         "update": (Update, Update.description.splitlines()[0]),
@@ -1005,7 +993,7 @@ class MetadataApp(AppBase):
         "remove": (Remove, Remove.description.splitlines()[0]),
         "migrate": (Migrate, Migrate.description.splitlines()[0]),
         "export": (Export, Export.description.splitlines()[0]),
->>>>>>> master
+        'import': (Import, Import.description.splitlines()[0])
     }
 
     @classmethod
@@ -1021,13 +1009,8 @@ class MetadataApp(AppBase):
         include_deprecated = False
         args = kwargs.get("argv", [])
         if len(args) > 0:
-<<<<<<< HEAD
-            # Only install and import will not operate against a deprecated schemaspace
-            include_deprecated = args[0] not in ['install', 'import']
-=======
             # identify commands that can operate on deprecated schemaspaces
-            include_deprecated = args[0] not in ["install", "create", "update"]
->>>>>>> master
+            include_deprecated = args[0] not in ["install", "create", "update", "import"]
         schemaspace_names = schema_mgr.get_schemaspace_names(include_deprecated=include_deprecated)
         for name in schemaspace_names:
             self.schemaspace_schemas[name] = schema_mgr.get_schemaspace_schemas(name)
