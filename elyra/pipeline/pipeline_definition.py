@@ -452,6 +452,29 @@ class PipelineDefinition(object):
                         node_value = node.get_component_parameter(global_prop)
                         if not node_value:
                             node.set_component_parameter(global_prop, global_value)
+                        else:
+                            if global_prop == "env_vars":
+                                # Transform both into dicts
+                                global_env_dict = self.envs_to_dict(env_list=global_value)
+                                node_env_dict = self.envs_to_dict(env_list=node_value)
+                                merged_env_list = self.env_dict_to_list({**global_env_dict, **node_env_dict})
+                                node.set_component_parameter(global_prop, merged_env_list)
+
+    def envs_to_dict(self, env_list: List) -> Dict[str, str]:
+        envs = {}
+        for nv in env_list:
+            if nv:
+                nv_pair = nv.split("=", 1)
+                if len(nv_pair) == 2 and nv_pair[0].strip():
+                    if len(nv_pair[1]) > 0:
+                        envs[nv_pair[0]] = nv_pair[1]
+        return envs
+
+    def env_dict_to_list(self, env_dict: Dict) -> List[str]:
+        envs = []
+        for env, env_value in env_dict.items():
+            envs.append(f"{env}={env_value}")
+        return envs
 
     def is_valid(self) -> bool:
         """
