@@ -43,8 +43,7 @@ Elyra currently includes the following functionality:
 
 ![Elyra](docs/source/images/elyra-main-page.png)
 
-The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting_started/overview.html)
-includes more details on these features.
+The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting_started/overview.html) includes more details on these features. A version-specific summary of new features is located on the [releases page](https://github.com/elyra-ai/elyra/releases).
 
 ## Try Elyra
 
