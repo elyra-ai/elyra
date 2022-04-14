@@ -88,6 +88,21 @@ def test_updates_to_nodes_updates_pipeline_definition():
         assert node["app_data"]["component_parameters"]["filename"] == "foo"
 
 
+def test_envs_to_dict():
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    test_list = ["TEST=one", "TEST_TWO=two", "TEST_THREE=", "TEST_FOUR=1", "TEST_FIVE=fi=ve"]
+    test_dict_correct = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1", "TEST_FIVE": "fi=ve"}
+    assert PipelineDefinition(pipeline_definition=pipeline_json).envs_to_dict(env_list=test_list) == test_dict_correct
+
+
+def test_env_dict_to_list():
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    test_dict = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1"}
+    test_list_correct = ["TEST=one", "TEST_TWO=two", "TEST_FOUR=1"]
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+    assert pipeline_definition.env_dict_to_list(env_dict=test_dict) == test_list_correct
+
+
 def _check_pipeline_correct_pipeline_name():
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
@@ -113,7 +128,7 @@ def _check_missing_pipeline_field(field: str, error_msg: str):
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
     pipeline_json.pop(field)
 
-    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json, propagate_properties=False)
 
     assert pipeline_definition.is_valid() is False
     assert error_msg in pipeline_definition.validate()
@@ -124,7 +139,7 @@ def _check_pipeline_field_type(field: str, wrong_type_value: any, error_msg: str
     pipeline_json.pop(field)
     pipeline_json[field] = wrong_type_value
 
-    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json, propagate_properties=False)
 
     assert pipeline_definition.is_valid() is False
     assert error_msg in pipeline_definition.validate()
@@ -134,7 +149,7 @@ def _check_missing_primary_pipeline_field(field: str, error_msg: str):
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
     pipeline_json["pipelines"][0].pop(field)
 
-    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json, propagate_properties=False)
 
     assert pipeline_definition.is_valid() is False
     assert error_msg in pipeline_definition.validate()

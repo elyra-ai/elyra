@@ -290,7 +290,11 @@ class PipelineDefinition(object):
     _validation_issues: list = None
 
     def __init__(
-        self, pipeline_path: Optional[str] = None, pipeline_definition: Optional[Dict] = None, validate: bool = False
+        self,
+        pipeline_path: Optional[str] = None,
+        pipeline_definition: Optional[Dict] = None,
+        validate: bool = False,
+        propagate_properties: bool = True,
     ):
         """
         The constructor enables either passing a pipeline path or the content of the pipeline definition.
@@ -322,7 +326,8 @@ class PipelineDefinition(object):
         if validate:
             self.validate()
 
-        self.propagate_global_properties()
+        if propagate_properties:
+            self.propagate_global_properties()
 
     @property
     def id(self) -> str:
