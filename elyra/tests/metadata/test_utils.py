@@ -171,11 +171,11 @@ all_of_json = {
 }
 
 
-def create_json_file(location, file_name, content):
-    create_file(location, file_name, json.dumps(content))
+def create_json_file(location: Any, file_name: str, content: Dict) -> str:
+    return create_file(location, file_name, json.dumps(content))
 
 
-def create_file(location, file_name, content):
+def create_file(location: Any, file_name: str, content: str) -> str:
     try:
         os.makedirs(location)
     except OSError as e:
@@ -185,6 +185,7 @@ def create_file(location, file_name, content):
     resource = os.path.join(location, file_name)
     with open(resource, "w", encoding="utf-8") as f:
         f.write(content)
+    return resource
 
 
 def create_instance(metadata_store: MetadataStore, location: str, name: str, content: Any) -> str:

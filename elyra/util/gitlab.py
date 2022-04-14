@@ -107,7 +107,7 @@ class GitLabClient(LoggingConfigurable):
         :return: a URL in string format
         """
         parsed_url = parse_url(api_url)
-        scheme = parsed_url.scheme + ":/"
+        scheme = f"{parsed_url.scheme}://"
         host = parsed_url.host
         port = ""
 
@@ -115,6 +115,6 @@ class GitLabClient(LoggingConfigurable):
             host = ".".join(parsed_url.host.split(".")[1:])
 
         if parsed_url.port:
-            port = ":" + parsed_url.port
+            port = f":{parsed_url.port}"
 
-        return "/".join([scheme, host + port, repository_name, "tree", repository_branch])
+        return f"{scheme}{host}{port}/{repository_name}/tree/{repository_branch}"

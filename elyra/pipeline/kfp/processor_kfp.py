@@ -83,6 +83,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # unpack Kubeflow Pipelines configs
         api_endpoint = runtime_configuration.metadata["api_endpoint"].rstrip("/")
+        public_api_endpoint = runtime_configuration.metadata.get("public_api_endpoint", api_endpoint)
         api_username = runtime_configuration.metadata.get("api_username")
         api_password = runtime_configuration.metadata.get("api_password")
         user_namespace = runtime_configuration.metadata.get("user_namespace")
@@ -349,12 +350,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 )
 
             self.log_pipeline_info(
-                pipeline_name, f"pipeline submitted: {api_endpoint}/#/runs/details/{run.id}", duration=time.time() - t0
+                pipeline_name,
+                f"pipeline submitted: {public_api_endpoint}/#/runs/details/{run.id}",
+                duration=time.time() - t0,
             )
 
         return KfpPipelineProcessorResponse(
             run_id=run.id,
-            run_url=f"{api_endpoint}/#/runs/details/{run.id}",
+            run_url=f"{public_api_endpoint}/#/runs/details/{run.id}",
             object_storage_url=f"{cos_endpoint}",
             object_storage_path=f"/{cos_bucket}/{cos_directory}",
         )
@@ -600,7 +603,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Add factory function, which returns a ContainerOp task instance, to pipeline operation dict
                 try:
                     comp_spec_inputs = [
-                        inputs.name.lower().replace(" ", "_") for inputs in factory_function.component_spec.inputs
+                        inputs.name.lower().replace(" ", "_") for inputs in factory_function.component_spec.inputs or []
                     ]
 
                     # Remove inputs and outputs from params dict

@@ -173,16 +173,21 @@ class ExecuteFileOp(ContainerOp):
             NOTE: Images being pulled must have python3 available on PATH and cURL utility
             """
 
+            common_curl_options = '--fail -H "Cache-Control: no-cache"'
+
             argument_list.append(
                 f"mkdir -p {self.container_work_dir} && cd {self.container_work_dir} && "
-                f'curl -H "Cache-Control: no-cache" -L {self.bootstrap_script_url} --output bootstrapper.py && '
-                f'curl -H "Cache-Control: no-cache" -L {self.requirements_url} --output requirements-elyra.txt && '
+                f"echo 'Downloading {self.bootstrap_script_url}' && "
+                f"curl {common_curl_options} -L {self.bootstrap_script_url} --output bootstrapper.py && "
+                f"echo 'Downloading {self.requirements_url}' && "
+                f"curl {common_curl_options} -L {self.requirements_url} --output requirements-elyra.txt && "
             )
 
             if self.emptydir_volume_size:
                 argument_list.append(
                     f"mkdir {self.container_python_dir_name} && cd {self.container_python_dir_name} && "
-                    f'curl -H "Cache-Control: no-cache" -L {self.python_pip_config_url} '
+                    f"echo 'Downloading {self.python_pip_config_url}' && "
+                    f"curl {common_curl_options} -L {self.python_pip_config_url} "
                     "--output pip.conf && cd .. &&"
                 )
 

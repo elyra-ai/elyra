@@ -31,7 +31,9 @@ PYTHON_PIP=$(PYTHON) -m pip
 
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
+ELYRA_IMAGE_LATEST=elyra/elyra:latest
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
+KF_NOTEBOOK_IMAGE_LATEST=elyra/kf-notebook:latest
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
@@ -85,8 +87,6 @@ uninstall: uninstall-src
 	- jupyter lab clean
 	# remove Kubeflow Pipelines example components
 	- $(PYTHON_PIP) uninstall -y elyra-examples-kfp-catalog
-	# remove Apache Airflow example components
-	- $(PYTHON_PIP) uninstall -y elyra-examples-airflow-catalog
 	# remove GitLab dependency
 	- $(PYTHON_PIP) uninstall -y python-gitlab
 
@@ -149,7 +149,7 @@ build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
 install-server-package:
-	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
+	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
@@ -161,9 +161,6 @@ install-examples: ## Install example pipeline components
 	# install Kubeflow Pipelines example components
 	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector
 	- $(PYTHON_PIP) install --upgrade elyra-examples-kfp-catalog
-	# install Apache Airflow example components
-	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector
-	- $(PYTHON_PIP) install --upgrade elyra-examples-airflow-catalog
 
 install-gitlab-dependency:
 	# install GitLab support for Airflow
@@ -238,6 +235,13 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
+	# If we're building a release from master, tag latest and push
+	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "master" ]; then \
+		docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
+		docker push docker.io/$(ELYRA_IMAGE_LATEST); \
+		docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
+		docker push quay.io/$(ELYRA_IMAGE_LATEST); \
+	fi
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
@@ -264,6 +268,13 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
+	# If we're building a release from master, tag latest and push
+	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "master" ]; then \
+		docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+	fi
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	docker images $(ELYRA_IMAGE)

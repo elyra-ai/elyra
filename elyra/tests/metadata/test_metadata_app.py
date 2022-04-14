@@ -20,6 +20,7 @@ import os
 import shutil
 from tempfile import mkdtemp
 from tempfile import TemporaryDirectory
+from typing import List
 from typing import Optional
 
 import pytest
@@ -201,6 +202,69 @@ def test_install_simple(script_runner, mock_data_dir):
         assert instance_json["display_name"] == "display_name"
         assert instance_json["metadata"]["required_test"] == "required_value"
         assert instance_json["metadata"]["number_default_test"] == 42  # defaults will always persist
+
+
+@pytest.mark.parametrize("option_style", ["equals", "sans-equals", "missing"])
+def test_create_from_file(script_runner, mock_data_dir, option_style):
+    content = create_json_file(mock_data_dir, "valid.json", valid_metadata_json)
+
+    argv: List[str] = [
+        "elyra-metadata",
+        "install",
+        METADATA_TEST_SCHEMASPACE,
+    ]
+
+    if option_style == "equals":
+        argv.append(f"--file={content}")
+    elif option_style == "sans-equals":
+        argv.append("--file")
+        argv.append(f"{content}")
+    else:  # missing
+        argv.append("--file")
+
+    ret = script_runner.run(*argv)
+
+    if option_style == "missing":
+        assert ret.success is False
+        assert (
+            "ERROR: Parameter '--file' requires a file with format JSON and no value was provided.  "
+            "Try again with an appropriate value." in ret.stdout
+        )
+    else:  # success expected
+        assert ret.success
+        assert "Metadata instance 'valid' for schema 'metadata-test' has been written" in ret.stdout
+
+
+@pytest.mark.parametrize("option_style", ["equals", "sans-equals", "missing"])
+def test_create_from_json(script_runner, mock_data_dir, option_style):
+
+    content = json.dumps(valid_metadata_json)
+
+    argv: List[str] = [
+        "elyra-metadata",
+        "install",
+        METADATA_TEST_SCHEMASPACE,
+    ]
+
+    if option_style == "equals":
+        argv.append(f"--json={content}")
+    elif option_style == "sans-equals":
+        argv.append("--json")
+        argv.append(f"{content}")
+    else:  # missing
+        argv.append("--json")
+
+    ret = script_runner.run(*argv)
+
+    if option_style == "missing":
+        assert ret.success is False
+        assert (
+            "ERROR: Parameter '--json' requires a value with format JSON and no value was provided.  "
+            "Try again with an appropriate value." in ret.stdout
+        )
+    else:  # success expected
+        assert ret.success
+        assert "Metadata instance 'valid_metadata_instance' for schema 'metadata-test' has been written" in ret.stdout
 
 
 def test_install_and_replace(script_runner, mock_data_dir):
@@ -625,7 +689,8 @@ def test_create_complex(script_runner, mock_data_dir):
         f"--name={name}",
         f"--display_name=Test Complex {complex_keyword}",
         "--required_test=required_value",
-        f"{option}={value}",
+        f"{option}",  # don't use '=' between option and value
+        f"{value}",
     )
     assert ret.success
     assert f"Metadata instance '{name}' for schema 'metadata-test' has been written" in ret.stdout
@@ -1034,12 +1099,14 @@ def test_remove_no_name(script_runner):
     assert "ERROR: '--name' is a required parameter." in ret.stdout
 
 
-def test_remove_malformed_name(script_runner):
-    # Attempt removal but forget the '=' between parameter and value
+def test_remove_with_no_equals(script_runner):
+    # Attempt removal w/o the '=' between parameter and value
+    metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+    valid = Metadata(**valid_metadata_json)
+    metadata_manager.create("valid", valid)
 
     ret = script_runner.run("elyra-metadata", "remove", METADATA_TEST_SCHEMASPACE, "--name", "valid")
-    assert ret.success is False
-    assert "Parameter '--name' requires a value." in ret.stdout
+    assert ret.success is True
 
 
 def test_remove_missing(script_runner, mock_data_dir):
