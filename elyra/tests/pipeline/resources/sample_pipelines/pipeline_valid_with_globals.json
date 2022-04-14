@@ -37,7 +37,7 @@
         },
         "properties": {
           "name": "{{name}}",
-          "globals": {
+          "pipeline_defaults": {
             "runtime_image": "{{ default_image }}",
             "env_vars": ["var1=var_one", "var2=var_two", "var3=var_three"]
           },

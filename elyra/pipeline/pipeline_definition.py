@@ -446,7 +446,7 @@ class PipelineDefinition(object):
         For any global pipeline properties set (e.g. runtime image, volume), propagate
         the values to any nodes that do not set their own value for that property.
         """
-        global_properties = self.primary_pipeline.get_property("globals", {})
+        global_properties = self.primary_pipeline.get_property("pipeline_defaults", {})
         for global_prop, global_value in global_properties.items():
             if not global_value:
                 continue
@@ -562,5 +562,5 @@ class PipelineDefinition(object):
         :param name: the name of the global property
         :return:
         """
-        global_properties = self.primary_pipeline.get_property("globals", {})
+        global_properties = self.primary_pipeline.get_property("pipeline_defaults", {})
         return global_properties.get(name)

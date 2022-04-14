@@ -783,6 +783,7 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 
 .elyra-PipelineEditor .elyra_categoryHeader {
   padding-left: 33px;
+  padding-right: 24px;
 }
 
 .elyra-PipelineEditor .elyra_categoryHeader .panel-label {
