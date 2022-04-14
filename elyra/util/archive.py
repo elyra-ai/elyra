@@ -115,7 +115,7 @@ def create_temp_archive(archive_name, source_dir, source_file, filenames=None, r
     matched_set = set()
     temp_dir = create_project_temp_dir()
     archive = os.path.join(temp_dir, archive_name)
-    wildcard_expression_list = ["{WILDCARDS[0]}.py", "{WILDCARDS[0]}.r"]  # Supported script file extensions
+    wildcard_expression_list = [f"{WILDCARDS[0]}.py", f"{WILDCARDS[0]}.r"]  # Supported script file extensions
     wildcard_expression = len(filenames_set) == 1 and next(iter(filenames_set)) in wildcard_expression_list
 
     with tarfile.open(archive, "w:gz", dereference=True) as tar:
