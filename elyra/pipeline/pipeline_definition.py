@@ -20,6 +20,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.pipeline import Operation
 
 
@@ -327,7 +328,7 @@ class PipelineDefinition(object):
             self.validate()
 
         if propagate_properties:
-            self.propagate_global_properties()
+            self.propagate_pipeline_default_properties()
 
     @property
     def id(self) -> str:
@@ -441,29 +442,29 @@ class PipelineDefinition(object):
 
         return validation_issues
 
-    def propagate_global_properties(self):
+    def propagate_pipeline_default_properties(self):
         """
-        For any global pipeline properties set (e.g. runtime image, volume), propagate
+        For any default pipeline properties set (e.g. runtime image, volume), propagate
         the values to any nodes that do not set their own value for that property.
         """
-        global_properties = self.primary_pipeline.get_property("pipeline_defaults", {})
-        for global_prop, global_value in global_properties.items():
-            if not global_value:
+        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS_NAME, {})
+        for pipeline_default_prop, pipeline_default_value in pipeline_default_properties.items():
+            if not pipeline_default_value:
                 continue
 
             for pipeline in self.pipelines:
                 for node in pipeline.nodes:
                     if Operation.is_generic_operation(node.op):
-                        node_value = node.get_component_parameter(global_prop)
+                        node_value = node.get_component_parameter(pipeline_default_prop)
                         if not node_value:
-                            node.set_component_parameter(global_prop, global_value)
+                            node.set_component_parameter(pipeline_default_prop, pipeline_default_value)
                         else:
-                            if global_prop == "env_vars":
+                            if pipeline_default_prop == pipeline_constants.ENV_VARIABLES:
                                 # Transform both into dicts
-                                global_env_dict = self.envs_to_dict(env_list=global_value)
+                                pipeline_default_env_dict = self.envs_to_dict(env_list=pipeline_default_value)
                                 node_env_dict = self.envs_to_dict(env_list=node_value)
-                                merged_env_list = self.env_dict_to_list({**global_env_dict, **node_env_dict})
-                                node.set_component_parameter(global_prop, merged_env_list)
+                                merged_env_list = self.env_dict_to_list({**pipeline_default_env_dict, **node_env_dict})
+                                node.set_component_parameter(pipeline_default_prop, merged_env_list)
 
     def envs_to_dict(self, env_list: List) -> Dict[str, str]:
         envs = {}
@@ -556,11 +557,11 @@ class PipelineDefinition(object):
                     supernode_list.append(node)
         return supernode_list
 
-    def get_global_property(self, name: str) -> Any:
+    def get_pipeline_default_property(self, name: str) -> Any:
         """
-        Returns the value assigned to the specified global property
-        :param name: the name of the global property
+        Returns the value assigned to the specified pipeline default property
+        :param name: the name of the pipeline default property
         :return:
         """
-        global_properties = self.primary_pipeline.get_property("pipeline_defaults", {})
-        return global_properties.get(name)
+        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS_NAME, {})
+        return pipeline_default_properties.get(name)

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
@@ -89,26 +90,26 @@ def test_updates_to_nodes_updates_pipeline_definition():
 
 
 def test_envs_to_dict():
-    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_globals.json")
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
     test_list = ["TEST=one", "TEST_TWO=two", "TEST_THREE=", "TEST_FOUR=1", "TEST_FIVE=fi=ve"]
     test_dict_correct = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1", "TEST_FIVE": "fi=ve"}
     assert PipelineDefinition(pipeline_definition=pipeline_json).envs_to_dict(env_list=test_list) == test_dict_correct
 
 
 def test_env_dict_to_list():
-    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_globals.json")
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
     test_dict = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1"}
     test_list_correct = ["TEST=one", "TEST_TWO=two", "TEST_FOUR=1"]
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
     assert pipeline_definition.env_dict_to_list(env_dict=test_dict) == test_list_correct
 
 
-def test_propogate_global_properties():
+def test_propagate_pipeline_default_properties():
     env_list_correct = ["var1=var1", "var2=var2", "var3=var_three"]
-    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_globals.json")
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
     node = pipeline_definition.primary_pipeline.nodes.pop()
-    assert node.get_component_parameter("env_vars") == env_list_correct
+    assert node.get_component_parameter(pipeline_constants.ENV_VARIABLES) == env_list_correct
 
 
 def _check_pipeline_correct_pipeline_name():
