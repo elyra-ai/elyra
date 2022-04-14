@@ -17,7 +17,7 @@
             "component_parameters": {
               "filename": "{{filename}}",
               "runtime_image": "{{runtime_image}}",
-              "env_vars": ["var1=var1", "var2=var2"],
+              "env_vars": ["var1=var1", "var2=var2", "var3="],
               "include_subdirectories": false,
               "dependencies": ["a.txt", "b.txt", "c.txt"],
               "outputs": ["d.txt", "e.txt", "f.txt"]
@@ -37,6 +37,10 @@
         },
         "properties": {
           "name": "{{name}}",
+          "globals": {
+            "runtime_image": "{{ default_image }}",
+            "env_vars": ["var1=var_one", "var2=var_two", "var3=var_three"]
+          },
           "runtime": "{{runtime description}}"
         },
         "version": 5

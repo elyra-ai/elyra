@@ -103,6 +103,14 @@ def test_env_dict_to_list():
     assert pipeline_definition.env_dict_to_list(env_dict=test_dict) == test_list_correct
 
 
+def test_propogate_global_properties():
+    env_list_correct = ["var1=var1", "var2=var2", "var3=var_three"]
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+    node = pipeline_definition.primary_pipeline.nodes.pop()
+    assert node.get_component_parameter("env_vars") == env_list_correct
+
+
 def _check_pipeline_correct_pipeline_name():
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
