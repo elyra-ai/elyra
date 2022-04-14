@@ -98,11 +98,11 @@ lint-dependencies:
 	@$(PYTHON_PIP) install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
-	flake8 elyra
-	black --check --diff --color . || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
+	$(PYTHON) -m flake8 elyra
+	$(PYTHON) -m black --check --diff --color . || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
 
 black-format: # Apply black formatter to Python source code
-	black .
+	$(PYTHON) -m black .
 
 prettier-check-ui:
 	yarn prettier:check
@@ -148,7 +148,10 @@ package-ui: build-dependencies yarn-install lint-ui build-ui
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
-install-server-package:
+uninstall-server-package:
+	@$(PYTHON_PIP) uninstall elyra -y
+
+install-server-package: uninstall-server-package
 	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
