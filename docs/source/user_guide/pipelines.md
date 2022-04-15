@@ -66,7 +66,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
 
    ![Pipeline editor links in launcher](../images/user_guide/pipelines/editor-links.png)
 
-1. Expand the properties panel and define the pipeline properties. Pipeline properties include a description and default values for node properties. (Support for pipeline properties varies by release.)
+1. Expand the properties panel and define the pipeline properties. Pipeline properties include a description and default values for certain node properties. When a default property is set, individual nodes can override the value of these properties in their node property tab, described below. (Support for pipeline properties varies by release.)
 
    ![Pipeline properties](../images/user_guide/pipelines/pipeline-properties.png)
 
@@ -90,6 +90,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
 
    **Runtime Image**
    - Required. The container image you want to use to run the notebook or script. 
+   - A default runtime image can also be set in the pipeline properties tab. If a default image is set, the **Runtime Image** property in the node properties tab will indicate that a pipeline default is set. Individual nodes can override the pipeline default value. 
    - Example: `TensorFlow 2.0`
 
    **CPU, GPU, and RAM**
@@ -101,6 +102,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
 
    **Environment Variables**
    - Optional. A list of environment variables to be set inside in the container.  Specify one variable/value pair per line, separated by `=`.
+   - A set of default environment variables can also be set in the pipeline properties tab. If any default environment variables are set, the **Environment Variables** property in the node properties tab will include these variables and their values with a note that each is a pipeline default. Pipeline default environment variables are not editable from the node properties tab. Individual nodes can override a pipeline default value for a given variable by re-defining the variable/value pair in its own node properties. 
    - Example: `TOKEN=value`
 
    **Output Files**
