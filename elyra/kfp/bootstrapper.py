@@ -33,7 +33,11 @@ from urllib.parse import urlparse
 from urllib.parse import urlunparse
 
 from packaging import version
+import subprocess
+from elyra.kfp.monitoring.log_record import LogRecord
 
+from elyra.kfp.monitoring.pipeline_monitor import PipelineMonitor
+from elyra.kfp.monitoring.sinks.sink_types import SinkType
 
 # Inputs and Outputs separator character.  If updated,
 # same-named variable in _notebook_op.py must be updated!
@@ -45,6 +49,7 @@ F = TypeVar('F', bound='FileOpBase')
 
 logger = logging.getLogger('elyra')
 enable_pipeline_info = os.getenv('ELYRA_ENABLE_PIPELINE_INFO', 'true').lower() == 'true'
+enable_monitoring = os.getenv('ELYRA_ENABLE_MONITORING', 'true').lower() == 'true'
 pipeline_name = None  # global used in formatted logging
 operation_name = None  # global used in formatted logging
 
@@ -313,6 +318,20 @@ class FileOpBase(ABC):
         duration = time.time() - t0
         OpUtil.log_operation_info(f"downloaded {file_to_get} from bucket: {self.cos_bucket}, object: {object_to_get}",
                                   duration)
+    
+    def execute_monitoring(self, step_name, duration, t0, t1, failed=False) -> None:
+        mon = PipelineMonitor(sink_type=SinkType.BIGQUERY)
+
+        status = LogRecord(
+            pipeline_name=pipeline_name[:-11],
+            pipeline_id=os.environ['KFP_EXPERIMENT'],
+            step_name=step_name,
+            status="done" if not failed else "failed",
+            start_time_epoch=t0,
+            end_time_epoch=t1,
+            duration=duration)
+
+        mon.send_monitoring_log(status)
 
     def put_file_to_object_storage(self, file_to_upload: str, object_name: Optional[str] = None) -> None:
         """Utility function to put files into an object storage

@@ -105,6 +105,13 @@ setup_args = dict(
         # Airflow runtime dependencies
         'pygithub',
         'black',
+        # Monitoring dependencies
+        'google-cloud-bigquery[pandas]==1.18.1',
+        'google-cloud-bigquery-storage==0.7.0',
+        'fastparquet==0.7.0',
+        'kubernetes<19,>=8.0.0',
+        'google-auth==1.35.0',
+        'pandas-gbq==0.15',
     ],
     extras_require={
         'test': ['elyra-examples-airflow-catalog', 'elyra-examples-kfp-catalog', 'pytest', 'pytest-tornasync'],
