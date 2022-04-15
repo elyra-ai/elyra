@@ -47,7 +47,14 @@ MIMETYPE_MAP = {".yaml": "text/x-yaml", ".py": "text/x-python", None: "text/plai
 
 def get_runtime_processor_type(runtime_type: str, log: Logger, request_path: str) -> Optional[RuntimeProcessorType]:
     """
-    TODO
+    Gets the runtime processor type for the runtime type given in the request path.
+
+    :param runtime_type: can be the shorthand runtime ('kfp', 'airflow') or the
+        runtime type name ('KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') (preferred).
+    :param log: used to log the appropriate warning for shorthand-name requests
+    :param request_path: full request path of the endpoint
+
+    :returns: the RuntimeProcessorType for the given runtime_type, or None
     """
     processor_manager = PipelineProcessorManager.instance()
     if processor_manager.is_supported_runtime(runtime_type):
