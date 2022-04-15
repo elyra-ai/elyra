@@ -194,5 +194,10 @@ async def test_get_pipeline_properties_definition(jp_fetch):
         assert response.code == 200
         payload = json.loads(response.body.decode())
         # Spot check
-        assert payload['parameters'] == [{"id": "name"}, {"id": "runtime"}, { "id": "description"},
-                                         {"id": "elyra_runtime_image"}, {"id": "elyra_env_vars"}]
+        assert payload["parameters"] == [
+            {"id": "name"},
+            {"id": "runtime"},
+            {"id": "description"},
+            {"id": "elyra_runtime_image"},
+            {"id": "elyra_env_vars"},
+        ]
