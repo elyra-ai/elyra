@@ -447,7 +447,7 @@ class PipelineDefinition(object):
         For any default pipeline properties set (e.g. runtime image, volume), propagate
         the values to any nodes that do not set their own value for that property.
         """
-        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS_NAME, {})
+        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
         for pipeline_default_prop, pipeline_default_value in pipeline_default_properties.items():
             if not pipeline_default_value:
                 continue
@@ -563,5 +563,5 @@ class PipelineDefinition(object):
         :param name: the name of the pipeline default property
         :return:
         """
-        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS_NAME, {})
+        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
         return pipeline_default_properties.get(name)

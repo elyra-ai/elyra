@@ -99,7 +99,6 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
                 (f"/{self.name}/pipeline/components/cache", ComponentCacheHandler),
                 (f"/{self.name}/pipeline/components/cache/{catalog_regex}", ComponentCacheCatalogHandler),
                 (f"/{self.name}/pipeline/components/{processor_regex}", PipelineComponentHandler),
-                (f"/{self.name}/pipeline/components/{processor_regex}/properties", PipelinePropertiesHandler),
                 (
                     f"/{self.name}/pipeline/components/{processor_regex}/{component_regex}",
                     PipelineComponentPropertiesHandler,
@@ -109,6 +108,7 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
                     PipelineComponentPropertiesHandler,
                 ),
                 (f"/{self.name}/pipeline/export", PipelineExportHandler),
+                (f"/{self.name}/pipeline/{processor_regex}/properties", PipelinePropertiesHandler),
                 (f"/{self.name}/pipeline/runtimes/types", PipelineRuntimeTypesHandler),
                 (f"/{self.name}/pipeline/schedule", PipelineSchedulerHandler),
                 (f"/{self.name}/pipeline/validate", PipelineValidationHandler),

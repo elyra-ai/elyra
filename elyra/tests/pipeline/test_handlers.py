@@ -190,7 +190,7 @@ async def test_get_pipeline_properties_definition(jp_fetch):
     runtime_list = ["kfp", "airflow", "local"]
 
     for runtime in runtime_list:
-        response = await jp_fetch("elyra", "pipeline", "components", runtime, "properties")
+        response = await jp_fetch("elyra", "pipeline", runtime, "properties")
         assert response.code == 200
         payload = json.loads(response.body.decode())
         # Spot check

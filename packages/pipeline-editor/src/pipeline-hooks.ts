@@ -169,7 +169,7 @@ export const componentFetcher = async (type: string): Promise<any> => {
 
   const pipelinePropertiesPromise = RequestHandler.makeGetRequest<
     IComponentPropertiesResponse
-  >(`elyra/pipeline/components/${type}/properties`);
+  >(`elyra/pipeline/${type}/properties`);
 
   const typesPromise = PipelineService.getRuntimeTypes();
 

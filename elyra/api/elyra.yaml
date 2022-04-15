@@ -418,11 +418,11 @@ paths:
         400:
           description: Invalid runtime processor or component ID.
 
- /elyra/pipeline/components/{processor}/properties:
+ /elyra/pipeline/{processor}/properties:
     parameters:
       - name: processor
         in: path
-        description: The name of the runtime processor.  Will match the runtime schema name (e.g., "kfp", "airflow", etc.).
+        description: The name of the runtime processor.  Will match the RuntimeType string form (e.g., "KUBEFLOW_PIPELINES", "AIRFLOW", etc.).
         required: true
         schema:
           type: string
