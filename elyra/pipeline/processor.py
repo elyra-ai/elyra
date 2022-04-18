@@ -362,13 +362,12 @@ class RuntimePipelineProcessor(PipelineProcessor):
         archive_artifact_name = self._get_dependency_archive_name(operation)
         archive_source_dir = self._get_dependency_source_dir(operation)
 
-        filename = os.path.basename(operation.filename)
-        dependencies = operation.dependencies
+        dependencies = [os.path.basename(operation.filename)]
+        dependencies.extend(operation.dependencies)
 
         archive_artifact = create_temp_archive(
             archive_name=archive_artifact_name,
             source_dir=archive_source_dir,
-            source_file=filename,
             filenames=dependencies,
             recursive=operation.include_subdirectories,
             require_complete=True,
