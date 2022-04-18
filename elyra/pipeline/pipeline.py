@@ -364,17 +364,17 @@ class Pipeline(object):
         runtime_config: str,
         source: Optional[str] = None,
         description: Optional[str] = None,
+        pipeline_parameters: Optional[Dict[str, Any]] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
-                   e.g. 123e4567-e89b-12d3-a456-426614174000
-        :param name: Pipeline name
-                     e.g. test-pipeline-123456
-        :param runtime: Type of runtime we want to use to execute our pipeline
-                        e.g. kfp OR airflow
+            e.g. 123e4567-e89b-12d3-a456-426614174000
+        :param name: Pipeline name, e.g. test-pipeline-123456
+        :param runtime: Type of runtime we want to use to execute our pipeline, e.g. kfp OR airflow
         :param runtime_config: Runtime configuration that should be used to submit the pipeline to execution
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
-        :description: Pipeline description
+        :param description: Pipeline description
+        :param pipeline_parameters: Key/value pairs representing the parameters of this pipeline
         """
 
         if not name:
@@ -390,6 +390,7 @@ class Pipeline(object):
         self._source = source
         self._runtime = runtime
         self._runtime_config = runtime_config
+        self._pipeline_parameters = pipeline_parameters or {}
         self._operations = {}
 
     @property
