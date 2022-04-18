@@ -146,7 +146,7 @@ package-ui: build-dependencies yarn-install lint-ui build-ui
 
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
-        $(PYTHON_PIP) freeze
+	$(PYTHON_PIP) freeze
 
 install-server-package:
 	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
