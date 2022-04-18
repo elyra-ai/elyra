@@ -94,6 +94,7 @@ clean: purge uninstall ## Make a clean source tree and uninstall extensions
 
 lint-dependencies:
 	@$(PYTHON_PIP) install -q -r lint_requirements.txt
+	$(PYTHON_PIP) freeze
 
 lint-server: lint-dependencies
 	flake8 elyra
@@ -145,6 +146,7 @@ package-ui: build-dependencies yarn-install lint-ui build-ui
 
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
+        $(PYTHON_PIP) freeze
 
 install-server-package:
 	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
