@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from unittest import mock
-
 import pytest
 
 from elyra.pipeline import pipeline_constants
@@ -25,8 +23,7 @@ from elyra.tests.pipeline.util import _read_pipeline_resource
 @pytest.fixture
 def mock_pipeline_property_propagation(monkeypatch):
     # Mock propagate_pipeline_default_properties to skip propagation
-    mocked_func = mock.Mock(return_value=None)
-    monkeypatch.setattr(PipelineDefinition, "propagate_pipeline_default_properties", mocked_func)
+    monkeypatch.setattr(PipelineDefinition, "propagate_pipeline_default_properties", lambda x: True)
 
 
 def test_valid_pipeline():
