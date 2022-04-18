@@ -470,10 +470,13 @@ class PipelineDefinition(object):
         envs = {}
         for nv in env_list:
             if nv:
-                nv_pair = nv.split("=", 1)
-                if len(nv_pair) == 2 and nv_pair[0].strip():
-                    if len(nv_pair[1]) > 0:
-                        envs[nv_pair[0]] = nv_pair[1]
+                if "=" not in nv:
+                    raise ValueError(f"Environmental variable {nv} does not contain an '=' assignment operator.")
+                else:
+                    nv_pair = nv.split("=", 1)
+                    if len(nv_pair) == 2 and nv_pair[0].strip():
+                        if len(nv_pair[1]) > 0:
+                            envs[nv_pair[0]] = nv_pair[1]
         return envs
 
     def env_dict_to_list(self, env_dict: Dict) -> List[str]:
