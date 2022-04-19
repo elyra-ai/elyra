@@ -118,7 +118,7 @@ def create_temp_archive(archive_name, source_dir, filenames=None, recursive=Fals
     with tarfile.open(archive, "w:gz", dereference=True) as tar:
         tar.add(source_dir, arcname="", filter=tar_filter)
 
-    # Get the list of dependencies by discarding the first item os filenames, which is always the source file.
+    # Get the list of dependencies by discarding the first item of filenames, which is always the source file.
     dependencies_set = set([] if not filenames else filenames[1:])
     wildcard_expression_list = [f"{WILDCARDS[0]}.py", f"{WILDCARDS[0]}.r"]  # Supported script file extensions.
     wildcard_expression = len(dependencies_set) == 1 and next(iter(dependencies_set)) in wildcard_expression_list
