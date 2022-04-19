@@ -40,6 +40,9 @@ REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 UPGRADE_STRATEGY?=only-if-needed
 
+# Black CMD for code formatting
+BLACK_CMD:=$(PYTHON) -m black --check --diff --color .
+
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -98,11 +101,12 @@ lint-dependencies:
 	@$(PYTHON_PIP) install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
-	flake8 elyra
-	black --check --diff --color . || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
+	$(PYTHON) -m flake8 elyra
+	@echo $(BLACK_CMD)
+	@$(BLACK_CMD) || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
 
 black-format: # Apply black formatter to Python source code
-	black .
+	$(PYTHON) -m black .
 
 prettier-check-ui:
 	yarn prettier:check
@@ -148,7 +152,10 @@ package-ui: build-dependencies yarn-install lint-ui build-ui
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
-install-server-package:
+uninstall-server-package:
+	@$(PYTHON_PIP) uninstall elyra -y
+
+install-server-package: uninstall-server-package
 	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
