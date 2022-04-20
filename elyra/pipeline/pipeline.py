@@ -420,6 +420,13 @@ class Pipeline(object):
         return self._runtime_config
 
     @property
+    def pipeline_parameters(self) -> Dict[str, Any]:
+        """
+        The dictionary of global parameters associated with each node of the pipeline
+        """
+        return self._pipeline_parameters
+
+    @property
     def operations(self) -> Dict[str, Operation]:
         return self._operations
 
