@@ -20,6 +20,9 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline import pipeline_constants
+from elyra.pipeline.pipeline import Operation
+
 
 class AppDataBase(object):  # ABC
     """
@@ -288,7 +291,10 @@ class PipelineDefinition(object):
     _validation_issues: list = None
 
     def __init__(
-        self, pipeline_path: Optional[str] = None, pipeline_definition: Optional[Dict] = None, validate: bool = False
+        self,
+        pipeline_path: Optional[str] = None,
+        pipeline_definition: Optional[Dict] = None,
+        validate: bool = False,
     ):
         """
         The constructor enables either passing a pipeline path or the content of the pipeline definition.
@@ -319,6 +325,8 @@ class PipelineDefinition(object):
 
         if validate:
             self.validate()
+
+        self.propagate_pipeline_default_properties()
 
     @property
     def id(self) -> str:
@@ -432,6 +440,49 @@ class PipelineDefinition(object):
 
         return validation_issues
 
+    def propagate_pipeline_default_properties(self):
+        """
+        For any default pipeline properties set (e.g. runtime image, volume), propagate
+        the values to any nodes that do not set their own value for that property.
+        """
+        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
+        for pipeline_default_prop, pipeline_default_value in pipeline_default_properties.items():
+            if not pipeline_default_value:
+                continue
+
+            for pipeline in self.pipelines:
+                for node in pipeline.nodes:
+                    if Operation.is_generic_operation(node.op):
+                        node_value = node.get_component_parameter(pipeline_default_prop)
+                        if not node_value:
+                            node.set_component_parameter(pipeline_default_prop, pipeline_default_value)
+                        else:
+                            if pipeline_default_prop == pipeline_constants.ENV_VARIABLES:
+                                # Transform both into dicts
+                                pipeline_default_env_dict = self.envs_to_dict(env_list=pipeline_default_value)
+                                node_env_dict = self.envs_to_dict(env_list=node_value)
+                                merged_env_list = self.env_dict_to_list({**pipeline_default_env_dict, **node_env_dict})
+                                node.set_component_parameter(pipeline_default_prop, merged_env_list)
+
+    def envs_to_dict(self, env_list: List) -> Dict[str, str]:
+        envs = {}
+        for nv in env_list:
+            if nv:
+                if "=" not in nv:
+                    raise ValueError(f"Environmental variable {nv} does not contain an '=' assignment operator.")
+                else:
+                    nv_pair = nv.split("=", 1)
+                    if len(nv_pair) == 2 and nv_pair[0].strip():
+                        if len(nv_pair[1]) > 0:
+                            envs[nv_pair[0]] = nv_pair[1]
+        return envs
+
+    def env_dict_to_list(self, env_dict: Dict) -> List[str]:
+        envs = []
+        for env, env_value in env_dict.items():
+            envs.append(f"{env}={env_value}")
+        return envs
+
     def is_valid(self) -> bool:
         """
         Represents whether or not the pipeline structure is valid
@@ -506,3 +557,12 @@ class PipelineDefinition(object):
                 if node.type == "super_node":
                     supernode_list.append(node)
         return supernode_list
+
+    def get_pipeline_default_property(self, name: str) -> Any:
+        """
+        Returns the value assigned to the specified pipeline default property
+        :param name: the name of the pipeline default property
+        :return:
+        """
+        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
+        return pipeline_default_properties.get(name)
