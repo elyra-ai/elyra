@@ -31,12 +31,17 @@ PYTHON_PIP=$(PYTHON) -m pip
 
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
+ELYRA_IMAGE_LATEST=elyra/elyra:latest
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
+KF_NOTEBOOK_IMAGE_LATEST=elyra/kf-notebook:latest
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 UPGRADE_STRATEGY?=only-if-needed
+
+# Black CMD for code formatting
+BLACK_CMD:=$(PYTHON) -m black --check --diff --color .
 
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -96,11 +101,12 @@ lint-dependencies:
 	@$(PYTHON_PIP) install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
-	flake8 elyra
-	black --check --diff --color . || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
+	$(PYTHON) -m flake8 elyra
+	@echo $(BLACK_CMD)
+	@$(BLACK_CMD) || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
 
 black-format: # Apply black formatter to Python source code
-	black .
+	$(PYTHON) -m black .
 
 prettier-check-ui:
 	yarn prettier:check
@@ -146,8 +152,11 @@ package-ui: build-dependencies yarn-install lint-ui build-ui
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
-install-server-package:
-	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
+uninstall-server-package:
+	@$(PYTHON_PIP) uninstall elyra -y
+
+install-server-package: uninstall-server-package
+	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
@@ -233,6 +242,13 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
+	# If we're building a release from master, tag latest and push
+	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "master" ]; then \
+		docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
+		docker push docker.io/$(ELYRA_IMAGE_LATEST); \
+		docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
+		docker push quay.io/$(ELYRA_IMAGE_LATEST); \
+	fi
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
@@ -259,6 +275,13 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
+	# If we're building a release from master, tag latest and push
+	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "master" ]; then \
+		docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+	fi
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	docker images $(ELYRA_IMAGE)
