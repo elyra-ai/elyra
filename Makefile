@@ -29,6 +29,7 @@ SHELL:=/bin/bash
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
 
+ELYRA_VERSION:=$$(python3 -c "import elyra._version; print(elyra._version.__version__)")
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
@@ -215,21 +216,38 @@ docs: docs-dependencies ## Build docs
 
 ## Docker targets
 
+elyra-image-dev:
+	@mkdir -p build/dev/docker
+	cp etc/docker/elyra/Dockerfile.dev build/dev/docker/Dockerfile
+	cp etc/docker/elyra/start-elyra.sh build/dev/docker/start-elyra.sh
+	cp etc/docker/elyra/requirements.txt build/dev/docker/requirements.txt
+	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/dev/docker/
+	docker buildx build \
+        --progress=plain \
+        --output=type=docker \
+		--tag docker.io/$(ELYRA_IMAGE) \
+		--tag quay.io/$(ELYRA_IMAGE) \
+		--build-arg TAG=$(ELYRA_VERSION) \
+		build/dev/docker/;
+
+kf-notebook-image-dev: # Build elyra dev image for use with Kubeflow Notebook Server
+	@mkdir -p build/dev/docker-kubeflow
+	cp etc/docker/kubeflow/Dockerfile.dev build/dev/docker-kubeflow/Dockerfile
+	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/dev/docker-kubeflow/
+	docker buildx build \
+        --progress=plain \
+        --output=type=docker \
+		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
+		--tag quay.io/$(KF_NOTEBOOK_IMAGE) \
+		--build-arg TAG=$(ELYRA_VERSION) \
+		build/dev/docker-kubeflow;
+
 elyra-image: # Build Elyra stand-alone container image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
 	@mkdir -p build/docker/elyra
-	if [ "$(TAG)" == "dev" ]; then \
-		cp etc/docker/elyra/Dockerfile.dev build/docker/Dockerfile; \
-		git -C ./ ls-files --exclude-standard -oi --directory > .git/ignores.tmp; \
-		rsync -ah --progress --delete --delete-excluded ./ build/docker/elyra/ \
-			 --exclude ".git" \
-			 --exclude ".github" \
-			 --exclude-from ".git/ignores.tmp"; \
-		rm -f .git/ignores.tmp; \
-	fi
 	docker buildx build \
         --progress=plain \
         --output=type=docker \
@@ -253,16 +271,6 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
 	cp etc/docker/kubeflow/Dockerfile build/docker-kubeflow/Dockerfile
-	@mkdir -p build/docker-kubeflow/elyra
-	if [ "$(TAG)" == "dev" ]; then \
-		cp etc/docker/kubeflow/Dockerfile.dev build/docker-kubeflow/Dockerfile; \
-		git -C ./ ls-files --exclude-standard -oi --directory > .git/ignores.tmp; \
-		rsync -ah --progress --delete --delete-excluded ./ build/docker-kubeflow/elyra/ \
-			 --exclude ".git" \
-			 --exclude ".github" \
-			 --exclude-from ".git/ignores.tmp"; \
-		rm -f .git/ignores.tmp; \
-	fi
 	docker buildx build \
         --progress=plain \
         --output=type=docker \
@@ -282,6 +290,8 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 		docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 	fi
+
+container-images-dev: package-ui build-server elyra-image-dev kf-notebook-image-dev
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	docker images $(ELYRA_IMAGE)
