@@ -170,7 +170,7 @@ class Pipeline(AppDataBase):
         and runtime) or the pipeline defaults dictionary
         """
         all_properties = self._node["app_data"].get("properties", {})
-        excluded_properties = (pipeline_constants.PIPELINE_META_PROPERTIES, pipeline_constants.PIPELINE_DEFAULTS)
+        excluded_properties = pipeline_constants.PIPELINE_META_PROPERTIES + [pipeline_constants.PIPELINE_DEFAULTS]
 
         pipeline_parameters = {}
         for property_name, value in all_properties.items():
