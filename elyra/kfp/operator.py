@@ -26,6 +26,7 @@ from kubernetes.client.models import V1EmptyDirVolumeSource
 from kubernetes.client.models import V1EnvVar
 from kubernetes.client.models import V1EnvVarSource
 from kubernetes.client.models import V1ObjectFieldSelector
+from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1Volume
 from kubernetes.client.models import V1VolumeMount
 
@@ -80,6 +81,7 @@ class ExecuteFileOp(ContainerOp):
         mem_request: Optional[str] = None,
         gpu_limit: Optional[str] = None,
         workflow_engine: Optional[str] = "argo",
+        volume_mounts: Optional[Dict[str, str]] = None,
         **kwargs,
     ):
         """Create a new instance of ContainerOp.
@@ -103,6 +105,7 @@ class ExecuteFileOp(ContainerOp):
           mem_request: memory requested for the operation (in Gi)
           gpu_limit: maximum number of GPUs allowed for the operation
           workflow_engine: Kubeflow workflow engine, defaults to 'argo'
+          volume_mounts: data volumes to be mounted
           kwargs: additional key value pairs to pass e.g. name, image, sidecars & is_exit_handler.
                   See Kubeflow pipelines ContainerOp definition for more parameters or how to use
                   https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.ContainerOp
@@ -129,6 +132,7 @@ class ExecuteFileOp(ContainerOp):
         self.cpu_request = cpu_request
         self.mem_request = mem_request
         self.gpu_limit = gpu_limit
+        self.volume_mounts = volume_mounts  # optional data volumes to be mounted to the pod
 
         argument_list = []
 
@@ -217,6 +221,21 @@ class ExecuteFileOp(ContainerOp):
             kwargs["arguments"] = "".join(argument_list)
 
         super().__init__(**kwargs)
+
+        # add user-specified volume mounts: the referenced PVCs must exist
+        # or this generic operation will fail
+        if self.volume_mounts:
+            unique_pvcs = []
+            for mount_path, pvc_name in self.volume_mounts.items():
+                if pvc_name not in unique_pvcs:
+                    self.add_volume(
+                        V1Volume(
+                            name=pvc_name,
+                            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name),
+                        )
+                    )
+                    unique_pvcs.append(pvc_name)
+                self.container.add_volume_mount(V1VolumeMount(mount_path=mount_path, name=pvc_name))
 
         # We must deal with the envs after the superclass initialization since these amend the
         # container attribute that isn't available until now.

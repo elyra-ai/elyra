@@ -17,3 +17,4 @@
 PIPELINE_DEFAULTS = "pipeline_defaults"
 RUNTIME_IMAGE = "runtime_image"
 ENV_VARIABLES = "env_vars"
+MOUNTED_VOLUMES = "mounted_volumes"

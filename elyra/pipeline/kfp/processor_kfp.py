@@ -45,10 +45,12 @@ from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_absolute_path
 
 
@@ -409,12 +411,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             if ex.__cause__:
                 raise RuntimeError(str(ex)) from ex
             raise RuntimeError(
-                f"Error pre-processing pipeline {pipeline_name} for export at {absolute_pipeline_export_path}",
+                f"Error pre-processing pipeline '{pipeline_name}' for export to '{absolute_pipeline_export_path}'",
                 str(ex),
             ) from ex
 
         self.log_pipeline_info(
-            pipeline_name, f"pipeline exported: {pipeline_export_path}", duration=(time.time() - t0_all)
+            pipeline_name, f"pipeline exported to '{pipeline_export_path}'", duration=(time.time() - t0_all)
         )
 
         return pipeline_export_path  # Return the input value, not its absolute form
@@ -450,7 +452,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         self.log_pipeline_info(
             pipeline_name,
-            f"processing pipeline dependencies to: {cos_endpoint} " f"bucket: {cos_bucket} folder: {cos_directory}",
+            f"processing pipeline dependencies to: {cos_endpoint} bucket: {cos_bucket} folder: {cos_directory}",
         )
         t0_all = time.time()
 
@@ -495,7 +497,32 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug(f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}")
+                self.log.debug(
+                    f"Creating pipeline component archive '{operation_artifact_archive}' for operation '{operation}'"
+                )
+
+                volume_mounts = operation.component_params.get(MOUNTED_VOLUMES)
+                if operation.component_params.get(MOUNTED_VOLUMES):
+                    volume_mounts = {}
+                    for entry in operation.component_params[MOUNTED_VOLUMES]:
+                        # TODO: Replace hack (input formatted as "<mount_point>=<pvc_name>") once the
+                        # pipeline object makes the parameter available as a dictionary
+                        s = entry.split("=")
+                        # make sure the input is valid
+                        if len(s) != 2:
+                            self.log.warning(f"Ignoring invalid volume mount entry '{entry}': a PVC name is required.")
+                            continue
+                        s[0] = f"/{s[0].strip().strip('/')}"  # result should be formatted as "/mount/path"
+                        s[1] = s[1].strip()
+                        # ensure the PVC name is syntactically a valid Kubernetes resource name
+                        if not is_valid_kubernetes_resource_name(s[1]):
+                            self.log.warning(
+                                f"Ignoring invalid volume mount entry '{entry}': the PVC name '{s[1]}'"
+                                "is not a valid Kubernetes resource name."
+                            )
+                            continue
+                        volume_mounts[s[0]] = s[1]
+                        # end hack
 
                 target_ops[operation.id] = ExecuteFileOp(
                     name=sanitized_operation_name,
@@ -521,6 +548,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
                         "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
                     },
+                    volume_mounts=volume_mounts,
                 )
 
                 if operation.doc:
@@ -539,7 +567,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 self.log_pipeline_info(
                     pipeline_name,
-                    f"processing operation dependencies for id: {operation.id}",
+                    f"processing operation dependencies for id '{operation.id}'",
                     operation_name=operation.name,
                 )
 
