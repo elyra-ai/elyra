@@ -234,11 +234,11 @@ elyra-metadata import component-catalogs \
 	--directory="/tmp/foo"
 ```
 
-The above example will import all valid component catalogs in the "/tmp/foo/component-catalogs" directory (files present in any sub-directories will be ignored).
+The above example will import all valid component catalogs in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
 
 Note that you must specify the `--directory` option. 
 
-By default, metadata will not be imported if a component catalog instance with the same name already exists. The `--replace` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+By default, metadata will not be imported if a component catalog instance with the same name already exists. The `--overwrite` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
 
 #### Removing a component catalog entry
 

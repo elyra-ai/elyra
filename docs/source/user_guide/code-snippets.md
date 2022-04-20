@@ -167,11 +167,11 @@ elyra-metadata import code-snippets \
 	--directory="/tmp/foo"
 ```
 
-The above example will import all valid code snippets in the "/tmp/foo/code-snippets" directory (files present in any sub-directories will be ignored).
+The above example will import all valid code snippets in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
 
 Note that you must specify the `--directory` option. 
 
-By default, metadata will not be imported if a code snippet instance with the same name already exists. The `--replace` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+By default, metadata will not be imported if a code snippet instance with the same name already exists. The `--overwrite` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
 
 #### Deleting a code snippet
 

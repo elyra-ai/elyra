@@ -769,16 +769,22 @@ class SchemaspaceExport(SchemaspaceBase):
 class SchemaspaceImport(SchemaspaceBase):
     """Handles the 'import' subcommand functionality for a specific schemaspace."""
 
-    directory_option = CliOption("--directory", name='directory',
-                                 description='The local file system path from where the metadata will be imported',
-                                 required=True)
+    directory_option = CliOption(
+        "--directory",
+        name="directory",
+        description="The local file system path from where the metadata will be imported",
+        required=True,
+    )
 
-    replace_flag = Flag("--replace", name='replace',
-                        description='Overwrite existing metadata instance with the same name',
-                        default_value=False)
+    overwrite_flag = Flag(
+        "--overwrite",
+        name="overwrite",
+        description="Overwrite existing metadata instance with the same name",
+        default_value=False,
+    )
 
     # 'Import' flags
-    options: List[Option] = [directory_option, replace_flag]
+    options: List[Option] = [directory_option, overwrite_flag]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -787,12 +793,10 @@ class SchemaspaceImport(SchemaspaceBase):
     def start(self):
         super().start()  # process options
 
-        directory = self.directory_option.value
-
-        src_directory = os.path.join(directory, self.schemaspace)
+        src_directory = self.directory_option.value
 
         try:
-            json_files = [f for f in os.listdir(src_directory) if f.endswith('.json')]
+            json_files = [f for f in os.listdir(src_directory) if f.endswith(".json")]
         except OSError as e:
             print(f"Unable to reach the '{src_directory}' directory: {e.strerror}: '{e.filename}'")
             self.exit(1)
@@ -804,6 +808,7 @@ class SchemaspaceImport(SchemaspaceBase):
         instance_count_imported = 0
         instance_count_not_imported = 0
         metadata_file = None
+        non_imported_files = []
 
         for file in json_files:
             filepath = os.path.join(src_directory, file)
@@ -818,31 +823,41 @@ class SchemaspaceImport(SchemaspaceBase):
 
             name = os.path.splitext(file)[0]
             try:
-                schema_name = metadata_file['schema_name']
-                display_name = metadata_file['display_name']
-                metadata = metadata_file['metadata']
+                schema_name = metadata_file["schema_name"]
+                display_name = metadata_file["display_name"]
+                metadata = metadata_file["metadata"]
             except KeyError as e:
                 print(f"Could not find '{e.args[0]}' key in the import file '{filepath}'")
                 instance_count_not_imported += 1
                 continue
 
             new_instance = None
+            updated_instance = None
 
             try:
-                if self.replace_flag.value:  # if replacing, fetch the instance so it can be updated
-                    updated_instance = self.metadata_manager.get(name)
-                    updated_instance.schema_name = schema_name
-                    if display_name:
-                        updated_instance.display_name = display_name
-                    if name:
-                        updated_instance.name = name
-                    updated_instance.metadata.update(metadata)
-                    new_instance = self.metadata_manager.update(name, updated_instance)
-                else:  # create a new instance
-                    instance = Metadata(schema_name=schema_name, name=name,
-                                        display_name=display_name, metadata=metadata)
+                if self.overwrite_flag.value:  # if overwrite flag is true
+                    try:  # try updating the existing instance
+                        updated_instance = self.metadata_manager.get(name)
+                        updated_instance.schema_name = schema_name
+                        if display_name:
+                            updated_instance.display_name = display_name
+                        if name:
+                            updated_instance.name = name
+                        updated_instance.metadata.update(metadata)
+                        new_instance = self.metadata_manager.update(name, updated_instance)
+                    except Exception:  # no existing instance - create new
+                        instance = Metadata(
+                            schema_name=schema_name, name=name, display_name=display_name, metadata=metadata
+                        )
+                        new_instance = self.metadata_manager.create(name, instance)
+                else:
+                    instance = Metadata(
+                        schema_name=schema_name, name=name, display_name=display_name, metadata=metadata
+                    )
                     new_instance = self.metadata_manager.create(name, instance)
-            except Exception:
+            except Exception as e:
+                print(f"Could not import the file '{file}': {str(e)}")
+                non_imported_files.append(file)
                 pass
 
             if new_instance:
@@ -850,10 +865,16 @@ class SchemaspaceImport(SchemaspaceBase):
             else:
                 instance_count_not_imported += 1
 
-        print(f"\nImported {instance_count_imported} " + ("instance" if instance_count_imported == 1 else "instances") +
-              ((f"\n{instance_count_not_imported} " + ("instance" if instance_count_not_imported == 1
-                                                       else "instances") + " could not be imported")
-               if instance_count_not_imported > 0 else ""))
+        print(f"Imported {instance_count_imported} " + ("instance" if instance_count_imported == 1 else "instances"))
+
+        if instance_count_not_imported > 0:
+            print(
+                f"{instance_count_not_imported} "
+                + ("instance" if instance_count_not_imported == 1 else "instances")
+                + " could not be imported"
+            )
+
+            print("The following files could not be imported: " + ", ".join(sorted(non_imported_files)))
 
 
 class SubcommandBase(AppBase):
@@ -993,7 +1014,7 @@ class MetadataApp(AppBase):
         "remove": (Remove, Remove.description.splitlines()[0]),
         "migrate": (Migrate, Migrate.description.splitlines()[0]),
         "export": (Export, Export.description.splitlines()[0]),
-        'import': (Import, Import.description.splitlines()[0])
+        "import": (Import, Import.description.splitlines()[0]),
     }
 
     @classmethod
