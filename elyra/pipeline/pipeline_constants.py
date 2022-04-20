@@ -17,4 +17,4 @@
 PIPELINE_DEFAULTS = "pipeline_defaults"
 RUNTIME_IMAGE = "runtime_image"
 ENV_VARIABLES = "env_vars"
-PIPELINE_META_PROPERTIES = ["name", "description", "runtime", PIPELINE_DEFAULTS]
+PIPELINE_META_PROPERTIES = ["name", "description", "runtime"]

@@ -167,12 +167,14 @@ class Pipeline(AppDataBase):
         Retrieve pipeline parameters, which are defined as all
         key/value pairs in the 'properties' stanza that are not
         either pipeline meta-properties (e.g. name, description,
-        and runtime) or the pipeline_defaults key
+        and runtime) or the pipeline defaults dictionary
         """
+        all_properties = self._node["app_data"].get("properties", {})
+        excluded_properties = (pipeline_constants.PIPELINE_META_PROPERTIES, pipeline_constants.PIPELINE_DEFAULTS)
+
         pipeline_parameters = {}
-        properties = self._node["app_data"].get("properties", {})
-        for property_name, value in properties.items():
-            if property_name not in pipeline_constants.PIPELINE_META_PROPERTIES:
+        for property_name, value in all_properties.items():
+            if property_name not in excluded_properties:
                 pipeline_parameters[property_name] = value
 
         return pipeline_parameters
