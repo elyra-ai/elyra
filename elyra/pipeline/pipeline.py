@@ -240,7 +240,7 @@ class GenericOperation(Operation):
                 dependencies: List of local files/directories needed for the operation to run
                              and packaged into each operation's dependency archive
                 include_subdirectories: Include or Exclude subdirectories when packaging our 'dependencies'
-                env_vars: List of Environmental variables to set in the docker image
+                env_vars: List of Environmental variables to set in the container image
                          e.g. FOO="BAR"
                 inputs: List of files to be consumed by this operation, produced by parent operation(s)
                 outputs: List of files produced by this operation to be included in a child operation(s)
