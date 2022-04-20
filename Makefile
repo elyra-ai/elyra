@@ -21,15 +21,15 @@
 .PHONY: install install-all install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
-.PHONY: elyra-image publish-elyra-image kf-notebook-image publish-kf-notebook-image
-.PHONY: container-images publish-container-images validate-runtime-images
+.PHONY: elyra-image-dev elyra-image publish-elyra-image kf-notebook-image-dev kf-notebook-image publish-kf-notebook-image
+.PHONY: container-images-dev container-images publish-container-images validate-runtime-images
 SHELL:=/bin/bash
 
 # Python execs
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
 
-ELYRA_VERSION:=$$(python3 -c "import elyra._version; print(elyra._version.__version__)")
+ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
