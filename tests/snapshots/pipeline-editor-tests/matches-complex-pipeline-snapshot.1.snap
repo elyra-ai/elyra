@@ -81,6 +81,7 @@ Object {
               "env_vars": Array [],
               "filename": "consumer.ipynb",
               "include_subdirectories": false,
+              "mounted_volumes": Array [],
               "outputs": Array [],
               "runtime_image": "continuumio/anaconda3:2021.11",
             },
