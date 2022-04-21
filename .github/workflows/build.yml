@@ -89,6 +89,8 @@ jobs:
         run: |
           make install-server
           make test-dependencies
+      - name: Version Snapshot
+        run: pip freeze
       - name: Test
         run: make pytest
 

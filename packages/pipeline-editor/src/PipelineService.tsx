@@ -101,7 +101,7 @@ export class PipelineService {
   }
 
   /**
-   * Return a list of configured docker images that are used as runtimes environments
+   * Return a list of configured container images that are used as runtimes environments
    * to run the pipeline nodes.
    */
   static async getRuntimeImages(): Promise<any> {
