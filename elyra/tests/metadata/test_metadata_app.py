@@ -1694,10 +1694,20 @@ def test_import_invalid_metadata_file(script_runner, mock_data_dir):
     )
     assert ret.success is True
     lines = ret.stdout.split("\n")
-    assert len(lines) == 5
-    assert "Imported 0 instances" in lines[1]
-    assert "1 instance could not be imported" in lines[2]
-    assert "The following files could not be imported: invalid.json" in lines[3]
+    assert len(lines) == 8
+    assert "Imported 0 instances" in lines[0]
+    assert "1 instance could not be imported" in lines[1]
+    assert "The following files could not be imported:" in lines[3]
+    assert lines[6].startswith("invalid.json")
+    assert (
+        lines[6]
+        .strip()
+        .endswith(
+            "Validation failed for instance 'invalid' using the metadata-test "
+            + "schema with error: '//localhost:8081/' is not a 'uri'."
+        )
+    )
+
     temp_dir.cleanup()
 
 
@@ -1745,10 +1755,29 @@ def test_import_with_subfolder(script_runner, mock_data_dir):
     )
     assert ret.success is True
     lines = ret.stdout.split("\n")
-    assert len(lines) == 6
-    assert "Imported 1 instance" in lines[2]
-    assert "2 instances could not be imported" in lines[3]
-    assert "The following files could not be imported: invalid.json, invalid2.json" in lines[4]
+    assert len(lines) == 9
+    assert "Imported 1 instance" in lines[0]
+    assert "2 instances could not be imported" in lines[1]
+    assert "The following files could not be imported:" in lines[3]
+    assert lines[6].startswith("invalid.json")
+    assert (
+        lines[6]
+        .strip()
+        .endswith(
+            "Validation failed for instance 'invalid' using the metadata-test "
+            + "schema with error: '//localhost:8081/' is not a 'uri'."
+        )
+    )
+    assert lines[7].startswith("invalid2.json")
+    assert (
+        lines[7]
+        .strip()
+        .endswith(
+            "Validation failed for instance 'invalid2' using the metadata-test "
+            + "schema with error: '//localhost:8081/' is not a 'uri'."
+        )
+    )
+
     temp_dir.cleanup()
 
     # verify contents of imported metadata
@@ -1802,10 +1831,12 @@ def test_import_overwrite_flag(script_runner, mock_data_dir):
     )
     assert ret.success is True
     lines = ret.stdout.split("\n")
-    assert len(lines) == 5
-    assert "Imported 1 instance" in lines[1]
-    assert "1 instance could not be imported" in lines[2]
-    assert "The following files could not be imported: valid.json" in lines[3]
+    assert len(lines) == 8
+    assert "Imported 1 instance" in lines[0]
+    assert "1 instance could not be imported" in lines[1]
+    assert "The following files could not be imported:" in lines[3]
+    assert lines[6].startswith("valid.json")
+    assert lines[6].strip().endswith("An instance named 'valid' already exists in the metadata-tests schemaspace.")
 
     # verify contents of imported metadata
     assert os.path.isdir(os.path.join(mock_data_dir, "metadata", METADATA_TEST_SCHEMASPACE))

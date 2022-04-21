@@ -805,8 +805,6 @@ class SchemaspaceImport(SchemaspaceBase):
             print(f"No instances for import found in the '{src_directory}' directory")
             return
 
-        instance_count_imported = 0
-        instance_count_not_imported = 0
         metadata_file = None
         non_imported_files = []
 
@@ -817,8 +815,7 @@ class SchemaspaceImport(SchemaspaceBase):
                     metadata_file = json.loads(f.read())
                 f.close()
             except OSError as e:
-                print(f"Unable to reach the '{file}' file: {e.strerror}: '{e.filename}'")
-                instance_count_not_imported += 1
+                non_imported_files.append([file, e.strerror])
                 continue
 
             name = os.path.splitext(file)[0]
@@ -827,12 +824,8 @@ class SchemaspaceImport(SchemaspaceBase):
                 display_name = metadata_file["display_name"]
                 metadata = metadata_file["metadata"]
             except KeyError as e:
-                print(f"Could not find '{e.args[0]}' key in the import file '{filepath}'")
-                instance_count_not_imported += 1
+                non_imported_files.append([file, f"Could not find '{e.args[0]}' key in the import file '{filepath}'"])
                 continue
-
-            new_instance = None
-            updated_instance = None
 
             try:
                 if self.overwrite_flag.value:  # if overwrite flag is true
@@ -844,26 +837,23 @@ class SchemaspaceImport(SchemaspaceBase):
                         if name:
                             updated_instance.name = name
                         updated_instance.metadata.update(metadata)
-                        new_instance = self.metadata_manager.update(name, updated_instance)
+                        self.metadata_manager.update(name, updated_instance)
                     except Exception:  # no existing instance - create new
                         instance = Metadata(
                             schema_name=schema_name, name=name, display_name=display_name, metadata=metadata
                         )
-                        new_instance = self.metadata_manager.create(name, instance)
+                        self.metadata_manager.create(name, instance)
                 else:
                     instance = Metadata(
                         schema_name=schema_name, name=name, display_name=display_name, metadata=metadata
                     )
-                    new_instance = self.metadata_manager.create(name, instance)
+                    self.metadata_manager.create(name, instance)
             except Exception as e:
-                print(f"Could not import the file '{file}': {str(e)}")
-                non_imported_files.append(file)
+                non_imported_files.append([file, str(e)])
                 pass
 
-            if new_instance:
-                instance_count_imported += 1
-            else:
-                instance_count_not_imported += 1
+        instance_count_not_imported = len(non_imported_files)
+        instance_count_imported = len(json_files) - instance_count_not_imported
 
         print(f"Imported {instance_count_imported} " + ("instance" if instance_count_imported == 1 else "instances"))
 
@@ -874,7 +864,20 @@ class SchemaspaceImport(SchemaspaceBase):
                 + " could not be imported"
             )
 
-            print("The following files could not be imported: " + ", ".join(sorted(non_imported_files)))
+            non_imported_files.sort(key=lambda x: x[0])
+            print("\nThe following files could not be imported: ")
+
+            # pad to width of longest file and reason
+            max_file_name_len = len("File")
+            max_reason_len = len("Reason")
+            for file in non_imported_files:
+                max_file_name_len = max(len(file[0]), max_file_name_len)
+                max_reason_len = max(len(file[1]), max_reason_len)
+
+            print("%s   %s" % ("File".ljust(max_file_name_len), "Reason".ljust(max_reason_len)))
+            print("%s   %s" % ("----".ljust(max_file_name_len), "------".ljust(max_reason_len)))
+            for file in non_imported_files:
+                print("%s   %s" % (file[0].ljust(max_file_name_len), file[1].ljust(max_reason_len)))
 
 
 class SubcommandBase(AppBase):
