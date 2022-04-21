@@ -26,6 +26,7 @@ Object {
               ],
               "filename": "producer.ipynb",
               "include_subdirectories": false,
+              "mounted_volumes": Array [],
               "outputs": Array [
                 "output-1.csv",
                 "output-2.csv",
@@ -133,6 +134,7 @@ Object {
               "env_vars": Array [],
               "filename": "../scripts/setup.py",
               "include_subdirectories": false,
+              "mounted_volumes": Array [],
               "outputs": Array [],
               "runtime_image": "continuumio/anaconda3:2021.11",
             },
@@ -184,6 +186,7 @@ Object {
               "env_vars": Array [],
               "filename": "create-source-files.py",
               "include_subdirectories": false,
+              "mounted_volumes": Array [],
               "outputs": Array [
                 "input-1.csv",
                 "input-2.csv",
@@ -238,6 +241,7 @@ Object {
               "env_vars": Array [],
               "filename": "producer-script.py",
               "include_subdirectories": false,
+              "mounted_volumes": Array [],
               "outputs": Array [
                 "output-3.csv",
                 "output-4.csv",
