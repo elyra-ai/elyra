@@ -618,10 +618,17 @@ class OpUtil(object):
             help="Directory in Volume to install python libraries into",
             required=False,
         )
+        parser.add_argument(
+            "-n",
+            "--pipeline-name",
+            dest="pipeline-name",
+            help="Pipeline name",
+            required=True,
+        )
         parsed_args = vars(parser.parse_args(args))
 
-        # cos-directory is the pipeline name, set as global
-        pipeline_name = parsed_args.get("cos-directory")
+        # set pipeline name as global
+        pipeline_name = parsed_args.get("pipeline-name")
         # operation/node name is the basename of the non-suffixed filepath, set as global
         operation_name = os.path.basename(os.path.splitext(parsed_args.get("filepath"))[0])
 
