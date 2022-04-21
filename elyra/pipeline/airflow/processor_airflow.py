@@ -99,6 +99,9 @@ be fully qualified (i.e., prefixed with their package names).
         self.log.debug(f"class_package_map = {self.class_import_map}")
 
     def process(self, pipeline: Pipeline) -> None:
+        """
+        Submit the pipeline for execution on Apache Airflow.
+        """
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         # Create an instance id that will be used to store
@@ -137,6 +140,7 @@ be fully qualified (i.e., prefixed with their package names).
                 pipeline_export_format="py",
                 pipeline_export_path=pipeline_export_path,
                 pipeline_name=pipeline.name,
+                pipeline_instance_id=pipeline_instance_id,
             )
 
             self.log.debug(f"Uploading pipeline file '{pipeline_filepath}'")
