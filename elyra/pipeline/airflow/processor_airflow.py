@@ -39,10 +39,13 @@ from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.util.cos import join_paths
 from elyra.util.github import GithubClient
 
 try:
@@ -95,10 +98,12 @@ be fully qualified (i.e., prefixed with their package names).
                 self.class_import_map[parts[1]] = f"from {parts[0]} import {parts[1]}"
         self.log.debug(f"class_package_map = {self.class_import_map}")
 
-    def process(self, pipeline):
+    def process(self, pipeline: Pipeline) -> None:
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
-        pipeline_name = f"{pipeline.name}-{timestamp}"
+        # Create an instance id that will be used to store
+        # the pipelines' dependencies, if applicable
+        pipeline_instance_id = f"{pipeline.name}-{timestamp}"
 
         runtime_configuration = self._get_metadata_configuration(
             schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
@@ -121,20 +126,20 @@ be fully qualified (i.e., prefixed with their package names).
         github_repo = runtime_configuration.metadata.get("github_repo")
         github_branch = runtime_configuration.metadata.get("github_branch")
 
-        self.log_pipeline_info(pipeline_name, "Submitting pipeline")
+        self.log_pipeline_info(pipeline.name, "Submitting pipeline")
         with tempfile.TemporaryDirectory() as temp_dir:
-            pipeline_export_path = os.path.join(temp_dir, f"{pipeline_name}.py")
+            pipeline_export_path = os.path.join(temp_dir, f"{pipeline.name}.py")
 
-            self.log.debug("Creating temp directory %s", temp_dir)
+            self.log.debug(f"Creating temp directory '{temp_dir}'")
 
             pipeline_filepath = self.create_pipeline_file(
                 pipeline=pipeline,
                 pipeline_export_format="py",
                 pipeline_export_path=pipeline_export_path,
-                pipeline_name=pipeline_name,
+                pipeline_name=pipeline.name,
             )
 
-            self.log.debug("Uploading pipeline file: %s", pipeline_filepath)
+            self.log.debug(f"Uploading pipeline file '{pipeline_filepath}'")
 
             try:
                 if git_type == SupportedGitTypes.GITHUB:
@@ -152,7 +157,7 @@ be fully qualified (i.e., prefixed with their package names).
             except BaseException as be:
                 raise RuntimeError(f"Unable to create a connection to {github_api_endpoint}: {str(be)}") from be
 
-            git_client.upload_dag(pipeline_filepath, pipeline_name)
+            git_client.upload_dag(pipeline_filepath, pipeline.name)
 
             self.log.info("Waiting for Airflow Scheduler to process and start the pipeline")
 
@@ -161,40 +166,53 @@ be fully qualified (i.e., prefixed with their package names).
             )
 
             self.log_pipeline_info(
-                pipeline_name, f"pipeline pushed to git: {download_url}", duration=(time.time() - t0_all)
+                pipeline.name, f"pipeline pushed to git: {download_url}", duration=(time.time() - t0_all)
             )
+
+            os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
 
             return AirflowPipelineProcessorResponse(
                 git_url=f"{download_url}",
                 run_url=f"{api_endpoint}",
                 object_storage_url=f"{cos_endpoint}",
-                object_storage_path=f"/{cos_bucket}/{pipeline_name}",
+                object_storage_path=f"/{cos_bucket}/{os_path}",
             )
 
-    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
+    def export(
+        self, pipeline: Pipeline, pipeline_export_format: str, pipeline_export_path: str, overwrite: bool
+    ) -> str:
+        """
+        Export pipeline as Airflow DAG
+        """
         # Verify that the AirflowPipelineProcessor supports the given export format
         self._verify_export_format(pipeline_export_format)
 
         timestamp = datetime.now().strftime("%m%d%H%M%S")
-        pipeline_name = f"{pipeline.name}-{timestamp}"
+        # Create an instance id that will be used to store
+        # the pipelines' dependencies, if applicable
+        pipeline_instance_id = f"{pipeline.name}-{timestamp}"
 
         absolute_pipeline_export_path = get_absolute_path(self.root_dir, pipeline_export_path)
 
         if os.path.exists(absolute_pipeline_export_path) and not overwrite:
-            raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
+            raise ValueError(f"File '{absolute_pipeline_export_path}' already exists.")
 
-        self.log_pipeline_info(pipeline_name, f"exporting pipeline as a .{pipeline_export_format} file")
+        self.log_pipeline_info(pipeline.name, f"exporting pipeline as a .{pipeline_export_format} file")
 
         new_pipeline_file_path = self.create_pipeline_file(
             pipeline=pipeline,
             pipeline_export_format="py",
             pipeline_export_path=absolute_pipeline_export_path,
-            pipeline_name=pipeline_name,
+            pipeline_name=pipeline.name,
+            pipeline_instance_id=pipeline_instance_id,
         )
 
         return new_pipeline_file_path
 
-    def _cc_pipeline(self, pipeline, pipeline_name):
+    def _cc_pipeline(self, pipeline: Pipeline, pipeline_name: str, pipeline_instance_id: str) -> OrderedDict:
+        """
+        Compile the pipeline in preparation for DAG generation
+        """
 
         runtime_configuration = self._get_metadata_configuration(
             schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
@@ -205,16 +223,19 @@ be fully qualified (i.e., prefixed with their package names).
         cos_username = runtime_configuration.metadata.get("cos_username")
         cos_password = runtime_configuration.metadata.get("cos_password")
         cos_secret = runtime_configuration.metadata.get("cos_secret")
-        cos_directory = pipeline_name
         cos_bucket = runtime_configuration.metadata.get("cos_bucket")
 
-        # Create dictionary that maps component Id to its ContainerOp instance
-        target_ops = []
+        pipeline_instance_id = pipeline_instance_id or pipeline_name
+        artifact_object_prefix = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
 
         self.log_pipeline_info(
             pipeline_name,
-            f"processing pipeline dependencies to: {cos_endpoint} " f"bucket: {cos_bucket} folder: {pipeline_name}",
+            f"processing pipeline dependencies for upload to '{cos_endpoint}' "
+            f"bucket '{cos_bucket}' folder '{artifact_object_prefix}'",
         )
+
+        # Create dictionary that maps component Id to its ContainerOp instance
+        target_ops = []
 
         t0_all = time.time()
 
@@ -275,9 +296,10 @@ be fully qualified (i.e., prefixed with their package names).
 
                 bootscript = BootscriptBuilder(
                     filename=operation.filename,
+                    pipeline_name=pipeline_name,
                     cos_endpoint=cos_endpoint,
                     cos_bucket=cos_bucket,
-                    cos_directory=cos_directory,
+                    cos_directory=artifact_object_prefix,
                     cos_dependencies_archive=operation_artifact_archive,
                     inputs=operation.inputs,
                     outputs=operation.outputs,
@@ -306,11 +328,13 @@ be fully qualified (i.e., prefixed with their package names).
 
                 self.log_pipeline_info(
                     pipeline_name,
-                    f"processing operation dependencies for id: {operation.id}",
+                    f"processing operation dependencies for id '{operation.id}'",
                     operation_name=operation.name,
                 )
 
-                self._upload_dependencies_to_object_store(runtime_configuration, pipeline_name, operation)
+                self._upload_dependencies_to_object_store(
+                    runtime_configuration, pipeline_name, operation, prefix=artifact_object_prefix
+                )
 
             else:
                 # Retrieve component from cache
@@ -418,10 +442,10 @@ be fully qualified (i.e., prefixed with their package names).
                 target_op = target_ops.pop(0)
                 if not target_op["parent_operation_ids"]:
                     ordered_target_ops[target_op["id"]] = target_op
-                    self.log.debug("Root Node added : %s", ordered_target_ops[target_op["id"]])
+                    self.log.debug(f"Added root node {ordered_target_ops[target_op['id']]}")
                 elif all(deps in ordered_target_ops.keys() for deps in target_op["parent_operation_ids"]):
                     ordered_target_ops[target_op["id"]] = target_op
-                    self.log.debug("Dependent Node added : %s", ordered_target_ops[target_op["id"]])
+                    self.log.debug(f"Added dependent node {ordered_target_ops[target_op['id']]}")
                 else:
                     target_ops.append(target_op)
 
@@ -429,9 +453,19 @@ be fully qualified (i.e., prefixed with their package names).
 
         return ordered_target_ops
 
-    def create_pipeline_file(self, pipeline, pipeline_export_format, pipeline_export_path, pipeline_name):
+    def create_pipeline_file(
+        self,
+        pipeline: Pipeline,
+        pipeline_export_format: str,
+        pipeline_export_path: str,
+        pipeline_name: str,
+        pipeline_instance_id: str,
+    ) -> str:
+        """
+        Convert the pipeline to an Airflow DAG and store it in pipeline_export_path.
+        """
 
-        self.log.info("Creating pipeline definition as a ." + pipeline_export_format + " file")
+        self.log.info(f"Creating pipeline definition as a .{pipeline_export_format} file")
         if pipeline_export_format == "json":
             with open(pipeline_export_path, "w", encoding="utf-8") as file:
                 json.dump(pipeline_export_path, file, ensure_ascii=False, indent=4)
@@ -444,11 +478,11 @@ be fully qualified (i.e., prefixed with their package names).
 
             template = template_env.get_template("airflow_template.jinja2")
 
-            target_ops = self._cc_pipeline(pipeline, pipeline_name)
+            target_ops = self._cc_pipeline(pipeline, pipeline_name, pipeline_instance_id)
             runtime_configuration = self._get_metadata_configuration(
                 schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
             )
-            user_namespace = runtime_configuration.metadata.get("user_namespace") or "default"
+            user_namespace = runtime_configuration.metadata.get("user_namespace", "default")
             cos_secret = runtime_configuration.metadata.get("cos_secret")
 
             pipeline_description = pipeline.description

@@ -373,7 +373,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Verify that the KfpPipelineProcessor supports the given export format
         self._verify_export_format(pipeline_export_format)
 
-        print(f"export type --> {type(pipeline)}")
         t0_all = time.time()
         timestamp = datetime.now().strftime("%m%d%H%M%S")
         pipeline_name = pipeline.name

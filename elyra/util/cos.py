@@ -175,7 +175,6 @@ def join_paths(path1: str, path2: str) -> str:
     """
     path1 = path1 or ""
     path2 = path2 or ""
-    print(f"-{path1}- -{path2}-")
     # combine paths and ensure the resulting path does not start with "/" char and
     path = f"{path1.rstrip('/')}/{path2}".lstrip("/")
     if len(path) > 0:
