@@ -174,6 +174,8 @@ def join_paths(path1: Optional[str] = "", path2: Optional[str] = "") -> str:
     Joins path1 and path2, returning a valid object storage path string.
     Example: "/p1/p2" + "p3" -> "p1/p2/p3"
     """
+    path1 = path1 or ""
+    path2 = path2 or ""
     # combine paths and ensure the resulting path does not start with "/" char and
     path = f"{path1.rstrip('/')}/{path2}".lstrip("/")
     if len(path) > 0:
