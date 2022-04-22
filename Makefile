@@ -222,7 +222,7 @@ elyra-image: # Build Elyra stand-alone container image
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
 	@mkdir -p build/docker/elyra
-	if [ TAG != "dev" ]; then \
+	if [ "$(TAG)" == "dev" ]; then \
 		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/; \
   	fi
 	docker buildx build \
@@ -249,7 +249,7 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
 	cp etc/docker/kubeflow/* build/docker-kubeflow/
-	if [ TAG != "dev" ]; then \
+	if [ "$(TAG)" == "dev" ]; then \
 		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/; \
   	fi
 	docker buildx build \
