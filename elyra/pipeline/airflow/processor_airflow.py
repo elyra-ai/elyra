@@ -161,7 +161,7 @@ be fully qualified (i.e., prefixed with their package names).
             except BaseException as be:
                 raise RuntimeError(f"Unable to create a connection to {github_api_endpoint}: {str(be)}") from be
 
-            git_client.upload_dag(pipeline_filepath, pipeline.name)
+            git_client.upload_dag(pipeline_filepath, pipeline_instance_id)
 
             self.log.info("Waiting for Airflow Scheduler to process and start the pipeline")
 
@@ -495,7 +495,7 @@ be fully qualified (i.e., prefixed with their package names).
 
             python_output = template.render(
                 operations_list=target_ops,
-                pipeline_name=pipeline_name,
+                pipeline_name=pipeline_instance_id,
                 namespace=user_namespace,
                 cos_secret=cos_secret,
                 kube_config_path=None,
