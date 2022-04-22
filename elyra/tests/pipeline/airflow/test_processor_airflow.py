@@ -96,7 +96,7 @@ def parsed_ordered_dict(monkeypatch, processor, parsed_pipeline, sample_metadata
     mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_image_metadata])
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, z: True)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
@@ -158,7 +158,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
     )
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, z: True)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y, z: parsed_ordered_dict)
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -169,6 +169,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
             pipeline_export_format=export_file_type,
             pipeline_export_path=export_pipeline_output_path,
             pipeline_name=export_pipeline_name,
+            pipeline_instance_id=export_pipeline_name,
         )
 
         assert export_pipeline_output_path == response
@@ -253,7 +254,7 @@ def test_create_file_custom_components(
     )
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, z: True)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y, z: parsed_ordered_dict)
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -613,7 +614,7 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
     )
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, z: True)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
 
     pipeline_def_operation = parsed_pipeline.operations[task_id]
     pipeline_def_operation_parameters = pipeline_def_operation.component_params_as_dict
