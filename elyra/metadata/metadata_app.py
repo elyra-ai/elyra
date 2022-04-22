@@ -22,7 +22,7 @@ from typing import List
 from deprecation import deprecated
 from jsonschema import ValidationError
 
-from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.error import MetadataExistsError, MetadataNotFoundError
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.metadata_app_utils import AppBase
@@ -838,7 +838,7 @@ class SchemaspaceImport(SchemaspaceBase):
                             updated_instance.name = name
                         updated_instance.metadata.update(metadata)
                         self.metadata_manager.update(name, updated_instance)
-                    except Exception:  # no existing instance - create new
+                    except MetadataNotFoundError:  # no existing instance - create new
                         instance = Metadata(
                             schema_name=schema_name, name=name, display_name=display_name, metadata=metadata
                         )
@@ -849,8 +849,10 @@ class SchemaspaceImport(SchemaspaceBase):
                     )
                     self.metadata_manager.create(name, instance)
             except Exception as e:
-                non_imported_files.append([file, str(e)])
-                pass
+                if isinstance(e, MetadataExistsError):
+                    non_imported_files.append([file, f"{str(e)} Use --overwrite to update."])
+                else:
+                    non_imported_files.append([file, str(e)])
 
         instance_count_not_imported = len(non_imported_files)
         instance_count_imported = len(json_files) - instance_count_not_imported

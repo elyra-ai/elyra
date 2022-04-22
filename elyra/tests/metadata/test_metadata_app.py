@@ -1552,12 +1552,6 @@ def test_import_bad_argument(script_runner):
     assert "ERROR: The following arguments were unexpected: ['--bogus-argument']" in ret.stdout
 
 
-def test_import_deprecated_schemaspace(script_runner):
-    ret = script_runner.run("elyra-metadata", "import", "component-registries")
-    assert ret.success is False
-    assert "Subcommand 'component-registries' is invalid." in ret.stdout
-
-
 def test_import_bad_schemaspace(script_runner):
     ret = script_runner.run("elyra-metadata", "import", "bogus-schemaspace")
     assert ret.success is False
@@ -1836,7 +1830,14 @@ def test_import_overwrite_flag(script_runner, mock_data_dir):
     assert "1 instance could not be imported" in lines[1]
     assert "The following files could not be imported:" in lines[3]
     assert lines[6].startswith("valid.json")
-    assert lines[6].strip().endswith("An instance named 'valid' already exists in the metadata-tests schemaspace.")
+    assert (
+        lines[6]
+        .strip()
+        .endswith(
+            "An instance named 'valid' already exists in the metadata-tests "
+            + "schemaspace. Use --overwrite to update."
+        )
+    )
 
     # verify contents of imported metadata
     assert os.path.isdir(os.path.join(mock_data_dir, "metadata", METADATA_TEST_SCHEMASPACE))
