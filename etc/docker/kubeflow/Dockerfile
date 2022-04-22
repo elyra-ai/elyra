@@ -20,13 +20,25 @@
 FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.4
 
 ARG TAG="dev"
+ARG ELYRA_VERSION
+ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
+
+# - Include with KFP Tekton support ('kfp-tekton') and component examples ('kfp-examples')
+ARG ELYRA_EXTRAS=[kfp-tekton,kfp-examples]
+
+# Includes the readme as a token file for COPY that always exists, otherwise production builds fail when whl not present
+COPY $ELYRA_PACKAGE README.md ./
 
 # Install Elyra
-# - with KFP Tekton support ('kfp-tekton')
-# - with component examples ('kfp-examples')
-RUN python -m pip install --quiet --no-cache-dir elyra[kfp-tekton,kfp-examples]=="$TAG" \
-    && rm -rf $HOME/.cache/yarn \
-    && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules
+RUN if [ "$TAG" = "dev" ] ; then \
+    python -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE""$ELYRA_EXTRAS"; \
+    else \
+    python -m pip install --quiet --no-cache-dir elyra"$ELYRA_EXTRAS"=="$TAG" ; fi
+
+# Cleanup
+USER root
+RUN rm $ELYRA_PACKAGE README.md
+USER jovyan
 
 # Install component examples catalog
 #  - this will fail if the 'kfp-examples' pip extra is not installed

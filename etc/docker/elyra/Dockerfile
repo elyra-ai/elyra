@@ -20,15 +20,19 @@
 FROM jupyterhub/k8s-singleuser-sample:1.2.0
 
 ARG TAG="dev"
+ARG ELYRA_VERSION
+ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
 
-COPY requirements.txt .
+COPY $ELYRA_PACKAGE requirements.txt ./
 
-# Install Elyra and custom requirements
-RUN python3 -m pip install --quiet --no-cache-dir elyra[all]=="$TAG" \
- && python3 -m pip install -r requirements.txt \   
- && rm -rf $HOME/.cache/yarn \
- && rm -rf /opt/conda/share/jupyter/lab/staging/node_modules \
- && rm requirements.txt
+# Install Elyra
+RUN if [ "$TAG" = "dev" ] ; then \
+    python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE"[all] && rm $ELYRA_PACKAGE; \
+    else \
+    python3 -m pip install --quiet --no-cache-dir elyra[all]=="$TAG" ; fi
+
+# Install custom requirements
+RUN python3 -m pip install -r requirements.txt && rm requirements.txt
 
 # Install component examples catalogs
 #  - this wail fail if the 'kfp-examples' pip extra is not installed
