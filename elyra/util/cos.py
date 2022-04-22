@@ -15,6 +15,7 @@
 #
 import os
 from pathlib import Path
+from typing import Optional
 from urllib.parse import urlparse
 
 import minio
@@ -156,9 +157,9 @@ class CosClient(LoggingConfigurable):
         :param local_file_path: Path on the local filesystem to which the object data will be written.
         :return:
         """
+        # sanitize object name; S3 does not accept leading /
+        fq_object_name = join_paths(object_name)
         try:
-            # sanitize object name; S3 does not accept leading /
-            fq_object_name = join_paths(object_name)
             self.client.fget_object(bucket_name=self.bucket, object_name=fq_object_name, file_path=local_file_path)
         except BaseException as ex:
             self.log.error(
@@ -168,13 +169,11 @@ class CosClient(LoggingConfigurable):
             raise ex from ex
 
 
-def join_paths(path1: str, path2: str) -> str:
+def join_paths(path1: Optional[str] = "", path2: Optional[str] = "") -> str:
     """
     Joins path1 and path2, returning a valid object storage path string.
     Example: "/p1/p2" + "p3" -> "p1/p2/p3"
     """
-    path1 = path1 or ""
-    path2 = path2 or ""
     # combine paths and ensure the resulting path does not start with "/" char and
     path = f"{path1.rstrip('/')}/{path2}".lstrip("/")
     if len(path) > 0:
