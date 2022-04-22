@@ -176,7 +176,7 @@ Elyra's container image can be built in two ways (production and development):
 
 Development:
 ```bash
-make elyra-image-dev
+make elyra-image
 ```
 By default, the command above will build a container image (development) with the changes that exist in your local branch.
 

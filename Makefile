@@ -21,8 +21,8 @@
 .PHONY: install install-all install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
-.PHONY: elyra-image-dev elyra-image publish-elyra-image kf-notebook-image-dev kf-notebook-image publish-kf-notebook-image
-.PHONY: container-images-dev container-images publish-container-images validate-runtime-images
+.PHONY: elyra-image publish-elyra-image kf-notebook-image publish-kf-notebook-image
+.PHONY: container-images publish-container-images validate-runtime-images
 SHELL:=/bin/bash
 
 # Python execs
@@ -216,44 +216,22 @@ docs: docs-dependencies ## Build docs
 
 ## Docker targets
 
-elyra-image-dev:
-	@mkdir -p build/dev/docker
-	cp etc/docker/elyra/Dockerfile.dev build/dev/docker/Dockerfile
-	cp etc/docker/elyra/start-elyra.sh build/dev/docker/start-elyra.sh
-	cp etc/docker/elyra/requirements.txt build/dev/docker/requirements.txt
-	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/dev/docker/
-	docker buildx build \
-        --progress=plain \
-        --output=type=docker \
-		--tag docker.io/$(ELYRA_IMAGE) \
-		--tag quay.io/$(ELYRA_IMAGE) \
-		--build-arg TAG=$(ELYRA_VERSION) \
-		build/dev/docker/;
-
-kf-notebook-image-dev: # Build elyra dev image for use with Kubeflow Notebook Server
-	@mkdir -p build/dev/docker-kubeflow
-	cp etc/docker/kubeflow/Dockerfile.dev build/dev/docker-kubeflow/Dockerfile
-	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/dev/docker-kubeflow/
-	docker buildx build \
-        --progress=plain \
-        --output=type=docker \
-		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
-		--tag quay.io/$(KF_NOTEBOOK_IMAGE) \
-		--build-arg TAG=$(ELYRA_VERSION) \
-		build/dev/docker-kubeflow;
-
 elyra-image: # Build Elyra stand-alone container image
 	@mkdir -p build/docker
 	cp etc/docker/elyra/Dockerfile build/docker/Dockerfile
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
 	@mkdir -p build/docker/elyra
+	if [ TAG != "dev" ]; then \
+		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/; \
+  	fi
 	docker buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(ELYRA_IMAGE) \
 		--tag quay.io/$(ELYRA_IMAGE) \
 		--build-arg TAG=$(TAG) \
+		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker/;
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
@@ -270,13 +248,17 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
-	cp etc/docker/kubeflow/Dockerfile build/docker-kubeflow/Dockerfile
+	cp etc/docker/kubeflow/* build/docker-kubeflow/
+	if [ TAG != "dev" ]; then \
+		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/; \
+  	fi
 	docker buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
 		--tag quay.io/$(KF_NOTEBOOK_IMAGE) \
 		--build-arg TAG=$(TAG) \
+		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker-kubeflow;
 
 publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server
@@ -290,8 +272,6 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 		docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 	fi
-
-container-images-dev: package-ui build-server elyra-image-dev kf-notebook-image-dev
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	docker images $(ELYRA_IMAGE)
