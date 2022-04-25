@@ -221,7 +221,9 @@ be fully qualified (i.e., prefixed with their package names).
         runtime_configuration = self._get_metadata_configuration(
             schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
         )
-        image_namespace = self._get_metadata_configuration(schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
+        image_namespace = self._get_metadata_configuration(
+            schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID, name=None
+        )
 
         cos_endpoint = runtime_configuration.metadata.get("cos_endpoint")
         cos_username = runtime_configuration.metadata.get("cos_username")
@@ -309,6 +311,8 @@ be fully qualified (i.e., prefixed with their package names).
                     outputs=operation.outputs,
                 )
 
+                volume_mounts = self._get_volume_mounts(operation=operation)
+
                 target_op = {
                     "notebook": operation.name,
                     "id": operation.id,
@@ -323,6 +327,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "operator_source": operation.component_params["filename"],
                     "is_generic_operator": True,
                     "doc": operation.doc,
+                    "volume_mounts": volume_mounts,
                 }
 
                 if runtime_image_pull_secret is not None:

@@ -19,6 +19,7 @@
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
               "env_vars": ["OP_NAME=a"],
               "include_subdirectories": false,
+              "mounted_volumes": ["/mount/test=rwx-test-claim"],
               "outputs": ["d.txt", "e.txt", "f.txt"]
             },
             "ui_data": {
