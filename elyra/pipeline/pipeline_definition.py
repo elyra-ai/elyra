@@ -20,7 +20,11 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from jinja2 import Environment, Undefined
+from jinja2 import PackageLoader
+
 from elyra.pipeline import pipeline_constants
+from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline import Operation
 
 
@@ -279,6 +283,12 @@ class Node(AppDataBase):
 
         self._node["app_data"]["component_parameters"][key] = value
 
+    def get_all_component_parameters(self) -> Dict[str, Any]:
+        """
+        TODO
+        """
+        return self._node["app_data"]["component_parameters"]
+
 
 class PipelineDefinition(object):
     """
@@ -326,6 +336,7 @@ class PipelineDefinition(object):
         if validate:
             self.validate()
 
+        self.coerce_kv_pair_properties()
         self.propagate_pipeline_default_properties()
 
     @property
@@ -382,6 +393,13 @@ class PipelineDefinition(object):
             assert self._primary_pipeline is not None, "No primary pipeline was found"
 
         return self._primary_pipeline
+
+    @property
+    def pipeline_nodes(self) -> List[Node]:
+        """
+        TODO
+        """
+        return [node for pipeline in self.pipelines for node in pipeline.nodes]
 
     def validate(self) -> list:
         """
@@ -440,6 +458,30 @@ class PipelineDefinition(object):
 
         return validation_issues
 
+    def coerce_kv_pair_properties(self):
+        """
+        TODO
+        """
+        all_pipeline_properties = PipelineDefinition.get_canvas_properties_from_template(
+            package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
+        )
+        kv_pair_properties = PipelineDefinition.get_key_value_pair_properties(all_pipeline_properties)
+
+        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
+        for pipeline_default_prop, pipeline_default_value in pipeline_default_properties.items():
+            if pipeline_default_prop in kv_pair_properties:
+                # Coerce plain list to KeyValueList
+                self.set_pipeline_default_property(pipeline_default_prop, KeyValueList(pipeline_default_value))
+
+        for node in self.pipeline_nodes:
+            if not Operation.is_generic_operation(node.op):
+                continue
+
+            for property_name, value in PipelineDefinition.get_generic_node_properties_from_template().items():
+                if value and property_name in kv_pair_properties:
+                    # Coerce plain list to KeyValueList
+                    node.set_component_parameter(property_name, KeyValueList(value))
+
     def propagate_pipeline_default_properties(self):
         """
         For any default pipeline properties set (e.g. runtime image, volume), propagate
@@ -450,38 +492,18 @@ class PipelineDefinition(object):
             if not pipeline_default_value:
                 continue
 
-            for pipeline in self.pipelines:
-                for node in pipeline.nodes:
-                    if Operation.is_generic_operation(node.op):
-                        node_value = node.get_component_parameter(pipeline_default_prop)
-                        if not node_value:
-                            node.set_component_parameter(pipeline_default_prop, pipeline_default_value)
-                        else:
-                            if pipeline_default_prop == pipeline_constants.ENV_VARIABLES:
-                                # Transform both into dicts
-                                pipeline_default_env_dict = self.envs_to_dict(env_list=pipeline_default_value)
-                                node_env_dict = self.envs_to_dict(env_list=node_value)
-                                merged_env_list = self.env_dict_to_list({**pipeline_default_env_dict, **node_env_dict})
-                                node.set_component_parameter(pipeline_default_prop, merged_env_list)
+            for node in self.pipeline_nodes:
+                if not Operation.is_generic_operation(node.op):
+                    continue
 
-    def envs_to_dict(self, env_list: List) -> Dict[str, str]:
-        envs = {}
-        for nv in env_list:
-            if nv:
-                if "=" not in nv:
-                    raise ValueError(f"Environmental variable {nv} does not contain an '=' assignment operator.")
-                else:
-                    nv_pair = nv.split("=", 1)
-                    if len(nv_pair) == 2 and nv_pair[0].strip():
-                        if len(nv_pair[1]) > 0:
-                            envs[nv_pair[0]] = nv_pair[1]
-        return envs
+                node_value = node.get_component_parameter(pipeline_default_prop)
+                if not node_value:
+                    node.set_component_parameter(pipeline_default_prop, pipeline_default_value)
+                    continue
 
-    def env_dict_to_list(self, env_dict: Dict) -> List[str]:
-        envs = []
-        for env, env_value in env_dict.items():
-            envs.append(f"{env}={env_value}")
-        return envs
+                if isinstance(pipeline_default_value, KeyValueList):
+                    merged_list = pipeline_default_value.merge_kv_pairs_with(KeyValueList(node_value))
+                    node.set_component_parameter(pipeline_default_prop, merged_list)
 
     def is_valid(self) -> bool:
         """
@@ -566,3 +588,66 @@ class PipelineDefinition(object):
         """
         pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
         return pipeline_default_properties.get(name)
+
+    def set_pipeline_default_property(self, key: str, value: Any) -> None:
+        """
+        TODO
+        """
+        if not key:
+            raise ValueError("Key is required")
+
+        if not value:
+            raise ValueError("Value is required")
+
+        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
+        pipeline_default_properties[key] = value
+
+    @staticmethod
+    def get_pipeline_properties_from_template() -> Dict[str, Any]:
+        """
+        TODO
+        """
+        loader = PackageLoader("elyra", "templates/pipeline")
+        template_env = Environment(loader=loader)
+
+        template = template_env.get_template("pipeline_properties_template.jinja2")
+        output = template.render()
+        return json.loads(output)
+
+    @staticmethod
+    def get_generic_node_properties_from_template() -> Dict[str, Any]:
+        """
+        TODO
+        """
+        loader = PackageLoader("elyra", "templates/components")
+        template_env = Environment(loader=loader, undefined=SilentUndefined)
+
+        template = template_env.get_template("generic_properties_template.jinja2")
+        output = template.render(component=None)
+        return json.loads(output)
+
+    @staticmethod
+    def get_key_value_pair_properties(canvas_properties) -> List[str]:
+        """
+        Given a dictionary of properties in a canvas-readable form, loop
+        through to find those that should consist of key/value pairs, as
+        given in the 'keyValueEntries' key.
+        """
+        kv_pair_properties = []
+        parameter_info = canvas_properties.get("uihints", {}).get("parameter_info", [])
+        for parameter in parameter_info:
+            if parameter.get("data", {}).get("keyValueEntries", False):
+                parameter_ref = parameter.get("parameter_ref", "")
+                if parameter_ref.startswith("elyra_"):
+                    parameter_ref = parameter_ref.replace("elyra_", "")
+                kv_pair_properties.append(parameter_ref)
+
+        return kv_pair_properties
+
+
+class SilentUndefined(Undefined):
+    """
+    TODO
+    """
+    def _fail_with_undefined_error(self, *args, **kwargs):
+        return None

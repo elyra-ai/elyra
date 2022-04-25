@@ -361,7 +361,7 @@ def test_env_list_to_dict_function():
         component_params=component_parameters,
     )
 
-    assert test_operation.env_vars_as_dict() == env_variables_dict
+    assert test_operation.env_vars.to_dict() == env_variables_dict
 
 
 def test_validate_resource_values():

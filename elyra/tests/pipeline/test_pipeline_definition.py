@@ -16,13 +16,16 @@
 import pytest
 
 from elyra.pipeline import pipeline_constants
+from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
 
 @pytest.fixture
 def mock_pipeline_property_propagation(monkeypatch):
-    # Mock propagate_pipeline_default_properties to skip propagation
+    # Mock coerce_kv_pair_properties and propagate_pipeline_default_properties
+    # to avoid premature error messages
+    monkeypatch.setattr(PipelineDefinition, "coerce_kv_pair_properties", lambda x: True)
     monkeypatch.setattr(PipelineDefinition, "propagate_pipeline_default_properties", lambda x: True)
 
 
@@ -98,18 +101,15 @@ def test_updates_to_nodes_updates_pipeline_definition():
 
 
 def test_envs_to_dict():
-    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
     test_list = ["TEST=one", "TEST_TWO=two", "TEST_THREE=", "TEST_FOUR=1", "TEST_FIVE=fi=ve"]
     test_dict_correct = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1", "TEST_FIVE": "fi=ve"}
-    assert PipelineDefinition(pipeline_definition=pipeline_json).envs_to_dict(env_list=test_list) == test_dict_correct
+    assert KeyValueList(test_list).to_dict() == test_dict_correct
 
 
 def test_env_dict_to_list():
-    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
     test_dict = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1"}
     test_list_correct = ["TEST=one", "TEST_TWO=two", "TEST_FOUR=1"]
-    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
-    assert pipeline_definition.env_dict_to_list(env_dict=test_dict) == test_list_correct
+    assert KeyValueList.dict_to_kv_list(test_dict) == test_list_correct
 
 
 def test_propagate_pipeline_default_properties():
