@@ -109,7 +109,7 @@ def test_envs_to_dict():
 def test_env_dict_to_list():
     test_dict = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1"}
     test_list_correct = ["TEST=one", "TEST_TWO=two", "TEST_FOUR=1"]
-    assert KeyValueList.dict_to_kv_list(test_dict) == test_list_correct
+    assert KeyValueList().dict_to_kv_list(test_dict) == test_list_correct
 
 
 def test_propagate_pipeline_default_properties():

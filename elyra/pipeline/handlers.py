@@ -207,7 +207,9 @@ class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
         # Get pipeline properties json
-        pipeline_properties_json = PipelineDefinition.get_pipeline_properties_from_template()
+        pipeline_properties_json = PipelineDefinition.get_canvas_properties_from_template(
+            package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
+        )
 
         self.set_status(200)
         self.set_header("Content-Type", "application/json")

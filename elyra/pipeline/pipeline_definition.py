@@ -285,7 +285,7 @@ class Node(AppDataBase):
 
     def get_all_component_parameters(self) -> Dict[str, Any]:
         """
-        TODO
+        Retrieve all component parameter key-value pairs.
         """
         return self._node["app_data"]["component_parameters"]
 
@@ -397,7 +397,7 @@ class PipelineDefinition(object):
     @property
     def pipeline_nodes(self) -> List[Node]:
         """
-        TODO
+        All nodes of all pipelines associated with a pipeline definition
         """
         return [node for pipeline in self.pipelines for node in pipeline.nodes]
 
@@ -460,7 +460,10 @@ class PipelineDefinition(object):
 
     def coerce_kv_pair_properties(self):
         """
-        TODO
+        Convert pipeline- and node-level list properties that have been identified
+        as sets of key-value pairs from a plain list type to the KeyValueList list
+        type. Properties are identified as key-value pair properties when they set
+        keyValueEntries to true in the pipeline JSON canvas properties definition.
         """
         all_pipeline_properties = PipelineDefinition.get_canvas_properties_from_template(
             package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
@@ -473,14 +476,25 @@ class PipelineDefinition(object):
                 # Coerce plain list to KeyValueList
                 self.set_pipeline_default_property(pipeline_default_prop, KeyValueList(pipeline_default_value))
 
+        generic_node_properties = PipelineDefinition.get_canvas_properties_from_template(
+            package_name="templates/components", template_name="generic_properties_template.jinja2"
+        )
         for node in self.pipeline_nodes:
             if not Operation.is_generic_operation(node.op):
                 continue
 
-            for property_name, value in PipelineDefinition.get_generic_node_properties_from_template().items():
-                if value and property_name in kv_pair_properties:
-                    # Coerce plain list to KeyValueList
-                    node.set_component_parameter(property_name, KeyValueList(value))
+            for property_name, value in generic_node_properties["current_parameters"].items():
+                if property_name.startswith("elyra_"):
+                    property_name = property_name.replace("elyra_", "")
+                if property_name not in kv_pair_properties:
+                    continue
+
+                kv_list = node.get_component_parameter(property_name)
+                if not kv_list:
+                    continue
+
+                # Coerce plain list to KeyValueList
+                node.set_component_parameter(property_name, KeyValueList(kv_list))
 
     def propagate_pipeline_default_properties(self):
         """
@@ -502,7 +516,7 @@ class PipelineDefinition(object):
                     continue
 
                 if isinstance(pipeline_default_value, KeyValueList):
-                    merged_list = pipeline_default_value.merge_kv_pairs_with(KeyValueList(node_value))
+                    merged_list = pipeline_default_value.merge_kv_pairs(node_value)
                     node.set_component_parameter(pipeline_default_prop, merged_list)
 
     def is_valid(self) -> bool:
@@ -591,7 +605,10 @@ class PipelineDefinition(object):
 
     def set_pipeline_default_property(self, key: str, value: Any) -> None:
         """
-        TODO
+        Update pipeline default value for a given key.
+
+        :param key: the key to be set
+        :param value: the value to be set
         """
         if not key:
             raise ValueError("Key is required")
@@ -603,27 +620,18 @@ class PipelineDefinition(object):
         pipeline_default_properties[key] = value
 
     @staticmethod
-    def get_pipeline_properties_from_template() -> Dict[str, Any]:
+    def get_canvas_properties_from_template(package_name: str, template_name: str) -> Dict[str, Any]:
         """
-        TODO
+        Retrieves the dict representation of the canvas-formatted properties
+        associated with the given template and package names. Rendering does
+        not require parameters as expressions are not evaluated due to the
+        SilentUndefined class.
         """
-        loader = PackageLoader("elyra", "templates/pipeline")
-        template_env = Environment(loader=loader)
-
-        template = template_env.get_template("pipeline_properties_template.jinja2")
-        output = template.render()
-        return json.loads(output)
-
-    @staticmethod
-    def get_generic_node_properties_from_template() -> Dict[str, Any]:
-        """
-        TODO
-        """
-        loader = PackageLoader("elyra", "templates/components")
+        loader = PackageLoader("elyra", package_name)
         template_env = Environment(loader=loader, undefined=SilentUndefined)
 
-        template = template_env.get_template("generic_properties_template.jinja2")
-        output = template.render(component=None)
+        template = template_env.get_template(template_name)
+        output = template.render()
         return json.loads(output)
 
     @staticmethod
@@ -647,7 +655,10 @@ class PipelineDefinition(object):
 
 class SilentUndefined(Undefined):
     """
-    TODO
+    A subclass of the jinja2.Undefined class used to represent undefined
+    values in the template. Undefined errors as a result of the evaluation
+    of expressions will fail silently and render as null.
     """
+
     def _fail_with_undefined_error(self, *args, **kwargs):
         return None

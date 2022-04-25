@@ -17,4 +17,3 @@
 PIPELINE_DEFAULTS = "pipeline_defaults"
 RUNTIME_IMAGE = "runtime_image"
 ENV_VARIABLES = "env_vars"
-KEY_VALUE_SEPARATOR = "="

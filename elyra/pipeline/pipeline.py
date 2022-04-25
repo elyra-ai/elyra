@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import logging
 from logging import Logger
 import os
 import sys
@@ -20,8 +21,6 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-
-from elyra.pipeline.pipeline_constants import KEY_VALUE_SEPARATOR
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -258,15 +257,10 @@ class GenericOperation(Operation):
         self._component_params["runtime_image"] = component_params.get("runtime_image")
         self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
-        self._component_params["env_vars"] = Operation._scrub_list(component_params.get("env_vars", []))
+        self._component_params["env_vars"] = KeyValueList(Operation._scrub_list(component_params.get("env_vars", [])))
         self._component_params["cpu"] = component_params.get("cpu")
         self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")
-
-        self.generic_kv_properties_from_template = ...
-        for param_name, value in self._component_params.items():
-            if param_name in self.generic_kv_properties_from_template:
-                self._component_params[param_name] = KeyValueList(value)
 
     @property
     def name(self) -> str:
@@ -296,11 +290,11 @@ class GenericOperation(Operation):
 
     @property
     def env_vars(self) -> Optional["KeyValueList"]:
-        return KeyValueList(self._component_params.get("env_vars"))
+        return self._component_params.get("env_vars")
 
     @property
     def volume_mounts(self) -> Optional["KeyValueList"]:
-        return KeyValueList(self._component_params.get("mounted_volumes", []))
+        return self._component_params.get("mounted_volumes")
 
     @property
     def cpu(self) -> Optional[str]:
@@ -416,12 +410,15 @@ class Pipeline(object):
 
 class KeyValueList(list):
     """
-    TODO
+    A list class that exposes functionality specific to lists whose entries are
+    key-value pairs separated by a pre-defined character.
     """
+
+    _key_value_separator: str = "="
 
     def to_dict(self, logger: Optional[Logger] = None) -> Dict[str, str]:
         """
-        Properties consisting of key/value pairs are stored in a list of 'name=value'
+        Properties consisting of key/value pairs are stored in a list of separated
         strings, while most processing steps require a dictionary - so we must convert.
         If no key/value pairs are specified, an empty dictionary is returned, otherwise
         pairs are converted to dictionary entries and returned.
@@ -431,42 +428,48 @@ class KeyValueList(list):
             if not kv:
                 continue
 
-            if "=" not in kv:
-                raise ValueError(f"Property {kv} does not contain an '=' assignment operator.")
+            if self._key_value_separator not in kv:
+                raise ValueError(
+                    f"Property {kv} does not contain the expected "
+                    f"separator character: '{self._key_value_separator}'."
+                )
 
-            key, value = kv.split(KEY_VALUE_SEPARATOR, 1)
+            key, value = kv.split(self._key_value_separator, 1)
             if not key.strip():
-                KeyValueList.log_message("No key...", logger, 2)
+                KeyValueList.log_message(f"Skipping inclusion of property '{kv}': no key found", logger, logging.WARN)
                 continue
             if not value:
-                KeyValueList.log_message("No value...", logger, 1)
+                KeyValueList.log_message(
+                    f"Skipping inclusion of property '{key}': no value specified", logger, logging.INFO
+                )
                 continue
 
             kv_dict[key] = value
         return kv_dict
 
-    def merge_kv_pairs_with(self, primary_list: "KeyValueList") -> "KeyValueList":
+    def dict_to_kv_list(self, kv_dict: Dict) -> "KeyValueList":
         """
-        TODO
+        Convert a set of key-value pairs stored in a dictionary to
+        a KeyValueList of strings with the defined separator.
         """
-        secondary_dict = self.to_dict()
-        primary_dict = primary_list.to_dict()
-
-        merged_list = KeyValueList.dict_to_kv_list({**secondary_dict, **primary_dict})
-        return merged_list
-
-    @staticmethod
-    def dict_to_kv_list(kv_dict: Dict) -> "KeyValueList":
-        """
-        TODO
-        """
-        str_list = [f"{key}={value}" for key, value in kv_dict.items()]
+        str_list = [f"{key}{self._key_value_separator}{value}" for key, value in kv_dict.items()]
         return KeyValueList(str_list)
 
-    @staticmethod
-    def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = 2):
+    def merge_kv_pairs(self, primary_list: "KeyValueList") -> "KeyValueList":
         """
-        TODO
+        Merge two key-value pair lists, preferring the values given in the
+        primary_list in the case of a matching key between the two lists.
+        """
+        primary_dict = primary_list.to_dict()
+        secondary_dict = self.to_dict()
+
+        merged_list = self.dict_to_kv_list({**secondary_dict, **primary_dict})
+        return KeyValueList(merged_list)
+
+    @staticmethod
+    def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = logging.DEBUG):
+        """
+        Log a message with the given logger at the given level or simply print.
         """
         if logger:
             logger.log(level, msg)
