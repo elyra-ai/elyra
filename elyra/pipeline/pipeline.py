@@ -421,7 +421,7 @@ class KeyValueList(list):
         Properties consisting of key/value pairs are stored in a list of separated
         strings, while most processing steps require a dictionary - so we must convert.
         If no key/value pairs are specified, an empty dictionary is returned, otherwise
-        pairs are converted to dictionary entries and returned.
+        pairs are converted to dictionary entries, stripped of whitespace, and returned.
         """
         kv_dict = {}
         for kv in self:
@@ -435,14 +435,18 @@ class KeyValueList(list):
                 )
 
             key, value = kv.split(self._key_value_separator, 1)
-            if not key.strip():
+
+            key = key.strip()
+            if not key:
                 KeyValueList.log_message(f"Skipping inclusion of property '{kv}': no key found", logger, logging.WARN)
                 continue
             if not value:
                 KeyValueList.log_message(
-                    f"Skipping inclusion of property '{key}': no value specified", logger, logging.INFO
+                    f"Skipping inclusion of property '{key}': no value specified", logger, logging.DEBUG
                 )
                 continue
+            if isinstance(value, str):
+                value = value.strip()
 
             kv_dict[key] = value
         return kv_dict
