@@ -23,9 +23,7 @@ from elyra.tests.pipeline.util import _read_pipeline_resource
 
 @pytest.fixture
 def mock_pipeline_property_propagation(monkeypatch):
-    # Mock coerce_kv_pair_properties and propagate_pipeline_default_properties
-    # to avoid premature error messages
-    monkeypatch.setattr(PipelineDefinition, "coerce_kv_pair_properties", lambda x: True)
+    # Mock propagate_pipeline_default_properties to skip propagation
     monkeypatch.setattr(PipelineDefinition, "propagate_pipeline_default_properties", lambda x: True)
 
 
@@ -101,7 +99,7 @@ def test_updates_to_nodes_updates_pipeline_definition():
 
 
 def test_envs_to_dict():
-    test_list = ["TEST=one", "TEST_TWO=two", "TEST_THREE=", "TEST_FOUR=1", "TEST_FIVE=fi=ve"]
+    test_list = ["TEST= one", "TEST_TWO=two ", "TEST_THREE =", " TEST_FOUR=1", "TEST_FIVE = fi=ve "]
     test_dict_correct = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1", "TEST_FIVE": "fi=ve"}
     assert KeyValueList(test_list).to_dict() == test_dict_correct
 

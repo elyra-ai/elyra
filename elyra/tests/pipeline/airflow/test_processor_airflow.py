@@ -439,7 +439,7 @@ def test_collect_envs(processor):
     assert envs["AWS_SECRET_ACCESS_KEY"] == "secret"
     assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
     assert "ELYRA_WRITABLE_CONTAINER_DIR" not in envs
-    assert envs["USER_EMPTY_VALUE"] == "  "
+    assert envs["USER_EMPTY_VALUE"] == ""
     assert envs["USER_TWO_EQUALS"] == "KEY=value"
     assert "USER_NO_VALUE" not in envs
 
@@ -451,7 +451,7 @@ def test_collect_envs(processor):
     assert "AWS_SECRET_ACCESS_KEY" not in envs
     assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
     assert "ELYRA_WRITABLE_CONTAINER_DIR" not in envs
-    assert envs["USER_EMPTY_VALUE"] == "  "
+    assert envs["USER_EMPTY_VALUE"] == ""
     assert envs["USER_TWO_EQUALS"] == "KEY=value"
     assert "USER_NO_VALUE" not in envs
 
