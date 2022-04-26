@@ -66,9 +66,24 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
 
    ![Pipeline editor links in launcher](../images/user_guide/pipelines/editor-links.png)
 
-1. Expand the properties panel and define the pipeline properties. Pipeline properties include a description and default values for certain node properties. When a default property is set, individual nodes can override the value of these properties in their node property tab, described below. (Support for pipeline properties varies by release.)
+#### Defining pipeline properties
+
+1. Expand the properties panel and select the 'pipeline properties' tab.
 
    ![Pipeline properties](../images/user_guide/pipelines/pipeline-properties.png)
+
+   Pipeline properties include:
+      - An optional description, summarizing the pipeline purpose. 
+      - Properties that apply to every generic pipeline node. In this release the following properties are supported:
+        - _Object storage path prefix_: Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
+          ![artifacts default storage layout on object storage](../images/user_guide/pipelines/node-artifacts-on-object-storage.png)
+
+          Configure an object storage path prefix to store artifacts in a  pipeline-specific location `/<path-prefix>/<pipeline-instance-name>`:
+          ![artifacts custom storage layout on object storage](../images/user_guide/pipelines/generic-node-artifacts-custom-layout.png)
+
+      - Default values that apply to every generic pipeline node. These defaults can be overriden for each node. Refer to the next section for a property description. 
+
+#### Adding nodes
 
 1. Drag and drop components from the palette onto the canvas or double click on a palette entry.
 
