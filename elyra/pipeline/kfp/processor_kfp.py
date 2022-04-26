@@ -45,12 +45,10 @@ from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.runtime_type import RuntimeProcessorType
-from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_absolute_path
 
 
@@ -501,28 +499,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     f"Creating pipeline component archive '{operation_artifact_archive}' for operation '{operation}'"
                 )
 
-                volume_mounts = operation.component_params.get(MOUNTED_VOLUMES)
-                if operation.component_params.get(MOUNTED_VOLUMES):
-                    volume_mounts = {}
-                    for entry in operation.component_params[MOUNTED_VOLUMES]:
-                        # TODO: Replace hack (input formatted as "<mount_point>=<pvc_name>") once the
-                        # pipeline object makes the parameter available as a dictionary
-                        s = entry.split("=")
-                        # make sure the input is valid
-                        if len(s) != 2:
-                            self.log.warning(f"Ignoring invalid volume mount entry '{entry}': a PVC name is required.")
-                            continue
-                        s[0] = f"/{s[0].strip().strip('/')}"  # result should be formatted as "/mount/path"
-                        s[1] = s[1].strip()
-                        # ensure the PVC name is syntactically a valid Kubernetes resource name
-                        if not is_valid_kubernetes_resource_name(s[1]):
-                            self.log.warning(
-                                f"Ignoring invalid volume mount entry '{entry}': the PVC name '{s[1]}'"
-                                "is not a valid Kubernetes resource name."
-                            )
-                            continue
-                        volume_mounts[s[0]] = s[1]
-                        # end hack
+                volume_mounts = self._get_volume_mounts(operation=operation)
 
                 target_ops[operation.id] = ExecuteFileOp(
                     name=sanitized_operation_name,
