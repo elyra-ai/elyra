@@ -4,7 +4,8 @@
     "runtime": "",
     "description": "",
     "elyra_runtime_image": null,
-    "elyra_env_vars": []
+    "elyra_env_vars": [],
+    "elyra_mounted_volumes": []
   },
   "parameters": [
     {
@@ -21,6 +22,9 @@
     },
     {
       "id": "elyra_env_vars"
+    },
+    {
+      "id": "elyra_mounted_volumes"
     }
   ],
   "uihints": {
@@ -76,6 +80,21 @@
         "data": {
           "placeholder": "env_var=VALUE"
         }
+      },
+      {
+        "parameter_ref": "elyra_mounted_volumes",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Data Volumes"
+        },
+        "description": {
+          "default": "Volumes to be mounted in all nodes. The specified Persistent Volume Claims must exist in the Kubeflow Pipelines user namespace or the pipeline will not run.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "/mount/path=pvc-name"
+        }
       }
     ],
     "group_info": [
@@ -119,6 +138,11 @@
             "id": "elyra_env_vars",
             "type": "controls",
             "parameter_refs": ["elyra_env_vars"]
+          },
+          {
+            "id": "elyra_mounted_volumes",
+            "type": "controls",
+            "parameter_refs": ["elyra_mounted_volumes"]
           }
         ]
       }

@@ -409,12 +409,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             if ex.__cause__:
                 raise RuntimeError(str(ex)) from ex
             raise RuntimeError(
-                f"Error pre-processing pipeline {pipeline_name} for export at {absolute_pipeline_export_path}",
+                f"Error pre-processing pipeline '{pipeline_name}' for export to '{absolute_pipeline_export_path}'",
                 str(ex),
             ) from ex
 
         self.log_pipeline_info(
-            pipeline_name, f"pipeline exported: {pipeline_export_path}", duration=(time.time() - t0_all)
+            pipeline_name, f"pipeline exported to '{pipeline_export_path}'", duration=(time.time() - t0_all)
         )
 
         return pipeline_export_path  # Return the input value, not its absolute form
@@ -450,7 +450,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         self.log_pipeline_info(
             pipeline_name,
-            f"processing pipeline dependencies to: {cos_endpoint} " f"bucket: {cos_bucket} folder: {cos_directory}",
+            f"processing pipeline dependencies to: {cos_endpoint} bucket: {cos_bucket} folder: {cos_directory}",
         )
         t0_all = time.time()
 
@@ -495,7 +495,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
 
-                self.log.debug(f"Creating pipeline component:\n {operation} archive : {operation_artifact_archive}")
+                self.log.debug(
+                    f"Creating pipeline component archive '{operation_artifact_archive}' for operation '{operation}'"
+                )
+
+                volume_mounts = self._get_volume_mounts(operation=operation)
 
                 target_ops[operation.id] = ExecuteFileOp(
                     name=sanitized_operation_name,
@@ -521,6 +525,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
                         "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
                     },
+                    volume_mounts=volume_mounts,
                 )
 
                 if operation.doc:
@@ -539,7 +544,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 self.log_pipeline_info(
                     pipeline_name,
-                    f"processing operation dependencies for id: {operation.id}",
+                    f"processing operation dependencies for id '{operation.id}'",
                     operation_name=operation.name,
                 )
 

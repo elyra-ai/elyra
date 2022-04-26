@@ -40,10 +40,12 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
+from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_expanded_path
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -569,3 +571,34 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return value
 
         return converted_list
+
+    def _get_volume_mounts(self, operation: Operation) -> Optional[Dict[str, str]]:
+        """
+        Parses the mounted volume strings specified in the Operation into a key value pair of
+        <MOUNT PATH>: <PVC NAME>
+        :param operation: the operation to check for volume mounts
+        :return:
+        """
+        volume_mounts = operation.component_params.get(MOUNTED_VOLUMES)
+        if operation.component_params.get(MOUNTED_VOLUMES):
+            volume_mounts = {}
+            for entry in operation.component_params[MOUNTED_VOLUMES]:
+                # TODO: Replace hack (input formatted as "<mount_point>=<pvc_name>") once the
+                # pipeline object makes the parameter available as a dictionary
+                s = entry.split("=")
+                # make sure the input is valid
+                if len(s) != 2:
+                    self.log.warning(f"Ignoring invalid volume mount entry '{entry}': a PVC name is required.")
+                    continue
+                s[0] = f"/{s[0].strip().strip('/')}"  # result should be formatted as "/mount/path"
+                s[1] = s[1].strip()
+                # ensure the PVC name is syntactically a valid Kubernetes resource name
+                if not is_valid_kubernetes_resource_name(s[1]):
+                    self.log.warning(
+                        f"Ignoring invalid volume mount entry '{entry}': the PVC name '{s[1]}'"
+                        "is not a valid Kubernetes resource name."
+                    )
+                    continue
+                volume_mounts[s[0]] = s[1]
+                # end hack
+        return volume_mounts
