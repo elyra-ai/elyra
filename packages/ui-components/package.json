@@ -33,8 +33,8 @@
     "lab:uninstall": "jupyter labextension unlink --no-build"
   },
   "dependencies": {
-    "@jupyterlab/apputils": "^3.3.0",
-    "@jupyterlab/ui-components": "^3.3.0",
+    "@jupyterlab/apputils": "^3.4.0-beta.0",
+    "@jupyterlab/ui-components": "^3.4.0-beta.0",
     "@material-ui/core": "^4.12.1",
     "@material-ui/icons": "^4.2.1",
     "@material-ui/lab": "^4.0.0-alpha.18",
