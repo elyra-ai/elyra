@@ -53,6 +53,16 @@
             "placeholder": "https://your-kubeflow-service:port/pipeline"
           }
         },
+        "public_api_endpoint": {
+          "title": "Public Kubeflow Pipelines API Endpoint",
+          "description": "The public Kubeflow Pipelines API endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Kubeflow Pipelines",
+            "placeholder": "https://your-kubeflow-service:port/pipeline"
+          }
+        },
         "user_namespace": {
           "title": "Kubeflow Pipelines User Namespace",
           "description": "The Kubeflow Pipelines user namespace used to create experiments",

@@ -32,8 +32,14 @@ KFP_COMPONENT_CACHE_INSTANCE = {
 
 AIRFLOW_COMPONENT_CACHE_INSTANCE = {
     "display_name": "Airflow Example Components",
-    "metadata": {"runtime_type": "APACHE_AIRFLOW", "categories": ["examples"]},
-    "schema_name": "elyra-airflow-examples-catalog",
+    "metadata": {
+        "runtime_type": "APACHE_AIRFLOW",
+        "categories": ["examples"],
+        "paths": [
+            "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/bash_operator.py"  # noqa
+        ],
+    },
+    "schema_name": "url-catalog",
 }
 
 
@@ -42,8 +48,6 @@ def component_cache(jp_environ):
     """
     Initialize a component cache
     """
-    ComponentCache.clear_instance()
-
     # Create new instance and load the cache
     component_cache = ComponentCache.instance(emulate_server_app=True)
     component_cache.load()

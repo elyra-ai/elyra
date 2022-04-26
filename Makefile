@@ -29,14 +29,20 @@ SHELL:=/bin/bash
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
 
+ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
+ELYRA_IMAGE_LATEST=elyra/elyra:latest
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
+KF_NOTEBOOK_IMAGE_LATEST=elyra/kf-notebook:latest
 
 # Contains the set of commands required to be used by elyra
 REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 UPGRADE_STRATEGY?=only-if-needed
+
+# Black CMD for code formatting
+BLACK_CMD:=$(PYTHON) -m black --check --diff --color .
 
 help:
 # http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -85,8 +91,6 @@ uninstall: uninstall-src
 	- jupyter lab clean
 	# remove Kubeflow Pipelines example components
 	- $(PYTHON_PIP) uninstall -y elyra-examples-kfp-catalog
-	# remove Apache Airflow example components
-	- $(PYTHON_PIP) uninstall -y elyra-examples-airflow-catalog
 	# remove GitLab dependency
 	- $(PYTHON_PIP) uninstall -y python-gitlab
 
@@ -98,11 +102,12 @@ lint-dependencies:
 	@$(PYTHON_PIP) install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
-	flake8 elyra
-	black --check --diff --color . || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
+	$(PYTHON) -m flake8 elyra
+	@echo $(BLACK_CMD)
+	@$(BLACK_CMD) || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
 
 black-format: # Apply black formatter to Python source code
-	black .
+	$(PYTHON) -m black .
 
 prettier-check-ui:
 	yarn prettier:check
@@ -148,8 +153,11 @@ package-ui: build-dependencies yarn-install lint-ui build-ui
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
-install-server-package:
-	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) --use-deprecated=legacy-resolver "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
+uninstall-server-package:
+	@$(PYTHON_PIP) uninstall elyra -y
+
+install-server-package: uninstall-server-package
+	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
@@ -161,9 +169,6 @@ install-examples: ## Install example pipeline components
 	# install Kubeflow Pipelines example components
 	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector
 	- $(PYTHON_PIP) install --upgrade elyra-examples-kfp-catalog
-	# install Apache Airflow example components
-	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector
-	- $(PYTHON_PIP) install --upgrade elyra-examples-airflow-catalog
 
 install-gitlab-dependency:
 	# install GitLab support for Airflow
@@ -218,52 +223,55 @@ elyra-image: # Build Elyra stand-alone container image
 	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
 	@mkdir -p build/docker/elyra
 	if [ "$(TAG)" == "dev" ]; then \
-		cp etc/docker/elyra/Dockerfile.dev build/docker/Dockerfile; \
-		git -C ./ ls-files --exclude-standard -oi --directory > .git/ignores.tmp; \
-		rsync -ah --progress --delete --delete-excluded ./ build/docker/elyra/ \
-			 --exclude ".git" \
-			 --exclude ".github" \
-			 --exclude-from ".git/ignores.tmp"; \
-		rm -f .git/ignores.tmp; \
-	fi
+		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/; \
+  	fi
 	docker buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(ELYRA_IMAGE) \
 		--tag quay.io/$(ELYRA_IMAGE) \
 		--build-arg TAG=$(TAG) \
+		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker/;
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
+	# If we're building a release from master, tag latest and push
+	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "master" ]; then \
+		docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
+		docker push docker.io/$(ELYRA_IMAGE_LATEST); \
+		docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
+		docker push quay.io/$(ELYRA_IMAGE_LATEST); \
+	fi
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
-	cp etc/docker/kubeflow/Dockerfile build/docker-kubeflow/Dockerfile
-	@mkdir -p build/docker-kubeflow/elyra
+	cp etc/docker/kubeflow/* build/docker-kubeflow/
 	if [ "$(TAG)" == "dev" ]; then \
-		cp etc/docker/kubeflow/Dockerfile.dev build/docker-kubeflow/Dockerfile; \
-		git -C ./ ls-files --exclude-standard -oi --directory > .git/ignores.tmp; \
-		rsync -ah --progress --delete --delete-excluded ./ build/docker-kubeflow/elyra/ \
-			 --exclude ".git" \
-			 --exclude ".github" \
-			 --exclude-from ".git/ignores.tmp"; \
-		rm -f .git/ignores.tmp; \
-	fi
+		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/; \
+  	fi
 	docker buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
 		--tag quay.io/$(KF_NOTEBOOK_IMAGE) \
 		--build-arg TAG=$(TAG) \
+		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker-kubeflow;
 
 publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
+	# If we're building a release from master, tag latest and push
+	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "master" ]; then \
+		docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+	fi
 
 container-images: elyra-image kf-notebook-image ## Build all container images
 	docker images $(ELYRA_IMAGE)

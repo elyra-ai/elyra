@@ -418,6 +418,28 @@ paths:
         400:
           description: Invalid runtime processor or component ID.
 
+ /elyra/pipeline/{processor}/properties:
+    parameters:
+      - name: processor
+        in: path
+        description: The name of the runtime processor.  Will match the RuntimeType string form (e.g., "KUBEFLOW_PIPELINES", "AIRFLOW", etc.).
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - pipeline
+      summary: Fetch a pipeline's properties for use in the Elyra front-end
+      responses:
+        200:
+          description: JSON containing the pipeline properties definition.
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Invalid runtime processor.
+
   /elyra/pipeline/export:
     post:
       tags:

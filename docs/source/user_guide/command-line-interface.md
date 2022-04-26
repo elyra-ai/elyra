@@ -31,12 +31,12 @@ In Elyra, information such as a [runtime configuration](runtime-conf.md) or a [r
 To display the list of commands that `elyra-metadata` supports, run
 
 ```
-$ elyra-metadata -h
+$ elyra-metadata --help
 ```
 
 To learn more about a specific command, e.g. `list`, run
 ```
-$ elyra-metadata list -h
+$ elyra-metadata list --help
 ```
 
 #### Formatting list output
@@ -66,7 +66,6 @@ $ elyra-metadata list runtime-images --json | jq ".[].display_name"
 "Tensorflow 2.3.0 with GPU"
 "Pytorch 1.4 with CUDA-runtime"
 "Pandas on quay.io"
-
 ```
 
 #### List, create, update, export, and delete metadata
@@ -147,6 +146,8 @@ and `elyra-metadata` generates options corresponding to each of the `metadata` p
 	Code snippet code lines
 ```
 
+Tip: You can omit the `=` separator character. For example, `--description <string>`.
+
 When complex properties are present, the complexity of interpreting their semantics into CLI options is not sustainable.  To address this, two options can be used that bypass the per-property processing and allow you to create or update the instance directly.
 
 The `--file` option takes a filepath to a JSON-formatted file.  The file can contain the entire JSON including the higher-level system properties that reside outside the `metadata` stanza.  Or, it may contain only the JSON that comprises the `metadata` stanza.
@@ -174,9 +175,9 @@ To display the list of commands that `elyra-pipeline` supports, run
 $ elyra-pipeline --help
 ```
 
-To learn more about a specific command, e.g. `run`, run
+To learn more about a specific command, e.g. `submit`, run
 ```
-$ elyra-pipeline run --help
+$ elyra-pipeline submit --help
 ```
 
 Refer to the topics below for detailed information on how to use `elyra-pipeline` to

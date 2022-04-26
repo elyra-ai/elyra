@@ -1,9 +1,5 @@
-elyra-examples-airflow-catalog
 elyra-examples-kfp-catalog
-flake8>=3.5.0
-flake8-import-order>=0.18.1
 git-python
-hacking
 importlib-resources
 pytest>=5.4.1
 pytest-console-scripts

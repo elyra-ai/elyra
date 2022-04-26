@@ -171,7 +171,7 @@ async def test_directory_based_component_catalog(component_cache, metadata_manag
 
     # Get new set of components from all active registries, including added test registry
     components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
-    assert len(components_after_create) == len(initial_components) + 5
+    assert len(components_after_create) == len(initial_components) + 6
 
     # Check that all relevant components from the new registry have been added
     added_component_names = [component.name for component in components_after_create]

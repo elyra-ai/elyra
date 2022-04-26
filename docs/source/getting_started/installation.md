@@ -45,8 +45,6 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 
 ### pip
 
-**NOTE:** On November 2020, a new version of PIP (20.3) was released with a new, "2020" resolver. This resolver does not yet work with Elyra and might lead to errors in installation. In order to install Elyra, you need to either downgrade pip to version 20.2.4 `pip install --upgrade pip==20.2.4` or, in case you use pip 20.3 (or later), you need to add option `--use-deprecated legacy-resolver` to your pip install command.
-
 If you use `pip`, install Elyra with:
 
 ```bash
