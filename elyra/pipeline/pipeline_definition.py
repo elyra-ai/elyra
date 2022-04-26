@@ -336,7 +336,6 @@ class PipelineDefinition(object):
         if validate:
             self.validate()
 
-        self.coerce_kv_pair_properties()
         self.propagate_pipeline_default_properties()
 
     @property
@@ -501,8 +500,10 @@ class PipelineDefinition(object):
         For any default pipeline properties set (e.g. runtime image, volume), propagate
         the values to any nodes that do not set their own value for that property.
         """
+        self.coerce_kv_pair_properties()  # convert any key/value list properties to the KeyValueList type
+
         pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
-        for pipeline_default_prop, pipeline_default_value in pipeline_default_properties.items():
+        for property_name, pipeline_default_value in pipeline_default_properties.items():
             if not pipeline_default_value:
                 continue
 
@@ -510,14 +511,16 @@ class PipelineDefinition(object):
                 if not Operation.is_generic_operation(node.op):
                     continue
 
-                node_value = node.get_component_parameter(pipeline_default_prop)
+                node_value = node.get_component_parameter(property_name)
                 if not node_value:
-                    node.set_component_parameter(pipeline_default_prop, pipeline_default_value)
+                    node.set_component_parameter(property_name, pipeline_default_value)
                     continue
 
                 if isinstance(pipeline_default_value, KeyValueList):
-                    merged_list = pipeline_default_value.merge_kv_pairs(node_value)
-                    node.set_component_parameter(pipeline_default_prop, merged_list)
+                    if not isinstance(node_value, KeyValueList):
+                        raise TypeError(f"The value of node property '{property_name}' is not of type KeyValueList")
+                    merged_list: KeyValueList = KeyValueList.merge(node_value, pipeline_default_value)
+                    node.set_component_parameter(property_name, merged_list)
 
     def is_valid(self) -> bool:
         """

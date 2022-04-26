@@ -447,24 +447,25 @@ class KeyValueList(list):
             kv_dict[key] = value
         return kv_dict
 
-    def dict_to_kv_list(self, kv_dict: Dict) -> "KeyValueList":
+    @classmethod
+    def from_dict(cls, kv_dict: Dict) -> "KeyValueList":
         """
         Convert a set of key-value pairs stored in a dictionary to
         a KeyValueList of strings with the defined separator.
         """
-        str_list = [f"{key}{self._key_value_separator}{value}" for key, value in kv_dict.items()]
+        str_list = [f"{key}{cls._key_value_separator}{value}" for key, value in kv_dict.items()]
         return KeyValueList(str_list)
 
-    def merge_kv_pairs(self, primary_list: "KeyValueList") -> "KeyValueList":
+    @classmethod
+    def merge(cls, primary: "KeyValueList", secondary: "KeyValueList") -> "KeyValueList":
         """
         Merge two key-value pair lists, preferring the values given in the
-        primary_list in the case of a matching key between the two lists.
+        primary parameter in the case of a matching key between the two lists.
         """
-        primary_dict = primary_list.to_dict()
-        secondary_dict = self.to_dict()
+        primary_dict = primary.to_dict()
+        secondary_dict = secondary.to_dict()
 
-        merged_list = self.dict_to_kv_list({**secondary_dict, **primary_dict})
-        return KeyValueList(merged_list)
+        return KeyValueList.from_dict({**secondary_dict, **primary_dict})
 
     @staticmethod
     def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = logging.DEBUG):
