@@ -813,7 +813,6 @@ class SchemaspaceImport(SchemaspaceBase):
             try:
                 with open(filepath) as f:
                     metadata_file = json.loads(f.read())
-                f.close()
             except OSError as e:
                 non_imported_files.append([file, e.strerror])
                 continue
@@ -850,7 +849,7 @@ class SchemaspaceImport(SchemaspaceBase):
                     self.metadata_manager.create(name, instance)
             except Exception as e:
                 if isinstance(e, MetadataExistsError):
-                    non_imported_files.append([file, f"{str(e)} Use --overwrite to update."])
+                    non_imported_files.append([file, f"{str(e)} Use '--overwrite' to update."])
                 else:
                     non_imported_files.append([file, str(e)])
 
@@ -876,10 +875,10 @@ class SchemaspaceImport(SchemaspaceBase):
                 max_file_name_len = max(len(file[0]), max_file_name_len)
                 max_reason_len = max(len(file[1]), max_reason_len)
 
-            print("%s   %s" % ("File".ljust(max_file_name_len), "Reason".ljust(max_reason_len)))
-            print("%s   %s" % ("----".ljust(max_file_name_len), "------".ljust(max_reason_len)))
+            print(f"{'File'.ljust(max_file_name_len)}   {'Reason'.ljust(max_reason_len)}")
+            print(f"{'----'.ljust(max_file_name_len)}   {'------'.ljust(max_reason_len)}")
             for file in non_imported_files:
-                print("%s   %s" % (file[0].ljust(max_file_name_len), file[1].ljust(max_reason_len)))
+                print(f"{file[0].ljust(max_file_name_len)}   {file[1].ljust(max_reason_len)}")
 
 
 class SubcommandBase(AppBase):

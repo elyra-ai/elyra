@@ -148,8 +148,8 @@ There are two flags that can be specified when exporting runtime image configura
 To import runtime image configurations:
 
 ```bash
-elyra-metadata import runtime-images \
-	--directory="/tmp/foo"
+$ elyra-metadata import runtime-images \
+	--directory "/tmp/foo"
 ```
 
 The above example will import all valid runtime image configurations in the "/tmp/foo" directory (files present in any sub-directories will be ignored).

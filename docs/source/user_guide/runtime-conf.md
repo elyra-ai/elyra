@@ -163,8 +163,8 @@ There are two flags that can be specified when exporting runtime configurations:
 To import runtime configurations:
 
 ```bash
-elyra-metadata import runtimes \
-	--directory="/tmp/foo"
+$ elyra-metadata import runtimes \
+	--directory "/tmp/foo"
 ```
 
 The above example will import all valid runtime configurations in the "/tmp/foo" directory (files present in any sub-directories will be ignored).

@@ -24,7 +24,7 @@ The CLI is part of the Elyra installation and can be used without a running Jupy
 
 ### Managing metadata
 
-In Elyra, information such as a [runtime configuration](runtime-conf.md) or a [runtime image](runtime-image-conf) is considered metadata. `elyra-metadata` is used to list, create, update, export or delete metadata.
+In Elyra, information such as a [runtime configuration](runtime-conf.md) or a [runtime image](runtime-image-conf) is considered metadata. `elyra-metadata` is used to list, create, update, export, import or delete metadata.
 
 #### Getting help
 
@@ -68,7 +68,7 @@ $ elyra-metadata list runtime-images --json | jq ".[].display_name"
 "Pandas on quay.io"
 ```
 
-#### List, create, update, export, and delete metadata
+#### List, create, update, export, import and delete metadata
 
 Refer to the topics below for detailed information on how to use `elyra-metadata` to
  - [Manage code snippets](code-snippets.html#managing-code-snippets-using-the-elyra-cli)

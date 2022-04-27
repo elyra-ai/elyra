@@ -230,8 +230,8 @@ There are two flags that can be specified when exporting component catalogs:
 To import component catalogs:
 
 ```bash
-elyra-metadata import component-catalogs \
-	--directory="/tmp/foo"
+$ elyra-metadata import component-catalogs \
+	--directory "/tmp/foo"
 ```
 
 The above example will import all valid component catalogs in the "/tmp/foo" directory (files present in any sub-directories will be ignored).

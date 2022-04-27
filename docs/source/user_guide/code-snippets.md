@@ -163,8 +163,8 @@ There are two flags that can be specified when exporting code snippets:
 To import code snippets:
 
 ```bash
-elyra-metadata import code-snippets \
-	--directory="/tmp/foo"
+$ elyra-metadata import code-snippets \
+	--directory "/tmp/foo"
 ```
 
 The above example will import all valid code snippets in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
