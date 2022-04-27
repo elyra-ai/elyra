@@ -346,7 +346,7 @@ def test_env_list_to_dict_function():
         "TWO_EQUALS=KEY=value",
         "==",
     ]
-    env_variables_dict = {"KEY": "value", "KEY2": "value2", "EMPTY_VALUE": "", "TWO_EQUALS": "KEY=value"}
+    env_variables_dict = {"KEY": "value", "KEY2": "value2", "TWO_EQUALS": "KEY=value"}
 
     component_parameters = {
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",

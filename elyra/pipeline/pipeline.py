@@ -448,13 +448,13 @@ class KeyValueList(list):
             if not key:
                 KeyValueList.log_message(f"Skipping inclusion of property '{kv}': no key found", logger, logging.WARN)
                 continue
+            if isinstance(value, str):
+                value = value.strip()
             if not value:
                 KeyValueList.log_message(
                     f"Skipping inclusion of property '{key}': no value specified", logger, logging.DEBUG
                 )
                 continue
-            if isinstance(value, str):
-                value = value.strip()
 
             kv_dict[key] = value
         return kv_dict

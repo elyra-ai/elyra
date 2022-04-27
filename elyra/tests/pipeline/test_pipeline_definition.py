@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from unittest import mock
+
 import pytest
 
 from elyra.pipeline import pipeline_constants
@@ -110,12 +112,45 @@ def test_env_dict_to_list():
     assert KeyValueList.from_dict(test_dict) == test_list_correct
 
 
-def test_propagate_pipeline_default_properties():
-    env_list_correct = ["var1=var1", "var2=var2", "var3=var_three"]
+def test_convert_kv_properties(monkeypatch):
+    kv_test_property_name = "kv_test_property"
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
+
+    # Mock get_kv_properties() to ensure the "kv_test_property" variable is included in the list
+    mock_kv_property_list = [pipeline_constants.ENV_VARIABLES, kv_test_property_name]
+    monkeypatch.setattr(PipelineDefinition, "get_kv_properties", mock.Mock(return_value=mock_kv_property_list))
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+
+    node = pipeline_definition.primary_pipeline.nodes.pop()
+    pipeline_defaults = pipeline_definition.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS)
+
+    for kv_property in mock_kv_property_list:
+        assert isinstance(node.get_component_parameter(kv_property), KeyValueList)
+        assert isinstance(pipeline_defaults[kv_property], KeyValueList)
+
+    # Ensure a non-list property is not converted to a KeyValueList
+    assert not isinstance(
+        pipeline_definition.primary_pipeline.get_property(pipeline_constants.RUNTIME_IMAGE), KeyValueList
+    )
+
+    # Ensure plain list property is not converted to a KeyValueList
+    assert not isinstance(node.get_component_parameter("outputs"), KeyValueList)
+
+
+def test_propagate_pipeline_default_properties(monkeypatch):
+    kv_list_correct = ["var1=var1", "var2=var2", "var3=var_three"]
+    kv_test_property_name = "kv_test_property"
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
+
+    # Mock get_kv_properties() to ensure the "kv_test_property" variable is included in the list
+    mock_kv_property_list = [pipeline_constants.ENV_VARIABLES, kv_test_property_name]
+    monkeypatch.setattr(PipelineDefinition, "get_kv_properties", mock.Mock(return_value=mock_kv_property_list))
+
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
     node = pipeline_definition.primary_pipeline.nodes.pop()
-    assert node.get_component_parameter(pipeline_constants.ENV_VARIABLES) == env_list_correct
+    assert node.get_component_parameter(pipeline_constants.ENV_VARIABLES) == kv_list_correct
+    assert node.get_component_parameter(kv_test_property_name) == kv_list_correct
 
 
 def _check_pipeline_correct_pipeline_name():
