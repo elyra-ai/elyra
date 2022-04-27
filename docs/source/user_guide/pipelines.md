@@ -78,7 +78,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
         - _Object storage path prefix_: Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
           ![artifacts default storage layout on object storage](../images/user_guide/pipelines/node-artifacts-on-object-storage.png)
 
-          Configure an object storage path prefix to store artifacts in a  pipeline-specific location `/<path-prefix>/<pipeline-instance-name>`:
+          Configure an object storage path prefix to store artifacts in a pipeline-specific location `/<path-prefix>/<pipeline-instance-name>`:
           ![artifacts custom storage layout on object storage](../images/user_guide/pipelines/generic-node-artifacts-custom-layout.png)
 
       - Default values that apply to every generic pipeline node. These defaults can be overriden for each node. Refer to the next section for a property description. 
