@@ -1561,14 +1561,11 @@ def test_import_bad_schemaspace(script_runner):
 def test_import_inaccessible_directory(script_runner):
     directory_parameter = "/dummy-directory"
 
-    ret = script_runner.run(
-        "elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}"
-    )
+    ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
     assert ret.success is False
     assert (
         f"Unable to reach the '{directory_parameter}'"
-        f" directory: No such file or directory: '{directory_parameter}"
-        in ret.stdout
+        f" directory: No such file or directory: '{directory_parameter}" in ret.stdout
     )
 
 
@@ -1578,9 +1575,7 @@ def test_import_empty_directory(script_runner):
     directory_parameter = temp_dir.name
 
     # import metadata
-    ret = script_runner.run(
-        "elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}"
-    )
+    ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
     assert ret.success is True
     assert f"No instances for import found in the '{directory_parameter}' directory" in ret.stdout
     temp_dir.cleanup()
@@ -1601,9 +1596,7 @@ def test_import_non_json_file(script_runner):
     assert open(dummy_filepath).read() == dummy_file_content
 
     # import metadata
-    ret = script_runner.run(
-        "elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}"
-    )
+    ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
     assert ret.success is True
     assert f"No instances for import found in the '{directory_parameter}' directory" in ret.stdout
     temp_dir.cleanup()
@@ -1630,9 +1623,7 @@ def test_import_valid_metadata_files(script_runner, mock_data_dir):
     assert json.loads(open(metadata_file_path2).read()) == valid_metadata2_json
 
     # import metadata
-    ret = script_runner.run(
-        "elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}"
-    )
+    ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
     assert ret.success is True
     assert "Imported 2 instances" in ret.stdout
     temp_dir.cleanup()
@@ -1677,9 +1668,7 @@ def test_import_invalid_metadata_file(script_runner, mock_data_dir):
     assert json.loads(open(metadata_file_path).read()) == invalid_metadata_json
 
     # import metadata
-    ret = script_runner.run(
-        "elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}"
-    )
+    ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
     assert ret.success is True
     lines = ret.stdout.split("\n")
     assert len(lines) == 8
@@ -1735,9 +1724,7 @@ def test_import_with_subfolder(script_runner, mock_data_dir):
     assert json.loads(open(metadata_file_path2).read()) == valid_metadata2_json
 
     # import metadata
-    ret = script_runner.run(
-        "elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}"
-    )
+    ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
     assert ret.success is True
     lines = ret.stdout.split("\n")
     assert len(lines) == 9
@@ -1808,9 +1795,7 @@ def test_import_overwrite_flag(script_runner, mock_data_dir):
     assert json.loads(open(metadata_file_path2).read()) == valid_metadata_json
 
     # import metadata without overwrite flag
-    ret = script_runner.run(
-        "elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}"
-    )
+    ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
     assert ret.success is True
     lines = ret.stdout.split("\n")
     assert len(lines) == 8
