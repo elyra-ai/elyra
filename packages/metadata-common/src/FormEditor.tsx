@@ -179,6 +179,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       noHtml5Validate={true}
       onChange={(e: IChangeEvent<any>): void => {
         setFormData(e.formData);
+        console.log(e.formData);
         onChange(e.formData, e.errors.length > 0 || false);
       }}
       liveValidate={true}

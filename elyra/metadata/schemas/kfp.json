@@ -53,6 +53,16 @@
             "placeholder": "https://your-kubeflow-service:port/pipeline"
           }
         },
+        "public_api_endpoint": {
+          "title": "Public Kubeflow Pipelines API Endpoint",
+          "description": "The public Kubeflow Pipelines API endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Kubeflow Pipelines",
+            "placeholder": "https://your-kubeflow-service:port/pipeline"
+          }
+        },
         "user_namespace": {
           "title": "Kubeflow Pipelines User Namespace",
           "description": "The Kubeflow Pipelines user namespace used to create experiments",
@@ -74,32 +84,11 @@
           }
         },
         "auth_type": {
-          "oneOf": [
-            {
-              "title": "NO_AUTHENTICATION"
-            },
-            {
-              "title": "DEX_STATIC_PASSWORDS",
-              "type": "object",
-              "properties": {
-                "api_username": {
-                  "title": "Kubeflow Pipelines API Endpoint Username",
-                  "description": "The Kubeflow Pipelines API endpoint username. ",
-                  "type": "string"
-                },
-                "api_password": {
-                  "title": "Kubeflow Pipelines API Endpoint Password",
-                  "description": "Password for the specified username. ",
-                  "type": "string",
-                  "uihints": {
-                    "secure": true
-                  }
-                }
-              }
-            }
-          ],
           "title": "Authentication Type",
-          "description": "Authentication type Elyra uses to authenticate with Kubeflow Pipelines",
+          "description": "Authentication type Elyra uses to authenticate with Kubeflow",
+          "type": "string",
+          "enum": ["{AUTH_PROVIDER_PLACEHOLDERS}"],
+          "default": "{DEFAULT_AUTH_PROVIDER_PLACEHOLDER}",
           "uihints": {
             "category": "Kubeflow Pipelines"
           }
@@ -117,7 +106,7 @@
           "description": "Password for the specified username. This property is required for all authentication types, except NO_AUTHENTICATION and KUBERNETES_SERVICE_ACCOUNT_TOKEN.",
           "type": "string",
           "uihints": {
-            "field_type": "password",
+            "secure": true,
             "category": "Kubeflow Pipelines"
           }
         },
@@ -142,69 +131,45 @@
             "category": "Cloud Object Storage"
           }
         },
-        "cos_auth": {
+        "cos_auth_type": {
           "title": "Cloud Object Storage Authentication Type",
           "description": "Authentication type Elyra uses to authenticate with Cloud Object Storage",
-          "oneOf": [
-            {
-              "title": "USER_CREDENTIALS",
-              "type": "object",
-              "properties": {
-                "cos_username": {
-                  "title": "Cloud Object Storage Username",
-                  "description": "The Cloud Object Storage username. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
-                  "type": "string"
-                },
-                "cos_password": {
-                  "title": "Cloud Object Storage Password",
-                  "description": "The Cloud Object Storage password. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
-                  "type": "string",
-                  "minLength": 8,
-                  "uihints": {
-                    "field_type": "password"
-                  }
-                }
-              }
-            },
-            {
-              "title": "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS",
-              "type": "null"
-            },
-            {
-              "title": "KUBERNETES_SECRET",
-              "type": "object",
-              "properties": {
-                "cos_secret": {
-                  "title": "Cloud Object Storage Credentials Secret",
-                  "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
-                  "type": "string",
-                  "uihints": {
-                    "field_type": "password",
-                    "category": "Cloud Object Storage"
-                  }
-                },
-                "cos_username": {
-                  "title": "Cloud Object Storage Username",
-                  "description": "The Cloud Object Storage username. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
-                  "type": "string",
-                  "uihints": {
-                    "category": "Cloud Object Storage"
-                  }
-                },
-                "cos_password": {
-                  "title": "Cloud Object Storage Password",
-                  "description": "The Cloud Object Storage password. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
-                  "type": "string",
-                  "minLength": 8,
-                  "uihints": {
-                    "field_type": "password",
-                    "category": "Cloud Object Storage"
-                  }
-                }
-              }
-            }
+          "type": "string",
+          "enum": [
+            "AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS",
+            "KUBERNETES_SECRET",
+            "USER_CREDENTIALS"
           ],
+          "default": "USER_CREDENTIALS",
           "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_secret": {
+          "title": "Cloud Object Storage Credentials Secret",
+          "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
+          "type": "string",
+          "uihints": {
+            "field_type": "password",
+            "minLength": 8,
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_username": {
+          "title": "Cloud Object Storage Username",
+          "description": "The Cloud Object Storage username. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
+          "type": "string",
+          "uihints": {
+            "category": "Cloud Object Storage"
+          }
+        },
+        "cos_password": {
+          "title": "Cloud Object Storage Password",
+          "description": "The Cloud Object Storage password. This property is required for authentication type USER_CREDENTIALS and KUBERNETES_SECRET.",
+          "type": "string",
+          "minLength": 8,
+          "uihints": {
+            "secure": true,
             "category": "Cloud Object Storage"
           }
         },
@@ -220,7 +185,12 @@
           }
         }
       },
-      "required": ["api_endpoint", "cos_auth", "cos_endpoint", "cos_bucket"]
+      "required": [
+        "api_endpoint",
+        "cos_auth_type",
+        "cos_endpoint",
+        "cos_bucket"
+      ]
     }
   },
   "required": ["schema_name", "display_name", "metadata"]
