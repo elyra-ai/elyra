@@ -88,264 +88,264 @@ describe('Pipeline Editor tests', () => {
   //   closePipelineEditor();
   // });
 
-  // it('should block unsupported files', () => {
-  //   cy.createPipeline();
-  //   cy.dragAndDropFileToPipeline('invalid.txt');
+  it('should block unsupported files', () => {
+    cy.createPipeline();
+    cy.dragAndDropFileToPipeline('invalid.txt');
 
-  //   // check for unsupported files dialog message
-  //   cy.findByText(/unsupported file/i).should('be.visible');
+    // check for unsupported files dialog message
+    cy.findByText(/unsupported file/i).should('be.visible');
 
-  //   // dismiss dialog
-  //   cy.findByRole('button', { name: /ok/i }).click();
-  // });
+    // dismiss dialog
+    cy.findByRole('button', { name: /ok/i }).click();
+  });
 
-  // it('populated editor should have enabled buttons', () => {
-  //   cy.createPipeline();
+  it('populated editor should have enabled buttons', () => {
+    cy.createPipeline();
 
-  //   cy.checkTabMenuOptions('Pipeline');
+    cy.checkTabMenuOptions('Pipeline');
 
-  //   cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
-  //   cy.addFileToPipeline('helloworld.py'); // add Python Script
-  //   cy.addFileToPipeline('helloworld.r'); // add R Script
+    cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
+    cy.addFileToPipeline('helloworld.py'); // add Python Script
+    cy.addFileToPipeline('helloworld.r'); // add R Script
 
-  //   // check buttons
-  //   const disabledButtons = [/redo/i, /cut/i, /copy/i, /paste/i, /delete/i];
-  //   checkDisabledToolbarButtons(disabledButtons);
+    // check buttons
+    const disabledButtons = [/redo/i, /cut/i, /copy/i, /paste/i, /delete/i];
+    checkDisabledToolbarButtons(disabledButtons);
 
-  //   const enabledButtons = [
-  //     /run pipeline/i,
-  //     /save pipeline/i,
-  //     /export pipeline/i,
-  //     /clear/i,
-  //     /open runtimes/i,
-  //     /open runtime images/i,
-  //     /open component catalogs/i,
-  //     /undo/i,
-  //     /add comment/i,
-  //     /arrange horizontally/i,
-  //     /arrange vertically/i
-  //   ];
-  //   checkEnabledToolbarButtons(enabledButtons);
-  // });
+    const enabledButtons = [
+      /run pipeline/i,
+      /save pipeline/i,
+      /export pipeline/i,
+      /clear/i,
+      /open runtimes/i,
+      /open runtime images/i,
+      /open component catalogs/i,
+      /undo/i,
+      /add comment/i,
+      /arrange horizontally/i,
+      /arrange vertically/i
+    ];
+    checkEnabledToolbarButtons(enabledButtons);
+  });
 
-  // it('matches complex pipeline snapshot', () => {
-  //   cy.bootstrapFile('pipelines/consumer.ipynb');
-  //   cy.bootstrapFile('pipelines/create-source-files.py');
-  //   cy.bootstrapFile('pipelines/producer-script.py');
-  //   cy.bootstrapFile('pipelines/producer.ipynb');
-  //   cy.bootstrapFile('scripts/setup.py');
-  //   cy.bootstrapFile('scripts/setup.txt');
+  it('matches complex pipeline snapshot', () => {
+    cy.bootstrapFile('pipelines/consumer.ipynb');
+    cy.bootstrapFile('pipelines/create-source-files.py');
+    cy.bootstrapFile('pipelines/producer-script.py');
+    cy.bootstrapFile('pipelines/producer.ipynb');
+    cy.bootstrapFile('scripts/setup.py');
+    cy.bootstrapFile('scripts/setup.txt');
 
-  //   // Do this all manually because our command doesn't support directories yet
-  //   cy.openDirectory('pipelines');
-  //   cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
-  //   cy.openFile('complex.pipeline');
-  //   cy.get('.common-canvas-drop-div');
-  //   // wait an additional 300ms for the list of items to settle
-  //   cy.wait(300);
+    // Do this all manually because our command doesn't support directories yet
+    cy.openDirectory('pipelines');
+    cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
+    cy.openFile('complex.pipeline');
+    cy.get('.common-canvas-drop-div');
+    // wait an additional 300ms for the list of items to settle
+    cy.wait(300);
 
-  //   cy.addFileToPipeline('producer.ipynb');
-  //   cy.addFileToPipeline('consumer.ipynb');
+    cy.addFileToPipeline('producer.ipynb');
+    cy.addFileToPipeline('consumer.ipynb');
 
-  //   cy.get('.jp-BreadCrumbs-home').click();
-  //   cy.openDirectory('scripts');
+    cy.get('.jp-BreadCrumbs-home').click();
+    cy.openDirectory('scripts');
 
-  //   cy.addFileToPipeline('setup.py');
+    cy.addFileToPipeline('setup.py');
 
-  //   cy.get('.jp-BreadCrumbs-home').click();
-  //   cy.openDirectory('pipelines');
+    cy.get('.jp-BreadCrumbs-home').click();
+    cy.openDirectory('pipelines');
 
-  //   cy.addFileToPipeline('create-source-files.py');
-  //   cy.addFileToPipeline('producer-script.py');
+    cy.addFileToPipeline('create-source-files.py');
+    cy.addFileToPipeline('producer-script.py');
 
-  //   cy.get('#jp-main-dock-panel').within(() => {
-  //     // producer props
-  //     cy.findByText('producer.ipynb').rightclick();
-  //     cy.findByRole('menuitem', { name: /properties/i }).click();
-  //     cy.get('[data-id="properties-elyra_filename"]').within(() => {
-  //       cy.findByRole('button', { name: /browse/i }).click();
-  //     });
-  //   });
+    cy.get('#jp-main-dock-panel').within(() => {
+      // producer props
+      cy.findByText('producer.ipynb').rightclick();
+      cy.findByRole('menuitem', { name: /properties/i }).click();
+      cy.get('[data-id="properties-elyra_filename"]').within(() => {
+        cy.findByRole('button', { name: /browse/i }).click();
+      });
+    });
 
-  //   cy.get('.elyra-browseFileDialog').within(() => {
-  //     cy.openDirectory('producer.ipynb');
-  //   });
+    cy.get('.elyra-browseFileDialog').within(() => {
+      cy.openDirectory('producer.ipynb');
+    });
 
-  //   cy.get('#jp-main-dock-panel').within(() => {
-  //     cy.get('[data-id="properties-elyra_outputs"]').within(() => {
-  //       cy.findByRole('button', { name: /add item/i }).click();
-  //       cy.focused().type('output-1.csv');
-  //       cy.findByRole('button', { name: /ok/i }).click();
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
+        cy.findByRole('button', { name: /add item/i }).click();
+        cy.focused().type('output-1.csv');
+        cy.findByRole('button', { name: /ok/i }).click();
 
-  //       cy.findByRole('button', { name: /add item/i }).click();
-  //       cy.focused().type('output-2.csv');
-  //       cy.findByRole('button', { name: /ok/i }).click();
-  //     });
-  //     cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-  //       cy.findByRole('button').click();
-  //       cy.findByRole('option', { name: /anaconda/i }).click();
-  //     });
+        cy.findByRole('button', { name: /add item/i }).click();
+        cy.focused().type('output-2.csv');
+        cy.findByRole('button', { name: /ok/i }).click();
+      });
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
+        cy.findByRole('button').click();
+        cy.findByRole('option', { name: /anaconda/i }).click();
+      });
 
-  //     // consumer props
-  //     cy.findByText('consumer.ipynb').click();
-  //     cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-  //       cy.findByRole('button').click();
-  //       cy.findByRole('option', { name: /anaconda/i }).click();
-  //     });
+      // consumer props
+      cy.findByText('consumer.ipynb').click();
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
+        cy.findByRole('button').click();
+        cy.findByRole('option', { name: /anaconda/i }).click();
+      });
 
-  //     // setup props
-  //     cy.findByText('setup.py').click();
-  //     cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-  //       cy.findByRole('button').click();
-  //       cy.findByRole('option', { name: /anaconda/i }).click();
-  //     });
-  //     cy.get('[data-id="properties-elyra_dependencies"]').within(() => {
-  //       cy.findByRole('button', { name: /browse/i }).click();
-  //     });
-  //   });
+      // setup props
+      cy.findByText('setup.py').click();
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
+        cy.findByRole('button').click();
+        cy.findByRole('option', { name: /anaconda/i }).click();
+      });
+      cy.get('[data-id="properties-elyra_dependencies"]').within(() => {
+        cy.findByRole('button', { name: /browse/i }).click();
+      });
+    });
 
-  //   // choosing dependencies happens outside of canvas
-  //   cy.get('.elyra-browseFileDialog').within(() => {
-  //     cy.openDirectory('setup.txt');
-  //   });
+    // choosing dependencies happens outside of canvas
+    cy.get('.elyra-browseFileDialog').within(() => {
+      cy.openDirectory('setup.txt');
+    });
 
-  //   // back in canvas
-  //   cy.get('#jp-main-dock-panel').within(() => {
-  //     // create-source-files props
-  //     cy.findByText('create-source-files.py').click();
-  //     cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-  //       cy.findByRole('button').click();
-  //       cy.findByRole('option', { name: /anaconda/i }).click();
-  //     });
-  //     cy.get('[data-id="properties-elyra_outputs"]').within(() => {
-  //       cy.findByRole('button', { name: /add item/i }).click();
-  //       cy.focused().type('input-1.csv');
-  //       cy.findByRole('button', { name: /ok/i }).click();
+    // back in canvas
+    cy.get('#jp-main-dock-panel').within(() => {
+      // create-source-files props
+      cy.findByText('create-source-files.py').click();
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
+        cy.findByRole('button').click();
+        cy.findByRole('option', { name: /anaconda/i }).click();
+      });
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
+        cy.findByRole('button', { name: /add item/i }).click();
+        cy.focused().type('input-1.csv');
+        cy.findByRole('button', { name: /ok/i }).click();
 
-  //       cy.findByRole('button', { name: /add item/i }).click();
-  //       cy.focused().type('input-2.csv');
-  //       cy.findByRole('button', { name: /ok/i }).click();
-  //     });
+        cy.findByRole('button', { name: /add item/i }).click();
+        cy.focused().type('input-2.csv');
+        cy.findByRole('button', { name: /ok/i }).click();
+      });
 
-  //     // producer-script props
-  //     cy.findByText('producer-script.py').click();
-  //     cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-  //       cy.findByRole('button').click();
-  //       cy.findByRole('option', { name: /anaconda/i }).click();
-  //     });
-  //     cy.get('[data-id="properties-elyra_outputs"]').within(() => {
-  //       cy.findByRole('button', { name: /add item/i }).click();
-  //       cy.focused().type('output-3.csv');
-  //       cy.findByRole('button', { name: /ok/i }).click();
+      // producer-script props
+      cy.findByText('producer-script.py').click();
+      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
+        cy.findByRole('button').click();
+        cy.findByRole('option', { name: /anaconda/i }).click();
+      });
+      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
+        cy.findByRole('button', { name: /add item/i }).click();
+        cy.focused().type('output-3.csv');
+        cy.findByRole('button', { name: /ok/i }).click();
 
-  //       cy.findByRole('button', { name: /add item/i }).click();
-  //       cy.focused().type('output-4.csv');
-  //       cy.findByRole('button', { name: /ok/i }).click();
-  //     });
-  //   });
+        cy.findByRole('button', { name: /add item/i }).click();
+        cy.focused().type('output-4.csv');
+        cy.findByRole('button', { name: /ok/i }).click();
+      });
+    });
 
-  //   cy.savePipeline();
+    cy.savePipeline();
 
-  //   cy.readFile(
-  //     'build/cypress-tests/pipelines/complex.pipeline'
-  //   ).matchesSnapshot();
-  // });
+    cy.readFile(
+      'build/cypress-tests/pipelines/complex.pipeline'
+    ).matchesSnapshot();
+  });
 
-  // it('matches empty pipeline snapshot', () => {
-  //   cy.createPipeline({ name: 'empty.pipeline' });
+  it('matches empty pipeline snapshot', () => {
+    cy.createPipeline({ name: 'empty.pipeline' });
 
-  //   cy.addFileToPipeline('helloworld.ipynb');
+    cy.addFileToPipeline('helloworld.ipynb');
 
-  //   cy.get('#jp-main-dock-panel').within(() => {
-  //     cy.findByText('helloworld.ipynb').rightclick();
-  //     cy.findByRole('menuitem', { name: /delete/i }).click();
-  //   });
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb').rightclick();
+      cy.findByRole('menuitem', { name: /delete/i }).click();
+    });
 
-  //   cy.savePipeline();
+    cy.savePipeline();
 
-  //   cy.readFile('build/cypress-tests/empty.pipeline').matchesSnapshot();
-  // });
+    cy.readFile('build/cypress-tests/empty.pipeline').matchesSnapshot();
+  });
 
-  // it('matches simple pipeline snapshot', () => {
-  //   cy.createPipeline({ name: 'simple.pipeline' });
+  it('matches simple pipeline snapshot', () => {
+    cy.createPipeline({ name: 'simple.pipeline' });
 
-  //   cy.addFileToPipeline('helloworld.ipynb');
+    cy.addFileToPipeline('helloworld.ipynb');
 
-  //   cy.get('#jp-main-dock-panel').within(() => {
-  //     cy.findByText('helloworld.ipynb');
-  //   });
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb');
+    });
 
-  //   cy.savePipeline();
+    cy.savePipeline();
 
-  //   cy.readFile('build/cypress-tests/simple.pipeline').matchesSnapshot();
-  // });
+    cy.readFile('build/cypress-tests/simple.pipeline').matchesSnapshot();
+  });
 
-  // it('should open notebook on double-clicking the node', () => {
-  //   // Open a pipeline in root directory
-  //   cy.openFile('helloworld.pipeline');
+  it('should open notebook on double-clicking the node', () => {
+    // Open a pipeline in root directory
+    cy.openFile('helloworld.pipeline');
 
-  //   // Open notebook node with double-click
-  //   cy.get('.common-canvas-drop-div').within(() => {
-  //     cy.findByText('helloworld.ipynb').dblclick();
-  //   });
+    // Open notebook node with double-click
+    cy.get('.common-canvas-drop-div').within(() => {
+      cy.findByText('helloworld.ipynb').dblclick();
+    });
 
-  //   cy.findAllByRole('tab', { name: 'helloworld.ipynb' }).should('exist');
+    cy.findAllByRole('tab', { name: 'helloworld.ipynb' }).should('exist');
 
-  //   // close tabs
-  //   cy.closeTab(-1); // notebook tab
-  //   cy.closeTab(-1); // pipeline tab
+    // close tabs
+    cy.closeTab(-1); // notebook tab
+    cy.closeTab(-1); // pipeline tab
 
-  //   // Open a pipeline in a subfolder
-  //   cy.bootstrapFile('pipelines/producer.ipynb');
-  //   cy.openDirectory('pipelines');
-  //   cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
-  //   cy.openFile('complex.pipeline');
-  //   cy.get('.common-canvas-drop-div');
-  //   cy.wait(300);
-  //   cy.addFileToPipeline('producer.ipynb');
-  //   cy.wait(300);
+    // Open a pipeline in a subfolder
+    cy.bootstrapFile('pipelines/producer.ipynb');
+    cy.openDirectory('pipelines');
+    cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
+    cy.openFile('complex.pipeline');
+    cy.get('.common-canvas-drop-div');
+    cy.wait(300);
+    cy.addFileToPipeline('producer.ipynb');
+    cy.wait(300);
 
-  //   // Open notebook node with double-click
-  //   cy.get('#jp-main-dock-panel').within(() => {
-  //     cy.findByText('producer.ipynb').dblclick();
-  //   });
+    // Open notebook node with double-click
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('producer.ipynb').dblclick();
+    });
 
-  //   cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
-  // });
+    cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
+  });
 
-  // it('should open notebook from node right-click menu', () => {
-  //   // Open a pipeline in root directory
-  //   cy.openFile('helloworld.pipeline');
+  it('should open notebook from node right-click menu', () => {
+    // Open a pipeline in root directory
+    cy.openFile('helloworld.pipeline');
 
-  //   // Open notebook node with right-click menu
-  //   cy.get('#jp-main-dock-panel').within(() => {
-  //     cy.findByText('helloworld.ipynb').rightclick();
-  //     cy.findByRole('menuitem', { name: /open file/i }).click();
-  //   });
+    // Open notebook node with right-click menu
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('helloworld.ipynb').rightclick();
+      cy.findByRole('menuitem', { name: /open file/i }).click();
+    });
 
-  //   cy.findAllByRole('tab', { name: 'helloworld.ipynb' }).should('exist');
+    cy.findAllByRole('tab', { name: 'helloworld.ipynb' }).should('exist');
 
-  //   // close tabs
-  //   cy.closeTab(-1); // notebook tab
-  //   cy.closeTab(-1); // pipeline tab
+    // close tabs
+    cy.closeTab(-1); // notebook tab
+    cy.closeTab(-1); // pipeline tab
 
-  //   // Open a pipeline in a subfolder
-  //   cy.bootstrapFile('pipelines/producer.ipynb');
-  //   cy.openDirectory('pipelines');
-  //   cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
-  //   cy.openFile('complex.pipeline');
-  //   cy.get('.common-canvas-drop-div');
-  //   cy.wait(300);
-  //   cy.addFileToPipeline('producer.ipynb');
+    // Open a pipeline in a subfolder
+    cy.bootstrapFile('pipelines/producer.ipynb');
+    cy.openDirectory('pipelines');
+    cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
+    cy.openFile('complex.pipeline');
+    cy.get('.common-canvas-drop-div');
+    cy.wait(300);
+    cy.addFileToPipeline('producer.ipynb');
 
-  //   // Open notebook node with right-click menu
-  //   cy.get('#jp-main-dock-panel').within(() => {
-  //     cy.findByText('producer.ipynb').rightclick();
-  //     cy.findByRole('menuitem', { name: /open file/i }).click();
-  //   });
+    // Open notebook node with right-click menu
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.findByText('producer.ipynb').rightclick();
+      cy.findByRole('menuitem', { name: /open file/i }).click();
+    });
 
-  //   cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
-  // });
+    cy.findAllByRole('tab', { name: 'producer.ipynb' }).should('exist');
+  });
 
   it('should save runtime configuration', () => {
     cy.createPipeline();
@@ -652,14 +652,14 @@ describe('Pipeline Editor tests', () => {
 // ----- Utility Functions
 // ------------------------------
 
-// const checkEnabledToolbarButtons = (buttons: RegExp[]): void => {
-//   for (const button of buttons) {
-//     cy.findByRole('button', { name: button }).should('not.be.disabled');
-//   }
-// };
+const checkEnabledToolbarButtons = (buttons: RegExp[]): void => {
+  for (const button of buttons) {
+    cy.findByRole('button', { name: button }).should('not.be.disabled');
+  }
+};
 
-// const checkDisabledToolbarButtons = (buttons: RegExp[]): void => {
-//   for (const button of buttons) {
-//     cy.findByRole('button', { name: button }).should('be.disabled');
-//   }
-// };
+const checkDisabledToolbarButtons = (buttons: RegExp[]): void => {
+  for (const button of buttons) {
+    cy.findByRole('button', { name: button }).should('be.disabled');
+  }
+};
