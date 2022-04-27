@@ -165,6 +165,24 @@ class Pipeline(AppDataBase):
         """
         return self._node["app_data"]["ui_data"].get("comments", [])
 
+    @property
+    def pipeline_parameters(self) -> Dict[str, Any]:
+        """
+        Retrieve pipeline parameters, which are defined as all
+        key/value pairs in the 'properties' stanza that are not
+        either pipeline meta-properties (e.g. name, description,
+        and runtime) or the pipeline defaults dictionary
+        """
+        all_properties = self._node["app_data"].get("properties", {})
+        excluded_properties = pipeline_constants.PIPELINE_META_PROPERTIES + [pipeline_constants.PIPELINE_DEFAULTS]
+
+        pipeline_parameters = {}
+        for property_name, value in all_properties.items():
+            if property_name not in excluded_properties:
+                pipeline_parameters[property_name] = value
+
+        return pipeline_parameters
+
     def get_property(self, key: str, default_value=None) -> Any:
         """
         Retrieve pipeline values for a given key.
