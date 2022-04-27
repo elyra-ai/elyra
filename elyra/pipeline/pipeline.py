@@ -418,7 +418,7 @@ class KeyValueList(list):
 
     def to_dict(self, logger: Optional[Logger] = None) -> Dict[str, str]:
         """
-        Properties consisting of key/value pairs are stored in a list of separated
+        Properties consisting of key-value pairs are stored in a list of separated
         strings, while most processing steps require a dictionary - so we must convert.
         If no key/value pairs are specified, an empty dictionary is returned, otherwise
         pairs are converted to dictionary entries, stripped of whitespace, and returned.

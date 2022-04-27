@@ -192,14 +192,14 @@ class Pipeline(AppDataBase):
 
         self._node["app_data"]["properties"][key] = value
 
-    def convert_kv_pair_properties(self, kv_pair_properties: List[str]):
+    def convert_kv_properties(self, kv_properties: List[str]):
         """
         Convert pipeline defaults-level list properties that have been identified
         as sets of key-value pairs from a plain list type to the KeyValueList type.
         """
         pipeline_defaults = self.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
         for property_name, value in pipeline_defaults.items():
-            if property_name not in kv_pair_properties:
+            if property_name not in kv_properties:
                 continue
 
             # Replace plain list with KeyValueList
@@ -305,13 +305,13 @@ class Node(AppDataBase):
         """
         return self._node["app_data"]["component_parameters"]
 
-    def convert_kv_pair_properties(self, kv_pair_properties: List[str]):
+    def convert_kv_properties(self, kv_properties: List[str]):
         """
         Convert node-level list properties that have been identified  as sets of
         key-value pairs from a plain list type to the KeyValueList type.
         """
         for property_name, value in self.get_all_component_parameters().items():
-            if property_name not in kv_pair_properties:
+            if property_name not in kv_properties:
                 continue
 
             if not value:
@@ -493,18 +493,17 @@ class PipelineDefinition(object):
         For any default pipeline properties set (e.g. runtime image, volume), propagate
         the values to any nodes that do not set their own value for that property.
         """
-        kv_pair_properties = PipelineDefinition.get_pipeline_kv_pair_properties()
+        # Convert any key-value list pipeline default properties to the KeyValueList type
+        kv_properties = PipelineDefinition.get_kv_properties()
+        self.primary_pipeline.convert_kv_properties(kv_properties)
+
         pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
-
-        # Convert any key/value list pipeline default properties to the KeyValueList type
-        self.primary_pipeline.convert_kv_pair_properties(kv_pair_properties)
-
         for node in self.pipeline_nodes:
             if not Operation.is_generic_operation(node.op):
                 continue
 
-            # Convert any key/value list node properties to the KeyValueList type
-            node.convert_kv_pair_properties(kv_pair_properties)
+            # Convert any key-value list node properties to the KeyValueList type
+            node.convert_kv_properties(kv_properties)
 
             for property_name, pipeline_default_value in pipeline_default_properties.items():
                 if not pipeline_default_value:
@@ -612,7 +611,7 @@ class PipelineDefinition(object):
         return json.loads(output)
 
     @staticmethod
-    def get_pipeline_kv_pair_properties() -> List[str]:
+    def get_kv_properties() -> List[str]:
         """
         Get pipeline properties in its canvas form and loop through to
         find those that should consist of key/value pairs, as given in
@@ -622,16 +621,16 @@ class PipelineDefinition(object):
             package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
         )
 
-        kv_pair_properties = []
+        kv_properties = []
         parameter_info = canvas_pipeline_properties.get("uihints", {}).get("parameter_info", [])
         for parameter in parameter_info:
             if parameter.get("data", {}).get("keyValueEntries", False):
                 parameter_ref = parameter.get("parameter_ref", "")
                 if parameter_ref.startswith("elyra_"):
                     parameter_ref = parameter_ref.replace("elyra_", "")
-                kv_pair_properties.append(parameter_ref)
+                kv_properties.append(parameter_ref)
 
-        return kv_pair_properties
+        return kv_properties
 
 
 class SilentUndefined(Undefined):
