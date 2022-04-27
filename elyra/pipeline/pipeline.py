@@ -22,6 +22,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
 PIPELINE_CURRENT_VERSION = 7
@@ -290,11 +292,7 @@ class GenericOperation(Operation):
 
     @property
     def env_vars(self) -> Optional["KeyValueList"]:
-        return self._component_params.get("env_vars")
-
-    @property
-    def volume_mounts(self) -> Optional["KeyValueList"]:
-        return self._component_params.get("mounted_volumes")
+        return self._component_params.get(ENV_VARIABLES)
 
     @property
     def cpu(self) -> Optional[str]:
