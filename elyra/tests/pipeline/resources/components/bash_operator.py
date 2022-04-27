@@ -110,17 +110,15 @@ class BashOperator(BaseOperator):
         Execute the bash command in a temporary directory
         which will be cleaned afterwards
         """
-        self.log.info("Tmp dir root location: \n %s", gettempdir())
+        self.log.info(f"Tmp dir root location: \n {gettempdir()}")
 
         # Prepare env for child process.
         env = self.env
         if env is None:
             env = os.environ.copy()
         airflow_context_vars = context_to_airflow_vars(context, in_env_var_format=True)
-        self.log.debug(
-            "Exporting the following env vars:\n%s",
-            "\n".join(["{}={}".format(k, v) for k, v in airflow_context_vars.items()]),
-        )
+        acv_log = "\n".join(["{}={}".format(k, v) for k, v in airflow_context_vars.items()])
+        self.log.debug("Exporting the following env vars:\n" f"{acv_log}")
         env.update(airflow_context_vars)
 
         self.lineage_data = self.bash_command
@@ -132,7 +130,7 @@ class BashOperator(BaseOperator):
                 f.flush()
                 fname = f.name
                 script_location = os.path.abspath(fname)
-                self.log.info("Temporary script location: %s", script_location)
+                self.log.info(f"Temporary script location: {script_location}")
 
                 def pre_exec():
                     # Restore default signal disposition and invoke setsid
@@ -141,7 +139,7 @@ class BashOperator(BaseOperator):
                             signal.signal(getattr(signal, sig), signal.SIG_DFL)
                     os.setsid()
 
-                self.log.info("Running command: %s", self.bash_command)
+                self.log.info(f"Running command: {self.bash_command}")
                 self.sub_process = Popen(
                     ["bash", fname], stdout=PIPE, stderr=STDOUT, cwd=tmp_dir, env=env, preexec_fn=pre_exec
                 )
@@ -152,7 +150,7 @@ class BashOperator(BaseOperator):
                     line = line.decode(self.output_encoding).rstrip()
                     self.log.info(line)
                 self.sub_process.wait()
-                self.log.info("Command exited with return code %s", self.sub_process.returncode)
+                self.log.info(f"Command exited with return code {self.sub_process.returncode}")
 
                 if self.sub_process.returncode:
                     raise AirflowException("Bash command failed")

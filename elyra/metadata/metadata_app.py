@@ -112,33 +112,20 @@ class SchemaspaceList(SchemaspaceBase):
 
             print()
             print(
-                "%s   %s  %s  "
-                % (
-                    "Schema".ljust(max_schema_name_len),
-                    "Instance".ljust(max_name_len),
-                    "Resource".ljust(max_resource_len),
-                )
+                f"{'Schema'.ljust(max_schema_name_len)}   {'Instance'.ljust(max_name_len)}  "
+                f"{'Resource'.ljust(max_resource_len)}  "
             )
             print(
-                "%s   %s  %s  "
-                % (
-                    "------".ljust(max_schema_name_len),
-                    "--------".ljust(max_name_len),
-                    "--------".ljust(max_resource_len),
-                )
+                f"{'------'.ljust(max_schema_name_len)}   {'--------'.ljust(max_name_len)}  "
+                f"{'--------'.ljust(max_resource_len)}  "
             )
             for instance in sorted_instances:
                 invalid = ""
                 if instance.reason and len(instance.reason) > 0:
                     invalid = f"**INVALID** ({instance.reason})"
                 print(
-                    "%s   %s  %s  %s"
-                    % (
-                        instance.schema_name.ljust(max_schema_name_len),
-                        instance.name.ljust(max_name_len),
-                        instance.resource.ljust(max_resource_len),
-                        invalid,
-                    )
+                    f"{instance.schema_name.ljust(max_schema_name_len)}   {instance.name.ljust(max_name_len)}  "
+                    f"{instance.resource.ljust(max_resource_len)}  {invalid}"
                 )
 
 
