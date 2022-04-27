@@ -3,6 +3,7 @@
     "name": "",
     "runtime": "",
     "description": "",
+    "cos_object_prefix": "",
     "elyra_runtime_image": null,
     "elyra_env_vars": [],
     "elyra_mounted_volumes": []
@@ -16,6 +17,9 @@
     },
     {
       "id": "description"
+    },
+    {
+      "id": "cos_object_prefix"
     },
     {
       "id": "elyra_runtime_image"
@@ -50,6 +54,19 @@
         "data": {
           "placeholder": "Pipeline description",
           "format": "multiline"
+        }
+      },
+      {
+        "control": "custom",
+        "custom_control_id": "StringControl",
+        "parameter_ref": "cos_object_prefix",
+        "label": { "default": "Object Storage path prefix" },
+        "description": {
+          "default": "For generic components, this path prefix is used when storing artifacts on Object Storage.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "project/subproject"
         }
       },
       {
@@ -116,6 +133,11 @@
             "id": "description",
             "type": "controls",
             "parameter_refs": ["description"]
+          },
+          {
+            "id": "cos_object_prefix",
+            "type": "controls",
+            "parameter_refs": ["cos_object_prefix"]
           },
           {
             "id": "elyra_outputCategoryHeader",

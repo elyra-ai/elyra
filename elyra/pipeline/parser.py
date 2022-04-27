@@ -63,6 +63,7 @@ class PipelineParser(LoggingConfigurable):
             runtime_config=runtime_config,
             source=source,
             description=description,
+            pipeline_parameters=primary_pipeline.pipeline_parameters,
         )
         self._nodes_to_operations(pipeline_definition, pipeline_object, primary_pipeline.nodes)
         return pipeline_object

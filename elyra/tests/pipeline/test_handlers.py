@@ -198,6 +198,7 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             {"id": "name"},
             {"id": "runtime"},
             {"id": "description"},
+            {"id": "cos_object_prefix"},
             {"id": "elyra_runtime_image"},
             {"id": "elyra_env_vars"},
             {"id": "elyra_mounted_volumes"},
