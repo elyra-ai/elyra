@@ -211,7 +211,7 @@
           "default": "Data Volumes"
         },
         "description": {
-          "default": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubeflow Pipelines user namespace or this node will not run.",
+          "default": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
           "placement": "on_panel"
         },
         "data": {
