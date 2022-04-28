@@ -19,20 +19,16 @@ import { StackedLayout, Widget } from '@lumino/widgets';
 
 export class CodeViewerWidget extends Widget {
   /**
-   * Construct a new text viewer widget.
+   * Construct a new code viewer widget.
    */
   constructor(options: CodeViewerWidget.IOptions) {
     super();
+    this.model = options.model;
 
-    this.model = new CodeEditor.Model({
-      value: options.content,
-      mimeType: options.mimeType
-    });
-
-    const editorWidget = (this.editorWidget = new CodeEditorWrapper({
+    const editorWidget = new CodeEditorWrapper({
       factory: options.factory,
-      model: this.model
-    }));
+      model: options.model
+    });
     this.editor = editorWidget.editor;
     this.editor.setOption('readOnly', true);
 
@@ -40,19 +36,46 @@ export class CodeViewerWidget extends Widget {
     layout.addWidget(editorWidget);
   }
 
-  private editorWidget: CodeEditorWrapper;
-  public model: CodeEditor.IModel;
-  public editor: CodeEditor.IEditor;
+  static getCodeViewer(
+    options: CodeViewerWidget.INoModelOptions
+  ): CodeViewerWidget {
+    const model = new CodeEditor.Model({
+      value: options.content,
+      mimeType: options.mimeType
+    });
+    return new CodeViewerWidget({ factory: options.factory, model });
+  }
+
+  getContent = (): string => this.model.value.text;
+  getMimeType = (): string => this.model.mimeType;
+
+  model: CodeEditor.IModel;
+  editor: CodeEditor.IEditor;
 }
 
 /**
- * The namespace for text viewer widget.
+ * The namespace for code viewer widget.
  */
 export namespace CodeViewerWidget {
   /**
-   * The options used to create an text viewer widget.
+   * The options used to create an code viewer widget.
    */
   export interface IOptions {
+    /**
+     * A code editor factory.
+     */
+    factory: CodeEditor.Factory;
+
+    /**
+     * The content model for the viewer.
+     */
+    model: CodeEditor.Model;
+  }
+
+  /**
+   * The options used to create an code viewer widget without a model.
+   */
+  export interface INoModelOptions {
     /**
      * A code editor factory.
      */
