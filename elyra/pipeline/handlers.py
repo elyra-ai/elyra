@@ -21,8 +21,6 @@ import mimetypes
 from typing import List
 from typing import Optional
 
-from jinja2 import Environment
-from jinja2 import PackageLoader
 from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado import web
@@ -34,6 +32,7 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_catalog import RefreshInProgressError
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorRegistry
 from elyra.pipeline.runtime_type import RuntimeProcessorType
@@ -208,9 +207,9 @@ class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
         # Get pipeline properties json
-        jinja_loader = PackageLoader("elyra", "templates/pipeline")
-        template = Environment(loader=jinja_loader).get_template("pipeline_properties_template.jinja2")
-        pipeline_properties_json = json.loads(template.render())
+        pipeline_properties_json = PipelineDefinition.get_canvas_properties_from_template(
+            package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
+        )
 
         self.set_status(200)
         self.set_header("Content-Type", "application/json")

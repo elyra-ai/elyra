@@ -500,7 +500,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         :return: dictionary containing environment name/value pairs
         """
 
-        envs: Dict = operation.env_vars_as_dict(logger=self.log)
+        envs: Dict = operation.env_vars.to_dict(logger=self.log)
         envs["ELYRA_RUNTIME_ENV"] = self.name
 
         # set environment variables for Minio/S3 access, in the following order of precedence:
@@ -584,31 +584,24 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
     def _get_volume_mounts(self, operation: Operation) -> Optional[Dict[str, str]]:
         """
-        Parses the mounted volume strings specified in the Operation into a key value pair of
-        <MOUNT PATH>: <PVC NAME>
+        Loops through an Operation mounted volumes to re-format path and remove
+        invalid PVC names.
+
         :param operation: the operation to check for volume mounts
-        :return:
+        :return: dictionary of mount path to valid PVC names
         """
-        volume_mounts = operation.component_params.get(MOUNTED_VOLUMES)
+        volume_mounts_valid = {}
         if operation.component_params.get(MOUNTED_VOLUMES):
-            volume_mounts = {}
-            for entry in operation.component_params[MOUNTED_VOLUMES]:
-                # TODO: Replace hack (input formatted as "<mount_point>=<pvc_name>") once the
-                # pipeline object makes the parameter available as a dictionary
-                s = entry.split("=")
-                # make sure the input is valid
-                if len(s) != 2:
-                    self.log.warning(f"Ignoring invalid volume mount entry '{entry}': a PVC name is required.")
-                    continue
-                s[0] = f"/{s[0].strip().strip('/')}"  # result should be formatted as "/mount/path"
-                s[1] = s[1].strip()
-                # ensure the PVC name is syntactically a valid Kubernetes resource name
-                if not is_valid_kubernetes_resource_name(s[1]):
+            volume_mounts = operation.component_params.get(MOUNTED_VOLUMES).to_dict()
+            for mount_path, pvc_name in volume_mounts.items():
+                # Ensure the PVC name is syntactically a valid Kubernetes resource name
+                if not is_valid_kubernetes_resource_name(pvc_name):
                     self.log.warning(
-                        f"Ignoring invalid volume mount entry '{entry}': the PVC name '{s[1]}'"
-                        "is not a valid Kubernetes resource name."
+                        f"Ignoring invalid volume mount entry '{mount_path}': the PVC "
+                        f"name '{pvc_name}' is not a valid Kubernetes resource name."
                     )
                     continue
-                volume_mounts[s[0]] = s[1]
-                # end hack
-        return volume_mounts
+
+                formatted_mount_path = f"/{mount_path.strip('/')}"
+                volume_mounts_valid[formatted_mount_path] = pvc_name
+        return volume_mounts_valid
