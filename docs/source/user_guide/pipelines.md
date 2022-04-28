@@ -81,10 +81,16 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
           Configure an object storage path prefix to store artifacts in a pipeline-specific location `/<path-prefix>/<pipeline-instance-name>`:
           ![artifacts custom storage layout on object storage](../images/user_guide/pipelines/generic-node-artifacts-custom-layout.png)
 
-      - Default values that apply to every generic pipeline node. These values can be overridden for each node.
-         - **Runtime image**. Identifies the container image used to execute the Jupyter notebook or script. Select an image from the list or [add a new one](runtime-image-conf.md) that meets your requirements.
-         - **Environment variables**. A list of environment variables to be set in the container that executes the Jupyter notebook or script. Format: `ENV_VAR_NAME=value`. Entries that are empty (`ENV_VAR_NAME=`) or malformed are ignored.
-         - **Data volume**. A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the Jupyter notebook or script. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. The referenced PVCs must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+      - Default values that apply to every pipeline node that is implemented by a [generic component](pipeline-components.html#generic-components). These values can be overridden for each node.
+         - **Runtime image** 
+           - Identifies the container image used to execute the Jupyter notebook or script. Select an image from the list or [add a new one](runtime-image-conf.md) that meets your requirements.
+           - The value is ignored when the pipeline is executed locally.
+         - **Environment variables**
+           - A list of environment variables to be set in the container that executes the Jupyter notebook or script. Format: `ENV_VAR_NAME=value`. Entries that are empty (`ENV_VAR_NAME=`) or malformed are ignored.
+         - **Data volume**
+           - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the Jupyter notebook or script. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. 
+           - The referenced PVCs must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+           - Data volumes are not mounted when the pipeline is executed locally.
 
 #### Adding nodes
 
@@ -104,15 +110,17 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
 
    ![Configure node](../images/user_guide/pipelines/configure-node.gif)
 
-   Runtime properties are component specific. For generic components (Jupyter notebook, Python script, and R script) the properties are defined as follows:
+   Runtime properties are component specific. For [generic components](pipeline-components.html#generic-components) (Jupyter notebook, Python script, and R script) the properties are defined as follows:
 
    **Runtime Image**
-   - Required. The container image you want to use to run the notebook or script. 
+   - Required. The container image you want to use to run the notebook or script.
+   - The value is ignored when the pipeline is executed locally. 
    - A default runtime image can also be set in the pipeline properties tab. If a default image is set, the **Runtime Image** property in the node properties tab will indicate that a pipeline default is set. Individual nodes can override the pipeline default value. 
    - Example: `TensorFlow 2.0`
 
    **CPU, GPU, and RAM**
-   - Optional. Resources that the notebook or script requires. 
+   - Optional. Resources that the notebook or script requires.
+   - The values are ignored when the pipeline is executed locally. 
 
    **File Dependencies**
    - Optional. A list of files to be passed from the local working environment into each respective step of the pipeline. Files should be in the same directory (or subdirectory thereof) as the file it is associated with. Specify one file, directory, or expression per line. Supported patterns are `*` and `?`. 
@@ -129,6 +137,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
 
    **Data Volumes**
    - Optional. A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the Jupyter notebook or script. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. The referenced PVCs must exist in the Kubernetes namespace where the node is executed.
+   - Data volumes are not mounted when the pipeline is executed locally.   
    - Example: `/mnt/vol1=data-pvc`
 
 1. Associate each node with a comment to document its purpose.
