@@ -18,7 +18,8 @@ import os
 import pytest
 
 from elyra.pipeline.parser import PipelineParser
-from elyra.pipeline.pipeline import GenericOperation, KeyValueList
+from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
