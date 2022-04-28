@@ -369,7 +369,7 @@ export class MetadataEditorWidget extends ReactWidget {
           metadataWithCategories[category] = {};
         }
         metadataWithCategories[category][schemaProperty] =
-          metadata?.metadata?.[schemaProperty];
+          metadata?.metadata?.[schemaProperty] ?? properties.default;
         if (!schemaPropertiesByCategory[category]) {
           schemaPropertiesByCategory[category] = {
             type: 'object',
