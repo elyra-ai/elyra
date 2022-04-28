@@ -532,7 +532,7 @@ const PipelineWrapper: React.FC<IProps> = ({
               <br />
               <br />
               <a
-                href="https://elyra.readthedocs.io/en/v3.7.0rc0/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
+                href="https://elyra.readthedocs.io/en/latest/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
                 target="_blank"
                 rel="noreferrer"
               >
