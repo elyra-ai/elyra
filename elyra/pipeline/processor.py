@@ -591,16 +591,17 @@ class RuntimePipelineProcessor(PipelineProcessor):
         :return: dictionary of mount path to valid PVC names
         """
         volume_mounts_valid = {}
-        volume_mounts = operation.component_params.get(MOUNTED_VOLUMES).to_dict()
-        for mount_path, pvc_name in volume_mounts.items():
-            # Ensure the PVC name is syntactically a valid Kubernetes resource name
-            if not is_valid_kubernetes_resource_name(pvc_name):
-                self.log.warning(
-                    f"Ignoring invalid volume mount entry '{mount_path}': the PVC "
-                    f"name '{pvc_name}' is not a valid Kubernetes resource name."
-                )
-                continue
+        if operation.component_params.get(MOUNTED_VOLUMES):
+            volume_mounts = operation.component_params.get(MOUNTED_VOLUMES).to_dict()
+            for mount_path, pvc_name in volume_mounts.items():
+                # Ensure the PVC name is syntactically a valid Kubernetes resource name
+                if not is_valid_kubernetes_resource_name(pvc_name):
+                    self.log.warning(
+                        f"Ignoring invalid volume mount entry '{mount_path}': the PVC "
+                        f"name '{pvc_name}' is not a valid Kubernetes resource name."
+                    )
+                    continue
 
-            formatted_mount_path = f"/{mount_path.strip('/')}"
-            volume_mounts_valid[formatted_mount_path] = pvc_name
+                formatted_mount_path = f"/{mount_path.strip('/')}"
+                volume_mounts_valid[formatted_mount_path] = pvc_name
         return volume_mounts_valid
