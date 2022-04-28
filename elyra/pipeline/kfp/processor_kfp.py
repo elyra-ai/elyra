@@ -360,13 +360,19 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 duration=time.time() - t0,
             )
 
-        os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+        if pipeline.contains_generic_operations():
+            object_storage_url = f"{cos_endpoint}"
+            os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+            object_storage_path = f"/{cos_bucket}/{os_path}"
+        else:
+            object_storage_url = None
+            object_storage_path = None
 
         return KfpPipelineProcessorResponse(
             run_id=run.id,
             run_url=f"{public_api_endpoint}/#/runs/details/{run.id}",
-            object_storage_url=f"{cos_endpoint}",
-            object_storage_path=f"/{cos_bucket}/{os_path}",
+            object_storage_url=object_storage_url,
+            object_storage_path=object_storage_path,
         )
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
