@@ -72,6 +72,7 @@ def test_fail_with_empty_string_as_filename():
     with pytest.raises(ValueError) as error_info:
         BootscriptBuilder(
             filename="",
+            pipeline_name="test-pipeline",
             cos_endpoint="http://testserver:32525",
             cos_bucket="test_bucket",
             cos_directory="test_directory",
@@ -86,6 +87,7 @@ def test_build_cmd_with_inputs_and_outputs():
 
     boot_build = BootscriptBuilder(
         filename="test_notebook.ipynb",
+        pipeline_name="test-pipeline",
         cos_endpoint="http://testserver:32525",
         cos_bucket="test_bucket",
         cos_directory="test_directory",

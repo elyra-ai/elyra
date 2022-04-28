@@ -199,6 +199,7 @@ class ExecuteFileOp(ContainerOp):
                 f"python3 -m pip install {self.python_user_lib_path_target} packaging && "
                 "python3 -m pip freeze > requirements-current.txt && "
                 "python3 bootstrapper.py "
+                f'--pipeline-name "{self.pipeline_name}" '
                 f"--cos-endpoint {self.cos_endpoint} "
                 f"--cos-bucket {self.cos_bucket} "
                 f'--cos-directory "{self.cos_directory}" '

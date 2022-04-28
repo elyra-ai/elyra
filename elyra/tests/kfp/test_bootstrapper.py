@@ -745,6 +745,8 @@ def test_parse_arguments():
         "test-bucket",
         "-p",
         "/tmp/lib",
+        "-n",
+        "test-pipeline",
     ]
     args_dict = bootstrapper.OpUtil.parse_arguments(test_args)
 
@@ -754,6 +756,7 @@ def test_parse_arguments():
     assert args_dict["cos-bucket"] == "test-bucket"
     assert args_dict["filepath"] == "test-notebook.ipynb"
     assert args_dict["user-volume-path"] == "/tmp/lib"
+    assert args_dict["pipeline-name"] == "test-pipeline"
     assert not args_dict["inputs"]
     assert not args_dict["outputs"]
 

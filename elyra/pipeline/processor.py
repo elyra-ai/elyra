@@ -19,6 +19,7 @@ import ast
 import asyncio
 import functools
 import os
+from pathlib import Path
 import time
 from typing import Dict
 from typing import List
@@ -352,15 +353,13 @@ class RuntimePipelineProcessor(PipelineProcessor):
     def __init__(self, root_dir: str, **kwargs):
         super().__init__(root_dir, **kwargs)
 
-    def _get_dependency_archive_name(self, operation):
-        artifact_name = os.path.basename(operation.filename)
-        (name, ext) = os.path.splitext(artifact_name)
-        return name + "-" + operation.id + ".tar.gz"
+    def _get_dependency_archive_name(self, operation: Operation) -> str:
+        return f"{Path(operation.filename).stem}-{operation.id}.tar.gz"
 
-    def _get_dependency_source_dir(self, operation):
-        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
+    def _get_dependency_source_dir(self, operation: Operation) -> str:
+        return str(Path(self.root_dir) / Path(operation.filename).parent)
 
-    def _generate_dependency_archive(self, operation):
+    def _generate_dependency_archive(self, operation: Operation) -> Optional[str]:
         archive_artifact_name = self._get_dependency_archive_name(operation)
         archive_source_dir = self._get_dependency_source_dir(operation)
 
@@ -377,16 +376,25 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
         return archive_artifact
 
-    def _upload_dependencies_to_object_store(self, runtime_configuration, pipeline_name, operation):
+    def _upload_dependencies_to_object_store(
+        self, runtime_configuration: str, pipeline_name: str, operation: Operation, prefix: str = ""
+    ) -> None:
+        """
+        Create dependency archive for the generic operation identified by operation
+        and upload it to object storage.
+        """
         operation_artifact_archive = self._get_dependency_archive_name(operation)
-        cos_directory = pipeline_name
+
+        # object prefix
+        object_prefix = prefix.strip("/")
+
         # upload operation dependencies to object store
         try:
             t0 = time.time()
             dependency_archive_path = self._generate_dependency_archive(operation)
             self.log_pipeline_info(
                 pipeline_name,
-                f"generated dependency archive: {dependency_archive_path}",
+                f"generated dependency archive '{dependency_archive_path}'",
                 operation_name=operation.name,
                 duration=(time.time() - t0),
             )
@@ -394,12 +402,14 @@ class RuntimePipelineProcessor(PipelineProcessor):
             cos_client = CosClient(config=runtime_configuration)
 
             t0 = time.time()
-            cos_client.upload_file_to_dir(
-                dir=cos_directory, file_name=operation_artifact_archive, file_path=dependency_archive_path
+            uploaded_object_name = cos_client.upload_file(
+                local_file_path=dependency_archive_path,
+                object_name=operation_artifact_archive,
+                object_prefix=object_prefix,
             )
             self.log_pipeline_info(
                 pipeline_name,
-                f"uploaded dependency archive to: {cos_directory}/{operation_artifact_archive}",
+                f"uploaded dependency archive to '{uploaded_object_name}' in bucket '{cos_client.bucket}'",
                 operation_name=operation.name,
                 duration=(time.time() - t0),
             )
