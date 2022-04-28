@@ -18,7 +18,7 @@ import os
 import pytest
 
 from elyra.pipeline.parser import PipelineParser
-from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline import GenericOperation, KeyValueList
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
@@ -49,11 +49,12 @@ def sample_metadata():
 
 
 def test_get_volume_mounts(runtime_processor):
+    mounted_volumes = KeyValueList(["/mount/test=rwx-test-claim", "/mount/test_two=second-claim"])
     component_parameters = {
         "filename": "pipelines_test_file",
         "env_vars": [],
         "runtime_image": "tensorflow/tensorflow:latest",
-        "mounted_volumes": ["/mount/test=rwx-test-claim", "/mount/test_two=second-claim"],
+        "mounted_volumes": mounted_volumes,
     }
     test_operation = GenericOperation(
         id="this-is-a-test-id",
