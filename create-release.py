@@ -110,7 +110,7 @@ def update_version_to_release() -> None:
     try:
         # Update backend version
         sed(_source(".bumpversion.cfg"), rf"^current_version* =* {old_version}", f"current_version = {new_version}")
-        sed(_source("elyra/_version.py"), rf"^__version__* =* '{old_version}'", f"__version__ = '{new_version}'"),
+        sed(_source("elyra/_version.py"), rf"^__version__* =* \"{old_version}\"", f"__version__ = \"{new_version}\""),
         sed(_source("README.md"), rf"elyra {old_version}", f"elyra {new_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra {old_version}", f"elyra {new_version}")
 
@@ -126,11 +126,6 @@ def update_version_to_release() -> None:
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), r"master", f"{config.tag}")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), r"dev", f"{new_version}")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), r"master", f"{new_version}")
-        sed(
-            _source("etc/docker/elyra/Dockerfile"),
-            r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
-            f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra",
-        )
 
         # Update UI component versions
         sed(_source("README.md"), rf"v{old_npm_version}", f"v{new_version}")
@@ -240,8 +235,6 @@ def update_version_to_dev() -> None:
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.tag}", "master")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"{new_version}", "dev")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", "master")
-
-        sed(_source("etc/docker/elyra/Dockerfile"), rf"\&\& git checkout tags/v{new_version} -b v{new_version} ", f"")
 
         # Update UI component versions
         sed(_source("README.md"), rf"extension v{new_version}", f"extension v{dev_npm_version}")
