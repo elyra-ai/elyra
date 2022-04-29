@@ -257,6 +257,24 @@ def update_version_to_dev() -> None:
             rf"https://elyra.readthedocs.io/en/latest/",
         )
 
+        sed(
+            _source("elyra/cli/pipeline_app.py"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+            rf"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        sed(
+            _source("packages/pipeline-editor/src/EmptyPipelineContent.tsx"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("packages/pipeline-editor/src/PipelineEditorWidget.tsx"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
         check_run(
             ["lerna", "version", dev_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"],
             cwd=config.source_dir,
@@ -438,8 +456,8 @@ def prepare_extensions_release() -> None:
         setup_file = os.path.join(extension_source_dir, "setup.py")
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data-files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
-        sed(setup_file, "{{install-requires}}", f"'elyra-server=={config.new_version}',")
+        sed(setup_file, "{{data - files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
+        sed(setup_file, "{{install - requires}}", f"'elyra-server=={config.new_version}',")
 
         for dependency in extensions[extension]:
             copy_extension_dir(dependency, extension_source_dir)
@@ -475,12 +493,12 @@ def prepare_runtime_extensions_package_release() -> None:
         sed(setup_file, "{{package-name}}", package)
         sed(setup_file, "{{version}}", config.new_version)
         # no data files
-        sed(setup_file, "{{data-files}}", "")
+        sed(setup_file, "{{data - files}}", "")
         # prepare package specific dependencies
         requires = ""
         for dependency in packages[package]:
             requires += f"'{dependency}',"
-        sed(setup_file, "{{install-requires}}", requires)
+        sed(setup_file, "{{install - requires}}", requires)
         # copy source files
         source_dir = os.path.join(config.source_dir, "elyra", packages_source[package])
         dest_dir = os.path.join(package_source_dir, "elyra", packages_source[package])
