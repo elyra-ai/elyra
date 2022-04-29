@@ -48,30 +48,30 @@ You can customize the pipeline editor behavior by opening the settings link in t
 
 ### Metadata management sidebars
 
-Elyra adds multiple sidebars to the JupyterLab GUI. These sidebars provide access to Elyra metadata, which is primarily used when you work with pipelines.
+Elyra adds multiple tabs to [JupyterLab's left sidebar](https://jupyterlab.readthedocs.io/en/stable/user/interface.html#left-and-right-sidebar). These tabs provide access to Elyra metadata, which is primarily used when you work with pipelines.
 
-![JupyterLab sidebars](../images/user_guide/jupyterlab-interface/jupyterlab-sidebars.png)
+![JupyterLab sidebar tabs](../images/user_guide/jupyterlab-interface/jupyterlab-sidebars.png)
 
 #### Manage code snippets
 
-[Code snippets](code-snippets.md) allow for re-use of code in editors. To manage code snippets, open the `Code Snippets` sidebar.
+[Code snippets](code-snippets.md) allow for re-use of code in editors. To manage code snippets, open the `Code Snippets` tab.
 
-![Code snippets sidebar](../images/user_guide/jupyterlab-interface/code-snippets-sidebar.png)
+![Code snippets tab](../images/user_guide/jupyterlab-interface/code-snippets-sidebar.png)
 
 #### Manage runtime configurations
 
-[Runtime configurations](runtime-conf.md) manage access to runtime environments that you use to run pipelines in supported runtime environments. To manage runtime configurations, open the `Runtimes` sidebar.
+[Runtime configurations](runtime-conf.md) manage access to runtime environments that you use to run pipelines in supported runtime environments. To manage runtime configurations, open the `Runtimes` tab.
 
-![Runtime configurations sidebar](../images/user_guide/jupyterlab-interface/runtime-configurations-sidebar.png)
+![Runtime configurations tab](../images/user_guide/jupyterlab-interface/runtime-configurations-sidebar.png)
 
 #### Manage runtime image configurations
 
-[Runtime image configurations](runtime-image-conf.md) identify container image that Elyra can utilize to run pipeline nodes on container-based platforms, such as Kubeflow Pipelines or Apache Airflow. To manage runtime image configurations, open the `Runtime Images` sidebar.
+[Runtime image configurations](runtime-image-conf.md) identify container image that Elyra can utilize to run pipeline nodes on container-based platforms, such as Kubeflow Pipelines or Apache Airflow. To manage runtime image configurations, open the `Runtime Images` tab.
 
-![Runtime images sidebar](../images/user_guide/jupyterlab-interface/runtime-images-sidebar.png)
+![Runtime images tab](../images/user_guide/jupyterlab-interface/runtime-images-sidebar.png)
 
 #### Manage component catalogs
 
-[Component catalogs](pipeline-components.md) provide access to components that you use to assemble pipelines. To manage component catalogs, open the `Component Catalogs` sidebar.
+[Component catalogs](pipeline-components.md) provide access to components that you use to assemble pipelines. To manage component catalogs, open the `Component Catalogs` tab.
 
-![Component catalogs sidebar](../images/user_guide/jupyterlab-interface/component-catalogs-sidebar.png)
+![Component catalogs tab](../images/user_guide/jupyterlab-interface/component-catalogs-sidebar.png)
