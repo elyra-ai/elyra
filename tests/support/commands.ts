@@ -63,14 +63,14 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByLabelText(/^name/i).type(`${type} Test Runtime`);
 
   if (type === 'kfp') {
-    cy.get('input#root_KubeflowPipelines_api_endpoint').type(
+    cy.findByLabelText(/kubeflow .* endpoint\*/i).type(
       'https://kubernetes-service.ibm.com/pipeline'
     );
   } else {
-    cy.get('input#root_Airflow_api_endpoint').type(
+    cy.findByLabelText(/airflow .* endpoint/i).type(
       'https://kubernetes-service.ibm.com/pipeline'
     );
-    cy.findByLabelText(/github .* repository \*/i).type('akchinstc/test-repo');
+    cy.findByLabelText(/github .* repository\*/i).type('akchinstc/test-repo');
     cy.findByLabelText(/github .* branch/i).type('main');
     cy.findByLabelText(/personal access token/i).type('xxxxxxxx');
     // Check the default value is displayed on github api endpoint field
