@@ -117,7 +117,7 @@ class BashOperator(BaseOperator):
         if env is None:
             env = os.environ.copy()
         airflow_context_vars = context_to_airflow_vars(context, in_env_var_format=True)
-        acv_log = "\n".join(["{}={}".format(k, v) for k, v in airflow_context_vars.items()])
+        acv_log = "\n".join([f"{k}={v}" for k, v in airflow_context_vars.items()])
         self.log.debug("Exporting the following env vars:\n" f"{acv_log}")
         env.update(airflow_context_vars)
 
