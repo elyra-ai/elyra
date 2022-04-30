@@ -26,7 +26,7 @@ export const PasswordField: Field = props => {
 
   return (
     <div>
-      <label htmlFor={props.id} className="control-label">
+      <label htmlFor={props.idSchema['$id']} className="control-label">
         {props.schema.title}
       </label>
       {props.schema.description && (

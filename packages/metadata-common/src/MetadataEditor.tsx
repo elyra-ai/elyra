@@ -360,10 +360,7 @@ export class MetadataEditorWidget extends ReactWidget {
         const properties =
           schema.properties.metadata.properties[schemaProperty];
         const category =
-          (properties.uihints && properties.uihints.category)?.replace(
-            ' ',
-            ''
-          ) ?? '_noCategory';
+          (properties.uihints && properties.uihints.category) ?? '_noCategory';
 
         if (!metadataWithCategories[category]) {
           metadataWithCategories[category] = {};
