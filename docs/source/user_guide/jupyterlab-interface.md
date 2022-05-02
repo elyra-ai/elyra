@@ -60,7 +60,7 @@ Elyra adds multiple tabs to [JupyterLab's left sidebar](https://jupyterlab.readt
 
 #### Manage runtime configurations
 
-[Runtime configurations](runtime-conf.md) manage access to runtime environments that you use to run pipelines in supported runtime environments. To manage runtime configurations, open the `Runtimes` tab.
+[Runtime configurations](runtime-conf.md) manage access to supported runtime environments that you use to run pipelines. To manage runtime configurations, open the `Runtimes` tab.
 
 ![Runtime configurations tab](../images/user_guide/jupyterlab-interface/runtime-configurations-sidebar.png)
 
