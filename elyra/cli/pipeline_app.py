@@ -388,13 +388,12 @@ def submit(json_option, pipeline_path, runtime_config_name, monitor_option, time
             # TODO: this will need to be revisited once front-end is decoupled from runtime platforms.
             if hasattr(response, "git_url"):
                 msg.append(f"Apache Airflow DAG has been pushed to: {response.git_url}")
-            msg.extend(
-                [
-                    f"Check the status of your job at: {response.run_url}",
-                    f"The results and outputs are in the {response.object_storage_path} ",
-                    f"working directory in {response.object_storage_url}",
-                ]
-            )
+            msg.append(f"Check the status of your job at: {response.run_url}")
+            if response.object_storage_path is not None and response.object_storage_url is not None:
+                msg.append(
+                    f"The results and outputs are in the {response.object_storage_path} "
+                    f"working directory in {response.object_storage_url}"
+                )
             print_info("Job submission succeeded", msg)
         click.echo()
         print_banner("Elyra Pipeline Submission Complete")
