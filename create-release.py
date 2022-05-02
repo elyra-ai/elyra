@@ -199,6 +199,13 @@ def update_version_to_release() -> None:
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
         )
 
+        # Update documentation references in documentation
+        sed(
+            _source("docs/source/user_guide/jupyterlab-interface.md"),
+            r"https://elyra.readthedocs.io/en/latest/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+        )
+
         check_run(
             ["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"],
             cwd=config.source_dir,
@@ -248,6 +255,13 @@ def update_version_to_dev() -> None:
             _source("packages/theme/src/index.ts"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
             rf"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        # Update documentation references in documentation
+        sed(
+            _source("docs/source/user_guide/jupyterlab-interface.md"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+            r"https://elyra.readthedocs.io/en/latest/",
         )
 
         sed(
