@@ -30,7 +30,7 @@ PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
 
 ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
-TAG:=dev
+TAG:=3.8.0
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
