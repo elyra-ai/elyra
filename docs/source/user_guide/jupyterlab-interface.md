@@ -66,7 +66,7 @@ Elyra adds multiple tabs to [JupyterLab's left sidebar](https://jupyterlab.readt
 
 #### Manage runtime image configurations
 
-[Runtime image configurations](runtime-image-conf.md) identify container image that Elyra can utilize to run pipeline nodes on container-based platforms, such as Kubeflow Pipelines or Apache Airflow. To manage runtime image configurations, open the `Runtime Images` tab.
+[Runtime image configurations](runtime-image-conf.md) identify container images that Elyra can utilize to run pipeline nodes on container-based platforms, such as Kubeflow Pipelines or Apache Airflow. To manage runtime image configurations, open the `Runtime Images` tab.
 
 ![Runtime images tab](../images/user_guide/jupyterlab-interface/runtime-images-sidebar.png)
 
