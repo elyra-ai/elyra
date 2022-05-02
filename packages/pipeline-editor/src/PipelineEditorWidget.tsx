@@ -584,12 +584,13 @@ const PipelineWrapper: React.FC<IProps> = ({
       // Check that all nodes are valid
       const errorMessages = validate(
         JSON.stringify(pipelineJson),
-        getAllPaletteNodes(palette)
+        getAllPaletteNodes(palette),
+        palette.properties
       );
       if (errorMessages && errorMessages.length > 0) {
         let errorMessage = '';
         for (const error of errorMessages) {
-          errorMessage += error.message;
+          errorMessage += (errorMessage ? '\n' : '') + error.message;
         }
         setAlert(`Failed ${actionType}: ${errorMessage}`);
         return;
@@ -1046,7 +1047,11 @@ const PipelineWrapper: React.FC<IProps> = ({
         autoHideDuration={6000}
         onClose={handleClose}
       >
-        <Alert severity={'error'} onClose={handleClose}>
+        <Alert
+          severity={'error'}
+          onClose={handleClose}
+          className={'elyra-PipelineEditor-Alert'}
+        >
           {alert}
         </Alert>
       </Snackbar>
