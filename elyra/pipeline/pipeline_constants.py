@@ -17,3 +17,7 @@
 PIPELINE_DEFAULTS = "pipeline_defaults"
 RUNTIME_IMAGE = "runtime_image"
 ENV_VARIABLES = "env_vars"
+MOUNTED_VOLUMES = "mounted_volumes"
+PIPELINE_META_PROPERTIES = ["name", "description", "runtime"]
+# optional static prefix to be used when generating an object name for object storage
+COS_OBJECT_PREFIX = "cos_object_prefix"

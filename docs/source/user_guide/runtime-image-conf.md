@@ -143,6 +143,21 @@ There are two flags that can be specified when exporting runtime image configura
 1. To include invalid runtime image configurations, use the `--include-invalid` flag.
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtime-images" directory before exporting the runtime image configurations.
 
+#### Importing runtime image configurations
+
+To import runtime image configurations:
+
+```bash
+$ elyra-metadata import runtime-images \
+	--directory "/tmp/foo"
+```
+
+The above example will import all valid runtime image configurations in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
+
+Note that you must specify the `--directory` option. 
+
+By default, metadata will not be imported if a runtime image configuration instance with the same name already exists. The `--overwrite` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+
 #### Deleting a runtime configuration
 
 To delete a runtime image configuration:

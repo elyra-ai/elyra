@@ -51,6 +51,27 @@ op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
                                                            {{ param }}={{ value }},
         {% endfor %}
     {% else %}
+{% if operation.volume_mounts %}
+from airflow.contrib.kubernetes.volume import Volume
+from airflow.contrib.kubernetes.volume_mount import VolumeMount
+volumes_{{ operation.id|regex_replace }} = []
+volume_mounts_{{ operation.id|regex_replace }} = []
+    {% for mount_path, volume_claim in operation.volume_mounts.items() %}
+volume_mount_{{loop.index}} = VolumeMount(name='{{ volume_claim }}',
+                            mount_path='{{ mount_path }}',
+                            sub_path=None,
+                            read_only=False)
+volume_config_{{ loop.index }}= {
+    'persistentVolumeClaim':
+      {
+        'claimName': '{{ volume_claim }}'
+      }
+    }
+volume_{{ loop.index }} = Volume(name='{{ volume_claim }}', configs=volume_config_{{ loop.index }})
+volumes_{{ operation.id|regex_replace }}.append(volume_{{ loop.index }})
+volume_mounts_{{ operation.id|regex_replace }}.append(volume_mount_{{ loop.index }})
+    {% endfor %}
+{% endif %}
 op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.notebook|regex_replace }}',
                                                             namespace='{{ namespace }}',
                                                             image='{{ operation.runtime_image }}',
@@ -61,6 +82,10 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                             arguments=["{{ operation.argument_list }}"],
                                                             task_id='{{ operation.notebook|regex_replace }}',
                                                             env_vars={{ operation.pipeline_envs }},
+        {% if operation.volume_mounts %}
+                                                            volumes=volumes_{{ operation.id|regex_replace }},
+                                                            volume_mounts=volume_mounts_{{ operation.id|regex_replace }},
+        {% endif %}
         {% if operation.cpu_request or operation.mem_request or operation.gpu_limit %}
                                                             resources = {
             {% if operation.cpu_request %}

@@ -9,7 +9,7 @@
   "metadata_class_name": "elyra.pipeline.component_metadata.DirectoryCatalogMetadata",
   "uihints": {
     "icon": "",
-    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#directory-component-catalog"
+    "reference_url": "https://elyra.readthedocs.io/en/v3.8.0/user_guide/pipeline-components.html#directory-component-catalog"
   },
   "properties": {
     "schema_name": {

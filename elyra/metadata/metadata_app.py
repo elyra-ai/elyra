@@ -22,7 +22,7 @@ from typing import List
 from deprecation import deprecated
 from jsonschema import ValidationError
 
-from elyra.metadata.error import MetadataNotFoundError
+from elyra.metadata.error import MetadataExistsError, MetadataNotFoundError
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.metadata_app_utils import AppBase
@@ -112,33 +112,20 @@ class SchemaspaceList(SchemaspaceBase):
 
             print()
             print(
-                "%s   %s  %s  "
-                % (
-                    "Schema".ljust(max_schema_name_len),
-                    "Instance".ljust(max_name_len),
-                    "Resource".ljust(max_resource_len),
-                )
+                f"{'Schema'.ljust(max_schema_name_len)}   {'Instance'.ljust(max_name_len)}  "
+                f"{'Resource'.ljust(max_resource_len)}  "
             )
             print(
-                "%s   %s  %s  "
-                % (
-                    "------".ljust(max_schema_name_len),
-                    "--------".ljust(max_name_len),
-                    "--------".ljust(max_resource_len),
-                )
+                f"{'------'.ljust(max_schema_name_len)}   {'--------'.ljust(max_name_len)}  "
+                f"{'--------'.ljust(max_resource_len)}  "
             )
             for instance in sorted_instances:
                 invalid = ""
                 if instance.reason and len(instance.reason) > 0:
                     invalid = f"**INVALID** ({instance.reason})"
                 print(
-                    "%s   %s  %s  %s"
-                    % (
-                        instance.schema_name.ljust(max_schema_name_len),
-                        instance.name.ljust(max_name_len),
-                        instance.resource.ljust(max_resource_len),
-                        invalid,
-                    )
+                    f"{instance.schema_name.ljust(max_schema_name_len)}   {instance.name.ljust(max_name_len)}  "
+                    f"{instance.resource.ljust(max_resource_len)}  {invalid}"
                 )
 
 
@@ -766,6 +753,121 @@ class SchemaspaceExport(SchemaspaceBase):
         )
 
 
+class SchemaspaceImport(SchemaspaceBase):
+    """Handles the 'import' subcommand functionality for a specific schemaspace."""
+
+    directory_option = CliOption(
+        "--directory",
+        name="directory",
+        description="The local file system path from where the metadata will be imported",
+        required=True,
+    )
+
+    overwrite_flag = Flag(
+        "--overwrite",
+        name="overwrite",
+        description="Overwrite existing metadata instance with the same name",
+        default_value=False,
+    )
+
+    # 'Import' flags
+    options: List[Option] = [directory_option, overwrite_flag]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
+
+    def start(self):
+        super().start()  # process options
+
+        src_directory = self.directory_option.value
+
+        try:
+            json_files = [f for f in os.listdir(src_directory) if f.endswith(".json")]
+        except OSError as e:
+            print(f"Unable to reach the '{src_directory}' directory: {e.strerror}: '{e.filename}'")
+            self.exit(1)
+
+        if len(json_files) == 0:
+            print(f"No instances for import found in the '{src_directory}' directory")
+            return
+
+        metadata_file = None
+        non_imported_files = []
+
+        for file in json_files:
+            filepath = os.path.join(src_directory, file)
+            try:
+                with open(filepath) as f:
+                    metadata_file = json.loads(f.read())
+            except OSError as e:
+                non_imported_files.append([file, e.strerror])
+                continue
+
+            name = os.path.splitext(file)[0]
+            try:
+                schema_name = metadata_file["schema_name"]
+                display_name = metadata_file["display_name"]
+                metadata = metadata_file["metadata"]
+            except KeyError as e:
+                non_imported_files.append([file, f"Could not find '{e.args[0]}' key in the import file '{filepath}'"])
+                continue
+
+            try:
+                if self.overwrite_flag.value:  # if overwrite flag is true
+                    try:  # try updating the existing instance
+                        updated_instance = self.metadata_manager.get(name)
+                        updated_instance.schema_name = schema_name
+                        if display_name:
+                            updated_instance.display_name = display_name
+                        if name:
+                            updated_instance.name = name
+                        updated_instance.metadata.update(metadata)
+                        self.metadata_manager.update(name, updated_instance)
+                    except MetadataNotFoundError:  # no existing instance - create new
+                        instance = Metadata(
+                            schema_name=schema_name, name=name, display_name=display_name, metadata=metadata
+                        )
+                        self.metadata_manager.create(name, instance)
+                else:
+                    instance = Metadata(
+                        schema_name=schema_name, name=name, display_name=display_name, metadata=metadata
+                    )
+                    self.metadata_manager.create(name, instance)
+            except Exception as e:
+                if isinstance(e, MetadataExistsError):
+                    non_imported_files.append([file, f"{str(e)} Use '--overwrite' to update."])
+                else:
+                    non_imported_files.append([file, str(e)])
+
+        instance_count_not_imported = len(non_imported_files)
+        instance_count_imported = len(json_files) - instance_count_not_imported
+
+        print(f"Imported {instance_count_imported} " + ("instance" if instance_count_imported == 1 else "instances"))
+
+        if instance_count_not_imported > 0:
+            print(
+                f"{instance_count_not_imported} "
+                + ("instance" if instance_count_not_imported == 1 else "instances")
+                + " could not be imported"
+            )
+
+            non_imported_files.sort(key=lambda x: x[0])
+            print("\nThe following files could not be imported: ")
+
+            # pad to width of longest file and reason
+            max_file_name_len = len("File")
+            max_reason_len = len("Reason")
+            for file in non_imported_files:
+                max_file_name_len = max(len(file[0]), max_file_name_len)
+                max_reason_len = max(len(file[1]), max_reason_len)
+
+            print(f"{'File'.ljust(max_file_name_len)}   {'Reason'.ljust(max_reason_len)}")
+            print(f"{'----'.ljust(max_file_name_len)}   {'------'.ljust(max_reason_len)}")
+            for file in non_imported_files:
+                print(f"{file[0].ljust(max_file_name_len)}   {file[1].ljust(max_reason_len)}")
+
+
 class SubcommandBase(AppBase):
     """Handles building the appropriate subcommands based on existing schemaspaces."""
 
@@ -878,8 +980,19 @@ class Export(SubcommandBase):
         super().__init__(**kwargs)
 
 
+class Import(SubcommandBase):
+    """Imports metadata instances into a given schemaspace."""
+
+    description = "Import metadata instances into a given schemaspace."
+    subcommand_description = "Import metadata instances into schemaspace '{schemaspace}'."
+    schemaspace_base_class = SchemaspaceImport
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 class MetadataApp(AppBase):
-    """Lists, creates, updates, removes, migrates and exports metadata for a given schemaspace."""
+    """Lists, creates, updates, removes, migrates, exports and imports metadata for a given schemaspace."""
 
     name = "elyra-metadata"
     description = """Manage Elyra metadata."""
@@ -892,6 +1005,7 @@ class MetadataApp(AppBase):
         "remove": (Remove, Remove.description.splitlines()[0]),
         "migrate": (Migrate, Migrate.description.splitlines()[0]),
         "export": (Export, Export.description.splitlines()[0]),
+        "import": (Import, Import.description.splitlines()[0]),
     }
 
     @classmethod
@@ -908,7 +1022,7 @@ class MetadataApp(AppBase):
         args = kwargs.get("argv", [])
         if len(args) > 0:
             # identify commands that can operate on deprecated schemaspaces
-            include_deprecated = args[0] not in ["install", "create", "update"]
+            include_deprecated = args[0] not in ["install", "create", "update", "import"]
         schemaspace_names = schema_mgr.get_schemaspace_names(include_deprecated=include_deprecated)
         for name in schemaspace_names:
             self.schemaspace_schemas[name] = schema_mgr.get_schemaspace_schemas(name)
