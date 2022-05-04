@@ -158,6 +158,37 @@ def test_manager_add_display_name(tests_manager, schemaspace_location):
         tests_manager.metadata_store.fetch_instances(metadata_name)
 
 
+@pytest.mark.parametrize("complex_string, valid", [
+    ("", False),
+    (" ", False),
+    (" starting-whitespace", False),
+    ("ending-whitespace ", False),
+    (" whitespace-both-ends ", False),
+    ("whitespace in between", True),
+    ("no-whitespace", True),
+])
+def test_manager_complex_string_schema(tests_manager, schemaspace_location, complex_string, valid):
+    metadata_name = 'valid_metadata_instance'
+    metadata_dict = {**valid_metadata_json}
+    metadata_dict['metadata']['string_complex_test'] = complex_string
+    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE_ID, metadata_dict)
+
+    if not valid:
+        with pytest.raises(ValidationError):
+            tests_manager.create(metadata_name, metadata)
+
+    else:
+        instance = tests_manager.create(metadata_name, metadata)
+        assert instance.metadata.get('string_complex_test') == complex_string
+
+        # And finally, remove it.
+        tests_manager.remove(metadata_name)
+
+        # Verify removal using metadata_store
+        with pytest.raises(MetadataNotFoundError):
+            tests_manager.metadata_store.fetch_instances(metadata_name)
+
+
 def test_manager_get_include_invalid(tests_manager):
     metadata_list = tests_manager.get_all(include_invalid=False)
     assert len(metadata_list) == 2
