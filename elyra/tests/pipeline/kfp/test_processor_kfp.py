@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import os
+from pathlib import Path
 import tarfile
 from unittest import mock
 
@@ -25,7 +26,6 @@ from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
@@ -42,7 +42,6 @@ def processor(setup_factory_data):
 
 @pytest.fixture
 def pipeline():
-    ComponentCache.instance().wait_for_all_cache_tasks()
     pipeline_resource = _read_pipeline_resource("resources/sample_pipelines/pipeline_3_node_sample.json")
     return PipelineParser.parse(pipeline_resource)
 
@@ -185,7 +184,7 @@ def test_collect_envs(processor):
     assert envs["AWS_SECRET_ACCESS_KEY"] == "secret"
     assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
     assert envs["ELYRA_WRITABLE_CONTAINER_DIR"] == "/tmp"
-    assert envs["USER_EMPTY_VALUE"] == "  "
+    assert "USER_EMPTY_VALUE" not in envs
     assert envs["USER_TWO_EQUALS"] == "KEY=value"
     assert "USER_NO_VALUE" not in envs
 
@@ -197,7 +196,7 @@ def test_collect_envs(processor):
     assert "AWS_SECRET_ACCESS_KEY" not in envs
     assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
     assert envs["ELYRA_WRITABLE_CONTAINER_DIR"] == "/tmp"
-    assert envs["USER_EMPTY_VALUE"] == "  "
+    assert "USER_EMPTY_VALUE" not in envs
     assert envs["USER_TWO_EQUALS"] == "KEY=value"
     assert "USER_NO_VALUE" not in envs
 
@@ -273,7 +272,7 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
 
 
-def test_processing_url_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+def test_processing_url_runtime_specific_component(monkeypatch, processor, component_cache, sample_metadata, tmpdir):
     # Define the appropriate reader for a URL-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = UrlComponentCatalogConnector(kfp_supported_file_types)
@@ -304,7 +303,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     )
 
     # Fabricate the component cache to include single filename-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name] = {
+    component_cache._component_cache[processor._type.name] = {
         "spoofed_catalog": {"components": {component_id: component}}
     }
 
@@ -350,7 +349,9 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, sampl
     assert pipeline_template["inputs"]["artifacts"][0]["raw"]["data"] == operation_params["text"]
 
 
-def test_processing_filename_runtime_specific_component(monkeypatch, processor, sample_metadata, tmpdir):
+def test_processing_filename_runtime_specific_component(
+    monkeypatch, processor, component_cache, sample_metadata, tmpdir
+):
     # Define the appropriate reader for a filesystem-type component definition
     kfp_supported_file_types = [".yaml"]
     reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
@@ -380,7 +381,7 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     )
 
     # Fabricate the component cache to include single filename-based component for testing
-    ComponentCache.instance()._component_cache[processor._type.name] = {
+    component_cache._component_cache[processor._type.name] = {
         "spoofed_catalog": {"components": {component_id: component}}
     }
 
@@ -427,3 +428,72 @@ def test_processing_filename_runtime_specific_component(monkeypatch, processor, 
     pipeline_template = pipeline_yaml["spec"]["templates"][0]
     assert pipeline_template["metadata"]["annotations"]["pipelines.kubeflow.org/task_display_name"] == operation_name
     assert pipeline_template["container"]["command"][3] == operation_params["url"]
+
+
+def test_cc_pipeline_component_no_input(monkeypatch, processor, component_cache, sample_metadata, tmpdir):
+    """
+    Verifies that cc_pipeline can handle KFP component definitions that don't
+    include any inputs
+    """
+    # Define the appropriate reader for a filesystem-type component definition
+    kfp_supported_file_types = [".yaml"]
+    reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
+
+    # Assign test resource location
+    cpath = (Path(__file__).parent / ".." / "resources" / "components" / "kfp_test_operator_no_inputs.yaml").resolve()
+    assert cpath.is_file()
+    cpath = str(cpath)
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    entry_data = reader.get_entry_data({"path": cpath}, {})
+    component_definition = entry_data.definition
+
+    # Instantiate a file-based component
+    component_id = "test-component"
+    component = Component(
+        id=component_id,
+        name="No input data",
+        description="",
+        op="no-input-data",
+        catalog_type="elyra-kfp-examples-catalog",
+        component_reference={"path": cpath},
+        definition=component_definition,
+        properties=[],
+        categories=[],
+    )
+
+    # Fabricate the component cache to include single filename-based component for testing
+    component_cache._component_cache[processor._type.name] = {
+        "spoofed_catalog": {"components": {component_id: component}}
+    }
+
+    # Construct hypothetical operation for component
+    operation_name = "no-input-test"
+    operation_params = {}
+    operation = Operation(
+        id="no-input-id",
+        type="execution_node",
+        classifier=component_id,
+        name=operation_name,
+        parent_operation_ids=[],
+        component_params=operation_params,
+    )
+
+    # Build a mock runtime config for use in _cc_pipeline
+    mocked_runtime = Metadata(name="test-metadata", display_name="test", schema_name="kfp", metadata=sample_metadata)
+
+    mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_metadata])
+    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
+
+    # Construct single-operation pipeline
+    pipeline = Pipeline(
+        id="pipeline-id", name="kfp_test", runtime="kfp", runtime_config="test", source="no_input.pipeline"
+    )
+    pipeline.operations[operation.id] = operation
+
+    constructed_pipeline_function = lambda: processor._cc_pipeline(pipeline=pipeline, pipeline_name="test_pipeline")
+    pipeline_path = str(Path(tmpdir) / "no_inputs_test.yaml")
+
+    # Compile pipeline and save into pipeline_path
+    kfp_argo_compiler.Compiler().compile(constructed_pipeline_function, pipeline_path)

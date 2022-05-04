@@ -15,6 +15,7 @@
 #
 import json
 import os
+from pathlib import Path
 from subprocess import CompletedProcess
 from subprocess import run
 
@@ -22,6 +23,7 @@ from conftest import KFP_COMPONENT_CACHE_INSTANCE
 from conftest import TEST_CATALOG_NAME
 import jupyter_core.paths
 import pytest
+import yaml
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import CatalogEntry
@@ -125,17 +127,38 @@ async def test_modify_component_catalogs(jp_environ, component_cache, metadata_m
 
 
 @pytest.mark.parametrize("create_inprocess", [True, False])
-async def test_directory_based_component_catalog(component_cache, metadata_manager_with_teardown, create_inprocess):
-    # Get initial set of components
+async def test_directory_based_component_catalog(
+    component_cache, metadata_manager_with_teardown, create_inprocess, tmpdir
+):
+    # Verify that the component cache is empty to prevent other tests
+    # from having an impact on this' tests result
     initial_components = component_cache.get_all_components(RUNTIME_PROCESSOR)
+    assert len(initial_components) == 0, initial_components[0].name
 
-    # Create new directory-based registry instance with components in ../../test/resources/components
-    registry_path = _get_resource_path("")
+    # Create and populate a temporary catalog directory
+    catalog_dir = Path(tmpdir) / "catalog"
+    catalog_dir.mkdir()
+    # Copy a few YAML files from ../resources/components to
+    # the catalog directory
+    directory_entries = {"download_data.yaml": None, "kfp_test_operator_no_inputs.yaml": None}
+    for file in directory_entries:
+        with open(_get_resource_path(file), "r") as fh_in:
+            # read file
+            data = fh_in.read()
+            # extract and store component name
+            directory_entries[file] = yaml.safe_load(data)["name"]
+            # write (unchanged) file to destination
+            with open(catalog_dir / file, "w") as fh_out:
+                fh_out.write(data)
+        # make sure the file exists in the destination
+        assert (catalog_dir / file).is_file()
+
+    # Create new directory-based registry
     instance_metadata = {
         "description": "A test registry",
         "runtime_type": RUNTIME_PROCESSOR.name,
         "categories": ["New Components"],
-        "paths": [registry_path],
+        "paths": [str(catalog_dir)],
     }
     registry_instance = Metadata(
         schema_name="local-directory-catalog",
@@ -162,15 +185,15 @@ async def test_directory_based_component_catalog(component_cache, metadata_manag
     # Wait for update to complete
     component_cache.wait_for_all_cache_tasks()
 
-    # Get new set of components from all active registries, including added test registry
+    # Verify that the number of components in the cache equals the number of
+    # components in the directory catalog
     components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
-    assert len(components_after_create) == len(initial_components) + 4
+    assert len(components_after_create) == len(directory_entries), components_after_create
 
-    # Check that all relevant components from the new registry have been added
+    # Verify the component names
     added_component_names = [component.name for component in components_after_create]
-    assert "Filter text" in added_component_names
-    assert "Test Operator" in added_component_names
-    assert "Test Operator No Inputs" in added_component_names
+    for component in directory_entries:
+        assert directory_entries[component] in added_component_names
 
     # Delete the test registry and wait for updates to complete
     metadata_manager_with_teardown.remove(TEST_CATALOG_NAME)

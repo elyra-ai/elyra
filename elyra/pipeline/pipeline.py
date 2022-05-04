@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import logging
 from logging import Logger
 import os
 import sys
@@ -20,6 +21,8 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -46,7 +49,7 @@ class Operation(object):
     ) -> "Operation":
         """Class method that creates the appropriate instance of Operation based on inputs."""
 
-        if classifier in Operation.generic_node_types:
+        if Operation.is_generic_operation(classifier):
             return GenericOperation(
                 id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
             )
@@ -89,7 +92,7 @@ class Operation(object):
         self._classifier = classifier
         self._name = name
         self._parent_operation_ids = parent_operation_ids or []
-        self._component_params = component_params
+        self._component_params = component_params or {}
         self._doc = None
 
         # Scrub the inputs and outputs lists
@@ -177,20 +180,6 @@ class Operation(object):
         )
 
     @staticmethod
-    def _log_info(msg: str, logger: Optional[Logger] = None):
-        if logger:
-            logger.info(msg)
-        else:
-            print(msg)
-
-    @staticmethod
-    def _log_warning(msg: str, logger: Optional[Logger] = None):
-        if logger:
-            logger.warning(msg)
-        else:
-            print(f"WARNING: {msg}")
-
-    @staticmethod
     def _scrub_list(dirty: Optional[List[Optional[str]]]) -> List[str]:
         """
         Clean an existing list by filtering out None and empty string values
@@ -202,8 +191,8 @@ class Operation(object):
         return [clean for clean in dirty if clean]
 
     @staticmethod
-    def is_generic_operation(operation_type) -> bool:
-        return operation_type in Operation.generic_node_types
+    def is_generic_operation(operation_classifier) -> bool:
+        return operation_classifier in Operation.generic_node_types
 
 
 class GenericOperation(Operation):
@@ -231,7 +220,7 @@ class GenericOperation(Operation):
                                  a non-standard operation instance
 
         Component_params for "generic components" (i.e., those with one of the following classifier values:
-        ["execute-notebook-node", "execute-python-node", "exeucute-r-node"]) can expect to have the following
+        ["execute-notebook-node", "execute-python-node", "execute-r-node"]) can expect to have the following
         entries.
                 filename: The relative path to the source file in the users local environment
                          to be executed e.g. path/to/file.ext
@@ -240,7 +229,7 @@ class GenericOperation(Operation):
                 dependencies: List of local files/directories needed for the operation to run
                              and packaged into each operation's dependency archive
                 include_subdirectories: Include or Exclude subdirectories when packaging our 'dependencies'
-                env_vars: List of Environmental variables to set in the docker image
+                env_vars: List of Environmental variables to set in the container image
                          e.g. FOO="BAR"
                 inputs: List of files to be consumed by this operation, produced by parent operation(s)
                 outputs: List of files produced by this operation to be included in a child operation(s)
@@ -270,7 +259,7 @@ class GenericOperation(Operation):
         self._component_params["runtime_image"] = component_params.get("runtime_image")
         self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
-        self._component_params["env_vars"] = Operation._scrub_list(component_params.get("env_vars", []))
+        self._component_params["env_vars"] = KeyValueList(Operation._scrub_list(component_params.get("env_vars", [])))
         self._component_params["cpu"] = component_params.get("cpu")
         self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")
@@ -302,8 +291,8 @@ class GenericOperation(Operation):
         return self._component_params.get("include_subdirectories")
 
     @property
-    def env_vars(self) -> Optional[List[str]]:
-        return self._component_params.get("env_vars")
+    def env_vars(self) -> Optional["KeyValueList"]:
+        return self._component_params.get(ENV_VARIABLES)
 
     @property
     def cpu(self) -> Optional[str]:
@@ -325,31 +314,6 @@ class GenericOperation(Operation):
     def _validate_range(self, value: str, min_value: int = 0, max_value: int = sys.maxsize) -> bool:
         return int(value) in range(min_value, max_value)
 
-    def env_vars_as_dict(self, logger: Optional[Logger] = None) -> Dict[str, str]:
-        """
-        Operation stores environment variables in a list of name=value pairs, while
-        subprocess.run() requires a dictionary - so we must convert.  If no envs are
-        configured on the Operation, an empty dictionary is returned, otherwise envs
-        configured on the Operation are converted to dictionary entries and returned.
-        """
-        envs = {}
-        for nv in self.env_vars:
-            if nv:
-                nv_pair = nv.split("=", 1)
-                if len(nv_pair) == 2 and nv_pair[0].strip():
-                    if len(nv_pair[1]) > 0:
-                        envs[nv_pair[0]] = nv_pair[1]
-                    else:
-                        Operation._log_info(
-                            f"Skipping inclusion of environment variable: " f"`{nv_pair[0]}` has no value...",
-                            logger=logger,
-                        )
-                else:
-                    Operation._log_warning(
-                        f"Could not process environment variable entry `{nv}`, skipping...", logger=logger
-                    )
-        return envs
-
 
 class Pipeline(object):
     """
@@ -364,17 +328,17 @@ class Pipeline(object):
         runtime_config: str,
         source: Optional[str] = None,
         description: Optional[str] = None,
+        pipeline_parameters: Optional[Dict[str, Any]] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
-                   e.g. 123e4567-e89b-12d3-a456-426614174000
-        :param name: Pipeline name
-                     e.g. test-pipeline-123456
-        :param runtime: Type of runtime we want to use to execute our pipeline
-                        e.g. kfp OR airflow
+            e.g. 123e4567-e89b-12d3-a456-426614174000
+        :param name: Pipeline name, e.g. test-pipeline-123456
+        :param runtime: Type of runtime we want to use to execute our pipeline, e.g. kfp OR airflow
         :param runtime_config: Runtime configuration that should be used to submit the pipeline to execution
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
-        :description: Pipeline description
+        :param description: Pipeline description
+        :param pipeline_parameters: Key/value pairs representing the parameters of this pipeline
         """
 
         if not name:
@@ -390,6 +354,7 @@ class Pipeline(object):
         self._source = source
         self._runtime = runtime
         self._runtime_config = runtime_config
+        self._pipeline_parameters = pipeline_parameters or {}
         self._operations = {}
 
     @property
@@ -419,6 +384,13 @@ class Pipeline(object):
         return self._runtime_config
 
     @property
+    def pipeline_parameters(self) -> Dict[str, Any]:
+        """
+        The dictionary of global parameters associated with each node of the pipeline
+        """
+        return self._pipeline_parameters
+
+    @property
     def operations(self) -> Dict[str, Operation]:
         return self._operations
 
@@ -428,6 +400,16 @@ class Pipeline(object):
         Pipeline description
         """
         return self._description
+
+    def contains_generic_operations(self) -> bool:
+        """
+        Returns a truthy value indicating whether the pipeline contains
+        one or more generic operations.
+        """
+        for op_id, op in self._operations.items():
+            if isinstance(op, GenericOperation):
+                return True
+        return False
 
     def __eq__(self, other: "Pipeline") -> bool:
         if isinstance(self, other.__class__):
@@ -440,3 +422,77 @@ class Pipeline(object):
                 and self.runtime_config == other.runtime_config
                 and self.operations == other.operations
             )
+
+
+class KeyValueList(list):
+    """
+    A list class that exposes functionality specific to lists whose entries are
+    key-value pairs separated by a pre-defined character.
+    """
+
+    _key_value_separator: str = "="
+
+    def to_dict(self, logger: Optional[Logger] = None) -> Dict[str, str]:
+        """
+        Properties consisting of key-value pairs are stored in a list of separated
+        strings, while most processing steps require a dictionary - so we must convert.
+        If no key/value pairs are specified, an empty dictionary is returned, otherwise
+        pairs are converted to dictionary entries, stripped of whitespace, and returned.
+        """
+        kv_dict = {}
+        for kv in self:
+            if not kv:
+                continue
+
+            if self._key_value_separator not in kv:
+                raise ValueError(
+                    f"Property {kv} does not contain the expected "
+                    f"separator character: '{self._key_value_separator}'."
+                )
+
+            key, value = kv.split(self._key_value_separator, 1)
+
+            key = key.strip()
+            if not key:
+                KeyValueList.log_message(f"Skipping inclusion of property '{kv}': no key found", logger, logging.WARN)
+                continue
+            if isinstance(value, str):
+                value = value.strip()
+            if not value:
+                KeyValueList.log_message(
+                    f"Skipping inclusion of property '{key}': no value specified", logger, logging.DEBUG
+                )
+                continue
+
+            kv_dict[key] = value
+        return kv_dict
+
+    @classmethod
+    def from_dict(cls, kv_dict: Dict) -> "KeyValueList":
+        """
+        Convert a set of key-value pairs stored in a dictionary to
+        a KeyValueList of strings with the defined separator.
+        """
+        str_list = [f"{key}{cls._key_value_separator}{value}" for key, value in kv_dict.items()]
+        return KeyValueList(str_list)
+
+    @classmethod
+    def merge(cls, primary: "KeyValueList", secondary: "KeyValueList") -> "KeyValueList":
+        """
+        Merge two key-value pair lists, preferring the values given in the
+        primary parameter in the case of a matching key between the two lists.
+        """
+        primary_dict = primary.to_dict()
+        secondary_dict = secondary.to_dict()
+
+        return KeyValueList.from_dict({**secondary_dict, **primary_dict})
+
+    @staticmethod
+    def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = logging.DEBUG):
+        """
+        Log a message with the given logger at the given level or simply print.
+        """
+        if logger:
+            logger.log(level, msg)
+        else:
+            print(msg)

@@ -16,6 +16,7 @@
 from datetime import datetime
 from http.client import responses
 import json
+from logging import Logger
 import mimetypes
 from typing import List
 from typing import Optional
@@ -31,6 +32,7 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_catalog import RefreshInProgressError
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorRegistry
 from elyra.pipeline.runtime_type import RuntimeProcessorType
@@ -40,6 +42,35 @@ from elyra.util.http import HttpErrorMixin
 
 
 MIMETYPE_MAP = {".yaml": "text/x-yaml", ".py": "text/x-python", None: "text/plain"}
+
+
+def get_runtime_processor_type(runtime_type: str, log: Logger, request_path: str) -> Optional[RuntimeProcessorType]:
+    """
+    Gets the runtime processor type for the runtime type given in the request path.
+
+    :param runtime_type: can be the shorthand runtime ('kfp', 'airflow') or the
+        runtime type name ('KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') (preferred).
+    :param log: used to log the appropriate warning for shorthand-name requests
+    :param request_path: full request path of the endpoint
+
+    :returns: the RuntimeProcessorType for the given runtime_type, or None
+    """
+    processor_manager = PipelineProcessorManager.instance()
+    if processor_manager.is_supported_runtime(runtime_type):
+        # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
+        # 'airflow'). This case and its associated functions should eventually be removed
+        # in favor of using the RuntimeProcessorType name in the request path.
+        log.warning(
+            f"Deprecation warning: when calling endpoint '{request_path}' "
+            f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
+            f"instead of shorthand name (e.g., 'kfp', 'airflow')"
+        )
+        return processor_manager.get_runtime_type(runtime_type)
+    elif processor_manager.is_supported_runtime_type(runtime_type):
+        # The request path uses the appropriate RuntimeProcessorType name. Use this
+        # to get the RuntimeProcessorType instance to pass to get_all_components
+        return RuntimeProcessorType.get_instance_by_name(runtime_type)
+    return None
 
 
 class PipelineExportHandler(HttpErrorMixin, APIHandler):
@@ -58,7 +89,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         parent = self.settings.get("elyra")
         payload = self.get_json_body()
 
-        self.log.debug("JSON payload: %s", json.dumps(payload, indent=2, separators=(",", ": ")))
+        self.log.debug(f"JSON payload: {json.dumps(payload, indent=2, separators=(',', ': '))}")
 
         pipeline_definition = payload["pipeline"]
         pipeline_export_format = payload["export_format"]
@@ -111,7 +142,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
 
         parent = self.settings.get("elyra")
         pipeline_definition = self.get_json_body()
-        self.log.debug("JSON payload: %s", pipeline_definition)
+        self.log.debug(f"JSON payload: {pipeline_definition}")
 
         response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
 
@@ -147,22 +178,8 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
     async def get(self, runtime_type):
         self.log.debug(f"Retrieving pipeline components for runtime type: {runtime_type}")
 
-        processor_manager = PipelineProcessorManager.instance()
-        if processor_manager.is_supported_runtime(runtime_type):
-            # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
-            # 'airflow'). This case and its associated functions should eventually be removed
-            # in favor of using the RuntimeProcessorType name in the request path.
-            self.log.warning(
-                f"Deprecation warning: when calling endpoint '{self.request.path}' "
-                f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
-                f"instead of shorthand name (e.g., 'kfp', 'airflow')"
-            )
-            runtime_processor_type = processor_manager.get_runtime_type(runtime_type)
-        elif processor_manager.is_supported_runtime_type(runtime_type):
-            # The request path uses the appropriate RuntimeProcessorType name. Use this
-            # to get the RuntimeProcessorType instance to pass to get_all_components
-            runtime_processor_type = RuntimeProcessorType.get_instance_by_name(runtime_type)
-        else:
+        runtime_processor_type = get_runtime_processor_type(runtime_type, self.log, self.request.path)
+        if not runtime_processor_type:
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
         # Include generic components for all runtime types
@@ -176,6 +193,27 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", "application/json")
         await self.finish(palette_json)
+
+
+class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose method calls to retrieve pipeline properties"""
+
+    @web.authenticated
+    async def get(self, runtime_type):
+        self.log.debug(f"Retrieving pipeline components for runtime type: {runtime_type}")
+
+        runtime_processor_type = get_runtime_processor_type(runtime_type, self.log, self.request.path)
+        if not runtime_processor_type:
+            raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
+
+        # Get pipeline properties json
+        pipeline_properties_json = PipelineDefinition.get_canvas_properties_from_template(
+            package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
+        )
+
+        self.set_status(200)
+        self.set_header("Content-Type", "application/json")
+        await self.finish(pipeline_properties_json)
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
@@ -199,22 +237,8 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         if not component_id:
             raise web.HTTPError(400, "Missing component ID")
 
-        processor_manager = PipelineProcessorManager.instance()
-        if processor_manager.is_supported_runtime(runtime_type):
-            # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
-            # 'airflow'). This case and its associated functions should eventually be removed
-            # in favor of using the RuntimeProcessorType name in the request path.
-            self.log.warning(
-                f"Deprecation warning: when calling endpoint '{self.request.path}' "
-                f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
-                f"instead of shorthand name (e.g., 'kfp', 'airflow')"
-            )
-            runtime_processor_type = processor_manager.get_runtime_type(runtime_type)
-        elif processor_manager.is_supported_runtime_type(runtime_type):
-            # The request path uses the appropriate RuntimeProcessorType name. Use this
-            # to get the RuntimeProcessorType instance to pass to get_component
-            runtime_processor_type = RuntimeProcessorType.get_instance_by_name(runtime_type)
-        else:
+        runtime_processor_type = get_runtime_processor_type(runtime_type, self.log, self.request.path)
+        if not runtime_processor_type:
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
         # Try to get component_id as a generic component; assigns None if id is not a generic component
@@ -257,7 +281,7 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
         self.log.debug("Pipeline Validation Handler now executing post request")
 
         pipeline_definition = self.get_json_body()
-        self.log.debug("Pipeline payload: %s", pipeline_definition)
+        self.log.debug(f"Pipeline payload: {pipeline_definition}")
 
         response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
         json_msg = response.to_json()

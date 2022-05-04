@@ -496,13 +496,6 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
             # store the session cookies in a "key1=value1; key2=value2" string
             return "; ".join([f"{c.name}={c.value}" for c in s.cookies])
 
-        # this code should never be reached; raise an error
-        raise AuthenticationError(
-            "An implementation problem was detected for DEX static password authentication. " "Please create an issue.",
-            provider=self._type,
-            request_history=request_history,
-        )
-
 
 class DEXLDAPAuthenticator(AbstractAuthenticator):
     """
@@ -627,13 +620,6 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
 
             # store the session cookies in a "key1=value1; key2=value2" string
             return "; ".join([f"{c.name}={c.value}" for c in s.cookies])
-
-        # this code should never be reached; raise an error
-        raise AuthenticationError(
-            "An implementation problem was detected for LDAP authentication. " "Please create an issue.",
-            provider=self._type,
-            request_history=request_history,
-        )
 
 
 class K8sServiceAccountTokenAuthenticator(AbstractAuthenticator):

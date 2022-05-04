@@ -96,11 +96,11 @@ def parsed_ordered_dict(monkeypatch, processor, parsed_pipeline, sample_metadata
     mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_image_metadata])
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
-    return processor._cc_pipeline(parsed_pipeline, pipeline_name="some-name")
+    return processor._cc_pipeline(parsed_pipeline, pipeline_name="some-name", pipeline_instance_id="some-instance-id")
 
 
 def read_key_pair(key_pair, sep="="):
@@ -132,7 +132,7 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
     monkeypatch.setattr(
         processor,
         "create_pipeline_file",
-        lambda pipeline, pipeline_export_format, pipeline_export_path, pipeline_name: mocked_path,
+        lambda pipeline, pipeline_export_format, pipeline_export_path, pipeline_name, pipeline_instance_id: mocked_path,
     )
 
     monkeypatch.setattr(github.Github, "get_repo", lambda x, y: True)
@@ -158,8 +158,8 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
     )
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
-    monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y: parsed_ordered_dict)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y, z: parsed_ordered_dict)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         export_pipeline_output_path = os.path.join(temp_dir, f"{export_pipeline_name}.py")
@@ -169,6 +169,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
             pipeline_export_format=export_file_type,
             pipeline_export_path=export_pipeline_output_path,
             pipeline_name=export_pipeline_name,
+            pipeline_instance_id=export_pipeline_name,
         )
 
         assert export_pipeline_output_path == response
@@ -253,8 +254,8 @@ def test_create_file_custom_components(
     )
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
-    monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y: parsed_ordered_dict)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y, z: parsed_ordered_dict)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         export_pipeline_output_path = os.path.join(temp_dir, f"{export_pipeline_name}.py")
@@ -264,6 +265,7 @@ def test_create_file_custom_components(
             pipeline_export_format=export_file_type,
             pipeline_export_path=export_pipeline_output_path,
             pipeline_name=export_pipeline_name,
+            pipeline_instance_id=export_pipeline_name,
         )
 
         assert export_pipeline_output_path == response
@@ -315,7 +317,7 @@ def test_export_overwrite(monkeypatch, processor, parsed_pipeline):
         monkeypatch.setattr(
             processor,
             "create_pipeline_file",
-            lambda pipeline, pipeline_export_format, pipeline_export_path, pipeline_name: mocked_path,
+            lambda pipeline, pipeline_export_format, pipeline_export_path, pipeline_name, pipeline_instance_id: mocked_path,  # noqa: E501
         )
 
         returned_path = processor.export(parsed_pipeline, "py", mocked_path, True)
@@ -439,7 +441,7 @@ def test_collect_envs(processor):
     assert envs["AWS_SECRET_ACCESS_KEY"] == "secret"
     assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
     assert "ELYRA_WRITABLE_CONTAINER_DIR" not in envs
-    assert envs["USER_EMPTY_VALUE"] == "  "
+    assert "USER_EMPTY_VALUE" not in envs
     assert envs["USER_TWO_EQUALS"] == "KEY=value"
     assert "USER_NO_VALUE" not in envs
 
@@ -451,7 +453,7 @@ def test_collect_envs(processor):
     assert "AWS_SECRET_ACCESS_KEY" not in envs
     assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
     assert "ELYRA_WRITABLE_CONTAINER_DIR" not in envs
-    assert envs["USER_EMPTY_VALUE"] == "  "
+    assert "USER_EMPTY_VALUE" not in envs
     assert envs["USER_TWO_EQUALS"] == "KEY=value"
     assert "USER_NO_VALUE" not in envs
 
@@ -612,21 +614,23 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
     )
 
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda x, y, z: True)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
 
     pipeline_def_operation = parsed_pipeline.operations[task_id]
     pipeline_def_operation_parameters = pipeline_def_operation.component_params_as_dict
-    pipeline_def_operation_endpoint_param = pipeline_def_operation_parameters["endpoint"]
+    pipeline_def_operation_bash_param = pipeline_def_operation_parameters["bash_command"]
 
-    assert pipeline_def_operation_endpoint_param["activeControl"] == "NestedEnumControl"
-    assert set(pipeline_def_operation_endpoint_param["NestedEnumControl"].keys()) == {"value", "option"}
-    assert pipeline_def_operation_endpoint_param["NestedEnumControl"]["value"] == upstream_task_id
+    assert pipeline_def_operation_bash_param["activeControl"] == "NestedEnumControl"
+    assert set(pipeline_def_operation_bash_param["NestedEnumControl"].keys()) == {"value", "option"}
+    assert pipeline_def_operation_bash_param["NestedEnumControl"]["value"] == upstream_task_id
 
-    ordered_operations = processor._cc_pipeline(parsed_pipeline, pipeline_name="some-name")
+    ordered_operations = processor._cc_pipeline(
+        parsed_pipeline, pipeline_name="some-name", pipeline_instance_id="some-instance-name"
+    )
     operation_parameters = ordered_operations[task_id]["component_params"]
-    operation_parameter_endpoint = operation_parameters["endpoint"]
+    operation_parameter_bash_command = operation_parameters["bash_command"]
 
-    assert operation_parameter_endpoint == "\"{{ ti.xcom_pull(task_ids='BashOperator_1') }}\""
+    assert operation_parameter_bash_command == "\"{{ ti.xcom_pull(task_ids='BashOperator_1') }}\""
 
 
 def test_scrub_invalid_characters(processor):

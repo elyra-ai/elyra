@@ -96,7 +96,7 @@ describe('Pipeline Editor tests', () => {
     cy.findByText(/unsupported file/i).should('be.visible');
 
     // dismiss dialog
-    cy.findByRole('button', { name: /ok/i }).click();
+    cy.contains('OK').click();
   });
 
   it('populated editor should have enabled buttons', () => {
@@ -175,11 +175,11 @@ describe('Pipeline Editor tests', () => {
       cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-1.csv');
-        cy.findByRole('button', { name: /ok/i }).click();
+        cy.contains('OK').click();
 
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-2.csv');
-        cy.findByRole('button', { name: /ok/i }).click();
+        cy.contains('OK').click();
       });
       cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
         cy.findByRole('button').click();
@@ -220,11 +220,11 @@ describe('Pipeline Editor tests', () => {
       cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('input-1.csv');
-        cy.findByRole('button', { name: /ok/i }).click();
+        cy.contains('OK').click();
 
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('input-2.csv');
-        cy.findByRole('button', { name: /ok/i }).click();
+        cy.contains('OK').click();
       });
 
       // producer-script props
@@ -236,11 +236,11 @@ describe('Pipeline Editor tests', () => {
       cy.get('[data-id="properties-elyra_outputs"]').within(() => {
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-3.csv');
-        cy.findByRole('button', { name: /ok/i }).click();
+        cy.contains('OK').click();
 
         cy.findByRole('button', { name: /add item/i }).click();
         cy.focused().type('output-4.csv');
-        cy.findByRole('button', { name: /ok/i }).click();
+        cy.contains('OK').click();
       });
     });
 
@@ -401,14 +401,14 @@ describe('Pipeline Editor tests', () => {
     );
 
     // execute
-    cy.findByRole('button', { name: /ok/i }).click();
+    cy.contains('OK').click();
 
     // validate job was executed successfully, this can take a while in ci
     cy.findByText(/job execution succeeded/i, { timeout: 30000 }).should(
       'be.visible'
     );
     // dismiss 'Job Succeeded' dialog
-    cy.findByRole('button', { name: /ok/i }).click();
+    cy.contains('OK').click();
   });
 
   it('should run pipeline with env vars and output files', () => {
@@ -423,14 +423,14 @@ describe('Pipeline Editor tests', () => {
     );
 
     // execute
-    cy.findByRole('button', { name: /ok/i }).click();
+    cy.contains('OK').click();
 
     // validate job was executed successfully, this can take a while in ci
     cy.findByText(/job execution succeeded/i, { timeout: 30000 }).should(
       'be.visible'
     );
     // dismiss 'Job Succeeded' dialog
-    cy.findByRole('button', { name: /ok/i }).click();
+    cy.contains('OK').click();
 
     cy.readFile('build/cypress-tests/output.txt').should(
       'be.equal',
@@ -472,7 +472,7 @@ describe('Pipeline Editor tests', () => {
       .should('have.value', 'yaml');
 
     // actual export requires minio
-    cy.findByRole('button', { name: /ok/i }).click();
+    cy.contains('OK').click();
 
     // validate job was executed successfully, this can take a while in ci
     cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
@@ -510,7 +510,7 @@ describe('Pipeline Editor tests', () => {
       .should('be.checked');
 
     // actual export requires minio
-    cy.findByRole('button', { name: /ok/i }).click();
+    cy.contains('OK').click();
 
     // validate job was executed successfully, this can take a while in ci
     cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
@@ -537,7 +537,7 @@ describe('Pipeline Editor tests', () => {
 
         cy.focused().type('BAD=two');
 
-        cy.findByRole('button', { name: /ok/i }).click();
+        cy.contains('OK').click();
       });
 
       cy.findByText('BAD=two').should('exist');

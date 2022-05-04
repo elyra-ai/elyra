@@ -336,20 +336,26 @@ class OpUtil(object):
 
         for package, ver in elyra_packages.items():
             if package in current_packages:
-                if "git+" in current_packages[package]:
+                if current_packages[package] is None:
                     logger.warning(
-                        f"WARNING: Source package {package} found already installed from "
+                        f"WARNING: Source package '{package}' found already installed as an "
+                        "editable package. This may conflict with the required version: "
+                        f"{ver} . Skipping..."
+                    )
+                elif "git+" in current_packages[package]:
+                    logger.warning(
+                        f"WARNING: Source package '{package}' found already installed from "
                         f"{current_packages[package]}. This may conflict with the required "
                         f"version: {ver} . Skipping..."
                     )
                 elif isinstance(version.parse(current_packages[package]), version.LegacyVersion):
                     logger.warning(
-                        f"WARNING: Package {package} found with unsupported Legacy version "
+                        f"WARNING: Package '{package}' found with unsupported Legacy version "
                         f"scheme {current_packages[package]} already installed. Skipping..."
                     )
                 elif version.parse(ver) > version.parse(current_packages[package]):
                     logger.info(f"Updating {package} package from version {current_packages[package]} to {ver}...")
-                    to_install_list.append(package + "==" + ver)
+                    to_install_list.append(f"{package}=={ver}")
                 elif version.parse(ver) < version.parse(current_packages[package]):
                     logger.info(
                         f"Newer {package} package with version {current_packages[package]} "
@@ -357,7 +363,7 @@ class OpUtil(object):
                     )
             else:
                 logger.info(f"Package not found. Installing {package} package with version {ver}...")
-                to_install_list.append(package + "==" + ver)
+                to_install_list.append(f"{package}=={ver}")
 
         if to_install_list:
             subprocess.run([sys.executable, "-m", "pip", "install"] + to_install_list, check=True)
@@ -376,8 +382,18 @@ class OpUtil(object):
                         package_name, package_version = line.strip("\n").split(sep=" @ ")
                     elif "===" in line:
                         package_name, package_version = line.strip("\n").split(sep="===")
-                    else:
+                    elif "==" in line:
                         package_name, package_version = line.strip("\n").split(sep="==")
+                    elif line.startswith("-e ") or line.startswith("--editable "):
+                        package_name = line.strip("\n").replace("-e ", "").replace("--editable ", "")
+                        if "#egg=" in package_name:  # editable package from version control system
+                            package_name = package_name.split("=")[-1]
+                        elif "/" in package_name:  # editable package from local directory
+                            package_name = os.path.basename(package_name)
+                        package_version = None
+                    else:
+                        # Tolerate other formats but do not add to package list
+                        continue
 
                     package_dict[package_name] = package_version
 
@@ -411,13 +427,20 @@ class OpUtil(object):
             help="Archive containing notebook and dependency artifacts",
             required=True,
         )
+        parser.add_argument(
+            "-n",
+            "--pipeline-name",
+            dest="pipeline-name",
+            help="Pipeline name",
+            required=True,
+        )
         parser.add_argument("-f", "--file", dest="filepath", help="File to execute", required=True)
         parser.add_argument("-o", "--outputs", dest="outputs", help="Files to output to object store", required=False)
         parser.add_argument("-i", "--inputs", dest="inputs", help="Files to pull in from parent node", required=False)
         parsed_args = vars(parser.parse_args(args))
 
-        # cos-directory is the pipeline name, set as global
-        pipeline_name = parsed_args.get("cos-directory")
+        # set pipeline name as global
+        pipeline_name = parsed_args.get("pipeline-name")
         # operation/node name is the basename of the non-suffixed filepath, set as global
         operation_name = os.path.basename(os.path.splitext(parsed_args.get("filepath"))[0])
 

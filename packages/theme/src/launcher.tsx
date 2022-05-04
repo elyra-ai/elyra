@@ -18,12 +18,13 @@ import { elyraIcon } from '@elyra/ui-components';
 
 import {
   Launcher as JupyterlabLauncher,
+  LauncherModel as JupyterLauncherModel,
   ILauncher
 } from '@jupyterlab/launcher';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import { each } from '@lumino/algorithm';
+import { ArrayIterator, each, IIterator } from '@lumino/algorithm';
 
 import * as React from 'react';
 
@@ -31,6 +32,51 @@ import * as React from 'react';
  * The known categories of launcher items and their default ordering.
  */
 const ELYRA_CATEGORY = 'Elyra';
+
+const CommandIDs = {
+  newFile: 'fileeditor:create-new',
+  createNewPythonEditor: 'script-editor:create-new-python-editor',
+  createNewREditor: 'script-editor:create-new-r-editor'
+};
+
+export class LauncherModel extends JupyterLauncherModel {
+  /**
+   * Return an iterator of launcher items, but remove unnecessary items.
+   */
+  items(): IIterator<ILauncher.IItemOptions> {
+    const items: ILauncher.IItemOptions[] = [];
+
+    let pyEditorInstalled = false;
+    let rEditorInstalled = false;
+
+    this.itemsList.forEach(item => {
+      if (item.command === CommandIDs.createNewPythonEditor) {
+        pyEditorInstalled = true;
+      } else if (item.command === CommandIDs.createNewREditor) {
+        rEditorInstalled = true;
+      }
+    });
+
+    if (!pyEditorInstalled && !rEditorInstalled) {
+      return new ArrayIterator(this.itemsList);
+    }
+
+    // Dont add tiles for new py and r files if their script editor is installed
+    this.itemsList.forEach(item => {
+      if (
+        !(
+          item.command === CommandIDs.newFile &&
+          ((pyEditorInstalled && item.args?.fileExt === 'py') ||
+            (rEditorInstalled && item.args?.fileExt === 'r'))
+        )
+      ) {
+        items.push(item);
+      }
+    });
+
+    return new ArrayIterator(items);
+  }
+}
 
 export class Launcher extends JupyterlabLauncher {
   /**

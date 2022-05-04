@@ -101,7 +101,7 @@ export class PipelineService {
   }
 
   /**
-   * Return a list of configured docker images that are used as runtimes environments
+   * Return a list of configured container images that are used as runtimes environments
    * to run the pipeline nodes.
    */
   static async getRuntimeImages(): Promise<any> {
@@ -207,19 +207,21 @@ export class PipelineService {
             >
               Run Details.
             </a>
+            {response['object_storage_path'] !== null ? (
+              <p>
+                The results and outputs are in the{' '}
+                {response['object_storage_path']} working directory in{' '}
+                <a
+                  href={response['object_storage_url']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  object storage
+                </a>
+                .
+              </p>
+            ) : null}
             <br />
-            The results and outputs are in the {
-              response['object_storage_path']
-            }{' '}
-            working directory in{' '}
-            <a
-              href={response['object_storage_url']}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              object storage
-            </a>
-            .
           </p>
         );
       } else {

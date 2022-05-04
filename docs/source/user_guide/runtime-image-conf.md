@@ -107,11 +107,11 @@ runtime-image   anaconda               /Users/jdoe/.../jupyter/metadata/runtime-
 To add a runtime image configuration for the public `jdoe/my-image:1.0.0` container image:
 
 ```bash
-$ elyra-metadata create runtime-images --schema_name=runtime-image \
-       --name="my_image_name" \
-       --display_name="My runtime image" \
-       --description="My custom runtime container image" \
-       --image_name="jdoe/my-image:1.0.0"
+$ elyra-metadata create runtime-images \
+       --name "my_image_name" \
+       --display_name "My runtime image" \
+       --description "My custom runtime container image" \
+       --image_name "jdoe/my-image:1.0.0"
 ```
 
 #### Modifying a runtime configuration
@@ -119,11 +119,11 @@ $ elyra-metadata create runtime-images --schema_name=runtime-image \
 To replace a runtime image configuration use the `update` command:
 
 ```bash
-$ elyra-metadata update runtime-images --schema_name=runtime-image \
-       --name="my_image_name" \
-       --display_name="My runtime image" \
-       --description="My other custom runtime container image" \
-       --image_name="jdoe/my-other-image:1.0.1"
+$ elyra-metadata update runtime-images \
+       --name "my_image_name" \
+       --display_name "My runtime image" \
+       --description "My other custom runtime container image" \
+       --image_name "jdoe/my-other-image:1.0.1"
 ```
 
 #### Exporting runtime image configurations
@@ -131,9 +131,8 @@ $ elyra-metadata update runtime-images --schema_name=runtime-image \
 To export runtime image configurations:
 
 ```bash
-elyra-metadata export runtime-images \
-	--schema-name="runtime-image" \
-	--directory="/tmp/foo"
+$ elyra-metadata export runtime-images \
+	--directory "/tmp/foo"
 ```
 
 The above example will export all runtime image configurations to the "/tmp/foo/runtime-images" directory.
@@ -144,13 +143,28 @@ There are two flags that can be specified when exporting runtime image configura
 1. To include invalid runtime image configurations, use the `--include-invalid` flag.
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtime-images" directory before exporting the runtime image configurations.
 
+#### Importing runtime image configurations
+
+To import runtime image configurations:
+
+```bash
+$ elyra-metadata import runtime-images \
+	--directory "/tmp/foo"
+```
+
+The above example will import all valid runtime image configurations in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
+
+Note that you must specify the `--directory` option. 
+
+By default, metadata will not be imported if a runtime image configuration instance with the same name already exists. The `--overwrite` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+
 #### Deleting a runtime configuration
 
 To delete a runtime image configuration:
 
 ```bash
 $ elyra-metadata remove runtime-images \
-       --name="my_image_name"
+       --name "my_image_name"
 ```
 
 ### Configuration properties

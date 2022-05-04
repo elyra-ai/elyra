@@ -110,7 +110,7 @@ def update_version_to_release() -> None:
     try:
         # Update backend version
         sed(_source(".bumpversion.cfg"), rf"^current_version* =* {old_version}", f"current_version = {new_version}")
-        sed(_source("elyra/_version.py"), rf"^__version__* =* '{old_version}'", f"__version__ = '{new_version}'"),
+        sed(_source("elyra/_version.py"), rf'^__version__* =* "{old_version}"', f'__version__ = "{new_version}"'),
         sed(_source("README.md"), rf"elyra {old_version}", f"elyra {new_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra {old_version}", f"elyra {new_version}")
 
@@ -126,11 +126,6 @@ def update_version_to_release() -> None:
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), r"master", f"{config.tag}")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), r"dev", f"{new_version}")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), r"master", f"{new_version}")
-        sed(
-            _source("etc/docker/elyra/Dockerfile"),
-            r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
-            f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra",
-        )
 
         # Update UI component versions
         sed(_source("README.md"), rf"v{old_npm_version}", f"v{new_version}")
@@ -160,6 +155,57 @@ def update_version_to_release() -> None:
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
         )
 
+        # update documentation references in schema definitions
+        # located in elyra/metadata/schemas/
+        sed(
+            _source("elyra/metadata/schemas/url-catalog.json"),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/local-directory-catalog.json"),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/local-file-catalog.json"),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/airflow.json"),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/kfp.json"),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/code-snippet.json"),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/runtime-image.json"),
+            r"https://elyra.readthedocs.io/en/latest/user_guide/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+        )
+
+        # Update documentation references in documentation
+        sed(
+            _source("docs/source/user_guide/jupyterlab-interface.md"),
+            r"https://elyra.readthedocs.io/en/latest/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+        )
+
         check_run(
             ["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"],
             cwd=config.source_dir,
@@ -180,7 +226,7 @@ def update_version_to_dev() -> None:
     try:
         # Update backend version
         sed(_source(".bumpversion.cfg"), rf"^current_version* =* {new_version}", f"current_version = {dev_version}")
-        sed(_source("elyra/_version.py"), rf"^__version__* =* '{new_version}'", f"__version__ = '{dev_version}'")
+        sed(_source("elyra/_version.py"), rf'^__version__* =* "{new_version}"', f'__version__ = "{dev_version}"')
         sed(_source("README.md"), rf"elyra {new_version}", f"elyra {dev_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra {new_version}", f"elyra {dev_version}")
 
@@ -197,8 +243,6 @@ def update_version_to_dev() -> None:
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"{new_version}", "dev")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", "master")
 
-        sed(_source("etc/docker/elyra/Dockerfile"), rf"\&\& git checkout tags/v{new_version} -b v{new_version} ", f"")
-
         # Update UI component versions
         sed(_source("README.md"), rf"extension v{new_version}", f"extension v{dev_npm_version}")
         sed(
@@ -211,6 +255,31 @@ def update_version_to_dev() -> None:
             _source("packages/theme/src/index.ts"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
             rf"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        # Update documentation references in documentation
+        sed(
+            _source("docs/source/user_guide/jupyterlab-interface.md"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+            r"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        sed(
+            _source("elyra/cli/pipeline_app.py"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+            rf"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        sed(
+            _source("packages/pipeline-editor/src/EmptyPipelineContent.tsx"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("packages/pipeline-editor/src/PipelineEditorWidget.tsx"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         check_run(
@@ -394,8 +463,8 @@ def prepare_extensions_release() -> None:
         setup_file = os.path.join(extension_source_dir, "setup.py")
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data-files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
-        sed(setup_file, "{{install-requires}}", f"'elyra-server=={config.new_version}',")
+        sed(setup_file, "{{data - files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
+        sed(setup_file, "{{install - requires}}", f"'elyra-server=={config.new_version}',")
 
         for dependency in extensions[extension]:
             copy_extension_dir(dependency, extension_source_dir)
@@ -431,12 +500,12 @@ def prepare_runtime_extensions_package_release() -> None:
         sed(setup_file, "{{package-name}}", package)
         sed(setup_file, "{{version}}", config.new_version)
         # no data files
-        sed(setup_file, "{{data-files}}", "")
+        sed(setup_file, "{{data - files}}", "")
         # prepare package specific dependencies
         requires = ""
         for dependency in packages[package]:
             requires += f"'{dependency}',"
-        sed(setup_file, "{{install-requires}}", requires)
+        sed(setup_file, "{{install - requires}}", requires)
         # copy source files
         source_dir = os.path.join(config.source_dir, "elyra", packages_source[package])
         dest_dir = os.path.join(package_source_dir, "elyra", packages_source[package])

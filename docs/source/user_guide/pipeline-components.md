@@ -26,11 +26,15 @@ limitations under the License.
 
 The same pipeline could be implemented using a single component that performs all these tasks, but that component might not be as universally re-usable. Consider, for example, that for another project the data resides in a different kind of storage. With fine-granular components you'd only have to replace the load data component with one that supports the other storage type and could retain everything else. 
 
+#### Generic components
+
 Elyra includes three _generic components_ that allow for the processing of Jupyter notebooks, Python scripts, and R scripts. These components are called generic because they can be included in pipelines for any supported runtime type: local/JupyterLab, Kubeflow Pipelines, and Apache Airflow. Components are exposed in the pipeline editor via the palette.
 
 ![Generic components in the palette](../images/user_guide/pipeline-components/generic-components-in-palette.png)
 
 Note: Refer to the [_Best practices_ topic in the _User Guide_](best-practices-file-based-nodes.md) to learn more about special considerations for generic components.
+
+#### Custom components
 
 _Custom components_ are commonly only implemented for one runtime type, such as Kubeflow Pipelines or Apache Airflow. (The local runtime type does not support custom components.)
 
@@ -179,12 +183,12 @@ To add a component catalog entry run `elyra-metadata create component-catalogs`.
 
 ```bash
 $ elyra-metadata create component-catalogs \
-       --display_name="filter components" \
-       --description="filter text in files" \
-       --runtime_type=KUBEFLOW_PIPELINES \
-       --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
-       --categories='["filter content"]'
+       --display_name "filter components" \
+       --description "filter text in files" \
+       --runtime_type KUBEFLOW_PIPELINES \
+       --schema_name "url-catalog"\
+       --paths "['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
+       --categories '["filter content"]'
 ```
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
@@ -195,12 +199,12 @@ To replace a component catalog entry run `elyra-metadata update component-catalo
 
 ```bash
 $ elyra-metadata update component-catalogs \
-       --name="filter_components" \
-       --display_name="filter components" \
-       --description="filter text in files" \
-       --runtime_type=KUBEFLOW_PIPELINES \
-       --schema_name="url-catalog"\
-       --paths="['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
+       --name "filter_components" \
+       --display_name "filter components" \
+       --description "filter text in files" \
+       --runtime_type KUBEFLOW_PIPELINES \
+       --schema_name "url-catalog"\
+       --paths "['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories='["file operations"]'
 ```
 
@@ -213,8 +217,8 @@ Refer to section [Configuration properties](#configuration-properties) for param
 To export component catalogs:
 
 ```bash
-elyra-metadata export component-catalogs \
-	--directory="/tmp/foo"
+$ elyra-metadata export component-catalogs \
+	--directory "/tmp/foo"
 ```
 
 The above example will export all component catalogs to the "/tmp/foo/component-catalogs" directory.
@@ -225,13 +229,28 @@ There are two flags that can be specified when exporting component catalogs:
 1. To include invalid component catalogs, use the `--include-invalid` flag.
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/component-catalogs" directory before exporting the component catalogs.
 
+#### Importing component catalogs
+
+To import component catalogs:
+
+```bash
+$ elyra-metadata import component-catalogs \
+	--directory "/tmp/foo"
+```
+
+The above example will import all valid component catalogs in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
+
+Note that you must specify the `--directory` option. 
+
+By default, metadata will not be imported if a component catalog instance with the same name already exists. The `--overwrite` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+
 #### Removing a component catalog entry
 
 To remove a component catalog entry and its component definitions from the Visual Pipeline Editor palette:
 
 ```bash
 $ elyra-metadata remove component-catalogs \
-       --name="filter_components"
+       --name "filter_components"
 ```
 
 Refer to section [Configuration properties](#configuration-properties) for parameter descriptions.
@@ -264,7 +283,7 @@ component-registry   myoperators         /Users/jovyan/Library/Jupyter/metadata/
 ```
 You may find that some of these instances no longer apply.  If there are any that do not apply to 3.3, they can be removed individually:
 ```bash
-$ elyra-metadata remove component-registries --name=aa_custom
+$ elyra-metadata remove component-registries --name aa_custom
 
 Metadata instance 'aa_custom' removed from schemaspace 'component-registries'.
 ````

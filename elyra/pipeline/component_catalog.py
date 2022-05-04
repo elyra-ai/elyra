@@ -367,6 +367,7 @@ class ComponentCache(SingletonConfigurable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self._component_cache = {}
         self.is_server_process = ComponentCache._determine_server_process(**kwargs)
         self.manifest_dir = jupyter_runtime_dir()
         # Ensure queue attribute exists for non-server instances as well.

@@ -184,3 +184,22 @@ async def test_malformed_refresh(jp_fetch):
     with pytest.raises(HTTPClientError) as e:
         await jp_fetch("elyra", "pipeline", "components", "cache", body=body, method="PUT")
     assert expected_http_error(e, 400)
+
+
+async def test_get_pipeline_properties_definition(jp_fetch):
+    runtime_list = ["kfp", "airflow", "local"]
+
+    for runtime in runtime_list:
+        response = await jp_fetch("elyra", "pipeline", runtime, "properties")
+        assert response.code == 200
+        payload = json.loads(response.body.decode())
+        # Spot check
+        assert payload["parameters"] == [
+            {"id": "name"},
+            {"id": "runtime"},
+            {"id": "description"},
+            {"id": "cos_object_prefix"},
+            {"id": "elyra_runtime_image"},
+            {"id": "elyra_env_vars"},
+            {"id": "elyra_mounted_volumes"},
+        ]

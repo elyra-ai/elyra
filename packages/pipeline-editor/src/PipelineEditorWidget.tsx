@@ -73,7 +73,6 @@ import {
   useRuntimesSchema
 } from './pipeline-hooks';
 import { PipelineExportDialog } from './PipelineExportDialog';
-import pipelineProperties from './pipelineProperties';
 import {
   PipelineService,
   RUNTIMES_SCHEMASPACE,
@@ -269,18 +268,6 @@ const PipelineWrapper: React.FC<IProps> = ({
       const nodes = pipelineJson?.pipelines?.[0]?.nodes;
       if (nodes?.length > 0) {
         for (const node of nodes) {
-          if (node?.app_data?.component_parameters?.runtime_image) {
-            const image = runtimeImages?.find(
-              i =>
-                i.metadata.image_name ===
-                node.app_data.component_parameters.runtime_image
-            );
-            if (image) {
-              node.app_data.component_parameters.runtime_image =
-                image.display_name;
-            }
-          }
-
           if (node?.app_data?.component_parameters) {
             for (const [key, val] of Object.entries(
               node?.app_data?.component_parameters
@@ -315,38 +302,15 @@ const PipelineWrapper: React.FC<IProps> = ({
     return (): void => {
       currentContext.model.contentChanged.disconnect(changeHandler);
     };
-  }, [runtimeImages, runtimeDisplayName]);
+  }, [runtimeDisplayName]);
 
-  const onChange = useCallback(
-    (pipelineJson: any): void => {
-      if (contextRef.current.isReady) {
-        if (pipelineJson?.pipelines?.[0]?.nodes) {
-          // map display names to IDs
-          const nodes = pipelineJson?.pipelines?.[0]?.nodes;
-          if (nodes?.length > 0) {
-            for (const node of nodes) {
-              if (node?.app_data?.component_parameters?.runtime_image) {
-                const image = runtimeImages?.find(
-                  i =>
-                    i.display_name ===
-                    node.app_data.component_parameters.runtime_image
-                );
-                if (image) {
-                  node.app_data.component_parameters.runtime_image =
-                    image.metadata.image_name;
-                }
-              }
-            }
-          }
-        }
-
-        contextRef.current.model.fromString(
-          JSON.stringify(pipelineJson, null, 2)
-        );
-      }
-    },
-    [runtimeImages]
-  );
+  const onChange = useCallback((pipelineJson: any): void => {
+    if (contextRef.current.isReady) {
+      contextRef.current.model.fromString(
+        JSON.stringify(pipelineJson, null, 2)
+      );
+    }
+  }, []);
 
   const isDialogAlreadyShowing = useRef(false);
   const onError = useCallback(
@@ -416,7 +380,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                       enabled in your environment. Complete the setup
                       instructions in{' '}
                       <a
-                        href="https://elyra.readthedocs.io/en/v3.7.0rc0/user_guide/pipeline-components.html#example-custom-components"
+                        href="https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#example-custom-components"
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -568,7 +532,7 @@ const PipelineWrapper: React.FC<IProps> = ({
               <br />
               <br />
               <a
-                href="https://elyra.readthedocs.io/en/v3.7.0rc0/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
+                href="https://elyra.readthedocs.io/en/latest/user_guide/best-practices-custom-pipeline-components.html#troubleshooting-missing-pipeline-components"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -797,21 +761,30 @@ const PipelineWrapper: React.FC<IProps> = ({
     return showDialog({
       title: 'Clear Pipeline',
       body: 'Are you sure you want to clear the pipeline?',
-      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
+      buttons: [
+        Dialog.cancelButton(),
+        Dialog.okButton({ label: 'Clear All' }),
+        Dialog.okButton({ label: 'Clear Canvas' })
+      ]
     }).then(result => {
       if (result.button.accept) {
         const newPipeline: any = contextRef.current.model.toJSON();
         if (newPipeline?.pipelines?.[0]?.nodes?.length > 0) {
           newPipeline.pipelines[0].nodes = [];
         }
-        const pipelineProperties =
-          newPipeline?.pipelines?.[0]?.app_data?.properties;
-        if (pipelineProperties) {
-          // Remove all fields of pipeline properties except for the name/runtime (readonly)
-          newPipeline.pipelines[0].app_data.properties = {
-            name: pipelineProperties.name,
-            runtime: pipelineProperties.runtime
-          };
+        // remove supernode pipelines
+        newPipeline.pipelines = [newPipeline.pipelines[0]];
+        // only clear pipeline properties when "Clear All" is selected
+        if (result.button.label === 'Clear All') {
+          const pipelineProperties =
+            newPipeline?.pipelines?.[0]?.app_data?.properties;
+          if (pipelineProperties) {
+            // Remove all fields of pipeline properties except for the name/runtime (readonly)
+            newPipeline.pipelines[0].app_data.properties = {
+              name: pipelineProperties.name,
+              runtime: pipelineProperties.runtime
+            };
+          }
         }
         contextRef.current.model.fromJSON(newPipeline);
       }
@@ -1063,7 +1036,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   const handleOpenSettings = (): void => {
-    commands.execute('settingeditor:open');
+    commands.execute('settingeditor:open', { query: 'Pipeline Editor' });
   };
 
   return (
@@ -1081,7 +1054,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         <PipelineEditor
           ref={ref}
           palette={palette}
-          pipelineProperties={pipelineProperties}
+          pipelineProperties={palette.properties}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}

@@ -19,6 +19,7 @@ import ast
 import asyncio
 import functools
 import os
+from pathlib import Path
 import time
 from typing import Dict
 from typing import List
@@ -40,10 +41,12 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
+from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_expanded_path
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -350,15 +353,13 @@ class RuntimePipelineProcessor(PipelineProcessor):
     def __init__(self, root_dir: str, **kwargs):
         super().__init__(root_dir, **kwargs)
 
-    def _get_dependency_archive_name(self, operation):
-        artifact_name = os.path.basename(operation.filename)
-        (name, ext) = os.path.splitext(artifact_name)
-        return name + "-" + operation.id + ".tar.gz"
+    def _get_dependency_archive_name(self, operation: Operation) -> str:
+        return f"{Path(operation.filename).stem}-{operation.id}.tar.gz"
 
-    def _get_dependency_source_dir(self, operation):
-        return os.path.join(self.root_dir, os.path.dirname(operation.filename))
+    def _get_dependency_source_dir(self, operation: Operation) -> str:
+        return str(Path(self.root_dir) / Path(operation.filename).parent)
 
-    def _generate_dependency_archive(self, operation):
+    def _generate_dependency_archive(self, operation: Operation) -> Optional[str]:
         archive_artifact_name = self._get_dependency_archive_name(operation)
         archive_source_dir = self._get_dependency_source_dir(operation)
 
@@ -375,16 +376,25 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
         return archive_artifact
 
-    def _upload_dependencies_to_object_store(self, runtime_configuration, pipeline_name, operation):
+    def _upload_dependencies_to_object_store(
+        self, runtime_configuration: str, pipeline_name: str, operation: Operation, prefix: str = ""
+    ) -> None:
+        """
+        Create dependency archive for the generic operation identified by operation
+        and upload it to object storage.
+        """
         operation_artifact_archive = self._get_dependency_archive_name(operation)
-        cos_directory = pipeline_name
+
+        # object prefix
+        object_prefix = prefix.strip("/")
+
         # upload operation dependencies to object store
         try:
             t0 = time.time()
             dependency_archive_path = self._generate_dependency_archive(operation)
             self.log_pipeline_info(
                 pipeline_name,
-                f"generated dependency archive: {dependency_archive_path}",
+                f"generated dependency archive '{dependency_archive_path}'",
                 operation_name=operation.name,
                 duration=(time.time() - t0),
             )
@@ -392,12 +402,14 @@ class RuntimePipelineProcessor(PipelineProcessor):
             cos_client = CosClient(config=runtime_configuration)
 
             t0 = time.time()
-            cos_client.upload_file_to_dir(
-                dir=cos_directory, file_name=operation_artifact_archive, file_path=dependency_archive_path
+            uploaded_object_name = cos_client.upload_file(
+                local_file_path=dependency_archive_path,
+                object_name=operation_artifact_archive,
+                object_prefix=object_prefix,
             )
             self.log_pipeline_info(
                 pipeline_name,
-                f"uploaded dependency archive to: {cos_directory}/{operation_artifact_archive}",
+                f"uploaded dependency archive to '{uploaded_object_name}' in bucket '{cos_client.bucket}'",
                 operation_name=operation.name,
                 duration=(time.time() - t0),
             )
@@ -488,7 +500,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         :return: dictionary containing environment name/value pairs
         """
 
-        envs: Dict = operation.env_vars_as_dict(logger=self.log)
+        envs: Dict = operation.env_vars.to_dict(logger=self.log)
         envs["ELYRA_RUNTIME_ENV"] = self.name
 
         # set environment variables for Minio/S3 access, in the following order of precedence:
@@ -569,3 +581,27 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return value
 
         return converted_list
+
+    def _get_volume_mounts(self, operation: Operation) -> Optional[Dict[str, str]]:
+        """
+        Loops through an Operation mounted volumes to re-format path and remove
+        invalid PVC names.
+
+        :param operation: the operation to check for volume mounts
+        :return: dictionary of mount path to valid PVC names
+        """
+        volume_mounts_valid = {}
+        if operation.component_params.get(MOUNTED_VOLUMES):
+            volume_mounts = operation.component_params.get(MOUNTED_VOLUMES).to_dict()
+            for mount_path, pvc_name in volume_mounts.items():
+                # Ensure the PVC name is syntactically a valid Kubernetes resource name
+                if not is_valid_kubernetes_resource_name(pvc_name):
+                    self.log.warning(
+                        f"Ignoring invalid volume mount entry '{mount_path}': the PVC "
+                        f"name '{pvc_name}' is not a valid Kubernetes resource name."
+                    )
+                    continue
+
+                formatted_mount_path = f"/{mount_path.strip('/')}"
+                volume_mounts_valid[formatted_mount_path] = pvc_name
+        return volume_mounts_valid

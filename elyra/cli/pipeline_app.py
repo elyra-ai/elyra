@@ -20,7 +20,7 @@ import json
 from operator import itemgetter
 import os
 from pathlib import Path
-from sys import exit
+import sys
 from typing import Optional
 import warnings
 
@@ -28,7 +28,6 @@ import click
 from colorama import Fore
 from colorama import Style
 from kfp import Client as ArgoClient
-from yaspin import yaspin
 
 from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
@@ -47,6 +46,11 @@ from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.pipeline.runtimes_metadata import RuntimesMetadata
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationSeverity
+
+if sys.stdout.isatty():
+    from yaspin import yaspin as Spinner
+else:
+    from .pipeline_app_utils import StaticTextSpinner as Spinner
 
 # custom exit code - a timeout occurred
 EXIT_TIMEDOUT = 124
@@ -237,7 +241,7 @@ def _execute_pipeline(pipeline_definition) -> PipelineProcessorResponse:
 
 def _build_component_cache():
     """Initialize a ComponentCache instance and wait for it to complete all tasks"""
-    with yaspin(text="Initializing the component cache..."):
+    with Spinner(text="Initializing the component cache..."):
         component_cache = ComponentCache.instance(emulate_server_app=True)
         component_cache.load()
         component_cache.wait_for_all_cache_tasks()
@@ -280,7 +284,7 @@ def pipeline():
     Run Elyra pipelines in your local environment or submit them to an external service,
     such as Kubeflow Pipelines or Apache Airflow.
 
-    Find more information at: https://elyra.readthedocs.io/en/v3.7.0rc0/
+    Find more information at: https://elyra.readthedocs.io/en/latest/
     """
     pass
 
@@ -374,7 +378,7 @@ def submit(json_option, pipeline_path, runtime_config_name, monitor_option, time
     except Exception:
         raise click.ClickException("Pipeline validation FAILED. The pipeline was not submitted for execution.")
 
-    with yaspin(text="Submitting pipeline..."):
+    with Spinner(text="Submitting pipeline..."):
         response: PipelineProcessorResponse = _execute_pipeline(pipeline_definition)
 
     if not json_option:
@@ -384,13 +388,12 @@ def submit(json_option, pipeline_path, runtime_config_name, monitor_option, time
             # TODO: this will need to be revisited once front-end is decoupled from runtime platforms.
             if hasattr(response, "git_url"):
                 msg.append(f"Apache Airflow DAG has been pushed to: {response.git_url}")
-            msg.extend(
-                [
-                    f"Check the status of your job at: {response.run_url}",
-                    f"The results and outputs are in the {response.object_storage_path} ",
-                    f"working directory in {response.object_storage_url}",
-                ]
-            )
+            msg.append(f"Check the status of your job at: {response.run_url}")
+            if response.object_storage_path is not None and response.object_storage_url is not None:
+                msg.append(
+                    f"The results and outputs are in the {response.object_storage_path} "
+                    f"working directory in {response.object_storage_url}"
+                )
             print_info("Job submission succeeded", msg)
         click.echo()
         print_banner("Elyra Pipeline Submission Complete")
@@ -406,14 +409,14 @@ def submit(json_option, pipeline_path, runtime_config_name, monitor_option, time
             msg = (
                 f"Monitoring status of pipeline run '{response.run_id}' for up to " f"{timeout_option} {minute_str}..."
             )
-            with yaspin(text=msg):
+            with Spinner(text=msg):
                 status = _monitor_kfp_submission(runtime_config, runtime_config_name, response.run_id, timeout_option)
         except TimeoutError:
             click.echo(
                 "Monitoring was stopped because the timeout threshold "
                 f"({timeout_option} {minute_str}) was exceeded. The pipeline is still running."
             )
-            exit(EXIT_TIMEDOUT)
+            sys.exit(EXIT_TIMEDOUT)
         else:
             # The following are known KFP states: 'succeeded', 'failed', 'skipped',
             # 'error'. Treat 'unknown' as error. Exit with appropriate status code.
@@ -421,7 +424,7 @@ def submit(json_option, pipeline_path, runtime_config_name, monitor_option, time
             if status.lower() not in ["succeeded", "skipped"]:
                 # Click appears to use non-zero exit codes 1 (ClickException)
                 # and 2 (UsageError). Terminate.
-                exit(click.ClickException.exit_code)
+                sys.exit(click.ClickException.exit_code)
 
 
 def _monitor_kfp_submission(runtime_config: dict, runtime_config_name: str, run_id: str, timeout: int) -> str:
@@ -638,7 +641,7 @@ def export(pipeline_path, runtime_config, output, overwrite):
     except Exception:
         raise click.ClickException("Pipeline validation FAILED. The pipeline was not exported.")
 
-    with yaspin(text="Exporting pipeline ..."):
+    with Spinner(text="Exporting pipeline ..."):
         try:
             # parse pipeline
             pipeline_object = PipelineParser().parse(pipeline_definition)

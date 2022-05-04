@@ -39,7 +39,7 @@ airflow:
   ## GENERATE:
   ##   python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)"
   ##
-  fernetKey: "7T512UXSSmBOkpWimFHIVb8jK6lfmSAvx4mO6Arehnc="
+  fernetKey: "my-generated-fernetKey"
 
   ## environment variables for the web/scheduler/worker Pods (for airflow configs)
   ##

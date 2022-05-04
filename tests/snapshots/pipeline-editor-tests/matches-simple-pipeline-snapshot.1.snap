@@ -27,6 +27,7 @@ Object {
               ],
               "filename": "helloworld.ipynb",
               "include_subdirectories": false,
+              "mounted_volumes": Array [],
               "outputs": Array [],
             },
             "label": "",

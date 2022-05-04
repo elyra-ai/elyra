@@ -89,7 +89,7 @@ You can list, create, edit, or delete runtime configurations using the `elyra-me
 To list runtime configurations run
 
 ```
-elyra-metadata list runtimes
+$ elyra-metadata list runtimes
 ```
 
 The output lists for each runtime the name and the name of the associated JSON formatted metadata file, which is stored in the JupyterLab data directory in the `metadata/runtimes` subdirectory.
@@ -109,20 +109,20 @@ To format the output as JSON run `elyra-metadata list runtimes --json`. Note tha
 To create a runtime configuration for a Kubeflow Pipelines deployment:
 
 ```bash
-elyra-metadata create runtimes \
-       --schema_name=kfp \
-       --display_name="My Kubeflow Pipelines Runtime" \
-       --api_endpoint=https://kubernetes-service.ibm.com/pipeline \
-       --auth_type="DEX_STATIC_PASSWORDS" \
-       --api_username=username@email.com \
-       --api_password=mypassword \
-       --engine=Argo \
-       --cos_endpoint=http://minio-service.kubeflow:9000 \
-       --cos_auth_type="USER_CREDENTIALS" \
-       --cos_username=minio \
-       --cos_password=minio123 \
-       --cos_bucket=test-bucket \
-       --tags="['kfp', 'v1.0']"
+$ elyra-metadata create runtimes \
+       --schema_name kfp \
+       --display_name "My Kubeflow Pipelines Runtime" \
+       --api_endpoint https://kubernetes-service.ibm.com/pipeline \
+       --auth_type "DEX_STATIC_PASSWORDS" \
+       --api_username username@email.com \
+       --api_password mypassword \
+       --engine Argo \
+       --cos_endpoint http://minio-service.kubeflow:9000 \
+       --cos_auth_type "USER_CREDENTIALS" \
+       --cos_username minio \
+       --cos_password minio123 \
+       --cos_bucket test-bucket \
+       --tags "['kfp', 'v1.0']"
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters.
@@ -132,11 +132,11 @@ Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-con
 To edit a runtime configuration, use the `update` command along with `--name` and `--schema_name` (to locate the instance), followed by the modified property values.  In this case, we're updating the `api_password` and `tags` properties:
 
 ```bash
-elyra-metadata update runtimes \
-       --name="my_kubeflow_pipelines_runtime" \
-       --schema_name=kfp \
-       --api_password=mynewpassword \
-       --tags="['kfp', 'v1.1']"
+$ elyra-metadata update runtimes \
+       --name "my_kubeflow_pipelines_runtime" \
+       --schema_name kfp \
+       --api_password mynewpassword \
+       --tags "['kfp', 'v1.1']"
 ```
 
 Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-configuration-settings) section for an explanation of the parameters. 
@@ -146,8 +146,8 @@ Refer to the [Kubeflow Pipelines Configuration settings](#kubeflow-pipelines-con
 To export runtime configurations:
 
 ```bash
-elyra-metadata export runtimes \
-	--directory="/tmp/foo"
+$ elyra-metadata export runtimes \
+	--directory "/tmp/foo"
 ```
 
 The above example will export all runtime configurations to the "/tmp/foo/runtimes" directory.
@@ -158,12 +158,27 @@ There are two flags that can be specified when exporting runtime configurations:
 1. To include invalid runtime configurations, use the `--include-invalid` flag.
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtimes" directory before exporting the runtime configurations.
 
+#### Importing runtime configurations
+
+To import runtime configurations:
+
+```bash
+$ elyra-metadata import runtimes \
+	--directory "/tmp/foo"
+```
+
+The above example will import all valid runtime configurations in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
+
+Note that you must specify the `--directory` option. 
+
+By default, metadata will not be imported if a runtime configuration instance with the same name already exists. The `--overwrite` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+
 #### Deleting a runtime configuration
 
 To delete a runtime configuration run the following command, replacing the configuration name as appropriate.
 
 ```bash
-elyra-metadata remove runtimes --name=my_kubeflow_pipelines_runtime
+$ elyra-metadata remove runtimes --name my_kubeflow_pipelines_runtime
 ```
 
 ### Configuration settings
@@ -204,7 +219,15 @@ This section defines the settings for the Kubeflow Pipelines deployment that you
 
 The KubeFlow Pipelines API endpoint you want to utilize. This setting is required.
 
-Example: `https://kubernetes-service.ibm.com/pipeline`
+Example: `https://kubernetes-service.domain.com/pipeline`
+
+
+##### Public Kubeflow Pipelines API endpoint (public_api_endpoint)
+
+If the `KubeFlow Pipelines API endpoint` setting identifies a URL that can only be resolved within the Kubeflow cluster, Elyra cannot generate valid links to the Kubeflow Central Dashboard pipeline runs page. This is the case, for  example, if Kubeflow is configured to use `KUBERNETES_SERVICE_ACCOUNT_TOKEN` authentication. If a public URL is configured for the Kubeflow Central Dashboard, specify it as `Public Kubeflow Pipelines API endpoint`.
+
+Example: `https://public-kubernetes-service-url/pipeline`
+
 
 ##### Kubeflow Pipelines user namespace (user_namespace)
 The namespace used to run your pipeline in Kubeflow Pipelines. This setting is required if namespaces are defined in Kubeflow Pipelines. SEE NOTE.

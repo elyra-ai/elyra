@@ -60,7 +60,7 @@ To edit a code snippet:
 1. Open the `Code Snippets` panel.
 1. Click the pencil next to the code snippet entry.
 
-#### Dulicating a code snippet
+#### Duplicating a code snippet
 
 To duplicate a code snippet:
 1. Open the `Code Snippets` panel.
@@ -95,7 +95,7 @@ You can list, create, edit, or delete code snippets using the `elyra-metadata` C
 To list code snippets run
 
 ```
-elyra-metadata list code-snippets
+$ elyra-metadata list code-snippets
 ```
 
 The output lists for each code snippet the name and the name of the associated JSON formatted metadata file, which is stored in the JupyterLab data directory in the `metadata/code-snippets` subdirectory.
@@ -115,12 +115,12 @@ To format the output as JSON run `elyra-metadata list code-snippets --json`. Not
 To create a code snippet:
 
 ```bash
-elyra-metadata create code-snippets \
-	--display_name="Preview DataFrame" \
-	--description="Preview Pandas DataFrame" \
-	--tags="['Python', 'Pandas']" \
-	--language="Python" \
-	--code="['df.head(5)']"
+$ elyra-metadata create code-snippets \
+	--display_name "Preview DataFrame" \
+	--description "Preview Pandas DataFrame" \
+	--tags "['Python', 'Pandas']" \
+	--language "Python" \
+	--code "['df.head(5)']"
 ```
 
 Refer to the [Code snippet properties](#code-snippet-properties) section for an explanation of the parameters.
@@ -130,13 +130,13 @@ Refer to the [Code snippet properties](#code-snippet-properties) section for an 
 To modify a code snippet:
 
 ```bash
-elyra-metadata update code-snippets \
-	--name="preview_dataframe" \
-	--display_name="Preview DataFrame" \
-	--description="Preview Pandas DataFrame" \
-	--tags="['Python', 'Pandas']" \
-	--language="Python" \
-	--code="['# Display first 5 rows', 'df.head(5)']"
+$ elyra-metadata update code-snippets \
+	--name "preview_dataframe" \
+	--display_name "Preview DataFrame" \
+	--description "Preview Pandas DataFrame" \
+	--tags "['Python', 'Pandas']" \
+	--language "Python" \
+	--code "['# Display first 5 rows', 'df.head(5)']"
 ```
 
 Refer to the [Code snippet properties](#code-snippet-properties) section for an explanation of the parameters. Note that you must specify the `--name` parameter. 
@@ -146,8 +146,8 @@ Refer to the [Code snippet properties](#code-snippet-properties) section for an 
 To export code snippets:
 
 ```bash
-elyra-metadata export code-snippets \
-	--directory="/tmp/foo"
+$ elyra-metadata export code-snippets \
+	--directory "/tmp/foo"
 ```
 
 The above example will export all code snippets to the "/tmp/foo/code-snippets" directory.
@@ -158,12 +158,27 @@ There are two flags that can be specified when exporting code snippets:
 1. To include invalid code snippets, use the `--include-invalid` flag.
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/code-snippets" directory before exporting the code snippets.
 
+#### Importing code snippets
+
+To import code snippets:
+
+```bash
+$ elyra-metadata import code-snippets \
+	--directory "/tmp/foo"
+```
+
+The above example will import all valid code snippets in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
+
+Note that you must specify the `--directory` option. 
+
+By default, metadata will not be imported if a code snippet instance with the same name already exists. The `--overwrite` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+
 #### Deleting a code snippet
 
 To delete a code snippet run the following command, replacing the code snippet name as appropriate.
 
 ```bash
-elyra-metadata remove code-snippets --name="preview_dataframe"
+$ elyra-metadata remove code-snippets --name "preview_dataframe"
 ```
 
 ### Code snippet properties

@@ -47,6 +47,7 @@ class BootscriptBuilder(object):
     def __init__(
         self,
         filename: str,
+        pipeline_name: str,
         cos_endpoint: str,
         cos_bucket: str,
         cos_directory: str,
@@ -58,6 +59,7 @@ class BootscriptBuilder(object):
         This helper builder constructs the bootstrapping arguments to be used as the driver for
         elyra's generic components in Apache Airflow
         :param filename: name of the file to execute
+        :param pipeline_name: name of the pipeline
         :param :cos_endpoint: object storage endpoint e.g weaikish1.fyre.ibm.com:30442
         :param :cos_bucket: bucket to retrieve archive from
         :param :cos_directory: name of the directory in the object storage bucket to pull
@@ -71,6 +73,7 @@ class BootscriptBuilder(object):
         self.cos_directory = cos_directory
         self.cos_dependencies_archive = cos_dependencies_archive
         self.filename = filename
+        self.pipeline_name = pipeline_name
         self.outputs = outputs
         self.inputs = inputs
         self.container_work_dir_root_path = "./"
@@ -82,14 +85,20 @@ class BootscriptBuilder(object):
 
     @property
     def container_cmd(self):
+
+        common_curl_options = "--fail -H 'Cache-Control: no-cache'"
+
         self.arguments = [
             f"mkdir -p {self.container_work_dir} && cd {self.container_work_dir} && "
-            f"curl -H 'Cache-Control: no-cache' -L {ELYRA_BOOTSCRIPT_URL} --output bootstrapper.py && "
-            f"curl -H 'Cache-Control: no-cache' -L {ELYRA_REQUIREMENTS_URL} "
+            f"echo 'Downloading {ELYRA_BOOTSCRIPT_URL}' && "
+            f"curl {common_curl_options} -L {ELYRA_BOOTSCRIPT_URL} --output bootstrapper.py && "
+            f"echo 'Downloading {ELYRA_REQUIREMENTS_URL}' && "
+            f"curl {common_curl_options} -L {ELYRA_REQUIREMENTS_URL} "
             f"--output requirements-elyra.txt && "
             "python3 -m pip install packaging && "
             "python3 -m pip freeze > requirements-current.txt && "
             "python3 bootstrapper.py "
+            f"--pipeline-name '{self.pipeline_name}' "
             f"--cos-endpoint {self.cos_endpoint} "
             f"--cos-bucket {self.cos_bucket} "
             f"--cos-directory '{self.cos_directory}' "

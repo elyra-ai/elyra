@@ -69,19 +69,20 @@ setup_args = dict(
         "colorama",
         "deprecation",
         "entrypoints>=0.3",
-        "jinja2>=2.11,<3.1",  # Cap due to breaking changes, see elyra-ai/elyra#2586
+        "jinja2>=3",
         "jsonschema>=3.2.0,<4.0",  # Cap from kfp
         "jupyter_core>=4.6.0",
         "jupyter_client>=6.1.7",
         "jupyter-packaging>=0.10",
         "jupyter_server>=1.7.0",
-        "jupyterlab>=3.3.0",
+        "jupyterlab>=3.4.0",
         "jupyterlab-git~=0.32",  # Avoid breaking 1.x changes
         "jupyterlab-lsp>=3.8.0",
         "jupyter-resource-usage>=0.5.1",
+        "MarkupSafe>=2.1",
         "minio>=7.0.0",
         "nbclient>=0.5.1",
-        "nbconvert>=5.6.1",
+        "nbconvert>=6.4.5",
         "nbdime~=3.1",  # Cap from jupyterlab-git
         "nbformat>=5.1.2",
         "networkx>=2.5.1",
@@ -104,7 +105,7 @@ setup_args = dict(
         "black<=21.12b0",  # Cap due to psf/black#2846
     ],
     extras_require={
-        "test": ["elyra-examples-airflow-catalog", "elyra-examples-kfp-catalog", "pytest", "pytest-tornasync"],
+        "test": ["elyra-examples-kfp-catalog", "pytest", "pytest-tornasync"],
         **runtime_extras,
     },
     include_package_data=True,
