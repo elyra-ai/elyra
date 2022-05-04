@@ -1037,7 +1037,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   const handleOpenSettings = (): void => {
-    commands.execute('settingeditor:open');
+    commands.execute('settingeditor:open', { query: 'Pipeline Editor' });
   };
 
   return (

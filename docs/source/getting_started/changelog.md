@@ -1,5 +1,11 @@
 # Changelog
 
+## Release 3.8.1 - 05/03/2022
+
+- Fix incorrect regex search in release script - [#2703](https://github.com/elyra-ai/elyra/pull/2703)
+- Update to JupyterLab 3.4 - [#2632](https://github.com/elyra-ai/elyra/pull/2632)
+- Remove unreachable code - [#2695](https://github.com/elyra-ai/elyra/pull/2695)
+
 ## Release 3.8.0 - 05/02/2022
 
 - Update pipeline-editor package to v1.8.0 - [#2697](https://github.com/elyra-ai/elyra/pull/2697)

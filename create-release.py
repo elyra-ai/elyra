@@ -110,7 +110,7 @@ def update_version_to_release() -> None:
     try:
         # Update backend version
         sed(_source(".bumpversion.cfg"), rf"^current_version* =* {old_version}", f"current_version = {new_version}")
-        sed(_source("elyra/_version.py"), rf"^__version__* =* \"{old_version}\"", f'__version__ = "{new_version}"'),
+        sed(_source("elyra/_version.py"), rf'^__version__* =* "{old_version}"', f'__version__ = "{new_version}"'),
         sed(_source("README.md"), rf"elyra {old_version}", f"elyra {new_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra {old_version}", f"elyra {new_version}")
 
@@ -226,7 +226,7 @@ def update_version_to_dev() -> None:
     try:
         # Update backend version
         sed(_source(".bumpversion.cfg"), rf"^current_version* =* {new_version}", f"current_version = {dev_version}")
-        sed(_source("elyra/_version.py"), rf"^__version__* =* '{new_version}'", f"__version__ = '{dev_version}'")
+        sed(_source("elyra/_version.py"), rf'^__version__* =* "{new_version}"', f'__version__ = "{dev_version}"')
         sed(_source("README.md"), rf"elyra {new_version}", f"elyra {dev_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra {new_version}", f"elyra {dev_version}")
 
