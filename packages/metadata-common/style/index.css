@@ -361,7 +361,7 @@ legend#root__noCategory__title {
 .elyra-passwordFieldButton {
   border: none;
   border-radius: 5px;
-  background: var(--jp-cell-editor-active-background);
+  background: var(--jp-border-color3);
   position: absolute;
   right: 1px;
   bottom: 7px;
@@ -373,12 +373,13 @@ legend#root__noCategory__title {
 }
 
 .elyra-passwordFieldButton:hover {
-  background-color: var(--jp-border-color3);
+  background-color: var(--jp-border-color2);
 }
 
 .elyra-passwordFieldButton svg {
   width: 25px;
   display: flex;
+  color: var(--jp-content-font-color0);
 }
 
 input.elyra-inputTag {
@@ -398,6 +399,8 @@ input.elyra-inputTag {
   font-size: var(--jp-content-font-size2);
   margin-top: 10px;
   width: 100%;
+  background-color: var(--jp-cell-editor-background);
+  color: var(--jp-content-font-color0);
 }
 
 .elyra-metadataEditor-saveButton button {
@@ -407,6 +410,7 @@ input.elyra-inputTag {
   padding: 10px;
   font-size: var(--jp-content-font-size2);
   width: fit-content;
+  color: var(--jp-content-font-color0);
 }
 
 .form-group.field {
