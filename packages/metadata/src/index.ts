@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
+import { MetadataWidget, MetadataEditorWidget } from '@elyra/metadata-common';
+import { MetadataService } from '@elyra/services';
+
 import {
-  MetadataWidget,
-  MetadataEditorWidget,
+  DropDown,
+  RequestErrors,
   CodeBlock,
   MetadataEditorTagsField,
   PasswordField
-} from '@elyra/metadata-common';
-import { MetadataService } from '@elyra/services';
-
-import { DropDown, RequestErrors } from '@elyra/ui-components';
+} from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,

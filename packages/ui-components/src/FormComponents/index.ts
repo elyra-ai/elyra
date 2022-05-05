@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './BrowseFileDialog';
-export * from './ExpandableErrorDialog';
-export * from './ExpandableComponent';
-export * from './FormDialog';
-export * from './icons';
-export * from './FormComponents';
-export * from './TextInput';
-export * from './BooleanInput';
-export * from './JSONComponent';
-export * from './Dropzone';
-export * from './RequestErrors';
-export * from './StringArrayInput';
-export * from './ThemeProvider';
+
+export * from './MetadataEditorTags';
+export * from './DropDown';
+export * from './PasswordField';
+export * from './CodeBlock';

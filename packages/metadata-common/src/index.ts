@@ -20,6 +20,3 @@ export * from './MetadataEditor';
 export * from './MetadataWidget';
 export * from './MetadataHeaderButtons';
 export * from './MetadataCommonService';
-export * from './CodeBlock';
-export * from './MetadataEditorTags';
-export * from './PasswordField';
