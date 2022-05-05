@@ -463,7 +463,7 @@ def prepare_extensions_release() -> None:
             "from Elyra as a standalone extension.",
         ),
         "elyra-pipeline-editor-extension": SimpleNamespace(
-            packages=["pipeline-editor-extension", "metadata-extension", "theme-extension"],
+            packages=["code-viewer-extension", "pipeline-editor-extension", "metadata-extension", "theme-extension"],
             description=f"The Visual Editor Pipeline extension is used to build AI pipelines from notebooks, "
             f"Python scripts and R scripts, simplifying the conversion of multiple notebooks "
             f"or script files into batch jobs or workflows."
