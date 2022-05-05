@@ -100,14 +100,14 @@ conda install -y r r-essentials r-irkernel
 conda install -y -c conda-forge r-languageserver
 echo " "
 
-jupyter --version
-echo " "
-jupyter kernelspec list
-echo " "
-jupyter server extension list
-echo " "
 if [ "$LAB_VERSION" != "==dev" ]
 then
+    jupyter --version
+    echo " "
+    jupyter kernelspec list
+    echo " "
+    jupyter server extension list
+    echo " "
     jupyter labextension list
     echo " "
 fi
