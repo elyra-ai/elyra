@@ -150,7 +150,7 @@
           "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
           "type": "string",
           "uihints": {
-            "field_type": "password",
+            "ui:field": "password",
             "minLength": 8,
             "category": "Cloud Object Storage"
           }
@@ -181,7 +181,7 @@
             "type": "string"
           },
           "uihints": {
-            "field_type": "tags"
+            "ui:field": "tags"
           }
         }
       },

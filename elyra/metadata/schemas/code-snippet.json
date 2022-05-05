@@ -40,7 +40,7 @@
             "type": "string"
           },
           "uihints": {
-            "field_type": "tags"
+            "ui:field": "tags"
           }
         },
         "language": {
@@ -48,7 +48,7 @@
           "description": "Code snippet implementation language",
           "type": "string",
           "uihints": {
-            "field_type": "dropdown",
+            "ui:field": "dropdown",
             "default_choices": ["Python", "Java", "R", "Scala", "Markdown"],
             "category": "Source"
           },
@@ -62,7 +62,7 @@
             "type": "string"
           },
           "uihints": {
-            "field_type": "code",
+            "ui:field": "code",
             "category": "Source"
           }
         }

@@ -151,8 +151,6 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
     uiSchema[category] = {};
     for (const field in properties.properties) {
       uiSchema[category][field] = properties.properties[field].uihints ?? {};
-      uiSchema[category][field]['ui:field'] =
-        uiSchema[category][field]['field_type'];
       uiSchema[category][
         field
       ].classNames = `elyra-metadataEditor-form-${field}`;
@@ -176,13 +174,16 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       fields={componentRegistry?.renderers}
       ArrayFieldTemplate={ArrayTemplate}
       uiSchema={uiSchema}
-      noHtml5Validate={true}
       onChange={(e: IChangeEvent<any>): void => {
         setFormData(e.formData);
         console.log(e.formData);
         onChange(e.formData, e.errors.length > 0 || false);
       }}
       liveValidate={true}
+      noHtml5Validate={
+        /** noHtml5Validate is set to true to prevent the html validation from moving the focus when the live validate is called. */
+        true
+      }
     />
   );
 };

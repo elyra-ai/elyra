@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { viewIcon, viewOffIcon } from '@elyra/ui-components';
 import { Field } from '@rjsf/core';
 import React from 'react';
+
+import { viewIcon, viewOffIcon } from '..';
 
 /**
  * React component to edit and display password fields. Adds a button to hide / show text input.
