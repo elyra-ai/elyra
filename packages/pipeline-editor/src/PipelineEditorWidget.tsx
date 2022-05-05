@@ -99,7 +99,7 @@ export const commandIDs = {
   submitNotebook: 'notebook:submit',
   addFileToPipeline: 'pipeline-editor:add-node',
   refreshPalette: 'pipeline-editor:refresh-palette',
-  openViewer: 'code-viewer:open'
+  openViewer: 'elyra-code-viewer:open'
 };
 
 const getAllPaletteNodes = (palette: any): any[] => {
