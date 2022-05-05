@@ -76,6 +76,24 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     cd elyra
     ```
 * Set `upstream` as described in the [GitHub documentation](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/configuring-a-remote-for-a-fork)
+    * On your terminal, List the current configured remote repository for your fork.
+        ```
+        $ git remote -v
+        origin	https://github.com/<your-user-name>/elyra.git (fetch)
+        origin	https://github.com/<your-user-name>/elyra.git (push)
+        ```
+    * Specify a new remote upstream repository (Elyra) that will be synced with the fork. 
+        ```
+        $ git remote add upstream https://github.com/elyra-ai/elyra.git
+        ```
+    * Verify the new upstream repository you've specified for your fork. 
+        ```
+        # git remote -v
+        origin	https://github.com/<your-user-name>/elyra.git (fetch)
+        origin	https://github.com/<your-user-name>/elyra.git (push)
+        upstream	https://github.com/elyra-ai/elyra.git (fetch)
+        upstream	https://github.com/elyra-ai/elyra.git (push)
+        ```
 
 ### Building
 Elyra is divided in two parts, a collection of Jupyter Notebook backend extensions,
