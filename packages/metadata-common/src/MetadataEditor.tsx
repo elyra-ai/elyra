@@ -638,9 +638,7 @@ export class MetadataEditor extends ReactWidget {
         ''}`;
     }
     const error = this.displayName === '' && this.invalidForm;
-    const onKeyPress: React.KeyboardEventHandler = (
-      event: React.KeyboardEvent
-    ) => {
+    const onKeyPress = (event: React.KeyboardEvent<HTMLDivElement>): void => {
       const targetElement = event.nativeEvent.target as HTMLElement;
       if (event.key === 'Enter' && targetElement?.tagName !== 'TEXTAREA') {
         this.saveMetadata();

@@ -17,8 +17,8 @@
 .PHONY: help purge uninstall-src uninstall clean
 .PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
-.PHONY: build-dependencies yarn-install build-ui package-ui build-server install-server-package install-server
-.PHONY: install install-all install-examples install-gitlab-dependency check-install watch release
+.PHONY: build-dependencies yarn-install build-ui package-ui package-ui-dev build-server install-server-package install-server
+.PHONY: install install-all install-dev install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image publish-elyra-image kf-notebook-image publish-kf-notebook-image
@@ -128,12 +128,14 @@ lint: lint-ui lint-server ## Run linters
 ## Library linking targets
 
 dev-link:
-	yarn link @elyra/pipeline-services
-	yarn link @elyra/pipeline-editor
+	- yarn link @elyra/pipeline-services
+	- yarn link @elyra/pipeline-editor
+	- lerna run link:dev
 
 dev-unlink:
-	yarn unlink @elyra/pipeline-services
-	yarn unlink @elyra/pipeline-editor
+	- yarn unlink @elyra/pipeline-services
+	- yarn unlink @elyra/pipeline-editor
+	- lerna run unlink:dev
 	yarn install --force
 
 ## Build and install targets
@@ -150,6 +152,8 @@ build-ui: # Build packages
 
 package-ui: build-dependencies yarn-install lint-ui build-ui
 
+package-ui-dev: build-dependencies yarn-install dev-link lint-ui build-ui
+
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
@@ -164,6 +168,8 @@ install-server: build-dependencies lint-server build-server install-server-packa
 install: package-ui install-server check-install ## Build and install
 
 install-all: package-ui install-server install-examples install-gitlab-dependency check-install ## Build and install, including examples
+
+install-dev: package-ui-dev install-server install-examples install-gitlab-dependency check-install
 
 install-examples: ## Install example pipeline components 
 	# install Kubeflow Pipelines example components
