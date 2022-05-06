@@ -23,9 +23,12 @@ from typing import Optional
 from jinja2 import Environment, Undefined
 from jinja2 import PackageLoader
 
-from elyra.pipeline import pipeline_constants
 from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
+from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
 
 
 class AppDataBase(object):  # ABC
@@ -174,7 +177,7 @@ class Pipeline(AppDataBase):
         and runtime) or the pipeline defaults dictionary
         """
         all_properties = self._node["app_data"].get("properties", {})
-        excluded_properties = pipeline_constants.PIPELINE_META_PROPERTIES + [pipeline_constants.PIPELINE_DEFAULTS]
+        excluded_properties = PIPELINE_META_PROPERTIES + [PIPELINE_DEFAULTS]
 
         pipeline_parameters = {}
         for property_name, value in all_properties.items():
@@ -215,7 +218,7 @@ class Pipeline(AppDataBase):
         Convert pipeline defaults-level list properties that have been identified
         as sets of key-value pairs from a plain list type to the KeyValueList type.
         """
-        pipeline_defaults = self.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
+        pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
         for property_name, value in pipeline_defaults.items():
             if property_name not in kv_properties:
                 continue
@@ -224,7 +227,7 @@ class Pipeline(AppDataBase):
             pipeline_defaults[property_name] = KeyValueList(value)
 
         if pipeline_defaults:
-            self.set_property(pipeline_constants.PIPELINE_DEFAULTS, pipeline_defaults)
+            self.set_property(PIPELINE_DEFAULTS, pipeline_defaults)
 
 
 class Node(AppDataBase):
@@ -515,7 +518,7 @@ class PipelineDefinition(object):
         kv_properties = PipelineDefinition.get_kv_properties()
         self.primary_pipeline.convert_kv_properties(kv_properties)
 
-        pipeline_default_properties = self.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS, {})
+        pipeline_default_properties = self.primary_pipeline.get_property(PIPELINE_DEFAULTS, {})
         for node in self.pipeline_nodes:
             if not Operation.is_generic_operation(node.op):
                 continue
@@ -538,15 +541,19 @@ class PipelineDefinition(object):
                     merged_list: KeyValueList = KeyValueList.merge(node_value, pipeline_default_value)
                     node.set_component_parameter(property_name, merged_list)
 
-            if self.primary_pipeline.runtime_config != "local":
+            if (
+                self.primary_pipeline.runtime_config != "local"
+                and node.get_component_parameter(ENV_VARIABLES)
+                and node.get_component_parameter(KUBERNETES_SECRETS)
+            ):
                 # In the case of a duplicate between env vars and kubernetes secrets,
                 # prefer kubernetes secrets and remove any matching env vars
                 new_list = KeyValueList.difference(
-                    minuend=node.get_component_parameter(pipeline_constants.ENV_VARIABLES),
-                    subtrahend=node.get_component_parameter(pipeline_constants.KUBERNETES_SECRETS),
+                    minuend=node.get_component_parameter(ENV_VARIABLES),
+                    subtrahend=node.get_component_parameter(KUBERNETES_SECRETS),
                 )
                 if new_list:
-                    node.set_component_parameter(pipeline_constants.ENV_VARIABLES, new_list)
+                    node.set_component_parameter(ENV_VARIABLES, new_list)
 
     def is_valid(self) -> bool:
         """
