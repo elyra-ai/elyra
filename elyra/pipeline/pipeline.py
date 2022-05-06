@@ -490,8 +490,8 @@ class KeyValueList(list):
     @classmethod
     def difference(cls, minuend: "KeyValueList", subtrahend: "KeyValueList") -> "KeyValueList":
         """
-        Given two lists, convert to dictionaries and remove any keys found in the
-        subtrahend from the minuend, if present.
+        Given KeyValueLists, convert to dictionaries and remove any keys found in the
+        second (subtrahend) from the first (minuend), if present.
 
         :param minuend: list to be subtracted from
         :param subtrahend: list whose keys will be removed from the minuend
