@@ -627,12 +627,16 @@ class RuntimePipelineProcessor(PipelineProcessor):
                     continue
                 secret_name, secret_key = secret_tuple[0].strip(), secret_tuple[1].strip()
                 if not is_valid_kubernetes_resource_name(secret_name):
-                    self.log.warning(f"Ignoring invalid secret for '{env_var_name}': the secret name "
-                                     f"'{secret_name} 'is not a valid Kubernetes resource name.")
+                    self.log.warning(
+                        f"Ignoring invalid secret for '{env_var_name}': the secret name "
+                        f"'{secret_name}' is not a valid Kubernetes resource name."
+                    )
                     continue
                 if not is_valid_kubernetes_resource_name(secret_key):
-                    self.log.warning(f"Ignoring invalid secret for '{env_var_name}': the secret key "
-                                     f"'{secret_key} 'is not a valid Kubernetes resource name.")
+                    self.log.warning(
+                        f"Ignoring invalid secret for '{env_var_name}': the secret key "
+                        f"'{secret_key}' is not a valid Kubernetes resource name."
+                    )
                     continue
 
                 valid_secrets.append((env_var_name, secret_name, secret_key))
