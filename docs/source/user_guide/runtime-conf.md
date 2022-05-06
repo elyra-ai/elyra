@@ -158,6 +158,21 @@ There are two flags that can be specified when exporting runtime configurations:
 1. To include invalid runtime configurations, use the `--include-invalid` flag.
 2. To clean out the export directory, use the `--clean` flag. Using the `--clean` flag in the above example will empty the "/tmp/foo/runtimes" directory before exporting the runtime configurations.
 
+#### Importing runtime configurations
+
+To import runtime configurations:
+
+```bash
+$ elyra-metadata import runtimes \
+	--directory "/tmp/foo"
+```
+
+The above example will import all valid runtime configurations in the "/tmp/foo" directory (files present in any sub-directories will be ignored).
+
+Note that you must specify the `--directory` option. 
+
+By default, metadata will not be imported if a runtime configuration instance with the same name already exists. The `--overwrite` flag can be used to override this default behavior and to replace any installed metadata with the newer file in the import directory.
+
 #### Deleting a runtime configuration
 
 To delete a runtime configuration run the following command, replacing the configuration name as appropriate.

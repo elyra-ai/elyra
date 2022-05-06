@@ -74,7 +74,7 @@ def test_pipeline_get_envs():
 
     for op in pipeline.operations.values():
         assert isinstance(op, GenericOperation)
-        op_envs = op.env_vars_as_dict()
+        op_envs = op.env_vars.to_dict()
         assert op_envs["OP_NAME"] == op.name
 
 

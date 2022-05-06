@@ -110,7 +110,7 @@ def update_version_to_release() -> None:
     try:
         # Update backend version
         sed(_source(".bumpversion.cfg"), rf"^current_version* =* {old_version}", f"current_version = {new_version}")
-        sed(_source("elyra/_version.py"), rf"^__version__* =* '{old_version}'", f"__version__ = '{new_version}'"),
+        sed(_source("elyra/_version.py"), rf'^__version__* =* "{old_version}"', f'__version__ = "{new_version}"'),
         sed(_source("README.md"), rf"elyra {old_version}", f"elyra {new_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra {old_version}", f"elyra {new_version}")
 
@@ -126,11 +126,6 @@ def update_version_to_release() -> None:
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), r"master", f"{config.tag}")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), r"dev", f"{new_version}")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), r"master", f"{new_version}")
-        sed(
-            _source("etc/docker/elyra/Dockerfile"),
-            r"    cd /tmp/elyra && make UPGRADE_STRATEGY=eager install && rm -rf /tmp/elyra",
-            f"    cd /tmp/elyra \&\& git checkout tags/v{new_version} -b v{new_version} \&\& make UPGRADE_STRATEGY=eager install \&\& rm -rf /tmp/elyra",
-        )
 
         # Update UI component versions
         sed(_source("README.md"), rf"v{old_npm_version}", f"v{new_version}")
@@ -204,6 +199,13 @@ def update_version_to_release() -> None:
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
         )
 
+        # Update documentation references in documentation
+        sed(
+            _source("docs/source/user_guide/jupyterlab-interface.md"),
+            r"https://elyra.readthedocs.io/en/latest/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+        )
+
         check_run(
             ["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"],
             cwd=config.source_dir,
@@ -224,7 +226,7 @@ def update_version_to_dev() -> None:
     try:
         # Update backend version
         sed(_source(".bumpversion.cfg"), rf"^current_version* =* {new_version}", f"current_version = {dev_version}")
-        sed(_source("elyra/_version.py"), rf"^__version__* =* '{new_version}'", f"__version__ = '{dev_version}'")
+        sed(_source("elyra/_version.py"), rf'^__version__* =* "{new_version}"', f'__version__ = "{dev_version}"')
         sed(_source("README.md"), rf"elyra {new_version}", f"elyra {dev_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra {new_version}", f"elyra {dev_version}")
 
@@ -241,8 +243,6 @@ def update_version_to_dev() -> None:
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"{new_version}", "dev")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", "master")
 
-        sed(_source("etc/docker/elyra/Dockerfile"), rf"\&\& git checkout tags/v{new_version} -b v{new_version} ", f"")
-
         # Update UI component versions
         sed(_source("README.md"), rf"extension v{new_version}", f"extension v{dev_npm_version}")
         sed(
@@ -255,6 +255,31 @@ def update_version_to_dev() -> None:
             _source("packages/theme/src/index.ts"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
             rf"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        # Update documentation references in documentation
+        sed(
+            _source("docs/source/user_guide/jupyterlab-interface.md"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+            r"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        sed(
+            _source("elyra/cli/pipeline_app.py"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+            rf"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        sed(
+            _source("packages/pipeline-editor/src/EmptyPipelineContent.tsx"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("packages/pipeline-editor/src/PipelineEditorWidget.tsx"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
         check_run(
@@ -315,6 +340,13 @@ def build_server():
 
     # update project name
     sed(_source("setup.py"), r'name="elyra"', 'name="elyra-server"')
+    sed(
+        _source("setup.py"),
+        r'description="Elyra provides AI Centric extensions to JupyterLab"',
+        'description="The elyra-server package provides common core libraries and functions that are required by '
+        "Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. "
+        "Please install the 'elyra' package instead. e.g. pip install elyra[all]\"",
+    )
 
     # build server wheel
     check_run(["make", "build-server"], cwd=config.source_dir, capture_output=False)
@@ -417,11 +449,40 @@ def prepare_extensions_release() -> None:
     print("-----------------------------------------------------------------")
 
     extensions = {
-        "elyra-code-snippet-extension": ["code-snippet-extension", "metadata-extension", "theme-extension"],
-        "elyra-code-viewer-extension": ["code-viewer-extension"],
-        "elyra-pipeline-editor-extension": ["pipeline-editor-extension", "metadata-extension", "theme-extension"],
-        "elyra-python-editor-extension": ["python-editor-extension", "metadata-extension", "theme-extension"],
-        "elyra-r-editor-extension": ["r-editor-extension", "metadata-extension", "theme-extension"],
+        "elyra-code-snippet-extension": SimpleNamespace(
+            packages=["code-snippet-extension", "metadata-extension", "theme-extension"],
+            description=f"The Code Snippet editor extension adds support for reusable code fragments, "
+            f"making programming in JupyterLab more efficient by reducing repetitive work. "
+            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/code-snippets.html",
+        ),
+        "elyra-code-viewer-extension": SimpleNamespace(
+            packages=["code-viewer-extension"],
+            description="The Code Viewer extension adds the ability to display a given chunk of code "
+            "(string) in a transient read-only 'editor' without needing to create a file."
+            "This extension will be available in JupyterLab core in a near future release and removed "
+            "from Elyra as a standalone extension.",
+        ),
+        "elyra-pipeline-editor-extension": SimpleNamespace(
+            packages=["code-viewer-extension", "pipeline-editor-extension", "metadata-extension", "theme-extension"],
+            description=f"The Visual Editor Pipeline extension is used to build AI pipelines from notebooks, "
+            f"Python scripts and R scripts, simplifying the conversion of multiple notebooks "
+            f"or script files into batch jobs or workflows."
+            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/pipelines.html",
+        ),
+        "elyra-python-editor-extension": SimpleNamespace(
+            packages=["python-editor-extension", "metadata-extension", "theme-extension"],
+            description=f"The Python Script editor extension contains support for Python files, "
+            f"which can take advantage of the Hybrid Runtime Support enabling users to "
+            f"locally edit .py scripts and execute them against local or cloud-based resources."
+            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/enhanced-script-support.html",
+        ),
+        "elyra-r-editor-extension": SimpleNamespace(
+            packages=["r-editor-extension", "metadata-extension", "theme-extension"],
+            description=f"The R Script editor extension contains support for R files, which can take "
+            f"advantage of the Hybrid Runtime Support enabling users to locally edit .R scripts "
+            f"and execute them against local or cloud-based resources."
+            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/enhanced-script-support.html",
+        ),
     }
 
     for extension in extensions:
@@ -438,10 +499,11 @@ def prepare_extensions_release() -> None:
         setup_file = os.path.join(extension_source_dir, "setup.py")
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data-files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
-        sed(setup_file, "{{install-requires}}", f"'elyra-server=={config.new_version}',")
+        sed(setup_file, "{{data - files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
+        sed(setup_file, "{{install - requires}}", f"'elyra-server=={config.new_version}',")
+        sed(setup_file, "{{description}}", f"'{extensions[extension].description}'")
 
-        for dependency in extensions[extension]:
+        for dependency in extensions[extension].packages:
             copy_extension_dir(dependency, extension_source_dir)
 
         # build extension
@@ -475,12 +537,12 @@ def prepare_runtime_extensions_package_release() -> None:
         sed(setup_file, "{{package-name}}", package)
         sed(setup_file, "{{version}}", config.new_version)
         # no data files
-        sed(setup_file, "{{data-files}}", "")
+        sed(setup_file, "{{data - files}}", "")
         # prepare package specific dependencies
         requires = ""
         for dependency in packages[package]:
             requires += f"'{dependency}',"
-        sed(setup_file, "{{install-requires}}", requires)
+        sed(setup_file, "{{install - requires}}", requires)
         # copy source files
         source_dir = os.path.join(config.source_dir, "elyra", packages_source[package])
         dest_dir = os.path.join(package_source_dir, "elyra", packages_source[package])

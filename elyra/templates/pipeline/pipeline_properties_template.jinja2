@@ -3,8 +3,10 @@
     "name": "",
     "runtime": "",
     "description": "",
+    "cos_object_prefix": "",
     "elyra_runtime_image": null,
-    "elyra_env_vars": []
+    "elyra_env_vars": [],
+    "elyra_mounted_volumes": []
   },
   "parameters": [
     {
@@ -17,10 +19,16 @@
       "id": "description"
     },
     {
+      "id": "cos_object_prefix"
+    },
+    {
       "id": "elyra_runtime_image"
     },
     {
       "id": "elyra_env_vars"
+    },
+    {
+      "id": "elyra_mounted_volumes"
     }
   ],
   "uihints": {
@@ -49,6 +57,19 @@
         }
       },
       {
+        "control": "custom",
+        "custom_control_id": "StringControl",
+        "parameter_ref": "cos_object_prefix",
+        "label": { "default": "Object Storage path prefix" },
+        "description": {
+          "default": "For generic components, this path prefix is used when storing artifacts on Object Storage.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "project/subproject"
+        }
+      },
+      {
         "parameter_ref": "elyra_runtime_image",
         "control": "custom",
         "custom_control_id": "EnumControl",
@@ -74,7 +95,24 @@
           "placement": "on_panel"
         },
         "data": {
-          "placeholder": "env_var=VALUE"
+          "placeholder": "env_var=VALUE",
+          "keyValueEntries": true
+        }
+      },
+      {
+        "parameter_ref": "elyra_mounted_volumes",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Data Volumes"
+        },
+        "description": {
+          "default": "Volumes to be mounted in all nodes. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the nodes are executed or the pipeline will not run.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "/mount/path=pvc-name",
+          "keyValueEntries": true
         }
       }
     ],
@@ -99,6 +137,11 @@
             "parameter_refs": ["description"]
           },
           {
+            "id": "cos_object_prefix",
+            "type": "controls",
+            "parameter_refs": ["cos_object_prefix"]
+          },
+          {
             "id": "elyra_outputCategoryHeader",
             "type": "textPanel",
             "class_name": "elyra_categoryHeader",
@@ -119,6 +162,11 @@
             "id": "elyra_env_vars",
             "type": "controls",
             "parameter_refs": ["elyra_env_vars"]
+          },
+          {
+            "id": "elyra_mounted_volumes",
+            "type": "controls",
+            "parameter_refs": ["elyra_mounted_volumes"]
           }
         ]
       }

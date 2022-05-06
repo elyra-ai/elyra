@@ -6,6 +6,7 @@
     "elyra_cpu": null,
     "elyra_gpu": null,
     "elyra_memory": null,
+    "elyra_mounted_volumes": [],
     "elyra_outputs": [],
     "elyra_env_vars": [],
     "elyra_dependencies": [],
@@ -41,6 +42,9 @@
     },
     {
       "id": "elyra_outputs"
+    },
+    {
+      "id": "elyra_mounted_volumes"
     }
   ],
   "uihints": {
@@ -181,7 +185,8 @@
         },
         "data": {
           "placeholder": "env_var=VALUE",
-          "canRefresh": true
+          "canRefresh": true,
+          "keyValueEntries": true
         }
       },
       {
@@ -197,6 +202,21 @@
         },
         "data": {
           "placeholder": "*.csv"
+        }
+      },
+      {
+        "parameter_ref": "elyra_mounted_volumes",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Data Volumes"
+        },
+        "description": {
+          "default": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "/mount/path=pvc-name"
         }
       }
     ],
@@ -244,6 +264,11 @@
             "id": "elyra_outputs",
             "type": "controls",
             "parameter_refs": ["elyra_outputs"]
+          },
+          {
+            "id": "elyra_mounted_volumes",
+            "type": "controls",
+            "parameter_refs": ["elyra_mounted_volumes"]
           }
         ]
       }

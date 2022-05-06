@@ -29,6 +29,7 @@ SHELL:=/bin/bash
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
 
+ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
@@ -222,20 +223,15 @@ elyra-image: # Build Elyra stand-alone container image
 	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
 	@mkdir -p build/docker/elyra
 	if [ "$(TAG)" == "dev" ]; then \
-		cp etc/docker/elyra/Dockerfile.dev build/docker/Dockerfile; \
-		git -C ./ ls-files --exclude-standard -oi --directory > .git/ignores.tmp; \
-		rsync -ah --progress --delete --delete-excluded ./ build/docker/elyra/ \
-			 --exclude ".git" \
-			 --exclude ".github" \
-			 --exclude-from ".git/ignores.tmp"; \
-		rm -f .git/ignores.tmp; \
-	fi
+		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/; \
+  	fi
 	docker buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(ELYRA_IMAGE) \
 		--tag quay.io/$(ELYRA_IMAGE) \
 		--build-arg TAG=$(TAG) \
+		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker/;
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
@@ -252,23 +248,17 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
-	cp etc/docker/kubeflow/Dockerfile build/docker-kubeflow/Dockerfile
-	@mkdir -p build/docker-kubeflow/elyra
+	cp etc/docker/kubeflow/* build/docker-kubeflow/
 	if [ "$(TAG)" == "dev" ]; then \
-		cp etc/docker/kubeflow/Dockerfile.dev build/docker-kubeflow/Dockerfile; \
-		git -C ./ ls-files --exclude-standard -oi --directory > .git/ignores.tmp; \
-		rsync -ah --progress --delete --delete-excluded ./ build/docker-kubeflow/elyra/ \
-			 --exclude ".git" \
-			 --exclude ".github" \
-			 --exclude-from ".git/ignores.tmp"; \
-		rm -f .git/ignores.tmp; \
-	fi
+		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/; \
+  	fi
 	docker buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
 		--tag quay.io/$(KF_NOTEBOOK_IMAGE) \
 		--build-arg TAG=$(TAG) \
+		--build-arg ELYRA_VERSION=$(ELYRA_VERSION) \
 		build/docker-kubeflow;
 
 publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server

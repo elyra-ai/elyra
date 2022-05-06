@@ -15,10 +15,11 @@
  */
 
 import {
+  ILayoutRestorer,
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { MainAreaWidget } from '@jupyterlab/apputils';
+import { MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { textEditorIcon } from '@jupyterlab/ui-components';
 import { toArray } from '@lumino/algorithm';
@@ -41,15 +42,39 @@ const extension: JupyterFrontEndPlugin<void> = {
   id: ELYRA_CODE_VIEWER_NAMESPACE,
   autoStart: true,
   requires: [IEditorServices],
-  activate: (app: JupyterFrontEnd, editorServices: IEditorServices) => {
+  optional: [ILayoutRestorer],
+  activate: (
+    app: JupyterFrontEnd,
+    editorServices: IEditorServices,
+    restorer: ILayoutRestorer
+  ) => {
     console.log('Elyra - code-viewer extension is activated!');
 
-    const openCodeViewer = (args: {
+    const tracker = new WidgetTracker<MainAreaWidget<CodeViewerWidget>>({
+      namespace: ELYRA_CODE_VIEWER_NAMESPACE
+    });
+
+    // Handle state restoration
+    if (restorer) {
+      void restorer.restore(tracker, {
+        command: CommandIDs.openViewer,
+        args: widget => ({
+          content: widget.content.getContent(),
+          label: widget.content.title.label,
+          mimeType: widget.content.getMimeType(),
+          widgetId: widget.content.id
+        }),
+        name: widget => widget.content.id
+      });
+    }
+
+    const openCodeViewer = async (args: {
       content: string;
       label?: string;
       mimeType?: string;
       extension?: string;
-    }): void => {
+      widgetId?: string;
+    }): Promise<CodeViewerWidget> => {
       const func = editorServices.factoryService.newDocumentEditor;
       const factory: CodeEditor.Factory = options => {
         return func(options);
@@ -63,7 +88,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         );
       }
 
-      const widget = new CodeViewerWidget({
+      const widget = CodeViewerWidget.getCodeViewer({
         factory,
         content: args.content,
         mimeType: mimetype
@@ -77,13 +102,18 @@ const extension: JupyterFrontEndPlugin<void> = {
       });
       widget.title.icon = fileType?.icon ?? textEditorIcon;
 
+      if (args.widgetId) {
+        widget.id = args.widgetId;
+      }
       const main = new MainAreaWidget({ content: widget });
+      await tracker.add(main);
       app.shell.add(main, 'main');
+      return widget;
     };
 
     app.commands.addCommand(CommandIDs.openViewer, {
       execute: (args: any) => {
-        openCodeViewer(args);
+        return openCodeViewer(args);
       }
     });
   }
