@@ -19,6 +19,7 @@ import string
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 from kfp.dsl import ContainerOp
 from kfp.dsl import RUN_ID_PLACEHOLDER
@@ -27,6 +28,7 @@ from kubernetes.client.models import V1EnvVar
 from kubernetes.client.models import V1EnvVarSource
 from kubernetes.client.models import V1ObjectFieldSelector
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client.models import V1SecretKeySelector
 from kubernetes.client.models import V1Volume
 from kubernetes.client.models import V1VolumeMount
 
@@ -82,6 +84,7 @@ class ExecuteFileOp(ContainerOp):
         gpu_limit: Optional[str] = None,
         workflow_engine: Optional[str] = "argo",
         volume_mounts: Optional[Dict[str, str]] = None,
+        kubernetes_secrets: Optional[List[Tuple]] = None,
         **kwargs,
     ):
         """Create a new instance of ContainerOp.
@@ -106,6 +109,7 @@ class ExecuteFileOp(ContainerOp):
           gpu_limit: maximum number of GPUs allowed for the operation
           workflow_engine: Kubeflow workflow engine, defaults to 'argo'
           volume_mounts: data volumes to be mounted
+          kubernetes_secrets: secrets to be made available as environment variables
           kwargs: additional key value pairs to pass e.g. name, image, sidecars & is_exit_handler.
                   See Kubeflow pipelines ContainerOp definition for more parameters or how to use
                   https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.ContainerOp
@@ -133,6 +137,7 @@ class ExecuteFileOp(ContainerOp):
         self.mem_request = mem_request
         self.gpu_limit = gpu_limit
         self.volume_mounts = volume_mounts  # optional data volumes to be mounted to the pod
+        self.kubernetes_secrets = kubernetes_secrets  # optional secrets to be made available as env vars
 
         argument_list = []
 
@@ -243,6 +248,16 @@ class ExecuteFileOp(ContainerOp):
         if self.pipeline_envs:
             for key, value in self.pipeline_envs.items():  # Convert dict entries to format kfp needs
                 self.container.add_env_variable(V1EnvVar(name=key, value=value))
+
+        if self.kubernetes_secrets:
+            for secret in self.kubernetes_secrets:  # Convert tuple entries to format kfp needs
+                env_var_name, secret_name, secret_key = secret
+                self.container.add_env_variable(
+                    V1EnvVar(
+                        name=env_var_name,
+                        value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=secret_name, key=secret_key)),
+                    )
+                )
 
         # If crio volume size is found then assume kubeflow pipelines environment is using CRI-o as
         # its container runtime

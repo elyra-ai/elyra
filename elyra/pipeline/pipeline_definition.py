@@ -538,6 +538,16 @@ class PipelineDefinition(object):
                     merged_list: KeyValueList = KeyValueList.merge(node_value, pipeline_default_value)
                     node.set_component_parameter(property_name, merged_list)
 
+            if self.primary_pipeline.runtime_config != "local":
+                # In the case of a duplicate between env vars and kubernetes secrets,
+                # prefer kubernetes secrets and remove any matching env vars
+                new_list = KeyValueList.difference(
+                    minuend=node.get_component_parameter(pipeline_constants.ENV_VARIABLES),
+                    subtrahend=node.get_component_parameter(pipeline_constants.KUBERNETES_SECRETS),
+                )
+                if new_list:
+                    node.set_component_parameter(pipeline_constants.ENV_VARIABLES, new_list)
+
     def is_valid(self) -> bool:
         """
         Represents whether or not the pipeline structure is valid

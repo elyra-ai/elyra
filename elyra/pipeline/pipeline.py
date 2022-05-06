@@ -487,6 +487,24 @@ class KeyValueList(list):
 
         return KeyValueList.from_dict({**secondary_dict, **primary_dict})
 
+    @classmethod
+    def difference(cls, minuend: "KeyValueList", subtrahend: "KeyValueList") -> "KeyValueList":
+        """
+        Given two lists, convert to dictionaries and remove any keys found in the
+        subtrahend from the minuend, if present.
+
+        :param minuend: list to be subtracted from
+        :param subtrahend: list whose keys will be removed from the minuend
+
+        :returns: the difference of the two lists
+        """
+        subtract_dict = minuend.to_dict()
+        for key in subtrahend.to_dict().keys():
+            if key in subtract_dict:
+                subtract_dict.pop(key)
+
+        return KeyValueList.from_dict(subtract_dict)
+
     @staticmethod
     def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = logging.DEBUG):
         """

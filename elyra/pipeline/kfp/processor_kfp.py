@@ -521,6 +521,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 )
 
                 volume_mounts = self._get_volume_mounts(operation=operation)
+                kubernetes_secrets = self._get_kubernetes_secrets(operation=operation)
 
                 target_ops[operation.id] = ExecuteFileOp(
                     name=sanitized_operation_name,
@@ -547,6 +548,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
                     },
                     volume_mounts=volume_mounts,
+                    kubernetes_secrets=kubernetes_secrets,
                 )
 
                 if operation.doc:

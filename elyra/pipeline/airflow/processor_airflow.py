@@ -318,6 +318,7 @@ be fully qualified (i.e., prefixed with their package names).
                 )
 
                 volume_mounts = self._get_volume_mounts(operation=operation)
+                kubernetes_secrets = self._get_kubernetes_secrets(operation=operation)
 
                 target_op = {
                     "notebook": operation.name,
@@ -334,6 +335,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "is_generic_operator": True,
                     "doc": operation.doc,
                     "volume_mounts": volume_mounts,
+                    "kubernetes_secrets": kubernetes_secrets,
                 }
 
                 if runtime_image_pull_secret is not None:
@@ -507,7 +509,7 @@ be fully qualified (i.e., prefixed with their package names).
             python_output = template.render(
                 operations_list=target_ops,
                 pipeline_name=pipeline_instance_id,
-                namespace=user_namespace,
+                user_namespace=user_namespace,
                 cos_secret=cos_secret,
                 kube_config_path=None,
                 is_paused_upon_creation="False",
