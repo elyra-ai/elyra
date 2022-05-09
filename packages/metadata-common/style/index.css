@@ -184,6 +184,16 @@
   flex-basis: 100%;
   display: flex;
   flex-direction: column;
+  padding-bottom: 15px;
+}
+
+.elyra-metadataEditor .form-group.field.elyra-metadataEditor-form-code,
+.elyra-metadataEditor .form-group.field.elyra-metadataEditor-form-tags {
+  width: 80%;
+}
+
+.elyra-metadataEditor .field-description {
+  color: var(--jp-content-font-color2);
 }
 
 /* Code Snippet Filter CSS */
@@ -340,6 +350,8 @@ button.elyra-inputTag {
 
 .field-object > fieldset > legend {
   font-size: var(--jp-content-font-size3);
+  padding-bottom: 15px;
+  font-weight: 600;
 }
 
 legend#root__noCategory__title {
@@ -352,6 +364,7 @@ legend#root__noCategory__title {
 
 .form-group.field.field-object {
   width: 100%;
+  padding: 0;
 }
 
 .jp-ArrayOperations button:disabled {
@@ -399,7 +412,7 @@ input.elyra-inputTag {
   font-size: var(--jp-content-font-size2);
   margin-top: 10px;
   width: 100%;
-  background-color: var(--jp-cell-editor-background);
+  background-color: var(--jp-input-active-background);
   color: var(--jp-content-font-color0);
 }
 
@@ -414,10 +427,10 @@ input.elyra-inputTag {
 }
 
 .form-group.field {
-  padding: 15px 15px 15px 0px;
+  padding: 0px 30px 15px 0;
   display: flex;
   flex-direction: column;
-  width: 45%;
+  width: 50%;
 }
 
 .elyra-metadataEditor datalist {
@@ -441,11 +454,11 @@ form.rjsf {
 fieldset#root > div > fieldset {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
 }
 
 label.control-label {
   font-size: var(--jp-content-font-size2);
+  font-weight: 600;
 }
 
 fieldset#root {

@@ -198,59 +198,62 @@ export class MetadataEditorTags extends React.Component<
         </button>
       );
     return (
-      <li className={METADATA_EDITOR_TAG_LIST}>
-        {hasTags
-          ? this.state.tags.map((tag: string, index: number) =>
-              ((): JSX.Element => {
-                if (!this.state.selectedTags) {
-                  return (
-                    <button
-                      onClick={this.handleClick}
-                      className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
-                    >
-                      {tag}
-                    </button>
-                  );
-                }
+      <div>
+        <label className="control-label"> Tags </label>
+        <li className={METADATA_EDITOR_TAG_LIST}>
+          {hasTags
+            ? this.state.tags.map((tag: string, index: number) =>
+                ((): JSX.Element => {
+                  if (!this.state.selectedTags) {
+                    return (
+                      <button
+                        onClick={this.handleClick}
+                        className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
+                        id={'editor' + '-' + tag + '-' + index}
+                        key={'editor' + '-' + tag + '-' + index}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  }
 
-                if (this.state.selectedTags.includes(tag)) {
-                  return (
-                    <button
-                      onClick={this.handleClick}
-                      className={`${METADATA_EDITOR_TAG} tag applied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
-                    >
-                      {tag}
-                      <checkIcon.react
-                        tag="span"
-                        elementPosition="center"
-                        height="18px"
-                        width="18px"
-                        marginLeft="5px"
-                        marginRight="-3px"
-                      />
-                    </button>
-                  );
-                } else {
-                  return (
-                    <button
-                      onClick={this.handleClick}
-                      className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
-                    >
-                      {tag}
-                    </button>
-                  );
-                }
-              })()
-            )
-          : null}
-        {inputBox}
-      </li>
+                  if (this.state.selectedTags.includes(tag)) {
+                    return (
+                      <button
+                        onClick={this.handleClick}
+                        className={`${METADATA_EDITOR_TAG} tag applied-tag`}
+                        id={'editor' + '-' + tag + '-' + index}
+                        key={'editor' + '-' + tag + '-' + index}
+                      >
+                        {tag}
+                        <checkIcon.react
+                          tag="span"
+                          elementPosition="center"
+                          height="18px"
+                          width="18px"
+                          marginLeft="5px"
+                          marginRight="-3px"
+                        />
+                      </button>
+                    );
+                  } else {
+                    return (
+                      <button
+                        onClick={this.handleClick}
+                        className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
+                        id={'editor' + '-' + tag + '-' + index}
+                        key={'editor' + '-' + tag + '-' + index}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  }
+                })()
+              )
+            : null}
+          {inputBox}
+        </li>
+      </div>
     );
   }
 
