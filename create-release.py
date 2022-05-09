@@ -400,7 +400,7 @@ def generate_changelog() -> None:
     header_lines = [
         "# Changelog\n",
         "\n",
-        "A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).",
+        "A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).\n",
         "\n",
     ]
 
@@ -445,10 +445,12 @@ def generate_changelog() -> None:
         # copy the remaining changelog at the bottom of the new content
         with io.open(changelog_backup_path) as old_changelog:
             # ignore existing static header
-            for l in header_lines:
-                old_changelog.readline()
-
             line = old_changelog.readline()
+            while line and line.startswith("## Release") is False:
+                line = old_changelog.readline()
+
+            changelog.write("\n")
+
             while line:
                 changelog.write(line)
                 line = old_changelog.readline()
