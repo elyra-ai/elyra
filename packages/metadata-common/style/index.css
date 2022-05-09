@@ -374,7 +374,7 @@ legend#root__noCategory__title {
 .elyra-passwordFieldButton {
   border: none;
   border-radius: 5px;
-  background: var(--jp-border-color3);
+  background: var(--jp-input-active-background);
   position: absolute;
   right: 1px;
   bottom: 7px;
