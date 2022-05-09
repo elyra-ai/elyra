@@ -199,29 +199,32 @@ and [quay.io](https://quay.io/repository/elyra/elyra?tab=tags).
 ### Developing Elyra against the Jupyterlab source repo
 
 Sometimes it is useful to develop Elyra against a local build of Jupyterlab. To use a local build of Jupyterlab use the
-following steps.
+following steps in the same python environment.
 
-1. Uninstall any pip installations of jupyterlab. You can use `etc/scripts/clean-jupyterlab.sh --version dev` as
-   mentioned above with `--version dev` to not reinstall jupyterlab at the end of the script.
+1. Uninstall any pip installations of Jupyterlab. You can use `etc/scripts/clean-jupyterlab.sh --version dev` as
+   mentioned above with `--version dev` to not reinstall Jupyterlab at the end of the script.
 
-2. Build your local repo of jupyterlab. Uninstalling in the previous step will also wipe any previous installations of a
-   local build.
+2. Build your local repo of Jupyterlab, step-by-step instructions can be found in the
+   [Jupyterlab documentation](https://jupyterlab.readthedocs.io/en/latest/developer/contributing.html#installing-jupyterlab).
+   Uninstalling in the previous step will also wipe any previous installations of a local build.
 
-3. `cd` to the `builder/` directory in your jupyterlab repo and run `yarn link`. Elyra's `Makefile` will use this yarn
+3. `cd` to the `builder/` directory in your Jupyterlab repo and run `yarn link`. The Elyra `Makefile` will use this yarn
    link in step 6.
 
-4. Uncomment the following line in `tsconfig.base.json` to tell Typescript to use the local jupyterlab packages when building:
+4. In your Elyra repo, uncomment the following line in `tsconfig.base.json` to tell Typescript to use the local
+   Jupyterlab packages when building:
 
     ```"paths": { "@jupyterlab/*": ["../jupyterlab/packages/*"] },```
 
-5. Comment out `jupyterlab` and `jupyterlab-lsp` in the `install_requires` section of `setup.py`. This will prevent
-   jupyterlab being pip installed during the Elyra build. Note: `jupyterlab-lsp` also pip installs jupyterlab when installed
+5. Comment out `jupyterlab` and `jupyterlab-lsp` in the `install_requires` section of `setup.py` in your Elyra repo.
+   This will prevent Jupyterlab from being pip installed during the Elyra build.
+   Note: `jupyterlab-lsp` also pip installs Jupyterlab when installed
 
 6. Run `make install-dev` to install Elyra using the linked `@jupyterlab/builder` from step 3.
 
-7. You can now start jupyterlab by running `jupyter lab --dev-mode --extensions-in-dev-mode`, this will automatically watch
-   for changes in the jupyterlab repo. To also watch for changes in Elyra run `make watch` in a separate terminal in the
-   same Python environment.
+7. You can now start Jupyterlab by running `jupyter lab --dev-mode --extensions-in-dev-mode`, this will automatically
+   watch for changes in the Jupyterlab repo. To also watch for changes in Elyra run `make watch` in a separate terminal
+   in the same Python environment.
 
 When you want to switch back to developing Elyra against a Jupyterlab release, you just have to undo the comments in
 steps 4 and 5 and rebuild with `make clean install`
