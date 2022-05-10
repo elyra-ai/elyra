@@ -146,6 +146,10 @@ export class MetadataEditorWidget extends ReactWidget {
       // Sets const fields to readonly.
       const properties = schema.properties.metadata.properties;
       for (const prop in properties) {
+        if (properties[prop].uihints?.hidden) {
+          delete properties[prop];
+          continue;
+        }
         if (properties[prop].const !== undefined) {
           properties[prop].default = properties[prop].const;
           properties[prop].uihints = {
@@ -164,7 +168,8 @@ export class MetadataEditorWidget extends ReactWidget {
           title: ' ',
           properties: {
             display_name: {
-              title: 'Name',
+              title: 'Display Name',
+              description: 'Name used to identify an instance of metadata.',
               type: 'string'
             }
           },

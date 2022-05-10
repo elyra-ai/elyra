@@ -194,6 +194,17 @@
 
 .elyra-metadataEditor .field-description {
   color: var(--jp-content-font-color2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  display: table-column;
+}
+
+.elyra-metadataEditor .field-description:hover {
+  height: auto;
+  overflow: auto;
+  white-space: pre-line;
 }
 
 /* Code Snippet Filter CSS */
@@ -445,6 +456,7 @@ button.btn[type='submit'] {
 
 li.text-danger {
   color: var(--jp-error-color1);
+  padding: 5px 0 0 9px;
 }
 
 form.rjsf {

@@ -26,7 +26,7 @@ export const PasswordField: Field = props => {
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
-    <div>
+    <div style={{ display: 'grid', width: '100%' }}>
       <label htmlFor={props.idSchema['$id']} className="control-label">
         {props.schema.title}
       </label>
