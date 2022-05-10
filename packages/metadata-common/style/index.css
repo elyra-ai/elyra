@@ -193,18 +193,19 @@
 }
 
 .elyra-metadataEditor .field-description {
-  color: var(--jp-content-font-color2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-  display: table-column;
+  display: none;
 }
 
 .elyra-metadataEditor .form-group:not(.field-object):hover .field-description {
-  height: auto;
-  overflow: auto;
-  white-space: pre-line;
+  color: var(--jp-content-font-color2);
+  position: absolute;
+  bottom: -2em;
+  background-color: var(--jp-border-color0);
+  padding: 5px;
+  border-radius: 5px;
+  display: initial;
+  opacity: 0.8;
+  z-index: 1;
 }
 
 /* Code Snippet Filter CSS */
