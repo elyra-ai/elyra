@@ -201,7 +201,7 @@
   display: table-column;
 }
 
-.elyra-metadataEditor .field-description:hover {
+.elyra-metadataEditor .form-group:not(.field-object):hover .field-description {
   height: auto;
   overflow: auto;
   white-space: pre-line;
@@ -387,7 +387,7 @@ legend#root__noCategory__title {
   border-radius: 5px;
   background: var(--jp-input-active-background);
   position: absolute;
-  right: 1px;
+  right: 6px;
   bottom: 7px;
 }
 
