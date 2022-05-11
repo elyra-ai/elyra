@@ -1,5 +1,7 @@
 # Changelog
 
+A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
+
 ## Release 3.8.1 - 05/03/2022
 
 - Fix incorrect regex search in release script - [#2703](https://github.com/elyra-ai/elyra/pull/2703)

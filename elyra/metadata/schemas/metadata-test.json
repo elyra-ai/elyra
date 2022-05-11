@@ -80,6 +80,16 @@
           "type": "string",
           "pattern": "^[a-z0-9][a-z0-9-.]*[a-z0-9]$"
         },
+        "string_complex_test": {
+          "title": "String Complex Test",
+          "description": "Property used to test strings with multiple restrictions",
+          "type": "string",
+          "allOf": [
+            { "minLength": 1 },
+            { "pattern": "^[^ \t]+" },
+            { "pattern": "[^ \t]+$" }
+          ]
+        },
         "enum_test": {
           "title": "Enum Test",
           "description": "Property used to test properties with enums",

@@ -36,6 +36,14 @@
           "title": "Tags",
           "description": "Tags for categorizing snippets",
           "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              { "minLength": 1 },
+              { "pattern": "^[^ \t]+" },
+              { "pattern": "[^ \t]+$" }
+            ]
+          },
           "uihints": {
             "field_type": "tags"
           }

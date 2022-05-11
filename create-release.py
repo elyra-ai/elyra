@@ -396,10 +396,20 @@ def generate_changelog() -> None:
 
     repo = git.Repo(config.source_dir)
 
+    # define static header
+    header_lines = [
+        "# Changelog\n",
+        "\n",
+        "A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).\n",
+        "\n",
+    ]
+
     # Start generating the release header on top of the changelog
     with io.open(changelog_path, "r+") as changelog:
-        changelog.write("# Changelog\n")
-        changelog.write("\n")
+        # add static header
+        for line in header_lines:
+            changelog.write(line)
+        # add release section
         changelog.write(f'## Release {config.new_version} - {datetime.now().strftime("%m/%d/%Y")}\n')
         changelog.write("\n")
 
@@ -434,8 +444,13 @@ def generate_changelog() -> None:
 
         # copy the remaining changelog at the bottom of the new content
         with io.open(changelog_backup_path) as old_changelog:
-            old_changelog.readline()  # ignore first line as title
+            # ignore existing static header
             line = old_changelog.readline()
+            while line and line.startswith("## Release") is False:
+                line = old_changelog.readline()
+
+            changelog.write("\n")
+
             while line:
                 changelog.write(line)
                 line = old_changelog.readline()
