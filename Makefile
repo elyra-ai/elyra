@@ -324,6 +324,12 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 				echo ERROR: Image $$image did not meet criteria for command: $$cmd ; \
 				fail=1; \
 			fi; \
+			if [ $$cmd == "python3" ]; then \
+				IMAGE_PYTHON3_MINOR_VERSION = $(docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2 ); \
+				if [ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]; then \
+					echo WARNING: Image $$image requires at Python 3.8 or greater for generic component dependency installation; \
+				fi; \
+			fi; \
 		done; \
 		docker run -v $(pwd)/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra.txt > /dev/null 2>&1 ; \
 		if [ $$? -ne 0 ]; then \
