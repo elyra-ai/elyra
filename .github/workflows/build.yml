@@ -162,9 +162,8 @@ jobs:
             ${{ github.workspace }}/build/cypress-tests/videos//**/*
             /home/runner/.npm/_logs/*.log
 
-  # TODO: Why are building? Is this just a test that it successfully builds? this should be named accordingly
-  build-documentation:
-    name: Build Documentation
+  test-documentation-build:
+    name: Test documentation build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
