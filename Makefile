@@ -325,6 +325,11 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 				fail=1; \
 			fi; \
 		done; \
+		docker run -v $(pwd)/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra.txt > /dev/null 2>&1 ; \
+		if [ $$? -ne 0 ]; then \
+				echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra.txt  ; \
+				fail=1; \
+		fi; \
 		if [ $(REMOVE_RUNTIME_IMAGE) -eq 1 ]; then \
 			echo Removing image $$image... ; \
 			docker rmi $$image > /dev/null ; \
