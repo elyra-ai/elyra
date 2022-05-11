@@ -340,6 +340,13 @@ def build_server():
 
     # update project name
     sed(_source("setup.py"), r'name="elyra"', 'name="elyra-server"')
+    sed(
+        _source("setup.py"),
+        r'description="Elyra provides AI Centric extensions to JupyterLab"',
+        'description="The elyra-server package provides common core libraries and functions that are required by '
+        "Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. "
+        "Please install the 'elyra' package instead. e.g. pip install elyra[all]\"",
+    )
 
     # build server wheel
     check_run(["make", "build-server"], cwd=config.source_dir, capture_output=False)
@@ -389,10 +396,20 @@ def generate_changelog() -> None:
 
     repo = git.Repo(config.source_dir)
 
+    # define static header
+    header_lines = [
+        "# Changelog\n",
+        "\n",
+        "A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).\n",
+        "\n",
+    ]
+
     # Start generating the release header on top of the changelog
     with io.open(changelog_path, "r+") as changelog:
-        changelog.write("# Changelog\n")
-        changelog.write("\n")
+        # add static header
+        for line in header_lines:
+            changelog.write(line)
+        # add release section
         changelog.write(f'## Release {config.new_version} - {datetime.now().strftime("%m/%d/%Y")}\n')
         changelog.write("\n")
 
@@ -427,8 +444,13 @@ def generate_changelog() -> None:
 
         # copy the remaining changelog at the bottom of the new content
         with io.open(changelog_backup_path) as old_changelog:
-            old_changelog.readline()  # ignore first line as title
+            # ignore existing static header
             line = old_changelog.readline()
+            while line and line.startswith("## Release") is False:
+                line = old_changelog.readline()
+
+            changelog.write("\n")
+
             while line:
                 changelog.write(line)
                 line = old_changelog.readline()
@@ -442,11 +464,40 @@ def prepare_extensions_release() -> None:
     print("-----------------------------------------------------------------")
 
     extensions = {
-        "elyra-code-snippet-extension": ["code-snippet-extension", "metadata-extension", "theme-extension"],
-        "elyra-code-viewer-extension": ["code-viewer-extension"],
-        "elyra-pipeline-editor-extension": ["pipeline-editor-extension", "metadata-extension", "theme-extension"],
-        "elyra-python-editor-extension": ["python-editor-extension", "metadata-extension", "theme-extension"],
-        "elyra-r-editor-extension": ["r-editor-extension", "metadata-extension", "theme-extension"],
+        "elyra-code-snippet-extension": SimpleNamespace(
+            packages=["code-snippet-extension", "metadata-extension", "theme-extension"],
+            description=f"The Code Snippet editor extension adds support for reusable code fragments, "
+            f"making programming in JupyterLab more efficient by reducing repetitive work. "
+            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/code-snippets.html",
+        ),
+        "elyra-code-viewer-extension": SimpleNamespace(
+            packages=["code-viewer-extension"],
+            description="The Code Viewer extension adds the ability to display a given chunk of code "
+            "(string) in a transient read-only 'editor' without needing to create a file."
+            "This extension will be available in JupyterLab core in a near future release and removed "
+            "from Elyra as a standalone extension.",
+        ),
+        "elyra-pipeline-editor-extension": SimpleNamespace(
+            packages=["code-viewer-extension", "pipeline-editor-extension", "metadata-extension", "theme-extension"],
+            description=f"The Visual Editor Pipeline extension is used to build AI pipelines from notebooks, "
+            f"Python scripts and R scripts, simplifying the conversion of multiple notebooks "
+            f"or script files into batch jobs or workflows."
+            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/pipelines.html",
+        ),
+        "elyra-python-editor-extension": SimpleNamespace(
+            packages=["python-editor-extension", "metadata-extension", "theme-extension"],
+            description=f"The Python Script editor extension contains support for Python files, "
+            f"which can take advantage of the Hybrid Runtime Support enabling users to "
+            f"locally edit .py scripts and execute them against local or cloud-based resources."
+            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/enhanced-script-support.html",
+        ),
+        "elyra-r-editor-extension": SimpleNamespace(
+            packages=["r-editor-extension", "metadata-extension", "theme-extension"],
+            description=f"The R Script editor extension contains support for R files, which can take "
+            f"advantage of the Hybrid Runtime Support enabling users to locally edit .R scripts "
+            f"and execute them against local or cloud-based resources."
+            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/enhanced-script-support.html",
+        ),
     }
 
     for extension in extensions:
@@ -465,8 +516,9 @@ def prepare_extensions_release() -> None:
         sed(setup_file, "{{version}}", config.new_version)
         sed(setup_file, "{{data - files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
         sed(setup_file, "{{install - requires}}", f"'elyra-server=={config.new_version}',")
+        sed(setup_file, "{{description}}", f"'{extensions[extension].description}'")
 
-        for dependency in extensions[extension]:
+        for dependency in extensions[extension].packages:
             copy_extension_dir(dependency, extension_source_dir)
 
         # build extension
