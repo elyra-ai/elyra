@@ -23,16 +23,23 @@
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image publish-elyra-image kf-notebook-image publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-images
+
+.ONESHELL:
+
 SHELL:=/bin/bash
 
 # Python execs
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
+PYTHON_VERSION?=3.9
+
+CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate
 
 ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
+ELYRA_IMAGE_ENV?=elyra-image-env
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 KF_NOTEBOOK_IMAGE_LATEST=elyra/kf-notebook:latest
 
@@ -188,6 +195,15 @@ watch: ## Watch packages. For use alongside jupyter lab --watch
 	yarn lerna run watch --parallel
 
 release: yarn-install build-ui build-server ## Build wheel file for release
+
+
+elyra-image-env: ## Creates a conda env consisting of the dependencies used in images
+	conda env remove -y -n $(ELYRA_IMAGE_ENV)
+	conda create -y -n $(ELYRA_IMAGE_ENV) python=$(PYTHON_VERSION)
+	$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
+	$(PYTHON_PIP) install -r etc/generic/requirements-elyra.txt && \
+	conda deactivate
+
 
 ## Test targets
 

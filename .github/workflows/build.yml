@@ -172,6 +172,18 @@ jobs:
       - name: Build
         run: make docs
 
+  validate-image-env:
+    name: Validate Image Environment
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9, "3.10"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Validate image environment
+        run: make PYTHON_VERSION=${{ matrix.python-version }} elyra-image-env
+
+
   validate-images:
     name: Validate Images
     runs-on: ubuntu-latest
