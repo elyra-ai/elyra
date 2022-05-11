@@ -331,7 +331,7 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 				fi; \
 			fi; \
 		done; \
-		docker run -v $$GITHUB_WORKSPACE/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra.txt > /dev/null ; \
+		docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra.txt > /dev/null ; \
 		if [ $$? -ne 0 ]; then \
 				echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra.txt  ; \
 				fail=1; \
