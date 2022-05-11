@@ -327,15 +327,24 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 			if [ $$cmd == "python3" ]; then \
 				IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2` ; \
 				if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
-					echo WARNING: Image $$image requires at Python 3.8 or greater for generic component dependency installation; \
+					echo WARNING: Image $$image requires at Python 3.8 or greater for latest generic component dependency installation; \
+					docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra-py37.txt > /dev/null ; \
+					if [ $$? -ne 0 ]; then \
+						echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra-py37.txt ; \
+						fail=1; \
+					fi; \
+				elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
+					docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra.txt > /dev/null ; \
+					if [ $$? -ne 0 ]; then \
+						echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra.txt ; \
+						fail=1; \
+					fi; \
+				else \
+					echo ERROR: Image $$image unable to parse python version ; \
+					fail=1; \
 				fi; \
 			fi; \
 		done; \
-		docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra.txt > /dev/null ; \
-		if [ $$? -ne 0 ]; then \
-				echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra.txt  ; \
-				fail=1; \
-		fi; \
 		if [ $(REMOVE_RUNTIME_IMAGE) -eq 1 ]; then \
 			echo Removing image $$image... ; \
 			docker rmi $$image > /dev/null ; \
