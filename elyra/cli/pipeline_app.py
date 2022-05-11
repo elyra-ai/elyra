@@ -33,6 +33,7 @@ from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
@@ -512,8 +513,19 @@ def describe(json_option, pipeline_path):
     indent_length = 4
     blank_field = "Not Specified"
     blank_list = ["None Listed"]
-    pipeline_keys = ["name", "description", "type", "version", "nodes", "file_dependencies", "component_dependencies"]
-    iter_keys = {"file_dependencies", "component_dependencies"}
+    pipeline_keys = [
+        "name",
+        "description",
+        "type",
+        "version",
+        "nodes",
+        "file_dependencies",
+        "component_dependencies",
+        "mounted_volumes",
+        "scripts",
+        "notebooks",
+    ]
+    iter_keys = {"file_dependencies", "component_dependencies", "mounted_volumes", "scripts", "notebooks"}
 
     pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local", runtime_config="local")
 
@@ -526,8 +538,11 @@ def describe(json_option, pipeline_path):
     describe_dict["type"] = primary_pipeline.type
     describe_dict["version"] = primary_pipeline.version
     describe_dict["nodes"] = len(primary_pipeline.nodes)
+    describe_dict["scripts"] = set()
+    describe_dict["notebooks"] = set()
     describe_dict["file_dependencies"] = set()
     describe_dict["component_dependencies"] = set()
+    describe_dict["mounted_volumes"] = set()
     for node in primary_pipeline.nodes:
         # collect information about file dependencies
         for dependency in node.get_component_parameter("dependencies", []):
@@ -535,6 +550,17 @@ def describe(json_option, pipeline_path):
         # collect information about component dependencies
         if node.component_source is not None:
             describe_dict["component_dependencies"].add(node.component_source)
+        # collect information of mounted volumes
+        for mounted_volume in node.get_component_parameter("mounted_volumes", []):
+            describe_dict["mounted_volumes"].add(f"{mounted_volume}")
+            # mounted_volume_set.add(f"{mounted_volume}")
+        # collect notebook / script name when pipeline is generic
+        if describe_dict["type"] is None:
+            temp_value = node.get_component_parameter("filename", [])
+            if temp_value.split(".")[1].strip() == pipeline_constants.NOTEBOOK_EXT:
+                describe_dict["notebooks"].add(temp_value)
+            else:
+                describe_dict["scripts"].add(temp_value)
 
     if not json_option:
         for key in pipeline_keys:

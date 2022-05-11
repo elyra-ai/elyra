@@ -253,6 +253,29 @@ def test_describe_with_missing_kfp_component():
         assert result.exit_code == 0
 
 
+def test_describe_wth_mount_volume():
+    runner = CliRunner()
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_mount_volumes.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Nodes: 2" in result.output
+    assert "Mounted Volumes:\n    - /mount/test=rwx-test-claim" in result.output
+    assert result.exit_code == 0
+
+
+def test_describe_notebook_generic_pipeline():
+    runner = CliRunner()
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_mount_volumes.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Nodes: 2" in result.output
+    assert "dummy_notebook_1.ipynb" in result.output
+    assert "dummy_script_1.py" in result.output
+    assert result.exit_code == 0
+
+
 def test_validate_with_missing_kfp_component(jp_environ, kubeflow_pipelines_runtime_instance):
     runner = CliRunner()
     with runner.isolated_filesystem():
