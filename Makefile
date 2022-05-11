@@ -200,10 +200,15 @@ release: yarn-install build-ui build-server ## Build wheel file for release
 elyra-image-env: ## Creates a conda env consisting of the dependencies used in images
 	conda env remove -y -n $(ELYRA_IMAGE_ENV)
 	conda create -y -n $(ELYRA_IMAGE_ENV) python=$(PYTHON_VERSION)
-	$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
-	$(PYTHON_PIP) install -r etc/generic/requirements-elyra.txt && \
-	conda deactivate
-
+	if [ "$(PYTHON_VERSION)" == "3.7" ]; then \
+		$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
+		$(PYTHON_PIP) install -r etc/generic/requirements-elyra-py37.txt && \
+		conda deactivate; \
+	else \
+		$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
+		$(PYTHON_PIP) install -r etc/generic/requirements-elyra.txt && \
+		conda deactivate; \
+	fi
 
 ## Test targets
 
