@@ -1021,10 +1021,6 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [addFileToPipelineSignal, handleAddFileToPipeline]);
 
   const handleClose = (event?: React.SyntheticEvent, reason?: string): void => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
     setAlert('');
   };
 
@@ -1044,7 +1040,7 @@ const PipelineWrapper: React.FC<IProps> = ({
     <ThemeProvider theme={theme}>
       <Snackbar
         open={alert !== ''}
-        autoHideDuration={6000}
+        autoHideDuration={30000}
         onClose={handleClose}
       >
         <Alert
