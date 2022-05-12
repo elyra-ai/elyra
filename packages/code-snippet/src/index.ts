@@ -24,12 +24,12 @@ import {
   ILayoutRestorer
 } from '@jupyterlab/application';
 import { ICommandPalette, IThemeManager } from '@jupyterlab/apputils';
+import { Cell } from '@jupyterlab/cells';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { MarkdownDocument } from '@jupyterlab/markdownviewer';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-import { Cell } from '@jupyterlab/cells';
 import { Widget } from '@lumino/widgets';
 
 import {
