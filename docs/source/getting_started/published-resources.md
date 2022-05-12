@@ -21,6 +21,7 @@ limitations under the License.
 Articles, blog posts, and other resources covering Elyra. [Examples and tutorials are located here](tutorials.md).
 
 - 2022:
+    - May 4: [Automate Elyra tasks using the CLI](https://medium.com/codait/automate-your-pipeline-tasks-with-the-elyra-cli-2887df8730fb?source=friends_link&sk=ee9332d3f3aef6d316d4a2151fbde918)
     - February 16: [Getting Started with Apache Airflow Operators in Elyra](https://medium.com/ibm-data-ai/getting-started-with-apache-airflow-operators-in-elyra-aae882f80c4a?source=friends_link&sk=5849ae43f537abdf820e01e3cda2a8d2)
 - 2021:
     - December 7: [Elyra 3.3: Pipelines, custom components, and catalogs](https://medium.com/ibm-data-ai/elyra-3-3-pipelines-custom-components-and-catalogs-74cf198fdf48?source=friends_link&sk=ef91a56fbbae97bbaea77ff169d549dd) 

@@ -401,6 +401,16 @@ class Pipeline(object):
         """
         return self._description
 
+    def contains_generic_operations(self) -> bool:
+        """
+        Returns a truthy value indicating whether the pipeline contains
+        one or more generic operations.
+        """
+        for op_id, op in self._operations.items():
+            if isinstance(op, GenericOperation):
+                return True
+        return False
+
     def __eq__(self, other: "Pipeline") -> bool:
         if isinstance(self, other.__class__):
             return (

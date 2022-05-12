@@ -207,19 +207,21 @@ export class PipelineService {
             >
               Run Details.
             </a>
+            {response['object_storage_path'] !== null ? (
+              <p>
+                The results and outputs are in the{' '}
+                {response['object_storage_path']} working directory in{' '}
+                <a
+                  href={response['object_storage_url']}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  object storage
+                </a>
+                .
+              </p>
+            ) : null}
             <br />
-            The results and outputs are in the {
-              response['object_storage_path']
-            }{' '}
-            working directory in{' '}
-            <a
-              href={response['object_storage_url']}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              object storage
-            </a>
-            .
           </p>
         );
       } else {

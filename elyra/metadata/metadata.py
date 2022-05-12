@@ -19,7 +19,7 @@ from typing import Any
 from typing import Type
 from typing import TypeVar
 
-from ipython_genutils.importstring import import_item
+from traitlets.utils.importstring import import_item
 
 from elyra.metadata.schema import SchemaManager
 

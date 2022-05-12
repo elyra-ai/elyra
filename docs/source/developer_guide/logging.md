@@ -32,15 +32,15 @@ since the Jupyter Notebook server uses Tornado as its web framework. <p>
 Use INFO level for routines(functions), like when handling requests or state changes and DEBUG for troubleshooting and diagnostics.<p>
 ```
   def foo (arg):
-    self.debug.info("doing something with this %s", arg)
+    self.debug.info(f"doing something with this {arg}")
     do something with arg
-    self.log.info("Result of arg is ... %s", result)
+    self.log.info(f"Result of arg is ... {result}")
 ```    
 Use WARNING level when it is important, but not an error, for example, when a user attempts to login with an incorrect password<p>
 ```
   def authenticate(username, password):
     if username and password doesn't work:
-        self.log.warn("Failed login attempt from %s : $s", username, password)
+        self.log.warn(f"Failed login attempt from {username} : {password}")
 ```     
 Use ERROR level when something is actually wrong, like when an exception is thrown, IO operation failure or connectivity 
 issue (e.g. Minio client cant connect to endpoint)<p>

@@ -173,13 +173,19 @@ be fully qualified (i.e., prefixed with their package names).
                 pipeline.name, f"pipeline pushed to git: {download_url}", duration=(time.time() - t0_all)
             )
 
-            os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+            if pipeline.contains_generic_operations():
+                object_storage_url = f"{cos_endpoint}"
+                os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+                object_storage_path = f"/{cos_bucket}/{os_path}"
+            else:
+                object_storage_url = None
+                object_storage_path = None
 
             return AirflowPipelineProcessorResponse(
                 git_url=f"{download_url}",
                 run_url=f"{api_endpoint}",
-                object_storage_url=f"{cos_endpoint}",
-                object_storage_path=f"/{cos_bucket}/{os_path}",
+                object_storage_url=object_storage_url,
+                object_storage_path=object_storage_path,
             )
 
     def export(

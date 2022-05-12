@@ -89,7 +89,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         parent = self.settings.get("elyra")
         payload = self.get_json_body()
 
-        self.log.debug("JSON payload: %s", json.dumps(payload, indent=2, separators=(",", ": ")))
+        self.log.debug(f"JSON payload: {json.dumps(payload, indent=2, separators=(',', ': '))}")
 
         pipeline_definition = payload["pipeline"]
         pipeline_export_format = payload["export_format"]
@@ -142,7 +142,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
 
         parent = self.settings.get("elyra")
         pipeline_definition = self.get_json_body()
-        self.log.debug("JSON payload: %s", pipeline_definition)
+        self.log.debug(f"JSON payload: {pipeline_definition}")
 
         response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
 
@@ -281,7 +281,7 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
         self.log.debug("Pipeline Validation Handler now executing post request")
 
         pipeline_definition = self.get_json_body()
-        self.log.debug("Pipeline payload: %s", pipeline_definition)
+        self.log.debug(f"Pipeline payload: {pipeline_definition}")
 
         response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
         json_msg = response.to_json()

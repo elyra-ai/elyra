@@ -8,7 +8,7 @@
   "uihints": {
     "title": "Code Snippets",
     "icon": "elyra:code-snippet",
-    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/code-snippets.html"
+    "reference_url": "https://elyra.readthedocs.io/en/v3.8.0/user_guide/code-snippets.html"
   },
   "properties": {
     "schema_name": {
@@ -36,6 +36,14 @@
           "title": "Tags",
           "description": "Tags for categorizing snippets",
           "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              { "minLength": 1 },
+              { "pattern": "^[^ \t]+" },
+              { "pattern": "[^ \t]+$" }
+            ]
+          },
           "uihints": {
             "field_type": "tags"
           }

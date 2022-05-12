@@ -102,7 +102,7 @@ Then, in the `package.json`, add the following under `'scripts'`:
 ```
 And the following under `'dev_dependencies'`:
 ```
-"@jupyterlab/testutils": "3.3.0",
+"@jupyterlab/testutils": "3.4.0",
 "@types/jest": "^23.3.11",
 "jest": "^24.7.1",
 "jest-raw-loader": "^1.0.1",
