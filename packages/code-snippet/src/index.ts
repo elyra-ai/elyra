@@ -29,7 +29,7 @@ import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { MarkdownDocument } from '@jupyterlab/markdownviewer';
 import { Notebook, NotebookPanel } from '@jupyterlab/notebook';
-
+import { Cell } from '@jupyterlab/cells';
 import { Widget } from '@lumino/widgets';
 
 import {
@@ -103,6 +103,13 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         if (selection) {
           return true;
         }
+
+        if (isNotebookEditor(currentWidget)) {
+          if (getSelectedCellContents().length > 0) {
+            return true;
+          }
+        }
+
         return false;
       },
       isVisible: () => true,
@@ -125,6 +132,16 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
             onSave: codeSnippetWidget.updateMetadata
           });
         }
+
+        const selectedCells = getSelectedCellContents();
+        const code = selectedCells.join('\n\n').split('\n');
+
+        codeSnippetWidget.openMetadataEditor({
+          schemaspace: CODE_SNIPPET_SCHEMASPACE,
+          schema: CODE_SNIPPET_SCHEMA,
+          code: code,
+          onSave: codeSnippetWidget.updateMetadata
+        });
       }
     });
 
@@ -158,6 +175,25 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       }
 
       return selection;
+    };
+
+    const getSelectedCellContents = (): string[] => {
+      const currentWidget = app.shell.currentWidget;
+      const notebookWidget = currentWidget as NotebookPanel;
+      const notebook = notebookWidget.content as Notebook;
+      const notebookCell = notebook.activeCell;
+      const selectedCells: string[] = [];
+
+      if (notebookCell) {
+        const allCells = notebook.widgets;
+
+        allCells.forEach((cell: Cell) => {
+          if (notebook.isSelectedOrActive(cell))
+            selectedCells.push(cell.model.toJSON().source.toString());
+        });
+      }
+
+      return selectedCells;
     };
 
     const isFileEditor = (currentWidget: any): boolean => {
