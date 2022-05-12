@@ -28,11 +28,8 @@ import {
   ICommandPalette
 } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
-// import { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import {
-  PageConfig
-  // , PathExt
-} from '@jupyterlab/coreutils';
+import { CodeMirrorEditor } from '@jupyterlab/codemirror';
+import { PageConfig, PathExt } from '@jupyterlab/coreutils';
 import {
   Debugger,
   IDebugger,
@@ -52,9 +49,9 @@ import { ILauncher } from '@jupyterlab/launcher';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import {
-  // standardRendererFactories as initialFactories,
-  IRenderMimeRegistry
-  // RenderMimeRegistry
+  standardRendererFactories as initialFactories,
+  IRenderMimeRegistry,
+  RenderMimeRegistry
 } from '@jupyterlab/rendermime';
 import { Session } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -289,7 +286,7 @@ const extension: JupyterFrontEndPlugin<void> = {
  * A plugin that provides visual debugging support for file editors.
  */
 const files: JupyterFrontEndPlugin<void> = {
-  id: '@jupyterlab/debugger-extension:files',
+  id: '@elyra/python-editor-extension:files',
   autoStart: true,
   requires: [IDebugger, IEditorTracker],
   optional: [ILabShell],
@@ -358,7 +355,7 @@ const files: JupyterFrontEndPlugin<void> = {
  * A plugin that provides a debugger service.
  */
 const service: JupyterFrontEndPlugin<IDebugger> = {
-  id: '@jupyterlab/debugger-extension:service',
+  id: '@elyra/python-editor-extension:service',
   autoStart: true,
   provides: IDebugger,
   requires: [IDebuggerConfig],
@@ -367,13 +364,11 @@ const service: JupyterFrontEndPlugin<IDebugger> = {
     app: JupyterFrontEnd,
     config: IDebugger.IConfig,
     debuggerSources: IDebugger.ISources | null
-    // translator: ITranslator | null
   ) =>
     new Debugger.Service({
       config,
       debuggerSources,
       specsManager: app.serviceManager.kernelspecs
-      // translator
     })
 };
 
@@ -381,7 +376,7 @@ const service: JupyterFrontEndPlugin<IDebugger> = {
  * A plugin that provides a configuration with hash method.
  */
 const configuration: JupyterFrontEndPlugin<IDebugger.IConfig> = {
-  id: '@jupyterlab/debugger-extension:config',
+  id: '@elyra/python-editor-extension:config',
   provides: IDebuggerConfig,
   autoStart: true,
   activate: () => new Debugger.Config()
@@ -391,22 +386,22 @@ const configuration: JupyterFrontEndPlugin<IDebugger.IConfig> = {
  * A plugin that provides source/editor functionality for debugging.
  */
 const sources: JupyterFrontEndPlugin<IDebugger.ISources> = {
-  id: '@jupyterlab/debugger-extension:sources',
+  id: '@elyra/python-editor-extension:sources',
   autoStart: true,
   provides: IDebuggerSources,
   requires: [IDebuggerConfig, IEditorServices],
-  // optional: [IEditorTracker],
+  optional: [IEditorTracker],
   activate: (
     app: JupyterFrontEnd,
     config: IDebugger.IConfig,
-    editorServices: IEditorServices
-    // editorTracker: IEditorTracker
+    editorServices: IEditorServices,
+    editorTracker: IEditorTracker
   ): IDebugger.ISources => {
     return new Debugger.Sources({
       config,
       shell: app.shell,
-      editorServices
-      // editorTracker
+      editorServices,
+      editorTracker
     });
   }
 };
@@ -414,7 +409,7 @@ const sources: JupyterFrontEndPlugin<IDebugger.ISources> = {
  * A plugin to open detailed views for variables.
  */
 const variables: JupyterFrontEndPlugin<void> = {
-  id: '@jupyterlab/debugger-extension:variables',
+  id: '@elyra/python-editor-extension:variables',
   autoStart: true,
   requires: [IDebugger, IDebuggerHandler, ITranslator],
   optional: [IThemeManager, IRenderMimeRegistry],
@@ -431,9 +426,9 @@ const variables: JupyterFrontEndPlugin<void> = {
     const tracker = new WidgetTracker<MainAreaWidget<Debugger.VariablesGrid>>({
       namespace: 'debugger/inspect-variable'
     });
-    // const trackerMime = new WidgetTracker<Debugger.VariableRenderer>({
-    //   namespace: 'debugger/render-variable'
-    // });
+    const trackerMime = new WidgetTracker<Debugger.VariableRenderer>({
+      namespace: 'debugger/render-variable'
+    });
     const DebuggerCommandIDs = Debugger.CommandIDs;
 
     // Add commands
@@ -501,77 +496,79 @@ const variables: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    // commands.addCommand(DebuggerCommandIDs.renderMimeVariable, {
-    //   label: trans.__('Render Variable'),
-    //   caption: trans.__('Render variable according to its mime type'),
-    //   isEnabled: () => !!service.session?.isStarted,
-    //   isVisible: () =>
-    //     service.model.hasRichVariableRendering && rendermime !== null,
-    //   execute: args => {
-    //     let { name, frameId } = args as {
-    //       frameId?: number;
-    //       name?: string;
-    //     };
+    commands.addCommand(DebuggerCommandIDs.renderMimeVariable, {
+      label: trans.__('Render Variable'),
+      caption: trans.__('Render variable according to its mime type'),
+      isEnabled: () => !!service.session?.isStarted,
+      isVisible: () =>
+        service.model.hasRichVariableRendering && rendermime !== null,
+      execute: args => {
+        let { name, frameId } = args as {
+          frameId?: number;
+          name?: string;
+        };
 
-    //     if (!name) {
-    //       name = service.model.variables.selectedVariable?.name;
-    //     }
-    //     if (!frameId) {
-    //       frameId = service.model.callstack.frame?.id;
-    //     }
+        if (!name) {
+          name = service.model.variables.selectedVariable?.name;
+        }
+        if (!frameId) {
+          frameId = service.model.callstack.frame?.id;
+        }
 
-    //     const activeWidget = handler.activeWidget;
+        const activeWidget = handler.activeWidget;
+        const activeRendermime =
+          activeWidget instanceof ScriptEditor ? rendermime : null;
 
-    //     if (!rendermime) {
-    //       return;
-    //     }
+        if (!activeRendermime) {
+          return;
+        }
 
-    //     const id = `jp-debugger-variable-mime-${name}-${service.session?.connection?.path.replace(
-    //       '/',
-    //       '-'
-    //     )}`;
-    //     if (
-    //       !name || // Name is mandatory
-    //       trackerMime.find(widget => widget.id === id) || // Widget already exists
-    //       (!frameId && service.hasStoppedThreads()) // frame id missing on breakpoint
-    //     ) {
-    //       return;
-    //     }
+        const id = `jp-debugger-variable-mime-${name}-${service.session?.connection?.path.replace(
+          '/',
+          '-'
+        )}`;
+        if (
+          !name || // Name is mandatory
+          trackerMime.find(widget => widget.id === id) || // Widget already exists
+          (!frameId && service.hasStoppedThreads()) // frame id missing on breakpoint
+        ) {
+          return;
+        }
 
-    //     const variablesModel = service.model.variables;
+        const variablesModel = service.model.variables;
 
-    //     const widget = new Debugger.VariableRenderer({
-    //       dataLoader: (): any => service.inspectRichVariable(name!, frameId),
-    //       rendermime: rendermime,
-    //       translator
-    //     });
-    //     widget.addClass('jp-DebuggerRichVariable');
-    //     widget.id = id;
-    //     widget.title.icon = Debugger.Icons.variableIcon;
-    //     widget.title.label = `${name} - ${service.session?.connection?.name}`;
-    //     widget.title.caption = `${name} - ${service.session?.connection?.path}`;
-    //     void trackerMime.add(widget);
-    //     const disposeWidget = (): void => {
-    //       widget.dispose();
-    //       variablesModel.changed.disconnect(refreshWidget);
-    //       activeWidget?.disposed.disconnect(disposeWidget);
-    //     };
-    //     const refreshWidget = (): void => {
-    //       // Refresh the widget only if the active element is the same.
-    //       if (handler.activeWidget === activeWidget) {
-    //         widget.refresh();
-    //       }
-    //     };
-    //     widget.disposed.connect(disposeWidget);
-    //     variablesModel.changed.connect(refreshWidget);
-    //     activeWidget?.disposed.connect(disposeWidget);
+        const widget = new Debugger.VariableRenderer({
+          dataLoader: (): any => service.inspectRichVariable(name!, frameId),
+          rendermime: activeRendermime,
+          translator
+        });
+        widget.addClass('jp-DebuggerRichVariable');
+        widget.id = id;
+        widget.title.icon = Debugger.Icons.variableIcon;
+        widget.title.label = `${name} - ${service.session?.connection?.name}`;
+        widget.title.caption = `${name} - ${service.session?.connection?.path}`;
+        void trackerMime.add(widget);
+        const disposeWidget = (): void => {
+          widget.dispose();
+          variablesModel.changed.disconnect(refreshWidget);
+          activeWidget?.disposed.disconnect(disposeWidget);
+        };
+        const refreshWidget = (): void => {
+          // Refresh the widget only if the active element is the same.
+          if (handler.activeWidget === activeWidget) {
+            void widget.refresh();
+          }
+        };
+        widget.disposed.connect(disposeWidget);
+        variablesModel.changed.connect(refreshWidget);
+        activeWidget?.disposed.connect(disposeWidget);
 
-    //     shell.add(widget, 'main', {
-    //       mode: trackerMime.currentWidget ? 'split-right' : 'split-bottom',
-    //       activate: false
-    //     });
-    //   }
-    // });
+        shell.add(widget, 'main', {
+          mode: trackerMime.currentWidget ? 'split-right' : 'split-bottom',
+          activate: false
+        });
+      }
+    });
   }
 };
 
@@ -579,7 +576,7 @@ const variables: JupyterFrontEndPlugin<void> = {
  * Debugger sidebar provider plugin.
  */
 const sidebar: JupyterFrontEndPlugin<IDebugger.ISidebar> = {
-  id: '@jupyterlab/debugger-extension:sidebar',
+  id: '@elyra/python-editor-extension:sidebar',
   provides: IDebuggerSidebar,
   requires: [IDebugger, IEditorServices, ITranslator],
   optional: [IThemeManager, ISettingRegistry],
@@ -646,7 +643,7 @@ const sidebar: JupyterFrontEndPlugin<IDebugger.ISidebar> = {
  * The main debugger UI plugin.
  */
 const main: JupyterFrontEndPlugin<void> = {
-  id: '@jupyterlab/debugger-extension:main',
+  id: '@elyra/python-editor-extension:main',
   requires: [IDebugger, IDebuggerSidebar, IEditorServices, ITranslator],
   optional: [
     ICommandPalette,
@@ -693,54 +690,54 @@ const main: JupyterFrontEndPlugin<void> = {
     }
 
     // get the mime type of the kernel language for the current debug session
-    // const getMimeType = async (): Promise<string> => {
-    //   const kernel = service.session?.connection?.kernel;
-    //   if (!kernel) {
-    //     return '';
-    //   }
-    //   const info = (await kernel.info).language_info;
-    //   const name = info.name;
-    //   const mimeType =
-    //     editorServices?.mimeTypeService.getMimeTypeByLanguage({ name }) ?? '';
-    //   return mimeType;
-    // };
+    const getMimeType = async (): Promise<string> => {
+      const kernel = service.session?.connection?.kernel;
+      if (!kernel) {
+        return '';
+      }
+      const info = (await kernel.info).language_info;
+      const name = info.name;
+      const mimeType =
+        editorServices?.mimeTypeService.getMimeTypeByLanguage({ name }) ?? '';
+      return mimeType;
+    };
 
-    // const rendermime = new RenderMimeRegistry({ initialFactories });
+    const rendermime = new RenderMimeRegistry({ initialFactories });
 
-    // commands.addCommand(DebuggerCommandIDs.evaluate, {
-    //   label: trans.__('Evaluate Code'),
-    //   caption: trans.__('Evaluate Code'),
-    //   icon: Debugger.Icons.evaluateIcon,
-    //   isEnabled: () => service.hasStoppedThreads(),
-    //   execute: async () => {
-    //     const mimeType = await getMimeType();
-    //     const result = await Debugger.Dialogs.getCode({
-    //       title: trans.__('Evaluate Code'),
-    //       okLabel: trans.__('Evaluate'),
-    //       cancelLabel: trans.__('Cancel'),
-    //       mimeType,
-    //       rendermime
-    //     });
-    //     const code = result.value;
-    //     if (!result.button.accept || !code) {
-    //       return;
-    //     }
-    //     const reply = await service.evaluate(code);
-    //     if (reply) {
-    //       const data = reply.result;
-    //       const path = service?.session?.connection?.path;
-    //       const logger = path ? loggerRegistry?.getLogger?.(path) : undefined;
+    commands.addCommand(DebuggerCommandIDs.evaluate, {
+      label: trans.__('Evaluate Code'),
+      caption: trans.__('Evaluate Code'),
+      icon: Debugger.Icons.evaluateIcon,
+      isEnabled: () => service.hasStoppedThreads(),
+      execute: async () => {
+        const mimeType = await getMimeType();
+        const result = await Debugger.Dialogs.getCode({
+          title: trans.__('Evaluate Code'),
+          okLabel: trans.__('Evaluate'),
+          cancelLabel: trans.__('Cancel'),
+          mimeType,
+          rendermime
+        });
+        const code = result.value;
+        if (!result.button.accept || !code) {
+          return;
+        }
+        const reply = await service.evaluate(code);
+        if (reply) {
+          const data = reply.result;
+          const path = service?.session?.connection?.path;
+          const logger = path ? loggerRegistry?.getLogger?.(path) : undefined;
 
-    //       if (logger) {
-    //         // print to log console of the notebook currently being debugged
-    //         logger.log({ type: 'text', data, level: logger.level });
-    //       } else {
-    //         // fallback to printing to devtools console
-    //         console.debug(data);
-    //       }
-    //     }
-    //   }
-    // });
+          if (logger) {
+            // print to log console of the notebook currently being debugged
+            logger.log({ type: 'text', data, level: logger.level });
+          } else {
+            // fallback to printing to devtools console
+            console.debug(data);
+          }
+        }
+      }
+    });
 
     commands.addCommand(DebuggerCommandIDs.debugContinue, {
       label: trans.__('Continue'),
@@ -836,13 +833,6 @@ const main: JupyterFrontEndPlugin<void> = {
 
     shell.add(sidebar, 'right');
 
-    // commands.addCommand(DebuggerCommandIDs.showPanel, {
-    //   label: translator.load('jupyterlab').__('Debugger Panel'),
-    //   execute: () => {
-    //     shell.activateById(sidebar.id);
-    //   }
-    // });
-
     if (palette) {
       const category = trans.__('Debugger');
       [
@@ -860,108 +850,107 @@ const main: JupyterFrontEndPlugin<void> = {
 
     if (debuggerSources) {
       const { model } = service;
-      // const readOnlyEditorFactory = new Debugger.ReadOnlyEditorFactory({
-      //   editorServices
-      // });
+      const readOnlyEditorFactory = new Debugger.ReadOnlyEditorFactory({
+        editorServices
+      });
 
-      // const onCurrentFrameChanged = (
-      //   _: IDebugger.Model.ICallstack,
-      //   frame: IDebugger.IStackFrame
-      // ): void => {
-      //   debuggerSources
-      //     .find({
-      //       focus: true,
-      //       kernel: service.session?.connection?.kernel?.name ?? '',
-      //       path: service.session?.connection?.path ?? '',
-      //       source: frame?.source?.path ?? ''
-      //     })
-      //     .forEach(editor => {
-      //       requestAnimationFrame(() => {
-      //         Debugger.EditorHandler.showCurrentLine(editor, frame.line);
-      //       });
-      //     });
-      // };
+      const onCurrentFrameChanged = (
+        _: IDebugger.Model.ICallstack,
+        frame: IDebugger.IStackFrame
+      ): Slot<IDebugger.Model.ICallstack, IDebugger.IStackFrame | null> => {
+        debuggerSources
+          .find({
+            focus: true,
+            kernel: service.session?.connection?.kernel?.name ?? '',
+            path: service.session?.connection?.path ?? '',
+            source: frame?.source?.path ?? ''
+          })
+          .forEach(editor => {
+            requestAnimationFrame(() => {
+              Debugger.EditorHandler.showCurrentLine(editor, frame.line);
+            });
+          });
+      };
 
-      // const onSourceOpened = (
-      //   _: IDebugger.Model.ISources | null,
-      //   source: IDebugger.Source,
-      //   breakpoint?: IDebugger.IBreakpoint
-      // ): void => {
-      //   if (!source) {
-      //     return;
-      //   }
-      //   const { content, mimeType, path } = source;
-      //   const results = debuggerSources.find({
-      //     focus: true,
-      //     kernel: service.session?.connection?.kernel?.name ?? '',
-      //     path: service.session?.connection?.path ?? '',
-      //     source: path
-      //   });
-      //   if (results.length > 0) {
-      //     if (breakpoint && typeof breakpoint.line !== 'undefined') {
-      //       results.forEach(editor => {
-      //         if (editor instanceof CodeMirrorEditor) {
-      //           (editor as CodeMirrorEditor).scrollIntoViewCentered({
-      //             line: (breakpoint.line as number) - 1,
-      //             ch: breakpoint.column || 0
-      //           });
-      //         } else {
-      //           editor.revealPosition({
-      //             line: (breakpoint.line as number) - 1,
-      //             column: breakpoint.column || 0
-      //           });
-      //         }
-      //       });
-      //     }
-      //     return;
-      //   }
-      //   const editorWrapper = readOnlyEditorFactory.createNewEditor({
-      //     content,
-      //     mimeType,
-      //     path
-      //   });
-      //   const editor = editorWrapper.editor;
-      //   const editorHandler = new Debugger.EditorHandler({
-      //     debuggerService: service,
-      //     editor,
-      //     path
-      //   });
-      //   editorWrapper.disposed.connect(() => editorHandler.dispose());
+      const onKernelSourceOpened = (
+        _: IDebugger.Model.IKernelSources | null,
+        source: IDebugger.Source,
+        breakpoint?: IDebugger.IBreakpoint
+      ): Slot<IDebugger.Model.IKernelSources, IDebugger.Source | null> => {
+        if (!source) {
+          return;
+        }
+        onCurrentSourceOpened(null, source, breakpoint);
+      };
 
-      //   debuggerSources.open({
-      //     label: PathExt.basename(path),
-      //     caption: path,
-      //     editorWrapper
-      //   });
+      const onCurrentSourceOpened = (
+        _: IDebugger.Model.ISources | null,
+        source: IDebugger.Source,
+        breakpoint?: IDebugger.IBreakpoint
+      ): Slot<IDebugger.Model.IKernelSources, IDebugger.Source | null> => {
+        if (!source) {
+          return;
+        }
+        const { content, mimeType, path } = source;
+        const results = debuggerSources.find({
+          focus: true,
+          kernel: service.session?.connection?.kernel?.name ?? '',
+          path: service.session?.connection?.path ?? '',
+          source: path
+        });
+        if (results.length > 0) {
+          if (breakpoint && typeof breakpoint.line !== 'undefined') {
+            results.forEach(editor => {
+              if (editor instanceof CodeMirrorEditor) {
+                (editor as CodeMirrorEditor).scrollIntoViewCentered({
+                  line: (breakpoint.line as number) - 1,
+                  ch: breakpoint.column || 0
+                });
+              } else {
+                editor.revealPosition({
+                  line: (breakpoint.line as number) - 1,
+                  column: breakpoint.column || 0
+                });
+              }
+            });
+          }
+          return;
+        }
+        const editorWrapper = readOnlyEditorFactory.createNewEditor({
+          content,
+          mimeType,
+          path
+        });
+        const editor = editorWrapper.editor;
+        const editorHandler = new Debugger.EditorHandler({
+          debuggerService: service,
+          editor,
+          path
+        });
+        editorWrapper.disposed.connect(() => editorHandler.dispose());
 
-      //   const frame = service.model.callstack.frame;
-      //   if (frame) {
-      //     Debugger.EditorHandler.showCurrentLine(editor, frame.line);
-      //   }
-      // };
+        debuggerSources.open({
+          label: PathExt.basename(path),
+          caption: path,
+          editorWrapper
+        });
 
-      // const onKernelSourceOpened = (
-      //   _: IDebugger.Model.IKernelSources | null,
-      //   source: IDebugger.Source,
-      //   breakpoint?: IDebugger.IBreakpoint
-      // ): void => {
-      //   if (!source) {
-      //     return;
-      //   }
-      //   onSourceOpened(null, source, breakpoint);
-      // };
+        const frame = service.model.callstack.frame;
+        if (frame) {
+          Debugger.EditorHandler.showCurrentLine(editor, frame.line);
+        }
+      };
 
-      // model.callstack.currentFrameChanged.connect(onCurrentFrameChanged);
-      // model.sources.currentSourceOpened.connect(onSourceOpened);
-      // model.kernelSources.kernelSourceOpened.connect(onKernelSourceOpened);
-      model.breakpoints.clicked.connect(async (_: any, breakpoint: any) => {
+      model.callstack.currentFrameChanged.connect(onCurrentFrameChanged);
+      model.sources.currentSourceOpened.connect(onCurrentSourceOpened);
+      model.kernelSources.kernelSourceOpened.connect(onKernelSourceOpened);
+      model.breakpoints.clicked.connect(async (_, breakpoint) => {
         const path = breakpoint.source?.path;
         const source = await service.getSource({
           sourceReference: 0,
           path
         });
-        console.log('source: ', source);
-        // onSourceOpened(null, source, breakpoint);
+        onCurrentSourceOpened(null, source, breakpoint);
       });
     }
   }
