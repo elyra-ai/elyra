@@ -16,6 +16,8 @@
 
 import { MetadataService, RequestHandler } from '@elyra/services';
 import { pyIcon, rIcon } from '@elyra/ui-components';
+import { URLExt } from '@jupyterlab/coreutils';
+import { ServerConnection } from '@jupyterlab/services';
 import { notebookIcon } from '@jupyterlab/ui-components';
 import produce from 'immer';
 import useSWR from 'swr';
@@ -211,7 +213,10 @@ export const componentFetcher = async (type: string): Promise<any> => {
       category.node_types?.[0]?.runtime_type ?? 'LOCAL';
 
     const type = types.find((t: any) => t.id === category_runtime_type);
-    const defaultIcon = `/${type?.icon}`;
+    const defaultIcon = URLExt.join(
+      ServerConnection.makeSettings().baseUrl,
+      type?.icon || ''
+    );
 
     category.image = defaultIcon;
 
