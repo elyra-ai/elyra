@@ -114,6 +114,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Build
         run: |
+          pip install "jupyterlab>=3.4.0"
           make build-dependencies
           make yarn-install
           make build-ui
@@ -143,6 +144,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Build
         run: |
+          pip install "jupyterlab>=3.4.0"
           make build-dependencies
           make yarn-install
           make build-ui
