@@ -21,7 +21,7 @@
 .PHONY: install install-all install-dev install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
-.PHONY: elyra-image publish-elyra-image kf-notebook-image publish-kf-notebook-image
+.PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-images
 
 .ONESHELL:
