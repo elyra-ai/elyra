@@ -857,7 +857,7 @@ const main: JupyterFrontEndPlugin<void> = {
       const onCurrentFrameChanged = (
         _: IDebugger.Model.ICallstack,
         frame: IDebugger.IStackFrame
-      ): Slot<IDebugger.Model.ICallstack, IDebugger.IStackFrame | null> => {
+      ): void => {
         debuggerSources
           .find({
             focus: true,
@@ -876,7 +876,7 @@ const main: JupyterFrontEndPlugin<void> = {
         _: IDebugger.Model.IKernelSources | null,
         source: IDebugger.Source,
         breakpoint?: IDebugger.IBreakpoint
-      ): Slot<IDebugger.Model.IKernelSources, IDebugger.Source | null> => {
+      ): void => {
         if (!source) {
           return;
         }
@@ -887,7 +887,7 @@ const main: JupyterFrontEndPlugin<void> = {
         _: IDebugger.Model.ISources | null,
         source: IDebugger.Source,
         breakpoint?: IDebugger.IBreakpoint
-      ): Slot<IDebugger.Model.IKernelSources, IDebugger.Source | null> => {
+      ): void => {
         if (!source) {
           return;
         }
@@ -941,9 +941,23 @@ const main: JupyterFrontEndPlugin<void> = {
         }
       };
 
-      model.callstack.currentFrameChanged.connect(onCurrentFrameChanged);
-      model.sources.currentSourceOpened.connect(onCurrentSourceOpened);
-      model.kernelSources.kernelSourceOpened.connect(onKernelSourceOpened);
+      // model.callstack.currentFrameChanged.connect(onCurrentFrameChanged);
+      model.callstack.currentFrameChanged.connect(async (_, frame) => {
+        frame && onCurrentFrameChanged(_, frame);
+      });
+
+      // model.sources.currentSourceOpened.connect(onCurrentSourceOpened);
+      model.sources.currentSourceOpened.connect(async (_, source) => {
+        source && onCurrentSourceOpened(_, source);
+      });
+
+      // model.kernelSources.kernelSourceOpened.connect(onKernelSourceOpened);
+      model.kernelSources.kernelSourceOpened.connect(
+        async (_, kernelSource) => {
+          kernelSource && onKernelSourceOpened(_, kernelSource);
+        }
+      );
+
       model.breakpoints.clicked.connect(async (_, breakpoint) => {
         const path = breakpoint.source?.path;
         const source = await service.getSource({

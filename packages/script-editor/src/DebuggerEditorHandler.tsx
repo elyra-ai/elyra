@@ -42,7 +42,7 @@ const EDITOR_CHANGED_TIMEOUT = 1000;
 
 /**
  * A debugger handler for a CodeEditor.IEditor.
- * Adapted from JupyterLab EditorHandler.
+ * Adapted from JupyterLab debugger extension - EditorHandler.
  */
 export class DebuggerEditorHandler implements IDisposable {
   /**
@@ -51,9 +51,9 @@ export class DebuggerEditorHandler implements IDisposable {
    * @param options The instantiation options for a DebuggerEditorHandler.
    */
   constructor(options: DebuggerEditorHandler.IOptions) {
-    this._id = ''; //options.debuggerService.session?.connection?.id ?? '';
+    this._id = options.debuggerService.session?.connection?.id ?? '';
     this._path = options.path ?? '';
-    // this._debuggerService = options.debuggerService;
+    this._debuggerService = options.debuggerService;
     this._editor = options.editor;
 
     this._editorMonitor = new ActivityMonitor({
@@ -64,8 +64,33 @@ export class DebuggerEditorHandler implements IDisposable {
       this._sendEditorBreakpoints();
     }, this);
 
+    this._debuggerService.model.breakpoints.changed.connect(async () => {
+      if (!this._editor || this._editor.isDisposed) {
+        return;
+      }
+      this._addBreakpointsToEditor();
+    });
+
+    this._debuggerService.model.breakpoints.restored.connect(async () => {
+      if (!this._editor || this._editor.isDisposed) {
+        return;
+      }
+      this._addBreakpointsToEditor();
+    });
+
+    this._debuggerService.model.callstack.currentFrameChanged.connect(() => {
+      DebuggerEditorHandler.clearHighlight(this._editor);
+    });
+
     this._setupEditor();
     this.isDisposed = false;
+  }
+
+  /**
+   * The editor
+   */
+  get editor(): CodeEditor.IEditor {
+    return this._editor;
   }
 
   /**
@@ -84,6 +109,13 @@ export class DebuggerEditorHandler implements IDisposable {
     this._clearEditor();
     this.isDisposed = true;
     Signal.clearData(this);
+  }
+
+  /**
+   * Refresh the breakpoints display
+   */
+  refreshBreakpoints(): void {
+    this._addBreakpointsToEditor();
   }
 
   /**
@@ -130,13 +162,16 @@ export class DebuggerEditorHandler implements IDisposable {
 
     const breakpoints = this._getBreakpointsFromEditor().map(lineInfo => {
       return Private.createBreakpoint(
-        // this._debuggerService.session?.connection?.name || '',
-        this._path,
+        this._debuggerService.session?.connection?.name || '',
         lineInfo.line + 1
       );
     });
 
-    console.log('breakpoints: ' + breakpoints);
+    void this._debuggerService.updateBreakpoints(
+      this._editor.model.value.text,
+      breakpoints,
+      this._path
+    );
   }
 
   /**
@@ -147,21 +182,40 @@ export class DebuggerEditorHandler implements IDisposable {
    */
   private _onGutterClick = (editor: Editor, lineNumber: number): void => {
     const info = editor.lineInfo(lineNumber);
-    if (!info) {
+    if (!info || this._id !== this._debuggerService.session?.connection?.id) {
       return;
     }
 
     const remove = !!info.gutterMarkers;
+    let breakpoints: IDebugger.IBreakpoint[] = this._getBreakpoints();
     if (remove) {
-      editor.setGutterMarker(lineNumber, 'breakpoints', null);
+      breakpoints = breakpoints.filter(ele => ele.line !== info.line + 1);
+    } else {
+      breakpoints.push(
+        Private.createBreakpoint(
+          this._path ?? this._debuggerService.session.connection.name,
+          info.line + 1
+        )
+      );
     }
 
-    // DebuggerEditorHandler.clearGutter(this._editor as CodeMirrorEditor);
-    editor.setGutterMarker(
-      lineNumber,
-      'breakpoints',
-      Private.createMarkerNode()
+    void this._debuggerService.updateBreakpoints(
+      this._editor.model.value.text,
+      breakpoints,
+      this._path
     );
+
+    // const remove = !!info.gutterMarkers;
+    // if (remove) {
+    //   editor.setGutterMarker(lineNumber, 'breakpoints', null);
+    // }
+
+    // // DebuggerEditorHandler.clearGutter(this._editor as CodeMirrorEditor);
+    // editor.setGutterMarker(
+    //   lineNumber,
+    //   'breakpoints',
+    //   Private.createMarkerNode()
+    // );
   };
 
   /**
@@ -170,6 +224,9 @@ export class DebuggerEditorHandler implements IDisposable {
   private _addBreakpointsToEditor(): void {
     const editor = this._editor as CodeMirrorEditor;
     const breakpoints = this._getBreakpoints();
+    if (this._id !== this._debuggerService.session?.connection?.id) {
+      return;
+    }
     DebuggerEditorHandler.clearGutter(editor);
     breakpoints.forEach(breakpoint => {
       if (typeof breakpoint.line === 'number') {
@@ -202,13 +259,16 @@ export class DebuggerEditorHandler implements IDisposable {
    * or its path (if it exists).
    */
   private _getBreakpoints(): IDebugger.IBreakpoint[] {
-    // TODO
-    return [];
+    const code = this._editor.model.value.text;
+    return this._debuggerService.model.breakpoints.getBreakpoints(
+      this._path || this._debuggerService.getCodeId(code)
+    );
   }
 
   private _id: string;
   private _path: string;
   private _editor: CodeEditor.IEditor;
+  private _debuggerService: IDebugger;
   private _editorMonitor: ActivityMonitor<
     IObservableString,
     IObservableString.IChangedArgs
@@ -223,6 +283,11 @@ export namespace DebuggerEditorHandler {
    * Instantiation options for `DebuggerEditorHandler`.
    */
   export interface IOptions {
+    /**
+     * The debugger service.
+     */
+    debuggerService: IDebugger;
+
     /**
      * The code editor to handle.
      */
@@ -247,7 +312,8 @@ export namespace DebuggerEditorHandler {
     clearHighlight(editor);
     const cmEditor = editor as CodeMirrorEditor;
     cmEditor.editor.addLineClass(line - 1, 'wrap', LINE_HIGHLIGHT_CLASS);
-    // cmEditor.scrollIntoViewCentered({ ch: 0, line: line - 1 }); // error TS2339: Property 'scrollIntoViewCentered' does not exist on type 'CodeMirrorEditor'
+    cmEditor.scrollIntoViewCentered({ ch: 0, line: line - 1 });
+    // error TS2339: Property 'scrollIntoViewCentered' does not exist on type 'CodeMirrorEditor'
   };
 
   /**
@@ -300,12 +366,12 @@ namespace Private {
   /**
    * Remove a breakpoint marker DOM element.
    */
-  export const removeMarkerNode = (): HTMLElement => {
-    const marker = document.createElement('div');
-    marker.classList.remove('jp-DebuggerEditor-marker');
-    marker.innerHTML = '';
-    return marker;
-  };
+  // export const removeMarkerNode = (): HTMLElement => {
+  //   const marker = document.createElement('div');
+  //   marker.classList.remove('jp-DebuggerEditor-marker');
+  //   marker.innerHTML = '';
+  //   return marker;
+  // };
 
   /**
    * Create a new breakpoint.
@@ -314,16 +380,14 @@ namespace Private {
    * @param line The line number of the breakpoint.
    */
   export const createBreakpoint = (
-    // session: string,
-    path: string,
+    session: string,
     line: number
   ): IDebugger.IBreakpoint => {
     return {
       line,
       verified: true,
       source: {
-        // name: session
-        name: path
+        name: session
       }
     };
   };
