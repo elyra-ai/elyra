@@ -21,7 +21,7 @@ This section describes the steps necessary to build Elyra in a development envir
 #### Requirements
 
 * [Python 3 Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-* [NodeJS 12+](https://nodejs.org/en/)
+* [NodeJS 16+](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/lang/en/docs/install)
 
 ### Setting up your development environment
