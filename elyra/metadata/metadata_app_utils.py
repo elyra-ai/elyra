@@ -15,7 +15,6 @@
 #
 
 import ast
-from http import HTTPStatus
 import json
 import logging
 import os.path
@@ -26,9 +25,6 @@ from typing import List
 from typing import Optional
 from typing import Set
 
-import requests
-
-from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 
 """Utility functions and classes used for metadata applications and classes."""
@@ -638,33 +634,13 @@ class AppBase(object):
     def print_description(self):
         print(self.description or "")
 
-    def _get_elyra_read_the_docs_url(self) -> str:
-        """Returns the read the docs url with current elyra version.
-        For dev envrionments, just returns the one with latest.
-        For non dev environments, returns the url with exact version string in x.x.x format
-        """
-        if __version__[6:-1] == "dev0":
-            return "https://elyra.readthedocs.io/en/latest/"
-        else:
-            url = f"https://elyra.readthedocs.io/en/v{__version__[:5]}/"  # version of format x.y.z
-            try:
-                res = requests.get(url)
-            except Exception:
-                return "https://elyra.readthedocs.io/en/latest/"
-            else:
-                if res.status_code != HTTPStatus.OK:
-                    # log the url with 'latest'
-                    return "https://elyra.readthedocs.io/en/latest/"
-                else:
-                    return url
-
     def print_subcommands(self):
         print()
         print("Subcommands")
         print("-----------")
         print("Subcommands are launched as `elyra-metadata cmd [args]`. For information on")
         print("using subcommand 'cmd', run: `elyra-metadata cmd -h` or `elyra-metadata cmd --help`.")
-        print(f"\nFind more information at: {self._get_elyra_read_the_docs_url()}")
+        print("\nFind more information at https://elyra.readthedocs.io/en/latest/")
         print()
         for subcommand, desc in self.subcommands.items():
             print(f"{subcommand:<10}{desc[1]:>10}")

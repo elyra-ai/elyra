@@ -143,6 +143,13 @@ def update_version_to_release() -> None:
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
         )
 
+        # Update documentation version for elyra-metadata cli help
+        sed(
+            _source("elyra/metadata/metadata_app_utils.py"),
+            r"https://elyra.readthedocs.io/en/latest/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+        )
+
         sed(
             _source("packages/pipeline-editor/src/EmptyPipelineContent.tsx"),
             r"https://elyra.readthedocs.io/en/latest/user_guide/",
