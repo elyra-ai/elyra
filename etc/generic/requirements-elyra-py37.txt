@@ -1,7 +1,7 @@
 # This is a comprehensive list of python dependencies that Elyra requires to execute Jupyter notebooks.
 ipykernel==6.13.0
 ipython==7.33.0
-jinja2==3.1.2
+jinja2==3.0.3
 jupyter-client==7.3.1
 jupyter-core==4.10.0
 minio==7.1.8
