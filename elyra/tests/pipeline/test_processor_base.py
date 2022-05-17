@@ -20,6 +20,7 @@ import pytest
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
@@ -49,7 +50,7 @@ def sample_metadata():
     }
 
 
-def test_get_volume_mounts(runtime_processor):
+def test_get_volume_mounts():
     mounted_volumes = KeyValueList(["/mount/test=rwx-test-claim", "/mount/test_two=second-claim"])
     component_parameters = {
         "filename": "pipelines_test_file",
@@ -64,8 +65,8 @@ def test_get_volume_mounts(runtime_processor):
         name="test",
         component_params=component_parameters,
     )
-    parsed_volumes_dict = runtime_processor._get_volume_mounts(operation=test_operation)
-    assert parsed_volumes_dict == {
-        "/mount/test": "rwx-test-claim",
-        "/mount/test_two": "second-claim",
-    }
+    parsed_volumes_list = test_operation.get_volume_mounts()
+    assert parsed_volumes_list == [
+        VolumeMount("/mount/test", "rwx-test-claim"),
+        VolumeMount("/mount/test_two", "second-claim"),
+    ]
