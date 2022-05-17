@@ -317,8 +317,8 @@ be fully qualified (i.e., prefixed with their package names).
                     outputs=operation.outputs,
                 )
 
-                volume_mounts = self._get_volume_mounts(operation=operation)
-                kubernetes_secrets = self._get_kubernetes_secrets(operation=operation)
+                volume_mounts = operation.get_volume_mounts()
+                kubernetes_secrets = operation.get_kubernetes_secrets()
 
                 target_op = {
                     "notebook": operation.name,

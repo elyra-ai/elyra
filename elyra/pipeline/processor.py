@@ -25,7 +25,6 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Set
-from typing import Tuple
 from typing import Union
 
 import entrypoints
@@ -40,16 +39,12 @@ from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
-from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
-from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_expanded_path
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -584,61 +579,3 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return value
 
         return converted_list
-
-    def _get_volume_mounts(self, operation: Operation) -> Optional[Dict[str, str]]:
-        """
-        Loops through an Operation mounted volumes to re-format path and remove
-        invalid PVC names.
-
-        :param operation: the operation to check for volume mounts
-        :return: dictionary of mount path to valid PVC names
-        """
-        volume_mounts_valid = {}
-        if operation.component_params.get(MOUNTED_VOLUMES):
-            volume_mounts = operation.component_params.get(MOUNTED_VOLUMES).to_dict()
-            for mount_path, pvc_name in volume_mounts.items():
-                # Ensure the PVC name is syntactically a valid Kubernetes resource name
-                if not is_valid_kubernetes_resource_name(pvc_name):
-                    self.log.warning(
-                        f"Ignoring invalid volume mount entry '{mount_path}': the PVC "
-                        f"name '{pvc_name}' is not a valid Kubernetes resource name."
-                    )
-                    continue
-
-                formatted_mount_path = f"/{mount_path.strip('/')}"
-                volume_mounts_valid[formatted_mount_path] = pvc_name
-        return volume_mounts_valid
-
-    def _get_kubernetes_secrets(self, operation: Operation) -> Optional[List[Tuple]]:
-        """
-        Loops through an Operation's kubernetes secrets to strip whitespace
-        and re-format as a tuple.
-
-        :param operation: the operation to check for secrets
-        :return: tuple of env var name, secret name, and secret key
-        """
-        valid_secrets = []
-        secrets = operation.component_params.get(KUBERNETES_SECRETS)
-        if secrets and isinstance(secrets, KeyValueList):
-            for env_var_name, secret in secrets.to_dict().items():
-                secret_tuple = secret.split(":", 1)
-                if len(secret_tuple) != 2:
-                    self.log.warning(f"Ignoring invalid secret for '{env_var_name}': missing secret name and/or key.")
-                    continue
-                secret_name, secret_key = secret_tuple[0].strip(), secret_tuple[1].strip()
-                if not is_valid_kubernetes_resource_name(secret_name):
-                    self.log.warning(
-                        f"Ignoring invalid secret for '{env_var_name}': the secret name "
-                        f"'{secret_name}' is not a valid Kubernetes resource name."
-                    )
-                    continue
-                if not is_valid_kubernetes_resource_name(secret_key):
-                    self.log.warning(
-                        f"Ignoring invalid secret for '{env_var_name}': the secret key "
-                        f"'{secret_key}' is not a valid Kubernetes resource name."
-                    )
-                    continue
-
-                valid_secrets.append((env_var_name, secret_name, secret_key))
-
-        return valid_secrets

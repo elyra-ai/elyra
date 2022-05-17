@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from dataclasses import dataclass
 import logging
 from logging import Logger
 import os
@@ -23,6 +24,9 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -194,6 +198,16 @@ class Operation(object):
     def is_generic_operation(operation_classifier) -> bool:
         return operation_classifier in Operation.generic_node_types
 
+    @staticmethod
+    def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = logging.DEBUG):
+        """
+        Log a message with the given logger at the given level or simply print.
+        """
+        if logger:
+            logger.log(level, msg)
+        else:
+            print(msg)
+
 
 class GenericOperation(Operation):
     """
@@ -313,6 +327,72 @@ class GenericOperation(Operation):
 
     def _validate_range(self, value: str, min_value: int = 0, max_value: int = sys.maxsize) -> bool:
         return int(value) in range(min_value, max_value)
+
+    def get_volume_mounts(self, logger: Optional[Logger] = None) -> Optional[List["VolumeMount"]]:
+        """
+        Loops through the Operation's mounted volumes to re-format path and remove
+        invalid PVC names.
+
+        :return: dictionary of mount path to valid PVC names
+        """
+        valid_volume_mounts = []
+        volume_mounts = self.component_params.get(MOUNTED_VOLUMES)
+        if volume_mounts and isinstance(volume_mounts, KeyValueList):
+            for mount_path, pvc_name in volume_mounts.to_dict().items():
+                # Ensure the PVC name is syntactically a valid Kubernetes resource name
+                if not is_valid_kubernetes_resource_name(pvc_name):
+                    msg = (
+                        f"Ignoring invalid volume mount entry '{mount_path}': the PVC "
+                        f"name '{pvc_name}' is not a valid Kubernetes resource name."
+                    )
+                    Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
+                    continue
+
+                formatted_mount_path = f"/{mount_path.strip('/')}"
+
+                # Volume mount is valid, create a VolumeMount class instance and add to list
+                volume_mount = VolumeMount(formatted_mount_path, pvc_name)
+                valid_volume_mounts.append(volume_mount)
+
+        return valid_volume_mounts
+
+    def get_kubernetes_secrets(self, logger: Optional[Logger] = None) -> Optional[List["KubernetesSecret"]]:
+        """
+        Loops through the Operation's kubernetes secrets to strip whitespace
+        and re-format as a tuple.
+
+        :return: tuple of env var name, secret name, and secret key
+        """
+        valid_secrets = []
+        secrets = self.component_params.get(KUBERNETES_SECRETS)
+        if secrets and isinstance(secrets, KeyValueList):
+            for env_var_name, secret in secrets.to_dict().items():
+                secret_tuple = secret.split(":", 1)
+                if len(secret_tuple) != 2:
+                    msg = f"Ignoring invalid secret for '{env_var_name}': missing secret name and/or key."
+                    Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
+                    continue
+                secret_name, secret_key = secret_tuple[0].strip(), secret_tuple[1].strip()
+                if not is_valid_kubernetes_resource_name(secret_name):
+                    msg = (
+                        f"Ignoring invalid secret for '{env_var_name}': the secret name "
+                        f"'{secret_name}' is not a valid Kubernetes resource name."
+                    )
+                    Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
+                    continue
+                if not is_valid_kubernetes_resource_name(secret_key):
+                    msg = (
+                        f"Ignoring invalid secret for '{env_var_name}': the secret key "
+                        f"'{secret_key}' is not a valid Kubernetes resource name."
+                    )
+                    Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
+                    continue
+
+                # Secret is valid, create a KubernetesSecret class instance and add to list
+                kubernetes_secret = KubernetesSecret(env_var_name, secret_name, secret_key)
+                valid_secrets.append(kubernetes_secret)
+
+        return valid_secrets
 
 
 class Pipeline(object):
@@ -454,12 +534,12 @@ class KeyValueList(list):
 
             key = key.strip()
             if not key:
-                KeyValueList.log_message(f"Skipping inclusion of property '{kv}': no key found", logger, logging.WARN)
+                Operation.log_message(f"Skipping inclusion of property '{kv}': no key found", logger, logging.WARN)
                 continue
             if isinstance(value, str):
                 value = value.strip()
             if not value:
-                KeyValueList.log_message(
+                Operation.log_message(
                     f"Skipping inclusion of property '{key}': no value specified", logger, logging.DEBUG
                 )
                 continue
@@ -505,12 +585,15 @@ class KeyValueList(list):
 
         return KeyValueList.from_dict(subtract_dict)
 
-    @staticmethod
-    def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = logging.DEBUG):
-        """
-        Log a message with the given logger at the given level or simply print.
-        """
-        if logger:
-            logger.log(level, msg)
-        else:
-            print(msg)
+
+@dataclass
+class VolumeMount:
+    path: str
+    pvc_name: str
+
+
+@dataclass
+class KubernetesSecret:
+    env_var: str
+    name: str
+    key: str
