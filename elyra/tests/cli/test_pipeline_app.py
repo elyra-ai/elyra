@@ -253,7 +253,7 @@ def test_describe_with_missing_kfp_component():
         assert result.exit_code == 0
 
 
-def test_describe_wth_mount_volume():
+def test_describe_with_mount_volume():
     runner = CliRunner()
     pipeline_file_path = (
         Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_mount_volumes.pipeline"
@@ -284,6 +284,30 @@ def test_describe_runtime_image():
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
     assert "Nodes: 2" in result.output
     assert "tensorflow/tensorflow:2.0.0-py3" in result.output
+    assert result.exit_code == 0
+
+
+def test_describe_runtime_image_negative():
+    runner = CliRunner()
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kf_inputpath_parameter.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Version: 7" in result.output
+    assert "Runtime Image:\n  None Listed" not in result.output
+    assert "Mounted Volumes:\n  None Listed" not in result.output
+    assert "Notebooks:\n  None Listed" not in result.output
+    assert "Scripts:\n  None Listed" not in result.output
+    assert result.exit_code == 0
+
+
+def test_describe_json_runtime_image_negative():
+    runner = CliRunner()
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kf_inputpath_parameter.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert '"version": 7' in result.output
+    assert "runtime_image" not in result.output
+    assert "mounted_volumes" not in result.output
+    assert "notebooks" not in result.output
+    assert "scripts" not in result.output
     assert result.exit_code == 0
 
 

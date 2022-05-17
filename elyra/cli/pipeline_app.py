@@ -538,9 +538,11 @@ def describe(json_option, pipeline_path):
         for mounted_volume in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
             describe_dict[pipeline_constants.MOUNTED_VOLUMES].add(f"{mounted_volume.split('=')[-1]}")
         # collection runtime image details
-        describe_dict[pipeline_constants.RUNTIME_IMAGE].add(
-            node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE, "")
-        )
+        runtime_image_value = node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
+        if runtime_image_value:
+            describe_dict[pipeline_constants.RUNTIME_IMAGE].add(
+                node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
+            )
         # collect notebook / script name when pipeline is generic
         if describe_dict["type"] is None:
             temp_value = Path(node.get_component_parameter("filename", "")).name
@@ -553,11 +555,12 @@ def describe(json_option, pipeline_path):
         click.echo()
 
         print_banner("Elyra Pipeline details")
-        for key in list(describe_dict.keys()):
+        for key in list(describe_dict):
             readable_key = " ".join(key.title().split("_"))
-            if type(describe_dict[key]) is set:
+            if isinstance(describe_dict[key], set):
                 click.echo(f"{readable_key}:")
-                if describe_dict.get(key, set()) == set():
+                # if describe_dict.get(key, set()) == set():
+                if not describe_dict.get(key):
                     click.echo(f"{' ' * indent_length}{blank_list[0]}")
                 else:
                     for item in describe_dict.get(key, blank_list):
@@ -565,12 +568,14 @@ def describe(json_option, pipeline_path):
             else:
                 click.echo(f"{readable_key}: {describe_dict.get(key, blank_field)}")
     else:
-        for key in list(describe_dict.keys()):
-            if type(describe_dict[key]) is set:
+        # for key in list(describe_dict.keys()):
+        for key in list(describe_dict):
+            if isinstance(describe_dict[key], set):
                 describe_dict[key] = list(describe_dict[key])
 
             value = describe_dict.get(key)
-            if value is None or (key in list(describe_dict.keys()) and len(str(value)) == 0):
+            # if value is None or (key in list(describe_dict.keys()) and len(str(value)) == 0):
+            if not value:
                 describe_dict.pop(key)
         click.echo(json.dumps(describe_dict, indent=indent_length))
 
