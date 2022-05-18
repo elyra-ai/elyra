@@ -41,6 +41,8 @@ from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
@@ -317,8 +319,12 @@ be fully qualified (i.e., prefixed with their package names).
                     outputs=operation.outputs,
                 )
 
-                volume_mounts = operation.get_volume_mounts()
-                kubernetes_secrets = operation.get_kubernetes_secrets()
+                valid_volume_mounts = GenericOperation.get_valid_volume_mounts(
+                    volume_mounts=operation.component_params.get(MOUNTED_VOLUMES), logger=self.log
+                )
+                valid_kubernetes_secrets = GenericOperation.get_valid_kubernetes_secrets(
+                    secrets=operation.component_params.get(KUBERNETES_SECRETS), logger=self.log
+                )
 
                 target_op = {
                     "notebook": operation.name,
@@ -334,8 +340,8 @@ be fully qualified (i.e., prefixed with their package names).
                     "operator_source": operation.component_params["filename"],
                     "is_generic_operator": True,
                     "doc": operation.doc,
-                    "volume_mounts": volume_mounts,
-                    "kubernetes_secrets": kubernetes_secrets,
+                    "volume_mounts": valid_volume_mounts,
+                    "kubernetes_secrets": valid_kubernetes_secrets,
                 }
 
                 if runtime_image_pull_secret is not None:

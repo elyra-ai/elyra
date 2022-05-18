@@ -24,8 +24,6 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 
 # TODO: Make pipeline version available more widely
@@ -328,15 +326,17 @@ class GenericOperation(Operation):
     def _validate_range(self, value: str, min_value: int = 0, max_value: int = sys.maxsize) -> bool:
         return int(value) in range(min_value, max_value)
 
-    def get_volume_mounts(self, logger: Optional[Logger] = None) -> Optional[List["VolumeMount"]]:
+    @staticmethod
+    def get_valid_volume_mounts(
+        volume_mounts: "KeyValueList", logger: Optional[Logger] = None
+    ) -> Optional[List["VolumeMount"]]:
         """
         Loops through the Operation's mounted volumes to re-format path and remove
         invalid PVC names.
 
-        :return: dictionary of mount path to valid PVC names
+        :return: a list of VolumeMount objects with mount path and valid PVC names
         """
         valid_volume_mounts = []
-        volume_mounts = self.component_params.get(MOUNTED_VOLUMES)
         if volume_mounts and isinstance(volume_mounts, KeyValueList):
             for mount_path, pvc_name in volume_mounts.to_dict().items():
                 # Ensure the PVC name is syntactically a valid Kubernetes resource name
@@ -356,20 +356,25 @@ class GenericOperation(Operation):
 
         return valid_volume_mounts
 
-    def get_kubernetes_secrets(self, logger: Optional[Logger] = None) -> Optional[List["KubernetesSecret"]]:
+    @staticmethod
+    def get_valid_kubernetes_secrets(
+        secrets: "KeyValueList", logger: Optional[Logger] = None
+    ) -> Optional[List["KubernetesSecret"]]:
         """
         Loops through the Operation's kubernetes secrets to strip whitespace
         and re-format as a tuple.
 
-        :return: tuple of env var name, secret name, and secret key
+        :return: a list of KubernetesSecret objects with env var name and valid secret name and key
         """
         valid_secrets = []
-        secrets = self.component_params.get(KUBERNETES_SECRETS)
         if secrets and isinstance(secrets, KeyValueList):
             for env_var_name, secret in secrets.to_dict().items():
                 secret_tuple = secret.split(":", 1)
                 if len(secret_tuple) != 2:
-                    msg = f"Ignoring invalid secret for '{env_var_name}': missing secret name and/or key."
+                    msg = (
+                        f"Ignoring invalid secret for '{env_var_name}': the secret name "
+                        f"and key must follow the format 'secret_name:secret_key'."
+                    )
                     Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
                     continue
                 secret_name, secret_key = secret_tuple[0].strip(), secret_tuple[1].strip()
