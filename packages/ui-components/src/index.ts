@@ -17,6 +17,7 @@ export * from './BrowseFileDialog';
 export * from './ExpandableErrorDialog';
 export * from './ExpandableComponent';
 export * from './FormDialog';
+export * from './FormEditor';
 export * from './icons';
 export * from './FormComponents';
 export * from './JSONComponent';

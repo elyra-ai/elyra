@@ -27,7 +27,6 @@ interface IFormEditorProps {
   /**
    * Schema for form fields to be displayed.
    */
-
   schema: any;
 
   /**
@@ -143,7 +142,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   const [tags, setTags] = React.useState(allTags);
 
   /**
-   * Generate the uiSchema from uihints in the schema.
+   * Generate the rjsf uiSchema from uihints in the elyra metadata schema.
    */
   const uiSchema: any = {};
   for (const category in schema?.properties) {

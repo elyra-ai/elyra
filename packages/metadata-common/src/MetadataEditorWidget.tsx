@@ -85,6 +85,8 @@ export interface IMetadataEditorProps {
    * Theme manager for custom themes.
    */
   themeManager?: IThemeManager;
+
+  titleContext?: string;
 }
 
 /**

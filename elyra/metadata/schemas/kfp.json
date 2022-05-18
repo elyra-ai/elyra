@@ -151,7 +151,6 @@
           "type": "string",
           "uihints": {
             "ui:field": "password",
-            "minLength": 8,
             "category": "Cloud Object Storage"
           }
         },

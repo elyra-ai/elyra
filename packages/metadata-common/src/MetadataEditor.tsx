@@ -15,11 +15,10 @@
  */
 
 import { MetadataService } from '@elyra/services';
-import { ThemeProvider, RequestErrors } from '@elyra/ui-components';
+import { ThemeProvider, RequestErrors, FormEditor } from '@elyra/ui-components';
 
 import * as React from 'react';
 
-import { FormEditor } from './FormEditor';
 import { IMetadataEditorProps } from './MetadataEditorWidget';
 
 const ELYRA_METADATA_EDITOR_CLASS = 'elyra-metadataEditor';
@@ -76,7 +75,8 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   close,
   allTags,
   componentRegistry,
-  getDefaultChoices
+  getDefaultChoices,
+  titleContext
 }: IMetadataEditorComponentProps) => {
   const [invalidForm, setInvalidForm] = React.useState(name === undefined);
 
@@ -125,7 +125,7 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
 
   let headerText = `Edit "${displayName}"`;
   if (!displayName) {
-    headerText = `Add new ${schemaTop.title}`;
+    headerText = `Add new ${schemaTop.title} ${titleContext ?? ''}`;
   }
 
   /**
