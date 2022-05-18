@@ -18,8 +18,11 @@ import sys
 import pytest
 
 from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.pipeline import VolumeMount
 
 
 @pytest.fixture
@@ -547,3 +550,57 @@ def test_scrub_list_function():
     env_variables_output = ["FOO=Bar", "BAR=Foo"]
 
     assert Operation._scrub_list(env_variables_input) == env_variables_output
+
+
+def test_get_volume_mounts():
+    mounted_volumes = KeyValueList(["/mount/test=rwx-test-claim", "/mount/test_two=second-claim"])
+    component_parameters = {
+        "filename": "pipelines_test_file",
+        "env_vars": [],
+        "runtime_image": "tensorflow/tensorflow:latest",
+        "mounted_volumes": mounted_volumes,
+    }
+    test_operation = GenericOperation(
+        id="this-is-a-test-id",
+        type="execution-node",
+        classifier="execute-notebook-node",
+        name="test",
+        component_params=component_parameters,
+    )
+    parsed_volumes_list = test_operation.get_volume_mounts()
+    assert parsed_volumes_list == [
+        VolumeMount("/mount/test", "rwx-test-claim"),
+        VolumeMount("/mount/test_two", "second-claim"),
+    ]
+
+
+def test_get_kubernetes_secrets():
+    kubernetes_secrets = KeyValueList(
+        [
+            "ENV_VAR1=test-secret:test-key1",  # valid
+            "ENV_VAR2=test-secret:test-key2",  # valid
+            "ENV_VAR3=test-secret",  # invalid: no key given
+            "ENV_VAR4=test:secret:test-key",  # invalid: too many fields given
+            "ENV_VAR5=test%secret:test-key",  # invalid secret name
+            "ENV_VAR6=test-secret:test$key2",  # invalid secret key
+            "ENV_VAR7=",  # invalid: no value after separator ('=')
+        ]
+    )
+    component_parameters = {
+        "filename": "pipelines_test_file",
+        "env_vars": [],
+        "runtime_image": "tensorflow/tensorflow:latest",
+        "kubernetes_secrets": kubernetes_secrets,
+    }
+    test_operation = GenericOperation(
+        id="this-is-a-test-id",
+        type="execution-node",
+        classifier="execute-notebook-node",
+        name="test",
+        component_params=component_parameters,
+    )
+    parsed_secrets_list = test_operation.get_kubernetes_secrets()
+    assert parsed_secrets_list == [
+        KubernetesSecret("ENV_VAR1", "test-secret", "test-key1"),
+        KubernetesSecret("ENV_VAR2", "test-secret", "test-key2"),
+    ]
