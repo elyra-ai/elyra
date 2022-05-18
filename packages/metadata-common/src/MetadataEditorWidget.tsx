@@ -15,7 +15,7 @@
  */
 
 import { MetadataService } from '@elyra/services';
-import { ThemeProvider, RequestErrors } from '@elyra/ui-components';
+import { RequestErrors } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
 import {
