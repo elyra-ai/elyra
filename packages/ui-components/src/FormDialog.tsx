@@ -125,9 +125,8 @@ const preventDefaultDialogHandler = (
         event.stopPropagation();
         event.preventDefault();
       }
-    } else {
-      dialogHandleEvent.call(dialog, event);
     }
+    dialogHandleEvent.call(dialog, event);
   };
 };
 
