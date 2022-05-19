@@ -36,6 +36,18 @@ import * as React from 'react';
 import { MetadataEditor } from './MetadataEditor';
 
 const DIRTY_CLASS = 'jp-mod-dirty';
+const UNCATEGORIZED_DEFAULT = {
+  type: 'object',
+  title: ' ',
+  properties: {
+    display_name: {
+      title: 'Display Name',
+      description: 'Name used to identify an instance of metadata.',
+      type: 'string'
+    }
+  },
+  required: ['display_name']
+};
 
 /**
  * Props for the Metadata Editor component.
@@ -165,18 +177,7 @@ export class MetadataEditorWidget extends ReactWidget {
       // Adds categories as wrapper objects in the schema.
       const metadataWithCategories: { [id: string]: any } = {};
       const schemaPropertiesByCategory: { [id: string]: any } = {
-        _noCategory: {
-          type: 'object',
-          title: ' ',
-          properties: {
-            display_name: {
-              title: 'Display Name',
-              description: 'Name used to identify an instance of metadata.',
-              type: 'string'
-            }
-          },
-          required: ['display_name']
-        }
+        _noCategory: UNCATEGORIZED_DEFAULT
       };
 
       // Adds required fields to the wrapper required fields.
