@@ -50,4 +50,4 @@ def is_valid_kubernetes_key_name(name: str) -> bool:
     if name is None:
         return False
 
-    return re.match("^[\w\-_.]+$", name) is not None
+    return re.match(r"^[\w\-_.]+$", name) is not None
