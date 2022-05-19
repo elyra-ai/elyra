@@ -15,7 +15,7 @@
  */
 
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { ITranslator } from '@jupyterlab/translation';
+import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import Form, { ArrayFieldTemplateProps, IChangeEvent } from '@rjsf/core';
 import * as React from 'react';
@@ -42,7 +42,7 @@ interface IFormEditorProps {
   /**
    * Translator for internationalization
    */
-  translator: ITranslator;
+  translator: TranslationBundle;
 
   /**
    * Registry to retrieve custom renderers.

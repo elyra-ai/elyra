@@ -60,7 +60,7 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
     cy.findByRole('menuitem', { name: /apache airflow/i }).click();
   }
 
-  cy.findByLabelText(/^name/i).type(`${type} Test Runtime`);
+  cy.findByLabelText(/^display name/i).type(`${type} Test Runtime`);
 
   if (type === 'kfp') {
     cy.findByLabelText(/kubeflow .* endpoint\*/i).type(
@@ -115,7 +115,7 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
     }).click();
   }
 
-  cy.findByLabelText(/^name/i).type('Example Components');
+  cy.findByLabelText(/^display name/i).type('Example Components');
 
   // save it
   cy.findByRole('button', { name: /save/i }).click();

@@ -116,7 +116,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         editorServices,
         status,
         themeManager,
-        translator,
+        translator: translator.load('jupyterlab'),
         componentRegistry
       });
       metadataEditorWidget.title.label = widgetLabel;
