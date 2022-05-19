@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@import url('./formeditor.css');
+
 .elyra-expandableContainer-button,
 .elyra-expandableContainer-button.jp-mod-styled {
   background-color: transparent;
@@ -179,12 +181,6 @@
 .elyra-browseFileDialog .jp-Dialog-content {
   height: 400px;
   width: 600px;
-}
-
-.elyra-metadataEditor-BooleanInput {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
 }
 
 .elyra-expandableContainer-draggable:hover {

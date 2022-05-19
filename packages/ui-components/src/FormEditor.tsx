@@ -91,21 +91,21 @@ const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
                 onClick={item.onReorderClick(item.index, item.index - 1)}
                 disabled={!item.hasMoveUp}
               >
-                {props.formContext?.trans?.__?.('Move Up') ?? 'Move up'}
+                {props.formContext.trans.__('Move Up')}
               </button>
               <button
                 className="jp-mod-styled jp-mod-reject"
                 onClick={item.onReorderClick(item.index, item.index + 1)}
                 disabled={!item.hasMoveDown}
               >
-                {props.formContext?.trans?.__?.('Move Down') ?? 'Move down'}
+                {props.formContext.trans.__('Move Down')}
               </button>
               <button
                 className="jp-mod-styled jp-mod-warn"
                 onClick={item.onDropIndexClick(item.index)}
                 disabled={!item.hasRemove}
               >
-                {props.formContext?.trans?.__?.('Remove') ?? 'remove'}
+                {props.formContext.trans.__('Remove')}
               </button>
             </div>
           </div>
@@ -116,7 +116,7 @@ const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
           className="jp-mod-styled jp-mod-reject"
           onClick={props.onAddClick}
         >
-          {props.formContext?.trans?.__?.('Add') ?? 'Add'}
+          {props.formContext.trans.__('Add') ?? 'Add'}
         </button>
       )}
     </div>
@@ -144,7 +144,9 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   /**
    * Generate the rjsf uiSchema from uihints in the elyra metadata schema.
    */
-  const uiSchema: any = {};
+  const uiSchema: any = {
+    classNames: 'elyra-formEditor'
+  };
   for (const category in schema?.properties) {
     const properties = schema.properties[category];
     uiSchema[category] = {};
