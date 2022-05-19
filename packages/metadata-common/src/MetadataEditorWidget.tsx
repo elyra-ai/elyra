@@ -277,7 +277,7 @@ export class MetadataEditorWidget extends ReactWidget {
   onCloseRequest(msg: Message): void {
     if (this.dirty) {
       showDialog({
-        title: 'Close without saving?',
+        title: this.props.translator.__('Close without saving?'),
         body: <p>Metadata has unsaved changes, close without saving?</p>,
         buttons: [Dialog.cancelButton(), Dialog.okButton()]
       }).then((response: any): void => {

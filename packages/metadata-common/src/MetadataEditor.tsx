@@ -160,10 +160,12 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
       <div onKeyPress={onKeyPress} className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
         <p style={{ width: '100%', marginBottom: '10px' }}>
-          All fields marked with an asterisk are required.&nbsp;
+          {translator.__(
+            'All fields marked with an asterisk are required.&nbsp;'
+          )}
           {referenceURL ? (
             <a href={referenceURL} target="_blank" rel="noreferrer noopener">
-              [Learn more ...]
+              {translator.__('[Learn more ...]')}
             </a>
           ) : null}
         </p>
@@ -188,7 +190,9 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
           key={'SaveButton'}
         >
           {invalidForm ? (
-            <p className="formError">Cannot save invalid form.</p>
+            <p className="formError">
+              {translator.__('Cannot save invalid form.')}
+            </p>
           ) : (
             <div />
           )}
@@ -197,7 +201,7 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
               saveMetadata();
             }}
           >
-            Save & Close
+            {translator.__('Save & Close')}
           </button>
         </div>
       </div>
