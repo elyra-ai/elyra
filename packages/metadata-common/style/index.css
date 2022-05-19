@@ -199,7 +199,7 @@
 .elyra-metadataEditor .form-group:not(.field-object):hover .field-description {
   color: var(--jp-content-font-color2);
   position: absolute;
-  bottom: -2em;
+  top: 95%;
   background-color: var(--jp-border-color0);
   padding: 5px;
   border-radius: 5px;
@@ -442,6 +442,8 @@ input.elyra-inputTag {
   display: flex;
   flex-direction: column;
   width: 50%;
+  position: relative;
+  height: fit-content;
 }
 
 .elyra-metadataEditor datalist {

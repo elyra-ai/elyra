@@ -178,11 +178,8 @@
           "uniqueItems": true,
           "type": "array",
           "items": {
-            "allOf": [
-              { "minLength": 1 },
-              { "pattern": "^[^ \t]+" },
-              { "pattern": "[^ \t]+$" }
-            ]
+            "minLength": 1,
+            "pattern": "^[^ \t]+"
           },
           "uihints": {
             "ui:field": "tags"
