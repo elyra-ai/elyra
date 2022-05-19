@@ -27,6 +27,3 @@ Elyra on OpenShift is available via Open Data Hub. Elyra Image is available via 
 ### kubeflow (Open Data Hub)
 Build the Elyra image for use with Kubeflow's Notebook Server. This image includes all kfp dependencies (i.e. kfp, kfp-tekton). See [Using Elyra with the Kubeflow Notebook Server](https://elyra.readthedocs.io/en/latest/recipes/using-elyra-with-kubeflow-notebook-server.html)
 
-### tensorflow
-Builds custom tensorflow v1.15.2 runtime images for use with Elyra, one with GPU libraries and support and one without.   
-

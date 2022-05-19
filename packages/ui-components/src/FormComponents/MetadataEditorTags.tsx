@@ -17,7 +17,7 @@ import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { checkIcon, addIcon } from '@jupyterlab/ui-components';
 import { Field } from '@rjsf/core';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 
 interface IMetadataEditorTagProps {
   selectedTags: string[];
