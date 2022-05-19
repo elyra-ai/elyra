@@ -205,7 +205,7 @@
           "placement": "on_panel"
         },
         "data": {
-          "placeholder": "env_var_name=secret_name:secret_key",
+          "placeholder": "env_var=secret_name:secret_key",
           "keyValueEntries": true
         }
       },
