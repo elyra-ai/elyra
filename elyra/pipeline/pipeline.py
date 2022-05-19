@@ -24,6 +24,7 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.util.kubernetes import is_valid_kubernetes_key_name
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 
 # TODO: Make pipeline version available more widely
@@ -385,7 +386,7 @@ class GenericOperation(Operation):
                     )
                     Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
                     continue
-                if not is_valid_kubernetes_resource_name(secret_key):
+                if not is_valid_kubernetes_key_name(secret_key):
                     msg = (
                         f"Ignoring invalid secret for '{env_var_name}': the secret key "
                         f"'{secret_key}' is not a valid Kubernetes resource name."

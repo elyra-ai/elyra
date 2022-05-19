@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import re
 
 
 def is_valid_kubernetes_resource_name(name: str) -> bool:
@@ -37,3 +38,16 @@ def is_valid_kubernetes_resource_name(name: str) -> bool:
         elif char not in ["-", "."]:
             return False
     return True
+
+
+def is_valid_kubernetes_key_name(name: str) -> bool:
+    """
+    Returns a truthy value indicating whether name meets the kubernetes
+    naming constraints, as outlined in the link below.
+
+    https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data
+    """
+    if name is None:
+        return False
+
+    return re.match("^[\w\-_.]+$", name) is not None
