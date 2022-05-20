@@ -6,7 +6,7 @@ jupyter-client==7.3.1
 jupyter-core==4.10.0
 minio==7.1.8
 nbclient==0.6.3
-nbconvert==5.6.1
+nbconvert==6.5.0
 nbformat==5.4.0
 papermill==2.3.4
 pyzmq==22.3.0
