@@ -30,10 +30,13 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.pipeline import DataClassJSONEncoder
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
+from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
@@ -615,7 +618,7 @@ class PipelineValidationManager(SingletonConfigurable):
             )
 
     def _validate_mounted_volumes(
-        self, node_id: str, node_label: str, volumes: KeyValueList, response: ValidationResponse
+        self, node_id: str, node_label: str, volumes: List[VolumeMount], response: ValidationResponse
     ) -> None:
         """
         Checks the format of mounted volumes to ensure they're in the correct form
@@ -625,24 +628,23 @@ class PipelineValidationManager(SingletonConfigurable):
         :param volumes: a KeyValueList of volumes to check
         :param response: ValidationResponse containing the issue list to be updated
         """
-        if volumes and isinstance(volumes, KeyValueList):
-            for mount_path, pvc_name in volumes.to_dict().items():
-                # Ensure the PVC name is syntactically a valid Kubernetes resource name
-                if not is_valid_kubernetes_resource_name(pvc_name):
-                    response.add_message(
-                        severity=ValidationSeverity.Error,
-                        message_type="invalidVolumeMount",
-                        message=f"PVC name '{pvc_name}' is not a valid Kubernetes resource name.",
-                        data={
-                            "nodeID": node_id,
-                            "nodeName": node_label,
-                            "propertyName": MOUNTED_VOLUMES,
-                            "value": KeyValueList.to_str(mount_path, pvc_name),
-                        },
-                    )
+        for volume in volumes:
+            # Ensure the PVC name is syntactically a valid Kubernetes resource name
+            if not is_valid_kubernetes_resource_name(volume.pvc_name):
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidVolumeMount",
+                    message=f"PVC name '{volume.pvc_name}' is not a valid Kubernetes resource name.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": MOUNTED_VOLUMES,
+                        "value": KeyValueList.to_str(volume.path, volume.pvc_name),
+                    },
+                )
 
     def _validate_kubernetes_secrets(
-        self, node_id: str, node_label: str, secrets: KeyValueList, response: ValidationResponse
+        self, node_id: str, node_label: str, secrets: List[KubernetesSecret], response: ValidationResponse
     ) -> None:
         """
         Checks the format of Kubernetes secrets to ensure they're in the correct form
@@ -652,49 +654,48 @@ class PipelineValidationManager(SingletonConfigurable):
         :param secrets: a KeyValueList of secrets to check
         :param response: ValidationResponse containing the issue list to be updated
         """
-        if secrets and isinstance(secrets, KeyValueList):
-            for env_var_name, secret in secrets.to_dict().items():
-                secret_tuple = secret.split(":", 1)
-                if len(secret_tuple) != 2:
-                    response.add_message(
-                        severity=ValidationSeverity.Error,
-                        message_type="invalidKubernetesSecret",
-                        message="Property has an improperly formatted representation of secret name and key.",
-                        data={
-                            "nodeID": node_id,
-                            "nodeName": node_label,
-                            "propertyName": KUBERNETES_SECRETS,
-                            "value": KeyValueList.to_str(env_var_name, secret),
-                        },
-                    )
-                    continue
-                secret_name, secret_key = secret_tuple[0].strip(), secret_tuple[1].strip()
-                # Ensure the secret name is syntactically a valid Kubernetes resource name
-                if not is_valid_kubernetes_resource_name(secret_name):
-                    response.add_message(
-                        severity=ValidationSeverity.Error,
-                        message_type="invalidKubernetesSecret",
-                        message=f"Secret name '{secret_name}' is not a valid Kubernetes resource name.",
-                        data={
-                            "nodeID": node_id,
-                            "nodeName": node_label,
-                            "propertyName": KUBERNETES_SECRETS,
-                            "value": KeyValueList.to_str(env_var_name, secret),
-                        },
-                    )
-                # Ensure the secret key is a syntactically valid Kubernetes key
-                if not is_valid_kubernetes_key(secret_key):
-                    response.add_message(
-                        severity=ValidationSeverity.Error,
-                        message_type="invalidKubernetesSecret",
-                        message=f"Key '{secret_key}' is not a valid Kubernetes secret key.",
-                        data={
-                            "nodeID": node_id,
-                            "nodeName": node_label,
-                            "propertyName": KUBERNETES_SECRETS,
-                            "value": KeyValueList.to_str(env_var_name, secret),
-                        },
-                    )
+        for secret in secrets:
+            if not secret.name or not secret.key:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesSecret",
+                    message=f"Environment variable '{secret.env_var}' has an improperly formatted representation of "
+                    f"secret name and key.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_SECRETS,
+                        "value": KeyValueList.to_str(secret.env_var, f"{(secret.name or '')}:{(secret.key or '')}"),
+                    },
+                )
+                continue
+
+            # Ensure the secret name is syntactically a valid Kubernetes resource name
+            if not is_valid_kubernetes_resource_name(secret.name):
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesSecret",
+                    message=f"Secret name '{secret.name}' is not a valid Kubernetes resource name.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_SECRETS,
+                        "value": KeyValueList.to_str(secret.env_var, f"{secret.name}:{secret.key}"),
+                    },
+                )
+            # Ensure the secret key is a syntactically valid Kubernetes key
+            if not is_valid_kubernetes_key(secret.key):
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesSecret",
+                    message=f"Key '{secret.key}' is not a valid Kubernetes secret key.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_SECRETS,
+                        "value": KeyValueList.to_str(secret.env_var, f"{secret.name}:{secret.key}"),
+                    },
+                )
 
     def _validate_filepath(
         self,
@@ -839,7 +840,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         :param pipeline: A dictionary describing the pipeline
         """
-        pipeline_json = json.loads(json.dumps(pipeline))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
 
         graph = nx.DiGraph()
 
@@ -890,7 +891,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param node_id: the node ID of the node
         :return: the pipeline ID of where the node is located
         """
-        pipeline_json = json.loads(json.dumps(pipeline))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
         for single_pipeline in pipeline_json["pipelines"]:
             node_list = single_pipeline["nodes"]
             for node in node_list:
@@ -931,7 +932,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :return: a string representing the name of the node
         """
         node_name_list = []
-        pipeline_json = json.loads(json.dumps(pipeline))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
         for node_id in node_id_list:
             found = False
             for single_pipeline in pipeline_json["pipelines"]:
@@ -957,7 +958,7 @@ class PipelineValidationManager(SingletonConfigurable):
         if link_ids is None:
             return None
 
-        pipeline_json = json.loads(json.dumps(pipeline))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
         node_labels = []
         for link_id in link_ids:
             for single_pipeline in pipeline_json["pipelines"]:

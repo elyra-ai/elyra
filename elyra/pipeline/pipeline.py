@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import dataclasses
 from dataclasses import dataclass
+import json
 import logging
 from logging import Logger
 import os
@@ -24,8 +26,6 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -158,16 +158,6 @@ class Operation(object):
     def outputs(self, value: List[str]):
         self._component_params["outputs"] = value
 
-    @property
-    def volume_mounts(self) -> List["VolumeMount"]:
-        volumes = self._component_params.get(MOUNTED_VOLUMES, [])
-        return Operation.get_valid_volume_mounts(volumes)
-
-    @property
-    def kubernetes_secrets(self) -> List["KubernetesSecret"]:
-        secrets = self._component_params.get(KUBERNETES_SECRETS, [])
-        return Operation.get_valid_kubernetes_secrets(secrets)
-
     def __eq__(self, other: "Operation") -> bool:
         if isinstance(self, other.__class__):
             return (
@@ -216,42 +206,6 @@ class Operation(object):
             logger.log(level, msg)
         else:
             print(msg)
-
-    @staticmethod
-    def get_valid_volume_mounts(volume_mounts: "KeyValueList") -> Optional[List["VolumeMount"]]:
-        """
-        Loops through the Operation's mounted volumes to re-format path and remove
-        invalid PVC names.
-
-        :return: a list of VolumeMount objects with mount path and valid PVC names
-        """
-        valid_volume_mounts = []
-        if volume_mounts and isinstance(volume_mounts, KeyValueList):
-            for mount_path, pvc_name in volume_mounts.to_dict().items():
-                formatted_mount_path = f"/{mount_path.strip('/')}"
-
-                # Create a VolumeMount class instance and add to list
-                valid_volume_mounts.append(VolumeMount(formatted_mount_path, pvc_name))
-
-        return valid_volume_mounts
-
-    @staticmethod
-    def get_valid_kubernetes_secrets(secrets: "KeyValueList") -> Optional[List["KubernetesSecret"]]:
-        """
-        Loops through the Operation's kubernetes secrets to strip whitespace
-        and re-format as a tuple.
-
-        :return: a list of KubernetesSecret objects with env var name and valid secret name and key
-        """
-        valid_secrets = []
-        if secrets and isinstance(secrets, KeyValueList):
-            for env_var_name, secret in secrets.to_dict().items():
-                secret_name, secret_key = secret.split(":", 1)
-
-                # Create a KubernetesSecret class instance and add to list
-                valid_secrets.append(KubernetesSecret(env_var_name, secret_name.strip(), secret_key.strip()))
-
-        return valid_secrets
 
 
 class GenericOperation(Operation):
@@ -580,3 +534,17 @@ class KubernetesSecret:
     env_var: str
     name: str
     key: str
+
+
+class DataClassJSONEncoder(json.JSONEncoder):
+    """
+    A JSON Encoder class to prevent errors during serialization of dataclasses.
+    """
+
+    def default(self, o):
+        """
+        Render dataclass content as dict
+        """
+        if dataclasses.is_dataclass(o):
+            return dataclasses.asdict(o)
+        return super().default(o)

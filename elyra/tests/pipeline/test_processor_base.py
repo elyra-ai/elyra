@@ -18,10 +18,6 @@ import os
 import pytest
 
 from elyra.pipeline.parser import PipelineParser
-from elyra.pipeline.pipeline import GenericOperation
-from elyra.pipeline.pipeline import KeyValueList
-from elyra.pipeline.pipeline import KubernetesSecret
-from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
@@ -49,34 +45,3 @@ def sample_metadata():
         "engine": "Argo",
         "tags": [],
     }
-
-
-def test_get_volume_mounts():
-    mounted_volumes = KeyValueList(
-        [
-            "/mount/test=rwx-test-claim",  # valid
-            "/mount/test_two=second-claim",  # valid
-            "/mount/test_three=",  # invalid: no value after separator ('=')
-        ]
-    )
-    parsed_volumes_list = GenericOperation.get_valid_volume_mounts(volume_mounts=mounted_volumes)
-    assert parsed_volumes_list == [
-        VolumeMount("/mount/test", "rwx-test-claim"),
-        VolumeMount("/mount/test_two", "second-claim"),
-    ]
-
-
-def test_get_kubernetes_secrets():
-    kubernetes_secrets = KeyValueList(
-        [
-            "ENV_VAR1=test-secret:test-key1",  # valid
-            "ENV_VAR2=test-secret:test-key2",  # valid
-            "ENV_VAR3=",  # invalid: no value after separator ('=')
-        ]
-    )
-
-    parsed_secrets_list = GenericOperation.get_valid_kubernetes_secrets(secrets=kubernetes_secrets)
-    assert parsed_secrets_list == [
-        KubernetesSecret("ENV_VAR1", "test-secret", "test-key1"),
-        KubernetesSecret("ENV_VAR2", "test-secret", "test-key2"),
-    ]

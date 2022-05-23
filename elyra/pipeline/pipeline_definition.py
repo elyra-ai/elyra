@@ -24,9 +24,12 @@ from jinja2 import Environment, Undefined
 from jinja2 import PackageLoader
 
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import Operation
+from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
 
@@ -326,6 +329,20 @@ class Node(AppDataBase):
         """
         return self._node["app_data"]["component_parameters"]
 
+    def kv_properties_not_converted(self, kv_properties: List[str]) -> bool:
+        """
+        TODO
+        """
+        for kv_property in kv_properties:
+            value = self.get_component_parameter(kv_property)
+            if not value:
+                continue
+
+            if isinstance(value, KeyValueList):
+                return False
+
+        return True
+
     def convert_kv_properties(self, kv_properties: List[str]):
         """
         Convert node-level list properties that have been identified  as sets of
@@ -346,13 +363,45 @@ class Node(AppDataBase):
         In the case of a matching key between env vars and kubernetes secrets,
         prefer the Kubernetes Secret and remove the matching env var
         """
-        if self.get_component_parameter(ENV_VARIABLES) and self.get_component_parameter(KUBERNETES_SECRETS):
+        env_vars = self.get_component_parameter(ENV_VARIABLES)
+        secrets = self.get_component_parameter(KUBERNETES_SECRETS)
+        if env_vars and isinstance(env_vars, KeyValueList) and secrets and isinstance(secrets, KeyValueList):
             new_list = KeyValueList.difference(
                 minuend=self.get_component_parameter(ENV_VARIABLES),
                 subtrahend=self.get_component_parameter(KUBERNETES_SECRETS),
             )
             if new_list:
                 self.set_component_parameter(ENV_VARIABLES, new_list)
+
+    def convert_data_class_properties(self):
+        """
+        TODO
+        """
+        volume_mounts = self.get_component_parameter(MOUNTED_VOLUMES)
+        if volume_mounts and isinstance(volume_mounts, KeyValueList):
+            volume_objects = []
+            for mount_path, pvc_name in volume_mounts.to_dict().items():
+                formatted_mount_path = f"/{mount_path.strip('/')}"
+
+                # Create a VolumeMount class instance and add to list
+                volume_objects.append(VolumeMount(formatted_mount_path, pvc_name))
+
+            self.set_component_parameter(MOUNTED_VOLUMES, volume_objects)
+
+        secrets = self.get_component_parameter(KUBERNETES_SECRETS)
+        if secrets and isinstance(secrets, KeyValueList):
+            secret_objects = []
+            for env_var_name, secret in secrets.to_dict().items():
+                secret_name, *optional_key = secret.split(":", 1)
+
+                secret_key = ""
+                if optional_key:
+                    secret_key = optional_key[0].strip()
+
+                # Create a KubernetesSecret class instance and add to list
+                secret_objects.append(KubernetesSecret(env_var_name, secret_name.strip(), secret_key))
+
+            self.set_component_parameter(KUBERNETES_SECRETS, secret_objects)
 
 
 class PipelineDefinition(object):
@@ -536,8 +585,9 @@ class PipelineDefinition(object):
             if not Operation.is_generic_operation(node.op):
                 continue
 
-            # Convert any key-value list node properties to the KeyValueList type
-            node.convert_kv_properties(kv_properties)
+            # Convert any key-value list node properties to the KeyValueList type if not done already
+            if node.kv_properties_not_converted(kv_properties):
+                node.convert_kv_properties(kv_properties)
 
             for property_name, pipeline_default_value in pipeline_default_properties.items():
                 if not pipeline_default_value:
@@ -548,14 +598,14 @@ class PipelineDefinition(object):
                     node.set_component_parameter(property_name, pipeline_default_value)
                     continue
 
-                if isinstance(pipeline_default_value, KeyValueList):
-                    if not isinstance(node_value, KeyValueList):
-                        raise TypeError(f"The value of node property '{property_name}' is not of type KeyValueList")
-                    merged_list: KeyValueList = KeyValueList.merge(node_value, pipeline_default_value)
+                if isinstance(pipeline_default_value, KeyValueList) and isinstance(node_value, KeyValueList):
+                    merged_list = KeyValueList.merge(node_value, pipeline_default_value)
                     node.set_component_parameter(property_name, merged_list)
 
             if self.primary_pipeline.runtime_config != "local":
                 node.remove_env_vars_with_matching_secrets()
+
+            node.convert_data_class_properties()
 
     def is_valid(self) -> bool:
         """
