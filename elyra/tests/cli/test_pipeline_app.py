@@ -253,61 +253,222 @@ def test_describe_with_missing_kfp_component():
         assert result.exit_code == 0
 
 
-def test_describe_with_mount_volume():
+def test_describe_notebook_script_report():
+    """
+    Test report output for notebook/script property when none, one or many instances are present
+    :return:
+    """
     runner = CliRunner()
-    pipeline_file_path = (
-        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_mount_volumes.pipeline"
-    )
+
+    # Test report output when only notebook/s present
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook.pipeline"
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Nodes: 2" in result.output
-    assert "Mounted Volumes:\n    - rwx-test-claim" in result.output
+    assert "Notebooks:\n" in result.output
+    assert "dummy_notebook_1.ipynb" in result.output
+    assert "dummy_notebook_2.ipynb" in result.output
+    # Ensure no entries for scripts
+    assert "Scripts:\n    None Listed" in result.output
     assert result.exit_code == 0
 
+    # Test report output when only script/s are present
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_script.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Scripts:\n" in result.output
+    assert "dummy_script_1.py" in result.output
+    assert "dummy_script_2.py" in result.output
+    # Ensure no entries for notebooks
+    assert "Notebooks:\n    None Listed" in result.output
+    assert result.exit_code == 0
 
-def test_describe_notebook_generic_pipeline():
-    runner = CliRunner()
+    # Test report output when both notebook and script are present
     pipeline_file_path = (
-        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_mount_volumes.pipeline"
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_script.pipeline"
     )
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Nodes: 2" in result.output
+    assert "Notebooks:\n" in result.output
     assert "dummy_notebook_1.ipynb" in result.output
+    assert "Scripts:\n" in result.output
     assert "dummy_script_1.py" in result.output
     assert result.exit_code == 0
 
 
-def test_describe_runtime_image():
+def test_describe_notebook_script_json():
+    """
+    Test json output for notebook/script property when none, one or many instances are present
+    :return:
+    """
     runner = CliRunner()
-    pipeline_file_path = (
-        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_mount_volumes.pipeline"
-    )
-    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Nodes: 2" in result.output
-    assert "tensorflow/tensorflow:2.0.0-py3" in result.output
-    assert result.exit_code == 0
 
-
-def test_describe_runtime_image_negative():
-    runner = CliRunner()
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kf_inputpath_parameter.pipeline"
-    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Version: 7" in result.output
-    assert "Runtime Image:\n  None Listed" not in result.output
-    assert "Mounted Volumes:\n  None Listed" not in result.output
-    assert "Notebooks:\n  None Listed" not in result.output
-    assert "Scripts:\n  None Listed" not in result.output
-    assert result.exit_code == 0
-
-
-def test_describe_json_runtime_image_negative():
-    runner = CliRunner()
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kf_inputpath_parameter.pipeline"
+    # Test report output when only notebook/s present
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook.pipeline"
     result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    assert '"version": 7' in result.output
-    assert "runtime_image" not in result.output
-    assert "mounted_volumes" not in result.output
-    assert "notebooks" not in result.output
-    assert "scripts" not in result.output
+    result_json = json.loads(result.output)
+
+    # Ensure that script entry is absent
+    assert not result_json.get("scripts")
+
+    # Tests notebook output is a list and check list count
+    assert isinstance(result_json.get("notebooks"), list) and len(result_json.get("notebooks")) == 2
+
+    # Tests the list content. Constructs below to address random sort order in list
+    assert Path(result_json.get("notebooks")[0]).name != Path(result_json.get("notebooks")[1]).name
+    assert Path(result_json.get("notebooks")[0]).name in list(["dummy_notebook_1.ipynb", "dummy_notebook_2.ipynb"])
+    assert Path(result_json.get("notebooks")[1]).name in list(["dummy_notebook_1.ipynb", "dummy_notebook_2.ipynb"])
+    assert result.exit_code == 0
+
+    # Test report output when only script/s are present
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_script.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    result_json = json.loads(result.output)
+
+    # Ensure that notebook entry is absent
+    assert not result_json.get("notebooks")
+
+    # Tests script output is a list and check list count
+    assert isinstance(result_json.get("scripts"), list) and len(result_json.get("scripts")) == 2
+
+    # Tests the list content. Constructs below to address random sort order in list
+    assert Path(result_json.get("scripts")[0]).name != Path(result_json.get("scripts")[1]).name
+    assert Path(result_json.get("scripts")[0]).name in list(["dummy_script_1.py", "dummy_script_2.py"])
+    assert Path(result_json.get("scripts")[1]).name in list(["dummy_script_1.py", "dummy_script_2.py"])
+    assert result.exit_code == 0
+
+    # Test report output when both notebook and script are present
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_script.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    result_json = json.loads(result.output)
+    # Tests output is a list.
+    assert isinstance(result_json.get("notebooks"), list) and len(result_json.get("runtime_image")) == 1
+    assert isinstance(result_json.get("scripts"), list) and len(result_json.get("runtime_image")) == 1
+    # Tests the list content
+    assert Path(result_json.get("notebooks")[0]).name == "dummy_notebook_1.ipynb"
+    assert Path(result_json.get("scripts")[0]).name == "dummy_script_1.py"
+    assert result.exit_code == 0
+
+
+def test_describe_runtime_image_report():
+    """
+    Test report output for runtime_image property when none, one or many instances are present
+    :return:
+    """
+    runner = CliRunner()
+
+    # Test report output when there are no runtime_images
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_zero_runtime_image.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Runtime Image:\n    None Listed" in result.output
+    assert result.exit_code == 0
+
+    # Test report output when there is a single runtime_image
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_one_runtime_image.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Runtime Image:\n    - tensorflow/tensorflow:2.0.0-py3" in result.output
+    assert result.exit_code == 0
+
+    # Test report output where there are two / multiple runtime_images
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_many_runtime_image.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Runtime Image:\n" in result.output
+    assert "- tensorflow/tensorflow:2.0.0-py3" in result.output
+    assert "- elyra/examples:1.0.0-py3" in result.output
+    assert result.exit_code == 0
+
+
+def test_describe_runtime_image_json():
+    """
+    Test json format output for runtime_image property when none, one or many instances are present
+    :return:
+    """
+    runner = CliRunner()
+
+    # Test json output when there are no runtime_images
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_zero_runtime_image.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    result_json = json.loads(result.output)
+    assert not result_json.get("runtime_image")
+    assert result.exit_code == 0
+
+    # Test json output when there is a single runtime_image
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_one_runtime_image.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    result_json = json.loads(result.output)
+    # Tests output is a list
+    assert isinstance(result_json.get("runtime_image"), list) and len(result_json.get("runtime_image")) == 1
+    # Tests the list content
+    assert result_json.get("runtime_image")[0] == "tensorflow/tensorflow:2.0.0-py3"
+    assert result.exit_code == 0
+
+    # Test json output where there are two / multiple runtime_images
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_many_runtime_image.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    result_json = json.loads(result.output)
+    # Tests output is a list. Count is one as the same value of runtime_image is repeated
+    assert isinstance(result_json.get("runtime_image"), list) and len(result_json.get("runtime_image")) == 2
+    # Tests the list content
+    assert result_json.get("runtime_image")[0] != result_json.get("runtime_image")[1]
+    assert result_json.get("runtime_image")[0] in list(["tensorflow/tensorflow:2.0.0-py3", "elyra/examples:1.0.0-py3"])
+    assert result_json.get("runtime_image")[1] in list(["tensorflow/tensorflow:2.0.0-py3", "elyra/examples:1.0.0-py3"])
+    assert result.exit_code == 0
+
+
+def test_describe_mount_report():
+    """
+    Test report format output for mount property when none, one or many mounts are present
+    :return:
+    """
+    runner = CliRunner()
+
+    # Test report output when there are no mount volumes
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_zero_mount.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Mounted Volumes:\n    None Listed" in result.output
+    assert result.exit_code == 0
+
+    # Test report output when there is a single mount volume
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_one_mount.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Mounted Volumes:\n    - rwx-test-claim" in result.output
+    assert result.exit_code == 0
+
+    # Test report output where there are two / multiple mount volumes
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_many_mount.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert "Mounted Volumes:\n" in result.output
+    assert "    - rwx-test-claim" in result.output
+    assert "    - rwx-test-claim-1" in result.output
+    assert result.exit_code == 0
+
+
+def test_describe_mount_json():
+    """
+    Test json output for mount property when none, one or many mounts are present
+    :return:
+    """
+    runner = CliRunner()
+
+    # Test json output when there are no mount volumes
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_zero_mount.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    result_json = json.loads(result.output)
+    assert not result_json.get("mounted_volumes")
+    assert result.exit_code == 0
+
+    # Test json output when there is a single mount volume
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_one_mount.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    result_json = json.loads(result.output)
+    assert isinstance(result_json.get("mounted_volumes"), list) and len(result_json.get("mounted_volumes")) == 1
+    assert result_json.get("mounted_volumes")[0] == "rwx-test-claim"
+    assert result.exit_code == 0
+
+    # Test json output where there are two / multiple mount volumes
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_many_mount.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    result_json = json.loads(result.output)
+    assert isinstance(result_json.get("mounted_volumes"), list) and len(result_json.get("mounted_volumes")) == 2
+    assert set(result_json.get("mounted_volumes")) == set(list(["rwx-test-claim", "rwx-test-claim-1"]))
     assert result.exit_code == 0
 
 

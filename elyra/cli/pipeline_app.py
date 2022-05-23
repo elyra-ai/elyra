@@ -536,17 +536,20 @@ def describe(json_option, pipeline_path):
             describe_dict["component_dependencies"].add(node.component_source)
         # collect information of mounted volumes
         for mounted_volume in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
-            describe_dict[pipeline_constants.MOUNTED_VOLUMES].add(f"{mounted_volume.split('=')[-1]}")
+            temp_mount_value = mounted_volume.split("=")[-1]
+            if temp_mount_value != "":
+                describe_dict[pipeline_constants.MOUNTED_VOLUMES].add(f"{temp_mount_value}")
         # collection runtime image details
-        runtime_image_value = node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
-        if runtime_image_value:
-            describe_dict[pipeline_constants.RUNTIME_IMAGE].add(
-                node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
-            )
+        temp_runtime_image_value = node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
+        if temp_runtime_image_value:
+            describe_dict[pipeline_constants.RUNTIME_IMAGE].add(f"{temp_runtime_image_value}")
+
         # collect notebook / script name when pipeline is generic
         if describe_dict["type"] is None:
-            temp_value = Path(node.get_component_parameter("filename", "")).name
-            if Path(temp_value).suffix == ".ipynb":
+            temp_value = node.get_component_parameter("filename")
+            if not temp_value:
+                pass
+            elif Path(Path(temp_value).name).suffix == ".ipynb":
                 describe_dict["notebooks"].add(temp_value)
             else:
                 describe_dict["scripts"].add(temp_value)
