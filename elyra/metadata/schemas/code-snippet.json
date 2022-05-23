@@ -39,7 +39,7 @@
           "uniqueItems": true,
           "items": {
             "minLength": 1,
-            "pattern": "^[^ \t]+"
+            "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
           },
           "uihints": {
             "ui:field": "tags"
