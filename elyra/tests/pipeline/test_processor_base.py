@@ -56,8 +56,7 @@ def test_get_volume_mounts():
         [
             "/mount/test=rwx-test-claim",  # valid
             "/mount/test_two=second-claim",  # valid
-            "/mount/test_three=",  # invalid: no pvc name
-            "/mount/test_four=second#claim",  # invalid pvc name
+            "/mount/test_three=",  # invalid: no value after separator ('=')
         ]
     )
     parsed_volumes_list = GenericOperation.get_valid_volume_mounts(volume_mounts=mounted_volumes)
@@ -72,11 +71,7 @@ def test_get_kubernetes_secrets():
         [
             "ENV_VAR1=test-secret:test-key1",  # valid
             "ENV_VAR2=test-secret:test-key2",  # valid
-            "ENV_VAR3=test-secret",  # invalid: no key given
-            "ENV_VAR4=test:secret:test-key",  # invalid: too many fields given
-            "ENV_VAR5=test%secret:test-key",  # invalid secret name
-            "ENV_VAR6=test-secret:test$key2",  # invalid secret key
-            "ENV_VAR7=",  # invalid: no value after separator ('=')
+            "ENV_VAR3=",  # invalid: no value after separator ('=')
         ]
     )
 
