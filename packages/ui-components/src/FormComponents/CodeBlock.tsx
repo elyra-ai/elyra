@@ -15,7 +15,6 @@
  */
 
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { InputLabel } from '@material-ui/core';
 import { Field } from '@rjsf/core';
 import * as React from 'react';
 
@@ -71,7 +70,10 @@ export const CodeBlock: Field = props => {
 
   return (
     <div>
-      <InputLabel required={props.required}>{label}</InputLabel>
+      <label className="control-label">{label}</label>
+      {props.schema.description && (
+        <p className="field-description">{props.schema.description}</p>
+      )}
       <div ref={codeBlockRef} className="elyra-form-code" />
     </div>
   );
