@@ -40,7 +40,7 @@ def is_valid_kubernetes_resource_name(name: str) -> bool:
     return True
 
 
-def is_valid_kubernetes_key_name(name: str) -> bool:
+def is_valid_kubernetes_key(name: str) -> bool:
     """
     Returns a truthy value indicating whether name meets the kubernetes
     naming constraints, as outlined in the link below.

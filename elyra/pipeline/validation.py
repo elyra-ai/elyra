@@ -30,13 +30,20 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.util.kubernetes import is_valid_kubernetes_key
+from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_expanded_path
 
 
@@ -397,10 +404,12 @@ class PipelineValidationManager(SingletonConfigurable):
         :return:
         """
         node_label = node.label
-        image_name = node.get_component_parameter("runtime_image")
+        image_name = node.get_component_parameter(RUNTIME_IMAGE)
         filename = node.get_component_parameter("filename")
         dependencies = node.get_component_parameter("dependencies")
-        env_vars = node.get_component_parameter("env_vars")
+        env_vars = node.get_component_parameter(ENV_VARIABLES)
+        volumes = node.get_component_parameter(MOUNTED_VOLUMES)
+        secrets = node.get_component_parameter(KUBERNETES_SECRETS)
 
         self._validate_filepath(
             node_id=node.id, node_label=node_label, property_name="filename", filename=filename, response=response
@@ -419,6 +428,11 @@ class PipelineValidationManager(SingletonConfigurable):
                         resource_value=resource_value,
                         response=response,
                     )
+
+            if volumes:
+                self._validate_mounted_volumes(node.id, node_label, volumes, response=response)
+            if secrets:
+                self._validate_kubernetes_secrets(node.id, node_label, secrets, response=response)
 
         self._validate_label(node_id=node.id, node_label=node_label, response=response)
         if dependencies:
@@ -600,6 +614,88 @@ class PipelineValidationManager(SingletonConfigurable):
                 },
             )
 
+    def _validate_mounted_volumes(
+        self, node_id: str, node_label: str, volumes: KeyValueList, response: ValidationResponse
+    ) -> None:
+        """
+        Checks the format of mounted volumes to ensure they're in the correct form
+        e.g. foo/path=pvc_name
+        :param node_id: the unique ID of the node
+        :param node_label: the given node name or user customized name/label of the node
+        :param volumes: a KeyValueList of volumes to check
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        if volumes and isinstance(volumes, KeyValueList):
+            for mount_path, pvc_name in volumes.to_dict().items():
+                # Ensure the PVC name is syntactically a valid Kubernetes resource name
+                if not is_valid_kubernetes_resource_name(pvc_name):
+                    response.add_message(
+                        severity=ValidationSeverity.Error,
+                        message_type="invalidVolumeMount",
+                        message=f"PVC name '{pvc_name}' is not a valid Kubernetes resource name.",
+                        data={
+                            "nodeID": node_id,
+                            "nodeName": node_label,
+                            "propertyName": MOUNTED_VOLUMES,
+                            "value": KeyValueList.to_str(mount_path, pvc_name),
+                        },
+                    )
+
+    def _validate_kubernetes_secrets(
+        self, node_id: str, node_label: str, secrets: KeyValueList, response: ValidationResponse
+    ) -> None:
+        """
+        Checks the format of Kubernetes secrets to ensure they're in the correct form
+        e.g. FOO=SECRET_NAME:KEY
+        :param node_id: the unique ID of the node
+        :param node_label: the given node name or user customized name/label of the node
+        :param secrets: a KeyValueList of secrets to check
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        if secrets and isinstance(secrets, KeyValueList):
+            for env_var_name, secret in secrets.to_dict().items():
+                secret_tuple = secret.split(":", 1)
+                if len(secret_tuple) != 2:
+                    response.add_message(
+                        severity=ValidationSeverity.Error,
+                        message_type="invalidKubernetesSecret",
+                        message="Property has an improperly formatted representation of secret name and key.",
+                        data={
+                            "nodeID": node_id,
+                            "nodeName": node_label,
+                            "propertyName": KUBERNETES_SECRETS,
+                            "value": KeyValueList.to_str(env_var_name, secret),
+                        },
+                    )
+                    continue
+                secret_name, secret_key = secret_tuple[0].strip(), secret_tuple[1].strip()
+                # Ensure the secret name is syntactically a valid Kubernetes resource name
+                if not is_valid_kubernetes_resource_name(secret_name):
+                    response.add_message(
+                        severity=ValidationSeverity.Error,
+                        message_type="invalidKubernetesSecret",
+                        message=f"Secret name '{secret_name}' is not a valid Kubernetes resource name.",
+                        data={
+                            "nodeID": node_id,
+                            "nodeName": node_label,
+                            "propertyName": KUBERNETES_SECRETS,
+                            "value": KeyValueList.to_str(env_var_name, secret),
+                        },
+                    )
+                # Ensure the secret key is a syntactically valid Kubernetes key
+                if not is_valid_kubernetes_key(secret_key):
+                    response.add_message(
+                        severity=ValidationSeverity.Error,
+                        message_type="invalidKubernetesSecret",
+                        message=f"Key '{secret_key}' is not a valid Kubernetes secret key.",
+                        data={
+                            "nodeID": node_id,
+                            "nodeName": node_label,
+                            "propertyName": KUBERNETES_SECRETS,
+                            "value": KeyValueList.to_str(env_var_name, secret),
+                        },
+                    )
+
     def _validate_filepath(
         self,
         node_id: str,
@@ -683,7 +779,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 severity=ValidationSeverity.Error,
                 message_type="invalidEnvPair",
                 message="Property has an improperly formatted env variable key value pair.",
-                data={"nodeID": node_id, "nodeName": node_label, "propertyName": "env_vars", "value": env_var},
+                data={"nodeID": node_id, "nodeName": node_label, "propertyName": ENV_VARIABLES, "value": env_var},
             )
 
     def _validate_label(self, node_id: str, node_label: str, response: ValidationResponse) -> None:

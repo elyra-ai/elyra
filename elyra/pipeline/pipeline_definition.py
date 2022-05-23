@@ -341,6 +341,19 @@ class Node(AppDataBase):
             # Convert plain list to KeyValueList
             self.set_component_parameter(property_name, KeyValueList(value))
 
+    def remove_env_vars_with_matching_secrets(self):
+        """
+        In the case of a matching key between env vars and kubernetes secrets,
+        prefer the Kubernetes Secret and remove the matching env var
+        """
+        if self.get_component_parameter(ENV_VARIABLES) and self.get_component_parameter(KUBERNETES_SECRETS):
+            new_list = KeyValueList.difference(
+                minuend=self.get_component_parameter(ENV_VARIABLES),
+                subtrahend=self.get_component_parameter(KUBERNETES_SECRETS),
+            )
+            if new_list:
+                self.set_component_parameter(ENV_VARIABLES, new_list)
+
 
 class PipelineDefinition(object):
     """
@@ -463,7 +476,7 @@ class PipelineDefinition(object):
             return self._validation_issues
 
         # Has not been validated before
-        validation_issues = list()
+        validation_issues = []
         # Validate pipeline schema version
         if "version" not in self._pipeline_definition:
             validation_issues.append("Pipeline schema version field is missing.")
@@ -541,19 +554,8 @@ class PipelineDefinition(object):
                     merged_list: KeyValueList = KeyValueList.merge(node_value, pipeline_default_value)
                     node.set_component_parameter(property_name, merged_list)
 
-            if (
-                self.primary_pipeline.runtime_config != "local"
-                and node.get_component_parameter(ENV_VARIABLES)
-                and node.get_component_parameter(KUBERNETES_SECRETS)
-            ):
-                # In the case of a duplicate between env vars and kubernetes secrets,
-                # prefer kubernetes secrets and remove any matching env vars
-                new_list = KeyValueList.difference(
-                    minuend=node.get_component_parameter(ENV_VARIABLES),
-                    subtrahend=node.get_component_parameter(KUBERNETES_SECRETS),
-                )
-                if new_list:
-                    node.set_component_parameter(ENV_VARIABLES, new_list)
+            if self.primary_pipeline.runtime_config != "local":
+                node.remove_env_vars_with_matching_secrets()
 
     def is_valid(self) -> bool:
         """

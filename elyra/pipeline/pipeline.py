@@ -24,8 +24,8 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
-from elyra.util.kubernetes import is_valid_kubernetes_key_name
-from elyra.util.kubernetes import is_valid_kubernetes_resource_name
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -158,6 +158,16 @@ class Operation(object):
     def outputs(self, value: List[str]):
         self._component_params["outputs"] = value
 
+    @property
+    def volume_mounts(self) -> List["VolumeMount"]:
+        volumes = self._component_params.get(MOUNTED_VOLUMES, [])
+        return Operation.get_valid_volume_mounts(volumes)
+
+    @property
+    def kubernetes_secrets(self) -> List["KubernetesSecret"]:
+        secrets = self._component_params.get(KUBERNETES_SECRETS, [])
+        return Operation.get_valid_kubernetes_secrets(secrets)
+
     def __eq__(self, other: "Operation") -> bool:
         if isinstance(self, other.__class__):
             return (
@@ -206,6 +216,42 @@ class Operation(object):
             logger.log(level, msg)
         else:
             print(msg)
+
+    @staticmethod
+    def get_valid_volume_mounts(volume_mounts: "KeyValueList") -> Optional[List["VolumeMount"]]:
+        """
+        Loops through the Operation's mounted volumes to re-format path and remove
+        invalid PVC names.
+
+        :return: a list of VolumeMount objects with mount path and valid PVC names
+        """
+        valid_volume_mounts = []
+        if volume_mounts and isinstance(volume_mounts, KeyValueList):
+            for mount_path, pvc_name in volume_mounts.to_dict().items():
+                formatted_mount_path = f"/{mount_path.strip('/')}"
+
+                # Create a VolumeMount class instance and add to list
+                valid_volume_mounts.append(VolumeMount(formatted_mount_path, pvc_name))
+
+        return valid_volume_mounts
+
+    @staticmethod
+    def get_valid_kubernetes_secrets(secrets: "KeyValueList") -> Optional[List["KubernetesSecret"]]:
+        """
+        Loops through the Operation's kubernetes secrets to strip whitespace
+        and re-format as a tuple.
+
+        :return: a list of KubernetesSecret objects with env var name and valid secret name and key
+        """
+        valid_secrets = []
+        if secrets and isinstance(secrets, KeyValueList):
+            for env_var_name, secret in secrets.to_dict().items():
+                secret_name, secret_key = secret.split(":", 1)
+
+                # Create a KubernetesSecret class instance and add to list
+                valid_secrets.append(KubernetesSecret(env_var_name, secret_name.strip(), secret_key.strip()))
+
+        return valid_secrets
 
 
 class GenericOperation(Operation):
@@ -326,79 +372,6 @@ class GenericOperation(Operation):
 
     def _validate_range(self, value: str, min_value: int = 0, max_value: int = sys.maxsize) -> bool:
         return int(value) in range(min_value, max_value)
-
-    @staticmethod
-    def get_valid_volume_mounts(
-        volume_mounts: "KeyValueList", logger: Optional[Logger] = None
-    ) -> Optional[List["VolumeMount"]]:
-        """
-        Loops through the Operation's mounted volumes to re-format path and remove
-        invalid PVC names.
-
-        :return: a list of VolumeMount objects with mount path and valid PVC names
-        """
-        valid_volume_mounts = []
-        if volume_mounts and isinstance(volume_mounts, KeyValueList):
-            for mount_path, pvc_name in volume_mounts.to_dict().items():
-                # Ensure the PVC name is syntactically a valid Kubernetes resource name
-                if not is_valid_kubernetes_resource_name(pvc_name):
-                    msg = (
-                        f"Ignoring invalid volume mount entry '{mount_path}': the PVC "
-                        f"name '{pvc_name}' is not a valid Kubernetes resource name."
-                    )
-                    Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
-                    continue
-
-                formatted_mount_path = f"/{mount_path.strip('/')}"
-
-                # Volume mount is valid, create a VolumeMount class instance and add to list
-                volume_mount = VolumeMount(formatted_mount_path, pvc_name)
-                valid_volume_mounts.append(volume_mount)
-
-        return valid_volume_mounts
-
-    @staticmethod
-    def get_valid_kubernetes_secrets(
-        secrets: "KeyValueList", logger: Optional[Logger] = None
-    ) -> Optional[List["KubernetesSecret"]]:
-        """
-        Loops through the Operation's kubernetes secrets to strip whitespace
-        and re-format as a tuple.
-
-        :return: a list of KubernetesSecret objects with env var name and valid secret name and key
-        """
-        valid_secrets = []
-        if secrets and isinstance(secrets, KeyValueList):
-            for env_var_name, secret in secrets.to_dict().items():
-                secret_tuple = secret.split(":", 1)
-                if len(secret_tuple) != 2:
-                    msg = (
-                        f"Ignoring invalid secret for '{env_var_name}': the secret name "
-                        f"and key must follow the format 'secret_name:secret_key'."
-                    )
-                    Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
-                    continue
-                secret_name, secret_key = secret_tuple[0].strip(), secret_tuple[1].strip()
-                if not is_valid_kubernetes_resource_name(secret_name):
-                    msg = (
-                        f"Ignoring invalid secret for '{env_var_name}': the secret name "
-                        f"'{secret_name}' is not a valid Kubernetes resource name."
-                    )
-                    Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
-                    continue
-                if not is_valid_kubernetes_key_name(secret_key):
-                    msg = (
-                        f"Ignoring invalid secret for '{env_var_name}': the secret key "
-                        f"'{secret_key}' is not a valid Kubernetes resource name."
-                    )
-                    Operation.log_message(msg=msg, logger=logger, level=logging.WARN)
-                    continue
-
-                # Secret is valid, create a KubernetesSecret class instance and add to list
-                kubernetes_secret = KubernetesSecret(env_var_name, secret_name, secret_key)
-                valid_secrets.append(kubernetes_secret)
-
-        return valid_secrets
 
 
 class Pipeline(object):
@@ -554,12 +527,16 @@ class KeyValueList(list):
         return kv_dict
 
     @classmethod
+    def to_str(cls, key: str, value: str) -> str:
+        return f"{key}{cls._key_value_separator}{value}"
+
+    @classmethod
     def from_dict(cls, kv_dict: Dict) -> "KeyValueList":
         """
         Convert a set of key-value pairs stored in a dictionary to
         a KeyValueList of strings with the defined separator.
         """
-        str_list = [f"{key}{cls._key_value_separator}{value}" for key, value in kv_dict.items()]
+        str_list = [KeyValueList.to_str(key, value) for key, value in kv_dict.items()]
         return KeyValueList(str_list)
 
     @classmethod
