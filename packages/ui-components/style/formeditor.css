@@ -116,7 +116,11 @@ legend#root__noCategory__title {
   background: var(--jp-input-active-background);
   position: absolute;
   right: 6px;
-  bottom: 7px;
+  bottom: 5px;
+}
+
+.elyra-passwordFieldButton > div {
+  display: grid;
 }
 
 .elyra-passwordField {
