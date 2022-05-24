@@ -202,6 +202,11 @@ button.elyra-filter-tag svg {
   font-size: var(--jp-content-font-size2);
   width: fit-content;
   color: var(--jp-content-font-color0);
+  cursor: pointer;
+}
+
+.elyra-metadataEditor-saveButton button:hover {
+  background: var(--jp-border-color3);
 }
 
 .elyra-metadataEditor-saveButton.errorForm {
