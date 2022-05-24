@@ -85,6 +85,8 @@ The Visual Pipeline Editor can detect which environment variables notebooks/scri
 
 Refer to the next section for a list of proprietary environment variables that cannot be modified using the node properties settings.
 
+If using environment variables containing sensitive information, [Kubernetes secrets](TODO) should be used instead.
+
 ### Proprietary environment variables
 
 Elyra makes a set of proprietary environment variables available to notebooks and scripts during execution. Unless indicated otherwise, these variables are defined in all runtime environments.
@@ -104,3 +106,8 @@ notebook or script is executed in:
 - `local` - JupyterLab
 - `kfp` - Kubeflow Pipelines
 - `airflow` - Apache Airflow
+
+### Kubernetes Secrets
+The Kubernetes Secrets property can be used to associate environment variable names with secrets, preventing sensitive information from being exposed in the pipeline file, the pipeline editor, and the runtime environment. As with static environment variables, secret-based environment variable values can be set on an individual node and/or defined as pipeline default values and shared across nodes belonging to the same pipeline. A default value can also be overridden for a particular node by redefining the secret for a given variable name in the node properties.
+
+Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
