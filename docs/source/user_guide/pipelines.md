@@ -91,6 +91,12 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
            - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the Jupyter notebook or script. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. 
            - The referenced PVCs must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
            - Data volumes are not mounted when the pipeline is executed locally.
+         - **Kubernetes secrets**
+           - A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored.
+           - The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+           - Secrets are ignored when the pipeline is executed locally
+           - For remote execution, in the case where a node has a Kubernetes secret and an environment variable with the same name, the Kubernetes secret will be preferred and the corresponding environment variable will be removed from the list.
+
 
 #### Adding nodes
 
@@ -102,11 +108,11 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
 
    ![Add generic components from file browser](../images/user_guide/pipelines/add-components-from-file-browser.gif)
 
-1. Define the dependencies between nodes by connecting them, essentially creating an execution graph.
+2. Define the dependencies between nodes by connecting them, essentially creating an execution graph.
 
    ![Connect nodes](../images/user_guide/pipelines/connect-nodes.gif)
 
-1. Define the runtime properties for each node. Highlight a node, right click, and select `Open Properties`. Runtime properties configure a component and govern its execution behavior.
+3. Define the runtime properties for each node. Highlight a node, right click, and select `Open Properties`. Runtime properties configure a component and govern its execution behavior.
 
    ![Configure node](../images/user_guide/pipelines/configure-node.gif)
 
@@ -140,11 +146,16 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
    - Data volumes are not mounted when the pipeline is executed locally.   
    - Example: `/mnt/vol1=data-pvc`
 
-1. Associate each node with a comment to document its purpose.
+   **Kubernetes Secrets**
+   - Optional. A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+   - Secrets are ignored when the pipeline is executed locally. For remote execution, in the case where a node has a Kubernetes secret and an environment variable with the same name, the Kubernetes secret will be preferred and the corresponding environment variable will be removed from the list.
+   - Example: `ENV_VAR=secret-name:secret-key`
+
+5. Associate each node with a comment to document its purpose.
 
    ![Add comment to node](../images/user_guide/pipelines/add-comment-to-node.gif)
 
-1. Save the pipeline file.
+6. Save the pipeline file.
 
 Note: You can rename the pipeline file in the JupyterLab _File Browser_.
 
