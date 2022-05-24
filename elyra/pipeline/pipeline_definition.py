@@ -329,9 +329,12 @@ class Node(AppDataBase):
         """
         return self._node["app_data"]["component_parameters"]
 
-    def kv_properties_not_converted(self, kv_properties: List[str]) -> bool:
+    def convert_kv_properties(self, kv_properties: List[str]):
         """
-        TODO
+        Convert node-level list properties that have been identified as sets of
+        key-value pairs from a plain list type to the KeyValueList type. If any
+        k-v property has already been converted to a KeyValueList, all k-v
+        properties are assumed to have already been converted.
         """
         for kv_property in kv_properties:
             value = self.get_component_parameter(kv_property)
@@ -339,29 +342,16 @@ class Node(AppDataBase):
                 continue
 
             if isinstance(value, KeyValueList):
-                return False
-
-        return True
-
-    def convert_kv_properties(self, kv_properties: List[str]):
-        """
-        Convert node-level list properties that have been identified  as sets of
-        key-value pairs from a plain list type to the KeyValueList type.
-        """
-        for property_name, value in self.get_all_component_parameters().items():
-            if property_name not in kv_properties:
-                continue
-
-            if not value:
-                continue
+                # Any KeyValueList instance implies all relevant properties have already been converted
+                return
 
             # Convert plain list to KeyValueList
-            self.set_component_parameter(property_name, KeyValueList(value))
+            self.set_component_parameter(kv_property, KeyValueList(value))
 
     def remove_env_vars_with_matching_secrets(self):
         """
         In the case of a matching key between env vars and kubernetes secrets,
-        prefer the Kubernetes Secret and remove the matching env var
+        prefer the Kubernetes Secret and remove the matching env var.
         """
         env_vars = self.get_component_parameter(ENV_VARIABLES)
         secrets = self.get_component_parameter(KUBERNETES_SECRETS)
@@ -375,7 +365,8 @@ class Node(AppDataBase):
 
     def convert_data_class_properties(self):
         """
-        TODO
+        Convert select node-level list properties to their corresponding dataclass
+        object type. No validation is performed.
         """
         volume_mounts = self.get_component_parameter(MOUNTED_VOLUMES)
         if volume_mounts and isinstance(volume_mounts, KeyValueList):
