@@ -577,8 +577,7 @@ class PipelineDefinition(object):
                 continue
 
             # Convert any key-value list node properties to the KeyValueList type if not done already
-            if node.kv_properties_not_converted(kv_properties):
-                node.convert_kv_properties(kv_properties)
+            node.convert_kv_properties(kv_properties)
 
             for property_name, pipeline_default_value in pipeline_default_properties.items():
                 if not pipeline_default_value:
