@@ -23,7 +23,7 @@ Note: JupyterLab currently requires a re-build after installing any extension.
 
 ### Prerequisites
 
-* [Node.js 12+](https://nodejs.org/en/)
+* [Node.js 16+](https://nodejs.org/en/)
 * [Python 3.x](https://www.python.org/downloads/)
 
 JupyterLab dependencies:
