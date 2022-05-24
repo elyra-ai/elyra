@@ -152,9 +152,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
     uiSchema[category] = {};
     for (const field in properties.properties) {
       uiSchema[category][field] = properties.properties[field].uihints ?? {};
-      uiSchema[category][
-        field
-      ].classNames = `elyra-metadataEditor-form-${field}`;
+      uiSchema[category][field].classNames = `elyra-formEditor-form-${field}`;
     }
   }
 

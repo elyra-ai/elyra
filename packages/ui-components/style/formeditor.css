@@ -187,36 +187,6 @@ button.elyra-editor-tag.unapplied-tag {
   border: none;
 }
 
-.elyra-formEditor .elyra-metadataEditor-arrayInput li {
-  padding-left: 0;
-  padding-bottom: 0;
-}
-
-.elyra-metadataEditor
-  .elyra-metadataEditor-arrayInput
-  li:not(.elyra-metadataEditor-arrayItemEditor)
-  .elyra-elyra-metadataHeaderMuiInputBase-formControl {
-  background-color: var(--jp-border-color3);
-}
-
-.elyra-metadataEditor
-  .elyra-metadataEditor-arrayInput
-  .elyra-metadataEditor-editButtons
-  button {
-  padding: 3px;
-}
-
-.elyra-metadataEditor
-  .elyra-metadataEditor-arrayInput
-  .elyra-metadataEditor-addItemButton {
-  background-color: var(--jp-border-color1);
-}
-
-.elyra-formEditor .elyra-metadataEditor-arrayItemEditor {
-  display: flex;
-  padding: 6px 0 3px 0;
-}
-
 .elyra-formEditor h3 {
   flex-basis: 100%;
   margin-bottom: 15px;
@@ -240,31 +210,27 @@ button.elyra-editor-tag.unapplied-tag {
   height: 100%;
 }
 
-.elyra-formEditor .elyra-metadataEditor-code {
+.elyra-formEditor .elyra-formEditor-code {
   height: auto;
   flex-basis: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.elyra-metadataEditor-formInput {
+.elyra-formEditor-formInput {
   margin: 10px;
   flex-basis: 45%;
 }
 
-.elyra-metadata-editor {
-  overflow-y: auto;
-}
-
-.elyra-formEditor .elyra-metadataEditor-saveButton {
+.elyra-formEditor .elyra-formEditor-saveButton {
   flex-basis: 100%;
   display: flex;
   flex-direction: column;
   padding-bottom: 15px;
 }
 
-.elyra-formEditor .form-group.field.elyra-metadataEditor-form-code,
-.elyra-formEditor .form-group.field.elyra-metadataEditor-form-tags {
+.elyra-formEditor .form-group.field.elyra-formEditor-form-code,
+.elyra-formEditor .form-group.field.elyra-formEditor-form-tags {
   width: 80%;
 }
 
@@ -276,6 +242,7 @@ button.elyra-editor-tag.unapplied-tag {
   color: var(--jp-content-font-color2);
   position: absolute;
   top: 95%;
+  left: 0;
   background-color: var(--jp-border-color0);
   padding: 5px;
   border-radius: 5px;

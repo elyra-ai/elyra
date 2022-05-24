@@ -19,27 +19,21 @@ import { Field } from '@rjsf/core';
 
 import React from 'react';
 
-interface IMetadataEditorTagProps {
+interface ITagProps {
   selectedTags: string[];
   tags: string[];
   handleChange: (selectedTags: string[], allTags: string[]) => void;
 }
 
-interface IMetadataEditorTagState {
-  selectedTags: string[];
-  tags: string[];
-  addingNewTag: boolean;
-}
-
 /**
  * CSS STYLING
  */
-const METADATA_EDITOR_TAG = 'elyra-editor-tag';
-const METADATA_EDITOR_TAG_PLUS_ICON = 'elyra-editor-tag-plusIcon';
-const METADATA_EDITOR_TAG_LIST = 'elyra-editor-tagList';
-const METADATA_EDITOR_INPUT_TAG = 'elyra-inputTag';
+const FORM_EDITOR_TAG = 'elyra-editor-tag';
+const FORM_EDITOR_TAG_PLUS_ICON = 'elyra-editor-tag-plusIcon';
+const FORM_EDITOR_TAG_LIST = 'elyra-editor-tagList';
+const FORM_EDITOR_INPUT_TAG = 'elyra-inputTag';
 
-export const MetadataEditorTags: React.FC<IMetadataEditorTagProps> = props => {
+export const Tags: React.FC<ITagProps> = props => {
   const [selectedTags, setSelectedTags] = React.useState<string[]>(
     props.selectedTags ?? []
   );
@@ -126,11 +120,11 @@ export const MetadataEditorTags: React.FC<IMetadataEditorTagProps> = props => {
   const inputBox =
     addingNewTag === true ? (
       <ul
-        className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
+        className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
         key={'editor-new-tag'}
       >
         <input
-          className={`${METADATA_EDITOR_INPUT_TAG}`}
+          className={`${FORM_EDITOR_INPUT_TAG}`}
           onClick={(
             event: React.MouseEvent<HTMLInputElement, MouseEvent>
           ): void => addTagOnClick(event)}
@@ -148,12 +142,12 @@ export const MetadataEditorTags: React.FC<IMetadataEditorTagProps> = props => {
     ) : (
       <button
         onClick={(): void => setAddingNewTag(true)}
-        className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
+        className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
       >
         Add Tag
         <addIcon.react
           tag="span"
-          className={METADATA_EDITOR_TAG_PLUS_ICON}
+          className={FORM_EDITOR_TAG_PLUS_ICON}
           elementPosition="center"
           height="16px"
           width="16px"
@@ -165,7 +159,7 @@ export const MetadataEditorTags: React.FC<IMetadataEditorTagProps> = props => {
   return (
     <div>
       <label className="control-label"> Tags </label>
-      <li className={METADATA_EDITOR_TAG_LIST}>
+      <li className={FORM_EDITOR_TAG_LIST}>
         {hasTags
           ? tags.map((tag: string, index: number) =>
               ((): JSX.Element => {
@@ -173,9 +167,9 @@ export const MetadataEditorTags: React.FC<IMetadataEditorTagProps> = props => {
                   return (
                     <button
                       onClick={handleClick}
-                      className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
+                      className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
+                      id={`editor-${tag}-${index}`}
+                      key={`editor-${tag}-${index}`}
                     >
                       {tag}
                     </button>
@@ -186,9 +180,9 @@ export const MetadataEditorTags: React.FC<IMetadataEditorTagProps> = props => {
                   return (
                     <button
                       onClick={handleClick}
-                      className={`${METADATA_EDITOR_TAG} tag applied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
+                      className={`${FORM_EDITOR_TAG} tag applied-tag`}
+                      id={`editor-${tag}-${index}`}
+                      key={`editor-${tag}-${index}`}
                     >
                       {tag}
                       <checkIcon.react
@@ -205,9 +199,9 @@ export const MetadataEditorTags: React.FC<IMetadataEditorTagProps> = props => {
                   return (
                     <button
                       onClick={handleClick}
-                      className={`${METADATA_EDITOR_TAG} tag unapplied-tag`}
-                      id={'editor' + '-' + tag + '-' + index}
-                      key={'editor' + '-' + tag + '-' + index}
+                      className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
+                      id={`editor-${tag}-${index}`}
+                      key={`editor-${tag}-${index}`}
                     >
                       {tag}
                     </button>
@@ -222,9 +216,9 @@ export const MetadataEditorTags: React.FC<IMetadataEditorTagProps> = props => {
   );
 };
 
-export const MetadataEditorTagsField: Field = props => {
+export const TagsField: Field = props => {
   return (
-    <MetadataEditorTags
+    <Tags
       selectedTags={props.formData ?? []}
       tags={props.formContext.allTags ?? []}
       handleChange={(selectedTags: string[], allTags: string[]): void => {

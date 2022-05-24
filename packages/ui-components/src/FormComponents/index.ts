@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export * from './MetadataEditorTags';
+export * from './Tags';
 export * from './DropDown';
 export * from './PasswordField';
 export * from './CodeBlock';

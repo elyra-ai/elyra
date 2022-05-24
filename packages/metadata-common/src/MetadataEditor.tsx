@@ -160,9 +160,8 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
       <div onKeyPress={onKeyPress} className={ELYRA_METADATA_EDITOR_CLASS}>
         <h3> {headerText} </h3>
         <p style={{ width: '100%', marginBottom: '10px' }}>
-          {translator.__(
-            'All fields marked with an asterisk are required.&nbsp;'
-          )}
+          {translator.__('All fields marked with an asterisk are required.')}
+          &nbsp;
           {referenceURL ? (
             <a href={referenceURL} target="_blank" rel="noreferrer noopener">
               {translator.__('[Learn more ...]')}

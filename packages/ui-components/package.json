@@ -38,10 +38,10 @@
     "@material-ui/core": "^4.12.1",
     "@material-ui/icons": "^4.2.1",
     "@material-ui/lab": "^4.0.0-alpha.18",
+    "@rjsf/core": "^3.1.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-json-tree": "^0.11.2",
-    "@rjsf/core": "^3.1.0"
+    "react-json-tree": "^0.11.2"
   },
   "devDependencies": {
     "@types/react-json-tree": "^0.6.11",

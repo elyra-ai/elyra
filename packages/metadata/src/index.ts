@@ -21,7 +21,7 @@ import {
   DropDown,
   RequestErrors,
   CodeBlock,
-  MetadataEditorTagsField,
+  TagsField,
   PasswordField
 } from '@elyra/ui-components';
 import {
@@ -79,7 +79,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     console.log('Elyra - metadata extension is activated!');
 
     componentRegistry.addRenderer('code', CodeBlock);
-    componentRegistry.addRenderer('tags', MetadataEditorTagsField);
+    componentRegistry.addRenderer('tags', TagsField);
     componentRegistry.addRenderer('dropdown', DropDown);
     componentRegistry.addRenderer('password', PasswordField);
 
