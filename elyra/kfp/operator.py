@@ -190,6 +190,7 @@ class ExecuteFileOp(ContainerOp):
                 f"curl {common_curl_options} -L {self.bootstrap_script_url} --output bootstrapper.py && "
                 f"echo 'Downloading {self.requirements_url}' && "
                 f"curl {common_curl_options} -L {self.requirements_url} --output requirements-elyra.txt && "
+                f"echo 'Downloading {ELYRA_REQUIREMENTS_URL_PY37}' && "
                 f"curl {common_curl_options} -L {ELYRA_REQUIREMENTS_URL_PY37} --output requirements-elyra-py37.txt && "
             )
 
