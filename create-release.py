@@ -87,7 +87,7 @@ def validate_dependencies() -> None:
     if not dependency_exists("git"):
         raise DependencyException("Please install git https://git-scm.com/downloads")
     if not dependency_exists("node"):
-        raise DependencyException("Please install node.js https://nodejs.org/")
+        raise DependencyException("Please install node.js v16+ https://nodejs.org/")
     if not dependency_exists("yarn"):
         raise DependencyException("Please install yarn https://classic.yarnpkg.com/")
     if not dependency_exists("twine"):
@@ -139,6 +139,13 @@ def update_version_to_release() -> None:
 
         sed(
             _source("elyra/cli/pipeline_app.py"),
+            r"https://elyra.readthedocs.io/en/latest/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
+        )
+
+        # Update documentation version for elyra-metadata cli help
+        sed(
+            _source("elyra/metadata/metadata_app_utils.py"),
             r"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
         )
@@ -268,6 +275,13 @@ def update_version_to_dev() -> None:
             _source("elyra/cli/pipeline_app.py"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
             rf"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        # Update documentation version for elyra-metadata cli help
+        sed(
+            _source("elyra/metadata/metadata_app_utils.py"),
+            rf"https://elyra.readthedocs.io/en/latest/",
+            rf"https://elyra.readthedocs.io/en/v{new_version}/",
         )
 
         sed(

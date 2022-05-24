@@ -90,7 +90,7 @@ to access Elyra in your local browser.
 Elyra can be installed from PyPI:
 
 ### Prerequisites :
-* [NodeJS 12+](https://nodejs.org/en/)
+* [NodeJS 16+](https://nodejs.org/en/)
 * [Python 3.7+](https://www.python.org/downloads/)
 
 ##### Optional :

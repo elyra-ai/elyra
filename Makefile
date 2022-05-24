@@ -17,22 +17,29 @@
 .PHONY: help purge uninstall-src uninstall clean
 .PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
-.PHONY: build-dependencies yarn-install build-ui package-ui build-server install-server-package install-server
-.PHONY: install install-all install-examples install-gitlab-dependency check-install watch release
+.PHONY: build-dependencies yarn-install build-ui package-ui package-ui-dev build-server install-server-package install-server
+.PHONY: install install-all install-dev install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
-.PHONY: elyra-image publish-elyra-image kf-notebook-image publish-kf-notebook-image
+.PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-images
+
+.ONESHELL:
+
 SHELL:=/bin/bash
 
 # Python execs
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
+PYTHON_VERSION?=3.9
+
+CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate
 
 ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
 TAG:=dev
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
+ELYRA_IMAGE_ENV?=elyra-image-env
 KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 KF_NOTEBOOK_IMAGE_LATEST=elyra/kf-notebook:latest
 
@@ -128,12 +135,14 @@ lint: lint-ui lint-server ## Run linters
 ## Library linking targets
 
 dev-link:
-	yarn link @elyra/pipeline-services
-	yarn link @elyra/pipeline-editor
+	- yarn link @elyra/pipeline-services
+	- yarn link @elyra/pipeline-editor
+	- lerna run link:dev
 
 dev-unlink:
-	yarn unlink @elyra/pipeline-services
-	yarn unlink @elyra/pipeline-editor
+	- yarn unlink @elyra/pipeline-services
+	- yarn unlink @elyra/pipeline-editor
+	- lerna run unlink:dev
 	yarn install --force
 
 ## Build and install targets
@@ -150,6 +159,8 @@ build-ui: # Build packages
 
 package-ui: build-dependencies yarn-install lint-ui build-ui
 
+package-ui-dev: build-dependencies yarn-install dev-link lint-ui build-ui
+
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
 
@@ -164,6 +175,8 @@ install-server: build-dependencies lint-server build-server install-server-packa
 install: package-ui install-server check-install ## Build and install
 
 install-all: package-ui install-server install-examples install-gitlab-dependency check-install ## Build and install, including examples
+
+install-dev: package-ui-dev install-server install-examples install-gitlab-dependency check-install
 
 install-examples: ## Install example pipeline components 
 	# install Kubeflow Pipelines example components
@@ -182,6 +195,20 @@ watch: ## Watch packages. For use alongside jupyter lab --watch
 	yarn lerna run watch --parallel
 
 release: yarn-install build-ui build-server ## Build wheel file for release
+
+
+elyra-image-env: ## Creates a conda env consisting of the dependencies used in images
+	conda env remove -y -n $(ELYRA_IMAGE_ENV)
+	conda create -y -n $(ELYRA_IMAGE_ENV) python=$(PYTHON_VERSION)
+	if [ "$(PYTHON_VERSION)" == "3.7" ]; then \
+		$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
+		$(PYTHON_PIP) install -r etc/generic/requirements-elyra-py37.txt && \
+		conda deactivate; \
+	else \
+		$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
+		$(PYTHON_PIP) install -r etc/generic/requirements-elyra.txt && \
+		conda deactivate; \
+	fi
 
 ## Test targets
 
@@ -301,6 +328,26 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 			if [ $$? -ne 0 ]; then \
 				echo ERROR: Image $$image did not meet criteria for command: $$cmd ; \
 				fail=1; \
+			fi; \
+			if [ $$cmd == "python3" ]; then \
+				IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2` ; \
+				if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
+					echo WARNING: Image $$image requires at Python 3.8 or greater for latest generic component dependency installation; \
+					docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra-py37.txt > /dev/null ; \
+					if [ $$? -ne 0 ]; then \
+						echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra-py37.txt ; \
+						fail=1; \
+					fi; \
+				elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
+					docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image python3 -m pip install -r /opt/elyra/requirements-elyra.txt > /dev/null ; \
+					if [ $$? -ne 0 ]; then \
+						echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra.txt ; \
+						fail=1; \
+					fi; \
+				else \
+					echo ERROR: Image $$image unable to parse python version ; \
+					fail=1; \
+				fi; \
 			fi; \
 		done; \
 		if [ $(REMOVE_RUNTIME_IMAGE) -eq 1 ]; then \

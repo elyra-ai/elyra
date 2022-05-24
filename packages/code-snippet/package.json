@@ -38,7 +38,9 @@
     "watch:src": "tsc -w",
     "watch:labextension": "jupyter labextension watch .",
     "lab:install": "jupyter labextension install --no-build",
-    "lab:uninstall": "jupyter labextension uninstall --no-build"
+    "lab:uninstall": "jupyter labextension uninstall --no-build",
+    "link:dev": "yarn link @jupyterlab/builder",
+    "unlink:dev": "yarn unlink @jupyterlab/builder"
   },
   "dependencies": {
     "@elyra/metadata-common": "3.9.0-dev",
