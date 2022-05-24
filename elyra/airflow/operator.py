@@ -99,6 +99,7 @@ class BootscriptBuilder(object):
             f"echo 'Downloading {ELYRA_BOOTSCRIPT_URL}' && "
             f"curl {common_curl_options} -L {ELYRA_BOOTSCRIPT_URL} --output bootstrapper.py && "
             f"echo 'Downloading {ELYRA_REQUIREMENTS_URL}' && "
+            f"echo 'Downloading {ELYRA_REQUIREMENTS_URL_PY37}' && "
             f"curl {common_curl_options} -L {ELYRA_REQUIREMENTS_URL_PY37} --output requirements-elyra-py37.txt && "
             f"curl {common_curl_options} -L {ELYRA_REQUIREMENTS_URL} "
             f"--output requirements-elyra.txt && "
