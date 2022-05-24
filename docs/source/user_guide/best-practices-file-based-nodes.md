@@ -85,7 +85,7 @@ The Visual Pipeline Editor can detect which environment variables notebooks/scri
 
 Refer to the next section for a list of proprietary environment variables that cannot be modified using the node properties settings.
 
-If using environment variables containing sensitive information, [Kubernetes secrets](TODO) should be used instead.
+If using environment variables containing sensitive information, [Kubernetes secrets](#kubernetes-secrets) should be used instead.
 
 ### Proprietary environment variables
 
