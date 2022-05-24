@@ -253,3 +253,20 @@ button.elyra-editor-tag.unapplied-tag {
   display: initial;
   z-index: 1;
 }
+
+.elyra-formEditor .array-item {
+  display: flex;
+  align-items: center;
+}
+
+.elyra-formEditor .jp-ArrayOperations {
+  display: flex;
+}
+
+.elyra-formEditor .jp-ArrayOperations button {
+  width: max-content;
+}
+
+.elyra-formEditor .field.field-array {
+  width: 100%;
+}
