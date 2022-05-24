@@ -318,7 +318,7 @@ class Node(AppDataBase):
         if not key:
             raise ValueError("Key is required")
 
-        if not value:
+        if value is None:
             raise ValueError("Value is required")
 
         self._node["app_data"]["component_parameters"][key] = value
@@ -355,11 +355,8 @@ class Node(AppDataBase):
         """
         env_vars = self.get_component_parameter(ENV_VARIABLES)
         secrets = self.get_component_parameter(KUBERNETES_SECRETS)
-        if env_vars and isinstance(env_vars, KeyValueList) and secrets and isinstance(secrets, KeyValueList):
-            new_list = KeyValueList.difference(
-                minuend=self.get_component_parameter(ENV_VARIABLES),
-                subtrahend=self.get_component_parameter(KUBERNETES_SECRETS),
-            )
+        if isinstance(env_vars, KeyValueList) and isinstance(secrets, KeyValueList):
+            new_list = KeyValueList.difference(minuend=env_vars, subtrahend=secrets)
             if new_list:
                 self.set_component_parameter(ENV_VARIABLES, new_list)
 
