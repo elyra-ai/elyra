@@ -57,6 +57,11 @@ ELYRA_REQUIREMENTS_URL = os.getenv(
     f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/"
     f"elyra/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra.txt",
 )
+ELYRA_REQUIREMENTS_URL_PY37 = os.getenv(
+    "ELYRA_REQUIREMENTS_URL_PY37",
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/"
+    f"elyra/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra-py37.txt",
+)
 
 
 class ExecuteFileOp(ContainerOp):
@@ -185,14 +190,15 @@ class ExecuteFileOp(ContainerOp):
                 f"curl {common_curl_options} -L {self.bootstrap_script_url} --output bootstrapper.py && "
                 f"echo 'Downloading {self.requirements_url}' && "
                 f"curl {common_curl_options} -L {self.requirements_url} --output requirements-elyra.txt && "
+                f"echo 'Downloading {ELYRA_REQUIREMENTS_URL_PY37}' && "
+                f"curl {common_curl_options} -L {ELYRA_REQUIREMENTS_URL_PY37} --output requirements-elyra-py37.txt && "
             )
 
             if self.emptydir_volume_size:
                 argument_list.append(
                     f"mkdir {self.container_python_dir_name} && cd {self.container_python_dir_name} && "
                     f"echo 'Downloading {self.python_pip_config_url}' && "
-                    f"curl {common_curl_options} -L {self.python_pip_config_url} "
-                    "--output pip.conf && cd .. &&"
+                    f"curl {common_curl_options} -L {self.python_pip_config_url} --output pip.conf && cd .. &&"
                 )
 
             argument_list.append(
