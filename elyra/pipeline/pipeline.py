@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import dataclasses
+from dataclasses import asdict as dataclass_asdict
 from dataclasses import dataclass
+from dataclasses import is_dataclass
 import json
 import logging
 from logging import Logger
@@ -545,6 +546,6 @@ class DataClassJSONEncoder(json.JSONEncoder):
         """
         Render dataclass content as dict
         """
-        if dataclasses.is_dataclass(o):
-            return dataclasses.asdict(o)
+        if is_dataclass(o):
+            return dataclass_asdict(o)
         return super().default(o)
