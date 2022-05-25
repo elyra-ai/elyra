@@ -9,6 +9,7 @@
     "elyra_mounted_volumes": [],
     "elyra_outputs": [],
     "elyra_env_vars": [],
+    "elyra_kubernetes_secrets": [],
     "elyra_dependencies": [],
     "elyra_include_subdirectories": false
   },
@@ -39,6 +40,9 @@
     },
     {
       "id": "elyra_env_vars"
+    },
+    {
+      "id": "elyra_kubernetes_secrets"
     },
     {
       "id": "elyra_outputs"
@@ -190,6 +194,22 @@
         }
       },
       {
+        "parameter_ref": "elyra_kubernetes_secrets",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Kubernetes Secrets"
+        },
+        "description": {
+          "default": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the node is executed or this node will not run.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "env_var=secret-name:secret-key",
+          "keyValueEntries": true
+        }
+      },
+      {
         "parameter_ref": "elyra_outputs",
         "control": "custom",
         "custom_control_id": "StringArrayControl",
@@ -260,6 +280,11 @@
             "id": "elyra_env_vars",
             "type": "controls",
             "parameter_refs": ["elyra_env_vars"]
+          },
+          {
+            "id": "elyra_kubernetes_secrets",
+            "type": "controls",
+            "parameter_refs": ["elyra_kubernetes_secrets"]
           },
           {
             "id": "elyra_outputs",

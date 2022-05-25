@@ -27,10 +27,13 @@ from kubernetes.client.models import V1EnvVar
 from kubernetes.client.models import V1EnvVarSource
 from kubernetes.client.models import V1ObjectFieldSelector
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client.models import V1SecretKeySelector
 from kubernetes.client.models import V1Volume
 from kubernetes.client.models import V1VolumeMount
 
 from elyra._version import __version__
+from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import VolumeMount
 
 """
 The ExecuteFileOp uses a python script to bootstrap the user supplied image with the required dependencies.
@@ -86,7 +89,8 @@ class ExecuteFileOp(ContainerOp):
         mem_request: Optional[str] = None,
         gpu_limit: Optional[str] = None,
         workflow_engine: Optional[str] = "argo",
-        volume_mounts: Optional[Dict[str, str]] = None,
+        volume_mounts: Optional[List[VolumeMount]] = None,
+        kubernetes_secrets: Optional[List[KubernetesSecret]] = None,
         **kwargs,
     ):
         """Create a new instance of ContainerOp.
@@ -111,6 +115,7 @@ class ExecuteFileOp(ContainerOp):
           gpu_limit: maximum number of GPUs allowed for the operation
           workflow_engine: Kubeflow workflow engine, defaults to 'argo'
           volume_mounts: data volumes to be mounted
+          kubernetes_secrets: secrets to be made available as environment variables
           kwargs: additional key value pairs to pass e.g. name, image, sidecars & is_exit_handler.
                   See Kubeflow pipelines ContainerOp definition for more parameters or how to use
                   https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.ContainerOp
@@ -138,6 +143,7 @@ class ExecuteFileOp(ContainerOp):
         self.mem_request = mem_request
         self.gpu_limit = gpu_limit
         self.volume_mounts = volume_mounts  # optional data volumes to be mounted to the pod
+        self.kubernetes_secrets = kubernetes_secrets  # optional secrets to be made available as env vars
 
         argument_list = []
 
@@ -233,22 +239,33 @@ class ExecuteFileOp(ContainerOp):
         # or this generic operation will fail
         if self.volume_mounts:
             unique_pvcs = []
-            for mount_path, pvc_name in self.volume_mounts.items():
-                if pvc_name not in unique_pvcs:
+            for volume_mount in self.volume_mounts:
+                if volume_mount.pvc_name not in unique_pvcs:
                     self.add_volume(
                         V1Volume(
-                            name=pvc_name,
-                            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name),
+                            name=volume_mount.pvc_name,
+                            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(
+                                claim_name=volume_mount.pvc_name
+                            ),
                         )
                     )
-                    unique_pvcs.append(pvc_name)
-                self.container.add_volume_mount(V1VolumeMount(mount_path=mount_path, name=pvc_name))
+                    unique_pvcs.append(volume_mount.pvc_name)
+                self.container.add_volume_mount(V1VolumeMount(mount_path=volume_mount.path, name=volume_mount.pvc_name))
 
         # We must deal with the envs after the superclass initialization since these amend the
         # container attribute that isn't available until now.
         if self.pipeline_envs:
             for key, value in self.pipeline_envs.items():  # Convert dict entries to format kfp needs
                 self.container.add_env_variable(V1EnvVar(name=key, value=value))
+
+        if self.kubernetes_secrets:
+            for secret in self.kubernetes_secrets:  # Convert tuple entries to format kfp needs
+                self.container.add_env_variable(
+                    V1EnvVar(
+                        name=secret.env_var,
+                        value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=secret.name, key=secret.key)),
+                    )
+                )
 
         # If crio volume size is found then assume kubeflow pipelines environment is using CRI-o as
         # its container runtime
