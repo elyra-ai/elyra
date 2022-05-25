@@ -563,7 +563,6 @@ def describe(json_option, pipeline_path):
             readable_key = " ".join(key.title().split("_"))
             if isinstance(describe_dict[key], set):
                 click.echo(f"{readable_key}:")
-                # if describe_dict.get(key, set()) == set():
                 if not describe_dict.get(key):
                     click.echo(f"{' ' * indent_length}{blank_list[0]}")
                 else:
@@ -572,13 +571,11 @@ def describe(json_option, pipeline_path):
             else:
                 click.echo(f"{readable_key}: {describe_dict.get(key, blank_field)}")
     else:
-        # for key in list(describe_dict.keys()):
         for key in list(describe_dict):
             if isinstance(describe_dict[key], set):
                 describe_dict[key] = list(describe_dict[key])
 
             value = describe_dict.get(key)
-            # if value is None or (key in list(describe_dict.keys()) and len(str(value)) == 0):
             if not value:
                 describe_dict.pop(key)
         click.echo(json.dumps(describe_dict, indent=indent_length))
