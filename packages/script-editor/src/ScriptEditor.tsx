@@ -15,6 +15,7 @@
  */
 
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
+import { IDebugger } from '@jupyterlab/debugger';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { ScrollingWidget } from '@jupyterlab/logconsole';
@@ -223,6 +224,7 @@ export abstract class ScriptEditor extends DocumentWidget<
 
   private createEditorDebugHandler = (): DebuggerEditorHandler => {
     return new DebuggerEditorHandler({
+      debuggerService: null, // for now
       editor: this.content.editor,
       path: this.context.path
     });

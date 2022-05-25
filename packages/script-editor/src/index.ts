@@ -16,6 +16,88 @@
 
 import '../style/index.css';
 
+import {
+  ILabShell,
+  JupyterFrontEnd,
+  JupyterFrontEndPlugin
+} from '@jupyterlab/application';
+import { Debugger, IDebugger } from '@jupyterlab/debugger';
+import { DocumentWidget } from '@jupyterlab/docregistry';
+import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
+import { Session } from '@jupyterlab/services';
+
+/**
+ * Debugger plugin.
+ * Adapted from JupyterLab debugger extension.
+ * A plugin that provides visual debugging support for script editors.
+ */
+const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
+  id: '@elyra/script-editor-debugger-extension',
+  autoStart: true,
+  requires: [IDebugger, IEditorTracker],
+  optional: [ILabShell],
+  activate: (
+    app: JupyterFrontEnd,
+    debug: IDebugger,
+    editorTracker: IEditorTracker,
+    labShell: ILabShell | null
+  ) => {
+    const handler = new Debugger.Handler({
+      type: 'file',
+      shell: app.shell,
+      service: debug
+    });
+
+    const activeSessions: {
+      [id: string]: Session.ISessionConnection;
+    } = {};
+
+    const updateHandlerAndCommands = async (widget: any): Promise<void> => {
+      const sessions = app.serviceManager.sessions;
+      try {
+        const model = await sessions.findByPath(widget.context.path);
+        if (!model) {
+          return;
+        }
+        let session = activeSessions[model.id];
+        if (!session) {
+          // Use `connectTo` only if the session does not exist.
+          // `connectTo` sends a kernel_info_request on the shell
+          // channel, which blocks the debug session restore when waiting
+          // for the kernel to be ready
+          session = sessions.connectTo({ model });
+          activeSessions[model.id] = session;
+        }
+        await handler.update(widget, session);
+        app.commands.notifyCommandChanged();
+      } catch {
+        return;
+      }
+    };
+
+    if (labShell) {
+      labShell.currentChanged.connect((_, update) => {
+        const widget = update.newValue;
+        if (widget instanceof DocumentWidget) {
+          const { content } = widget;
+          if (content instanceof FileEditor) {
+            void updateHandlerAndCommands(widget);
+          }
+        }
+      });
+    } else {
+      editorTracker.currentChanged.connect((_, documentWidget) => {
+        if (documentWidget) {
+          void updateHandlerAndCommands(
+            (documentWidget as unknown) as DocumentWidget
+          );
+        }
+      });
+    }
+  }
+};
+
+export default scriptEditorDebuggerExtension;
 export * from './KernelDropdown';
 export * from './ScriptEditor';
 export * from './ScriptEditorController';
