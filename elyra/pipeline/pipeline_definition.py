@@ -357,8 +357,7 @@ class Node(AppDataBase):
         secrets = self.get_component_parameter(KUBERNETES_SECRETS)
         if isinstance(env_vars, KeyValueList) and isinstance(secrets, KeyValueList):
             new_list = KeyValueList.difference(minuend=env_vars, subtrahend=secrets)
-            if new_list:
-                self.set_component_parameter(ENV_VARIABLES, new_list)
+            self.set_component_parameter(ENV_VARIABLES, new_list)
 
     def convert_data_class_properties(self):
         """
