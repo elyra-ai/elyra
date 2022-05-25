@@ -1253,13 +1253,13 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@~1.8.0":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.8.0.tgz#efb9994fae9cff2edcf044f40d45b49bbe7a7b3b"
-  integrity sha512-p9jDNNbweyb5TVYJCAnEsdTzBrc8/TMTGkbyDbKk2I48PTO3Q/aZf+rf2eaOOfV/xPx5kDnTj/QljDzBDm9xwQ==
+"@elyra/pipeline-editor@~1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.9.0.tgz#da3ce85a6c4b1d1f9c509bbf19176322271f81f8"
+  integrity sha512-eT0ozcpDLEBCnkYijMF7QiO9L3E2E0ZWHi8XFUDnn/fQGl9tvEoa50jxAFk+F8wN8ObdpE/a5Y3YCl/Z4xUI+Q==
   dependencies:
     "@elyra/canvas" "^12.11.2"
-    "@elyra/pipeline-services" "^1.8.0"
+    "@elyra/pipeline-services" "^1.9.0"
     carbon-components "^10.43.0"
     carbon-components-react "^7.48.0"
     carbon-icons "7.0.7"
@@ -1277,10 +1277,10 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.57.tgz#8b5dc239c8ad8f77abe6b8b7205e06d91fa08d50"
   integrity sha512-Nitf1WdRj3/zNLznJGbFfTFhUi+KZK4f0nmO8vaxjJtwDP5CdZ8NGwpmiuCqCfheQohAMVjeWaj2DsHKtd5+gw==
 
-"@elyra/pipeline-services@^1.8.0", "@elyra/pipeline-services@~1.8.0":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.8.0.tgz#4d159444f99af79e978df08f4336463f3d6bd520"
-  integrity sha512-7hhhX3eZMJnmntkVGadQ7tUEB/7Xb96JhqtkfTiKS4kXDYsaGWJcSh2Ns+SmkyitfL+lM5DIVbzGMp5L8DomhA==
+"@elyra/pipeline-services@^1.9.0", "@elyra/pipeline-services@~1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.9.0.tgz#9de40dda50a3885a628357b53324cc27c41d1135"
+  integrity sha512-ULVbNCn2sJm/7eq95dH+ufSy9OV/eHMzvpKDHM2c86ZlxWJl1pF+Z2rqdqMxF9N2pwZFGtQ/YAql9eVY56WOUg==
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"

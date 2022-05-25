@@ -1,9 +1,0 @@
-{
-  "display_name": "Tensorflow 1.15.5 with GPU",
-  "metadata": {
-    "description": "TensorFlow 1.15 (with GPU support)",
-    "image_name": "elyra/tensorflow:1.15.5-gpu-py3",
-    "tags": ["gpu", "tensorflow"]
-  },
-  "schema_name": "runtime-image"
-}

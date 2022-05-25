@@ -32,12 +32,12 @@ with open(os.path.join(here, "elyra", "_version.py")) as f:
 data_files_spec = [
     ("etc/jupyter/jupyter_notebook_config.d", "etc/config/jupyter_notebook_config.d", "*.json"),
     ("etc/jupyter/jupyter_server_config.d", "etc/config/jupyter_server_config.d", "*.json"),
+    ("etc/jupyter/labconfig", "etc/config/settings", "*.json"),
     ("share/jupyter/metadata/runtime-images", "etc/config/metadata/runtime-images", "*.json"),
     ("share/jupyter/metadata/component-catalogs", "etc/config/metadata/component-catalogs", "*.json"),  # deprecated
     ("share/jupyter/components", "etc/config/components", "*.json"),  # deprecated
     ("share/jupyter/components/kfp/", "etc/config/components/kfp", "*.yaml"),  # deprecated
     ("share/jupyter/components/airflow/", "etc/config/components/airflow", "*.py"),  # deprecated
-    ("share/jupyter/lab/settings", "etc/config/settings", "*.json"),
     ("share/jupyter/labextensions", "dist/labextensions", "**"),
 ]
 
@@ -75,9 +75,9 @@ setup_args = dict(
         "jupyter_client>=6.1.7",
         "jupyter-packaging>=0.10",
         "jupyter_server>=1.7.0",
-        "jupyterlab>=3.4.0",
+        "jupyterlab>=3.4.0",  # comment out to use local jupyterlab
+        "jupyterlab-lsp>=3.8.0",  # comment out to use local jupyterlab
         "jupyterlab-git~=0.32",  # Avoid breaking 1.x changes
-        "jupyterlab-lsp>=3.8.0",
         "jupyter-resource-usage>=0.5.1",
         "MarkupSafe>=2.1",
         "minio>=7.0.0",

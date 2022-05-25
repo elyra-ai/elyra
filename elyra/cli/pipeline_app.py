@@ -33,6 +33,7 @@ from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
@@ -505,15 +506,9 @@ def describe(json_option, pipeline_path):
     Display pipeline summary
     """
 
-    click.echo()
-
-    print_banner("Elyra Pipeline details")
-
     indent_length = 4
     blank_field = "Not Specified"
     blank_list = ["None Listed"]
-    pipeline_keys = ["name", "description", "type", "version", "nodes", "file_dependencies", "component_dependencies"]
-    iter_keys = {"file_dependencies", "component_dependencies"}
 
     pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local", runtime_config="local")
 
@@ -525,9 +520,14 @@ def describe(json_option, pipeline_path):
     describe_dict["description"] = primary_pipeline.get_property("description")
     describe_dict["type"] = primary_pipeline.type
     describe_dict["version"] = primary_pipeline.version
+    describe_dict["runtime"] = primary_pipeline.get_property("runtime")
     describe_dict["nodes"] = len(primary_pipeline.nodes)
+    describe_dict["scripts"] = set()
+    describe_dict["notebooks"] = set()
     describe_dict["file_dependencies"] = set()
     describe_dict["component_dependencies"] = set()
+    describe_dict[pipeline_constants.MOUNTED_VOLUMES] = set()
+    describe_dict[pipeline_constants.RUNTIME_IMAGE] = set()
     for node in primary_pipeline.nodes:
         # collect information about file dependencies
         for dependency in node.get_component_parameter("dependencies", []):
@@ -535,13 +535,35 @@ def describe(json_option, pipeline_path):
         # collect information about component dependencies
         if node.component_source is not None:
             describe_dict["component_dependencies"].add(node.component_source)
+        # collect information of mounted volumes
+        for mounted_volume in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
+            temp_mount_value = mounted_volume.split("=")[-1]
+            if temp_mount_value != "":
+                describe_dict[pipeline_constants.MOUNTED_VOLUMES].add(f"{temp_mount_value}")
+        # collection runtime image details
+        temp_runtime_image_value = node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
+        if temp_runtime_image_value:
+            describe_dict[pipeline_constants.RUNTIME_IMAGE].add(f"{temp_runtime_image_value}")
+
+        # collect notebook / script name when pipeline is generic
+        if describe_dict["runtime"] == "Generic":
+            temp_value = node.get_component_parameter("filename")
+            if not temp_value:
+                pass
+            elif Path(Path(temp_value).name).suffix == ".ipynb":
+                describe_dict["notebooks"].add(temp_value)
+            else:
+                describe_dict["scripts"].add(temp_value)
 
     if not json_option:
-        for key in pipeline_keys:
+        click.echo()
+
+        print_banner("Elyra Pipeline details")
+        for key in list(describe_dict):
             readable_key = " ".join(key.title().split("_"))
-            if key in iter_keys:
+            if isinstance(describe_dict[key], set):
                 click.echo(f"{readable_key}:")
-                if describe_dict.get(key, set()) == set():
+                if not describe_dict.get(key):
                     click.echo(f"{' ' * indent_length}{blank_list[0]}")
                 else:
                     for item in describe_dict.get(key, blank_list):
@@ -549,11 +571,12 @@ def describe(json_option, pipeline_path):
             else:
                 click.echo(f"{readable_key}: {describe_dict.get(key, blank_field)}")
     else:
-        for key in iter_keys:
-            describe_dict[key] = list(describe_dict[key])
-        for key in pipeline_keys:
+        for key in list(describe_dict):
+            if isinstance(describe_dict[key], set):
+                describe_dict[key] = list(describe_dict[key])
+
             value = describe_dict.get(key)
-            if value is None or (key in iter_keys and len(value) == 0):
+            if not value:
                 describe_dict.pop(key)
         click.echo(json.dumps(describe_dict, indent=indent_length))
 

@@ -330,7 +330,8 @@ class OpUtil(object):
     def package_install(cls) -> None:
         OpUtil.log_operation_info("Installing packages")
         t0 = time.time()
-        elyra_packages = cls.package_list_to_dict("requirements-elyra.txt")
+        requirements_file = cls.determine_elyra_requirements()
+        elyra_packages = cls.package_list_to_dict(requirements_file)
         current_packages = cls.package_list_to_dict("requirements-current.txt")
         to_install_list = []
 
@@ -371,6 +372,19 @@ class OpUtil(object):
         subprocess.run([sys.executable, "-m", "pip", "freeze"])
         duration = time.time() - t0
         OpUtil.log_operation_info("Packages installed", duration)
+
+    @classmethod
+    def determine_elyra_requirements(cls) -> Any:
+        if sys.version_info.major == 3:
+            if sys.version_info.minor == 7:
+                return "requirements-elyra-py37.txt"
+            elif sys.version_info.minor in [8, 9, 10]:
+                return "requirements-elyra.txt"
+        logger.error(
+            f"This version of Python '{sys.version_info.major}.{sys.version_info.minor}' "
+            f"is not supported for Elyra generic components"
+        )
+        return None
 
     @classmethod
     def package_list_to_dict(cls, filename: str) -> dict:

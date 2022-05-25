@@ -41,12 +41,10 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.util.archive import create_temp_archive
 from elyra.util.cos import CosClient
-from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_expanded_path
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
@@ -581,27 +579,3 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return value
 
         return converted_list
-
-    def _get_volume_mounts(self, operation: Operation) -> Optional[Dict[str, str]]:
-        """
-        Loops through an Operation mounted volumes to re-format path and remove
-        invalid PVC names.
-
-        :param operation: the operation to check for volume mounts
-        :return: dictionary of mount path to valid PVC names
-        """
-        volume_mounts_valid = {}
-        if operation.component_params.get(MOUNTED_VOLUMES):
-            volume_mounts = operation.component_params.get(MOUNTED_VOLUMES).to_dict()
-            for mount_path, pvc_name in volume_mounts.items():
-                # Ensure the PVC name is syntactically a valid Kubernetes resource name
-                if not is_valid_kubernetes_resource_name(pvc_name):
-                    self.log.warning(
-                        f"Ignoring invalid volume mount entry '{mount_path}': the PVC "
-                        f"name '{pvc_name}' is not a valid Kubernetes resource name."
-                    )
-                    continue
-
-                formatted_mount_path = f"/{mount_path.strip('/')}"
-                volume_mounts_valid[formatted_mount_path] = pvc_name
-        return volume_mounts_valid
