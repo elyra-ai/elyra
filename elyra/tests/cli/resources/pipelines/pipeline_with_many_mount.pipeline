@@ -16,20 +16,32 @@
             "label": "a",
             "component_source": "test123",
             "component_parameters": {
-              "filename": "sandbox/dummy_notebook_1.ipynb",
+              "filename": "notebooks/dummy_notebook_1.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=a"],
+              "env_vars": [
+                "OP_NAME=a"
+              ],
               "include_subdirectories": false,
-              "mounted_volumes": ["/mount/test=rwx-test-claim"],
-              "dependencies": ["d.txt", "e.txt", "f.txt"],
-              "outputs": ["d.txt", "e.txt", "f.txt"]
+              "mounted_volumes": [
+                "/mount/test=rwx-test-claim"
+              ],
+              "dependencies": [
+                "d.txt",
+                "e.txt",
+                "f.txt"
+              ],
+              "outputs": [
+                "d.txt",
+                "e.txt",
+                "f.txt"
+              ]
             },
             "ui_data": {
               "label": "a",
               "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
               "x_pos": 72,
               "y_pos": 272,
-              "description": "Notebook file"
+              "description": "Run notebook file"
             }
           },
           "inputs": [
@@ -61,7 +73,6 @@
             }
           ]
         },
-
         {
           "id": "6f5c2ece-1977-48a1-847f-099b327c6ed1",
           "type": "execution_node",
@@ -69,18 +80,22 @@
           "app_data": {
             "label": "c",
             "component_parameters": {
-              "filename": "sandbox/dummy_script_1.py",
+              "filename": "scripts/dummy_script_1.py",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=c"],
+              "env_vars": [
+                "OP_NAME=c"
+              ],
               "include_subdirectories": false,
-              "mounted_volumes": ["/mount/test=rwx-test-claim-1"]
+              "mounted_volumes": [
+                "/mount/test=rwx-test-claim-1"
+              ]
             },
             "ui_data": {
               "label": "c",
               "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
               "x_pos": 337,
               "y_pos": 251,
-              "description": "Script file"
+              "description": "Run notebook file"
             }
           },
           "inputs": [
@@ -124,10 +139,14 @@
         "ui_data": {
           "comments": []
         },
-        "version": 5,
-        "runtime": "kfp",
+        "version": 7,
         "runtime_config": "kfp-yukked1",
-        "source": "pipeline_dependency_complex.json"
+        "source": "pipeline_dependency_complex.json",
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "properties": {
+          "name": "pipeline_with_many_mount",
+          "runtime": "Kubeflow Pipelines"
+        }
       },
       "runtime_ref": ""
     }

@@ -194,7 +194,8 @@
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "name": "kfp_3_node_custom",
-          "description": "3-node custom component pipeline"
+          "description": "3-node custom component pipeline",
+          "runtime": "Kubeflow Pipelines"
         }
       },
       "runtime_ref": ""

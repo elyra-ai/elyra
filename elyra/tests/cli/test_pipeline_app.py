@@ -384,7 +384,7 @@ def test_describe_runtime_image_json():
     runner = CliRunner()
 
     # Test json output when there are no runtime_images
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_zero_runtime_image.pipeline"
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
     result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
     result_json = json.loads(result.output)
     assert not result_json.get("runtime_image")

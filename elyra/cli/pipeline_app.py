@@ -520,6 +520,7 @@ def describe(json_option, pipeline_path):
     describe_dict["description"] = primary_pipeline.get_property("description")
     describe_dict["type"] = primary_pipeline.type
     describe_dict["version"] = primary_pipeline.version
+    describe_dict["runtime"] = primary_pipeline.get_property("runtime")
     describe_dict["nodes"] = len(primary_pipeline.nodes)
     describe_dict["scripts"] = set()
     describe_dict["notebooks"] = set()
@@ -545,7 +546,7 @@ def describe(json_option, pipeline_path):
             describe_dict[pipeline_constants.RUNTIME_IMAGE].add(f"{temp_runtime_image_value}")
 
         # collect notebook / script name when pipeline is generic
-        if describe_dict["type"] is None:
+        if describe_dict["runtime"] == "Generic":
             temp_value = node.get_component_parameter("filename")
             if not temp_value:
                 pass
