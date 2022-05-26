@@ -105,7 +105,7 @@ const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
 const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
   return (
     <div className={props.classNames}>
-      {props.schema.title !== undefined ? (
+      {props.schema.title !== undefined && props.schema.title !== ' ' ? (
         <div className="label-header">
           <label className="control-label">
             {`${props.schema.title}${props.required ? '*' : ''}`}
@@ -127,6 +127,7 @@ const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
         undefined
       )}
       {props.children}
+      {props.errors}
     </div>
   );
 };
