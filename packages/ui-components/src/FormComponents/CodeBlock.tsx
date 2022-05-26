@@ -19,7 +19,6 @@ import { Field } from '@rjsf/core';
 import * as React from 'react';
 
 export const CodeBlock: Field = props => {
-  const label = props.schema.title ?? 'Code';
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 
