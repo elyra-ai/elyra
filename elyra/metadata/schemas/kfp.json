@@ -106,7 +106,7 @@
           "description": "Password for the specified username. This property is required for all authentication types, except NO_AUTHENTICATION and KUBERNETES_SERVICE_ACCOUNT_TOKEN.",
           "type": "string",
           "uihints": {
-            "secure": true,
+            "ui:field": "password",
             "category": "Kubeflow Pipelines"
           }
         },
@@ -168,7 +168,7 @@
           "type": "string",
           "minLength": 8,
           "uihints": {
-            "secure": true,
+            "ui:field": "password",
             "category": "Cloud Object Storage"
           }
         },
