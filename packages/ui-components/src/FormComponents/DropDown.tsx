@@ -46,10 +46,6 @@ export const DropDown: Field = props => {
 
   return (
     <div>
-      <label className="control-label">{label}</label>
-      {schema.description && (
-        <p className="field-description">{schema.description}</p>
-      )}
       <input
         required={required}
         onChange={(event: any): void => {

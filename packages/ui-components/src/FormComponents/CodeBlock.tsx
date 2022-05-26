@@ -68,13 +68,5 @@ export const CodeBlock: Field = props => {
     }
   }, [props.formContext.language]);
 
-  return (
-    <div>
-      <label className="control-label">{label}</label>
-      {props.schema.description && (
-        <p className="field-description">{props.schema.description}</p>
-      )}
-      <div ref={codeBlockRef} className="elyra-form-code" />
-    </div>
-  );
+  return <div ref={codeBlockRef} className="elyra-form-code" />;
 };

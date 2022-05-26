@@ -157,62 +157,59 @@ export const Tags: React.FC<ITagProps> = props => {
     );
 
   return (
-    <div>
-      <label className="control-label"> Tags </label>
-      <li className={FORM_EDITOR_TAG_LIST}>
-        {hasTags
-          ? tags.map((tag: string, index: number) =>
-              ((): JSX.Element => {
-                if (!selectedTags) {
-                  return (
-                    <button
-                      onClick={handleClick}
-                      className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
-                      id={`editor-${tag}-${index}`}
-                      key={`editor-${tag}-${index}`}
-                    >
-                      {tag}
-                    </button>
-                  );
-                }
+    <li className={FORM_EDITOR_TAG_LIST}>
+      {hasTags
+        ? tags.map((tag: string, index: number) =>
+            ((): JSX.Element => {
+              if (!selectedTags) {
+                return (
+                  <button
+                    onClick={handleClick}
+                    className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
+                    id={`editor-${tag}-${index}`}
+                    key={`editor-${tag}-${index}`}
+                  >
+                    {tag}
+                  </button>
+                );
+              }
 
-                if (selectedTags.includes(tag)) {
-                  return (
-                    <button
-                      onClick={handleClick}
-                      className={`${FORM_EDITOR_TAG} tag applied-tag`}
-                      id={`editor-${tag}-${index}`}
-                      key={`editor-${tag}-${index}`}
-                    >
-                      {tag}
-                      <checkIcon.react
-                        tag="span"
-                        elementPosition="center"
-                        height="18px"
-                        width="18px"
-                        marginLeft="5px"
-                        marginRight="-3px"
-                      />
-                    </button>
-                  );
-                } else {
-                  return (
-                    <button
-                      onClick={handleClick}
-                      className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
-                      id={`editor-${tag}-${index}`}
-                      key={`editor-${tag}-${index}`}
-                    >
-                      {tag}
-                    </button>
-                  );
-                }
-              })()
-            )
-          : null}
-        {inputBox}
-      </li>
-    </div>
+              if (selectedTags.includes(tag)) {
+                return (
+                  <button
+                    onClick={handleClick}
+                    className={`${FORM_EDITOR_TAG} tag applied-tag`}
+                    id={`editor-${tag}-${index}`}
+                    key={`editor-${tag}-${index}`}
+                  >
+                    {tag}
+                    <checkIcon.react
+                      tag="span"
+                      elementPosition="center"
+                      height="18px"
+                      width="18px"
+                      marginLeft="5px"
+                      marginRight="-3px"
+                    />
+                  </button>
+                );
+              } else {
+                return (
+                  <button
+                    onClick={handleClick}
+                    className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
+                    id={`editor-${tag}-${index}`}
+                    key={`editor-${tag}-${index}`}
+                  >
+                    {tag}
+                  </button>
+                );
+              }
+            })()
+          )
+        : null}
+      {inputBox}
+    </li>
   );
 };
 

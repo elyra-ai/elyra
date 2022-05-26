@@ -46,7 +46,7 @@ fieldset#root > div > fieldset {
 
 label.control-label {
   font-size: var(--jp-content-font-size2);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 fieldset#root {
@@ -63,6 +63,7 @@ fieldset#root {
   width: 50%;
   position: relative;
   height: fit-content;
+  min-width: 400px;
 }
 
 .elyra-formEditor datalist {
@@ -242,16 +243,42 @@ button.elyra-editor-tag.unapplied-tag {
   display: none;
 }
 
-.elyra-formEditor .form-group:not(.field-object):hover .field-description {
+.elyra-formEditor .description-wrapper:hover .field-description {
   color: var(--jp-content-font-color2);
   position: absolute;
-  top: 95%;
-  left: 0;
+  bottom: 110%;
+  left: 50%;
+  transform: translate(-50%, -10%);
   background-color: var(--jp-border-color0);
   padding: 5px;
   border-radius: 5px;
   display: initial;
+  max-width: 22ch;
+  width: max-content;
   z-index: 1;
+}
+
+.elyra-formEditor
+  .label-header
+  .description-wrapper
+  p.field-description.short-title {
+  transform: translate(-20%, -10%);
+}
+
+.elyra-formEditor .description-wrapper {
+  width: fit-content;
+  position: relative;
+}
+
+.elyra-formEditor button.description-button {
+  border-radius: 100%;
+  margin-left: 6px;
+  border: none;
+  background: var(--jp-border-color0);
+}
+
+.elyra-formEditor .label-header {
+  display: flex;
 }
 
 .elyra-formEditor .array-item {

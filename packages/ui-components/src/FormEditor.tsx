@@ -17,7 +17,11 @@
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
-import Form, { ArrayFieldTemplateProps, IChangeEvent } from '@rjsf/core';
+import Form, {
+  ArrayFieldTemplateProps,
+  FieldTemplateProps,
+  IChangeEvent
+} from '@rjsf/core';
 import * as React from 'react';
 
 /**
@@ -72,42 +76,17 @@ interface IFormEditorProps {
 const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
   return (
     <div className={props.className}>
-      <props.TitleField
-        title={props.title}
-        required={props.required}
-        id={`${props.idSchema.$id}-title`}
-      />
-      <props.DescriptionField
-        id={`${props.idSchema.$id}-description`}
-        description={props.schema.description ?? ''}
-      />
       {props.items.map(item => {
         return (
           <div key={item.key} className={item.className}>
             {item.children}
-            <div className="jp-ArrayOperations">
-              <button
-                className="jp-mod-styled jp-mod-reject"
-                onClick={item.onReorderClick(item.index, item.index - 1)}
-                disabled={!item.hasMoveUp}
-              >
-                {props.formContext.trans.__('Move Up')}
-              </button>
-              <button
-                className="jp-mod-styled jp-mod-reject"
-                onClick={item.onReorderClick(item.index, item.index + 1)}
-                disabled={!item.hasMoveDown}
-              >
-                {props.formContext.trans.__('Move Down')}
-              </button>
-              <button
-                className="jp-mod-styled jp-mod-warn"
-                onClick={item.onDropIndexClick(item.index)}
-                disabled={!item.hasRemove}
-              >
-                {props.formContext.trans.__('Remove')}
-              </button>
-            </div>
+            <button
+              className="jp-mod-styled jp-mod-warn"
+              onClick={item.onDropIndexClick(item.index)}
+              disabled={!item.hasRemove}
+            >
+              {props.formContext.trans.__('Remove')}
+            </button>
           </div>
         );
       })}
@@ -119,6 +98,35 @@ const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
           {props.formContext.trans.__('Add') ?? 'Add'}
         </button>
       )}
+    </div>
+  );
+};
+
+const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
+  return (
+    <div className={props.classNames}>
+      {props.schema.title !== undefined ? (
+        <div className="label-header">
+          <label className="control-label">
+            {`${props.schema.title}${props.required ? '*' : ''}`}
+          </label>
+          {props.schema.description && (
+            <div className="description-wrapper">
+              <button className="description-button">?</button>
+              <p
+                className={`field-description ${
+                  props.schema.title.length < 5 ? 'short-title' : ''
+                }`}
+              >
+                {props.schema.description}
+              </p>
+            </div>
+          )}
+        </div>
+      ) : (
+        undefined
+      )}
+      {props.children}
     </div>
   );
 };
@@ -172,6 +180,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       }}
       fields={componentRegistry?.renderers}
       ArrayFieldTemplate={ArrayTemplate}
+      FieldTemplate={CustomFieldTemplate}
       uiSchema={uiSchema}
       onChange={(e: IChangeEvent<any>): void => {
         setFormData(e.formData);
