@@ -20,7 +20,11 @@ from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
+from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
+from elyra.pipeline.pipeline import VolumeMount
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationResponse
@@ -410,6 +414,48 @@ def test_invalid_node_property_env_var(validation_manager):
     assert issues[0]["type"] == "invalidEnvPair"
     assert issues[0]["data"]["propertyName"] == "env_vars"
     assert issues[0]["data"]["nodeID"] == "test-id"
+
+
+def test_invalid_node_property_volumes(validation_manager):
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    volumes = [
+        VolumeMount("/mount/test", "rwx-test-claim"),  # valid
+        VolumeMount("/mount/test_two", "second-claim"),  # valid
+        VolumeMount("/mount/test_four", "second#claim"),  # invalid pvc name
+    ]
+    validation_manager._validate_mounted_volumes(
+        node_id=node["id"], node_label=node["app_data"]["label"], volumes=volumes, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert issues[0]["severity"] == 1
+    assert issues[0]["type"] == "invalidVolumeMount"
+    assert issues[0]["data"]["propertyName"] == MOUNTED_VOLUMES
+    assert issues[0]["data"]["nodeID"] == "test-id"
+    assert "not a valid Kubernetes resource name" in issues[0]["message"]
+
+
+def test_invalid_node_property_secrets(validation_manager):
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    secrets = [
+        KubernetesSecret("ENV_VAR1", "test-secret", "test-key1"),  # valid
+        KubernetesSecret("ENV_VAR2", "test-secret", "test-key2"),  # valid
+        KubernetesSecret("ENV_VAR3", "test-secret", ""),  # invalid: improper format of secret name/key
+        KubernetesSecret("ENV_VAR5", "test%secret", "test-key"),  # invalid: not a valid Kubernetes resource name
+        KubernetesSecret("ENV_VAR6", "test-secret", "test$key2"),  # invalid: not a valid Kubernetes secret key
+    ]
+    validation_manager._validate_kubernetes_secrets(
+        node_id=node["id"], node_label=node["app_data"]["label"], secrets=secrets, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert issues[0]["severity"] == 1
+    assert issues[0]["type"] == "invalidKubernetesSecret"
+    assert issues[0]["data"]["propertyName"] == KUBERNETES_SECRETS
+    assert issues[0]["data"]["nodeID"] == "test-id"
+    assert "improperly formatted representation of secret name and key" in issues[0]["message"]
+    assert "not a valid Kubernetes resource name" in issues[1]["message"]
+    assert "not a valid Kubernetes secret key" in issues[2]["message"]
 
 
 def test_valid_node_property_label(validation_manager):

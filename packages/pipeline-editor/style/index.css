@@ -790,6 +790,10 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   font-size: var(--jp-content-font-size2);
 }
 
+.elyra-PipelineEditor-Alert {
+  white-space: pre-line;
+}
+
 /* fix font ligatures */
 .lsp-completer-theme-vscode {
   letter-spacing: normal;

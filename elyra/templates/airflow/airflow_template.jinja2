@@ -33,8 +33,10 @@ env_var_secret_key = Secret(deploy_type='env',
                             key='AWS_SECRET_ACCESS_KEY',
 )
 {% endif %}
+{% set ns = namespace() %}
 
 {% for key, operation in operations_list.items() %}
+{% set ns.operation_kubernetes_secrets = "" %}
 
 {% if not operation.is_generic_operator %}
 {% for import_statement in operation.imports %}
@@ -43,6 +45,21 @@ env_var_secret_key = Secret(deploy_type='env',
 {% else %}
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 {% endif %}
+
+{% if operation.kubernetes_secrets %}
+from airflow.kubernetes.secret import Secret
+# Kubernetes secrets for operation '{{ operation.id|regex_replace }}'
+    {% for secret in operation.kubernetes_secrets %}
+secret_{{ operation.id|regex_replace }}_{{ loop.index }} = Secret(deploy_type='env',
+                                              deploy_target='{{ secret.env_var }}',
+                                              secret='{{ secret.name }}',
+                                              key='{{ secret.key }}',
+)
+        {% set ns.operation_kubernetes_secrets = ns.operation_kubernetes_secrets ~ 'secret_' ~ operation.id|regex_replace ~ '_' ~ loop.index ~ ', ' %}
+    {% endfor %}
+{% endif %}
+
+{% if cos_secret %}{% set ns.operation_kubernetes_secrets = ns.operation_kubernetes_secrets ~ "env_var_secret_id, env_var_secret_key" %}{% endif %}
 
 {% if operation.operator_source %}# Operator source: {{ operation.operator_source }}{% endif %}{% if not operation.is_generic_operator %}
 op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
@@ -56,24 +73,24 @@ from airflow.contrib.kubernetes.volume import Volume
 from airflow.contrib.kubernetes.volume_mount import VolumeMount
 volumes_{{ operation.id|regex_replace }} = []
 volume_mounts_{{ operation.id|regex_replace }} = []
-    {% for mount_path, volume_claim in operation.volume_mounts.items() %}
-volume_mount_{{loop.index}} = VolumeMount(name='{{ volume_claim }}',
-                            mount_path='{{ mount_path }}',
+    {% for volume_mount in operation.volume_mounts %}
+volume_mount_{{loop.index}} = VolumeMount(name='{{ volume_mount.pvc_name }}',
+                            mount_path='{{ volume_mount.path }}',
                             sub_path=None,
                             read_only=False)
 volume_config_{{ loop.index }}= {
     'persistentVolumeClaim':
       {
-        'claimName': '{{ volume_claim }}'
+        'claimName': '{{ volume_mount.pvc_name }}'
       }
     }
-volume_{{ loop.index }} = Volume(name='{{ volume_claim }}', configs=volume_config_{{ loop.index }})
+volume_{{ loop.index }} = Volume(name='{{ volume_mount.pvc_name }}', configs=volume_config_{{ loop.index }})
 volumes_{{ operation.id|regex_replace }}.append(volume_{{ loop.index }})
 volume_mounts_{{ operation.id|regex_replace }}.append(volume_mount_{{ loop.index }})
     {% endfor %}
 {% endif %}
 op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.notebook|regex_replace }}',
-                                                            namespace='{{ namespace }}',
+                                                            namespace='{{ user_namespace }}',
                                                             image='{{ operation.runtime_image }}',
         {% if operation.runtime_image_pull_secret %}
                                                             image_pull_secrets='{{ operation.runtime_image_pull_secret }}',
@@ -100,9 +117,9 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
         },
 
         {% endif %}
-    {% if cos_secret %}
-                                                          secrets=[env_var_secret_id, env_var_secret_key],
-    {% endif %}                                                        
+    {% if ns.operation_kubernetes_secrets %}
+                                                          secrets=[{{ ns.operation_kubernetes_secrets }}],
+    {% endif %}
                                                           in_cluster={{ in_cluster }},
                                                           config_file="{{ kube_config_path }}",
     {% endif %}
