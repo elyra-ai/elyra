@@ -281,12 +281,13 @@ button.elyra-editor-tag.unapplied-tag {
   position: relative;
 }
 
-.elyra-formEditor button.description-button {
+.elyra-formEditor .description-button {
   border-radius: 100%;
   margin-left: 6px;
   border: 1px solid var(--jp-border-color1);
   background: none;
   color: var(--jp-border-color0);
+  padding: 2px 5px;
 }
 
 .elyra-formEditor .label-header {
@@ -297,6 +298,21 @@ button.elyra-editor-tag.unapplied-tag {
 .elyra-formEditor .array-item {
   display: flex;
   align-items: center;
+  margin-bottom: 15px;
+  margin-top: 10px;
+}
+
+.elyra-formEditor .field-array button {
+  border-radius: 3px;
+}
+
+.elyra-formEditor .array-item .form-group.field {
+  padding-bottom: 0;
+  padding-right: 10px;
+}
+
+.elyra-formEditor .array-item .form-group.field input {
+  margin-top: 0;
 }
 
 .elyra-formEditor .jp-ArrayOperations {

@@ -107,12 +107,12 @@ const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
     <div className={props.classNames}>
       {props.schema.title !== undefined && props.schema.title !== ' ' ? (
         <div className="label-header">
-          <label className="control-label">
+          <label className="control-label" htmlFor={props.id}>
             {`${props.schema.title}${props.required ? '*' : ''}`}
           </label>
           {props.schema.description && (
             <div className="description-wrapper">
-              <button className="description-button">?</button>
+              <div className="description-button">?</div>
               <p
                 className={`field-description ${
                   props.schema.title.length < 5 ? 'short-title' : ''
