@@ -20,7 +20,7 @@ describe('Code snippet from cells tests', () => {
 
     // Create new python notebook
     cy.get(
-      '.jp-LauncherCard[data-category="Notebook"][title*="Python 3 (ipykernel)"]'
+      '.jp-LauncherCard[data-category="Notebook"][title="Python 3 (ipykernel)"]'
     ).click();
   });
 
