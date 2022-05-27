@@ -537,9 +537,7 @@ def describe(json_option, pipeline_path):
             describe_dict["component_dependencies"].add(node.component_source)
         # collect information of mounted volumes
         for mounted_volume in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
-            temp_mount_value = mounted_volume.split("=")[-1]
-            if temp_mount_value != "":
-                describe_dict[pipeline_constants.MOUNTED_VOLUMES].add(f"{temp_mount_value}")
+            describe_dict[pipeline_constants.MOUNTED_VOLUMES].add(f"{mounted_volume.pvc_name}")
         # collection runtime image details
         temp_runtime_image_value = node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
         if temp_runtime_image_value:
