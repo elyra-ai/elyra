@@ -498,7 +498,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         :return: dictionary containing environment name/value pairs
         """
 
-        envs: Dict = operation.env_vars.to_dict(logger=self.log)
+        envs: Dict = operation.env_vars.to_dict()
         envs["ELYRA_RUNTIME_ENV"] = self.name
 
         # set environment variables for Minio/S3 access, in the following order of precedence:
