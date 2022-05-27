@@ -17,8 +17,6 @@ from dataclasses import asdict as dataclass_asdict
 from dataclasses import dataclass
 from dataclasses import is_dataclass
 import json
-import logging
-from logging import Logger
 import os
 import sys
 from typing import Any
@@ -197,16 +195,6 @@ class Operation(object):
     @staticmethod
     def is_generic_operation(operation_classifier) -> bool:
         return operation_classifier in Operation.generic_node_types
-
-    @staticmethod
-    def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = logging.DEBUG):
-        """
-        Log a message with the given logger at the given level or simply print.
-        """
-        if logger:
-            logger.log(level, msg)
-        else:
-            print(msg)
 
 
 class GenericOperation(Operation):
@@ -446,7 +434,7 @@ class KeyValueList(list):
 
     _key_value_separator: str = "="
 
-    def to_dict(self, logger: Optional[Logger] = None) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, str]:
         """
         Properties consisting of key-value pairs are stored in a list of separated
         strings, while most processing steps require a dictionary - so we must convert.
@@ -468,14 +456,13 @@ class KeyValueList(list):
 
             key = key.strip()
             if not key:
-                Operation.log_message(f"Skipping inclusion of property '{kv}': no key found", logger, logging.WARN)
+                # Invalid entry; skip inclusion and continue
                 continue
+
             if isinstance(value, str):
                 value = value.strip()
             if not value:
-                Operation.log_message(
-                    f"Skipping inclusion of property '{key}': no value specified", logger, logging.DEBUG
-                )
+                # Invalid entry; skip inclusion and continue
                 continue
 
             kv_dict[key] = value
