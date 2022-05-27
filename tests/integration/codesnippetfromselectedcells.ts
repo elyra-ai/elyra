@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+const cellSelector =
+  'div.CodeMirror-lines[role="presentation"] > div[role="presentation"]';
+
 describe('Code snippet from cells tests', () => {
   beforeEach(() => {
     cy.resetJupyterLab();
@@ -22,67 +25,88 @@ describe('Code snippet from cells tests', () => {
     cy.get(
       '.jp-LauncherCard[data-category="Notebook"][title="Python 3 (ipykernel)"]'
     ).click();
+
+    cy.wait(2000);
   });
 
-  it('tests empty cell', () => {
-    cy.get('span[role="presentation"]').rightclick({
-      force: true
-    });
+  it('test empty cell', () => {
+    cy.get(cellSelector)
+      .first()
+      .rightclick();
+
+    cy.wait(2000);
+
     cy.get(
       'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
     ).should('have.class', 'p-mod-disabled');
   });
 
-  it('tests 1 cell', () => {
+  it('test 1 cell', () => {
     // Create new cell
     cy.get(
       '.jp-NotebookPanel-toolbar > div:nth-child(2) > button:nth-child(1)'
     ).click();
 
+    cy.wait(2000);
+
     populateCells();
 
-    cy.get('span[role="presentation"]:nth-child(1)').rightclick({
-      force: true
-    });
-
-    cy.get('li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]');
+    cy.get(cellSelector)
+      .first()
+      .rightclick({
+        force: true
+      });
 
     cy.wait(2000);
 
-    cy.get('span[role="presentation"]').should('have.text', 'print("test")');
+    cy.get(
+      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
+    ).click();
+
+    cy.wait(2000);
+
+    cy.get('span[role="presentation"]:visible').should(
+      'have.text',
+      'print("test")'
+    );
   });
 
-  it('tests 2 cells', () => {
+  it('test 2 cells', () => {
     // Create new cells
     cy.get(
       '.jp-NotebookPanel-toolbar > div:nth-child(2) > button:nth-child(1)'
     ).click();
-    cy.get(
-      '.jp-NotebookPanel-toolbar > div:nth-child(2) > button:nth-child(1)'
-    ).click();
+
+    cy.wait(2000);
 
     populateCells();
 
     // Select all cells
-    cy.get('div.jp-NotebookPanel').trigger('keydown', {
-      key: 'a',
-      ctrlKey: true
-    });
+    cy.get(
+      ':nth-child(1) > .jp-Cell-inputWrapper > .jp-InputArea > .jp-InputPrompt'
+    )
+      .first()
+      .click({
+        shiftKey: true
+      });
 
-    cy.get('span[role="presentation"]:nth-child(1)').rightclick({
-      force: true
-    });
-
-    cy.get('li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]');
+    cy.get('div.lm-Widget.p-Widget.jp-InputPrompt.jp-InputArea-prompt:visible')
+      .first()
+      .rightclick({
+        force: true
+      });
 
     cy.wait(2000);
 
-    cy.get('span[role="presentation"]').should(
-      'have.text',
-      `print("test")
+    cy.get(
+      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
+    ).click();
 
-            print("test")`
-    );
+    cy.wait(2000);
+
+    cy.get(
+      '.elyra-form-code > .CodeMirror > .CodeMirror-scroll span[role="presentation"]:contains("test")'
+    ).should('have.length', 2);
   });
 });
 
@@ -93,7 +117,7 @@ describe('Code snippet from cells tests', () => {
 // Populate cells
 const populateCells = (): void => {
   cy.get('span[role="presentation"]').each(cell => {
-    cell.type('print("test")');
+    cy.get(cell).type('print("test")');
     dismissAssistant();
   });
 };
@@ -103,7 +127,7 @@ const dismissAssistant = (): void => {
   cy.get('body').then($body => {
     if ($body.find('.lsp-completer').length > 0) {
       // Dismiss code assistant box
-      cy.get('.CodeMirror-lines')
+      cy.get('body')
         .first()
         .type('{esc}');
     }
