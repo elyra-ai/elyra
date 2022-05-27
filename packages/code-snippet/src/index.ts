@@ -100,7 +100,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
           selection = document.getSelection()?.toString() ?? '';
         }
 
-        if (selection) {
+        if (selection.length > 0) {
           return true;
         }
 
@@ -124,7 +124,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
           selection = document.getSelection()?.toString() ?? '';
         }
 
-        if (selection) {
+        if (selection.length > 0) {
           codeSnippetWidget.openMetadataEditor({
             schemaspace: CODE_SNIPPET_SCHEMASPACE,
             schema: CODE_SNIPPET_SCHEMA,
@@ -188,8 +188,11 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         const allCells = notebook.widgets;
 
         allCells.forEach((cell: Cell) => {
-          if (notebook.isSelectedOrActive(cell))
-            selectedCells.push(cell.model.toJSON().source.toString());
+          if (notebook.isSelectedOrActive(cell)) {
+            const contents: string = cell.model.toJSON().source.toString();
+
+            if (contents.length > 0) selectedCells.push(contents);
+          }
         });
       }
 
