@@ -341,8 +341,10 @@ class Node(AppDataBase):
             if not value:
                 continue
 
-            if isinstance(value, KeyValueList):
-                # Any KeyValueList instance implies all relevant properties have already been converted
+            if isinstance(value, KeyValueList) or not isinstance(value[0], str):
+                # A KeyValueList instance implies all relevant properties have already been converted
+                # Similarly, if KeyValueList items aren't strings, this implies they have already been
+                # converted to the appropriate data class objects
                 return
 
             # Convert plain list to KeyValueList
