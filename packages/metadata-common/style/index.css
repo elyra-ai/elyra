@@ -358,3 +358,10 @@ input.elyra-inputTag {
 .elyra-no-metadata-msg {
   padding-left: 8px;
 }
+
+#split-button-menu {
+  color: var(--jp-ui-font-color1);
+  background-color: var(--jp-layout-color1);
+  border: var(--jp-border-width) solid var(--jp-border-color0);
+  border-radius: 5px;
+}
