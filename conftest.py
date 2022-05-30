@@ -53,7 +53,10 @@ def component_cache(jp_environ):
     component_cache.load()
 
     yield component_cache
-    component_cache.cache_manager.stop()
+    if component_cache.is_server_process:
+        component_cache.cache_manager.stop()
+    # else:
+    #     raise RuntimeError(f"component_cache.is_server_process ==> {component_cache.is_server_process}")
     ComponentCache.clear_instance()
 
 
