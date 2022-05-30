@@ -15,7 +15,6 @@
  */
 
 import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
-import { IDebugger } from '@jupyterlab/debugger';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { ScrollingWidget } from '@jupyterlab/logconsole';
@@ -41,7 +40,7 @@ import {
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
 
-import { DebuggerEditorHandler } from './DebuggerEditorHandler';
+// import { DebuggerEditorHandler } from './DebuggerEditorHandler';
 import { KernelDropdown, ISelect } from './KernelDropdown';
 import { ScriptDebugger } from './ScriptDebugger';
 import { ScriptEditorController } from './ScriptEditorController';
@@ -68,7 +67,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   DocumentRegistry.ICodeModel
 > {
   private runner: ScriptRunner;
-  private kernelName?: string;
+  private kernelSelection?: string;
   private dockPanel?: DockPanelSvg;
   private outputAreaWidget?: OutputArea;
   private scrollingWidget?: ScrollingWidget<OutputArea>;
@@ -95,7 +94,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.model = this.content.model;
     this.runner = new ScriptRunner(this.disableButton);
     this.kernelSelectorRef = null;
-    this.kernelName = '';
+    this.kernelSelection = '';
     this.emptyOutput = true;
     this.controller = new ScriptEditorController();
     this.debugger = new ScriptDebugger(this.disableButton);
@@ -163,7 +162,7 @@ export abstract class ScriptEditor extends DocumentWidget<
       this.getLanguage()
     );
 
-    // this.kernelName = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
+    // this.kernelSelection = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
 
     this.kernelSelectorRef = React.createRef<ISelect>();
 
@@ -175,12 +174,14 @@ export abstract class ScriptEditor extends DocumentWidget<
       this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
 
-    const kernelSelection = this.kernelSelectorRef?.current?.getSelection();
-    console.log('kernelSelection: ' + kernelSelection);
-
-    this.kernelName =
-      kernelSelection || Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
+    this.kernelSelection =
+      this.getKernelSelection() ||
+      Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
     return;
+  };
+
+  getKernelSelection = (): string => {
+    return this.kernelSelectorRef?.current?.getSelection() ?? '';
   };
 
   /**
@@ -193,14 +194,14 @@ export abstract class ScriptEditor extends DocumentWidget<
     }
 
     const debuggerIsAvailable = await this.controller.isDebuggerAvailable(
-      this.kernelName || ''
+      this.kernelSelection || ''
     );
     console.log('is debugger available:? ' + debuggerIsAvailable);
 
     if (debuggerIsAvailable) {
       this.disableButton(false, 'debug');
-      const handler = this.createEditorDebugHandler();
-      console.log(handler);
+      // const handler = this.createEditorDebugHandler();
+      // console.log(handler);
     }
   };
 
@@ -222,13 +223,13 @@ export abstract class ScriptEditor extends DocumentWidget<
     button.setHidden(hide);
   };
 
-  private createEditorDebugHandler = (): DebuggerEditorHandler => {
-    return new DebuggerEditorHandler({
-      debuggerService: null, // for now
-      editor: this.content.editor,
-      path: this.context.path
-    });
-  };
+  // private createEditorDebugHandler = (): DebuggerEditorHandler => {
+  //   return new DebuggerEditorHandler({
+  //     debuggerService: null, // for now
+  //     editor: this.content.editor,
+  //     path: this.context.path
+  //   });
+  // };
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.
@@ -265,7 +266,7 @@ export abstract class ScriptEditor extends DocumentWidget<
       this.clearOutputArea();
       this.displayOutputArea();
       await this.runner.runScript(
-        this.kernelName,
+        this.kernelSelection,
         this.context.path,
         this.model.value.text,
         this.handleKernelMsg

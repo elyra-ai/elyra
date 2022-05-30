@@ -23,8 +23,10 @@ import {
 } from '@jupyterlab/application';
 import { Debugger, IDebugger } from '@jupyterlab/debugger';
 import { DocumentWidget } from '@jupyterlab/docregistry';
-import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
-import { Session } from '@jupyterlab/services';
+import { IEditorTracker } from '@jupyterlab/fileeditor';
+// import { Session } from '@jupyterlab/services';
+
+import { ScriptEditor } from './ScriptEditor';
 
 /**
  * Debugger plugin.
@@ -32,7 +34,7 @@ import { Session } from '@jupyterlab/services';
  * A plugin that provides visual debugging support for script editors.
  */
 const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
-  id: '@elyra/script-editor-debugger-extension',
+  id: 'elyra-script-editor-debugger',
   autoStart: true,
   requires: [IDebugger, IEditorTracker],
   optional: [ILabShell],
@@ -42,37 +44,50 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     editorTracker: IEditorTracker,
     labShell: ILabShell | null
   ) => {
+    console.log('***Elyra - script-editor-debugger extension is activated!***');
     const handler = new Debugger.Handler({
       type: 'file',
       shell: app.shell,
       service: debug
     });
 
-    const activeSessions: {
-      [id: string]: Session.ISessionConnection;
-    } = {};
+    //   const activeSessions: {
+    //     [id: string]: Session.ISessionConnection;
+    //   } = {};
 
-    const updateHandlerAndCommands = async (widget: any): Promise<void> => {
-      const sessions = app.serviceManager.sessions;
-      try {
-        const model = await sessions.findByPath(widget.context.path);
-        if (!model) {
-          return;
-        }
-        let session = activeSessions[model.id];
-        if (!session) {
-          // Use `connectTo` only if the session does not exist.
-          // `connectTo` sends a kernel_info_request on the shell
-          // channel, which blocks the debug session restore when waiting
-          // for the kernel to be ready
-          session = sessions.connectTo({ model });
-          activeSessions[model.id] = session;
-        }
-        await handler.update(widget, session);
-        app.commands.notifyCommandChanged();
-      } catch {
-        return;
-      }
+    const updateHandlerAndCommands = async (
+      widget: DocumentWidget
+    ): Promise<void> => {
+      // TODO: get kernel selection from widget
+      const scriptEditorWidget = widget as ScriptEditor;
+      const kernelSelection = scriptEditorWidget.getKernelSelection();
+      console.log('kernelSelection: ' + kernelSelection);
+
+      // TODO: start a kernel session
+      const session = null;
+      await handler.update(widget, session);
+      app.commands.notifyCommandChanged();
+
+      // const sessions = app.serviceManager.sessions;
+      // try {
+      //   const model = await sessions.findByPath(widget.context.path);
+      //   if (!model) {
+      //     return;
+      //   }
+      //   let session = activeSessions[model.id];
+      //   if (!session) {
+      //     // Use `connectTo` only if the session does not exist.
+      //     // `connectTo` sends a kernel_info_request on the shell
+      //     // channel, which blocks the debug session restore when waiting
+      //     // for the kernel to be ready
+      //     session = sessions.connectTo({ model });
+      //     activeSessions[model.id] = session;
+      //   }
+      //   await handler.update(widget, session);
+      //   app.commands.notifyCommandChanged();
+      // } catch {
+      //   return;
+      // }
     };
 
     if (labShell) {
@@ -80,7 +95,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         const widget = update.newValue;
         if (widget instanceof DocumentWidget) {
           const { content } = widget;
-          if (content instanceof FileEditor) {
+          if (content instanceof ScriptEditor) {
             void updateHandlerAndCommands(widget);
           }
         }
@@ -97,10 +112,10 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
   }
 };
 
-export default scriptEditorDebuggerExtension;
 export * from './KernelDropdown';
 export * from './ScriptEditor';
 export * from './ScriptEditorController';
 export * from './ScriptRunner';
 export * from './ScriptDebugger';
 export * from './ScriptEditorWidgetFactory';
+export default scriptEditorDebuggerExtension;
