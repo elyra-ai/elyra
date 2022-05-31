@@ -640,10 +640,10 @@ class AppBase(object):
         print("-----------")
         print("Subcommands are launched as `elyra-metadata cmd [args]`. For information on")
         print("using subcommand 'cmd', run: `elyra-metadata cmd -h` or `elyra-metadata cmd --help`.")
+        print("\nFind more information at https://elyra.readthedocs.io/en/latest/")
         print()
         for subcommand, desc in self.subcommands.items():
-            print(subcommand)
-            print(f"    {desc[1]}")
+            print(f"{subcommand:<10}{desc[1]:>10}")
 
     @staticmethod
     def exit(status: int):
