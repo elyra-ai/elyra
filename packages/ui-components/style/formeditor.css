@@ -276,6 +276,10 @@ button.elyra-editor-tag.unapplied-tag {
   transform: translate(-20%, -10%);
 }
 
+.elyra-formEditor .form-group.field-array .label-header {
+  margin-bottom: 10px;
+}
+
 .elyra-formEditor .description-wrapper {
   width: fit-content;
   position: relative;
@@ -297,13 +301,12 @@ button.elyra-editor-tag.unapplied-tag {
 
 .elyra-formEditor .array-item {
   display: flex;
-  align-items: center;
   margin-bottom: 15px;
-  margin-top: 10px;
 }
 
 .elyra-formEditor .field-array button {
   border-radius: 3px;
+  margin-top: 4px;
 }
 
 .elyra-formEditor .array-item .form-group.field {

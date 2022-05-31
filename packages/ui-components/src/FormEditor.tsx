@@ -115,7 +115,7 @@ const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
               <div className="description-button">?</div>
               <p
                 className={`field-description ${
-                  props.schema.title.length < 5 ? 'short-title' : ''
+                  props.schema.title.length < 10 ? 'short-title' : ''
                 }`}
               >
                 {props.schema.description}
