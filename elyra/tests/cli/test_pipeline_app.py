@@ -26,9 +26,21 @@ from elyra.cli.pipeline_app import pipeline
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline.component_catalog import ComponentCache
 
 # used to drive generic parameter handling tests
 SUB_COMMANDS = ["run", "submit", "describe", "validate", "export"]
+
+
+@pytest.fixture(autouse=True)
+def destroy_component_cache():
+    """
+    This fixture provides a workaround for a (yet unexplained)
+    issue that causes tests to fail that utilize the component
+    cache.
+    """
+    yield
+    ComponentCache.clear_instance()
 
 
 @pytest.fixture
