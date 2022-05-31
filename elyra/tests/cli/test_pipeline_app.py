@@ -883,7 +883,7 @@ def test_validate_with_missing_kfp_component(jp_environ, kubeflow_pipelines_runt
         assert result.exit_code != 0
 
 
-def test_validate_with_no_runtime_config():
+def test_validate_with_no_runtime_config(jp_environ):
     runner = CliRunner()
     with runner.isolated_filesystem():
         pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
