@@ -307,8 +307,8 @@ def update_version_to_dev() -> None:
         # Update documentation version for elyra-metadata cli help
         sed(
             _source("elyra/metadata/metadata_app_utils.py"),
-            rf"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
+            rf"https://elyra.readthedocs.io/en/latest/",
         )
 
         sed(
