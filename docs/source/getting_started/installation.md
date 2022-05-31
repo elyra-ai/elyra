@@ -19,8 +19,6 @@ limitations under the License.
 
 The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/user/extensions.html) can be installed from PyPI, conda, or from source code.
 
-Note: JupyterLab currently requires a re-build after installing any extension.
-
 ### Prerequisites
 
 * [Node.js 16+](https://nodejs.org/en/)
