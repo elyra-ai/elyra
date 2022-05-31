@@ -65,6 +65,7 @@ describe('Code snippet from cells tests', () => {
 
     cy.wait(2000);
 
+    // Verify snippet editor contents
     cy.get('span[role="presentation"]:visible').should(
       'have.text',
       'print("test")'
@@ -104,6 +105,7 @@ describe('Code snippet from cells tests', () => {
 
     cy.wait(2000);
 
+    // Verify snippet editor contents
     cy.get(
       '.elyra-form-code > .CodeMirror > .CodeMirror-scroll span[role="presentation"]:contains("test")'
     ).should('have.length', 2);
