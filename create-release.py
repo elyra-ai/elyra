@@ -213,6 +213,33 @@ def update_version_to_release() -> None:
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
         )
 
+        # Update GitHub references in documentation
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/master/etc/kfp/pip.conf",
+            rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf/",
+        )
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/master/elyra/kfp/bootstrapper.py",
+            rf"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
+        )
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/master/elyra/airflow/bootstrapper.py",
+            rf"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
+        )
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/master/etc/generic/requirements-elyra-py37.txt",
+            rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
+        )
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/master/etc/generic/requirements-elyra.txt",
+            rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
+        )
+
         check_run(
             ["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"],
             cwd=config.source_dir,
@@ -294,6 +321,33 @@ def update_version_to_dev() -> None:
             _source("packages/pipeline-editor/src/PipelineEditorWidget.tsx"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
             rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        # Update GitHub references in documentation
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
+            rf"elyra-ai/elyra/master/etc/kfp/pip.conf/",
+        )
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
+            rf"elyra-ai/elyra/master/elyra/kfp/bootstrapper.py",
+        )
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
+            rf"elyra-ai/elyra/master/elyra/airflow/bootstrapper.py",
+        )
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
+            rf"elyra-ai/elyra/master/etc/generic/requirements-elyra-py37.txt",
+        )
+        sed(
+            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
+            r"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
+            rf"elyra-ai/elyra/master/etc/generic/requirements-elyra.txt",
         )
 
         check_run(
