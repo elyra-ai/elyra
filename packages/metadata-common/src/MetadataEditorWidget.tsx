@@ -87,6 +87,8 @@ export interface IMetadataEditorProps {
   themeManager?: IThemeManager;
 
   titleContext?: string;
+
+  code?: string[];
 }
 
 /**
@@ -194,6 +196,9 @@ export class MetadataEditorWidget extends ReactWidget {
         }
         metadataWithCategories[category][schemaProperty] =
           metadata?.metadata?.[schemaProperty] ?? properties.default;
+        if (schemaProperty === 'code' && this.props.code) {
+          metadataWithCategories[category][schemaProperty] = this.props.code;
+        }
         if (!schemaPropertiesByCategory[category]) {
           schemaPropertiesByCategory[category] = {
             type: 'object',
