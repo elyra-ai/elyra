@@ -86,8 +86,14 @@ export interface IMetadataEditorProps {
    */
   themeManager?: IThemeManager;
 
+  /**
+   * String used to make the title of the editor more readable
+   */
   titleContext?: string;
 
+  /**
+   * Optional field used for the "Save as code snippet" feature
+   */
   code?: string[];
 }
 
