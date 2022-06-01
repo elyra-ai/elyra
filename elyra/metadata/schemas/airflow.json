@@ -71,7 +71,6 @@
           "enum": ["{GIT_TYPES_PLACEHOLDER}"],
           "default": "{GIT_DEFAULT_TYPE_PLACEHOLDER}",
           "uihints": {
-            "field_type": "dropdown",
             "category": "Apache Airflow"
           }
         },
@@ -108,7 +107,7 @@
           "description": "Token that has permission to push to the DAG repository",
           "type": "string",
           "uihints": {
-            "secure": true,
+            "ui:field": "password",
             "category": "Apache Airflow"
           }
         },
@@ -144,7 +143,6 @@
           ],
           "default": "USER_CREDENTIALS",
           "uihints": {
-            "field_type": "dropdown",
             "category": "Cloud Object Storage"
           }
         },
@@ -153,7 +151,7 @@
           "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
           "type": "string",
           "uihints": {
-            "secure": true,
+            "ui:field": "password",
             "category": "Cloud Object Storage"
           }
         },
@@ -171,7 +169,7 @@
           "type": "string",
           "minLength": 8,
           "uihints": {
-            "secure": true,
+            "ui:field": "password",
             "category": "Cloud Object Storage"
           }
         },
@@ -181,14 +179,11 @@
           "uniqueItems": true,
           "type": "array",
           "items": {
-            "allOf": [
-              { "minLength": 1 },
-              { "pattern": "^[^ \t]+" },
-              { "pattern": "[^ \t]+$" }
-            ]
+            "minLength": 1,
+            "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
           },
           "uihints": {
-            "field_type": "tags"
+            "ui:field": "tags"
           }
         }
       },

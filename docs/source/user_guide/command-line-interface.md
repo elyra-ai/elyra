@@ -94,8 +94,11 @@ Application-level properties within a schema reside as top-level properties with
         "title": "Tags",
         "description": "Tags for categorizing snippets",
         "type": "array",
+        "items": {
+          "type": "string"
+        },
         "uihints": {
-          "field_type": "tags"
+          "ui:field": "tags"
         }
       },
       "language": {
@@ -103,7 +106,7 @@ Application-level properties within a schema reside as top-level properties with
         "description": "Code snippet implementation language",
         "type": "string",
         "uihints": {
-          "field_type": "dropdown",
+          "ui:field": "dropdown",
           "default_choices": [
             "Python",
             "Java",
@@ -120,7 +123,7 @@ Application-level properties within a schema reside as top-level properties with
         "description": "Code snippet code lines",
         "type": "array",
         "uihints": {
-          "field_type": "code",
+          "ui:field": "code",
           "category": "Source"
         }
       }

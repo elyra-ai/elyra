@@ -60,17 +60,17 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
     cy.findByRole('menuitem', { name: /apache airflow/i }).click();
   }
 
-  cy.findByLabelText(/^name/i).type(`${type} Test Runtime`);
+  cy.findByLabelText(/^display name/i).type(`${type} Test Runtime`);
 
   if (type === 'kfp') {
-    cy.findByLabelText(/kubeflow .* endpoint \*/i).type(
+    cy.findByLabelText(/kubeflow .* endpoint\*/i).type(
       'https://kubernetes-service.ibm.com/pipeline'
     );
   } else {
     cy.findByLabelText(/airflow .* endpoint/i).type(
       'https://kubernetes-service.ibm.com/pipeline'
     );
-    cy.findByLabelText(/github .* repository \*/i).type('akchinstc/test-repo');
+    cy.findByLabelText(/github .* repository\*/i).type('akchinstc/test-repo');
     cy.findByLabelText(/github .* branch/i).type('main');
     cy.findByLabelText(/personal access token/i).type('xxxxxxxx');
     // Check the default value is displayed on github api endpoint field
@@ -115,7 +115,7 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
     }).click();
   }
 
-  cy.findByLabelText(/^name/i).type('Example Components');
+  cy.findByLabelText(/^display name/i).type('Example Components');
 
   // save it
   cy.findByRole('button', { name: /save/i }).click();

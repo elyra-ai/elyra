@@ -39,7 +39,6 @@
           "type": "string",
           "enum": ["KUBEFLOW_PIPELINES", "APACHE_AIRFLOW"],
           "uihints": {
-            "field_type": "dropdown",
             "category": "Runtime"
           }
         },
@@ -52,7 +51,6 @@
             "maxLength": 18
           },
           "uihints": {
-            "field_type": "array",
             "category": "Component Categories"
           }
         },
@@ -64,7 +62,6 @@
             "type": "string"
           },
           "uihints": {
-            "field_type": "array",
             "category": "Configuration"
           }
         },
@@ -73,8 +70,6 @@
           "description": "Indicates whether a recursive search for component specification files should be performed on subdirectories",
           "type": "boolean",
           "uihints": {
-            "field_type": "boolean",
-            "placeholder": "false",
             "category": "Configuration"
           }
         }

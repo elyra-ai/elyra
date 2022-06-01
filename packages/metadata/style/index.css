@@ -27,7 +27,7 @@
 }
 
 .elyra-metadataEditor {
-  padding: 20px;
+  padding: 20px 0 0 20px;
   display: flex;
   flex-wrap: wrap;
   height: 100%;
@@ -51,6 +51,10 @@
   height: 150px;
   padding-bottom: 10px;
   cursor: initial;
+}
+
+.elyra-metadataEditor .field-object > fieldset > legend span.required {
+  display: none;
 }
 
 .elyra-metadataEditor .CodeMirror.cm-s-jupyter {

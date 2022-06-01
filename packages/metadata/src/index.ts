@@ -14,18 +14,33 @@
  * limitations under the License.
  */
 
-import { MetadataWidget, MetadataEditor } from '@elyra/metadata-common';
+import { MetadataWidget, MetadataEditorWidget } from '@elyra/metadata-common';
 import { MetadataService } from '@elyra/services';
 
-import { RequestErrors } from '@elyra/ui-components';
+import {
+  DropDown,
+  RequestErrors,
+  CodeBlock,
+  TagsField,
+  PasswordField
+} from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
   ILabStatus
 } from '@jupyterlab/application';
-import { IThemeManager, ICommandPalette } from '@jupyterlab/apputils';
+import {
+  IThemeManager,
+  ICommandPalette,
+  MainAreaWidget
+} from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
-import { textEditorIcon, LabIcon } from '@jupyterlab/ui-components';
+import { ITranslator } from '@jupyterlab/translation';
+import {
+  textEditorIcon,
+  LabIcon,
+  IFormComponentRegistry
+} from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
 import { Widget } from '@lumino/widgets';
@@ -44,16 +59,29 @@ const commandIDs = {
 const extension: JupyterFrontEndPlugin<void> = {
   id: METADATA_WIDGET_ID,
   autoStart: true,
-  requires: [ICommandPalette, IEditorServices, ILabStatus],
+  requires: [
+    ICommandPalette,
+    IEditorServices,
+    ILabStatus,
+    IFormComponentRegistry,
+    ITranslator
+  ],
   optional: [IThemeManager],
   activate: async (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     editorServices: IEditorServices,
     status: ILabStatus,
+    componentRegistry: IFormComponentRegistry,
+    translator: ITranslator,
     themeManager?: IThemeManager
   ) => {
     console.log('Elyra - metadata extension is activated!');
+
+    componentRegistry.addRenderer('code', CodeBlock);
+    componentRegistry.addRenderer('tags', TagsField);
+    componentRegistry.addRenderer('dropdown', DropDown);
+    componentRegistry.addRenderer('password', PasswordField);
 
     const openMetadataEditor = (args: {
       schema: string;
@@ -82,21 +110,23 @@ const extension: JupyterFrontEndPlugin<void> = {
         return;
       }
 
-      const metadataEditorWidget = new MetadataEditor({
+      const metadataEditorWidget = new MetadataEditorWidget({
         ...args,
+        schemaName: args.schema,
         editorServices,
         status,
-        themeManager
+        themeManager,
+        translator: translator.load('jupyterlab'),
+        componentRegistry
       });
       metadataEditorWidget.title.label = widgetLabel;
       metadataEditorWidget.id = widgetId;
       metadataEditorWidget.title.closable = true;
       metadataEditorWidget.title.icon = textEditorIcon;
       metadataEditorWidget.addClass(METADATA_EDITOR_ID);
-      metadataEditorWidget.titleContext = args.titleContext;
       // TODO: add back MainAreaWidget for styling purposes
-      // const main = new MainAreaWidget({ content: metadataEditorWidget });
-      app.shell.add(metadataEditorWidget, 'main');
+      const main = new MainAreaWidget({ content: metadataEditorWidget });
+      app.shell.add(main, 'main');
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {

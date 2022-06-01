@@ -39,7 +39,6 @@
           "type": "string",
           "enum": ["KUBEFLOW_PIPELINES", "APACHE_AIRFLOW"],
           "uihints": {
-            "field_type": "dropdown",
             "category": "Runtime"
           }
         },
@@ -52,7 +51,6 @@
             "maxLength": 18
           },
           "uihints": {
-            "field_type": "array",
             "category": "Component Categories"
           }
         },
@@ -65,7 +63,6 @@
             "format": "uri"
           },
           "uihints": {
-            "field_type": "array",
             "category": "Configuration"
           }
         }

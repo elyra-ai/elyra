@@ -47,9 +47,7 @@ describe('Code Snippet tests', () => {
       .should('be.visible');
 
     // Fields marked as required should be highlighted
-    cy.get(
-      '.elyra-MuiFormHelperText-root.elyra-Mui-error, .MuiFormHelperText-root.Mui-error'
-    ).as('required-warnings');
+    cy.get('.error-detail li.text-danger').as('required-warnings');
     cy.get('@required-warnings').should('have.length', 2);
   });
 
@@ -82,7 +80,7 @@ describe('Code Snippet tests', () => {
   it('should trigger save / submit on pressing enter', () => {
     populateCodeSnippetFields(snippetName);
 
-    cy.get('.elyra-metadataEditor-form-display_name').type('{enter}');
+    cy.get('.elyra-formEditor-form-display_name').type('{enter}');
 
     // Metadata editor tab should not be visible
     cy.get('.lm-TabBar-tabLabel')
@@ -188,7 +186,7 @@ describe('Code Snippet tests', () => {
 
     // Edit snippet name
     const newSnippetName = 'new-name';
-    cy.get('.elyra-metadataEditor-form-display_name')
+    cy.get('.elyra-formEditor-form-display_name')
       .find('input')
       .clear()
       .type(newSnippetName);
@@ -338,7 +336,7 @@ const createInvalidCodeSnippet = (snippetName: string): any => {
   clickCreateNewSnippetButton();
 
   // Name code snippet
-  cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
+  cy.get('.elyra-formEditor-form-display_name').type(snippetName);
 
   saveAndCloseMetadataEditor();
 };
@@ -350,7 +348,7 @@ const populateCodeSnippetFields = (
   clickCreateNewSnippetButton();
 
   // Name code snippet
-  cy.get('.elyra-metadataEditor-form-display_name').type(snippetName);
+  cy.get('.elyra-formEditor-form-display_name').type(snippetName);
 
   // Select python language from dropdown list
   editSnippetLanguage(snippetName, language ?? 'Python');
@@ -416,11 +414,14 @@ const insert = (snippetName: string): void => {
 };
 
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
-  cy.get('.elyra-metadataEditor')
-    .find('.elyra-form-DropDown-item .elyra-MuiOutlinedInput-root')
-    .first()
-    .click();
-  cy.get('.elyra-MuiAutocomplete-listbox')
-    .contains(`${lang}`)
+  cy.get('.elyra-formEditor')
+    .find('.elyra-form-DropDown-item option')
+    .then(list => Cypress._.map(list, 'value'))
+    .should('include', lang);
+  cy.get('.elyra-formEditor')
+    .find('.elyra-formEditor-form-language input')
+    .type(lang);
+  cy.get('.elyra-formEditor-form-language input')
+    .should('have.value', lang)
     .click();
 };
