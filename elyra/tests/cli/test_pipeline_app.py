@@ -26,9 +26,21 @@ from elyra.cli.pipeline_app import pipeline
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline.component_catalog import ComponentCache
 
 # used to drive generic parameter handling tests
 SUB_COMMANDS = ["run", "submit", "describe", "validate", "export"]
+
+
+@pytest.fixture(autouse=True)
+def destroy_component_cache():
+    """
+    This fixture provides a workaround for a (yet unexplained)
+    issue that causes tests to fail that utilize the component
+    cache.
+    """
+    yield
+    ComponentCache.clear_instance()
 
 
 @pytest.fixture
@@ -183,20 +195,62 @@ def test_subcommand_with_no_nodes(subcommand, kubeflow_pipelines_runtime_instanc
         assert result.exit_code != 0
 
 
+# ------------------------------------------------------------------
+# tests for 'describe' command
+# ------------------------------------------------------------------
+
+
 def test_describe_with_no_nodes():
+    """
+    Verify that describe yields the expected results if a pipeline without any
+    nodes is is provided as input.
+    """
     runner = CliRunner()
     with runner.isolated_filesystem():
         pipeline_file = "pipeline_with_zero_nodes.pipeline"
         pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / pipeline_file
         assert pipeline_file_path.is_file()
 
+        # verify human-readable output
         result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
         assert result.exit_code == 0, result.output
-        assert "Description: None" in result.output
-        assert "Type: KUBEFLOW_PIPELINES" in result.output
-        assert "Nodes: 0" in result.output
-        assert "File Dependencies:\n    None Listed" in result.output
-        assert "Component Dependencies:\n    None Listed" in result.output
+        assert "Pipeline name: pipeline_with_zero_nodes" in result.output
+        assert "Description: None specified" in result.output
+        assert "Pipeline type: None specified" in result.output
+        assert "Pipeline runtime: Generic" in result.output
+        assert "Pipeline format version: 7" in result.output
+        assert "Number of generic nodes: 0" in result.output
+        assert "Number of generic nodes: 0" in result.output
+        assert "Script dependencies: None specified" in result.output
+        assert "Notebook dependencies: None specified" in result.output
+        assert "Local file dependencies: None specified" in result.output
+        assert "Component dependencies: None specified" in result.output
+        assert "Volume dependencies: None specified" in result.output
+        assert "Container image dependencies: None specified" in result.output
+        assert "Kubernetes secret dependencies: None specified" in result.output
+
+        # verify machine-readable output
+        result = runner.invoke(pipeline, ["describe", str(pipeline_file_path), "--json"])
+        assert result.exit_code == 0, result.output
+        result_json = json.loads(result.output)
+        assert result_json["name"] == "pipeline_with_zero_nodes"
+        assert result_json["description"] is None
+        assert result_json["pipeline_type"] is None
+        assert result_json["pipeline_format_version"] == 7
+        assert result_json["pipeline_runtime"] == "Generic"
+        assert result_json["generic_node_count"] == 0
+        assert result_json["custom_node_count"] == 0
+        for property in [
+            "scripts",
+            "notebooks",
+            "files",
+            "custom_components",
+            "container_images",
+            "volumes",
+            "kubernetes_secrets",
+        ]:
+            assert isinstance(result_json["dependencies"][property], list)
+            assert len(result_json["dependencies"][property]) == 0
 
 
 def test_describe_with_kfp_components():
@@ -205,9 +259,10 @@ def test_describe_with_kfp_components():
 
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
     assert "Description: 3-node custom component pipeline" in result.output
-    assert "Type: KUBEFLOW_PIPELINES" in result.output
-    assert "Nodes: 3" in result.output
-    assert "File Dependencies:\n    None Listed" in result.output
+    assert "Pipeline type: KUBEFLOW_PIPELINES" in result.output
+    assert "Number of custom nodes: 3" in result.output
+    assert "Number of generic nodes: 0" in result.output
+    assert "Local file dependencies: None specified" in result.output
     assert (
         "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/"
         "basics/Calculate_hash/component.yaml" in result.output
@@ -220,17 +275,6 @@ def test_describe_with_kfp_components():
         "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/"
         "web/Download/component.yaml" in result.output
     )
-    assert result.exit_code == 0
-
-
-@pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_validate_with_kfp_components(jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance):
-    runner = CliRunner()
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
-    result = runner.invoke(
-        pipeline, ["validate", str(pipeline_file_path), "--runtime-config", kubeflow_pipelines_runtime_instance]
-    )
-    assert "Validating pipeline..." in result.output
     assert result.exit_code == 0
 
 
@@ -248,228 +292,575 @@ def test_describe_with_missing_kfp_component():
 
         result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
         assert "Description: 3-node custom component pipeline" in result.output
-        assert "Type: KUBEFLOW_PIPELINES" in result.output
-        assert "Nodes: 3" in result.output
+        assert "Pipeline type: KUBEFLOW_PIPELINES" in result.output
+        assert "Number of custom nodes: 3" in result.output
+        assert "Number of generic nodes: 0" in result.output
+
         assert result.exit_code == 0
 
 
-def test_describe_notebook_script_report():
+def test_describe_notebooks_scripts_report():
     """
-    Test report output for notebook/script property when none, one or many instances are present
-    :return:
+    Test human-readable output for notebooks/scripts property when none, one or many instances are present
     """
     runner = CliRunner()
 
-    # Test report output when only notebook/s present
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook.pipeline"
+    #
+    # Pipeline references no notebooks/no scripts:
+    # - Pipeline does not contain nodes -> test_describe_with_no_nodes
+    # - Pipeline contains only script nodes
+    # - Pipeline contains only notebook nodes
+    # - Pipeline contains only custom components
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Notebooks:\n" in result.output
-    assert "dummy_notebook_1.ipynb" in result.output
-    assert "dummy_notebook_2.ipynb" in result.output
+    assert result.exit_code == 0
+    assert "Notebook dependencies: None specified" in result.output
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Script dependencies: None specified" in result.output
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Notebook dependencies: None specified" in result.output
+    assert "Script dependencies: None specified" in result.output
+
+    #
+    # Pipeline references multiple notebooks:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Notebook dependencies:\n" in result.output
+    assert "notebooks/notebook_1.ipyn" in result.output
+    assert "notebooks/notebook_2.ipyn" in result.output
     # Ensure no entries for scripts
-    assert "Scripts:\n    None Listed" in result.output
-    assert result.exit_code == 0
+    assert "Script dependencies: None specified" in result.output
+    assert "Number of generic nodes: 2" in result.output
+    assert "Number of custom nodes: 0" in result.output
 
-    # Test report output when only script/s are present
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_script.pipeline"
+    #
+    # Pipeline references multiple scripts:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Scripts:\n" in result.output
-    assert "dummy_script_1.py" in result.output
-    assert "dummy_script_2.py" in result.output
+    assert result.exit_code == 0
+    assert "Script dependencies:\n" in result.output
+    assert "scripts/script_1.py" in result.output
+    assert "scripts/script_2.py" in result.output
+    assert "scripts/script_3.py" in result.output
     # Ensure no entries for notebooks
-    assert "Notebooks:\n    None Listed" in result.output
-    assert result.exit_code == 0
+    assert "Notebook dependencies: None specified" in result.output
+    assert "Number of generic nodes: 3" in result.output
+    assert "Number of custom nodes: 0" in result.output
 
-    # Test report output when both notebook and script are present
+    #
+    # Pipeline references multiple notebooks and scripts:
+    #
     pipeline_file_path = (
-        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_script.pipeline"
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks_and_scripts.pipeline"
     )
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Notebooks:\n" in result.output
-    assert "dummy_notebook_1.ipynb" in result.output
-    assert "Scripts:\n" in result.output
-    assert "dummy_script_1.py" in result.output
     assert result.exit_code == 0
+    assert "Notebook dependencies:\n" in result.output
+    assert "notebooks/notebook_1.ipyn" in result.output
+    assert "notebooks/notebook_2.ipyn" in result.output
+    assert "Script dependencies:\n" in result.output
+    assert "scripts/script_1.py" in result.output
+    assert "scripts/script_2.py" in result.output
+    assert "scripts/script_3.py" in result.output
+    assert "Number of generic nodes: 5" in result.output
+    assert "Number of custom nodes: 0" in result.output
 
 
-def test_describe_notebook_script_json():
+def test_describe_notebooks_scripts_json():
     """
-    Test json output for notebook/script property when none, one or many instances are present
-    :return:
-    """
-    runner = CliRunner()
-
-    # Test report output when only notebook/s present
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook.pipeline"
-    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-
-    # Ensure that script entry is absent
-    assert not result_json.get("scripts")
-
-    # Tests notebook output is a list and check list count
-    assert isinstance(result_json.get("notebooks"), list) and len(result_json.get("notebooks")) == 2
-
-    # Tests the list content. Constructs below to address random sort order in list
-    assert Path(result_json.get("notebooks")[0]).name != Path(result_json.get("notebooks")[1]).name
-    assert Path(result_json.get("notebooks")[0]).name in list(["dummy_notebook_1.ipynb", "dummy_notebook_2.ipynb"])
-    assert Path(result_json.get("notebooks")[1]).name in list(["dummy_notebook_1.ipynb", "dummy_notebook_2.ipynb"])
-    assert result.exit_code == 0
-
-    # Test report output when only script/s are present
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_script.pipeline"
-    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-
-    # Ensure that notebook entry is absent
-    assert not result_json.get("notebooks")
-
-    # Tests script output is a list and check list count
-    assert isinstance(result_json.get("scripts"), list) and len(result_json.get("scripts")) == 2
-
-    # Tests the list content. Constructs below to address random sort order in list
-    assert Path(result_json.get("scripts")[0]).name != Path(result_json.get("scripts")[1]).name
-    assert Path(result_json.get("scripts")[0]).name in list(["dummy_script_1.py", "dummy_script_2.py"])
-    assert Path(result_json.get("scripts")[1]).name in list(["dummy_script_1.py", "dummy_script_2.py"])
-    assert result.exit_code == 0
-
-    # Test report output when both notebook and script are present
-    pipeline_file_path = (
-        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebook_and_script.pipeline"
-    )
-    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-    # Tests output is a list.
-    assert isinstance(result_json.get("notebooks"), list) and len(result_json.get("runtime_image")) == 1
-    assert isinstance(result_json.get("scripts"), list) and len(result_json.get("runtime_image")) == 1
-    # Tests the list content
-    assert Path(result_json.get("notebooks")[0]).name == "dummy_notebook_1.ipynb"
-    assert Path(result_json.get("scripts")[0]).name == "dummy_script_1.py"
-    assert result.exit_code == 0
-
-
-def test_describe_runtime_image_report():
-    """
-    Test report output for runtime_image property when none, one or many instances are present
-    :return:
+    Test machine-readable output for notebooks/scripts property when none, one or many instances are present
     """
     runner = CliRunner()
 
-    # Test report output when there are no runtime_images
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_zero_runtime_image.pipeline"
-    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Runtime Image:\n    None Listed" in result.output
+    #
+    # Pipeline references no notebooks/no scripts:
+    # - Pipeline does not contain nodes -> test_describe_with_no_nodes
+    # - Pipeline contains only script nodes
+    # - Pipeline contains only notebook nodes
+    # - Pipeline contains only custom components
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
     assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 3
+    assert result_json["custom_node_count"] == 0
+    dependencies = result_json.get("dependencies")
+    assert isinstance(dependencies.get("notebooks"), list)
+    assert len(dependencies.get("notebooks")) == 0
 
-    # Test report output when there is a single runtime_image
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_one_runtime_image.pipeline"
-    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Runtime Image:\n    - tensorflow/tensorflow:2.0.0-py3" in result.output
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
     assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 2
+    assert result_json["custom_node_count"] == 0
+    dependencies = result_json.get("dependencies")
+    assert isinstance(dependencies.get("scripts"), list)
+    assert len(dependencies.get("scripts")) == 0
 
-    # Test report output where there are two / multiple runtime_images
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_many_runtime_image.pipeline"
-    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Runtime Image:\n" in result.output
-    assert "- tensorflow/tensorflow:2.0.0-py3" in result.output
-    assert "- elyra/examples:1.0.0-py3" in result.output
-    assert result.exit_code == 0
-
-
-def test_describe_runtime_image_json():
-    """
-    Test json format output for runtime_image property when none, one or many instances are present
-    :return:
-    """
-    runner = CliRunner()
-
-    # Test json output when there are no runtime_images
     pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
     result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-    assert not result_json.get("runtime_image")
     assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 0
+    assert result_json["custom_node_count"] == 3
+    dependencies = result_json.get("dependencies")
+    assert isinstance(dependencies.get("notebooks"), list)
+    assert len(dependencies.get("notebooks")) == 0
+    assert isinstance(dependencies.get("scripts"), list)
+    assert len(dependencies.get("scripts")) == 0
 
-    # Test json output when there is a single runtime_image
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_one_runtime_image.pipeline"
+    #
+    # Pipeline references multiple notebooks:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
     result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-    # Tests output is a list
-    assert isinstance(result_json.get("runtime_image"), list) and len(result_json.get("runtime_image")) == 1
-    # Tests the list content
-    assert result_json.get("runtime_image")[0] == "tensorflow/tensorflow:2.0.0-py3"
     assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 2
+    assert result_json["custom_node_count"] == 0
+    dependencies = result_json.get("dependencies")
+    assert isinstance(dependencies.get("notebooks"), list)
+    assert any(x.endswith("notebooks/notebook_1.ipynb") for x in dependencies["notebooks"]), dependencies["notebooks"]
+    assert any(x.endswith("notebooks/notebook_2.ipynb") for x in dependencies["notebooks"]), dependencies["notebooks"]
+    # Ensure no entries for scripts
+    assert isinstance(dependencies.get("scripts"), list)
+    assert len(dependencies.get("scripts")) == 0
 
-    # Test json output where there are two / multiple runtime_images
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_many_runtime_image.pipeline"
+    #
+    # Pipeline references multiple scripts:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
     result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-    # Tests output is a list. Count is one as the same value of runtime_image is repeated
-    assert isinstance(result_json.get("runtime_image"), list) and len(result_json.get("runtime_image")) == 2
-    # Tests the list content
-    assert result_json.get("runtime_image")[0] != result_json.get("runtime_image")[1]
-    assert result_json.get("runtime_image")[0] in list(["tensorflow/tensorflow:2.0.0-py3", "elyra/examples:1.0.0-py3"])
-    assert result_json.get("runtime_image")[1] in list(["tensorflow/tensorflow:2.0.0-py3", "elyra/examples:1.0.0-py3"])
     assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 3
+    assert result_json["custom_node_count"] == 0
+    dependencies = result_json.get("dependencies")
+    assert isinstance(dependencies.get("scripts"), list)
+    assert len(dependencies.get("scripts")) == 3
+    assert any(x.endswith("scripts/script_1.py") for x in dependencies["scripts"]), dependencies["scripts"]
+    assert any(x.endswith("scripts/script_2.py") for x in dependencies["scripts"]), dependencies["scripts"]
+    assert any(x.endswith("scripts/script_3.py") for x in dependencies["scripts"]), dependencies["scripts"]
+
+    # Ensure no entries for notebooks
+    assert isinstance(dependencies.get("notebooks"), list)
+    assert len(dependencies.get("notebooks")) == 0
+
+    #
+    # Pipeline references multiple notebooks and scripts:
+    #
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks_and_scripts.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 5
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json.get("dependencies")
+    assert isinstance(dependencies.get("scripts"), list)
+    assert len(dependencies.get("scripts")) == 3
+    assert any(x.endswith("scripts/script_1.py") for x in dependencies["scripts"]), dependencies["scripts"]
+    assert any(x.endswith("scripts/script_2.py") for x in dependencies["scripts"]), dependencies["scripts"]
+    assert any(x.endswith("scripts/script_3.py") for x in dependencies["scripts"]), dependencies["scripts"]
+    assert isinstance(dependencies.get("notebooks"), list)
+    assert len(dependencies.get("notebooks")) == 2
+    assert any(x.endswith("notebooks/notebook_1.ipynb") for x in dependencies["notebooks"]), dependencies["notebooks"]
+    assert any(x.endswith("notebooks/notebook_2.ipynb") for x in dependencies["notebooks"]), dependencies["notebooks"]
 
 
-def test_describe_mount_report():
+def test_describe_container_images_report():
     """
-    Test report format output for mount property when none, one or many mounts are present
-    :return:
+    Test report output for container_images property when none, one or many instances are present
     """
     runner = CliRunner()
 
-    # Test report output when there are no mount volumes
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_zero_mount.pipeline"
+    #
+    # Pipeline references no container images
+    # - Pipeline does not contain nodes -> test_describe_with_no_nodes
+    # - Pipeline contains only custom components
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Mounted Volumes:\n    None Listed" in result.output
     assert result.exit_code == 0
+    assert "Container image dependencies: None specified" in result.output
 
-    # Test report output when there is a single mount volume
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_one_mount.pipeline"
+    #
+    # Pipeline references multiple container images through notebook nodes:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Mounted Volumes:\n    - rwx-test-claim" in result.output
     assert result.exit_code == 0
+    assert "Container image dependencies:\n" in result.output
+    assert "- tensorflow/tensorflow:2.8.0" in result.output, result.output
 
-    # Test report output where there are two / multiple mount volumes
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_many_mount.pipeline"
+    #
+    # Pipeline references multiple container images through script nodes
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
-    assert "Mounted Volumes:\n" in result.output
-    assert "    - rwx-test-claim" in result.output
-    assert "    - rwx-test-claim-1" in result.output
     assert result.exit_code == 0
+    assert "Container image dependencies:\n" in result.output, result.output
+    assert "- tensorflow/tensorflow:2.8.0-gpu" in result.output, result.output
+    assert "- tensorflow/tensorflow:2.8.0" in result.output, result.output
+
+    #
+    # Pipeline references multiple notebooks and scripts:
+    #
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks_and_scripts.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Container image dependencies:\n" in result.output
+    assert "- tensorflow/tensorflow:2.8.0-gpu" in result.output, result.output
+    assert "- tensorflow/tensorflow:2.8.0" in result.output, result.output
+    assert "- amancevice/pandas:1.4.1" in result.output, result.output
 
 
-def test_describe_mount_json():
+def test_describe_container_images_json():
     """
-    Test json output for mount property when none, one or many mounts are present
-    :return:
+    Test JSON output for runtime_images property when none, one or many instances are present
     """
     runner = CliRunner()
 
-    # Test json output when there are no mount volumes
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_zero_mount.pipeline"
-    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-    assert not result_json.get("mounted_volumes")
-    assert result.exit_code == 0
+    #
+    # Pipeline references no container images
+    # - Pipeline does not contain nodes -> test_describe_with_no_nodes
+    # - Pipeline contains only custom components
 
-    # Test json output when there is a single mount volume
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_one_mount.pipeline"
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
     result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-    assert isinstance(result_json.get("mounted_volumes"), list) and len(result_json.get("mounted_volumes")) == 1
-    assert result_json.get("mounted_volumes")[0] == "rwx-test-claim"
     assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 0
+    assert result_json["custom_node_count"] == 3
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["container_images"], list)
+    assert len(dependencies["container_images"]) == 0
 
-    # Test json output where there are two / multiple mount volumes
-    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_many_mount.pipeline"
+    #
+    # Pipeline references multiple container images through notebook nodes:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
     result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
-    result_json = json.loads(result.output)
-    assert isinstance(result_json.get("mounted_volumes"), list) and len(result_json.get("mounted_volumes")) == 2
-    assert set(result_json.get("mounted_volumes")) == set(list(["rwx-test-claim", "rwx-test-claim-1"]))
     assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 2
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["container_images"], list)
+    assert len(dependencies["container_images"]) == 1
+    assert "tensorflow/tensorflow:2.8.0" in dependencies["container_images"], dependencies["container_images"]
+
+    #
+    # Pipeline references multiple container images through script nodes
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 3
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["container_images"], list)
+    assert len(dependencies["container_images"]) == 2
+    assert "tensorflow/tensorflow:2.8.0" in dependencies["container_images"], dependencies["container_images"]
+    assert "tensorflow/tensorflow:2.8.0-gpu" in dependencies["container_images"], dependencies["container_images"]
+
+    #
+    # Pipeline references multiple notebooks and scripts:
+    #
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks_and_scripts.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 5
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["container_images"], list)
+    assert len(dependencies["container_images"]) == 3
+    assert "tensorflow/tensorflow:2.8.0" in dependencies["container_images"], dependencies["container_images"]
+    assert "tensorflow/tensorflow:2.8.0-gpu" in dependencies["container_images"], dependencies["container_images"]
+    assert "amancevice/pandas:1.4.1" in dependencies["container_images"], dependencies["container_images"]
+
+
+def test_describe_volumes_report():
+    """
+    Test report format output for volumes property when none, one or many volume mounts are present
+    """
+    runner = CliRunner()
+
+    #
+    # Pipeline references no volumes
+    # - Pipeline does not contain nodes -> test_describe_with_no_nodes
+    # - Pipeline contains only custom components
+    # - No generic nodes mount a volume
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Volume dependencies: None specified" in result.output
+
+    #
+    # Pipeline references multiple volumes through notebook nodes:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Volume dependencies:\n" in result.output
+    assert "- pvc-claim-1" in result.output, result.output
+
+    #
+    # Pipeline references multiple volumes through script nodes
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Volume dependencies:\n" in result.output, result.output
+    assert "- pvc-claim-2" in result.output, result.output
+    assert "- pvc-claim-3" in result.output, result.output
+
+    #
+    # Pipeline references multiple volumes through notebook and script nodes:
+    #
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks_and_scripts.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Volume dependencies:\n" in result.output, result.output
+    assert "- pvc-claim-1" in result.output, result.output
+    assert "- pvc-claim-2" in result.output, result.output
+    assert "- pvc-claim-3" in result.output, result.output
+
+
+def test_describe_volumes_json():
+    """
+    Test JSON output for volumes property when none, one or many volume mounts are present
+    """
+    runner = CliRunner()
+
+    #
+    # Pipeline references no volumes
+    # - Pipeline does not contain nodes -> test_describe_with_no_nodes
+    # - Pipeline contains only custom components
+    # - No generic nodes mount a volume
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 0
+    assert result_json["custom_node_count"] == 3
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["volumes"], list)
+    assert len(dependencies["volumes"]) == 0
+
+    #
+    # Pipeline references multiple volumes through notebook nodes:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 2
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert len(dependencies["volumes"]) == 1
+    assert "pvc-claim-1" in dependencies["volumes"], dependencies["volumes"]
+
+    #
+    # Pipeline references multiple volumes through script nodes
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 3
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert len(dependencies["volumes"]) == 2
+    assert "pvc-claim-2" in dependencies["volumes"], dependencies["volumes"]
+    assert "pvc-claim-3" in dependencies["volumes"], dependencies["volumes"]
+
+    #
+    # Pipeline references multiple volumes through notebook and script nodes:
+    #
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks_and_scripts.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 5
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert len(dependencies["volumes"]) == 3
+    assert "pvc-claim-1" in dependencies["volumes"], dependencies["volumes"]
+    assert "pvc-claim-2" in dependencies["volumes"], dependencies["volumes"]
+    assert "pvc-claim-3" in dependencies["volumes"], dependencies["volumes"]
+
+
+def test_describe_kubernetes_secrets_report():
+    """
+    Test report format output for the 'kubernetes_secrets' dependency property
+    """
+    runner = CliRunner()
+
+    #
+    # Pipeline references no Kubernetes secrets
+    # - Pipeline does not contain nodes -> test_describe_with_no_nodes
+    # - Pipeline contains only custom components
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Kubernetes secret dependencies: None specified" in result.output
+
+    #
+    # Pipeline references multiple Kubernetes secrets through notebook nodes:
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Kubernetes secret dependencies:\n" in result.output
+    assert "- secret-1" in result.output, result.output
+
+    #
+    # Pipeline references multiple Kubernetes secrets through script nodes
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Kubernetes secret dependencies:\n" in result.output
+    assert "- secret-2" in result.output, result.output
+
+    #
+    # Pipeline references multiple multiple Kubernetes secrets
+    #
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks_and_scripts.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    assert "Kubernetes secret dependencies:\n" in result.output
+    assert "- secret-1" in result.output, result.output
+    assert "- secret-2" in result.output, result.output
+    assert "- secret-3" in result.output, result.output
+
+
+def test_describe_kubernetes_secrets_json():
+    """
+    Test JSON output for the 'kubernetes_secrets' dependency property
+    """
+    runner = CliRunner()
+
+    #
+    # Pipeline references no Kubernetes secrets
+    # - Pipeline does not contain nodes -> test_describe_with_no_nodes
+    # - Pipeline contains only custom components
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 0
+    assert result_json["custom_node_count"] == 3
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["kubernetes_secrets"], list)
+    assert len(dependencies["kubernetes_secrets"]) == 0
+
+    #
+    # Pipeline references one Kubernetes secret through notebook nodes
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 2
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["kubernetes_secrets"], list)
+    assert len(dependencies["kubernetes_secrets"]) == 1
+    assert "secret-1" in dependencies["kubernetes_secrets"], dependencies["kubernetes_secrets"]
+
+    #
+    # Pipeline references one Kubernetes secret through script nodes
+    #
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_scripts.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 3
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["kubernetes_secrets"], list)
+    assert len(dependencies["kubernetes_secrets"]) == 1
+    assert "secret-2" in dependencies["kubernetes_secrets"], dependencies["kubernetes_secrets"]
+
+    #
+    # Pipeline references multiple Kubernetes secrets
+    #
+    pipeline_file_path = (
+        Path(__file__).parent / "resources" / "pipelines" / "pipeline_with_notebooks_and_scripts.pipeline"
+    )
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 5
+    assert result_json["custom_node_count"] == 0
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["kubernetes_secrets"], list)
+    assert len(dependencies["kubernetes_secrets"]) == 3
+    assert "secret-1" in dependencies["kubernetes_secrets"], dependencies["kubernetes_secrets"]
+    assert "secret-2" in dependencies["kubernetes_secrets"], dependencies["kubernetes_secrets"]
+    assert "secret-3" in dependencies["kubernetes_secrets"], dependencies["kubernetes_secrets"]
+
+
+# ------------------------------------------------------------------
+# end tests for 'describe' command
+# ------------------------------------------------------------------
+# tests for 'validate' command
+# ------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_validate_with_kfp_components(jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance):
+    runner = CliRunner()
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
+    result = runner.invoke(
+        pipeline, ["validate", str(pipeline_file_path), "--runtime-config", kubeflow_pipelines_runtime_instance]
+    )
+    assert "Validating pipeline..." in result.output
+    assert result.exit_code == 0, result.output
 
 
 def test_validate_with_missing_kfp_component(jp_environ, kubeflow_pipelines_runtime_instance):
@@ -492,7 +883,7 @@ def test_validate_with_missing_kfp_component(jp_environ, kubeflow_pipelines_runt
         assert result.exit_code != 0
 
 
-def test_validate_with_no_runtime_config():
+def test_validate_with_no_runtime_config(jp_environ):
     runner = CliRunner()
     with runner.isolated_filesystem():
         pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
@@ -580,7 +971,7 @@ def do_mock_export(output_path: str, dir_only=False):
 
 def prepare_export_work_dir(work_dir: str, source_dir: str):
     """Copies the files in source_dir to work_dir"""
-    for file in Path(source_dir).glob("*"):
+    for file in Path(source_dir).glob("*pipeline"):
         shutil.copy(str(file), work_dir)
     # print for debug purposes; this is only displayed if an assert fails
     print(f"Work directory content: {list(Path(work_dir).glob('*'))}")

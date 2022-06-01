@@ -257,4 +257,13 @@ To learn more about supported parameters, run
 $ elyra-pipeline describe --help
 ```
 
+The pipeline dependencies output includes:
+ - Jupyter notebooks
+ - Python or R scripts
+ - Local files that the notebooks or scripts require
+ - Custom components 
+ - Data volumes that generic nodes are mounting
+ - Container images that generic nodes are using to run notebooks or scripts 
+ - Kubernetes secrets that generic nodes are exposing as environment variables to notebooks or scripts
 
+Specify the `--json` option to format the output as JSON.

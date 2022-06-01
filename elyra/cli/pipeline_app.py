@@ -38,6 +38,7 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline_definition import Pipeline
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
@@ -503,80 +504,175 @@ def run(json_option, pipeline_path):
 @click.argument("pipeline_path", type=Path, callback=validate_pipeline_path)
 def describe(json_option, pipeline_path):
     """
-    Display pipeline summary
+    Display pipeline summary and dependencies.
     """
-
-    indent_length = 4
-    blank_field = "Not Specified"
-    blank_list = ["None Listed"]
 
     pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local", runtime_config="local")
 
     primary_pipeline = PipelineDefinition(pipeline_definition=pipeline_definition).primary_pipeline
 
+    # Define and populate the data structure that holds the artifacts this command will
+    # report on.
     describe_dict = OrderedDict()
+    describe_dict["name"] = {  # key is the artifact name, e.g. the pipeline name
+        "display_name": "Pipeline name",  # displayed in human-readable output
+        "json_name": "name",  # property name in machine-readable output
+        "value": primary_pipeline.name,  # the artifact's value
+    }
+    describe_dict["description"] = {
+        "display_name": "Description",
+        "json_name": "description",
+        "value": primary_pipeline.get_property("description"),
+    }
+    describe_dict["type"] = {
+        "display_name": "Pipeline type",
+        "json_name": "pipeline_type",
+        "value": primary_pipeline.type,
+    }
+    describe_dict["version"] = {
+        "display_name": "Pipeline format version",
+        "json_name": "pipeline_format_version",
+        "value": primary_pipeline.version,
+    }
+    describe_dict["runtime"] = {
+        "display_name": "Pipeline runtime",
+        "json_name": "pipeline_runtime",
+        "value": primary_pipeline.get_property("runtime"),
+    }
+    describe_dict["generic_node_count"] = {
+        "display_name": "Number of generic nodes",
+        "json_name": "generic_node_count",
+        "value": 0,
+    }
+    describe_dict["custom_node_count"] = {
+        "display_name": "Number of custom nodes",
+        "json_name": "custom_node_count",
+        "value": 0,
+    }
+    describe_dict["script_dependencies"] = {
+        "display_name": "Script dependencies",
+        "json_name": "scripts",
+        "value": set(),
+    }
+    describe_dict["notebook_dependencies"] = {
+        "display_name": "Notebook dependencies",
+        "json_name": "notebooks",
+        "value": set(),
+    }
+    describe_dict["file_dependencies"] = {
+        "display_name": "Local file dependencies",
+        "json_name": "files",
+        "value": set(),
+    }
+    describe_dict["component_dependencies"] = {
+        "display_name": "Component dependencies",
+        "json_name": "custom_components",
+        "value": set(),
+    }
+    describe_dict["volume_dependencies"] = {
+        "display_name": "Volume dependencies",
+        "json_name": "volumes",
+        "value": set(),
+    }
+    describe_dict["container_image_dependencies"] = {
+        "display_name": "Container image dependencies",
+        "json_name": "container_images",
+        "value": set(),
+    }
+    describe_dict["kubernetes_secret_dependencies"] = {
+        "display_name": "Kubernetes secret dependencies",
+        "json_name": "kubernetes_secrets",
+        "value": set(),
+    }
 
-    describe_dict["name"] = primary_pipeline.name
-    describe_dict["description"] = primary_pipeline.get_property("description")
-    describe_dict["type"] = primary_pipeline.type
-    describe_dict["version"] = primary_pipeline.version
-    describe_dict["runtime"] = primary_pipeline.get_property("runtime")
-    describe_dict["nodes"] = len(primary_pipeline.nodes)
-    describe_dict["scripts"] = set()
-    describe_dict["notebooks"] = set()
-    describe_dict["file_dependencies"] = set()
-    describe_dict["component_dependencies"] = set()
-    describe_dict[pipeline_constants.MOUNTED_VOLUMES] = set()
-    describe_dict[pipeline_constants.RUNTIME_IMAGE] = set()
+    # iterate through pipeline nodes and update the describe_dict values
     for node in primary_pipeline.nodes:
-        # collect information about file dependencies
-        for dependency in node.get_component_parameter("dependencies", []):
-            describe_dict["file_dependencies"].add(f"{dependency}")
-        # collect information about component dependencies
-        if node.component_source is not None:
-            describe_dict["component_dependencies"].add(node.component_source)
-        # collect information of mounted volumes
-        for mounted_volume in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
-            describe_dict[pipeline_constants.MOUNTED_VOLUMES].add(f"{mounted_volume.pvc_name}")
-        # collection runtime image details
-        temp_runtime_image_value = node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
-        if temp_runtime_image_value:
-            describe_dict[pipeline_constants.RUNTIME_IMAGE].add(f"{temp_runtime_image_value}")
+        # update describe_dict stats that take into account every operation
+        # (... there are none today)
 
-        # collect notebook / script name when pipeline is generic
-        if describe_dict["runtime"] == "Generic":
-            temp_value = node.get_component_parameter("filename")
-            if not temp_value:
-                pass
-            elif Path(Path(temp_value).name).suffix == ".ipynb":
-                describe_dict["notebooks"].add(temp_value)
-            else:
-                describe_dict["scripts"].add(temp_value)
-
-    if not json_option:
-        click.echo()
-
-        print_banner("Elyra Pipeline details")
-        for key in list(describe_dict):
-            readable_key = " ".join(key.title().split("_"))
-            if isinstance(describe_dict[key], set):
-                click.echo(f"{readable_key}:")
-                if not describe_dict.get(key):
-                    click.echo(f"{' ' * indent_length}{blank_list[0]}")
+        if Operation.is_generic_operation(node.op):
+            # update stats that are specific to generic components
+            describe_dict["generic_node_count"]["value"] = describe_dict["generic_node_count"]["value"] + 1
+            file_name = node.get_component_parameter("filename")
+            if file_name:
+                # Add notebook or script as dependency, if one was configured
+                if Path(file_name).suffix == ".ipynb":
+                    describe_dict["notebook_dependencies"]["value"].add(file_name)
                 else:
-                    for item in describe_dict.get(key, blank_list):
-                        click.echo(f"{' ' * indent_length}- {item}")
-            else:
-                click.echo(f"{readable_key}: {describe_dict.get(key, blank_field)}")
-    else:
-        for key in list(describe_dict):
-            if isinstance(describe_dict[key], set):
-                describe_dict[key] = list(describe_dict[key])
+                    describe_dict["script_dependencies"]["value"].add(file_name)
 
-            value = describe_dict.get(key)
-            if not value:
-                describe_dict.pop(key)
-        click.echo(json.dumps(describe_dict, indent=indent_length))
+            # local files (or directories)
+            for fd in node.get_component_parameter("dependencies", []):
+                describe_dict["file_dependencies"]["value"].add(fd)
+
+            # container image, if one was configured
+            if node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE):
+                describe_dict["container_image_dependencies"]["value"].add(
+                    node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
+                )
+
+            # volumes
+            for vm in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
+                describe_dict["volume_dependencies"]["value"].add(vm.pvc_name)
+
+            # Kubernetes secrets
+            for ks in node.get_component_parameter(pipeline_constants.KUBERNETES_SECRETS, []):
+                describe_dict["kubernetes_secret_dependencies"]["value"].add(ks.name)
+        else:
+            # update stats that are specific to custom components
+            describe_dict["custom_node_count"]["value"] = describe_dict["custom_node_count"]["value"] + 1
+            # component dependencies
+            describe_dict["component_dependencies"]["value"].add(node.component_source)
+
+    #
+    # produce output in the requested human-readable or machine-readable format
+    #
+    indent_length = 4
+
+    if json_option:
+        # produce machine-readable output
+        output_dict = {
+            describe_dict["name"]["json_name"]: describe_dict["name"]["value"],
+            describe_dict["description"]["json_name"]: describe_dict["description"]["value"],
+            describe_dict["type"]["json_name"]: describe_dict["type"]["value"],
+            describe_dict["version"]["json_name"]: describe_dict["version"]["value"],
+            describe_dict["runtime"]["json_name"]: describe_dict["runtime"]["value"],
+            describe_dict["generic_node_count"]["json_name"]: describe_dict["generic_node_count"]["value"],
+            describe_dict["custom_node_count"]["json_name"]: describe_dict["custom_node_count"]["value"],
+            "dependencies": {
+                describe_dict["script_dependencies"]["json_name"]: list(describe_dict["script_dependencies"]["value"]),
+                describe_dict["notebook_dependencies"]["json_name"]: list(
+                    describe_dict["notebook_dependencies"]["value"]
+                ),
+                describe_dict["file_dependencies"]["json_name"]: list(describe_dict["file_dependencies"]["value"]),
+                describe_dict["component_dependencies"]["json_name"]: list(
+                    describe_dict["component_dependencies"]["value"]
+                ),
+                describe_dict["container_image_dependencies"]["json_name"]: list(
+                    describe_dict["container_image_dependencies"]["value"]
+                ),
+                describe_dict["volume_dependencies"]["json_name"]: list(describe_dict["volume_dependencies"]["value"]),
+                describe_dict["kubernetes_secret_dependencies"]["json_name"]: list(
+                    describe_dict["kubernetes_secret_dependencies"]["value"]
+                ),
+            },
+        }
+        click.echo(json.dumps(output_dict, indent=indent_length))
+    else:
+        # produce human-readable output
+        click.echo()
+        print_banner("Elyra Pipeline details")
+
+        for v in describe_dict.values():
+            if v["value"] or v["value"] == 0:
+                if isinstance(v["value"], set):
+                    click.echo(f'{v["display_name"]}:')
+                    for item in v["value"]:
+                        click.echo(f"{' ' * indent_length}- {item}")
+                else:
+                    click.echo(f'{v["display_name"]}: {v["value"]}')
+            else:
+                click.echo(f'{v["display_name"]}: None specified')
 
 
 @click.command()

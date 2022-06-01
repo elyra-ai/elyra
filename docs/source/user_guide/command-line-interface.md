@@ -179,7 +179,7 @@ $ elyra-pipeline submit --help
 ```
 
 Refer to the topics below for detailed information on how to use `elyra-pipeline` to
- - [Display pipeline information summary](pipelines.html#running-a-pipeline-using-the-command-line)
+ - [Display pipeline summary and dependencies](pipelines.html#describing-a-pipeline-from-the-command-line-interface)
  - [Run a pipeline locally](pipelines.html#running-a-pipeline-from-the-command-line-interface)
  - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-from-the-command-line-interface)
  - [Export a pipeline](pipelines.html#exporting-a-pipeline-from-the-command-line-interface)
