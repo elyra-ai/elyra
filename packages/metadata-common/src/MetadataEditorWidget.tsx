@@ -92,7 +92,7 @@ export interface IMetadataEditorProps {
   titleContext?: string;
 
   /**
-   * Optional field used for the "Save as code snippet" feature
+   * A default value for code fields
    */
   code?: string[];
 }
