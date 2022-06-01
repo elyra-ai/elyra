@@ -131,17 +131,17 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
             code: selection.split('\n'),
             onSave: codeSnippetWidget.updateMetadata
           });
+        } else {
+          const selectedCells = getSelectedCellContents();
+          const code = selectedCells.join('\n\n').split('\n');
+
+          codeSnippetWidget.openMetadataEditor({
+            schemaspace: CODE_SNIPPET_SCHEMASPACE,
+            schema: CODE_SNIPPET_SCHEMA,
+            code: code,
+            onSave: codeSnippetWidget.updateMetadata
+          });
         }
-
-        const selectedCells = getSelectedCellContents();
-        const code = selectedCells.join('\n\n').split('\n');
-
-        codeSnippetWidget.openMetadataEditor({
-          schemaspace: CODE_SNIPPET_SCHEMASPACE,
-          schema: CODE_SNIPPET_SCHEMA,
-          code: code,
-          onSave: codeSnippetWidget.updateMetadata
-        });
       }
     });
 
