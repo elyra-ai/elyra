@@ -1,4 +1,3 @@
-
 Object {
   "doc_type": "pipeline",
   "id": "elyra-auto-generated-pipeline",
@@ -27,6 +26,7 @@ Object {
               ],
               "filename": "helloworld.ipynb",
               "include_subdirectories": false,
+              "kubernetes_secrets": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
             },

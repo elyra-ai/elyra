@@ -1,6 +1,6 @@
 {
   "name": "@elyra/code-viewer-extension",
-  "version": "3.9.0-dev",
+  "version": "3.10.0-dev",
   "description": "JupyterLab extension - Display code without a file",
   "keywords": [
     "jupyter",
@@ -38,7 +38,9 @@
     "watch:src": "tsc -w",
     "watch:labextension": "jupyter labextension watch .",
     "lab:install": "jupyter labextension install --no-build",
-    "lab:uninstall": "jupyter labextension uninstall --no-build"
+    "lab:uninstall": "jupyter labextension uninstall --no-build",
+    "link:dev": "yarn link @jupyterlab/builder",
+    "unlink:dev": "yarn unlink @jupyterlab/builder"
   },
   "dependencies": {
     "@jupyterlab/application": "^3.4.0",

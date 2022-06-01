@@ -79,7 +79,10 @@ echo " "
 echo "Installing/Updating JupyterLab"
 pip install --upgrade pip wheel
 pip install --upgrade tornado
-pip install --upgrade "jupyterlab$LAB_VERSION"
+if [ "$LAB_VERSION" != "==dev" ]
+then
+    pip install --upgrade "jupyterlab$LAB_VERSION"
+fi
 echo " "
 
 echo "Installing Xeus kernel"
@@ -97,13 +100,14 @@ conda install -y r r-essentials r-irkernel
 conda install -y -c conda-forge r-languageserver
 echo " "
 
-jupyter --version
-echo " "
-jupyter kernelspec list
-echo " "
-jupyter serverextension list
-echo " "
-jupyter server extension list
-echo " "
-jupyter labextension list
-echo " "
+if [ "$LAB_VERSION" != "==dev" ]
+then
+    jupyter --version
+    echo " "
+    jupyter kernelspec list
+    echo " "
+    jupyter server extension list
+    echo " "
+    jupyter labextension list
+    echo " "
+fi

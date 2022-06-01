@@ -87,10 +87,15 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
            - The value is ignored when the pipeline is executed locally.
          - **Environment variables**
            - A list of environment variables to be set in the container that executes the Jupyter notebook or script. Format: `ENV_VAR_NAME=value`. Entries that are empty (`ENV_VAR_NAME=`) or malformed are ignored.
-         - **Data volume**
-           - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the Jupyter notebook or script. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. 
+         - **Data volumes**
+           - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the Jupyter notebook or script. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export.
            - The referenced PVCs must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
            - Data volumes are not mounted when the pipeline is executed locally.
+         - **Kubernetes secrets**
+           - A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. Entries with a secret name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) or with [an invalid secret key](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) will raise a validation error after pipeline submission or export.
+           - The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+           - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
+
 
 #### Adding nodes
 
@@ -102,11 +107,11 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
 
    ![Add generic components from file browser](../images/user_guide/pipelines/add-components-from-file-browser.gif)
 
-1. Define the dependencies between nodes by connecting them, essentially creating an execution graph.
+2. Define the dependencies between nodes by connecting them, essentially creating an execution graph.
 
    ![Connect nodes](../images/user_guide/pipelines/connect-nodes.gif)
 
-1. Define the runtime properties for each node. Highlight a node, right click, and select `Open Properties`. Runtime properties configure a component and govern its execution behavior.
+3. Define the runtime properties for each node. Highlight a node, right click, and select `Open Properties`. Runtime properties configure a component and govern its execution behavior.
 
    ![Configure node](../images/user_guide/pipelines/configure-node.gif)
 
@@ -136,15 +141,20 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
    - Example: `data/*.csv`
 
    **Data Volumes**
-   - Optional. A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the Jupyter notebook or script. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. The referenced PVCs must exist in the Kubernetes namespace where the node is executed.
+   - Optional. A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the Jupyter notebook or script. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export. The referenced PVCs must exist in the Kubernetes namespace where the node is executed.
    - Data volumes are not mounted when the pipeline is executed locally.   
    - Example: `/mnt/vol1=data-pvc`
 
-1. Associate each node with a comment to document its purpose.
+   **Kubernetes Secrets**
+   - Optional. A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. Entries with a secret name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) or with [an invalid secret key](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) will raise a validation error after pipeline submission or export. The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+   - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
+   - Example: `ENV_VAR=secret-name:secret-key`
+
+5. Associate each node with a comment to document its purpose.
 
    ![Add comment to node](../images/user_guide/pipelines/add-comment-to-node.gif)
 
-1. Save the pipeline file.
+6. Save the pipeline file.
 
 Note: You can rename the pipeline file in the JupyterLab _File Browser_.
 
@@ -247,4 +257,13 @@ To learn more about supported parameters, run
 $ elyra-pipeline describe --help
 ```
 
+The pipeline dependencies output includes:
+ - Jupyter notebooks
+ - Python or R scripts
+ - Local files that the notebooks or scripts require
+ - Custom components 
+ - Data volumes that generic nodes are mounting
+ - Container images that generic nodes are using to run notebooks or scripts 
+ - Kubernetes secrets that generic nodes are exposing as environment variables to notebooks or scripts
 
+Specify the `--json` option to format the output as JSON.

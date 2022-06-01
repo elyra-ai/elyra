@@ -6,6 +6,7 @@
     "cos_object_prefix": "",
     "elyra_runtime_image": null,
     "elyra_env_vars": [],
+    "elyra_kubernetes_secrets": [],
     "elyra_mounted_volumes": []
   },
   "parameters": [
@@ -26,6 +27,9 @@
     },
     {
       "id": "elyra_env_vars"
+    },
+    {
+      "id": "elyra_kubernetes_secrets"
     },
     {
       "id": "elyra_mounted_volumes"
@@ -100,6 +104,22 @@
         }
       },
       {
+        "parameter_ref": "elyra_kubernetes_secrets",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Kubernetes Secrets"
+        },
+        "description": {
+          "default": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the nodes are executed or the pipeline will not run.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "env_var=secret-name:secret-key",
+          "keyValueEntries": true
+        }
+      },
+      {
         "parameter_ref": "elyra_mounted_volumes",
         "control": "custom",
         "custom_control_id": "StringArrayControl",
@@ -162,6 +182,11 @@
             "id": "elyra_env_vars",
             "type": "controls",
             "parameter_refs": ["elyra_env_vars"]
+          },
+          {
+            "id": "elyra_kubernetes_secrets",
+            "type": "controls",
+            "parameter_refs": ["elyra_kubernetes_secrets"]
           },
           {
             "id": "elyra_mounted_volumes",

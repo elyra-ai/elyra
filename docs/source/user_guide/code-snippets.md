@@ -45,8 +45,16 @@ To access the panel in JupyterLab:
 
 To create a code snippet:
 1. Open the `Code Snippets` panel.
-1. Click `+`. You can also highlight the desired text in the editor, right click, and choose `Save As Code Snippet` from the context menu.
-   ![Add code snippet from text](../images/user_guide/code-snippets/add-code-snippet-from-text.png)
+1. You can create a new code snippet in 3 ways:
+
+    - Click `+`.
+	- Highlight the desired text in the editor, right click, and choose `Save As Code Snippet` from the context menu. 
+       ![Add code snippet from text](../images/user_guide/code-snippets/add-code-snippet-from-text.png)	
+   - Select one or more cells, right click, and choose `Save As Code Snippet` from the context menu. 
+	    
+		- Use `Shift + Click` to select multiple cells.
+		- When multiple cells are selected, their contents will be combined into a single snippet. Each cell's contents will be separated by an empty line.
+		- If you want to make a snippet from one or more cells, there must not be any highlighted text. If text is highlighted, only the highlighted text will be added to the snippet. Any other selected cells will be ignored. 
 
 1. Enter a code snippet display name, an optional description, and tag the code snippet to make it more easily discoverable.
 1. Define the code snippet. Refer to the [Code snippet properties](#code-snippet-properties) for details.

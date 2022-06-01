@@ -45,10 +45,6 @@
   cursor: pointer;
 }
 
-.elyra-metadataHeader-button.MuiButtonGroup-groupedTextHorizontal:not(:last-child) {
-  border-right: none;
-}
-
 .elyra-metadataHeader [fill] {
   fill: var(--jp-ui-font-color1);
 }
@@ -83,28 +79,9 @@
   word-break: normal;
 }
 
-/* MetadataEditor css */
-.elyra-metadataEditor .jp-InputGroup {
-  width: 100%;
-}
-
-.elyra-metadataEditor-formInput.elyra-metadataEditor-secure label {
-  margin-right: 70px;
-}
-
-.elyra-metadataEditor {
-  color: var(--jp-ui-font-color1);
-}
-
-.elyra-form-DropDown-item {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: left;
-  margin: 0;
-  border-radius: 0;
-}
-
+/* Metadata Editor CSS (a lot of the style for the metadata editor is in
+ * the ui-components package under formeditor.css
+ */
 .elyra-metadataEditor {
   padding: 20px;
   display: flex;
@@ -113,80 +90,7 @@
   align-content: flex-start;
   align-items: flex-start;
   justify-content: flex-start;
-}
-
-.elyra-metadataEditor .elyra-metadataEditor-arrayInput li {
-  padding-left: 0;
-  padding-bottom: 0;
-}
-
-.elyra-metadataEditor
-  .elyra-metadataEditor-arrayInput
-  li:not(.elyra-metadataEditor-arrayItemEditor)
-  .elyra-elyra-metadataHeaderMuiInputBase-formControl {
-  background-color: var(--jp-border-color3);
-}
-
-.elyra-metadataEditor
-  .elyra-metadataEditor-arrayInput
-  .elyra-metadataEditor-editButtons
-  button {
-  padding: 3px;
-}
-
-.elyra-metadataEditor
-  .elyra-metadataEditor-arrayInput
-  .elyra-metadataEditor-addItemButton {
-  background-color: var(--jp-border-color1);
-}
-
-.elyra-metadataEditor .elyra-metadataEditor-arrayItemEditor {
-  display: flex;
-  padding: 6px 0 3px 0;
-}
-
-.elyra-metadataEditor h3 {
-  flex-basis: 100%;
-  margin-bottom: 15px;
   color: var(--jp-ui-font-color1);
-}
-
-.elyra-metadataEditor .elyra-form-code.jp-CodeMirrorEditor {
-  background-color: var(--jp-cell-editor-background);
-  border: var(--jp-border-width) solid var(--jp-input-border-color);
-  overflow-y: auto;
-  resize: vertical;
-  min-height: 150px;
-  height: 150px;
-  padding-bottom: 10px;
-  cursor: initial;
-  margin-top: 5px;
-}
-
-.elyra-metadataEditor .CodeMirror.cm-s-jupyter {
-  background-color: inherit;
-  height: 100%;
-}
-
-.elyra-metadataEditor .elyra-metadataEditor-code {
-  height: auto;
-  flex-basis: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.elyra-metadataEditor-formInput {
-  margin: 10px;
-  flex-basis: 45%;
-}
-
-.elyra-metadata-editor {
-  overflow-y: auto;
-}
-
-.elyra-metadataEditor .elyra-metadataEditor-saveButton {
-  flex-basis: 100%;
-  display: flex;
 }
 
 /* Code Snippet Filter CSS */
@@ -290,71 +194,37 @@ button.elyra-filter-tag svg {
   border-bottom: var(--jp-border-width) solid var(--jp-border-color1);
 }
 
-.elyra-editor-tagList {
-  list-style: none;
-  margin-left: -3px;
-  margin-top: 4px;
-}
-
-.elyra-editor-tag {
-  margin-left: 3px;
-  margin-right: 3px;
-  padding: 0 12px;
-  height: 24px;
-}
-
-button.elyra-editor-tag {
-  cursor: pointer;
-  color: var(--jp-ui-font-color2);
-  font-size: var(--jp-ui-font-size1);
-}
-
-button.elyra-editor-tag.applied-tag {
-  color: var(--jp-ui-font-color1);
-}
-
-button.elyra-editor-tag.unapplied-tag {
-  color: var(--jp-ui-font-color2);
-  white-space: nowrap;
-}
-
-.elyra-editor-tag.tag.unapplied-tag input {
-  border: none;
-}
-
-/* Code Snippet Tags in InputDialog */
-.elyra-inputTagList {
-  list-style: none;
-}
-
-.elyra-inputTag {
-  margin-left: 8px;
-  margin-right: 8px;
-}
-
-button.elyra-inputTag {
-  cursor: pointer;
+.elyra-metadataEditor-saveButton button {
   background: none;
-  border: none;
-  color: var(--jp-ui-font-color2);
-  padding: 0;
-  font-size: var(--jp-ui-font-size1);
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 3px;
+  padding: 10px;
+  font-size: var(--jp-content-font-size2);
+  width: fit-content;
+  color: var(--jp-content-font-color0);
+  cursor: pointer;
 }
 
-input.elyra-inputTag {
-  font-size: var(--jp-ui-font-size1);
-  background: none;
-  border: none;
-  color: var(--jp-ui-font-color2);
-  font-size: var(--jp-ui-font-size1);
-  width: 80px;
-  height: 15px;
+.elyra-metadataEditor-saveButton button:hover {
+  background: var(--jp-border-color3);
 }
 
-.elyra-tags {
-  margin-top: 8px;
+.elyra-metadataEditor-saveButton.errorForm {
+  color: var(--jp-content-font-color3);
+}
+
+.elyra-metadataEditor-saveButton.errorForm button {
+  border-color: var(--jp-content-font-color3);
+  cursor: not-allowed;
 }
 
 .elyra-no-metadata-msg {
   padding-left: 8px;
+}
+
+#split-button-menu {
+  color: var(--jp-ui-font-color1);
+  background-color: var(--jp-layout-color1);
+  border: var(--jp-border-width) solid var(--jp-border-color0);
+  border-radius: 5px;
 }

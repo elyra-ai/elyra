@@ -2,6 +2,36 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.9.0rc0 - 06/01/2022
+
+- Update metadata editor to use JupyterLab's new form editor - [#2464](https://github.com/elyra-ai/elyra/pull/2464)
+- Create code snippet from whole cells - [#1199](https://github.com/elyra-ai/elyra/pull/1199)
+- Update 'elyra-pipeline describe' command - [#2742](https://github.com/elyra-ai/elyra/pull/2742)
+- Fix incorrect string replacement in release script - [#2748](https://github.com/elyra-ai/elyra/pull/2748)
+- Fix metadata dropdown style in dark mode - [#2743](https://github.com/elyra-ai/elyra/pull/2743)
+- Add deployment in air gapped environment doc - [#2744](https://github.com/elyra-ai/elyra/pull/2744)
+- Update installation instructions - [#2746](https://github.com/elyra-ai/elyra/pull/2746)
+- Fix processing of node properties for pipeline app commands - [#2740](https://github.com/elyra-ai/elyra/pull/2740)
+- Enhance 'elyra-pipeline describe' command - [#2722](https://github.com/elyra-ai/elyra/pull/2722)
+- Add backend support for Kubernetes secrets environment variables - [#2715](https://github.com/elyra-ai/elyra/pull/2715)
+- Improve pipeline validation - [#2698](https://github.com/elyra-ai/elyra/pull/2698)
+- Update generic component operator to support python 3.7 - [#2727](https://github.com/elyra-ai/elyra/pull/2727)
+- Add elyra documentation link in elyra-metadata help - [#2731](https://github.com/elyra-ai/elyra/pull/2731)
+- Fix pipeline submit button reload bug - [#2734](https://github.com/elyra-ai/elyra/pull/2734)
+- Bump NodeJS version requirement to v16 or higher - [#2732](https://github.com/elyra-ai/elyra/pull/2732)
+- Prepend baseUrl to icon source - [#2728](https://github.com/elyra-ai/elyra/pull/2728)
+- Validate runtime image environments in CI testing - [#2721](https://github.com/elyra-ai/elyra/pull/2721)
+- Develop Elyra against the Jupyterlab source repo - [#2709](https://github.com/elyra-ai/elyra/pull/2709)
+- Remove tensorflow 1.x sample runtime images - [#2729](https://github.com/elyra-ai/elyra/pull/2729)
+- Update node packages to fix security vulnerabilities - [#2575](https://github.com/elyra-ai/elyra/pull/2575)
+- Clean up github workflow script - [#2720](https://github.com/elyra-ai/elyra/pull/2720)
+- Metadata tag whitespace proposed solution - [#2538](https://github.com/elyra-ai/elyra/pull/2538)
+- Simplify R and Python icon svgs - [#2705](https://github.com/elyra-ai/elyra/pull/2705)
+- Update changelog header - [#2714](https://github.com/elyra-ai/elyra/pull/2714)
+- Remove dependency on ipython_genutils - [#2710](https://github.com/elyra-ai/elyra/pull/2710)
+- Update elyra individual extension package descriptions - [#2708](https://github.com/elyra-ai/elyra/pull/2708)
+- Add link to new blog post to published resources - [#2707](https://github.com/elyra-ai/elyra/pull/2707)
+
 ## Release 3.8.1 - 05/03/2022
 
 - Fix incorrect regex search in release script - [#2703](https://github.com/elyra-ai/elyra/pull/2703)

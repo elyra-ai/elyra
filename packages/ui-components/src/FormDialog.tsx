@@ -124,6 +124,8 @@ const preventDefaultDialogHandler = (
       if (!isFormValidFn()) {
         event.stopPropagation();
         event.preventDefault();
+      } else {
+        dialogHandleEvent.call(dialog, event);
       }
     } else {
       dialogHandleEvent.call(dialog, event);

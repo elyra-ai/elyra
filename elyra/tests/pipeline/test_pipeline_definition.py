@@ -19,6 +19,8 @@ import pytest
 
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
@@ -151,6 +153,19 @@ def test_propagate_pipeline_default_properties(monkeypatch):
     node = pipeline_definition.primary_pipeline.nodes.pop()
     assert node.get_component_parameter(pipeline_constants.ENV_VARIABLES) == kv_list_correct
     assert node.get_component_parameter(kv_test_property_name) == kv_list_correct
+
+
+def test_remove_env_vars_with_matching_secrets():
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+    node = pipeline_definition.primary_pipeline.nodes.pop()
+
+    # Set kubernetes_secret property to have all the same keys as those in the env_vars property
+    kubernetes_secrets = KeyValueList(["var1=name1:key1", "var2=name2:key2", "var3=name3:key3"])
+    node.set_component_parameter(KUBERNETES_SECRETS, kubernetes_secrets)
+
+    node.remove_env_vars_with_matching_secrets()
+    assert node.get_component_parameter(ENV_VARIABLES) == []
 
 
 def _check_pipeline_correct_pipeline_name():

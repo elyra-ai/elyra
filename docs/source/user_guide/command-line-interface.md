@@ -56,8 +56,6 @@ Specify the `--json` parameter to return the results in JSON to allow for progra
 
 ```
 $ elyra-metadata list runtime-images --json | jq ".[].display_name"
-"Tensorflow 1.15.2"
-"Tensorflow 1.15.2 with GPU"
 "R Script"
 "Anaconda (2020.07) with Python 3.x"
 "Tensorflow 2.3.0"
@@ -96,8 +94,11 @@ Application-level properties within a schema reside as top-level properties with
         "title": "Tags",
         "description": "Tags for categorizing snippets",
         "type": "array",
+        "items": {
+          "type": "string"
+        },
         "uihints": {
-          "field_type": "tags"
+          "ui:field": "tags"
         }
       },
       "language": {
@@ -105,7 +106,7 @@ Application-level properties within a schema reside as top-level properties with
         "description": "Code snippet implementation language",
         "type": "string",
         "uihints": {
-          "field_type": "dropdown",
+          "ui:field": "dropdown",
           "default_choices": [
             "Python",
             "Java",
@@ -122,7 +123,7 @@ Application-level properties within a schema reside as top-level properties with
         "description": "Code snippet code lines",
         "type": "array",
         "uihints": {
-          "field_type": "code",
+          "ui:field": "code",
           "category": "Source"
         }
       }
@@ -181,7 +182,7 @@ $ elyra-pipeline submit --help
 ```
 
 Refer to the topics below for detailed information on how to use `elyra-pipeline` to
- - [Display pipeline information summary](pipelines.html#running-a-pipeline-using-the-command-line)
+ - [Display pipeline summary and dependencies](pipelines.html#describing-a-pipeline-from-the-command-line-interface)
  - [Run a pipeline locally](pipelines.html#running-a-pipeline-from-the-command-line-interface)
  - [Submit a pipeline for remote execution](pipelines.html#running-a-pipeline-from-the-command-line-interface)
  - [Export a pipeline](pipelines.html#exporting-a-pipeline-from-the-command-line-interface)

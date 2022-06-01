@@ -25,6 +25,9 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
 
+    /* Uncomment to use local jupyterlab instance */
+    // "paths": { "@jupyterlab/*": ["../jupyterlab/packages/*"] },
+
     /* Logging */
     "preserveWatchOutput": true
   }

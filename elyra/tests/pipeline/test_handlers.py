@@ -201,5 +201,6 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             {"id": "cos_object_prefix"},
             {"id": "elyra_runtime_image"},
             {"id": "elyra_env_vars"},
+            {"id": "elyra_kubernetes_secrets"},
             {"id": "elyra_mounted_volumes"},
         ]

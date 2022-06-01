@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import logging
-from logging import Logger
+from dataclasses import asdict as dataclass_asdict
+from dataclasses import dataclass
+from dataclasses import is_dataclass
+import json
 import os
 import sys
 from typing import Any
@@ -432,7 +434,7 @@ class KeyValueList(list):
 
     _key_value_separator: str = "="
 
-    def to_dict(self, logger: Optional[Logger] = None) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, str]:
         """
         Properties consisting of key-value pairs are stored in a list of separated
         strings, while most processing steps require a dictionary - so we must convert.
@@ -454,18 +456,21 @@ class KeyValueList(list):
 
             key = key.strip()
             if not key:
-                KeyValueList.log_message(f"Skipping inclusion of property '{kv}': no key found", logger, logging.WARN)
+                # Invalid entry; skip inclusion and continue
                 continue
+
             if isinstance(value, str):
                 value = value.strip()
             if not value:
-                KeyValueList.log_message(
-                    f"Skipping inclusion of property '{key}': no value specified", logger, logging.DEBUG
-                )
+                # Invalid entry; skip inclusion and continue
                 continue
 
             kv_dict[key] = value
         return kv_dict
+
+    @classmethod
+    def to_str(cls, key: str, value: str) -> str:
+        return f"{key}{cls._key_value_separator}{value}"
 
     @classmethod
     def from_dict(cls, kv_dict: Dict) -> "KeyValueList":
@@ -473,7 +478,7 @@ class KeyValueList(list):
         Convert a set of key-value pairs stored in a dictionary to
         a KeyValueList of strings with the defined separator.
         """
-        str_list = [f"{key}{cls._key_value_separator}{value}" for key, value in kv_dict.items()]
+        str_list = [KeyValueList.to_str(key, value) for key, value in kv_dict.items()]
         return KeyValueList(str_list)
 
     @classmethod
@@ -487,12 +492,47 @@ class KeyValueList(list):
 
         return KeyValueList.from_dict({**secondary_dict, **primary_dict})
 
-    @staticmethod
-    def log_message(msg: str, logger: Optional[Logger] = None, level: Optional[int] = logging.DEBUG):
+    @classmethod
+    def difference(cls, minuend: "KeyValueList", subtrahend: "KeyValueList") -> "KeyValueList":
         """
-        Log a message with the given logger at the given level or simply print.
+        Given KeyValueLists, convert to dictionaries and remove any keys found in the
+        second (subtrahend) from the first (minuend), if present.
+
+        :param minuend: list to be subtracted from
+        :param subtrahend: list whose keys will be removed from the minuend
+
+        :returns: the difference of the two lists
         """
-        if logger:
-            logger.log(level, msg)
-        else:
-            print(msg)
+        subtract_dict = minuend.to_dict()
+        for key in subtrahend.to_dict().keys():
+            if key in subtract_dict:
+                subtract_dict.pop(key)
+
+        return KeyValueList.from_dict(subtract_dict)
+
+
+@dataclass
+class VolumeMount:
+    path: str
+    pvc_name: str
+
+
+@dataclass
+class KubernetesSecret:
+    env_var: str
+    name: str
+    key: str
+
+
+class DataClassJSONEncoder(json.JSONEncoder):
+    """
+    A JSON Encoder class to prevent errors during serialization of dataclasses.
+    """
+
+    def default(self, o):
+        """
+        Render dataclass content as dict
+        """
+        if is_dataclass(o):
+            return dataclass_asdict(o)
+        return super().default(o)
