@@ -1,6 +1,6 @@
 {
   "name": "@elyra/code-viewer-extension",
-  "version": "3.9.0-dev",
+  "version": "3.9.0-rc.0",
   "description": "JupyterLab extension - Display code without a file",
   "keywords": [
     "jupyter",
