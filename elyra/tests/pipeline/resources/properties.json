@@ -160,7 +160,7 @@
           "placement": "on_panel"
         },
         "data": {
-          "placeholder": "*.py",
+          "ui:placeholder": "*.py",
           "format": "file"
         }
       },
@@ -188,7 +188,7 @@
           "placement": "on_panel"
         },
         "data": {
-          "placeholder": "env_var=VALUE",
+          "ui:placeholder": "env_var=VALUE",
           "canRefresh": true,
           "keyValueEntries": true
         }
@@ -205,7 +205,7 @@
           "placement": "on_panel"
         },
         "data": {
-          "placeholder": "env_var=secret-name:secret-key",
+          "ui:placeholder": "env_var=secret-name:secret-key",
           "keyValueEntries": true
         }
       },
@@ -221,7 +221,7 @@
           "placement": "on_panel"
         },
         "data": {
-          "placeholder": "*.csv"
+          "ui:placeholder": "*.csv"
         }
       },
       {
@@ -236,7 +236,7 @@
           "placement": "on_panel"
         },
         "data": {
-          "placeholder": "/mount/path=pvc-name",
+          "ui:placeholder": "/mount/path=pvc-name",
           "keyValueEntries": true
         }
       }
