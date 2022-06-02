@@ -6,7 +6,7 @@
         "elyra_{{ property.ref }}":
     {% if property.control_id == "OneOfControl" %}
         {
-        "activeControl": "{{ property.default_control_type }}",
+        "activeControl": "OneOfControl",
         "{{ property.default_control_type }}":
     {% endif %}
     {% set property_data_type = property.data_type %}
@@ -90,10 +90,10 @@
     {% if property.control_id == "OneOfControl" %}
             "controls":{
         {% for control, control_data_type, control_label in property.one_of_control_types %}
-                  "{{ control }}": {
+            {% if control == 'NestedEnumControl' %}
+                "{{ control }}": {
                     "label": "{{ control_label }}",
                     "format": "{{ control_data_type }}"
-            {% if control == 'NestedEnumControl' %}
                     ,
                     "allownooptions":
                 {% if property.allow_no_options %}
@@ -101,6 +101,22 @@
                 {% else %}
                     false
                 {% endif %}
+            {% else %}
+                "OneOfControl": {
+                    "label": "one-of control label",
+                    "description": "idk",
+                    "data": {
+                        "controls": {
+                            "{{ control }}": {
+                                "label": "{{ control_label }}",
+                                "format": "{{ control_data_type }}"
+                            },
+                            "StringControl2": {
+                                "label": "Choose a file...",
+                                "format": "file"
+                            }
+                        }
+                      }
             {% endif %}
                   }
             {% if loop.index != loop.length %}
