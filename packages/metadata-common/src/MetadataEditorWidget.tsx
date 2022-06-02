@@ -86,7 +86,15 @@ export interface IMetadataEditorProps {
    */
   themeManager?: IThemeManager;
 
+  /**
+   * String used to make the title of the editor more readable
+   */
   titleContext?: string;
+
+  /**
+   * A default value for code fields
+   */
+  code?: string[];
 }
 
 /**
@@ -194,6 +202,9 @@ export class MetadataEditorWidget extends ReactWidget {
         }
         metadataWithCategories[category][schemaProperty] =
           metadata?.metadata?.[schemaProperty] ?? properties.default;
+        if (schemaProperty === 'code' && this.props.code) {
+          metadataWithCategories[category][schemaProperty] = this.props.code;
+        }
         if (!schemaPropertiesByCategory[category]) {
           schemaPropertiesByCategory[category] = {
             type: 'object',
