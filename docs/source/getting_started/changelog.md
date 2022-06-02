@@ -2,6 +2,12 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.9.0rc1 - 06/02/2022
+
+- Bump eventsource from 1.1.0 to 1.1.1 - [#2758](https://github.com/elyra-ai/elyra/pull/2758)
+- Fix release script updates to schemas docs and package desc - [#2752](https://github.com/elyra-ai/elyra/pull/2752)
+- Fix "Save as a code snippet" functionality - [#2756](https://github.com/elyra-ai/elyra/pull/2756)
+
 ## Release 3.9.0rc0 - 06/01/2022
 
 - Update metadata editor to use JupyterLab's new form editor - [#2464](https://github.com/elyra-ai/elyra/pull/2464)
