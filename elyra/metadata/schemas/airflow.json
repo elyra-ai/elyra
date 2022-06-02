@@ -50,7 +50,7 @@
           "format": "uri",
           "uihints": {
             "category": "Apache Airflow",
-            "placeholder": "https://your-airflow-webserver:port"
+            "ui:placeholder": "https://your-airflow-webserver:port"
           }
         },
         "user_namespace": {
@@ -82,7 +82,7 @@
           "default": "https://api.github.com",
           "uihints": {
             "category": "Apache Airflow",
-            "placeholder": "https://your-github-or-gitlab-endpoint"
+            "ui:placeholder": "https://your-github-or-gitlab-endpoint"
           }
         },
         "github_repo": {
@@ -91,7 +91,7 @@
           "type": "string",
           "uihints": {
             "category": "Apache Airflow",
-            "placeholder": "user-or-org/dag-repo-name"
+            "ui:placeholder": "user-or-org/dag-repo-name"
           }
         },
         "github_branch": {
@@ -118,7 +118,7 @@
           "format": "uri",
           "uihints": {
             "category": "Cloud Object Storage",
-            "placeholder": "https://your-cos-service:port"
+            "ui:placeholder": "https://your-cos-service:port"
           }
         },
         "cos_bucket": {
