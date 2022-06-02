@@ -2,6 +2,12 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.9.0rc2 - 06/02/2022
+
+- Fix missing placeholder text in metadata editor - [#2764](https://github.com/elyra-ai/elyra/pull/2764)
+- Fix metadata editor opening in multiple tabs - [#2762](https://github.com/elyra-ai/elyra/pull/2762)
+- Fix metadata tag creation and updates not persisting - [#2761](https://github.com/elyra-ai/elyra/pull/2761)
+
 ## Release 3.9.0rc1 - 06/02/2022
 
 - Bump eventsource from 1.1.0 to 1.1.1 - [#2758](https://github.com/elyra-ai/elyra/pull/2758)
