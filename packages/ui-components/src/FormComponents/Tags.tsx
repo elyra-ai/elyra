@@ -78,7 +78,7 @@ export const Tags: React.FC<ITagProps> = ({
   ): Promise<void> => {
     const inputElement = event.target as HTMLInputElement;
 
-    if (inputElement.value !== '' && event.keyCode === 13) {
+    if (inputElement.value.trim() !== '' && event.keyCode === 13) {
       if (allTags.includes(inputElement.value)) {
         event.preventDefault();
         await showDialog({
@@ -93,6 +93,9 @@ export const Tags: React.FC<ITagProps> = ({
       // update state all tag and selected tag
       setSelectedTags([...selected, newTag]);
       setTags([...allTags, newTag]);
+      setAddingNewTag(false);
+    } else if (event.keyCode === 13) {
+      event.preventDefault();
       setAddingNewTag(false);
     }
   };
