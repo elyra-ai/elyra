@@ -205,7 +205,6 @@ export const TagsField: Field = props => {
       selectedTags={props.formData ?? []}
       tags={props.formContext.allTags ?? []}
       handleChange={(selectedTags: string[], allTags: string[]): void => {
-        console.log(selectedTags);
         props.onChange(selectedTags);
         props.formContext.updateAllTags?.(allTags);
       }}
