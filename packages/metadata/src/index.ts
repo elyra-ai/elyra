@@ -119,13 +119,12 @@ const extension: JupyterFrontEndPlugin<void> = {
         translator: translator.load('jupyterlab'),
         componentRegistry
       });
-      metadataEditorWidget.title.label = widgetLabel;
-      metadataEditorWidget.id = widgetId;
-      metadataEditorWidget.title.closable = true;
-      metadataEditorWidget.title.icon = textEditorIcon;
-      metadataEditorWidget.addClass(METADATA_EDITOR_ID);
-      // TODO: add back MainAreaWidget for styling purposes
       const main = new MainAreaWidget({ content: metadataEditorWidget });
+      main.title.label = widgetLabel;
+      main.id = widgetId;
+      main.title.closable = true;
+      main.title.icon = textEditorIcon;
+      main.addClass(METADATA_EDITOR_ID);
       app.shell.add(main, 'main');
     };
 
