@@ -350,6 +350,50 @@ def update_version_to_dev() -> None:
             rf"elyra-ai/elyra/master/etc/generic/requirements-elyra.txt",
         )
 
+        # update documentation references in schema definitions
+        # located in elyra/metadata/schemas/
+        sed(
+            _source("elyra/metadata/schemas/url-catalog.json"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/local-directory-catalog.json"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/local-file-catalog.json"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/airflow.json"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/kfp.json"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/code-snippet.json"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
+        sed(
+            _source("elyra/metadata/schemas/runtime-image.json"),
+            rf"https://elyra.readthedocs.io/en/v{new_version}/user_guide/",
+            rf"https://elyra.readthedocs.io/en/latest/user_guide/",
+        )
+
         check_run(
             ["lerna", "version", dev_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"],
             cwd=config.source_dir,
