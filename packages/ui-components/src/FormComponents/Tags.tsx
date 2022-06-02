@@ -40,36 +40,23 @@ export const Tags: React.FC<ITagProps> = props => {
   const [tags, setTags] = React.useState<string[]>(props.tags ?? []);
   const [addingNewTag, setAddingNewTag] = React.useState<boolean>(false);
 
+  React.useEffect(() => {
+    props.handleChange(selectedTags, tags);
+  }, [selectedTags, tags]);
+
   const handleClick = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): void => {
-    const target = event.target as HTMLElement;
+    const target = event.currentTarget as HTMLElement;
     const clickedTag = target.innerText;
-
-    setSelectedTags(updateTagsCss(target, selectedTags ?? [], clickedTag));
-    handleOnChange();
-  };
-
-  const handleOnChange = (): void => {
-    props.handleChange(selectedTags, tags);
-  };
-
-  const updateTagsCss = (
-    target: HTMLElement,
-    tags: string[],
-    clickedTag: string
-  ): string[] => {
-    const currentTags = tags.slice();
-    if (target.classList.contains('unapplied-tag')) {
-      target.classList.replace('unapplied-tag', 'applied-tag');
-      currentTags.splice(-1, 0, clickedTag);
-    } else if (target.classList.contains('applied-tag')) {
-      target.classList.replace('applied-tag', 'unapplied-tag');
-
-      const idx = currentTags.indexOf(clickedTag);
-      currentTags.splice(idx, 1);
+    let updatedTags: string[] = Object.assign([], selectedTags);
+    const tagIndex = selectedTags.indexOf(clickedTag);
+    if (tagIndex === -1) {
+      updatedTags.push(clickedTag);
+    } else {
+      updatedTags.splice(tagIndex, 1);
     }
-    return currentTags;
+    setSelectedTags(updatedTags);
   };
 
   const addTagOnClick = (event: React.MouseEvent<HTMLInputElement>): void => {
@@ -103,7 +90,6 @@ export const Tags: React.FC<ITagProps> = props => {
       setSelectedTags([...selectedTags, newTag]);
       setTags([...tags, newTag]);
       setAddingNewTag(false);
-      handleOnChange();
     }
   };
 
@@ -219,6 +205,7 @@ export const TagsField: Field = props => {
       selectedTags={props.formData ?? []}
       tags={props.formContext.allTags ?? []}
       handleChange={(selectedTags: string[], allTags: string[]): void => {
+        console.log(selectedTags);
         props.onChange(selectedTags);
         props.formContext.updateAllTags?.(allTags);
       }}

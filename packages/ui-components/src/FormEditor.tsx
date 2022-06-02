@@ -148,7 +148,6 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   languageOptions
 }) => {
   const [formData, setFormData] = React.useState(originalData ?? ({} as any));
-  const [tags, setTags] = React.useState(allTags);
 
   /**
    * Generate the rjsf uiSchema from uihints in the elyra metadata schema.
@@ -172,10 +171,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       formContext={{
         editorServices: editorServices,
         language: formData?.['Source']?.language ?? '',
-        allTags: tags,
-        updateAllTags: (updatedTags: string[]): void => {
-          setTags(updatedTags);
-        },
+        allTags: allTags,
         languageOptions: languageOptions,
         trans: translator
       }}

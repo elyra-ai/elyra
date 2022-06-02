@@ -18,6 +18,10 @@
   margin-top: 8px;
 }
 
+.elyra-formEditor-form-tags input {
+  margin: 0;
+}
+
 .rjsf > .form-group.field,
 .form-group.field.tagsField,
 .form-group.field.languageField {
