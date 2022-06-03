@@ -124,7 +124,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       main.id = widgetId;
       main.title.closable = true;
       main.title.icon = textEditorIcon;
-      main.addClass(METADATA_EDITOR_ID);
+      metadataEditorWidget.addClass(METADATA_EDITOR_ID);
       app.shell.add(main, 'main');
     };
 
