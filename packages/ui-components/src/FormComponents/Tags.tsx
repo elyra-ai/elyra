@@ -33,43 +33,34 @@ const FORM_EDITOR_TAG_PLUS_ICON = 'elyra-editor-tag-plusIcon';
 const FORM_EDITOR_TAG_LIST = 'elyra-editor-tagList';
 const FORM_EDITOR_INPUT_TAG = 'elyra-inputTag';
 
-export const Tags: React.FC<ITagProps> = props => {
-  const [selectedTags, setSelectedTags] = React.useState<string[]>(
-    props.selectedTags ?? []
+export const Tags: React.FC<ITagProps> = ({
+  selectedTags,
+  tags,
+  handleChange
+}) => {
+  const [selected, setSelectedTags] = React.useState<string[]>(
+    selectedTags ?? []
   );
-  const [tags, setTags] = React.useState<string[]>(props.tags ?? []);
+  const [allTags, setTags] = React.useState<string[]>(tags ?? []);
   const [addingNewTag, setAddingNewTag] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    handleChange(selected, allTags);
+  }, [selected, allTags, handleChange]);
 
   const handleClick = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): void => {
-    const target = event.target as HTMLElement;
+    const target = event.currentTarget as HTMLElement;
     const clickedTag = target.innerText;
-
-    setSelectedTags(updateTagsCss(target, selectedTags ?? [], clickedTag));
-    handleOnChange();
-  };
-
-  const handleOnChange = (): void => {
-    props.handleChange(selectedTags, tags);
-  };
-
-  const updateTagsCss = (
-    target: HTMLElement,
-    tags: string[],
-    clickedTag: string
-  ): string[] => {
-    const currentTags = tags.slice();
-    if (target.classList.contains('unapplied-tag')) {
-      target.classList.replace('unapplied-tag', 'applied-tag');
-      currentTags.splice(-1, 0, clickedTag);
-    } else if (target.classList.contains('applied-tag')) {
-      target.classList.replace('applied-tag', 'unapplied-tag');
-
-      const idx = currentTags.indexOf(clickedTag);
-      currentTags.splice(idx, 1);
+    const updatedTags: string[] = Object.assign([], selected);
+    const tagIndex = selected.indexOf(clickedTag);
+    if (tagIndex === -1) {
+      updatedTags.push(clickedTag);
+    } else {
+      updatedTags.splice(tagIndex, 1);
     }
-    return currentTags;
+    setSelectedTags(updatedTags);
   };
 
   const addTagOnClick = (event: React.MouseEvent<HTMLInputElement>): void => {
@@ -87,8 +78,8 @@ export const Tags: React.FC<ITagProps> = props => {
   ): Promise<void> => {
     const inputElement = event.target as HTMLInputElement;
 
-    if (inputElement.value !== '' && event.keyCode === 13) {
-      if (tags.includes(inputElement.value)) {
+    if (inputElement.value.trim() !== '' && event.keyCode === 13) {
+      if (allTags.includes(inputElement.value)) {
         event.preventDefault();
         await showDialog({
           title: 'A tag with this label already exists.',
@@ -100,10 +91,12 @@ export const Tags: React.FC<ITagProps> = props => {
       const newTag = inputElement.value;
 
       // update state all tag and selected tag
-      setSelectedTags([...selectedTags, newTag]);
-      setTags([...tags, newTag]);
+      setSelectedTags([...selected, newTag]);
+      setTags([...allTags, newTag]);
       setAddingNewTag(false);
-      handleOnChange();
+    } else if (event.keyCode === 13) {
+      event.preventDefault();
+      setAddingNewTag(false);
     }
   };
 
@@ -159,9 +152,9 @@ export const Tags: React.FC<ITagProps> = props => {
   return (
     <li className={FORM_EDITOR_TAG_LIST}>
       {hasTags
-        ? tags.map((tag: string, index: number) =>
+        ? allTags.map((tag: string, index: number) =>
             ((): JSX.Element => {
-              if (!selectedTags) {
+              if (!selected) {
                 return (
                   <button
                     onClick={handleClick}
@@ -174,7 +167,7 @@ export const Tags: React.FC<ITagProps> = props => {
                 );
               }
 
-              if (selectedTags.includes(tag)) {
+              if (selected.includes(tag)) {
                 return (
                   <button
                     onClick={handleClick}

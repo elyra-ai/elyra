@@ -19,10 +19,7 @@ from glob import glob
 from jupyter_packaging import get_data_files
 from setuptools import setup, find_packages
 
-long_desc = """
-            Elyra is a set of AI centric extensions to JupyterLab. It aims to help data scientists,
-            machine learning engineers and AI developer’s through the model development life cycle complexities.
-            """
+long_desc = "{{description}}"
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -30,7 +27,7 @@ setup_args = dict(
     name="{{package-name}}",
     version="{{version}}",
     url="https://github.com/elyra-ai/elyra",
-    description="{{description}}",
+    description="Elyra provides AI Centric extensions to JupyterLab",
     long_description=long_desc,
     author="Elyra Maintainers",
     license="Apache License Version 2.0",

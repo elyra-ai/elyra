@@ -10,7 +10,7 @@
   "uihints": {
     "title": "Kubeflow Pipelines runtimes",
     "icon": "elyra:runtimes",
-    "reference_url": "https://elyra.readthedocs.io/en/v3.8.0/user_guide/runtime-conf.html"
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html"
   },
   "properties": {
     "schema_name": {
@@ -50,7 +50,7 @@
           "format": "uri",
           "uihints": {
             "category": "Kubeflow Pipelines",
-            "placeholder": "https://your-kubeflow-service:port/pipeline"
+            "ui:placeholder": "https://your-kubeflow-service:port/pipeline"
           }
         },
         "public_api_endpoint": {
@@ -60,7 +60,7 @@
           "format": "uri",
           "uihints": {
             "category": "Kubeflow Pipelines",
-            "placeholder": "https://your-kubeflow-service:port/pipeline"
+            "ui:placeholder": "https://your-kubeflow-service:port/pipeline"
           }
         },
         "user_namespace": {
@@ -117,7 +117,7 @@
           "format": "uri",
           "uihints": {
             "category": "Cloud Object Storage",
-            "placeholder": "https://your-cos-service:port"
+            "ui:placeholder": "https://your-cos-service:port"
           }
         },
         "cos_bucket": {
