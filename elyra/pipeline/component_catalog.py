@@ -673,7 +673,7 @@ class ComponentCache(SingletonConfigurable):
             template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
 
         canvas_properties = template.render(component=component)
-        return json.loads(canvas_properties)
+        return canvas_properties
 
 
 class ManifestFileChangeHandler(FileSystemEventHandler):
