@@ -207,14 +207,29 @@ export const Tags: React.FC<ITagProps> = ({
 };
 
 export const TagsField: Field = props => {
+  const errors = [];
+  if (Object.keys(props.errorSchema).length > 0) {
+    for (let i in props.errorSchema) {
+      for (const err of (props.errorSchema[i] as any)['__errors']) {
+        errors.push(<li className="text-danger">{err}</li>);
+      }
+    }
+  }
   return (
-    <Tags
-      selectedTags={props.formData ?? []}
-      tags={props.formContext.allTags ?? []}
-      handleChange={(selectedTags: string[], allTags: string[]): void => {
-        props.onChange(selectedTags);
-        props.formContext.updateAllTags?.(allTags);
-      }}
-    />
+    <div>
+      <Tags
+        selectedTags={props.formData ?? []}
+        tags={props.formContext.allTags ?? []}
+        handleChange={(selectedTags: string[], allTags: string[]): void => {
+          props.onChange(selectedTags);
+          props.formContext.updateAllTags?.(allTags);
+        }}
+      />
+      {Object.keys(props.errorSchema).length > 0 ? (
+        <ul className="error-detail bs-callout bs-callout-info">{errors}</ul>
+      ) : (
+        undefined
+      )}
+    </div>
   );
 };
