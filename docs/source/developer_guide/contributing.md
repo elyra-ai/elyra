@@ -20,8 +20,8 @@ limitations under the License.
 Elyra is an open-source project and welcomes contributions from the community be it as code, documentation, scenarios, etc. 
 
 Before you start, look at the project:
-- [Code of Conduct](https://github.com/elyra-ai/community/blob/master/code-of-conduct.md)
-- [Contribution Guidelines](https://github.com/elyra-ai/community/blob/master/contributing.md)
+- [Code of Conduct](https://github.com/elyra-ai/community/blob/main/code-of-conduct.md)
+- [Contribution Guidelines](https://github.com/elyra-ai/community/blob/main/contributing.md)
 
 Also, for details on configuring your development environment, see:
 - [Setting up your development environment](development-workflow.md)
@@ -36,7 +36,7 @@ Elyra runs as extensions to the Jupyter ecosystem, thus it's UI is currently imp
 #### Existing UI Extensions
 
 The existing extensions are currently available as individual npm packages inside the
-[packages](https://github.com/elyra-ai/elyra/tree/master/packages) folder.
+[packages](https://github.com/elyra-ai/elyra/tree/main/packages) folder.
 
 ```
 elyra
@@ -129,7 +129,7 @@ and exposed as REST APIs to frontend clients.
 ### Elyra backend services 
 
 The existing services are currently available as individual python modules inside the
-[elyra](https://github.com/elyra-ai/elyra/tree/master/elyra) folder.
+[elyra](https://github.com/elyra-ai/elyra/tree/main/elyra) folder.
 
 ```
 elyra
@@ -148,13 +148,13 @@ elyra
 ### Backend tests
 To run all server tests, use `make test-server` from the root directory. There are also two ways to run only specific backend tests:
 
-* To run all tests in a specific directory or file, run `pytest [resource]` where `resource` is the relative path to a directory or file inside the [server tests](https://github.com/elyra-ai/elyra/tree/master/elyra/tests) folder.
+* To run all tests in a specific directory or file, run `pytest [resource]` where `resource` is the relative path to a directory or file inside the [server tests](https://github.com/elyra-ai/elyra/tree/main/elyra/tests) folder.
 * To run specific tests by function name, run `pytest -k [test_function1 test_function2 ...]`
 
 
 ## Elyra documentation
 
-The Elyra documentation's source is stored in the [Elyra repository](https://github.com/elyra-ai/elyra/tree/master/docs) and hosted at [Elyra's Read the Docs](https://elyra.readthedocs.io/). The documentation is written in [Markdown](https://www.sphinx-doc.org/en/master/usage/markdown.html) and built using [Sphinx](https://www.sphinx-doc.org/en/master/).
+The Elyra documentation's source is stored in the [Elyra repository](https://github.com/elyra-ai/elyra/tree/main/docs) and hosted at [Elyra's Read the Docs](https://elyra.readthedocs.io/). The documentation is written in [Markdown](https://www.sphinx-doc.org/en/master/usage/markdown.html) and built using [Sphinx](https://www.sphinx-doc.org/en/master/).
 
 
 ### Contributing to the Elyra documentation

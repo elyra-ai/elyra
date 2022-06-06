@@ -46,7 +46,7 @@ and have python3
 INOUT_SEPARATOR = ";"
 
 ELYRA_GITHUB_ORG = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
-ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "master" if "dev" in __version__ else "v" + __version__)
+ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "main" if "dev" in __version__ else "v" + __version__)
 ELYRA_PIP_CONFIG_URL = os.getenv(
     "ELYRA_PIP_CONFIG_URL",
     f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/elyra/{ELYRA_GITHUB_BRANCH}/etc/kfp/pip.conf",

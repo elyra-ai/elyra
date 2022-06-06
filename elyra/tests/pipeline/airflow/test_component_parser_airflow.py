@@ -62,7 +62,7 @@ async def test_modify_component_catalogs(component_cache, metadata_manager_with_
 
     # Create new registry instance with a single URL-based component
     urls = [
-        "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/"
+        "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components/"
         "airflow_test_operator.py"
     ]
 
@@ -104,7 +104,7 @@ async def test_modify_component_catalogs(component_cache, metadata_manager_with_
 
     # Modify the test registry to add an additional path to
     urls.append(
-        "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components"
+        "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components"
         "/airflow_test_operator_no_inputs.py"
     )
     metadata_manager_with_teardown.update(TEST_CATALOG_NAME, registry_instance)
@@ -452,7 +452,7 @@ def test_parse_airflow_component_file_no_inputs():
     "invalid_url",
     [
         "https://nourl.py",  # test an invalid host
-        "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/\
+        "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/\
      pipeline/tests/resources/components/invalid_file.py",  # test an invalid file
     ],
     indirect=True,

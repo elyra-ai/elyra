@@ -182,7 +182,7 @@ By default, the command above will build a container image (development) with th
 
 
 Production:  
-From master/main branch:
+From main branch:
 ```bash
 make elyra-image TAG=3.7.0
 ```

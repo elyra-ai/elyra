@@ -39,7 +39,7 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 - `elyra[all]` - install core features and all dependencies
 - `elyra[kfp-tekton]` - install the Elyra core features and support for [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton)
 - `elyra[gitlab]` - install the Elyra core features and GitLab support for Apache Airflow pipelines
-- `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
+- `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector)
 
 ### pip
 
@@ -203,7 +203,7 @@ If you have Docker installed, you can use JupyterLab and Elyra by running one of
 
  - `elyra/elyra:latest` has the latest released version installed.
  - `elyra/elyra:x.y.z` has version `x.y.z` installed.
- - `elyra/elyra:dev` is automatically re-built each time a change is committed to the master branch.
+ - `elyra/elyra:dev` is automatically re-built each time a change is committed to the main branch.
 
 #### Pulling Elyra container images
 
