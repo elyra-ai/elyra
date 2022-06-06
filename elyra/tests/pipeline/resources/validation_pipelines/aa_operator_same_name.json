@@ -11,7 +11,7 @@
         {
           "id": "9a674fe4-5825-4841-8c4c-6e05879c4718",
           "type": "execution_node",
-          "op": "url-catalog:646d301459e8",
+          "op": "url-catalog:6571bc331575",
           "app_data": {
             "component_parameters": {
               "bash_command": {
@@ -72,7 +72,7 @@
         {
           "id": "0eb57369-99d1-4cd0-a205-8d8d96af3ad4",
           "type": "execution_node",
-          "op": "url-catalog:646d301459e8",
+          "op": "url-catalog:6571bc331575",
           "app_data": {
             "component_parameters": {
               "bash_command": {
@@ -133,7 +133,7 @@
         {
           "id": "e3922a29-f4c0-43d9-8d8b-4509aab80032",
           "type": "execution_node",
-          "op": "url-catalog:646d301459e8",
+          "op": "url-catalog:6571bc331575",
           "app_data": {
             "component_parameters": {
               "bash_command": {

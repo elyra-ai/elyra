@@ -11,7 +11,7 @@
         {
           "id": "f16f95e0-192c-4b1c-b42d-310da7a6c0e9",
           "type": "execution_node",
-          "op": "url-catalog:646d301459e8",
+          "op": "url-catalog:6571bc331575",
           "app_data": {
             "component_parameters": {
               "bash_command": {
@@ -72,7 +72,7 @@
         {
           "id": "b863d458-21b5-4a46-8420-5a814b7bd525",
           "type": "execution_node",
-          "op": "url-catalog:646d301459e8",
+          "op": "url-catalog:6571bc331575",
           "app_data": {
             "component_parameters": {
               "bash_command": {
