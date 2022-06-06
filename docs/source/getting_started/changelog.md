@@ -2,6 +2,17 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.9.0 - 06/03/2022
+
+- Fix tag whitespace validation error - [#2768](https://github.com/elyra-ai/elyra/pull/2768)
+
+## Release 3.9.0rc4 - 06/03/2022
+
+
+## Release 3.9.0rc3 - 06/03/2022
+
+- Fix missing scroll bar in metadata editor - [#2766](https://github.com/elyra-ai/elyra/pull/2766)
+
 ## Release 3.9.0rc2 - 06/02/2022
 
 - Fix missing placeholder text in metadata editor - [#2764](https://github.com/elyra-ai/elyra/pull/2764)
