@@ -69,7 +69,7 @@ Elyra includes connectors for the following component catalog types:
 
 Refer to section [Built-in catalog connector reference](#built-in-catalog-connector-reference) for details about these connectors. 
 
-You can add support for other component catalogs by installing a connector from the [catalog connector marketplace](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/connector-directory.md) or by [implementing your own catalog connector](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/build-a-custom-connector.md).
+You can add support for other component catalogs by installing a connector from the [catalog connector marketplace](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/connector-directory.md) or by [implementing your own catalog connector](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/build-a-custom-connector.md).
 
 #### Example custom components
 
@@ -84,10 +84,10 @@ Whether or not your Elyra includes the example components depends on how you dep
 
 **Installing and enabling the component examples catalogs**
 
-Follow the instructions in [Kubeflow Pipelines component examples catalog](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector).
+Follow the instructions in [Kubeflow Pipelines component examples catalog](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector).
 
 Details and demo pipelines for some of the included components can be found in the Elyra examples repository:
-- [Kubeflow Pipeline components](https://github.com/elyra-ai/examples/tree/master/pipelines/kubeflow_pipelines_component_examples)
+- [Kubeflow Pipeline components](https://github.com/elyra-ai/examples/tree/main/pipelines/kubeflow_pipelines_component_examples)
 
 
 ### Special considerations for custom Airflow components
@@ -187,7 +187,7 @@ $ elyra-metadata create component-catalogs \
        --description "filter text in files" \
        --runtime_type KUBEFLOW_PIPELINES \
        --schema_name "url-catalog"\
-       --paths "['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
+       --paths "['https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories '["filter content"]'
 ```
 
@@ -204,7 +204,7 @@ $ elyra-metadata update component-catalogs \
        --description "filter text in files" \
        --runtime_type KUBEFLOW_PIPELINES \
        --schema_name "url-catalog"\
-       --paths "['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
+       --paths "['https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']" \
        --categories='["file operations"]'
 ```
 
@@ -398,16 +398,16 @@ The URL component catalog connector provides access to components that are store
 - You can specify one or more URLs.
 
 Examples (GUI):
- - `https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml`
+ - `https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml`
 
 Examples (CLI):
- - `['https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']`
+ - `['https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']`
  - `['<URL_1>','<URL_2>']`
 
 
 #### Apache Airflow package catalog
 
-The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra/tree/master/elyra/pipeline/airflow/package_catalog_connector) provides access to operators that are stored in Apache Airflow [built distributions](https://packaging.python.org/en/latest/glossary/#term-built-distribution):
+The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/package_catalog_connector) provides access to operators that are stored in Apache Airflow [built distributions](https://packaging.python.org/en/latest/glossary/#term-built-distribution):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
 - The specified URL must be retrievable using an anonymous HTTP `GET` request.
 
@@ -418,7 +418,7 @@ Examples:
    ``` 
 
 #### Apache Airflow provider package catalog
-The [Apache Airflow provider package catalog connector](https://github.com/elyra-ai/elyra/tree/master/elyra/pipeline/airflow/provider_package_catalog_connector) provides access to operators that are stored in [Apache Airflow provider packages](https://airflow.apache.org/docs/apache-airflow-providers/):
+The [Apache Airflow provider package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/provider_package_catalog_connector) provides access to operators that are stored in [Apache Airflow provider packages](https://airflow.apache.org/docs/apache-airflow-providers/):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
 - The specified URL must be retrievable using an anonymous HTTP `GET` request.
 

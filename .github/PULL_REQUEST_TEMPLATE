@@ -1,7 +1,7 @@
 <!--
 Thanks for sending a pull request!  Here are some tips for you:
-  1. If this is your first time, please read our [contributor guidelines](https://github.com/elyra-ai/community/blob/master/contributing.md)
-    1.1 Please follow the [7 rules for a great commit message](https://github.com/elyra-ai/community/blob/master/contributing.md#creating-a-pull-request)
+  1. If this is your first time, please read our [contributor guidelines](https://github.com/elyra-ai/community/blob/main/contributing.md)
+    1.1 Please follow the [7 rules for a great commit message](https://github.com/elyra-ai/community/blob/main/contributing.md#creating-a-pull-request)
   2. If the PR is unfinished, leave it as 'DRAFT', add '[WIP]' in your PR title, e.g., '[WIP] Your PR title ...' or use the 'status:Work in Progress' label.
   3. Be sure to keep the PR description updated to reflect all changes.
   4. Please write your PR title to summarize what this PR proposes.

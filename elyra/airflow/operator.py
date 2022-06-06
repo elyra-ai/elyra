@@ -29,7 +29,7 @@ in Apache Airflow
 INOUT_SEPARATOR = ";"
 
 ELYRA_GITHUB_ORG = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
-ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "master" if "dev" in __version__ else "v" + __version__)
+ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "main" if "dev" in __version__ else "v" + __version__)
 
 ELYRA_BOOTSCRIPT_URL = os.getenv(
     "ELYRA_BOOTSTRAP_SCRIPT_URL",

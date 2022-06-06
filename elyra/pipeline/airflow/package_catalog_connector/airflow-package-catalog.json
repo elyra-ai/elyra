@@ -1,6 +1,6 @@
 {
-  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
-  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/pipeline/airflow/package_catalog_connector/airflow-package-catalog.json",
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/pipeline/airflow/package_catalog_connector/airflow-package-catalog.json",
   "title": "Apache Airflow package operator catalog",
   "name": "airflow-package-catalog",
   "schemaspace": "component-catalogs",
@@ -9,7 +9,7 @@
   "uihints": {
     "title": "Apache Airflow core operator catalog",
     "icon": "",
-    "reference_url": "https://github.com/elyra-ai/elyra/tree/master/elyra/pipeline/airflow/package_catalog_connector"
+    "reference_url": "https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/package_catalog_connector"
   },
   "properties": {
     "schema_name": {

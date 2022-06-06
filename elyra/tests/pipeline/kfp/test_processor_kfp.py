@@ -279,7 +279,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, compo
 
     # Assign test resource location
     url = (
-        "https://raw.githubusercontent.com/elyra-ai/elyra/master/"
+        "https://raw.githubusercontent.com/elyra-ai/elyra/main/"
         "elyra/tests/pipeline/resources/components/filter_text.yaml"
     )
 
@@ -388,7 +388,7 @@ def test_processing_filename_runtime_specific_component(
     # Construct hypothetical operation for component
     operation_name = "Download data test"
     operation_params = {
-        "url": "https://raw.githubusercontent.com/elyra-ai/elyra/master/tests/assets/helloworld.ipynb",
+        "url": "https://raw.githubusercontent.com/elyra-ai/elyra/main/tests/assets/helloworld.ipynb",
         "curl_options": "--location",
     }
     operation = Operation(

@@ -18,4 +18,4 @@ limitations under the License.
 
 # Elyra Community Code of Conduct
 
-Please refer to our [Elyra Community Code of Conduct](https://github.com/elyra-ai/community/blob/master/code-of-conduct.md)
+Please refer to our [Elyra Community Code of Conduct](https://github.com/elyra-ai/community/blob/main/code-of-conduct.md)

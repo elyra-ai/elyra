@@ -36,7 +36,7 @@ config: SimpleNamespace
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
 DEFAULT_GIT_ORG = "elyra-ai"
-DEFAULT_GIT_BRANCH = "master"
+DEFAULT_GIT_BRANCH = "main"
 DEFAULT_BUILD_DIR = "build/release"
 
 
@@ -123,9 +123,9 @@ def update_version_to_release() -> None:
         sed(_source("etc/docker/kubeflow/README.md"), r"kf-notebook:dev", f"kf-notebook:{new_version}")
         sed(_source("docs/source/getting_started/installation.md"), r"elyra:dev ", f"elyra:{new_version} ")
         sed(_source("docs/source/getting_started/installation.md"), r"/v[0-9].[0-9].[0-9]?", f"/v{new_version}?")
-        sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), r"master", f"{config.tag}")
+        sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), r"main", f"{config.tag}")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), r"dev", f"{new_version}")
-        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), r"master", f"{new_version}")
+        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), r"main", f"{new_version}")
 
         # Update UI component versions
         sed(_source("README.md"), rf"v{old_npm_version}", f"v{new_version}")
@@ -216,27 +216,27 @@ def update_version_to_release() -> None:
         # Update GitHub references in documentation
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/master/etc/kfp/pip.conf",
+            r"elyra-ai/elyra/main/etc/kfp/pip.conf",
             rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf/",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/master/elyra/kfp/bootstrapper.py",
+            r"elyra-ai/elyra/main/elyra/kfp/bootstrapper.py",
             rf"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/master/elyra/airflow/bootstrapper.py",
+            r"elyra-ai/elyra/main/elyra/airflow/bootstrapper.py",
             rf"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/master/etc/generic/requirements-elyra-py37.txt",
+            r"elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt",
             rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/master/etc/generic/requirements-elyra.txt",
+            r"elyra-ai/elyra/main/etc/generic/requirements-elyra.txt",
             rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
         )
 
@@ -273,9 +273,9 @@ def update_version_to_dev() -> None:
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra:{new_version} ", "elyra:dev ")
         # this does not goes back to dev
         # sed(source('docs/source/getting_started/installation.md'), rf"/v[0-9].[0-9].[0-9]", "/v{dev_version}")
-        sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.tag}", "master")
+        sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.tag}", "main")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"{new_version}", "dev")
-        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", "master")
+        sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", "main")
 
         # Update UI component versions
         sed(_source("README.md"), rf"extension v{new_version}", f"extension v{dev_npm_version}")
@@ -327,27 +327,27 @@ def update_version_to_dev() -> None:
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
-            rf"elyra-ai/elyra/master/etc/kfp/pip.conf/",
+            rf"elyra-ai/elyra/main/etc/kfp/pip.conf/",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
-            rf"elyra-ai/elyra/master/elyra/kfp/bootstrapper.py",
+            rf"elyra-ai/elyra/main/elyra/kfp/bootstrapper.py",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
-            rf"elyra-ai/elyra/master/elyra/airflow/bootstrapper.py",
+            rf"elyra-ai/elyra/main/elyra/airflow/bootstrapper.py",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
-            rf"elyra-ai/elyra/master/etc/generic/requirements-elyra-py37.txt",
+            rf"elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
-            rf"elyra-ai/elyra/master/etc/generic/requirements-elyra.txt",
+            rf"elyra-ai/elyra/main/etc/generic/requirements-elyra.txt",
         )
 
         # update documentation references in schema definitions
