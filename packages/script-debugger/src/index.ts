@@ -31,7 +31,7 @@ import { IEditorTracker } from '@jupyterlab/fileeditor';
  * A plugin that provides visual debugging support for script editors.
  */
 const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
-  id: 'elyra-script-editor-debugger',
+  id: 'elyra-script-debugger',
   autoStart: true,
   requires: [IDebugger, IEditorTracker],
   optional: [ILabShell],
@@ -41,7 +41,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     editorTracker: IEditorTracker,
     labShell: ILabShell | null
   ) => {
-    console.log('***Elyra - script-editor-debugger extension is activated!***');
+    console.log('***Elyra - script-debugger extension is activated!***');
     const handler = new Debugger.Handler({
       type: 'file',
       shell: app.shell,

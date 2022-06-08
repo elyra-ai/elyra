@@ -1,5 +1,5 @@
 {
-  "name": "@elyra/script-editor-debugger-extension",
+  "name": "@elyra/script-debugger-extension",
   "version": "3.10.0-dev",
   "description": "JupyterLab extension - visual debugging support for script editors",
   "keywords": [
@@ -30,8 +30,8 @@
     "build:lib": "tsc",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
-    "clean": "rimraf lib tsconfig.tsbuildinfo ../../dist/labextensions/@elyra/script-editor-debugger-extension",
-    "lab:dev": "jupyter labextension develop --overwrite ../../dist/labextensions/@elyra/script-editor-debugger-extension",
+    "clean": "rimraf lib tsconfig.tsbuildinfo ../../dist/labextensions/@elyra/script-debugger-extension",
+    "lab:dev": "jupyter labextension develop --overwrite ../../dist/labextensions/@elyra/script-debugger-extension",
     "dist": "npm pack .",
     "prepare": "npm run build",
     "watch": "run-p watch:src watch:labextension",
@@ -59,6 +59,6 @@
   },
   "jupyterlab": {
     "extension": true,
-    "outputDir": "../../dist/labextensions/@elyra/script-editor-debugger-extension"
+    "outputDir": "../../dist/labextensions/@elyra/script-debugger-extension"
   }
 }
