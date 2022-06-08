@@ -41,7 +41,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     editorTracker: IEditorTracker,
     labShell: ILabShell | null
   ) => {
-    console.log('***Elyra - script-debugger extension is activated!***');
+    console.log('Elyra - script-debugger extension is activated!');
     const handler = new Debugger.Handler({
       type: 'file',
       shell: app.shell,
@@ -90,11 +90,8 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     if (labShell) {
       labShell.currentChanged.connect((_, update) => {
         const widget = update.newValue;
-        if (widget instanceof DocumentWidget) {
-          const { content } = widget;
-          if (content instanceof ScriptEditor) {
-            void updateHandlerAndCommands(widget);
-          }
+        if (widget instanceof ScriptEditor) {
+          void updateHandlerAndCommands(widget);
         }
       });
     } else {
