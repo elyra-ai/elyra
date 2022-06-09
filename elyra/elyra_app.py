@@ -133,10 +133,20 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         PipelineProcessorRegistry.clear_instance()
         PipelineProcessorManager.clear_instance()
         PipelineValidationManager.clear_instance()
-        FileMetadataCache.clear_instance()
+
+        if FileMetadataCache.initialized():
+            file_metadata_cache = FileMetadataCache.instance(parent=self)
+            if hasattr(file_metadata_cache, "observer") and file_metadata_cache.observer.is_alive():
+                file_metadata_cache.observer.stop()  # terminate FileMetadataCache watchdog
+            FileMetadataCache.clear_instance()
+
         if ComponentCache.initialized():
-            ComponentCache.instance(parent=self).cache_manager.stop()  # terminate CacheUpdateManager
+            component_cache = ComponentCache.instance(parent=self)
+            component_cache.cache_manager.stop()  # terminate CacheUpdateManager
+            if hasattr(component_cache, "observer") and component_cache.observer.is_alive():
+                component_cache.observer.stop()  # terminate ComponentCache watchdog
             ComponentCache.clear_instance()
+
         SchemaManager.clear_instance()
 
 
