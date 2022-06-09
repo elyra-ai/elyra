@@ -91,17 +91,7 @@ const rjsfPipelineProperties: any = {
             'Environment variables to be set on the execution environment.',
           type: 'array',
           items: {
-            type: 'object',
-            properties: {
-              key: {
-                type: 'string',
-                title: 'Key'
-              },
-              value: {
-                type: 'string',
-                title: 'Value'
-              }
-            }
+            type: 'string'
           }
         },
         kubernetes_secrets: {
@@ -110,17 +100,7 @@ const rjsfPipelineProperties: any = {
             'Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the nodes are executed or the pipeline will not run.',
           type: 'array',
           items: {
-            type: 'object',
-            properties: {
-              key: {
-                type: 'string',
-                title: 'Key'
-              },
-              value: {
-                type: 'string',
-                title: 'Value'
-              }
-            }
+            type: 'string'
           }
         },
         mounted_volumes: {
@@ -129,17 +109,7 @@ const rjsfPipelineProperties: any = {
             'Volumes to be mounted in all nodes. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the nodes are executed or the pipeline will not run.',
           type: 'array',
           items: {
-            type: 'object',
-            properties: {
-              key: {
-                type: 'string',
-                title: 'Key'
-              },
-              value: {
-                type: 'string',
-                title: 'Value'
-              }
-            }
+            type: 'string'
           }
         }
       }
