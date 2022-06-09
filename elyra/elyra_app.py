@@ -130,8 +130,14 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
         pass
 
     async def stop_extension(self):
+        PipelineProcessorRegistry.clear_instance()
+        PipelineProcessorManager.clear_instance()
+        PipelineValidationManager.clear_instance()
+        FileMetadataCache.clear_instance()
         if ComponentCache.initialized():
             ComponentCache.instance(parent=self).cache_manager.stop()  # terminate CacheUpdateManager
+            ComponentCache.clear_instance()
+        SchemaManager.clear_instance()
 
 
 launch_instance = ElyraApp.launch_instance
