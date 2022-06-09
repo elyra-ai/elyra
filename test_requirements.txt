@@ -1,5 +1,7 @@
 elyra-examples-kfp-catalog
 git-python
+# https://github.com/elyra-ai/elyra/issues/2778
+jupyter-server==1.17.0
 importlib-resources
 pytest>=5.4.1
 pytest-console-scripts
