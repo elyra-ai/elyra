@@ -74,7 +74,7 @@ setup_args = dict(
         "jupyter_core>=4.6.0",
         "jupyter_client>=6.1.7",
         "jupyter-packaging>=0.10",
-        "jupyter_server>=1.7.0,<=1.17.0", # Cap due to jupyter-server/jupyter_server#819
+        "jupyter_server>=1.7.0,<1.17.1",  # Cap due to jupyter-server/jupyter_server#819
         "jupyterlab>=3.4.0",  # comment out to use local jupyterlab
         "jupyterlab-lsp>=3.8.0",  # comment out to use local jupyterlab
         "jupyterlab-git~=0.32",  # Avoid breaking 1.x changes
