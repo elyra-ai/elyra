@@ -40,7 +40,8 @@ interface IProps {
  */
 // eslint-disable-next-line react/display-name
 const DropDown = forwardRef<ISelect, IProps>(({ specs, callback }, select) => {
-  const initVal = Object.values(specs.kernelspecs ?? [])[0]?.name ?? '';
+  const kernelspecs = specs.kernelspecs;
+  const initVal = Object.values(kernelspecs ?? [])[0]?.name ?? '';
   const [selection, setSelection] = useState(initVal);
 
   // Note: It's normally best to avoid using an imperative handle if possible.
@@ -51,26 +52,30 @@ const DropDown = forwardRef<ISelect, IProps>(({ specs, callback }, select) => {
     getSelection: (): string => selection
   }));
 
-  const kernelOptions = !Object.keys(specs.kernelspecs).length ? (
+  const kernelOptions = !Object.keys(kernelspecs).length ? (
     <option key="no-kernel" value="no-kernel">
       No Kernel
     </option>
   ) : (
-    Object.entries(specs.kernelspecs).map(([key, val]) => (
+    Object.entries(kernelspecs).map(([key, val]) => (
       <option key={key} value={key}>
         {val?.display_name ?? key}
       </option>
     ))
   );
 
-  const update = (e: any): void => {
+  const handleSelection = (e: any): void => {
     const selection = e.target.value;
     setSelection(selection);
     callback(selection);
   };
 
   return (
-    <select className={KERNEL_SELECT_CLASS} onChange={update} value={selection}>
+    <select
+      className={KERNEL_SELECT_CLASS}
+      onChange={handleSelection}
+      value={selection}
+    >
       {kernelOptions}
     </select>
   );

@@ -45,6 +45,7 @@ import { KernelDropdown, ISelect } from './KernelDropdown';
 import { ScriptDebugger } from './ScriptDebugger';
 import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
+import { compileFunction } from 'vm';
 
 /**
  * ScriptEditor widget CSS classes.
@@ -163,12 +164,15 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.kernelSelectorRef = React.createRef<ISelect>();
 
     if (kernelSpecs !== null) {
-      const kernelDropDown = new KernelDropdown(
-        kernelSpecs,
-        this.kernelSelectorRef,
-        this.updateSelectedKernel
+      this.toolbar.insertItem(
+        4,
+        'select',
+        new KernelDropdown(
+          kernelSpecs,
+          this.kernelSelectorRef,
+          this.updateSelectedKernel
+        )
       );
-      this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
   };
 
@@ -193,7 +197,7 @@ export abstract class ScriptEditor extends DocumentWidget<
       this.getKernelSelection()
     );
     console.log(
-      'is debugger available for kernel' +
+      'is debugger available for kernel ' +
         this.getKernelSelection() +
         '?:  ' +
         debuggerAvailable
@@ -207,7 +211,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   };
 
   private isConsoleDebuggerEnabled = (): boolean => {
-    // TODO: Also check for running kernels
+    // TODO: Revisit this solution, ideally only check for running sessions and not the UI
     // Check the toolbar
     const layout = this.toolbar.layout as PanelLayout;
     const labDebuggerButton =
