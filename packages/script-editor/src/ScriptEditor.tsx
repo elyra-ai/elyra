@@ -161,23 +161,22 @@ export abstract class ScriptEditor extends DocumentWidget<
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
       this.getLanguage()
     );
-
-    // this.kernelSelection = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
-
     this.kernelSelectorRef = React.createRef<ISelect>();
 
     if (kernelSpecs !== null) {
       const kernelDropDown = new KernelDropdown(
         kernelSpecs,
-        this.kernelSelectorRef
+        this.kernelSelectorRef,
+        this.updateSelectedKernel
       );
       this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
 
-    this.kernelSelection =
-      this.getKernelSelection() ||
-      Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
-    return;
+    this.kernelSelection = this.getKernelSelection();
+  };
+
+  updateSelectedKernel = (selectedKernel: string): void => {
+    console.log('updateSelectedKernel to: ' + selectedKernel);
   };
 
   getKernelSelection = (): string => {

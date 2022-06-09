@@ -32,13 +32,14 @@ export interface ISelect {
 
 interface IProps {
   specs: KernelSpec.ISpecModels;
+  callback: (selectedKernel: string) => void;
 }
 
 /**
  * A toolbar dropdown component populated with available kernel specs.
  */
 // eslint-disable-next-line react/display-name
-const DropDown = forwardRef<ISelect, IProps>(({ specs }, select) => {
+const DropDown = forwardRef<ISelect, IProps>(({ specs, callback }, select) => {
   const initVal = Object.values(specs.kernelspecs ?? [])[0]?.name ?? '';
   const [selection, setSelection] = useState(initVal);
 
@@ -62,12 +63,14 @@ const DropDown = forwardRef<ISelect, IProps>(({ specs }, select) => {
     ))
   );
 
+  const update = (e: any): void => {
+    const selection = e.target.value;
+    setSelection(selection);
+    callback(selection);
+  };
+
   return (
-    <select
-      className={KERNEL_SELECT_CLASS}
-      onChange={(e): void => setSelection(e.target.value)}
-      value={selection}
-    >
+    <select className={KERNEL_SELECT_CLASS} onChange={update} value={selection}>
       {kernelOptions}
     </select>
   );
@@ -77,17 +80,23 @@ const DropDown = forwardRef<ISelect, IProps>(({ specs }, select) => {
  * Wrap the dropDown into a React Widget in order to insert it into a Lab Toolbar Widget
  */
 export class KernelDropdown extends ReactWidget {
+  callback: (selectedKernel: string) => void;
+
   /**
    * Construct a new CellTypeSwitcher widget.
    */
   constructor(
     private specs: KernelSpec.ISpecModels,
-    private ref: RefObject<ISelect>
+    private ref: RefObject<ISelect>,
+    callback: (selectedKernel: string) => void
   ) {
     super();
+    this.callback = callback;
   }
 
   render(): React.ReactElement {
-    return <DropDown ref={this.ref} specs={this.specs} />;
+    return (
+      <DropDown ref={this.ref} specs={this.specs} callback={this.callback} />
+    );
   }
 }
