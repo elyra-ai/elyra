@@ -94,7 +94,6 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.model = this.content.model;
     this.runner = new ScriptRunner(this.disableButton);
     this.kernelSelectorRef = null;
-    this.kernelSelection = '';
     this.emptyOutput = true;
     this.controller = new ScriptEditorController();
     this.debugger = new ScriptDebugger(this.disableButton);
@@ -171,8 +170,6 @@ export abstract class ScriptEditor extends DocumentWidget<
       );
       this.toolbar.insertItem(4, 'select', kernelDropDown);
     }
-
-    this.kernelSelection = this.getKernelSelection();
   };
 
   updateSelectedKernel = (selectedKernel: string): void => {
@@ -192,12 +189,17 @@ export abstract class ScriptEditor extends DocumentWidget<
       return;
     }
 
-    const debuggerIsAvailable = await this.controller.isDebuggerAvailable(
-      this.kernelSelection || ''
+    const debuggerAvailable = await this.controller.isDebuggerAvailable(
+      this.getKernelSelection()
     );
-    console.log('is debugger available:? ' + debuggerIsAvailable);
+    console.log(
+      'is debugger available for kernel' +
+        this.getKernelSelection() +
+        '?:  ' +
+        debuggerAvailable
+    );
 
-    if (debuggerIsAvailable) {
+    if (debuggerAvailable) {
       this.disableButton(false, 'debug');
       // const handler = this.createEditorDebugHandler();
       // console.log(handler);
@@ -265,7 +267,7 @@ export abstract class ScriptEditor extends DocumentWidget<
       this.clearOutputArea();
       this.displayOutputArea();
       await this.runner.runScript(
-        this.kernelSelection,
+        this.getKernelSelection(),
         this.context.path,
         this.model.value.text,
         this.handleKernelMsg

@@ -166,7 +166,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       restored
     ])
       .then(([settings]) => {
-        console.log(settings);
         updateSettings(settings);
         updateTracker();
         settings.changed.connect(() => {
