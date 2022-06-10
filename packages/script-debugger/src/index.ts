@@ -110,7 +110,10 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     if (labShell) {
       labShell.currentChanged.connect((_, update) => {
         const widget = update.newValue;
-        if (widget instanceof ScriptEditor && widget instanceof ScriptEditor) {
+        if (
+          widget instanceof DocumentWidget &&
+          widget instanceof ScriptEditor
+        ) {
           void updateHandlerAndCommands(widget);
         }
       });
