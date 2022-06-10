@@ -1,7 +1,7 @@
 from requests import get
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-from itertools import islice
+from itertools import islice, chain
 import sys
 import subprocess
 
@@ -23,6 +23,7 @@ def get_outdated_pkg_list():
 
 
 def check_release_date(pkg_list):
+    pkgs_output = []
     for row in pkg_list:
         try:
             pkg, v = row.split("==")
@@ -44,10 +45,10 @@ def check_release_date(pkg_list):
         if today - release_date > timedelta(days=max_days):
             continue
 
-        print(f"Newer version for <{pkg}>:")
-        print(f" - released {latest}  {latest_upload_time[:10]}")
-        print(f" - current  {v}")
-        print("")
+        pkgs_output.append(
+            f"Newer version for <{pkg}>:\n - released {latest}  {latest_upload_time[:10]}\n - current  {v}\n"
+        )
+    return pkgs_output
 
 
 if __name__ == "__main__":
@@ -65,7 +66,10 @@ if __name__ == "__main__":
     parts[-1] = l
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        executor.map(
+        results = executor.map(
             check_release_date,
             [islice(pkg_list, parts[i], parts[i + 1]) for i in range(len(parts) - 1)],
         )
+
+    for item in chain(*results):
+        print(item)
