@@ -2,6 +2,12 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.9.1 - 06/10/2022
+
+- Clear all singleton instances during shutdown - [#2781](https://github.com/elyra-ai/elyra/pull/2781)
+- Do not persist the jupyter baseUrl in pipelines - [#2775](https://github.com/elyra-ai/elyra/pull/2775)
+- Update master branch references to main - [#2771](https://github.com/elyra-ai/elyra/pull/2771)
+
 ## Release 3.9.0 - 06/03/2022
 
 - Fix tag whitespace validation error - [#2768](https://github.com/elyra-ai/elyra/pull/2768)
