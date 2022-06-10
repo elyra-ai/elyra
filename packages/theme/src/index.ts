@@ -155,7 +155,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       label: 'Documentation',
       icon: helpIcon,
       execute: (args: any) => {
-        window.open('https://elyra.readthedocs.io/en/latest/', '_blank');
+        window.open('https://elyra.readthedocs.io/en/v3.9.1/', '_blank');
       }
     });
 
