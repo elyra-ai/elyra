@@ -27,7 +27,8 @@ def check_release_date(pkg_list):
         try:
             pkg, v = row.split("==")
         except Exception:
-            print(f"skipping {row}")
+            if len(row) > 1:
+                print(f"skipping {row}")
             continue
 
         res = get_info_from_pypi(pkg)
@@ -55,6 +56,7 @@ if __name__ == "__main__":
         max_days = int(sys.argv[1])
 
     print(f"packages that were updated in the last {max_days} days:")
+    print()
 
     pkg_list = get_outdated_pkg_list()
     l = len(pkg_list)
