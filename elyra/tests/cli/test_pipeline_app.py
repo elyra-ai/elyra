@@ -35,9 +35,9 @@ SUB_COMMANDS = ["run", "submit", "describe", "validate", "export"]
 @pytest.fixture(autouse=True)
 def destroy_component_cache():
     """
-    This fixture provides a workaround for a (yet unexplained)
-    issue that causes tests to fail that utilize the component
-    cache.
+    This fixture clears any ComponentCache instances that
+    may have been created during CLI processes so that
+    those instance doesn't side-affect later tests.
     """
     yield
     ComponentCache.clear_instance()
