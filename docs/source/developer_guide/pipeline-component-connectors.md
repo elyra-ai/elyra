@@ -22,4 +22,4 @@ Elyra uses connectors to retrieve [pipeline components](../user_guide/pipeline-c
 
 ![Components, connectors, and catalogs](../images/developer_guide/pipeline-component-connectors/component-catalogs.png)
 
-The examples repository includes a [list of available catalog connectors](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors) and instructions on [how to create a custom connector](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/build-a-custom-connector.md).
+The examples repository includes a [list of available catalog connectors](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors) and instructions on [how to create a custom connector](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/build-a-custom-connector.md).

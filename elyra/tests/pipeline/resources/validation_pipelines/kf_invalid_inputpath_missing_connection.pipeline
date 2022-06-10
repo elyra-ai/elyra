@@ -84,7 +84,7 @@
               "output_data": "",
               "url": {
                 "activeControl": "StringControl",
-                "StringControl": "https://raw.githubusercontent.com/elyra-ai/examples/master/pipelines/kubeflow_pipelines_component_examples/filter_file_component/data.csv"
+                "StringControl": "https://raw.githubusercontent.com/elyra-ai/examples/main/pipelines/kubeflow_pipelines_component_examples/filter_file_component/data.csv"
               }
             },
             "label": "",

@@ -20,7 +20,7 @@ limitations under the License.
 
 Pipelines that you run on Kubeflow Pipelines can optionally produce output that is rendered in the Kubeflow Pipelines UI. For example, a model training script might expose quality metrics.
 
-You can try the visualizations shown in this document using [this pipeline in the Elyra examples repository](https://github.com/elyra-ai/examples/tree/master/pipelines/visualize_output_in_kubeflow_pipelines_ui).
+You can try the visualizations shown in this document using [this pipeline in the Elyra examples repository](https://github.com/elyra-ai/examples/tree/main/pipelines/visualize_output_in_kubeflow_pipelines_ui).
 
 ## Visualizing output using the Kubeflow Pipelines output viewer
 

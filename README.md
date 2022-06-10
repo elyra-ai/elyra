@@ -52,15 +52,15 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v3.8.1?urlpath=lab/tree/binder-demo) (Latest stable version - see the [releases page](https://github.com/elyra-ai/elyra/releases) for a new features summary)
-- [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/master?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v3.9.0?urlpath=lab/tree/binder-demo) (Latest stable version - see the [releases page](https://github.com/elyra-ai/elyra/releases) for a new features summary)
+- [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/main?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
 #### Using Docker
 
 You can also try Elyra by running one of the docker images from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags):
 - `elyra/elyra:latest` has the latest released version installed.
 - `elyra/elyra:x.y.z` has a specific version installed.
-- `elyra/elyra:dev` is automatically re-built each time a change is committed to the master branch.
+- `elyra/elyra:dev` is automatically re-built each time a change is committed to the main branch.
 
 The command below starts the most recent development build in a clean environment:
 

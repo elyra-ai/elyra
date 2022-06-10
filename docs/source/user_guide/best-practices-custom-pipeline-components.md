@@ -142,19 +142,19 @@ The [Apache Airflow provider package catalog](pipeline-components.html#apache-ai
 
 #### Kubeflow Pipelines example components catalog (type: `elyra-kfp-examples-catalog`)
 
-The missing component definition is stored in the Kubeflow Pipelines example components catalog. Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector) for details on how to install and enable connector.
+The missing component definition is stored in the Kubeflow Pipelines example components catalog. Refer to the [documentation](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector) for details on how to install and enable connector.
 
 #### Apache Airflow example components catalog (type: `elyra-airflow-examples-catalog`)
 
-The missing component definition is stored in the Apache Airflow example components catalog. Refer to the [documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/airflow-example-components-connector) for details on how to install and enable connector.
+The missing component definition is stored in the Apache Airflow example components catalog. Refer to the [documentation](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/airflow-example-components-connector) for details on how to install and enable connector.
 
 #### Machine Learning Exchange catalog (type: `mlx-catalog`)
 
 The missing component definition is stored in a [Machine Learning Exchange](https://github.com/machine-learning-exchange) deployment. 
 
 1. Contact the user who created the pipeline to request deployment connectivity details.
-1. Install and configure the connector as outlined in the [connector documentation](https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/mlx-connector).
+1. Install and configure the connector as outlined in the [connector documentation](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/mlx-connector).
 
 #### Component catalogs not listed here
 
-Check the [component catalog connector directory](https://github.com/elyra-ai/examples/blob/master/component-catalog-connectors/connector-directory.md) if the referenced catalog type is not listed here.
+Check the [component catalog connector directory](https://github.com/elyra-ai/examples/blob/main/component-catalog-connectors/connector-directory.md) if the referenced catalog type is not listed here.

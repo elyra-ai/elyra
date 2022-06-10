@@ -213,10 +213,9 @@ export const componentFetcher = async (type: string): Promise<any> => {
       category.node_types?.[0]?.runtime_type ?? 'LOCAL';
 
     const type = types.find((t: any) => t.id === category_runtime_type);
-    const defaultIcon = URLExt.join(
-      ServerConnection.makeSettings().baseUrl,
-      type?.icon || ''
-    );
+    const defaultIcon = URLExt.parse(
+      URLExt.join(ServerConnection.makeSettings().baseUrl, type?.icon || '')
+    ).pathname;
 
     category.image = defaultIcon;
 

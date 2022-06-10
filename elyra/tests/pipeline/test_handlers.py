@@ -101,7 +101,7 @@ async def test_get_component_properties_config(jp_fetch):
 async def test_get_component_properties_definition(catalog_instance, jp_fetch, caplog):
     # Ensure the definition for a component can be found
     component_url = (
-        "https://raw.githubusercontent.com/elyra-ai/examples/master/component-catalog-connectors/"
+        "https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/"
         "kfp-example-components-connector/kfp_examples_connector/resources/download_data.yaml"
     )
     definition = requests.get(component_url)

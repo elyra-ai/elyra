@@ -1,6 +1,6 @@
 {
-  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/meta-schema.json",
-  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/schemas/local-file-catalog.json",
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/local-file-catalog.json",
   "title": "Filesystem Component Catalog",
   "name": "local-file-catalog",
   "display_name": "Filesystem Component Catalog",

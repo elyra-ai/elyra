@@ -78,8 +78,9 @@ export const Tags: React.FC<ITagProps> = ({
   ): Promise<void> => {
     const inputElement = event.target as HTMLInputElement;
 
-    if (inputElement.value.trim() !== '' && event.keyCode === 13) {
-      if (allTags.includes(inputElement.value)) {
+    const newTag = inputElement.value.trim();
+    if (newTag !== '' && event.keyCode === 13) {
+      if (allTags.includes(newTag)) {
         event.preventDefault();
         await showDialog({
           title: 'A tag with this label already exists.',
@@ -87,8 +88,6 @@ export const Tags: React.FC<ITagProps> = ({
         });
         return;
       }
-
-      const newTag = inputElement.value;
 
       // update state all tag and selected tag
       setSelectedTags([...selected, newTag]);
