@@ -25,23 +25,23 @@ The following tutorials highlight key features of Elyra.
 
 #### Run generic pipelines in JupyterLab
 
-Learn how to [create a generic pipeline and run it in your local JupyterLab environment](https://github.com/elyra-ai/examples/tree/master/pipelines/introduction-to-generic-pipelines).
+Learn how to [create a generic pipeline and run it in your local JupyterLab environment](https://github.com/elyra-ai/examples/tree/main/pipelines/introduction-to-generic-pipelines).
 
 #### Run generic pipelines on Kubeflow Pipelines
 
-Learn how to [run generic pipelines on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/run-generic-pipelines-on-kubeflow-pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
+Learn how to [run generic pipelines on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/main/pipelines/run-generic-pipelines-on-kubeflow-pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
 
 #### Run runtime-specific pipelines on Kubeflow Pipelines
 
-Learn how to [run runtime-specific pipelines on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/master/pipelines/run-pipelines-on-kubeflow-pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
+Learn how to [run runtime-specific pipelines on Kubeflow Pipelines](https://github.com/elyra-ai/examples/tree/main/pipelines/run-pipelines-on-kubeflow-pipelines). This tutorial requires a Kubeflow Pipelines deployment in a local environment or on the cloud.
 
 #### Run generic pipelines on Apache Airflow
 
-Learn how to [run generic pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/master/pipelines/run-generic-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
+Learn how to [run generic pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/main/pipelines/run-generic-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
 
 #### Run runtime-specific pipelines on Apache Airflow
 
-Learn how to [run runtime-specific pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/master/pipelines/run-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
+Learn how to [run runtime-specific pipelines on Apache Airflow](https://github.com/elyra-ai/examples/tree/main/pipelines/run-pipelines-on-apache-airflow). This tutorial requires an Apache Airflow deployment in a local environment or on the cloud.
 
 
 #### Examples

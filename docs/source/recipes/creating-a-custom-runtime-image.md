@@ -27,7 +27,7 @@ Should none of these images meet your needs, you can utilize a custom container 
 - [Python 3](https://www.python.org/) is pre-installed and in the search path. Python versions that have reached their "end of life" are not supported.
 - [`curl`](https://curl.haxx.se/) is pre-installed and in the search path.
 
-Elyra installs a [set of required packages](https://github.com/elyra-ai/elyra/blob/master/etc/generic/requirements-elyra.txt) in this image prior to running Jupyter notebooks or Python scripts. If no built distribution is available for those packages, Python builds the packages from source, which might require additional software (like a compiler) to be preinstalled in the image. Building and installing those package on-the-fly might add a non-trivial overhead, and you should therefore consider pre-installing these Elyra prerequisites in the container image.
+Elyra installs a [set of required packages](https://github.com/elyra-ai/elyra/blob/main/etc/generic/requirements-elyra.txt) in this image prior to running Jupyter notebooks or Python scripts. If no built distribution is available for those packages, Python builds the packages from source, which might require additional software (like a compiler) to be preinstalled in the image. Building and installing those package on-the-fly might add a non-trivial overhead, and you should therefore consider pre-installing these Elyra prerequisites in the container image.
 
 Refer to the [Additional considerations](#additional-considerations) section for important implementation details.
 
@@ -180,4 +180,4 @@ time.sleep(2)
 
 ### Conflicting package dependencies
 
-Elyra installs additional packages in the container prior to notebook processing. If a pre-installed package is not compatible with the version requirements defined in [requirements-elyra.txt](https://github.com/elyra-ai/elyra/blob/master/etc/generic/requirements-elyra.txt), it is replaced. You should review any version discrepancies as they might lead to unexpected processing results.
+Elyra installs additional packages in the container prior to notebook processing. If a pre-installed package is not compatible with the version requirements defined in [requirements-elyra.txt](https://github.com/elyra-ai/elyra/blob/main/etc/generic/requirements-elyra.txt), it is replaced. You should review any version discrepancies as they might lead to unexpected processing results.

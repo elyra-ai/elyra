@@ -36,7 +36,7 @@ AIRFLOW_COMPONENT_CACHE_INSTANCE = {
         "runtime_type": "APACHE_AIRFLOW",
         "categories": ["examples"],
         "paths": [
-            "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/tests/pipeline/resources/components/bash_operator.py"  # noqa
+            "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components/bash_operator.py"  # noqa
         ],
     },
     "schema_name": "url-catalog",

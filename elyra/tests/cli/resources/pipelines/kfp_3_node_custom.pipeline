@@ -77,7 +77,7 @@
             "component_parameters": {
               "url": {
                 "activeControl": "StringControl",
-                "StringControl": "https://raw.githubusercontent.com/elyra-ai/elyra/master/elyra/metadata/error.py"
+                "StringControl": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/error.py"
               },
               "curl_options": {
                 "activeControl": "StringControl",

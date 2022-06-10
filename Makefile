@@ -181,7 +181,7 @@ install-dev: package-ui-dev install-server install-examples install-gitlab-depen
 
 install-examples: ## Install example pipeline components 
 	# install Kubeflow Pipelines example components
-	# -> https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector
+	# -> https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector
 	- $(PYTHON_PIP) install --upgrade elyra-examples-kfp-catalog
 
 install-gitlab-dependency:
@@ -266,8 +266,8 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
-	# If we're building a release from master, tag latest and push
-	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "master" ]; then \
+	# If we're building a release from main, tag latest and push
+	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "main" ]; then \
 		docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
 		docker push docker.io/$(ELYRA_IMAGE_LATEST); \
 		docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
@@ -293,8 +293,8 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
-	# If we're building a release from master, tag latest and push
-	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "master" ]; then \
+	# If we're building a release from main, tag latest and push
+	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "main" ]; then \
 		docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 		docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \

@@ -46,7 +46,7 @@ runtime_extras = {
         "kfp-tekton~=1.2.0",
     ],  # See elyra-ai/elyra/pull/2034 for fix pack pinning
     # Kubeflow Pipelines example components
-    # (https://github.com/elyra-ai/examples/tree/master/component-catalog-connectors/kfp-example-components-connector)
+    # (https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector)
     "kfp-examples": ["elyra-examples-kfp-catalog"],
     # Use gitlab as Airflow DAG repository
     "gitlab": ["python-gitlab"],
