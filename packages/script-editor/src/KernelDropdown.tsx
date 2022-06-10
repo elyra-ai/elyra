@@ -21,6 +21,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useState,
+  useMemo,
   RefObject
 } from 'react';
 
@@ -40,7 +41,7 @@ interface IProps {
  */
 // eslint-disable-next-line react/display-name
 const DropDown = forwardRef<ISelect, IProps>(({ specs, callback }, select) => {
-  const kernelspecs = specs.kernelspecs;
+  const kernelspecs = useMemo(() => ({ ...specs.kernelspecs }), [specs]);
   const initVal = Object.values(kernelspecs ?? [])[0]?.name ?? '';
   const [selection, setSelection] = useState(initVal);
 

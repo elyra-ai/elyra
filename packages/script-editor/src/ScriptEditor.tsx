@@ -45,7 +45,6 @@ import { KernelDropdown, ISelect } from './KernelDropdown';
 import { ScriptDebugger } from './ScriptDebugger';
 import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
-import { compileFunction } from 'vm';
 
 /**
  * ScriptEditor widget CSS classes.
