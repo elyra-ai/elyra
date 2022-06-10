@@ -20,15 +20,11 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-// import { Dialog, showDialog } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { Debugger, IDebugger } from '@jupyterlab/debugger';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
-import {
-  // KernelManager,
-  Session
-  // SessionManager
-} from '@jupyterlab/services';
+import { KernelManager, Session, SessionManager } from '@jupyterlab/services';
 
 /**
  * Debugger plugin.
@@ -54,18 +50,19 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     });
 
     const activeSessions: { [id: string]: Session.ISessionConnection } = {};
-    // const kernelManager = new KernelManager();
-    // const sessionManager = new SessionManager({
-    //   kernelManager: kernelManager
-    // });
-    const sessionConnection: Session.ISessionConnection | null = null;
+    const kernelManager = new KernelManager();
+    const sessionManager = new SessionManager({
+      kernelManager: kernelManager
+    });
+    let sessionConnection: Session.ISessionConnection | null = null;
 
     const updateHandlerAndCommands = async (
       widget: ScriptEditor
     ): Promise<void> => {
       const kernelSelection = widget.getKernelSelection();
       console.log(
-        'from updateHandlerAndCommands:\nkernelSelection: ' + kernelSelection
+        'From scriptEditorDebuggerExtension-updateHandlerAndCommands:\nkernelSelection: ' +
+          kernelSelection
       );
 
       const sessions = app.serviceManager.sessions;
@@ -76,12 +73,41 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         }
         let session = activeSessions[model.id];
         if (!session) {
-          // Use `connectTo` only if the session does not exist.
-          // `connectTo` sends a kernel_info_request on the shell
-          // channel, which blocks the debug session restore when waiting
-          // for the kernel to be ready
-          session = sessions.connectTo({ model });
-          activeSessions[model.id] = session;
+          const debuggerAvailable = await widget.isDebuggerAvailable(
+            kernelSelection
+          );
+          console.log(
+            'is debugger available for kernel ' +
+              kernelSelection +
+              '?:  ' +
+              debuggerAvailable
+          );
+          if (debuggerAvailable) {
+            // Start a kernel session
+            if (!sessionConnection) {
+              try {
+                await startSession(kernelSelection, widget.context.path);
+                session = await startSession(
+                  kernelSelection,
+                  widget.context.path
+                );
+                console.log('Kernel session started for ' + kernelSelection);
+              } catch (e) {
+                showDialog({
+                  title: 'Error',
+                  body: 'Could not start session to debug script',
+                  buttons: [Dialog.okButton()]
+                });
+              }
+            }
+          } else {
+            // Use `connectTo` only if the session does not exist.
+            // `connectTo` sends a kernel_info_request on the shell
+            // channel, which blocks the debug session restore when waiting
+            // for the kernel to be ready
+            session = sessions.connectTo({ model });
+            activeSessions[model.id] = session;
+          }
         }
         await handler.update(widget, session);
         app.commands.notifyCommandChanged();
@@ -89,20 +115,6 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         return;
       }
 
-      // Start a kernel session
-      // if (!sessionConnection) {
-      //   // this.disableButton(true, 'debug');
-      //   try {
-      //     await startSession(kernelSelection, widget.context.path);
-      //     console.log('Kernel session started for ' + kernelSelection);
-      //   } catch (e) {
-      //     showDialog({
-      //       title: 'Error',
-      //       body: 'Could not start session to debug script',
-      //       buttons: [Dialog.okButton()]
-      //     });
-      //   }
-      // }
       await handler.update(widget, sessionConnection);
       app.commands.notifyCommandChanged();
     };
@@ -125,22 +137,22 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       });
     }
 
-    // const startSession = async (
-    //   kernelName: string,
-    //   contextPath: string
-    // ): Promise<Session.ISessionConnection> => {
-    //   const options: Session.ISessionOptions = {
-    //     kernel: {
-    //       name: kernelName
-    //     },
-    //     path: contextPath,
-    //     type: 'file',
-    //     name: contextPath
-    //   };
-    //   sessionConnection = await sessionManager.startNew(options);
-    //   sessionConnection.setPath(contextPath);
-    //   return sessionConnection;
-    // };
+    const startSession = async (
+      kernelName: string,
+      contextPath: string
+    ): Promise<Session.ISessionConnection> => {
+      const options: Session.ISessionOptions = {
+        kernel: {
+          name: kernelName
+        },
+        path: contextPath,
+        type: 'file',
+        name: contextPath
+      };
+      sessionConnection = await sessionManager.startNew(options);
+      sessionConnection.setPath(contextPath);
+      return sessionConnection;
+    };
   }
 };
 

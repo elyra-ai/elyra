@@ -179,9 +179,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     selectedKernel: string
   ): Promise<void> => {
     console.log('handleKernelSelectionUpdate to: ' + selectedKernel);
-    const debuggerAvailable = await this.controller.isDebuggerAvailable(
-      selectedKernel
-    );
+    const debuggerAvailable = await this.isDebuggerAvailable(selectedKernel);
     console.log(
       'is debugger available for kernel ' +
         selectedKernel +
@@ -195,6 +193,11 @@ export abstract class ScriptEditor extends DocumentWidget<
     return this.kernelSelectorRef?.current?.getSelection() ?? '';
   };
 
+  isDebuggerAvailable = async (selectedKernel: string): Promise<boolean> => {
+    const available = await this.controller.isDebuggerAvailable(selectedKernel);
+    return available;
+  };
+
   /**
    * Function: Initializes debug features.
    */
@@ -204,10 +207,9 @@ export abstract class ScriptEditor extends DocumentWidget<
       return;
     }
 
-    const debuggerAvailable = await this.controller.isDebuggerAvailable(
+    const debuggerAvailable = await this.isDebuggerAvailable(
       this.getKernelSelection()
     );
-
     if (debuggerAvailable) {
       this.disableButton(false, 'debug');
       // const handler = this.createEditorDebugHandler();
