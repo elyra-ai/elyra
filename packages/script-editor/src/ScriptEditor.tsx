@@ -169,14 +169,26 @@ export abstract class ScriptEditor extends DocumentWidget<
         new KernelDropdown(
           kernelSpecs,
           this.kernelSelectorRef,
-          this.updateSelectedKernel
+          this.handleKernelSelectionUpdate
         )
       );
     }
   };
 
-  updateSelectedKernel = (selectedKernel: string): void => {
-    console.log('updateSelectedKernel to: ' + selectedKernel);
+  handleKernelSelectionUpdate = async (
+    selectedKernel: string
+  ): Promise<void> => {
+    console.log('handleKernelSelectionUpdate to: ' + selectedKernel);
+    const debuggerAvailable = await this.controller.isDebuggerAvailable(
+      selectedKernel
+    );
+    console.log(
+      'is debugger available for kernel ' +
+        selectedKernel +
+        '?:  ' +
+        debuggerAvailable
+    );
+    this.disableButton(!debuggerAvailable, 'debug');
   };
 
   getKernelSelection = (): string => {
@@ -194,12 +206,6 @@ export abstract class ScriptEditor extends DocumentWidget<
 
     const debuggerAvailable = await this.controller.isDebuggerAvailable(
       this.getKernelSelection()
-    );
-    console.log(
-      'is debugger available for kernel ' +
-        this.getKernelSelection() +
-        '?:  ' +
-        debuggerAvailable
     );
 
     if (debuggerAvailable) {
