@@ -94,7 +94,7 @@ jobs:
       - name: Test
         id: Test
         run: make pytest
-      - name: Fetch packages metadata (Test step failed)
+      - name: Fetch packages metadata (if Test step failed)
         # Note: checking for general failure() first is needed according to docs
         if: ${{ failure() && steps.Test.conclusion == 'failure' }}
         env:

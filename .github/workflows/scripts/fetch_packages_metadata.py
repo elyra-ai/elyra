@@ -1,28 +1,31 @@
-from requests import get
-from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-from itertools import islice, chain
-import sys
+from datetime import datetime, timedelta
+from itertools import chain, islice
 import subprocess
+import sys
+
+from packaging import version
+import requests
 
 
 def get_info_from_pypi(pkg):
     url = f"https://pypi.org/pypi/{pkg}/json"
     try:
-        res = get(url).json()
+        res = requests.get(url).json()
         return res
-    except Exception as e:
-        print(f"request to pypi failed for <{pkg}>: {e}")
+    except Exception as err:
+        print(f"request to pypi failed for <{pkg}>: {err}")
         return None
 
 
-def get_outdated_pkg_list():
-    out = subprocess.check_output(["python", "-m", "pip", "list", "--outdated", "--format", "freeze"])
+def get_pkg_list():
+    out = subprocess.check_output(["python", "-m", "pip", "freeze"])
     req_list = out.decode().split("\n")
     return req_list
 
 
 def check_release_date(pkg_list):
+    """returns packages that were updated in the past `max_days` days, formatted for printing"""
     pkgs_output = []
     for row in pkg_list:
         try:
@@ -45,8 +48,12 @@ def check_release_date(pkg_list):
         if today - release_date > timedelta(days=max_days):
             continue
 
+        sign = ">"
+        if version.parse(latest) == version.parse(v):
+            sign = "="
+
         pkgs_output.append(
-            f"Newer version for <{pkg}>:\n - released {latest}  {latest_upload_time[:10]}\n - current  {v}\n"
+            f"Newer version for <{pkg}>:\n - released {latest}  {latest_upload_time[:10]}\t({sign})\n - current  {v}\n"
         )
     return pkgs_output
 
@@ -56,13 +63,13 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         max_days = int(sys.argv[1])
 
-    print(f"packages that were updated in the last {max_days} days:")
-    print()
+    print(f"Packages that were updated in the last {max_days} days:\n")
 
-    pkg_list = get_outdated_pkg_list()
+    pkg_list = get_pkg_list()
     l = len(pkg_list)
+
     workers = 3
-    parts = [i for i in range(0, l, l // workers)]
+    parts = list(range(0, l, l // workers))
     parts[-1] = l
 
     with ThreadPoolExecutor(max_workers=workers) as executor:

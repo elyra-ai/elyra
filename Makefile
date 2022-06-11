@@ -109,7 +109,7 @@ lint-dependencies:
 	@$(PYTHON_PIP) install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
-	$(PYTHON) -m flake8 elyra
+	$(PYTHON) -m flake8 elyra .github
 	@echo $(BLACK_CMD)
 	@$(BLACK_CMD) || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
 
