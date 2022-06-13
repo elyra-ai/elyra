@@ -24,16 +24,18 @@ export class ScriptEditorController {
   }
 
   /**
-   * Get available kernelspecs.
+   * Get available kernel specs.
    */
   getKernelSpecs = async (): Promise<KernelSpec.ISpecModels | null> => {
     await this.kernelSpecManager.ready;
-    const kernelSpecs = await this.kernelSpecManager.specs;
-    return kernelSpecs;
+    const specs = this.kernelSpecManager.specs;
+
+    // return a deep copy of the object preserving the original type
+    return JSON.parse(JSON.stringify(specs)) as typeof specs;
   };
 
   /**
-   * Get available kernelspecs by language.
+   * Get available kernel specs by language.
    */
   getKernelSpecsByLanguage = async (
     language: string
@@ -47,7 +49,7 @@ export class ScriptEditorController {
   };
 
   /**
-   * Get kernelspecs by name.
+   * Get kernel specs by name.
    */
   getKernelSpecsByName = async (
     kernelName: string
@@ -60,11 +62,11 @@ export class ScriptEditorController {
     return specs;
   };
 
+  /**
+   * Return value of debugger boolean property from the kernel spec of a given name.
+   */
   isDebuggerAvailable = async (kernelName: string | ''): Promise<boolean> => {
     const specs = await this.getKernelSpecsByName(kernelName);
-    const available = !!(
-      specs?.kernelspecs[kernelName]?.metadata?.['debugger'] ?? false
-    );
-    return available;
+    return !!(specs?.kernelspecs[kernelName]?.metadata?.['debugger'] ?? false);
   };
 }
