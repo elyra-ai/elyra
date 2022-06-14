@@ -92,7 +92,15 @@ jobs:
       - name: Version Snapshot
         run: pip freeze
       - name: Test
+        id: Test
         run: make pytest
+      - name: Fetch packages metadata (if Test step failed)
+        # Note: checking for general failure() first is needed according to docs
+        if: ${{ failure() && steps.Test.conclusion == 'failure' }}
+        env:
+          days: 7 # check for newer package versions in past X days
+        run: |
+          python3 ./.github/workflows/scripts/fetch_packages_metadata.py $days
 
   test-ui:
     name: Test UI
