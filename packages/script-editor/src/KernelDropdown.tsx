@@ -33,6 +33,7 @@ export interface ISelect {
 
 interface IProps {
   specs: KernelSpec.ISpecModels;
+  defaultKernel: string | null;
   callback: (selectedKernel: string) => void;
 }
 
@@ -40,47 +41,48 @@ interface IProps {
  * A toolbar dropdown component populated with available kernel specs.
  */
 // eslint-disable-next-line react/display-name
-const DropDown = forwardRef<ISelect, IProps>(({ specs, callback }, select) => {
-  const kernelspecs = useMemo(() => ({ ...specs.kernelspecs }), [specs]);
-  const initVal = Object.values(kernelspecs ?? [])[0]?.name ?? '';
-  const [selection, setSelection] = useState(initVal);
+const DropDown = forwardRef<ISelect, IProps>(
+  ({ specs, defaultKernel, callback }, select) => {
+    const kernelspecs = useMemo(() => ({ ...specs.kernelspecs }), [specs]);
+    const [selection, setSelection] = useState(defaultKernel || '');
 
-  // Note: It's normally best to avoid using an imperative handle if possible.
-  // The better option would be to track state in the parent component and handle
-  // the change events there as well, but I know this isn't always possible
-  // alongside jupyter.
-  useImperativeHandle(select, () => ({
-    getSelection: (): string => selection
-  }));
+    // Note: It's normally best to avoid using an imperative handle if possible.
+    // The better option would be to track state in the parent component and handle
+    // the change events there as well, but I know this isn't always possible
+    // alongside jupyter.
+    useImperativeHandle(select, () => ({
+      getSelection: (): string => selection
+    }));
 
-  const kernelOptions = !Object.keys(kernelspecs).length ? (
-    <option key="no-kernel" value="no-kernel">
-      No Kernel
-    </option>
-  ) : (
-    Object.entries(kernelspecs).map(([key, val]) => (
-      <option key={key} value={key}>
-        {val?.display_name ?? key}
+    const kernelOptions = !Object.keys(kernelspecs).length ? (
+      <option key="no-kernel" value="no-kernel">
+        No Kernel
       </option>
-    ))
-  );
+    ) : (
+      Object.entries(kernelspecs).map(([key, val]) => (
+        <option key={key} value={key}>
+          {val?.display_name ?? key}
+        </option>
+      ))
+    );
 
-  const handleSelection = (e: any): void => {
-    const selection = e.target.value;
-    setSelection(selection);
-    callback(selection);
-  };
+    const handleSelection = (e: any): void => {
+      const selection = e.target.value;
+      setSelection(selection);
+      callback(selection);
+    };
 
-  return (
-    <select
-      className={KERNEL_SELECT_CLASS}
-      onChange={handleSelection}
-      value={selection}
-    >
-      {kernelOptions}
-    </select>
-  );
-});
+    return (
+      <select
+        className={KERNEL_SELECT_CLASS}
+        onChange={handleSelection}
+        value={selection}
+      >
+        {kernelOptions}
+      </select>
+    );
+  }
+);
 
 /**
  * Wrap the dropDown into a React Widget in order to insert it into a Lab Toolbar Widget
@@ -93,16 +95,23 @@ export class KernelDropdown extends ReactWidget {
    */
   constructor(
     private specs: KernelSpec.ISpecModels,
+    private defaultKernel: string | null,
     private ref: RefObject<ISelect>,
     callback: (selectedKernel: string) => void
   ) {
     super();
     this.callback = callback;
+    this.defaultKernel = defaultKernel;
   }
 
   render(): React.ReactElement {
     return (
-      <DropDown ref={this.ref} specs={this.specs} callback={this.callback} />
+      <DropDown
+        ref={this.ref}
+        specs={this.specs}
+        defaultKernel={this.defaultKernel}
+        callback={this.callback}
+      />
     );
   }
 }

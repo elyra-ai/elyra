@@ -80,6 +80,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   private debugDisabled: boolean;
   protected runButton: ToolbarButton;
   protected runAndDebugButton: ToolbarButton;
+  protected defaultKernel: string | null;
   abstract getLanguage(): string;
   abstract getIcon(): LabIcon | string;
 
@@ -99,6 +100,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.debugger = new ScriptDebugger(this.disableButton);
     this.runDisabled = false;
     this.debugDisabled = true;
+    this.defaultKernel = null;
 
     // Add icon to main tab
     this.title.icon = this.getIcon();
@@ -160,6 +162,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
       this.getLanguage()
     );
+    this.defaultKernel = await this.controller.getDefaultKernel();
     this.kernelSelectorRef = React.createRef<ISelect>();
 
     if (kernelSpecs !== null) {
@@ -168,6 +171,7 @@ export abstract class ScriptEditor extends DocumentWidget<
         'select',
         new KernelDropdown(
           kernelSpecs,
+          this.defaultKernel,
           this.kernelSelectorRef,
           this.handleKernelSelectionUpdate
         )
@@ -178,14 +182,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   handleKernelSelectionUpdate = async (
     selectedKernel: string
   ): Promise<void> => {
-    console.log('handleKernelSelectionUpdate to: ' + selectedKernel);
     const debuggerAvailable = await this.isDebuggerAvailable(selectedKernel);
-    console.log(
-      'is debugger available for kernel ' +
-        selectedKernel +
-        '?:  ' +
-        debuggerAvailable
-    );
     this.disableButton(!debuggerAvailable, 'debug');
   };
 
