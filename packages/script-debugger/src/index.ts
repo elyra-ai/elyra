@@ -60,63 +60,54 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       widget: ScriptEditor
     ): Promise<void> => {
       const kernelSelection = widget.getKernelSelection();
-      console.log(
-        'From scriptEditorDebuggerExtension-updateHandlerAndCommands:\nkernelSelection: ' +
-          kernelSelection
-      );
-
       const sessions = app.serviceManager.sessions;
       try {
-        const model = await sessions.findByPath(widget.context.path);
-        if (!model) {
-          return;
-        }
-        let session = activeSessions[model.id];
-        if (!session) {
-          const debuggerAvailable = await widget.isDebuggerAvailable(
-            kernelSelection
-          );
-          console.log(
-            'is debugger available for kernel ' +
-              kernelSelection +
-              '?:  ' +
-              debuggerAvailable
-          );
-          if (debuggerAvailable) {
-            // Start a kernel session
-            if (!sessionConnection) {
-              try {
-                await startSession(kernelSelection, widget.context.path);
-                session = await startSession(
-                  kernelSelection,
-                  widget.context.path
-                );
-                console.log('Kernel session started for ' + kernelSelection);
-              } catch (e) {
-                showDialog({
-                  title: 'Error',
-                  body: 'Could not start session to debug script',
-                  buttons: [Dialog.okButton()]
-                });
-              }
-            }
-          } else {
+        const model: Session.IModel | undefined = await sessions.findByPath(
+          widget.context.path
+        );
+        console.log('model:\n' + model);
+        if (model) {
+          sessionConnection = activeSessions[model.id];
+          if (!sessionConnection) {
             // Use `connectTo` only if the session does not exist.
             // `connectTo` sends a kernel_info_request on the shell
             // channel, which blocks the debug session restore when waiting
             // for the kernel to be ready
-            session = sessions.connectTo({ model });
-            activeSessions[model.id] = session;
+            sessionConnection = sessions.connectTo({ model });
+            activeSessions[model.id] = sessionConnection;
+          }
+          await handler.update(widget, sessionConnection);
+          app.commands.notifyCommandChanged();
+        } else {
+          const debuggerAvailable = await widget.isDebuggerAvailable(
+            kernelSelection
+          );
+          if (!debuggerAvailable) {
+            return;
+          }
+          // Start a kernel session for the selected kernel supporting debug
+          try {
+            console.log(
+              'Starting kernel session for ' + kernelSelection + '...'
+            );
+            sessionConnection = await startSession(
+              kernelSelection,
+              widget.context.path
+            );
+            console.log('Kernel session started for ' + kernelSelection);
+          } catch (e) {
+            showDialog({
+              title: 'Error',
+              body: 'Could not start session to debug script',
+              buttons: [Dialog.okButton()]
+            });
           }
         }
-        await handler.update(widget, session);
+        await handler.update(widget, sessionConnection);
         app.commands.notifyCommandChanged();
       } catch {
         return;
       }
-
-      await handler.update(widget, sessionConnection);
-      app.commands.notifyCommandChanged();
     };
 
     if (labShell) {
@@ -126,6 +117,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
           widget instanceof DocumentWidget &&
           widget instanceof ScriptEditor
         ) {
+          // TODO: This is not triggered when kernel dropdown is changed, only when the editor becomes the widget in focus
           void updateHandlerAndCommands(widget);
         }
       });
