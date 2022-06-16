@@ -162,7 +162,9 @@ export abstract class ScriptEditor extends DocumentWidget<
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
       this.getLanguage()
     );
-    this.defaultKernel = await this.controller.getDefaultKernel();
+    this.defaultKernel = await this.controller.getDefaultKernel(
+      this.getLanguage()
+    );
     this.kernelSelectorRef = React.createRef<ISelect>();
 
     if (kernelSpecs !== null) {

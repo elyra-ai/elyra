@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SessionContext } from '@jupyterlab/apputils';
 import { KernelSpec, KernelSpecManager } from '@jupyterlab/services';
 
 export class ScriptEditorController {
@@ -63,13 +62,14 @@ export class ScriptEditorController {
   };
 
   /**
-   * Get the default kernel name from given kernel specs.
+   * Get the default kernel name from a given language.
    */
-  getDefaultKernel = async (): Promise<string | null> => {
-    return SessionContext.getDefaultKernel({
-      specs: await this.getKernelSpecs(),
-      preference: { autoStartDefault: true }
-    });
+  getDefaultKernel = async (language: string): Promise<string | null> => {
+    const kernelSpecs = await this.getKernelSpecs();
+    if (!kernelSpecs) {
+      return null;
+    }
+    return kernelSpecs.default.includes(language) ? kernelSpecs.default : null;
   };
 
   /**
