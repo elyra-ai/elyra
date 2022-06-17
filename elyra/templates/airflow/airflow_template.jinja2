@@ -1,9 +1,6 @@
 from airflow import DAG
 from airflow.utils.dates import days_ago
 
-{% if cos_secret %}
-from airflow.kubernetes.secret import Secret
-{% endif %}
 
 args = {
     'project_id' : '{{ pipeline_name }}',
@@ -20,24 +17,39 @@ dag = DAG(
     is_paused_upon_creation={{ is_paused_upon_creation }},
 )
 
-{% if cos_secret %}
-## Ensure that the secret named '{{ cos_secret }}' is defined in the Kubernetes namespace where this pipeline will be run
-env_var_secret_id = Secret(deploy_type='env',
-                           deploy_target='AWS_ACCESS_KEY_ID',
-                           secret='{{ cos_secret }}',
-                           key='AWS_ACCESS_KEY_ID',
+{% if secrets %}
+from airflow.kubernetes.secret import Secret
+## Ensure all secrets are defined in the Kubernetes namespace where this pipeline will be run
+{% for var_name, secret in secrets.items() %}
+{{ var_name|regex_replace }} = Secret(
+    deploy_type='env',
+    deploy_target="{{ secret.env_var }}",
+    secret="{{ secret.name }}",
+    key="{{ secret.key }}",
 )
-env_var_secret_key = Secret(deploy_type='env',
-                            deploy_target='AWS_SECRET_ACCESS_KEY',
-                            secret='{{ cos_secret }}',
-                            key='AWS_SECRET_ACCESS_KEY',
-)
+{% endfor %}
 {% endif %}
-{% set ns = namespace() %}
+
+{% if volumes %}
+from airflow.contrib.kubernetes.volume import Volume
+from airflow.contrib.kubernetes.volume_mount import VolumeMount
+{% for var_name, volume in volumes.items() %}
+mount_{{ var_name|regex_replace }} = VolumeMount(
+    name='{{ volume.pvc_name }}',
+    mount_path='{{ volume.path }}',
+    sub_path=None,
+    read_only=False
+)
+config_{{ var_name|regex_replace }} = {
+    'persistentVolumeClaim': {
+        'claimName': '{{ volume.pvc_name }}'
+    }
+}
+{{ var_name|regex_replace }} = Volume(name='{{ volume.pvc_name }}', configs=config_{{ var_name|regex_replace }})
+{% endfor %}
+{% endif %}
 
 {% for key, operation in operations_list.items() %}
-{% set ns.operation_kubernetes_secrets = "" %}
-
 {% if not operation.is_generic_operator %}
 {% for import_statement in operation.imports %}
 {{import_statement}}
@@ -46,21 +58,6 @@ env_var_secret_key = Secret(deploy_type='env',
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 {% endif %}
 
-{% if operation.kubernetes_secrets %}
-from airflow.kubernetes.secret import Secret
-# Kubernetes secrets for operation '{{ operation.id|regex_replace }}'
-    {% for secret in operation.kubernetes_secrets %}
-secret_{{ operation.id|regex_replace }}_{{ loop.index }} = Secret(deploy_type='env',
-                                              deploy_target='{{ secret.env_var }}',
-                                              secret='{{ secret.name }}',
-                                              key='{{ secret.key }}',
-)
-        {% set ns.operation_kubernetes_secrets = ns.operation_kubernetes_secrets ~ 'secret_' ~ operation.id|regex_replace ~ '_' ~ loop.index ~ ', ' %}
-    {% endfor %}
-{% endif %}
-
-{% if cos_secret %}{% set ns.operation_kubernetes_secrets = ns.operation_kubernetes_secrets ~ "env_var_secret_id, env_var_secret_key" %}{% endif %}
-
 {% if operation.operator_source %}# Operator source: {{ operation.operator_source }}{% endif %}{% if not operation.is_generic_operator %}
 op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
                                                            task_id='{{ operation.notebook|regex_replace }}',
@@ -68,27 +65,6 @@ op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
                                                            {{ param }}={{ value }},
         {% endfor %}
     {% else %}
-{% if operation.volume_mounts %}
-from airflow.contrib.kubernetes.volume import Volume
-from airflow.contrib.kubernetes.volume_mount import VolumeMount
-volumes_{{ operation.id|regex_replace }} = []
-volume_mounts_{{ operation.id|regex_replace }} = []
-    {% for volume_mount in operation.volume_mounts %}
-volume_mount_{{loop.index}} = VolumeMount(name='{{ volume_mount.pvc_name }}',
-                            mount_path='{{ volume_mount.path }}',
-                            sub_path=None,
-                            read_only=False)
-volume_config_{{ loop.index }}= {
-    'persistentVolumeClaim':
-      {
-        'claimName': '{{ volume_mount.pvc_name }}'
-      }
-    }
-volume_{{ loop.index }} = Volume(name='{{ volume_mount.pvc_name }}', configs=volume_config_{{ loop.index }})
-volumes_{{ operation.id|regex_replace }}.append(volume_{{ loop.index }})
-volume_mounts_{{ operation.id|regex_replace }}.append(volume_mount_{{ loop.index }})
-    {% endfor %}
-{% endif %}
 op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.notebook|regex_replace }}',
                                                             namespace='{{ user_namespace }}',
                                                             image='{{ operation.runtime_image }}',
@@ -99,10 +75,6 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                             arguments=["{{ operation.argument_list }}"],
                                                             task_id='{{ operation.notebook|regex_replace }}',
                                                             env_vars={{ operation.pipeline_envs }},
-        {% if operation.volume_mounts %}
-                                                            volumes=volumes_{{ operation.id|regex_replace }},
-                                                            volume_mounts=volume_mounts_{{ operation.id|regex_replace }},
-        {% endif %}
         {% if operation.cpu_request or operation.mem_request or operation.gpu_limit %}
                                                             resources = {
             {% if operation.cpu_request %}
@@ -117,11 +89,13 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
         },
 
         {% endif %}
-    {% if ns.operation_kubernetes_secrets %}
-                                                          secrets=[{{ ns.operation_kubernetes_secrets }}],
-    {% endif %}
+                                                          secrets={{ operation.kubernetes_secrets }},
                                                           in_cluster={{ in_cluster }},
                                                           config_file="{{ kube_config_path }}",
+    {% endif %}
+    {% if operation.volumes %}
+                                                          volumes={{ operation.volumes }},
+                                                          volume_mounts={{ operation.volume_mounts }},
     {% endif %}
                                                           dag=dag)
     {% if operation.image_pull_policy %}
