@@ -27,6 +27,9 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
+from kubernetes.client import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client import V1Volume
+from kubernetes.client import V1VolumeMount
 
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
@@ -47,8 +50,6 @@ from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
@@ -546,8 +547,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
                         "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
                     },
-                    volume_mounts=operation.component_params.get(MOUNTED_VOLUMES, []),
-                    kubernetes_secrets=operation.component_params.get(KUBERNETES_SECRETS, []),
+                    volume_mounts=operation.mounted_volumes,
+                    kubernetes_secrets=operation.kubernetes_secrets,
                 )
 
                 if operation.doc:
@@ -653,8 +654,28 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     container_op = factory_function(**sanitized_component_params)
                     container_op.set_display_name(operation.name)
 
+                    # Attach node comment
                     if operation.doc:
                         container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
+
+                    # Add user-specified volume mounts: the referenced PVCs must exist
+                    # or this operation will fail
+                    if operation.mounted_volumes:
+                        unique_pvcs = []
+                        for volume_mount in operation.mounted_volumes:
+                            if volume_mount.pvc_name not in unique_pvcs:
+                                container_op.add_volume(
+                                    V1Volume(
+                                        name=volume_mount.pvc_name,
+                                        persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(
+                                            claim_name=volume_mount.pvc_name
+                                        ),
+                                    )
+                                )
+                                unique_pvcs.append(volume_mount.pvc_name)
+                            container_op.add_volume_mount(
+                                V1VolumeMount(mount_path=volume_mount.path, name=volume_mount.pvc_name)
+                            )
 
                     target_ops[operation.id] = container_op
                 except Exception as e:
