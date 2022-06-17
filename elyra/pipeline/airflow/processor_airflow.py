@@ -42,7 +42,8 @@ from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_utilities import KubernetesSecret
+from elyra.pipeline.pipeline_utilities import VolumeMount
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
@@ -330,11 +331,11 @@ be fully qualified (i.e., prefixed with their package names).
                     "cpu_request": operation.cpu,
                     "mem_request": operation.memory,
                     "gpu_limit": operation.gpu,
-                    "operator_source": operation.component_params["filename"],
-                    "is_generic_operator": True,
+                    "operator_source": operation.filename,
+                    "is_generic_operator": operation.is_generic,
                     "doc": operation.doc,
-                    "volume_mounts": operation.component_params.get(MOUNTED_VOLUMES, []),
-                    "kubernetes_secrets": operation.component_params.get(KUBERNETES_SECRETS, []),
+                    "volumes": operation.mounted_volumes,
+                    "secrets": operation.kubernetes_secrets,
                 }
 
                 if runtime_image_pull_secret is not None:
@@ -445,8 +446,9 @@ be fully qualified (i.e., prefixed with their package names).
                     "parent_operation_ids": operation.parent_operation_ids,
                     "component_params": operation.component_params_as_dict,
                     "operator_source": component.component_source,
-                    "is_generic_operator": False,
+                    "is_generic_operator": operation.is_generic,
                     "doc": operation.doc,
+                    "volumes": operation.mounted_volumes,
                 }
 
                 target_ops.append(target_op)
@@ -491,10 +493,9 @@ be fully qualified (i.e., prefixed with their package names).
             template_env = Environment(loader=loader)
 
             template_env.filters["regex_replace"] = lambda string: self._scrub_invalid_characters(string)
-
             template = template_env.get_template("airflow_template.jinja2")
 
-            target_ops = self._cc_pipeline(pipeline, pipeline_name, pipeline_instance_id)
+            ordered_ops = self._cc_pipeline(pipeline, pipeline_name, pipeline_instance_id)
             runtime_configuration = self._get_metadata_configuration(
                 schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
             )
@@ -505,8 +506,11 @@ be fully qualified (i.e., prefixed with their package names).
             if pipeline_description is None:
                 pipeline_description = f"Created with Elyra {__version__} pipeline editor using `{pipeline.source}`."
 
+            pipeline_volumes = self._collect_mounted_volumes(ordered_ops)
+            pipeline_secrets = self._collect_kubernetes_secrets(ordered_ops, cos_secret)
+
             python_output = template.render(
-                operations_list=target_ops,
+                operations_list=ordered_ops,
                 pipeline_name=pipeline_instance_id,
                 user_namespace=user_namespace,
                 cos_secret=cos_secret,
@@ -514,6 +518,8 @@ be fully qualified (i.e., prefixed with their package names).
                 is_paused_upon_creation="False",
                 in_cluster="True",
                 pipeline_description=pipeline_description,
+                secrets=pipeline_secrets,
+                volumes=pipeline_volumes,
             )
 
             # Write to python file and fix formatting
@@ -580,6 +586,55 @@ be fully qualified (i.e., prefixed with their package names).
             if operation["id"] == node_id:
                 return operation["notebook"]
         return None
+
+    def _collect_mounted_volumes(self, ordered_ops: OrderedDict) -> Dict[str, VolumeMount]:
+        """
+        Collect all volumes necessary to run a pipeline
+        """
+        pipeline_volumes = {}
+
+        for op_id, operation in ordered_ops.items():
+            operation_volumes = {}
+            operation_volume_mounts = []
+            for idx, secret in enumerate(operation.get("volumes", [])):
+                volume_name = f"volume_{op_id}_{idx}"
+                operation_volumes[volume_name] = secret
+                operation_volume_mounts.append(f"mount_{volume_name}")
+
+            operation["volumes"] = list(operation_volumes.keys())
+            operation["volume_mounts"] = operation_volume_mounts
+            pipeline_volumes.update(operation_volumes)
+
+        return pipeline_volumes
+
+    def _collect_kubernetes_secrets(
+        self, ordered_ops: OrderedDict, cos_secret: Optional[str] = None
+    ) -> Dict[str, KubernetesSecret]:
+        """
+        Collect all Kubernetes secrets necessary to run a pipeline
+        """
+        pipeline_secrets = {}
+        if cos_secret:
+            pipeline_secrets["env_var_secret_id"] = KubernetesSecret(
+                env_var="AWS_ACCESS_KEY_ID",
+                name=cos_secret,
+                key="AWS_ACCESS_KEY_ID",
+            )
+            pipeline_secrets["env_var_secret_key"] = KubernetesSecret(
+                env_var="AWS_SECRET_ACCESS_KEY",
+                name=cos_secret,
+                key="AWS_SECRET_ACCESS_KEY",
+            )
+
+        for op_id, operation in ordered_ops.items():
+            operation_secrets = {}
+            for idx, secret in enumerate(operation.get("secrets", [])):
+                operation_secrets[f"secret_{op_id}_{idx}"] = secret
+
+            operation[KUBERNETES_SECRETS] = list(operation_secrets.keys())
+            pipeline_secrets.update(operation_secrets)
+
+        return pipeline_secrets
 
 
 class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
