@@ -18,10 +18,10 @@ from unittest import mock
 import pytest
 
 from elyra.pipeline import pipeline_constants
-from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_definition import PipelineDefinition
+from elyra.pipeline.pipeline_utilities import KeyValueList
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
 

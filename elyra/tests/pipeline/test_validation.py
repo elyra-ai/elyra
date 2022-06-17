@@ -20,12 +20,12 @@ from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
-from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
-from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import PipelineDefinition
+from elyra.pipeline.pipeline_utilities import KubernetesSecret
+from elyra.pipeline.pipeline_utilities import VolumeMount
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationResponse
 from elyra.tests.pipeline.util import _read_pipeline_resource

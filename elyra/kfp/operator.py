@@ -32,8 +32,8 @@ from kubernetes.client.models import V1Volume
 from kubernetes.client.models import V1VolumeMount
 
 from elyra._version import __version__
-from elyra.pipeline.pipeline import KubernetesSecret
-from elyra.pipeline.pipeline import VolumeMount
+from elyra.pipeline.pipeline_utilities import KubernetesSecret
+from elyra.pipeline.pipeline_utilities import VolumeMount
 
 """
 The ExecuteFileOp uses a python script to bootstrap the user supplied image with the required dependencies.
