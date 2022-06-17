@@ -13,10 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from dataclasses import asdict as dataclass_asdict
-from dataclasses import dataclass
-from dataclasses import is_dataclass
-import json
 import os
 import sys
 from typing import Any
@@ -25,6 +21,13 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
+from elyra.pipeline.pipeline_definition import Node
+from elyra.pipeline.pipeline_utilities import KeyValueList
+from elyra.pipeline.pipeline_utilities import KubernetesSecret
+from elyra.pipeline.pipeline_utilities import VolumeMount
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -40,66 +43,59 @@ class Operation(object):
     generic_node_types = ["execute-notebook-node", "execute-python-node", "execute-r-node"]
 
     @classmethod
-    def create_instance(
-        cls,
-        id: str,
-        type: str,
-        name: str,
-        classifier: str,
-        parent_operation_ids: Optional[List[str]] = None,
-        component_params: Optional[Dict[str, Any]] = None,
-    ) -> "Operation":
+    def create_instance(cls, node: Node, super_node: Node = None) -> "Operation":
         """Class method that creates the appropriate instance of Operation based on inputs."""
 
-        if Operation.is_generic_operation(classifier):
-            return GenericOperation(
-                id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-            )
-        return Operation(
-            id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-        )
+        if Operation.is_generic_operation(node.op):
+            return GenericOperation(node, super_node)
+        return Operation(node, super_node)
 
-    def __init__(
-        self,
-        id: str,
-        type: str,
-        name: str,
-        classifier: str,
-        parent_operation_ids: Optional[List[str]] = None,
-        component_params: Optional[Dict[str, Any]] = None,
-    ):
+    def __init__(self, node: Node, super_node: Node = None):
         """
-        :param id: Generated UUID, 128 bit number used as a unique identifier
-                   e.g. 123e4567-e89b-12d3-a456-426614174000
-        :param type: The type of node e.g. execution_node
-        :param classifier: indicates the operation's class
-        :param name: The name of the operation
-        :param parent_operation_ids: List of parent operation 'ids' required to execute prior to this operation
-        :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
-                                 a non-standard operation instance
+        :param node: Node object to be parsed to create corresponding Operation object
+        :param super_node: Node object used to build the list of dependencies (parent operations)
+
+        The Node object is used to generate an Operation object with the following attributes:
+
+        id: The generated UUID, 128 bit number used as a unique identifier, taken from node.id,
+            e.g. 123e4567-e89b-12d3-a456-426614174000
+        type: The type of node, taken from node.type, e.g. execution_node
+        classifier: indicates the operation's class; taken from node.op
+        name: The name of the operation as given in node.label
+        parent_operation_ids: List of parent operation 'ids' required to execute prior to this operation
+        component_params: dictionary of parameter key:value pairs that are used in the creation of
+            a non-standard operation instance
+        mounted_volumes: volumes to be mounted in this node
         """
+        self._id = node.id
+        self._type = node.type
+        self._classifier = node.op
+        self._name = node.label
 
         # Validate that the operation has all required properties
-        if not id:
+        if not self._id:
             raise ValueError("Invalid pipeline operation: Missing field 'operation id'.")
-        if not type:
+        if not self._type:
             raise ValueError("Invalid pipeline operation: Missing field 'operation type'.")
-        if not classifier:
+        if not self._classifier:
             raise ValueError("Invalid pipeline operation: Missing field 'operation classifier'.")
-        if not name:
+        if not self._name:
             raise ValueError("Invalid pipeline operation: Missing field 'operation name'.")
 
-        self._id = id
-        self._type = type
-        self._classifier = classifier
-        self._name = name
-        self._parent_operation_ids = parent_operation_ids or []
-        self._component_params = component_params or {}
+        self._parent_operation_ids = Operation._get_parent_operation_links(node.to_dict())  # parse link dependencies
+        if super_node:  # gather parent-links tied to embedded nodes inputs
+            self._parent_operation_ids.extend(Operation._get_parent_operation_links(super_node.to_dict(), node.id))
+
+        node_params = node.get("component_parameters", {})
+        self._component_params = node_params
         self._doc = None
 
         # Scrub the inputs and outputs lists
-        self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
-        self._component_params["outputs"] = Operation._scrub_list(component_params.get("outputs", []))
+        self._component_params["inputs"] = Operation._scrub_list(node_params.get("inputs", []))
+        self._component_params["outputs"] = Operation._scrub_list(node_params.get("outputs", []))
+
+        # Mounted volumes exist in the app_data dict for custom components
+        self._mounted_volumes = Operation._scrub_list(node.get(MOUNTED_VOLUMES, []))
 
     @property
     def id(self) -> str:
@@ -142,6 +138,10 @@ class Operation(object):
         return self._component_params or {}
 
     @property
+    def mounted_volumes(self) -> List[VolumeMount]:
+        return self._mounted_volumes
+
+    @property
     def inputs(self) -> Optional[List[str]]:
         return self._component_params.get("inputs")
 
@@ -156,6 +156,10 @@ class Operation(object):
     @outputs.setter
     def outputs(self, value: List[str]):
         self._component_params["outputs"] = value
+
+    @property
+    def is_generic(self) -> bool:
+        return isinstance(self, GenericOperation)
 
     def __eq__(self, other: "Operation") -> bool:
         if isinstance(self, other.__class__):
@@ -196,30 +200,74 @@ class Operation(object):
     def is_generic_operation(operation_classifier) -> bool:
         return operation_classifier in Operation.generic_node_types
 
+    @staticmethod
+    def _get_port_node_id(link: Dict) -> [None, str]:
+        """
+        Gets the id of the node corresponding to the linked out port.
+        If the link is on a super_node the appropriate node_id is actually
+        embedded in the port_id_ref value.
+        """
+        node_id = None
+        if "port_id_ref" in link:
+            if link["port_id_ref"] == "outPort":  # Regular execution node
+                if "node_id_ref" in link:
+                    node_id = link["node_id_ref"]
+            elif link["port_id_ref"].endswith("_outPort"):  # Super node
+                # node_id_ref is the super-node, but the prefix of port_id_ref, is the actual node-id
+                node_id = link["port_id_ref"].split("_")[0]
+        return node_id
+
+    @staticmethod
+    def _get_input_node_ids(node_input: Dict) -> List[str]:
+        """
+        Gets a list of node_ids corresponding to the linked out ports on the input node.
+        """
+        input_node_ids = []
+        if "links" in node_input:
+            for link in node_input["links"]:
+                node_id = Operation._get_port_node_id(link)
+                if node_id:
+                    input_node_ids.append(node_id)
+        return input_node_ids
+
+    @staticmethod
+    def _get_parent_operation_links(node: Dict, embedded_node_id: Optional[str] = None) -> List[str]:
+        """
+        Gets a list nodes_ids corresponding to parent nodes (outputs directed to this node).
+        For super_nodes, the node to use has an id of the embedded_node_id suffixed with '_inPort'.
+        """
+        links = []
+        if "inputs" in node:
+            for node_input in node["inputs"]:
+                if embedded_node_id:  # node is a super_node, handle matches to {embedded_node_id}_inPort
+                    input_id = node_input.get("id")
+                    if input_id == embedded_node_id + "_inPort":
+                        links.extend(Operation._get_input_node_ids(node_input))
+                else:
+                    links.extend(Operation._get_input_node_ids(node_input))
+        return links
+
 
 class GenericOperation(Operation):
     """
     Represents a single operation in a pipeline representing a generic (built-in) component
     """
 
-    def __init__(
-        self,
-        id: str,
-        type: str,
-        name: str,
-        classifier: str,
-        parent_operation_ids: Optional[List[str]] = None,
-        component_params: Optional[Dict[str, Any]] = None,
-    ):
+    def __init__(self, node: Node, super_node: Node = None):
         """
-        :param id: Generated UUID, 128 bit number used as a unique identifier
-                   e.g. 123e4567-e89b-12d3-a456-426614174000
-        :param type: The type of node e.g. execution_node
-        :param classifier: indicates the operation's class
-        :param name: The name of the operation
-        :param parent_operation_ids: List of parent operation 'ids' required to execute prior to this operation
-        :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
-                                 a non-standard operation instance
+        :param node: Node object to be parsed to create corresponding Operation object
+        :param super_node: Node object used to build the list of dependencies (parent operations)
+
+        The Node object is used to generate an Operation object with the following attributes:
+
+        id: The generated UUID, 128 bit number used as a unique identifier, taken from node.id,
+            e.g. 123e4567-e89b-12d3-a456-426614174000
+        type: The type of node, taken from node.type, e.g. execution_node
+        classifier: indicates the operation's class; taken from node.op
+        name: The name of the operation as given in node.label
+        parent_operation_ids: List of parent operation 'ids' required to execute prior to this operation
+        component_params: dictionary of parameter key:value pairs that are used in the creation of
+            a non-standard operation instance
 
         Component_params for "generic components" (i.e., those with one of the following classifier values:
         ["execute-notebook-node", "execute-python-node", "execute-r-node"]) can expect to have the following
@@ -238,33 +286,32 @@ class GenericOperation(Operation):
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
+                mounted_volumes: volumes to be mounted in this node
+                kubernetes_secrets: Kubernetes secrets to make available as env vars to this node
         Entries for other (non-built-in) component types are a function of the respective component.
         """
 
-        super().__init__(
-            id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-        )
+        super().__init__(node, super_node)
 
-        if not component_params.get("filename"):
+        if not self.filename:
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
-        if not component_params.get("runtime_image"):
+        if not self.runtime_image:
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
-        if component_params.get("cpu") and not self._validate_range(component_params.get("cpu"), min_value=1):
+        if self.cpu and not self._validate_range(self.cpu, min_value=1):
             raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
-        if component_params.get("gpu") and not self._validate_range(component_params.get("gpu"), min_value=0):
+        if self.gpu and not self._validate_range(self.gpu, min_value=0):
             raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
-        if component_params.get("memory") and not self._validate_range(component_params.get("memory"), min_value=1):
+        if self.memory and not self._validate_range(self.memory, min_value=1):
             raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
 
-        # Re-build object to include default values
-        self._component_params["filename"] = component_params.get("filename")
-        self._component_params["runtime_image"] = component_params.get("runtime_image")
-        self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
-        self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
-        self._component_params["env_vars"] = KeyValueList(Operation._scrub_list(component_params.get("env_vars", [])))
-        self._component_params["cpu"] = component_params.get("cpu")
-        self._component_params["gpu"] = component_params.get("gpu")
-        self._component_params["memory"] = component_params.get("memory")
+        # Re-build certain values to include defaults
+        self._component_params["dependencies"] = Operation._scrub_list(self.dependencies)
+        self._component_params["include_subdirectories"] = self.include_subdirectories or False
+        self._component_params[ENV_VARIABLES] = KeyValueList(Operation._scrub_list(self.env_vars))
+        self._component_params[KUBERNETES_SECRETS] = self.kubernetes_secrets or []
+
+        # Mounted volumes exist in the component_params dict for generic components
+        self._component_params[MOUNTED_VOLUMES] = self.mounted_volumes or []
 
     @property
     def name(self) -> str:
@@ -282,7 +329,7 @@ class GenericOperation(Operation):
 
     @property
     def runtime_image(self) -> str:
-        return self._component_params.get("runtime_image")
+        return self._component_params.get(RUNTIME_IMAGE)
 
     @property
     def dependencies(self) -> Optional[List[str]]:
@@ -293,7 +340,7 @@ class GenericOperation(Operation):
         return self._component_params.get("include_subdirectories")
 
     @property
-    def env_vars(self) -> Optional["KeyValueList"]:
+    def env_vars(self) -> Optional[KeyValueList]:
         return self._component_params.get(ENV_VARIABLES)
 
     @property
@@ -307,6 +354,14 @@ class GenericOperation(Operation):
     @property
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
+
+    @property
+    def mounted_volumes(self) -> List[VolumeMount]:
+        return self._component_params.get(MOUNTED_VOLUMES)
+
+    @property
+    def kubernetes_secrets(self) -> List[KubernetesSecret]:
+        return self._component_params.get(KUBERNETES_SECRETS)
 
     def __eq__(self, other: "GenericOperation") -> bool:
         if isinstance(self, other.__class__):
@@ -424,115 +479,3 @@ class Pipeline(object):
                 and self.runtime_config == other.runtime_config
                 and self.operations == other.operations
             )
-
-
-class KeyValueList(list):
-    """
-    A list class that exposes functionality specific to lists whose entries are
-    key-value pairs separated by a pre-defined character.
-    """
-
-    _key_value_separator: str = "="
-
-    def to_dict(self) -> Dict[str, str]:
-        """
-        Properties consisting of key-value pairs are stored in a list of separated
-        strings, while most processing steps require a dictionary - so we must convert.
-        If no key/value pairs are specified, an empty dictionary is returned, otherwise
-        pairs are converted to dictionary entries, stripped of whitespace, and returned.
-        """
-        kv_dict = {}
-        for kv in self:
-            if not kv:
-                continue
-
-            if self._key_value_separator not in kv:
-                raise ValueError(
-                    f"Property {kv} does not contain the expected "
-                    f"separator character: '{self._key_value_separator}'."
-                )
-
-            key, value = kv.split(self._key_value_separator, 1)
-
-            key = key.strip()
-            if not key:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            if isinstance(value, str):
-                value = value.strip()
-            if not value:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            kv_dict[key] = value
-        return kv_dict
-
-    @classmethod
-    def to_str(cls, key: str, value: str) -> str:
-        return f"{key}{cls._key_value_separator}{value}"
-
-    @classmethod
-    def from_dict(cls, kv_dict: Dict) -> "KeyValueList":
-        """
-        Convert a set of key-value pairs stored in a dictionary to
-        a KeyValueList of strings with the defined separator.
-        """
-        str_list = [KeyValueList.to_str(key, value) for key, value in kv_dict.items()]
-        return KeyValueList(str_list)
-
-    @classmethod
-    def merge(cls, primary: "KeyValueList", secondary: "KeyValueList") -> "KeyValueList":
-        """
-        Merge two key-value pair lists, preferring the values given in the
-        primary parameter in the case of a matching key between the two lists.
-        """
-        primary_dict = primary.to_dict()
-        secondary_dict = secondary.to_dict()
-
-        return KeyValueList.from_dict({**secondary_dict, **primary_dict})
-
-    @classmethod
-    def difference(cls, minuend: "KeyValueList", subtrahend: "KeyValueList") -> "KeyValueList":
-        """
-        Given KeyValueLists, convert to dictionaries and remove any keys found in the
-        second (subtrahend) from the first (minuend), if present.
-
-        :param minuend: list to be subtracted from
-        :param subtrahend: list whose keys will be removed from the minuend
-
-        :returns: the difference of the two lists
-        """
-        subtract_dict = minuend.to_dict()
-        for key in subtrahend.to_dict().keys():
-            if key in subtract_dict:
-                subtract_dict.pop(key)
-
-        return KeyValueList.from_dict(subtract_dict)
-
-
-@dataclass
-class VolumeMount:
-    path: str
-    pvc_name: str
-
-
-@dataclass
-class KubernetesSecret:
-    env_var: str
-    name: str
-    key: str
-
-
-class DataClassJSONEncoder(json.JSONEncoder):
-    """
-    A JSON Encoder class to prevent errors during serialization of dataclasses.
-    """
-
-    def default(self, o):
-        """
-        Render dataclass content as dict
-        """
-        if is_dataclass(o):
-            return dataclass_asdict(o)
-        return super().default(o)

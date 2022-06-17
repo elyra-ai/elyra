@@ -101,9 +101,9 @@ class PipelineParser(LoggingConfigurable):
                 raise ValueError(f"Node type '{node.type}' is invalid!")
             # parse each node as a pipeline operation
 
-            operation = self._create_pipeline_operation(node, super_node)
+            operation = Operation.create_instance(node, super_node)
 
-            # assoicate user comment as docs to operations
+            # associate user comment as docs to operations
             comment = pipeline_definition.get_node_comments(node.id)
             if comment:
                 operation.doc = comment
@@ -121,69 +121,3 @@ class PipelineParser(LoggingConfigurable):
         pipeline = pipeline_definition.get_pipeline_definition(pipeline_id)
         # recurse to process nodes of super-node
         return self._nodes_to_operations(pipeline_definition, pipeline_object, pipeline.nodes, super_node)
-
-    def _create_pipeline_operation(self, node: Node, super_node: Node = None) -> Operation:
-        """
-        Creates a pipeline operation instance from the given node.
-        The node and super_node are used to build the list of parent_operation_ids (links) to
-        the node (operation dependencies).
-        """
-        parent_operations = PipelineParser._get_parent_operation_links(node.to_dict())  # parse links as dependencies
-        if super_node:  # gather parent-links tied to embedded nodes inputs
-            parent_operations.extend(PipelineParser._get_parent_operation_links(super_node.to_dict(), node.id))
-
-        return Operation.create_instance(
-            id=node.id,
-            type=node.type,
-            classifier=node.op,
-            name=node.label,
-            parent_operation_ids=parent_operations,
-            component_params=node.get("component_parameters", {}),
-        )
-
-    @staticmethod
-    def _get_port_node_id(link: Dict) -> [None, str]:
-        """
-        Gets the id of the node corresponding to the linked out port.
-        If the link is on a super_node the appropriate node_id is actually
-        embedded in the port_id_ref value.
-        """
-        node_id = None
-        if "port_id_ref" in link:
-            if link["port_id_ref"] == "outPort":  # Regular execution node
-                if "node_id_ref" in link:
-                    node_id = link["node_id_ref"]
-            elif link["port_id_ref"].endswith("_outPort"):  # Super node
-                # node_id_ref is the super-node, but the prefix of port_id_ref, is the actual node-id
-                node_id = link["port_id_ref"].split("_")[0]
-        return node_id
-
-    @staticmethod
-    def _get_input_node_ids(node_input: Dict) -> List[str]:
-        """
-        Gets a list of node_ids corresponding to the linked out ports on the input node.
-        """
-        input_node_ids = []
-        if "links" in node_input:
-            for link in node_input["links"]:
-                node_id = PipelineParser._get_port_node_id(link)
-                if node_id:
-                    input_node_ids.append(node_id)
-        return input_node_ids
-
-    @staticmethod
-    def _get_parent_operation_links(node: Dict, embedded_node_id: Optional[str] = None) -> List[str]:
-        """
-        Gets a list nodes_ids corresponding to parent nodes (outputs directed to this node).
-        For super_nodes, the node to use has an id of the embedded_node_id suffixed with '_inPort'.
-        """
-        links = []
-        if "inputs" in node:
-            for node_input in node["inputs"]:
-                if embedded_node_id:  # node is a super_node, handle matches to {embedded_node_id}_inPort
-                    input_id = node_input.get("id")
-                    if input_id == embedded_node_id + "_inPort":
-                        links.extend(PipelineParser._get_input_node_ids(node_input))
-                else:
-                    links.extend(PipelineParser._get_input_node_ids(node_input))
-        return links
