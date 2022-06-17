@@ -25,6 +25,7 @@
         }
     {% endif %},
 {% endfor %}
+      "mounted_volumes": [],
       "component_source": {{ component.component_source|tojson|safe }}
     },
     "parameters": [
@@ -35,6 +36,9 @@
         "id": "label"
       },
 {% for property in component.properties %}
+      {
+        "id": "mounted_volumes"
+      },
       {
         "id": "elyra_{{ property.ref }}"
       },
@@ -127,6 +131,22 @@
         },
 {% endfor %}
         {
+          "parameter_ref": "mounted_volumes",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Data Volumes"
+          },
+          "description": {
+           "default": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "placeholder": "/mount/path=pvc-name",
+            "keyValueEntries": true
+          }
+        },
+        {
           "parameter_ref": "component_source",
           "control": "readonly",
           "label": {
@@ -200,6 +220,19 @@
               "id": "component_source",
               "type": "controls",
               "parameter_refs": ["component_source"]
+            },
+            {
+              "id": "elyra_other_propertiesCategoryHeader",
+              "type": "textPanel",
+              "class_name": "elyra_categoryHeader",
+              "label": {
+                "default": "Other Properties"
+              }
+            },
+            {
+              "id": "mounted_volumes",
+              "type": "controls",
+              "parameter_refs": ["mounted_volumes"]
             }
           ]
         }

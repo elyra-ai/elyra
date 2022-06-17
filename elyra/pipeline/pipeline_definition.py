@@ -23,15 +23,24 @@ from typing import Optional
 from jinja2 import Environment, Undefined
 from jinja2 import PackageLoader
 
-from elyra.pipeline.pipeline import KeyValueList
-from elyra.pipeline.pipeline import KubernetesSecret
-from elyra.pipeline.pipeline import Operation
-from elyra.pipeline.pipeline import VolumeMount
+# Rather than importing only the Operation class needed in is_generic_node
+# below, the pipeline module must be imported in its entirety in order to
+# avoid a circular reference issue
+try:
+    from elyra.pipeline import pipeline
+except ImportError:
+    import sys
+
+    pipeline = sys.modules[f"{__package__}.pipeline"]
+
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
+from elyra.pipeline.pipeline_utilities import KeyValueList
+from elyra.pipeline.pipeline_utilities import KubernetesSecret
+from elyra.pipeline.pipeline_utilities import VolumeMount
 
 
 class AppDataBase(object):  # ABC
@@ -236,6 +245,7 @@ class Pipeline(AppDataBase):
 class Node(AppDataBase):
     def __init__(self, node: Dict):
         super().__init__(node)
+        # self.property_setter = self.get_component_parameter if self.is_generic_node() else self.get()
 
     @property
     def type(self) -> str:
@@ -297,6 +307,31 @@ class Node(AppDataBase):
             return self._node["app_data"].get("component_source", None)
         return None
 
+    def is_generic_node(self) -> bool:
+        """
+        Returns a boolean indicating whether this Node is generic
+        """
+        return bool(pipeline.Operation.is_generic_operation(self.op))
+
+    def get_property(self, key: str, default_value=None) -> Any:
+        """
+        TODO
+        """
+        if self.is_generic_node():
+            value = self.get_component_parameter(key, default_value)
+        else:
+            value = self.get(key, default_value)
+        return None if value == "None" else value
+
+    def set_property(self, key: str, value: Any):
+        """
+        TODO
+        """
+        if self.is_generic_node():
+            self.set_component_parameter(key, value)
+        else:
+            self.set(key, value)
+
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
         Retrieve component parameter values.
@@ -337,7 +372,7 @@ class Node(AppDataBase):
         properties are assumed to have already been converted.
         """
         for kv_property in kv_properties:
-            value = self.get_component_parameter(kv_property)
+            value = self.get_property(kv_property)
             if not value:
                 continue
 
@@ -348,7 +383,7 @@ class Node(AppDataBase):
                 return
 
             # Convert plain list to KeyValueList
-            self.set_component_parameter(kv_property, KeyValueList(value))
+            self.set_property(kv_property, KeyValueList(value))
 
     def remove_env_vars_with_matching_secrets(self):
         """
@@ -366,7 +401,7 @@ class Node(AppDataBase):
         Convert select node-level list properties to their corresponding dataclass
         object type. No validation is performed.
         """
-        volume_mounts = self.get_component_parameter(MOUNTED_VOLUMES)
+        volume_mounts = self.get_property(MOUNTED_VOLUMES)
         if volume_mounts and isinstance(volume_mounts, KeyValueList):
             volume_objects = []
             for mount_path, pvc_name in volume_mounts.to_dict().items():
@@ -375,7 +410,7 @@ class Node(AppDataBase):
                 # Create a VolumeMount class instance and add to list
                 volume_objects.append(VolumeMount(formatted_mount_path, pvc_name))
 
-            self.set_component_parameter(MOUNTED_VOLUMES, volume_objects)
+            self.set_property(MOUNTED_VOLUMES, volume_objects)
 
         secrets = self.get_component_parameter(KUBERNETES_SECRETS)
         if secrets and isinstance(secrets, KeyValueList):
@@ -571,9 +606,6 @@ class PipelineDefinition(object):
 
         pipeline_default_properties = self.primary_pipeline.get_property(PIPELINE_DEFAULTS, {})
         for node in self.pipeline_nodes:
-            if not Operation.is_generic_operation(node.op):
-                continue
-
             # Convert any key-value list node properties to the KeyValueList type if not done already
             node.convert_kv_properties(kv_properties)
 
@@ -581,14 +613,14 @@ class PipelineDefinition(object):
                 if not pipeline_default_value:
                     continue
 
-                node_value = node.get_component_parameter(property_name)
+                node_value = node.get_property(property_name)
                 if not node_value:
-                    node.set_component_parameter(property_name, pipeline_default_value)
+                    node.set_property(property_name, pipeline_default_value)
                     continue
 
                 if isinstance(pipeline_default_value, KeyValueList) and isinstance(node_value, KeyValueList):
                     merged_list = KeyValueList.merge(node_value, pipeline_default_value)
-                    node.set_component_parameter(property_name, merged_list)
+                    node.set_property(property_name, merged_list)
 
             if self.primary_pipeline.runtime_config != "local":
                 node.remove_env_vars_with_matching_secrets()
