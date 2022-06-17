@@ -245,7 +245,6 @@ class Pipeline(AppDataBase):
 class Node(AppDataBase):
     def __init__(self, node: Dict):
         super().__init__(node)
-        # self.property_setter = self.get_component_parameter if self.is_generic_node() else self.get()
 
     @property
     def type(self) -> str:
