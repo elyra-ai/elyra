@@ -138,7 +138,7 @@ export class ScriptRunner {
   };
 
   /**
-   * Function: Starts new kernel.
+   * Function: Starts new kernel session.
    */
   startSession = async (
     kernelName: string,
@@ -160,7 +160,7 @@ export class ScriptRunner {
   };
 
   /**
-   * Function: Shuts down kernel.
+   * Function: Shuts down kernel session.
    */
   shutdownSession = async (): Promise<void> => {
     if (this.sessionConnection) {

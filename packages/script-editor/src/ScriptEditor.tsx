@@ -67,7 +67,6 @@ export abstract class ScriptEditor extends DocumentWidget<
   DocumentRegistry.ICodeModel
 > {
   private runner: ScriptRunner;
-  private kernelSelection?: string;
   private dockPanel?: DockPanelSvg;
   private outputAreaWidget?: OutputArea;
   private scrollingWidget?: ScrollingWidget<OutputArea>;
@@ -186,6 +185,8 @@ export abstract class ScriptEditor extends DocumentWidget<
   ): Promise<void> => {
     const debuggerAvailable = await this.isDebuggerAvailable(selectedKernel);
     this.disableButton(!debuggerAvailable, 'debug');
+    // TODO: Update debugger
+    // this.updateDebugger();
   };
 
   getKernelSelection = (): string => {
@@ -201,46 +202,13 @@ export abstract class ScriptEditor extends DocumentWidget<
    * Function: Initializes debug features.
    */
   protected initializeDebugger = async (): Promise<void> => {
-    if (this.isConsoleDebuggerEnabled()) {
-      this.hideButton(this.runAndDebugButton, true);
-      return;
-    }
-
     const debuggerAvailable = await this.isDebuggerAvailable(
       this.getKernelSelection()
     );
     if (debuggerAvailable) {
       this.disableButton(false, 'debug');
-      // const handler = this.createEditorDebugHandler();
-      // console.log(handler);
     }
   };
-
-  private isConsoleDebuggerEnabled = (): boolean => {
-    // TODO: Revisit this solution, ideally only check for running sessions and not the UI
-    // Check the toolbar
-    const layout = this.toolbar.layout as PanelLayout;
-    const labDebuggerButton =
-      layout &&
-      layout.widgets?.filter(
-        w =>
-          w instanceof ToolbarButton &&
-          w.node.firstElementChild?.className.includes('jp-DebuggerBugButton')
-      );
-    return labDebuggerButton.length !== 0;
-  };
-
-  private hideButton = (button: ToolbarButton, hide: boolean): void => {
-    button.setHidden(hide);
-  };
-
-  // private createEditorDebugHandler = (): DebuggerEditorHandler => {
-  //   return new DebuggerEditorHandler({
-  //     debuggerService: null, // for now
-  //     editor: this.content.editor,
-  //     path: this.context.path
-  //   });
-  // };
 
   /**
    * Function: Creates an OutputArea widget wrapped in a DockPanel.
