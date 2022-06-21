@@ -112,13 +112,6 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
           void updateDebugger(widget);
         }
       });
-    } else {
-      editorTracker.currentChanged.connect((_, widget) => {
-        if (widget) {
-          (widget as unknown) as DocumentWidget;
-          void updateDebugger(widget);
-        }
-      });
     }
 
     editorTracker.currentChanged.connect(async (_, widget) => {
