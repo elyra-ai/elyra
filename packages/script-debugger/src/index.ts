@@ -20,7 +20,6 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
-import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { Debugger, IDebugger } from '@jupyterlab/debugger';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
@@ -56,16 +55,16 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     });
     let sessionConnection: Session.ISessionConnection | null = null;
 
-    const updateHandlerAndCommands = async (
-      widget: ScriptEditor
-    ): Promise<void> => {
-      const kernelSelection = widget.getKernelSelection();
+    const updateDebugger = async (widget: ScriptEditor): Promise<void> => {
+      const scriptEditorWidget = widget as ScriptEditor;
+      const kernelSelection = scriptEditorWidget.getKernelSelection();
       const sessions = app.serviceManager.sessions;
       try {
+        const path = scriptEditorWidget.context.path;
         const model: Session.IModel | undefined = await sessions.findByPath(
-          widget.context.path
+          path
         );
-        console.log('model:\n' + model);
+
         if (model) {
           sessionConnection = activeSessions[model.id];
           if (!sessionConnection) {
@@ -76,10 +75,10 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             sessionConnection = sessions.connectTo({ model });
             activeSessions[model.id] = sessionConnection;
           }
-          await handler.update(widget, sessionConnection);
+          await handler.update(scriptEditorWidget, sessionConnection);
           app.commands.notifyCommandChanged();
         } else {
-          const debuggerAvailable = await widget.isDebuggerAvailable(
+          const debuggerAvailable = await scriptEditorWidget.isDebuggerAvailable(
             kernelSelection
           );
           if (!debuggerAvailable) {
@@ -87,23 +86,15 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
           }
           // Start a kernel session for the selected kernel supporting debug
           try {
-            console.log(
-              'Starting kernel session for ' + kernelSelection + '...'
-            );
-            sessionConnection = await startSession(
-              kernelSelection,
-              widget.context.path
-            );
+            await startSession(kernelSelection, path);
             console.log('Kernel session started for ' + kernelSelection);
           } catch (e) {
-            showDialog({
-              title: 'Error',
-              body: 'Could not start session to debug script',
-              buttons: [Dialog.okButton()]
-            });
+            console.warn(
+              `Could not start session for ${kernelSelection} kernel to debug ${path} script`
+            );
           }
         }
-        await handler.update(widget, sessionConnection);
+        await handler.update(scriptEditorWidget, sessionConnection);
         app.commands.notifyCommandChanged();
       } catch {
         return;
@@ -118,32 +109,36 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
           widget instanceof ScriptEditor
         ) {
           // TODO: This is not triggered when kernel dropdown is changed, only when the editor becomes the widget in focus
-          void updateHandlerAndCommands(widget);
+          void updateDebugger(widget);
         }
       });
     } else {
       editorTracker.currentChanged.connect((_, widget) => {
         if (widget) {
           (widget as unknown) as DocumentWidget;
+          void updateDebugger(widget);
         }
       });
     }
 
+    editorTracker.currentChanged.connect(async (_, widget) => {
+      await updateDebugger(widget as ScriptEditor);
+    });
+
     const startSession = async (
-      kernelName: string,
-      contextPath: string
-    ): Promise<Session.ISessionConnection> => {
+      kernelSelection: string,
+      path: string
+    ): Promise<void> => {
       const options: Session.ISessionOptions = {
         kernel: {
-          name: kernelName
+          name: kernelSelection
         },
-        path: contextPath,
+        path: path,
         type: 'file',
-        name: contextPath
+        name: path
       };
       sessionConnection = await sessionManager.startNew(options);
-      sessionConnection.setPath(contextPath);
-      return sessionConnection;
+      sessionConnection.setPath(path);
     };
   }
 };
