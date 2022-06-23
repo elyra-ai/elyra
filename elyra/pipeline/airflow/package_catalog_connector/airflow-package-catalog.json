@@ -61,6 +61,23 @@
           "uihints": {
             "category": "Source"
           }
+        },
+        "auth_user": {
+          "title": "User",
+          "description": "Download user id",
+          "type": "string",
+          "uihints": {
+            "category": "Source"
+          }
+        },
+        "auth_password": {
+          "title": "Password",
+          "description": "Password for download user",
+          "type": "string",
+          "uihints": {
+            "ui:field": "password",
+            "category": "Source"
+          }
         }
       },
       "required": ["runtime_type", "airflow_package_download_url"]

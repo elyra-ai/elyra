@@ -26,7 +26,8 @@ from typing import Optional
 from urllib.parse import urlparse
 import zipfile
 
-import requests
+from requests import get
+from requests.auth import HTTPBasicAuth
 
 from elyra.pipeline.catalog_connector import AirflowEntryData
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
@@ -72,6 +73,20 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             )
             return operator_key_list
 
+        # determine whether authentication needs to be performed
+        auth_user = catalog_metadata.get("auth_user")
+        auth_password = catalog_metadata.get("auth_password")
+        if auth_user and auth_password:
+            auth = HTTPBasicAuth(auth_user, auth_password)
+        elif auth_user or auth_password:
+            self.log.error(
+                "Error. The Airflow package connector is not configured properly. "
+                "Authentication requires a user and password."
+            )
+            return operator_key_list
+        else:
+            auth = None
+
         # tmp_archive_dir is used to store the downloaded archive and as working directory
         if hasattr(self, "tmp_archive_dir"):
             # if the directory exists remove it in case the archive content has changed
@@ -83,10 +98,11 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             # download archive; abort after 30 seconds
             try:
-                response = requests.get(
+                response = get(
                     airflow_package_download_url,
                     timeout=AirflowPackageCatalogConnector.REQUEST_TIMEOUT,
                     allow_redirects=True,
+                    auth=auth,
                 )
             except Exception as ex:
                 self.log.error(
