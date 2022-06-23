@@ -18,5 +18,4 @@ export * from './KernelDropdown';
 export * from './ScriptEditor';
 export * from './ScriptEditorController';
 export * from './ScriptRunner';
-export * from './ScriptDebugger';
 export * from './ScriptEditorWidgetFactory';

@@ -28,7 +28,6 @@ import {
   standardRendererFactories as initialFactories
 } from '@jupyterlab/rendermime';
 import {
-  bugIcon,
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
   DockPanelSvg,
@@ -40,9 +39,7 @@ import {
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
 
-// import { DebuggerEditorHandler } from './DebuggerEditorHandler';
 import { KernelDropdown, ISelect } from './KernelDropdown';
-import { ScriptDebugger } from './ScriptDebugger';
 import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
@@ -56,7 +53,7 @@ const OUTPUT_AREA_CHILD_CLASS = 'elyra-ScriptEditor-OutputArea-child';
 const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-ScriptEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-ScriptEditor-OutputArea-prompt';
 const RUN_BUTTON_CLASS = 'elyra-ScriptEditor-Run';
-const RUN_AND_DEBUG_BUTTON_CLASS = 'elyra-ScriptEditor-Run-Debug';
+// const RUN_AND_DEBUG_BUTTON_CLASS = 'elyra-ScriptEditor-Run-Debug';
 const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
 
 /**
@@ -74,11 +71,8 @@ export abstract class ScriptEditor extends DocumentWidget<
   private emptyOutput: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
-  protected debugger: ScriptDebugger;
   private runDisabled: boolean;
-  private debugDisabled: boolean;
   protected runButton: ToolbarButton;
-  protected runAndDebugButton: ToolbarButton;
   protected defaultKernel: string | null;
   abstract getLanguage(): string;
   abstract getIcon(): LabIcon | string;
@@ -92,13 +86,11 @@ export abstract class ScriptEditor extends DocumentWidget<
     super(options);
     this.addClass(SCRIPT_EDITOR_CLASS);
     this.model = this.content.model;
-    this.runner = new ScriptRunner(this.disableButton);
+    this.runner = new ScriptRunner(this.disableRunButton);
     this.kernelSelectorRef = null;
     this.emptyOutput = true;
     this.controller = new ScriptEditorController();
-    this.debugger = new ScriptDebugger(this.disableButton);
     this.runDisabled = false;
-    this.debugDisabled = true;
     this.defaultKernel = null;
 
     // Add icon to main tab
@@ -119,14 +111,6 @@ export abstract class ScriptEditor extends DocumentWidget<
       enabled: !this.runDisabled
     });
 
-    const runAndDebugButton = new ToolbarButton({
-      className: RUN_AND_DEBUG_BUTTON_CLASS,
-      icon: bugIcon,
-      onClick: this.runAndDebugScript,
-      tooltip: 'Run and Debug',
-      enabled: !this.debugDisabled
-    });
-
     const stopButton = new ToolbarButton({
       icon: stopIcon,
       onClick: this.stopRun,
@@ -137,20 +121,16 @@ export abstract class ScriptEditor extends DocumentWidget<
     const toolbar = this.toolbar;
     toolbar.addItem('save', saveButton);
     toolbar.addItem('run', runButton);
-    toolbar.addItem('debug', runAndDebugButton);
     toolbar.addItem('stop', stopButton);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
 
     this.runButton = runButton;
-    this.runAndDebugButton = runAndDebugButton;
 
     // Create output area widget
     this.createOutputAreaWidget();
 
-    this.context.ready.then(() => {
-      this.initializeKernelSpecs().then(() => this.initializeDebugger());
-    });
+    this.context.ready.then(() => this.initializeKernelSpecs());
   }
 
   /**
@@ -184,9 +164,8 @@ export abstract class ScriptEditor extends DocumentWidget<
     selectedKernel: string
   ): Promise<void> => {
     const debuggerAvailable = await this.isDebuggerAvailable(selectedKernel);
-    this.disableButton(!debuggerAvailable, 'debug');
+    console.log(debuggerAvailable);
     // TODO: Update debugger
-    // this.updateDebugger();
   };
 
   getKernelSelection = (): string => {
@@ -196,18 +175,6 @@ export abstract class ScriptEditor extends DocumentWidget<
   isDebuggerAvailable = async (selectedKernel: string): Promise<boolean> => {
     const available = await this.controller.isDebuggerAvailable(selectedKernel);
     return available;
-  };
-
-  /**
-   * Function: Initializes debug features.
-   */
-  protected initializeDebugger = async (): Promise<void> => {
-    const debuggerAvailable = await this.isDebuggerAvailable(
-      this.getKernelSelection()
-    );
-    if (debuggerAvailable) {
-      this.disableButton(false, 'debug');
-    }
   };
 
   /**
@@ -268,38 +235,18 @@ export abstract class ScriptEditor extends DocumentWidget<
     }
   };
 
-  private disableButton = (disabled: boolean, buttonType: string): void => {
-    let newButton = null;
-    switch (buttonType) {
-      case 'run':
-        this.runButton.parent = null;
-        newButton = new ToolbarButton({
-          className: RUN_BUTTON_CLASS,
-          icon: runIcon,
-          onClick: this.runScript,
-          tooltip: 'Run',
-          enabled: !disabled
-        });
-        this.toolbar.insertAfter('save', 'run', newButton);
-        this.runDisabled = disabled;
-        this.runButton = newButton;
-        break;
-      case 'debug':
-        this.runAndDebugButton.parent = null;
-        newButton = new ToolbarButton({
-          className: RUN_AND_DEBUG_BUTTON_CLASS,
-          icon: bugIcon,
-          tooltip: 'Run and Debug',
-          onClick: this.runAndDebugScript,
-          enabled: !disabled
-        });
-        this.toolbar.insertAfter('run', 'debug', newButton);
-        this.debugDisabled = disabled;
-        this.runAndDebugButton = newButton;
-        break;
-      default:
-        break;
-    }
+  private disableRunButton = (disabled: boolean): void => {
+    this.runButton.parent = null;
+    const newRunButton = new ToolbarButton({
+      className: RUN_BUTTON_CLASS,
+      icon: runIcon,
+      onClick: this.runScript,
+      tooltip: 'Run',
+      enabled: !disabled
+    });
+    this.toolbar.insertAfter('save', 'run', newRunButton);
+    this.runDisabled = disabled;
+    this.runButton = newRunButton;
   };
 
   /**
