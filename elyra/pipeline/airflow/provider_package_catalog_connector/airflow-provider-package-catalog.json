@@ -61,6 +61,25 @@
           "uihints": {
             "category": "Source"
           }
+        },
+        "auth_id": {
+          "title": "Id",
+          "description": "Id that has read access for the specified URL resource",
+          "type": "string",
+          "uihints": {
+            "minLength": 1,
+            "category": "Source credentials"
+          }
+        },
+        "auth_password": {
+          "title": "Password",
+          "description": "Password for specified id",
+          "type": "string",
+          "uihints": {
+            "minLength": 1,
+            "ui:field": "password",
+            "category": "Source credentials"
+          }
         }
       },
       "required": ["runtime_type", "airflow_provider_package_download_url"]

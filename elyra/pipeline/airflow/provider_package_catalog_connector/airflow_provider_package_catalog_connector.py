@@ -28,7 +28,8 @@ from typing import Optional
 from urllib.parse import urlparse
 import zipfile
 
-import requests
+from requests import get
+from requests.auth import HTTPBasicAuth
 
 from elyra.pipeline.catalog_connector import AirflowEntryData
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
@@ -71,11 +72,27 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
         if not airflow_provider_name:
             self.log.error(
-                "Error. The Airflow provider package connector is not configured properly. "
+                f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                "is not configured properly. "
                 f"The provider package download URL '{airflow_provider_package_download_url}' "
                 "does not include a file name."
             )
             return operator_key_list
+
+        # determine whether authentication needs to be performed
+        auth_id = catalog_metadata.get("auth_id")
+        auth_password = catalog_metadata.get("auth_password")
+        if auth_id and auth_password:
+            auth = HTTPBasicAuth(auth_id, auth_password)
+        elif auth_id or auth_password:
+            self.log.error(
+                f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                "is not configured properly. "
+                "Authentication requires an id and password."
+            )
+            return operator_key_list
+        else:
+            auth = None
 
         # tmp_archive_dir is used to store the downloaded archive and as working directory
         if hasattr(self, "tmp_archive_dir"):
@@ -88,14 +105,16 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
             # download archive
             try:
-                response = requests.get(
+                response = get(
                     airflow_provider_package_download_url,
                     timeout=AirflowProviderPackageCatalogConnector.REQUEST_TIMEOUT,
                     allow_redirects=True,
+                    auth=auth,
                 )
             except Exception as ex:
                 self.log.error(
-                    "Error. The Airflow provider package connector is not configured properly. "
+                    f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
                     f"Download of '{airflow_provider_package_download_url}' failed: "
                     f"{ex}"
                 )
@@ -104,7 +123,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error(
-                    "Error. The Airflow provider package connector is not configured properly. "
+                    f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
                     f"Download of '{airflow_provider_package_download_url}' "
                     f"failed. HTTP response code: {response.status_code}"
                 )
@@ -123,7 +143,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                     zip_ref.extractall(self.tmp_archive_dir)
             except Exception as ex:
                 self.log.error(
-                    "Error. The Airflow provider package connector is not configured properly. "
+                    f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
                     f"Error extracting downloaded Airflow provider archive '{archive}': "
                     f"{ex}"
                 )
@@ -140,7 +161,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             if len(pl) != 1:
                 # No such file or more than one file was found. Cannot proceed.
                 self.log.error(
-                    "Error. The Airflow provider package connector is not configured properly. "
+                    f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
                     f"The archive '{archive}' "
                     f"contains {len(pl)} file(s) named 'get_provider_info.py'."
                 )

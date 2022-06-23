@@ -10,7 +10,11 @@ https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html#manag
 1. Add a new Airflow provider package catalog ('`+`' > '`New Apache Airflow provider package operator catalog`').
 1. Specify a catalog name, e.g. '`HTTP provider package`'.
 1. (Optional) Specify a category under which the loaded operators will be organized in the palette.
-1. Configure the '`Provider package download URL`'. The URL must reference a location that Elyra can access using an HTTP GET request, without the need to authenticate. If the Airflow provider package is stored on PyPI:
+1. Configure the '`Provider package download URL`'. If the resource is secured, provide credentials, such as a user id or api key and password.
+
+### Example 
+
+If the Airflow provider package is stored on PyPI:
    1. Search for the Apache Airflow provider package on PyPI.
    1. Open the package's release history and choose the desired version.
    1. Open the `Download files` link.

@@ -67,21 +67,23 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
         if not airflow_package_name:
             self.log.error(
-                "Error. The Airflow package connector is not configured properly. "
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                "is not configured properly. "
                 f"The package download URL '{airflow_package_download_url}' "
                 "does not include a file name."
             )
             return operator_key_list
 
         # determine whether authentication needs to be performed
-        auth_user = catalog_metadata.get("auth_user")
+        auth_id = catalog_metadata.get("auth_id")
         auth_password = catalog_metadata.get("auth_password")
-        if auth_user and auth_password:
-            auth = HTTPBasicAuth(auth_user, auth_password)
-        elif auth_user or auth_password:
+        if auth_id and auth_password:
+            auth = HTTPBasicAuth(auth_id, auth_password)
+        elif auth_id or auth_password:
             self.log.error(
-                "Error. The Airflow package connector is not configured properly. "
-                "Authentication requires a user and password."
+                f"Error. Airflow connector '{catalog_metadata.get('display_name')}' "
+                "is not configured properly. "
+                "Authentication requires an id and password."
             )
             return operator_key_list
         else:
@@ -106,7 +108,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                 )
             except Exception as ex:
                 self.log.error(
-                    "Error. The Airflow package connector is not configured properly. "
+                    f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
                     f"Download of '{airflow_package_download_url}' failed: "
                     f"{ex}"
                 )
@@ -114,7 +117,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error(
-                    "Error. The Airflow package connector is not configured properly. "
+                    f"Error. The Airflow package connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
                     f"Download of archive '{airflow_package_download_url}' "
                     f"failed. HTTP response code: {response.status_code}"
                 )
@@ -133,7 +137,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                     zip_ref.extractall(self.tmp_archive_dir)
             except Exception as ex:
                 self.log.error(
-                    "Error. The Airflow package connector is not configured properly. "
+                    f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
                     f"Error extracting downloaded Airflow archive '{archive}': "
                     f"{ex}"
                 )

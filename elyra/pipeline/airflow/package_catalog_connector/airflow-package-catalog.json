@@ -56,27 +56,29 @@
         },
         "airflow_package_download_url": {
           "title": "Airflow package download URL",
-          "description": "URL where the Apache Airflow package wheel can be downloaded.",
+          "description": "URL where the Apache Airflow package wheel can be downloaded",
           "type": "string",
           "uihints": {
             "category": "Source"
           }
         },
-        "auth_user": {
-          "title": "User",
-          "description": "Download user id",
+        "auth_id": {
+          "title": "Id",
+          "description": "Id that has read access for the specified URL resource",
           "type": "string",
           "uihints": {
-            "category": "Source"
+            "minLength": 1,
+            "category": "Source credentials"
           }
         },
         "auth_password": {
           "title": "Password",
-          "description": "Password for download user",
+          "description": "Password for specified id",
           "type": "string",
           "uihints": {
+            "minLength": 1,
             "ui:field": "password",
-            "category": "Source"
+            "category": "Source credentials"
           }
         }
       },

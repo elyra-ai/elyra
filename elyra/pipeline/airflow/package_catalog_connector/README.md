@@ -10,7 +10,12 @@ https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html#manag
 1. Add a new Airflow package catalog ('`+`' > '`New Apache Airflow package operator catalog`').
 1. Specify a catalog name, e.g. '`Airflow 1.10.15 wheel`'.
 1. (Optional) Specify a category under which the loaded operators will be organized in the palette.
-1. Configure the '`Airflow package download URL`'. The URL must reference a location that Elyra can access using an HTTP GET request, without the need to authenticate. If the Airflow package is stored on PyPI:
+1. Configure the '`Airflow package download URL`'. The URL must reference a location that Elyra can access using an HTTP GET request. If the resource is secured, provide credentials, such as a user id or api key and password.
+
+
+### Example
+
+If the Airflow package is stored on PyPI:
    1. Search for the Apache Airflow package on PyPI.
    1. Open the package's release history and choose the desired version.
    1. Open the `Download files` link.
