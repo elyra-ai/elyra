@@ -83,7 +83,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             self.log.error(
                 f"Error. Airflow connector '{catalog_metadata.get('display_name')}' "
                 "is not configured properly. "
-                "Authentication requires an id and password."
+                "Authentication requires a user id and password or API key."
             )
             return operator_key_list
         else:
@@ -109,18 +109,15 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             except Exception as ex:
                 self.log.error(
                     f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
-                    "is not configured properly. "
-                    f"Download of '{airflow_package_download_url}' failed: "
-                    f"{ex}"
+                    f"encountered an issue downloading '{airflow_package_download_url}': {ex}"
                 )
                 return operator_key_list
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error(
                     f"Error. The Airflow package connector '{catalog_metadata.get('display_name')}' "
-                    "is not configured properly. "
-                    f"Download of archive '{airflow_package_download_url}' "
-                    f"failed. HTTP response code: {response.status_code}"
+                    f"encountered an issue downloading '{airflow_package_download_url}'. "
+                    f"HTTP response code: {response.status_code}"
                 )
                 return operator_key_list
 
@@ -138,8 +135,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             except Exception as ex:
                 self.log.error(
                     f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
-                    "is not configured properly. "
-                    f"Error extracting downloaded Airflow archive '{archive}': "
+                    f"encountered an issue extracting downloaded archive '{archive}': "
                     f"{ex}"
                 )
                 os.remove(archive)
@@ -246,7 +242,9 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             self.log.debug(f"Operator key list: {operator_key_list}")
         except Exception as ex:
             self.log.error(
-                "Error retrieving operator list from Airflow package " f"{airflow_package_download_url}: {ex}"
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                "encountered an issue processing operator list in Airflow package "
+                f"'{airflow_package_download_url}': {ex}"
             )
 
         return operator_key_list
@@ -271,7 +269,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
         if hasattr(self, "tmp_archive_dir") is False:
             # Log error and return None
             self.log.error(
-                "Error. Cannot fetch operator definition. The " " downloaded Airflow package archive was not found."
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                "encountered an issue reading the operator source: The downloaded file was not found."
             )
             return None
 
@@ -286,7 +285,10 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             with open(operator_source, "r") as source:
                 return AirflowEntryData(definition=source.read(), package_name=package)
         except Exception as ex:
-            self.log.error(f"Error reading operator source '{operator_source}': {ex}")
+            self.log.error(
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                f"encountered an issue reading the operator source '{operator_source}': {ex}"
+            )
 
         return None
 

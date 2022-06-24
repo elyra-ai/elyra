@@ -63,8 +63,8 @@
           }
         },
         "auth_id": {
-          "title": "Id",
-          "description": "Id that has read access for the specified URL resource",
+          "title": "User Id",
+          "description": "User id that has read access for the specified URL resource",
           "type": "string",
           "uihints": {
             "minLength": 1,
@@ -73,7 +73,7 @@
         },
         "auth_password": {
           "title": "Password",
-          "description": "Password for specified id",
+          "description": "Password or API key for the specified user id",
           "type": "string",
           "uihints": {
             "minLength": 1,

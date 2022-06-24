@@ -88,7 +88,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             self.log.error(
                 f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
                 "is not configured properly. "
-                "Authentication requires an id and password."
+                "Authentication requires a user id and password or API key."
             )
             return operator_key_list
         else:
@@ -114,19 +114,16 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             except Exception as ex:
                 self.log.error(
                     f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
-                    "is not configured properly. "
-                    f"Download of '{airflow_provider_package_download_url}' failed: "
-                    f"{ex}"
+                    f"encountered an issue downloading '{airflow_provider_package_download_url}': {ex}"
                 )
                 return operator_key_list
 
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error(
-                    f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
-                    "is not configured properly. "
-                    f"Download of '{airflow_provider_package_download_url}' "
-                    f"failed. HTTP response code: {response.status_code}"
+                    f"Error. The Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                    f"encountered an issue downloading '{airflow_provider_package_download_url}'. "
+                    f"HTTP response code: {response.status_code}"
                 )
                 return operator_key_list
 
@@ -144,8 +141,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             except Exception as ex:
                 self.log.error(
                     f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
-                    "is not configured properly. "
-                    f"Error extracting downloaded Airflow provider archive '{archive}': "
+                    f"encountered an issue extracting downloaded archive '{archive}': "
                     f"{ex}"
                 )
                 os.remove(archive)
@@ -162,8 +158,7 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                 # No such file or more than one file was found. Cannot proceed.
                 self.log.error(
                     f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
-                    "is not configured properly. "
-                    f"The archive '{archive}' "
+                    f"is not configured properly. The archive '{archive}' "
                     f"contains {len(pl)} file(s) named 'get_provider_info.py'."
                 )
                 # return empty list
@@ -181,7 +176,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             except KeyError:
                 # no method with this name is defined in get_provider_info.py
                 self.log.error(
-                    "Error. Cannot invoke ' get_provider_info' method " f"in '{get_provider_info_file_location}'."
+                    f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                    f"cannot invoke ' get_provider_info' method in '{get_provider_info_file_location}'."
                 )
                 return operator_key_list
 
@@ -191,8 +187,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
                     python_scripts.append(f'{m.replace(".", sep)}.py')
             if len(python_scripts) == 0:
                 self.log.warning(
-                    f"Airflow provider package '{airflow_provider_package_name}' "
-                    "does not include any operator definitions."
+                    f"Warning. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                    f"'{airflow_provider_package_name}' does not include any operator definitions."
                 )
                 return operator_key_list
 
@@ -317,7 +313,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
 
         except Exception as ex:
             self.log.error(
-                "Error retrieving operator list from Airflow provider package "
+                f"Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                "encountered an issue processing operator list in "
                 f"'{airflow_provider_package_download_url}': {ex}"
             )
 
@@ -343,7 +340,8 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             # This method was invoked before 'get_catalog_entries'. Therefore
             # there is nothing that can be done. Log error and return None
             self.log.error(
-                "Error. Cannot fetch operator source code. The " "Airflow provider package archive was not found."
+                f"Error. Airflow provider package connector '{catalog_metadata.get('display_name')}' "
+                "encountered an issue reading the operator source: The downloaded file was not found."
             )
             return None
 
@@ -358,7 +356,10 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
             with open(operator_source, "r") as source:
                 return AirflowEntryData(definition=source.read(), package_name=package)
         except Exception as ex:
-            self.log.error(f"Error reading operator source '{operator_source}': {ex}")
+            self.log.error(
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                f"encountered an issue reading operator source '{operator_source}': {ex}"
+            )
 
         return None
 
