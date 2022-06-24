@@ -21,7 +21,6 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { Debugger, IDebugger } from '@jupyterlab/debugger';
-import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
 import { KernelManager, Session, SessionManager } from '@jupyterlab/services';
 
@@ -56,29 +55,29 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     let sessionConnection: Session.ISessionConnection | null = null;
 
     const updateDebugger = async (widget: ScriptEditor): Promise<void> => {
-      const scriptEditorWidget = widget as ScriptEditor;
-      const kernelSelection = scriptEditorWidget.getKernelSelection();
+      const kernelSelection = widget.getKernelSelection();
+
       const sessions = app.serviceManager.sessions;
       try {
-        const path = scriptEditorWidget.context.path;
-        const model: Session.IModel | undefined = await sessions.findByPath(
-          path
-        );
+        const path = widget.context.path;
+        const sessionModel:
+          | Session.IModel
+          | undefined = await sessions.findByPath(path);
 
-        if (model) {
-          sessionConnection = activeSessions[model.id];
+        if (sessionModel) {
+          sessionConnection = activeSessions[sessionModel.id];
           if (!sessionConnection) {
             // Use `connectTo` only if the session does not exist.
             // `connectTo` sends a kernel_info_request on the shell
             // channel, which blocks the debug session restore when waiting
             // for the kernel to be ready
-            sessionConnection = sessions.connectTo({ model });
-            activeSessions[model.id] = sessionConnection;
+            sessionConnection = sessions.connectTo({ model: sessionModel });
+            activeSessions[sessionModel.id] = sessionConnection;
           }
-          await handler.update(scriptEditorWidget, sessionConnection);
+          await handler.update(widget, sessionConnection);
           app.commands.notifyCommandChanged();
         } else {
-          const debuggerAvailable = await scriptEditorWidget.isDebuggerAvailable(
+          const debuggerAvailable = await widget.isDebuggerAvailable(
             kernelSelection
           );
           if (!debuggerAvailable) {
@@ -94,7 +93,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             );
           }
         }
-        await handler.update(scriptEditorWidget, sessionConnection);
+        await handler.update(widget, sessionConnection);
         app.commands.notifyCommandChanged();
       } catch {
         return;
@@ -104,18 +103,17 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     if (labShell) {
       labShell.currentChanged.connect((_, update) => {
         const widget = update.newValue;
-        if (
-          widget instanceof DocumentWidget &&
-          widget instanceof ScriptEditor
-        ) {
-          // TODO: This is not triggered when kernel dropdown is changed, only when the editor becomes the widget in focus
+        if (widget instanceof ScriptEditor) {
           void updateDebugger(widget);
         }
       });
     }
 
-    editorTracker.currentChanged.connect(async (_, widget) => {
-      await updateDebugger(widget as ScriptEditor);
+    editorTracker.currentChanged.connect((_, widget) => {
+      if (widget instanceof ScriptEditor) {
+        // TODO: add listener to kernel selection changes
+        updateDebugger(widget as ScriptEditor);
+      }
     });
 
     const startSession = async (
