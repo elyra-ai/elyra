@@ -229,10 +229,11 @@ export abstract class ScriptEditor extends DocumentWidget<
       output = 'Error : ' + msg.error.type + ' - ' + msg.error.output;
       this.displayOutput(output);
       this.getOutputAreaChildWidget().addClass(OUTPUT_AREA_ERROR_CLASS);
+      return;
     } else if (msg.output) {
       output = msg.output;
-      this.displayOutput(output);
     }
+    this.displayOutput(output);
   };
 
   private createScrollButtons = (
