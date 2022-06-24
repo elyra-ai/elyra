@@ -430,15 +430,17 @@ def test_parse_airflow_component_file_no_inputs():
     properties_json = ComponentCache.to_canvas_properties(no_input_op)
 
     # Properties JSON should only include the two parameters common to every
-    # component:'label' and 'component_source'
-    num_common_params = 2
+    # component: ('label', 'component_source' and 'mounted_volumes')
+    num_common_params = 3
     assert len(properties_json["current_parameters"].keys()) == num_common_params
     assert len(properties_json["parameters"]) == num_common_params
     assert len(properties_json["uihints"]["parameter_info"]) == num_common_params
 
-    # Total number of groups includes one for each parameter, plus 1 for the component_source header
+    # Total number of groups includes one for each parameter,
+    # plus 1 for the component_source header,
+    # plus 1 for the 'other properties' header (that includes, e.g., mounted_volumes)
     # (Airflow does not include an output header since there are no formally defined outputs)
-    num_groups = num_common_params + 1
+    num_groups = num_common_params + 2
     assert len(properties_json["uihints"]["group_info"][0]["group_info"]) == num_groups
 
     # Ensure that template still renders the two common parameters correctly

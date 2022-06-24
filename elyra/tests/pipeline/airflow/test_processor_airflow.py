@@ -633,11 +633,11 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
     assert operation_parameter_bash_command == "\"{{ ti.xcom_pull(task_ids='BashOperator_1') }}\""
 
 
-def test_scrub_invalid_characters(processor):
+def test_scrub_invalid_characters():
     invalid_character_list_string = "[-!@#$%^&*(){};:,/<>?|`~=+ ]"
     valid_character_list_string = list(string.ascii_lowercase + string.ascii_uppercase + string.digits)
     for character in invalid_character_list_string:
-        assert processor._scrub_invalid_characters(character) == "_"
+        assert AirflowPipelineProcessor.scrub_invalid_characters(character) == "_"
 
     for character in valid_character_list_string:
-        assert processor._scrub_invalid_characters(character) == character
+        assert AirflowPipelineProcessor.scrub_invalid_characters(character) == character

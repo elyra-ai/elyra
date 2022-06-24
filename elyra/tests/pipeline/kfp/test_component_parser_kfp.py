@@ -435,19 +435,20 @@ def test_parse_kfp_component_file_no_inputs():
     component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
-    # Properties JSON should only include the two parameters common to every
-    # component:'label' and 'component_source', the component description if
-    # exists (which it does for this component), and the output parameter for
-    # this component
-    num_common_params = 4
+    # Properties JSON should only include the three parameters common to every
+    # component ('label', 'component_source' and 'mounted_volumes'), the component
+    # description if it exists (which it does for this component), and the output
+    # parameter for this component
+    num_common_params = 5
     assert len(properties_json["current_parameters"].keys()) == num_common_params
     assert len(properties_json["parameters"]) == num_common_params
     assert len(properties_json["uihints"]["parameter_info"]) == num_common_params
 
     # Total number of groups includes one for each parameter,
-    # plus one for the output group header,
-    # plus 1 for the component_source header
-    num_groups = num_common_params + 2
+    # plus 1 for the output group header,
+    # plus 1 for the component_source header,
+    # plus 1 for the 'other properties' header (that includes, e.g., mounted_volumes)
+    num_groups = num_common_params + 3
     assert len(properties_json["uihints"]["group_info"][0]["group_info"]) == num_groups
 
     # Ensure that template still renders the two common parameters correctly

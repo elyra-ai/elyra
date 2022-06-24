@@ -256,6 +256,7 @@ def test_describe_with_no_nodes():
 def test_describe_with_kfp_components():
     runner = CliRunner()
     pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
+    print(pipeline_file_path)
 
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
     assert "Description: 3-node custom component pipeline" in result.output
