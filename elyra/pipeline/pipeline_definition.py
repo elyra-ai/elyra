@@ -319,15 +319,15 @@ class Node(AppDataBase):
         """
         if Operation.is_generic_operation(self.op):
             # Generic operations will never have any collisions as all their properties are Elyra-owned
-            return []
+            return
 
         if not runtime_type_name:
-            return []  # TODO
+            return  # TODO
 
         runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_name)
         component = ComponentCache.instance().get_component(runtime_type, self.op)
         if not component:
-            return []
+            return
 
         # Properties that have the same ref (id) as Elyra-owned node properties
         # should be skipped during property propagation and conversion
