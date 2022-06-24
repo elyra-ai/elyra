@@ -58,6 +58,7 @@
           "title": "Provider package download URL",
           "description": "URL where the Airflow provider package wheel can be downloaded.",
           "type": "string",
+          "format": "uri",
           "uihints": {
             "category": "Source"
           }
@@ -66,8 +67,8 @@
           "title": "User Id",
           "description": "User id that has read access for the specified URL resource",
           "type": "string",
+          "minLength": 1,
           "uihints": {
-            "minLength": 1,
             "category": "Source credentials"
           }
         },
@@ -75,8 +76,8 @@
           "title": "Password",
           "description": "Password or API key for the specified user id",
           "type": "string",
+          "minLength": 1,
           "uihints": {
-            "minLength": 1,
             "ui:field": "password",
             "category": "Source credentials"
           }
