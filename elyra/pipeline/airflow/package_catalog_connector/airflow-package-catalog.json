@@ -60,7 +60,8 @@
           "type": "string",
           "format": "uri",
           "uihints": {
-            "category": "Source"
+            "category": "Source",
+            "ui:placeholder": "http://host:port/path/apache_airflow.whl"
           }
         },
         "auth_id": {
