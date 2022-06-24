@@ -43,6 +43,7 @@ from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
+from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 BLOCKING_TIMEOUT = 0.5
@@ -667,12 +668,21 @@ class ComponentCache(SingletonConfigurable):
         If component_id is one of the generic set, generic template is rendered,
         otherwise, the  runtime-specific property template is rendered
         """
+        kwargs = {}
         if ComponentCache.get_generic_component(component.id) is not None:
             template = ComponentCache.load_jinja_template("generic_properties_template.jinja2")
         else:
+            # Determine which component properties parsed from the definition
+            # collide with Elyra-defined properties (in the case of a collision,
+            # only the parsed property will be displayed)
+            kwargs = {"elyra_property_collisions_list": []}
+            for param in component.properties:
+                if param.ref in ELYRA_COMPONENT_PROPERTIES:
+                    kwargs["elyra_property_collisions_list"].append(param.ref)
+
             template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
 
-        canvas_properties = template.render(component=component)
+        canvas_properties = template.render(component=component, **kwargs)
         return json.loads(canvas_properties)
 
 

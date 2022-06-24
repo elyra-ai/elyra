@@ -25,6 +25,8 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -97,6 +99,13 @@ class Operation(object):
         self._component_params = component_params or {}
         self._doc = None
 
+        self._mounted_volumes = []
+        param_volumes = component_params.get(MOUNTED_VOLUMES)
+        if isinstance(param_volumes, list) and isinstance(param_volumes[0], VolumeMount):
+            # The mounted_volumes property is the Elyra system property (ie, not defined in the component
+            # spec) and must be removed from the component_params dict
+            self._mounted_volumes = self._component_params.pop(MOUNTED_VOLUMES, [])
+
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
         self._component_params["outputs"] = Operation._scrub_list(component_params.get("outputs", []))
@@ -142,6 +151,10 @@ class Operation(object):
         return self._component_params or {}
 
     @property
+    def mounted_volumes(self) -> List["VolumeMount"]:
+        return self._mounted_volumes
+
+    @property
     def inputs(self) -> Optional[List[str]]:
         return self._component_params.get("inputs")
 
@@ -152,6 +165,10 @@ class Operation(object):
     @property
     def outputs(self) -> Optional[List[str]]:
         return self._component_params.get("outputs")
+
+    @property
+    def is_generic(self) -> bool:
+        return isinstance(self, GenericOperation)
 
     @outputs.setter
     def outputs(self, value: List[str]):
@@ -307,6 +324,10 @@ class GenericOperation(Operation):
     @property
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
+
+    @property
+    def kubernetes_secrets(self) -> List["KubernetesSecret"]:
+        return self._component_params.get(KUBERNETES_SECRETS)
 
     def __eq__(self, other: "GenericOperation") -> bool:
         if isinstance(self, other.__class__):
