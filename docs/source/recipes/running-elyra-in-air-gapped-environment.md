@@ -16,7 +16,7 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# Running Elyra in an air gapped environment
+# Running Elyra in an air gapped environment  (WHAT IS AN "AIR-GAPPED" environment???) 
 
 This document outlines how to prepare an air gapped environment for Elyra.
 
