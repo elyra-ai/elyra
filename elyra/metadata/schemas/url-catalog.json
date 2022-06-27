@@ -63,7 +63,27 @@
             "format": "uri"
           },
           "uihints": {
-            "category": "Configuration"
+            "category": "Configuration",
+            "ui:placeholder": "https://host:port/path/component_file"
+          }
+        },
+        "auth_id": {
+          "title": "User Id",
+          "description": "User id that has read access for the specified URL resources",
+          "type": "string",
+          "minLength": 1,
+          "uihints": {
+            "category": "Source credentials"
+          }
+        },
+        "auth_password": {
+          "title": "Password",
+          "description": "Password or API key for the specified user id",
+          "type": "string",
+          "minLength": 1,
+          "uihints": {
+            "ui:field": "password",
+            "category": "Source credentials"
           }
         }
       },
