@@ -409,7 +409,7 @@ Examples (CLI):
 
 The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/package_catalog_connector) provides access to operators that are stored in Apache Airflow [built distributions](https://packaging.python.org/en/latest/glossary/#term-built-distribution):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
-- The specified URL must be retrievable using an anonymous HTTP `GET` request.
+- The specified URL must be retrievable using an HTTP `GET` request.
 
 Examples:
  - [Apache Airflow](https://pypi.org/project/apache-airflow/) (v1.10.15): 
@@ -420,7 +420,7 @@ Examples:
 #### Apache Airflow provider package catalog
 The [Apache Airflow provider package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/provider_package_catalog_connector) provides access to operators that are stored in [Apache Airflow provider packages](https://airflow.apache.org/docs/apache-airflow-providers/):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
-- The specified URL must be retrievable using an anonymous HTTP `GET` request.
+- The specified URL must be retrievable using an HTTP `GET` request.
 
 Examples:
  - [apache-airflow-providers-http](https://airflow.apache.org/docs/apache-airflow-providers-http/stable/index.html) (v2.0.2): 
