@@ -42,81 +42,6 @@ interface IRuntimeImage {
   };
 }
 
-const rjsfPipelineProperties: any = {
-  type: 'object',
-  properties: {
-    name: {
-      title: 'Pipeline Name',
-      type: 'string',
-      uihints: {
-        'ui:readonly': true
-      }
-    },
-    runtime: {
-      title: 'Pipeline Runtime',
-      type: 'string',
-      uihints: {
-        'ui:readonly': true
-      }
-    },
-    description: {
-      title: 'Pipeline Description',
-      type: 'string',
-      uihints: {
-        'ui:placeholder': 'Pipeline Description',
-        'ui:widget': 'textarea'
-      }
-    },
-    pipeline_defaults: {
-      title: 'Node Defaults',
-      type: 'object',
-      properties: {
-        cos_object_prefix: {
-          title: 'Object Storage path prefix',
-          type: 'string',
-          description:
-            'For generic components, this path prefix is used when storing artifacts on Object Storage.',
-          uihints: {
-            'ui:placeholder': 'project/subproject'
-          }
-        },
-        runtime_image: {
-          title: 'Runtime image',
-          description: 'Container image used as execution environment.',
-          type: 'string'
-        },
-        env_vars: {
-          title: 'Environment Variables',
-          description:
-            'Environment variables to be set on the execution environment.',
-          type: 'array',
-          items: {
-            type: 'string'
-          }
-        },
-        kubernetes_secrets: {
-          title: 'Kubernetes Secrets',
-          description:
-            'Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the nodes are executed or the pipeline will not run.',
-          type: 'array',
-          items: {
-            type: 'string'
-          }
-        },
-        mounted_volumes: {
-          title: 'Data Volumes',
-          description:
-            'Volumes to be mounted in all nodes. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the nodes are executed or the pipeline will not run.',
-          type: 'array',
-          items: {
-            type: 'string'
-          }
-        }
-      }
-    }
-  }
-};
-
 const metadataFetcher = async <T>(key: string): Promise<T> => {
   return await MetadataService.getMetadata(key);
 };
@@ -256,7 +181,7 @@ export const componentFetcher = async (type: string): Promise<any> => {
     typesPromise
   ]);
 
-  palette.properties = rjsfPipelineProperties;
+  palette.properties = pipelineProperties;
 
   // Gather list of component IDs to fetch properties for.
   const componentList: string[] = [];
@@ -322,9 +247,9 @@ const updateRuntimeImages = (
   runtimeImages: IRuntimeImage[] | undefined
 ): void => {
   console.log(properties);
-  const runtimeImageIndex = properties.uihints?.parameter_info?.findIndex(
-    (p: any) => p.parameter_ref === 'elyra_runtime_image'
-  );
+  const runtimeImageProperties =
+    properties?.properties?.component_parameters?.properties?.runtime_image ??
+    properties?.properties?.pipeline_defaults?.properties?.runtime_image;
 
   const imageNames = (runtimeImages ?? []).map(i => i.metadata.image_name);
 
@@ -334,26 +259,11 @@ const updateRuntimeImages = (
     displayNames[i.metadata.image_name] = i.display_name;
   });
 
-  if (runtimeImageIndex !== -1) {
-    if (properties.uihints?.parameter_info) {
-      properties.uihints.parameter_info[
-        runtimeImageIndex
-      ].data.labels = displayNames;
-      properties.uihints.parameter_info[
-        runtimeImageIndex
-      ].data.items = imageNames;
-    } else if (
-      properties.properties?.['pipeline_defaults']?.properties?.[
-        'runtime_image'
-      ]
-    ) {
-      properties.properties['pipeline_defaults'].properties[
-        'runtime_image'
-      ].enum = imageNames;
-      properties.properties['pipeline_defaults'].properties[
-        'runtime_image'
-      ].enumNames = (runtimeImages ?? []).map(i => i.display_name);
-    }
+  if (runtimeImageProperties) {
+    runtimeImageProperties.enumNames = (runtimeImages ?? []).map(
+      i => i.display_name
+    );
+    runtimeImageProperties.enum = imageNames;
   }
 };
 
