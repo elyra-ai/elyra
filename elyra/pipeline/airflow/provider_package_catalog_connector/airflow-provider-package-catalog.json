@@ -61,7 +61,7 @@
           "format": "uri",
           "uihints": {
             "category": "Source",
-            "ui:placeholder": "http://host:port/path/provider_package.whl"
+            "ui:placeholder": "https://host:port/path/provider_package.whl"
           }
         },
         "auth_id": {
