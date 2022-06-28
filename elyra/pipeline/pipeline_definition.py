@@ -322,7 +322,7 @@ class Node(AppDataBase):
             return
 
         if not runtime_type_name:
-            return  # TODO
+            return
 
         runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_name)
         component = ComponentCache.instance().get_component(runtime_type, self.op)
@@ -332,7 +332,7 @@ class Node(AppDataBase):
         # Properties that have the same ref (id) as Elyra-owned node properties
         # should be skipped during property propagation and conversion
         properties_to_skip = [prop.ref for prop in component.properties if prop.ref in ELYRA_COMPONENT_PROPERTIES]
-        self._elyra_properties_to_skip = properties_to_skip
+        self._elyra_properties_to_skip = set(properties_to_skip)
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
@@ -358,7 +358,7 @@ class Node(AppDataBase):
         if value is None:
             raise ValueError("Value is required")
 
-        if key not in self.elyra_properties_to_skip:  # TODO check that this is required behavior
+        if key not in self.elyra_properties_to_skip:
             # This parameter has been parsed from a custom component definition and
             # its value should not be manually set
             self._node["app_data"]["component_parameters"][key] = value

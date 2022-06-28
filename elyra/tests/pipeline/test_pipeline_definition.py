@@ -13,16 +13,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from pathlib import Path
 from unittest import mock
 
 import pytest
 
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.tests.pipeline.util import _read_pipeline_resource
+
+
+AIRFLOW_TEST_OPERATOR_CATALOG = {
+    "display_name": "Airflow Test Operator",
+    "metadata": {
+        "runtime_type": "APACHE_AIRFLOW",
+        "base_path": str(Path(__file__).parent / "resources" / "components"),
+        "paths": ["airflow_test_operator.py"],
+    },
+    "schema_name": "local-file-catalog",
+}
 
 
 @pytest.fixture
@@ -122,9 +137,15 @@ def test_convert_kv_properties(monkeypatch):
     mock_kv_property_list = [pipeline_constants.ENV_VARIABLES, kv_test_property_name]
     monkeypatch.setattr(PipelineDefinition, "get_kv_properties", mock.Mock(return_value=mock_kv_property_list))
 
+    # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
+    monkeypatch.setattr(Node, "set_elyra_properties_to_skip", mock.Mock(return_value=None))
+
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 
-    node = pipeline_definition.primary_pipeline.nodes.pop()
+    node = None
+    for node in pipeline_definition.pipeline_nodes:
+        if node.op == "execute-notebook-node":  # assign the generic node to the node variable
+            break
     pipeline_defaults = pipeline_definition.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS)
 
     for kv_property in mock_kv_property_list:
@@ -149,16 +170,55 @@ def test_propagate_pipeline_default_properties(monkeypatch):
     mock_kv_property_list = [pipeline_constants.ENV_VARIABLES, kv_test_property_name]
     monkeypatch.setattr(PipelineDefinition, "get_kv_properties", mock.Mock(return_value=mock_kv_property_list))
 
+    # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
+    monkeypatch.setattr(Node, "set_elyra_properties_to_skip", mock.Mock(return_value=None))
+
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
-    node = pipeline_definition.primary_pipeline.nodes.pop()
+
+    node = None
+    for node in pipeline_definition.pipeline_nodes:
+        if node.op == "execute-notebook-node":  # assign the generic node to the node variable
+            break
     assert node.get_component_parameter(pipeline_constants.ENV_VARIABLES) == kv_list_correct
     assert node.get_component_parameter(kv_test_property_name) == kv_list_correct
 
 
-def test_remove_env_vars_with_matching_secrets():
+@pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
+def test_property_id_collision_with_system_property(monkeypatch, catalog_instance):
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
-    node = pipeline_definition.primary_pipeline.nodes.pop()
+    for node in pipeline_definition.pipeline_nodes:
+        if node.op.endswith(":DeriveFromTestOperator"):
+            # DeriveFromTestOperator does not define its own 'mounted_volumes'
+            # property and should not skip the Elyra 'mounted_volumes' property
+            assert MOUNTED_VOLUMES not in node.elyra_properties_to_skip
+
+            # Property value should be a combination of the lists given on the
+            # pipeline node and in the pipeline default properties
+            assert node.get_component_parameter(MOUNTED_VOLUMES) == [
+                VolumeMount(path="/mnt/vol2", pvc_name="pvc-claim-2"),
+                VolumeMount(path="/mnt/vol1", pvc_name="pvc-claim-1"),
+            ]
+        elif node.op.endswith(":TestOperator"):
+            # TestOperator defines its own 'mounted_volumes' property
+            # and should skip the Elyra system property of the same name
+            assert MOUNTED_VOLUMES in node.elyra_properties_to_skip
+
+            # Property value should be as-assigned in pipeline file
+            assert node.get_component_parameter(MOUNTED_VOLUMES) == "a component-parsed property"
+
+
+def test_remove_env_vars_with_matching_secrets(monkeypatch):
+    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
+
+    # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
+    monkeypatch.setattr(Node, "set_elyra_properties_to_skip", mock.Mock(return_value=None))
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+    node = None
+    for node in pipeline_definition.pipeline_nodes:
+        if node.op == "execute-notebook-node":  # assign the generic node to the node variable
+            break
 
     # Set kubernetes_secret property to have all the same keys as those in the env_vars property
     kubernetes_secrets = KeyValueList(["var1=name1:key1", "var2=name2:key2", "var3=name3:key3"])

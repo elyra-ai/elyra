@@ -295,6 +295,11 @@ def test_parse_kfp_component_file():
         "activeControl": "StringControl",
     }  # []
 
+    assert properties_json["current_parameters"]["elyra_mounted_volumes"] == {
+        "StringControl": "",
+        "activeControl": "StringControl",
+    }
+
     # Ensure that the 'required' attribute was set correctly. KFP components default to required
     # unless explicitly marked otherwise in component YAML.
     required_property = next(
@@ -340,13 +345,6 @@ def test_parse_kfp_component_file():
     )
     assert unusual_string_property["data"]["controls"]["StringControl"]["format"] == "string"
 
-    file_property = next(
-        prop
-        for prop in properties_json["uihints"]["parameter_info"]
-        if prop.get("parameter_ref") == "elyra_test_unusual_type_file"
-    )
-    assert file_property["data"]["format"] == "inputpath"
-
     no_type_property = next(
         prop
         for prop in properties_json["uihints"]["parameter_info"]
@@ -361,9 +359,6 @@ def test_parse_kfp_component_file():
     )
     assert unusual_list_property["description"]["default"] == "The test command description (type: An array)"
     assert unusual_string_property["description"]["default"] == "The test command description (type: A string)"
-    assert (
-        file_property["description"]["default"] == "The test command description"
-    )  # No data type info is included in parentheses for inputPath variables
     assert no_type_property["description"]["default"] == "The test command description (type: string)"
 
 
