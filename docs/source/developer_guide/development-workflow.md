@@ -21,7 +21,7 @@ This section describes the steps necessary to build Elyra in a development envir
 #### Requirements
 
 * [Python 3 Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-* [NodeJS 16+](https://nodejs.org/en/)
+* [Node.js 16+](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/lang/en/docs/install)
 
 ### Setting up your development environment
@@ -29,13 +29,13 @@ This section describes the steps necessary to build Elyra in a development envir
 * Install Miniconda
 Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/latest/miniconda.html) according to your Operating System
 
-* Create a new Python environment
+* Create a new Python environment using a version that is [supported by Elyra](../getting_started/installation.html#prerequisites).
 
     ```
     conda create -n <env-name> python
     ```
 
-    The python version of your environment will match the miniconda version you installed. You can override the default by explicitly setting `python=3.7`, for example.
+    The Python version of your environment will match the miniconda version you installed. You can override the default by explicitly setting `python=3.10`, for example.
 
 * Activate the new environment
 
@@ -46,15 +46,15 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
 * Verify your miniconda environment
 
     ```
-    python --version
-    which python # Displays current python path
-    pip3 --version
-    which pip3
+    python --version # should yield a version that is supported by Elyra
+    which python     # displays current `python` path
+    pip3 --version   # should be a recent version to avoid build issues
+    which pip3       # displays current `pip` path
     ```
     Python path must be under miniconda envs folder.
     Confirm pip3 location matches where miniconda is installed.
 
-* Install NodeJS
+* Install a version of Node.js that is [supported by Elyra](../getting_started/installation.html#prerequisites).
 
     ```
     conda install -y -c conda-forge/label/main nodejs
