@@ -64,7 +64,9 @@
           },
           "uihints": {
             "category": "Configuration",
-            "ui:placeholder": "https://host:port/path/component_file"
+            "items": {
+              "ui:placeholder": "https://host:port/path/component_file"
+            }
           }
         },
         "auth_id": {
