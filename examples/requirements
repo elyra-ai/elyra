@@ -1,0 +1,5 @@
+name: elyra-env
+dependencies:
+- python>=3.8
+- pip:
+    - jupyterlab
