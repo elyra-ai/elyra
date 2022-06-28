@@ -14,7 +14,7 @@
           "title": "Filename",
           "description": "The path to the {{ component.name }}.",
           "uihints": {
-            "format": "file",
+            "ui:widget": "file",
             "required": true,
             "extensions": {{ component.extensions|tojson }}
           }
@@ -57,8 +57,10 @@
           "title": "File Dependencies",
           "description": "Local file dependencies that need to be copied to remote execution environment.",
           "uihints": {
-            "ui:placeholder": "*.py",
-            "format": "file"
+            "items": {
+              "ui:placeholder": "*.py",
+              "ui:widget": "file"
+            }
           }
         },
         "include_subdirectories": {
@@ -87,7 +89,9 @@
           "title": "Kubernetes Secrets",
           "description": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the node is executed or this node will not run.",
           "uihints": {
-            "ui:placeholder": "env_var=secret-name:secret-key",
+            "items": {
+              "ui:placeholder": "env_var=secret-name:secret-key"
+            },
             "keyValueEntries": true
           }
         },
@@ -99,7 +103,9 @@
           "title": "Output Files",
           "description": "Files generated during execution that will become available to all subsequent pipeline steps.",
           "uihints": {
-            "ui:placeholder": "*.csv"
+            "items": {
+              "ui:placeholder": "*.csv"
+            }
           }
         },
         "mounted_volumes": {
@@ -110,7 +116,9 @@
           "title": "Data Volumes",
           "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
           "uihints": {
-            "placeholder": "/mount/path=pvc-name",
+            "items": {
+              "ui:placeholder": "/mount/path=pvc-name"
+            },
             "keyValueEntries": true
           }
         }
