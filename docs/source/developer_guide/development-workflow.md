@@ -228,3 +228,21 @@ following steps in the same python environment.
 
 When you want to switch back to developing Elyra against a Jupyterlab release, you just have to undo the comments in
 steps 4 and 5 and rebuild with `make clean install`
+
+## Analyzing automated test failures
+
+The Elyra GitHub repository is configured to run automated tests whenever a pull request is opened. These tests include static [code quality analysis](https://github.com/elyra-ai/elyra/blob/main/.github/workflows/codeql-analysis.yml) and [UI, server, and integration tests](https://github.com/elyra-ai/elyra/blob/main/.github/workflows/build.yml).
+
+The test results can be accessed from the pull request or the _actions_ tab. If the test log does not include enough details to diagnose failures, download and review test artifacts that might have been generated.
+
+### Accessing test artifacts
+
+1. Open the [Elyra repository actions panel](https://github.com/elyra-ai/elyra/actions) (`https://github.com/elyra-ai/elyra/actions`).
+1. Locate the failing workflow.
+  ![Locate failing workflow](../images/developer_guide/development-workflow/locate-failed-workflow.png)
+1. Open the workflow.
+1. Click the 'home' (summary) button.
+  ![Open workflow summary](../images/developer_guide/development-workflow/open-workflow-summary.png)
+1. Locate the 'Artifacts' section. If present, it should contain a download link.
+  ![Locate artifacts](../images/developer_guide/development-workflow/locate-artifacts.png)
+1. Download the archive, extract it, and review the artifacts. 
