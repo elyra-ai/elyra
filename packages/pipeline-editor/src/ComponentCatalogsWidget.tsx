@@ -91,6 +91,19 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
       </div>
     );
   }
+
+  // Allow for filtering by display_name, name, and description
+  matchesSearch(searchValue: string, metadata: IMetadata): boolean {
+    searchValue = searchValue.toLowerCase();
+    // True if search string is in name or display_name,
+    // or if the search string is empty
+    const description = (metadata.metadata.description || '').toLowerCase();
+    return (
+      metadata.name.toLowerCase().includes(searchValue) ||
+      metadata.display_name.toLowerCase().includes(searchValue) ||
+      description.includes(searchValue)
+    );
+  }
 }
 
 /**
