@@ -394,8 +394,9 @@ Examples (CLI):
 #### URL component catalog
 
 The URL component catalog connector provides access to components that are stored on the web:
-- The specified URL must be retrievable using an anonymous HTTP `GET` request.
-- You can specify one or more URLs.
+- You can specify one or more URL resources.
+- The specified URLs must be retrievable using an HTTP `GET` request.
+- If the resources are secured, provide credentials, such as a user id and password or API key.
 
 Examples (GUI):
  - `https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml`
