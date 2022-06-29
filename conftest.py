@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from pathlib import Path
+
 import pytest
 
 from elyra.metadata.metadata import Metadata
@@ -40,6 +42,15 @@ AIRFLOW_COMPONENT_CACHE_INSTANCE = {
         ],
     },
     "schema_name": "url-catalog",
+}
+AIRFLOW_TEST_OPERATOR_CATALOG = {
+    "display_name": "Airflow Test Operator",
+    "metadata": {
+        "runtime_type": "APACHE_AIRFLOW",
+        "base_path": str(Path(__file__).parent / "elyra" / "tests" / "pipeline" / "resources" / "components"),
+        "paths": ["airflow_test_operator.py"],
+    },
+    "schema_name": "local-file-catalog",
 }
 
 

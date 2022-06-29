@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from pathlib import Path
 from unittest import mock
 
+from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 import pytest
 
 from elyra.pipeline import pipeline_constants
@@ -27,17 +27,6 @@ from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.tests.pipeline.util import _read_pipeline_resource
-
-
-AIRFLOW_TEST_OPERATOR_CATALOG = {
-    "display_name": "Airflow Test Operator",
-    "metadata": {
-        "runtime_type": "APACHE_AIRFLOW",
-        "base_path": str(Path(__file__).parent / "resources" / "components"),
-        "paths": ["airflow_test_operator.py"],
-    },
-    "schema_name": "local-file-catalog",
-}
 
 
 @pytest.fixture
