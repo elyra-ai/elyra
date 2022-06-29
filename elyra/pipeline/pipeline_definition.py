@@ -15,13 +15,15 @@
 #
 import json
 import os
-from typing import Any, Set
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
 
-from jinja2 import Environment, Undefined
+from jinja2 import Environment
 from jinja2 import PackageLoader
+from jinja2 import Undefined
 
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import KeyValueList
