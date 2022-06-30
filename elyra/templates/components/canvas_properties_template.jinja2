@@ -1,7 +1,7 @@
 {
   "type": "object",
   "properties": {
-    {% if component.description %}{
+    {% if component.description %}
     "component_description": {
       "type": "string",
       "title": "Component Description",
@@ -12,7 +12,7 @@
     "label": {
       "type": "string",
       "title": "Label",
-      "description": "A custom label for the node.",
+      "description": "A custom label for the node."
     },
     "component_parameters": {
       {% for property in component.properties %}
@@ -71,7 +71,10 @@
     },
     "required": [
       {% for property in component.properties %}
-        "{{ property.required|lower }}",
+        "{{ property.required|lower }}"
+            {% if loop.index != loop|length %}
+            ,
+            {% endif %}
       {% endfor %}
     ]
   },
