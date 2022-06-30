@@ -171,7 +171,7 @@ async def test_directory_based_component_catalog(component_cache, metadata_manag
 
     # Get new set of components from all active registries, including added test registry
     components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
-    assert len(components_after_create) == len(initial_components) + 6
+    assert len(components_after_create) == len(initial_components) + 5
 
     # Check that all relevant components from the new registry have been added
     added_component_names = [component.name for component in components_after_create]
@@ -371,7 +371,7 @@ def test_parse_airflow_component_url():
     reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
     # Read contents of given path
-    url = "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py"  # noqa: E501
+    url = "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components/airflow_test_operator.py"  # noqa: E501
     catalog_entry_data = {"url": url}
 
     # Construct a catalog instance
@@ -399,10 +399,11 @@ def test_parse_airflow_component_url():
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json["current_parameters"]["component_source"] == component_source
-    assert get_parameter("elyra_bash_command") == ""
-    assert get_parameter("elyra_xcom_push") is True
-    assert get_parameter("elyra_env") == "{}"  # {}
-    assert get_parameter("elyra_output_encoding") == "utf-8"
+    assert get_parameter("elyra_str_no_default") == ""
+    assert get_parameter("elyra_bool_default_true") is True
+    assert get_parameter("elyra_int_default_non_zero") == 2
+    assert get_parameter("elyra_unusual_type_dict") == "{}"  # {}
+    assert get_parameter("elyra_unusual_type_list") == "[]"
 
 
 def test_parse_airflow_component_file_no_inputs():
