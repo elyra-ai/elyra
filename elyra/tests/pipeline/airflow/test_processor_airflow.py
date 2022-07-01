@@ -21,7 +21,7 @@ import tempfile
 from types import SimpleNamespace
 from unittest import mock
 
-from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
+from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 import github
 import pytest
 
@@ -38,8 +38,12 @@ PIPELINE_FILE_CUSTOM_COMPONENTS = "resources/sample_pipelines/pipeline_with_airf
 
 
 @pytest.fixture
-def processor(setup_factory_data):
+def processor(monkeypatch, setup_factory_data):
     processor = AirflowPipelineProcessor(os.getcwd())
+
+    # Add spoofed TestOperator to class import map
+    class_import_map = {"TestOperator": "from airflow.operators.test_operator import TestOperator"}
+    monkeypatch.setattr(processor, "class_import_map", class_import_map)
     return processor
 
 
@@ -240,9 +244,14 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
 
 
 @pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_CUSTOM_COMPONENTS], indirect=True)
-@pytest.mark.parametrize("catalog_instance", [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 def test_create_file_custom_components(
-    monkeypatch, processor, catalog_instance, component_cache, parsed_pipeline, parsed_ordered_dict, sample_metadata
+    monkeypatch,
+    processor,
+    catalog_instance,
+    parsed_pipeline,
+    parsed_ordered_dict,
+    sample_metadata,
 ):
     pipeline_json = _read_pipeline_resource(PIPELINE_FILE_CUSTOM_COMPONENTS)
 
@@ -305,6 +314,18 @@ def test_create_file_custom_components(
                         r = re.compile(rf"\s*{parameter}=.*")
                         parameter_clause = i + 1
                         assert len(list(filter(r.match, file_as_lines[parameter_clause:]))) > 0
+
+        # Test that parameter value processing proceeded as expected for each data type
+        op_id = "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
+        op_params = parsed_ordered_dict[op_id].get("component_params", {})
+        expected_params = {
+            "str_no_default": "\"echo 'test one'\"",
+            "bool_no_default": True,
+            "unusual_type_list": [1, 2],
+            "unusual_type_dict": {},
+            "int_default_non_zero": 2,
+        }
+        assert op_params == expected_params
 
 
 @pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
@@ -604,7 +625,7 @@ def test_process_dictionary_value_function(processor):
 @pytest.mark.parametrize(
     "parsed_pipeline", ["resources/validation_pipelines/aa_operator_same_name.json"], indirect=True
 )
-@pytest.mark.parametrize("catalog_instance", [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance, parsed_pipeline, sample_metadata):
     task_id = "e3922a29-f4c0-43d9-8d8b-4509aab80032"
     upstream_task_id = "0eb57369-99d1-4cd0-a205-8d8d96af3ad4"
@@ -618,19 +639,19 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
 
     pipeline_def_operation = parsed_pipeline.operations[task_id]
     pipeline_def_operation_parameters = pipeline_def_operation.component_params_as_dict
-    pipeline_def_operation_bash_param = pipeline_def_operation_parameters["bash_command"]
+    pipeline_def_operation_str_param = pipeline_def_operation_parameters["str_no_default"]
 
-    assert pipeline_def_operation_bash_param["activeControl"] == "NestedEnumControl"
-    assert set(pipeline_def_operation_bash_param["NestedEnumControl"].keys()) == {"value", "option"}
-    assert pipeline_def_operation_bash_param["NestedEnumControl"]["value"] == upstream_task_id
+    assert pipeline_def_operation_str_param["activeControl"] == "NestedEnumControl"
+    assert set(pipeline_def_operation_str_param["NestedEnumControl"].keys()) == {"value", "option"}
+    assert pipeline_def_operation_str_param["NestedEnumControl"]["value"] == upstream_task_id
 
     ordered_operations = processor._cc_pipeline(
         parsed_pipeline, pipeline_name="some-name", pipeline_instance_id="some-instance-name"
     )
     operation_parameters = ordered_operations[task_id]["component_params"]
-    operation_parameter_bash_command = operation_parameters["bash_command"]
+    operation_parameter_str_command = operation_parameters["str_no_default"]
 
-    assert operation_parameter_bash_command == "\"{{ ti.xcom_pull(task_ids='BashOperator_1') }}\""
+    assert operation_parameter_str_command == "\"{{ ti.xcom_pull(task_ids='TestOperator_1') }}\""
 
 
 def test_scrub_invalid_characters():

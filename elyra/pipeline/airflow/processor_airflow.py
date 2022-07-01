@@ -395,8 +395,6 @@ be fully qualified (i.e., prefixed with their package names).
                         )
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "boolean":
-                        operation.component_params[component_property.ref] = property_value
                     elif component_property.data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
@@ -407,6 +405,8 @@ be fully qualified (i.e., prefixed with their package names).
                     elif component_property.data_type == "list":
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
+                    else:  # booleans and numbers can be rendered as-is
+                        operation.component_params[component_property.ref] = property_value
 
                 # Remove inputs and outputs from params dict until support for data exchange is provided
                 operation.component_params_as_dict.pop("inputs")

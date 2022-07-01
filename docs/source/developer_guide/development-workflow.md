@@ -21,7 +21,7 @@ This section describes the steps necessary to build Elyra in a development envir
 #### Requirements
 
 * [Python 3 Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-* [NodeJS 16+](https://nodejs.org/en/)
+* [Node.js 16+](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/lang/en/docs/install)
 
 ### Setting up your development environment
@@ -29,13 +29,13 @@ This section describes the steps necessary to build Elyra in a development envir
 * Install Miniconda
 Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/latest/miniconda.html) according to your Operating System
 
-* Create a new Python environment
+* Create a new Python environment using a version that is [supported by Elyra](../getting_started/installation.html#prerequisites).
 
     ```
     conda create -n <env-name> python
     ```
 
-    The python version of your environment will match the miniconda version you installed. You can override the default by explicitly setting `python=3.7`, for example.
+    The Python version of your environment will match the miniconda version you installed. You can override the default by explicitly setting `python=3.10`, for example.
 
 * Activate the new environment
 
@@ -46,15 +46,15 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
 * Verify your miniconda environment
 
     ```
-    python --version
-    which python # Displays current python path
-    pip3 --version
-    which pip3
+    python --version # should yield a version that is supported by Elyra
+    which python     # displays current `python` path
+    pip3 --version   # should be a recent version to avoid build issues
+    which pip3       # displays current `pip` path
     ```
     Python path must be under miniconda envs folder.
     Confirm pip3 location matches where miniconda is installed.
 
-* Install NodeJS
+* Install a version of Node.js that is [supported by Elyra](../getting_started/installation.html#prerequisites).
 
     ```
     conda install -y -c conda-forge/label/main nodejs
@@ -228,3 +228,21 @@ following steps in the same python environment.
 
 When you want to switch back to developing Elyra against a Jupyterlab release, you just have to undo the comments in
 steps 4 and 5 and rebuild with `make clean install`
+
+## Analyzing automated test failures
+
+The Elyra GitHub repository is configured to run automated tests whenever a pull request is opened. These tests include static [code quality analysis](https://github.com/elyra-ai/elyra/blob/main/.github/workflows/codeql-analysis.yml) and [UI, server, and integration tests](https://github.com/elyra-ai/elyra/blob/main/.github/workflows/build.yml).
+
+The test results can be accessed from the pull request or the _actions_ tab. If the test log does not include enough details to diagnose failures, download and review test artifacts that might have been generated.
+
+### Accessing test artifacts
+
+1. Open the [Elyra repository actions panel](https://github.com/elyra-ai/elyra/actions) (`https://github.com/elyra-ai/elyra/actions`).
+1. Locate the failing workflow.
+  ![Locate failing workflow](../images/developer_guide/development-workflow/locate-failed-workflow.png)
+1. Open the workflow.
+1. Click the 'home' (summary) button.
+  ![Open workflow summary](../images/developer_guide/development-workflow/open-workflow-summary.png)
+1. Locate the 'Artifacts' section. If present, it should contain a download link.
+  ![Locate artifacts](../images/developer_guide/development-workflow/locate-artifacts.png)
+1. Download the archive, extract it, and review the artifacts. 
