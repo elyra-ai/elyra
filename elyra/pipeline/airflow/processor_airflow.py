@@ -642,13 +642,15 @@ be fully qualified (i.e., prefixed with their package names).
             from airflow.kubernetes.secret import Secret
             ## Ensure that the secret '{cos_secret}' is defined in the Kubernetes namespace where the pipeline is run
             env_var_secret_id = Secret(
-                env_var="AWS_ACCESS_KEY_ID",
-                name='{cos_secret}',
+                deploy_type="env",
+                deploy_target="AWS_ACCESS_KEY_ID",
+                secret="{cos_secret}",
                 key="AWS_ACCESS_KEY_ID",
             )
             env_var_secret_key = Secret(
-                env_var="AWS_SECRET_ACCESS_KEY",
-                name='{cos_secret}',
+                deploy_type="env",
+                deploy_target="AWS_SECRET_ACCESS_KEY",
+                secret="{cos_secret}",
                 key="AWS_SECRET_ACCESS_KEY",
             )
             """
