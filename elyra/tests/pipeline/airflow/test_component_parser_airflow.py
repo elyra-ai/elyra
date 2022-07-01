@@ -18,7 +18,7 @@ import os
 from subprocess import CompletedProcess
 from subprocess import run
 
-from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
+from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import TEST_CATALOG_NAME
 import jupyter_core.paths
 import pytest
@@ -49,7 +49,7 @@ def _get_resource_path(filename):
     return resource_path
 
 
-@pytest.mark.parametrize("catalog_instance", [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 def test_component_catalog_can_load_components_from_registries(catalog_instance, component_cache):
     components = component_cache.get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0
