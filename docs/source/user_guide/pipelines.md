@@ -146,7 +146,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
    - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
    - Example: `ENV_VAR=secret-name:secret-key`
    
-   Both generic and [custom components](pipeline-components.html#custom-components) include the following system-owned property:
+   Both generic and [custom components](pipeline-components.html#custom-components) support the following property:
 
    **Data Volumes**
    - Optional. A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component and allows for data exchange between components. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export. The referenced PVCs must exist in the Kubernetes namespace where the node is executed.
