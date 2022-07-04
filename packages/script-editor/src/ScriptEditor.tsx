@@ -36,6 +36,7 @@ import {
   stopIcon,
   LabIcon
 } from '@jupyterlab/ui-components';
+import { Signal, ISignal } from '@lumino/signaling';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 import React, { RefObject } from 'react';
 
@@ -72,6 +73,8 @@ export abstract class ScriptEditor extends DocumentWidget<
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
   private runDisabled: boolean;
+  private _kernelSelectionChanged: Signal<this, string>;
+  private kernelName: string | null;
   protected runButton: ToolbarButton;
   protected defaultKernel: string | null;
   abstract getLanguage(): string;
@@ -92,6 +95,8 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.controller = new ScriptEditorController();
     this.runDisabled = false;
     this.defaultKernel = null;
+    this.kernelName = null;
+    this._kernelSelectionChanged = new Signal<this, string>(this);
 
     // Add icon to main tab
     this.title.icon = this.getIcon();
@@ -133,6 +138,22 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.context.ready.then(() => this.initializeKernelSpecs());
   }
 
+  public get kernelSelectionChanged(): ISignal<this, string> {
+    return this._kernelSelectionChanged;
+  }
+
+  public get kernelSelection(): string {
+    const selection =
+      this.kernelSelectorRef?.current?.getSelection() ??
+      this.defaultKernel ??
+      '';
+    console.log('kernelSelection: ' + selection);
+    return selection;
+  }
+
+  public isDebuggerAvailable = async (kernelName: string): Promise<boolean> =>
+    await this.controller.isDebuggerAvailable(kernelName);
+
   /**
    * Function: Fetches kernel specs filtered by editor language
    * and populates toolbar kernel selector.
@@ -144,6 +165,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.defaultKernel = await this.controller.getDefaultKernel(
       this.getLanguage()
     );
+    this.kernelName = this.defaultKernel;
     this.kernelSelectorRef = React.createRef<ISelect>();
 
     if (kernelSpecs !== null) {
@@ -160,21 +182,14 @@ export abstract class ScriptEditor extends DocumentWidget<
     }
   };
 
-  handleKernelSelectionUpdate = async (
+  private handleKernelSelectionUpdate = async (
     selectedKernel: string
   ): Promise<void> => {
-    const debuggerAvailable = await this.isDebuggerAvailable(selectedKernel);
-    console.log(debuggerAvailable);
-    // TODO: Update debugger
-  };
-
-  getKernelSelection = (): string => {
-    return this.kernelSelectorRef?.current?.getSelection() ?? '';
-  };
-
-  isDebuggerAvailable = async (selectedKernel: string): Promise<boolean> => {
-    const available = await this.controller.isDebuggerAvailable(selectedKernel);
-    return available;
+    if (selectedKernel === this.kernelName) {
+      return;
+    }
+    this.kernelName = selectedKernel;
+    this._kernelSelectionChanged.emit(selectedKernel);
   };
 
   /**
@@ -212,20 +227,12 @@ export abstract class ScriptEditor extends DocumentWidget<
       this.clearOutputArea();
       this.displayOutputArea();
       await this.runner.runScript(
-        this.getKernelSelection(),
+        this.kernelName,
         this.context.path,
         this.model.value.text,
         this.handleKernelMsg
       );
     }
-  };
-
-  /**
-   * Function: Creates a debugger session and
-   * runs the script in debugger mode
-   */
-  private runAndDebugScript = async (): Promise<void> => {
-    window.alert('🚧 WORK IN PROGRESS... 🚧');
   };
 
   private stopRun = async (): Promise<void> => {

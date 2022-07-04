@@ -68,7 +68,7 @@ export class ScriptRunner {
    * Function: Starts a session with a proper kernel and executes code from file editor.
    */
   runScript = async (
-    kernelName: string | undefined,
+    kernelName: string | null,
     contextPath: string,
     code: string,
     handleKernelMsg: (msgOutput: any) => void

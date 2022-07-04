@@ -23,6 +23,7 @@ import {
 import { Debugger, IDebugger } from '@jupyterlab/debugger';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
 import { KernelManager, Session, SessionManager } from '@jupyterlab/services';
+import { Widget } from '@lumino/widgets';
 
 /**
  * Debugger plugin.
@@ -52,20 +53,56 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     const sessionManager = new SessionManager({
       kernelManager: kernelManager
     });
-    let sessionConnection: Session.ISessionConnection | null = null;
 
     const updateDebugger = async (widget: ScriptEditor): Promise<void> => {
-      const kernelSelection = widget.getKernelSelection();
+      const kernelSelection = (widget as ScriptEditor).kernelSelection;
+
+      const debuggerAvailable = await widget.isDebuggerAvailable(
+        kernelSelection
+      );
+      console.log(
+        '#####updateDebugger debuggerAvailable=' + !!debuggerAvailable
+      );
+      if (!debuggerAvailable) {
+        return;
+      }
 
       const sessions = app.serviceManager.sessions;
       try {
         const path = widget.context.path;
-        const sessionModel:
-          | Session.IModel
-          | undefined = await sessions.findByPath(path);
+        let sessionModel = await sessions.findByPath(path);
+
+        console.log('#####updateDebugger sessionModel=' + !!sessionModel);
+        if (!sessionModel) {
+          // Start a kernel session for the selected kernel supporting debug
+          try {
+            const sessionConnection = await startSession(kernelSelection, path);
+            sessionModel = await sessions.findByPath(path);
+
+            if (!sessionModel) {
+              // TODO throw error bla bla bla
+              throw new Error(
+                'ERROR: session model not found even after started'
+              );
+            }
+
+            activeSessions[sessionModel.id] = sessionConnection;
+            console.log(
+              `Kernel session started for ${path} file with selected ${kernelSelection} kernel.`
+            );
+          } catch (e) {
+            console.warn(
+              `Could not start session for ${kernelSelection} kernel to debug ${path} script`
+            );
+          }
+        }
 
         if (sessionModel) {
-          sessionConnection = activeSessions[sessionModel.id];
+          let sessionConnection: Session.ISessionConnection | null =
+            activeSessions[sessionModel.id];
+          console.log(
+            '#####updateDebugger sessionConnection=' + !!sessionConnection
+          );
           if (!sessionConnection) {
             // Use `connectTo` only if the session does not exist.
             // `connectTo` sends a kernel_info_request on the shell
@@ -74,52 +111,64 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             sessionConnection = sessions.connectTo({ model: sessionModel });
             activeSessions[sessionModel.id] = sessionConnection;
           }
+
+          console.log(
+            '#####updateDebugger updating debugger handler sessionConnection=' +
+              !!sessionConnection
+          );
           await handler.update(widget, sessionConnection);
           app.commands.notifyCommandChanged();
-        } else {
-          const debuggerAvailable = await widget.isDebuggerAvailable(
-            kernelSelection
-          );
-          if (!debuggerAvailable) {
-            return;
-          }
-          // Start a kernel session for the selected kernel supporting debug
-          try {
-            await startSession(kernelSelection, path);
-            console.log('Kernel session started for ' + kernelSelection);
-          } catch (e) {
-            console.warn(
-              `Could not start session for ${kernelSelection} kernel to debug ${path} script`
-            );
-          }
         }
-        await handler.update(widget, sessionConnection);
-        app.commands.notifyCommandChanged();
-      } catch {
-        return;
+      } catch (ex) {
+        // TODO
+        console.log('#####updateDebugger exception=' + ex);
+      }
+    };
+
+    // Use a weakmap to track the callback function used by signal listeners so that the object can be cleared by gargabe collector when no longer in use, avoiding memory leaks
+    // Key: ScriptEditor widget
+    // Value: instance of updateDebugger function
+    const callbackControl = new WeakMap<ScriptEditor, () => Promise<void>>();
+
+    const update = async (widget: Widget | null): Promise<void> => {
+      if (widget instanceof ScriptEditor) {
+        let callbackFn = callbackControl.get(widget);
+        if (!callbackFn) {
+          callbackFn = (): Promise<void> => updateDebugger(widget);
+          callbackControl.set(widget, callbackFn);
+        }
+        updateDebugger(widget);
+
+        // listen to possible kernel selection changes
+        widget.kernelSelectionChanged.disconnect(callbackFn);
+        widget.kernelSelectionChanged.connect(callbackFn);
       }
     };
 
     if (labShell) {
-      labShell.currentChanged.connect((_, update) => {
-        const widget = update.newValue;
-        if (widget instanceof ScriptEditor) {
-          void updateDebugger(widget);
-        }
+      // listen to main area's current focus changes.
+      labShell.currentChanged.connect((_, widget) => {
+        console.log(
+          'labShell.currentChanged####### old=' +
+            widget.oldValue?.constructor.name +
+            ' new=' +
+            widget.newValue?.constructor.name
+        );
+        return update(widget.newValue);
       });
     }
 
-    editorTracker.currentChanged.connect((_, widget) => {
-      if (widget instanceof ScriptEditor) {
-        // TODO: add listener to kernel selection changes
-        updateDebugger(widget as ScriptEditor);
-      }
-    });
+    // if (editorTracker){
+    //   // listen to script editor's current instance changes
+    //   editorTracker.currentChanged.connect((_, widget) => { console.log('editorTracker.currentChanged#######'); return update(widget); });
+    //   // listen to script editor's widget updates
+    //   editorTracker.widgetUpdated.connect((_, widget) => { console.log('editorTracker.widgetUpdated#######'); return update(widget); });
+    // }
 
     const startSession = async (
       kernelSelection: string,
       path: string
-    ): Promise<void> => {
+    ): Promise<Session.ISessionConnection> => {
       const options: Session.ISessionOptions = {
         kernel: {
           name: kernelSelection
@@ -128,8 +177,10 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         type: 'file',
         name: path
       };
-      sessionConnection = await sessionManager.startNew(options);
+      const sessionConnection = await sessionManager.startNew(options);
       sessionConnection.setPath(path);
+
+      return sessionConnection;
     };
   }
 };
