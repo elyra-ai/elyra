@@ -15,66 +15,71 @@
       "description": "A custom label for the node."
     },
     "component_parameters": {
-      {% for property in component.properties %}
-      "{{ property.ref }}": {
-        "type": "{{ property.control }}",
-        "title": "{{ property.name }}",
-        "description": {{ property.description|tojson|safe }},
-        "uihints": {
-          "ui:widget": "{{ property.control_id }}",
-          {% if property.control_id == "OneOfControl" %}
-          "controls":{
-            {% for control, control_data_type, control_label in property.one_of_control_types %}
-            "{{ control }}": {
-              "label": "{{ control_label }}",
-              "format": "{{ control_data_type }}"
-              {% if control == 'NestedEnumControl' %}
-              ,
-              "allownooptions":
-                {% if property.allow_no_options %}
-                true
-                {% else %}
-                false
+      "type": "object",
+      "properties": {
+        {% for property in component.properties %}
+        "{{ property.ref }}": {
+          "type": "{{ property.data_type }}",
+          "title": "{{ property.name }}",
+          "description": {{ property.description|tojson|safe }},
+          "uihints": {
+            "ui:widget": "{{ property.control_id }}",
+            {% if property.control_id == "OneOfControl" %}
+            "controls":{
+              {% for control, control_data_type, control_label in property.one_of_control_types %}
+              "{{ control }}": {
+                "label": "{{ control_label }}",
+                "format": "{{ control_data_type }}"
+                {% if control == 'NestedEnumControl' %}
+                ,
+                "allownooptions":
+                  {% if property.allow_no_options %}
+                  true
+                  {% else %}
+                  false
+                  {% endif %}
                 {% endif %}
+              }
+              {% if loop.index != loop.length %}
+              ,
               {% endif %}
-            }
-            {% if loop.index != loop.length %}
-            ,
+              {%  endfor %}
+            },
+            {% else %}
+            "format": "{{ property.data_type }}",
             {% endif %}
-            {%  endfor %}
-          },
-          {% else %}
-          "format": "{{ property.data_type }}",
+            "required": {{ property.required|lower }}
+            {% if property.control_id == "EnumControl" %}
+            ,
+            "items": [
+              {% for item in property.items %}
+              "{{ item }}"
+              {% if loop.index != property.items|length %}
+              ,
+              {% endif %}
+              {% endfor %}
+            ]
           {% endif %}
-          "required": {{ property.required|lower }}
-          {% if property.control_id == "EnumControl" %}
-          ,
-          "items": [
-            {% for item in property.items %}
-            "{{ item }}"
-            {% if loop.index != property.items|length %}
-            ,
-            {% endif %}
-            {% endfor %}
-          ]
-        {% endif %}
-        }
-      },
-      {% endfor %}
-      "component_source": {
-        "type": "string",
-        "title": "Component Source",
-        "uihints": {
-          "readonly": true
+          }
+        },
+        {% endfor %}
+        "component_source": {
+          "type": "string",
+          "title": "Component Source",
+          "uihints": {
+            "readonly": true
+          }
         }
       }
     },
     "required": [
       {% for property in component.properties %}
-        "{{ property.required|lower }}"
+        {% if property.required|lower %}
+        "{{ property.ref }}"
             {% if loop.index != loop|length %}
             ,
             {% endif %}
+          {% endif %}
       {% endfor %}
     ]
   },

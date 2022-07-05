@@ -398,7 +398,7 @@ class AirflowComponentParser(ComponentParser):
                 data_type="string",
                 value="",
                 description="Container image used as execution environment.",
-                control="custom",
+                control="string",
                 control_id="EnumControl",
                 required=True,
             )

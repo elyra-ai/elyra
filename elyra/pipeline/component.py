@@ -52,8 +52,8 @@ class ComponentParameter(object):
         value: str,
         description: str,
         required: bool = False,
-        control: str = "custom",
-        control_id: str = "StringControl",
+        control: str = "string",
+        control_id: str = None,
         one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
         default_control_type: str = "StringControl",
         default_data_type: str = "string",
@@ -418,24 +418,18 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 data_type_info = ComponentParser.create_data_type_info(
                     parsed_data=parsed_type_lowered,
                     data_type="number",
-                    control_id="NumberControl",
-                    default_control_type="NumberControl",
                     default_value=0,
                 )
             elif any(word in parsed_type_lowered for word in ["float"]):
                 data_type_info = ComponentParser.create_data_type_info(
                     parsed_data=parsed_type_lowered,
                     data_type="number",
-                    control_id="NumberControl",
-                    default_control_type="NumberControl",
                     default_value=0.0,
                 )
             elif any(word in parsed_type_lowered for word in ["bool", "boolean"]):
                 data_type_info = ComponentParser.create_data_type_info(
                     parsed_data=parsed_type_lowered,
                     data_type="boolean",
-                    control_id="BooleanControl",
-                    default_control_type="BooleanControl",
                     default_value=False,
                 )
             else:  # Let this be undetermined.  Callers should check for this status and adjust
@@ -454,10 +448,10 @@ class ComponentParser(LoggingConfigurable):  # ABC
         default_value: Any = "",
         required: bool = True,
         one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
-        control_id: str = "StringControl",
-        default_control_type: str = "StringControl",
+        control_id: str = None,
+        default_control_type: str = None,
         allow_no_options: Optional[bool] = False,
-        control: str = "custom",
+        control: str = "string",
         undetermined: bool = False,
     ) -> SimpleNamespace:
         """Returns a SimpleNamespace instance that contains the current state of data-type parsing.
