@@ -64,6 +64,14 @@
             "ui:placeholder": "https://host:port/path/apache_airflow.whl"
           }
         },
+        "search_contrib": {
+          "title": "Include operators in contrib package",
+          "description": "Include operators in package airflow.contrib.operators",
+          "type": "boolean",
+          "uihints": {
+            "category": "Source"
+          }
+        },
         "auth_id": {
           "title": "User Id",
           "description": "User id that has read access for the specified URL resource",
