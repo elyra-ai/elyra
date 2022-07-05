@@ -644,14 +644,18 @@ be fully qualified (i.e., prefixed with their package names).
         }
         for idx, volume in enumerate(op.get("volumes", [])):
             # Define volumes and volume mounts
-            executor_config["KubernetesExecutor"]["volumes"].append({
-                "name": volume.pvc_name,
-                "hostPath": {"path": "/tmp/"},
-            })
-            executor_config["KubernetesExecutor"]["volume_mounts"].append({
-                "mountPath": volume.path,
-                "name": volume.pvc_name,
-            })
+            executor_config["KubernetesExecutor"]["volumes"].append(
+                {
+                    "name": volume.pvc_name,
+                    "hostPath": {"path": "/tmp/"},
+                }
+            )
+            executor_config["KubernetesExecutor"]["volume_mounts"].append(
+                {
+                    "mountPath": volume.path,
+                    "name": volume.pvc_name,
+                }
+            )
 
         return executor_config
 
