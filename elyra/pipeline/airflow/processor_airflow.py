@@ -495,8 +495,9 @@ be fully qualified (i.e., prefixed with their package names).
 
             # Pass functions used to render data volumes and secrets to the template env
             rendering_functions = {
-                "render_volumes_for_op": AirflowPipelineProcessor.render_volumes_for_op,
-                "render_secrets_for_op": AirflowPipelineProcessor.render_secrets_for_op,
+                "render_volumes_for_generic_op": AirflowPipelineProcessor.render_volumes_for_generic_op,
+                "render_executor_config_for_custom_op": AirflowPipelineProcessor.render_executor_config_for_custom_op,
+                "render_secrets_for_generic_op": AirflowPipelineProcessor.render_secrets_for_generic_op,
                 "render_secrets_for_cos": AirflowPipelineProcessor.render_secrets_for_cos,
             }
             template.globals.update(rendering_functions)
@@ -590,9 +591,9 @@ be fully qualified (i.e., prefixed with their package names).
         return None
 
     @staticmethod
-    def render_volumes_for_op(op: Dict) -> str:
+    def render_volumes_for_generic_op(op: Dict) -> str:
         """
-        Render any data volumes defined for the specified op for use in
+        Render any data volumes defined for the specified generic op for use in
         the Airflow DAG template
 
         :returns: a string literal containing the python code to be rendered in the DAG
@@ -603,9 +604,9 @@ be fully qualified (i.e., prefixed with their package names).
 
         # Include import statements and comment
         str_to_render = f"""
-        from airflow.contrib.kubernetes.volume import Volume
-        from airflow.contrib.kubernetes.volume_mount import VolumeMount
-        # Volumes for operation '{op['id']}'"""
+            from airflow.contrib.kubernetes.volume import Volume
+            from airflow.contrib.kubernetes.volume_mount import VolumeMount
+            # Volumes and mounts for operation '{op['id']}'"""
         for idx, volume in enumerate(op.get("volumes", [])):
             var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"volume_{op['id']}_{idx}")
 
@@ -626,6 +627,33 @@ be fully qualified (i.e., prefixed with their package names).
 
         op["volume_mount_vars"] = [f"mount_{volume_var}" for volume_var in op["volume_vars"]]
         return dedent(str_to_render)
+
+    @staticmethod
+    def render_executor_config_for_custom_op(op: Dict) -> Dict[str, Dict[str, List]]:
+        """
+        Render any data volumes defined for the specified custom op for use in
+        the Airflow DAG template
+
+        :returns: a dict defining the volumes and mounts to be rendered in the DAG
+        """
+        executor_config = {
+            "KubernetesExecutor": {
+                "volumes": [],
+                "volume_mounts": [],
+            }
+        }
+        for idx, volume in enumerate(op.get("volumes", [])):
+            # Define volumes and volume mounts
+            executor_config["KubernetesExecutor"]["volumes"].append({
+                "name": volume.pvc_name,
+                "hostPath": {"path": "/tmp/"},
+            })
+            executor_config["KubernetesExecutor"]["volume_mounts"].append({
+                "mountPath": volume.path,
+                "name": volume.pvc_name,
+            })
+
+        return executor_config
 
     @staticmethod
     def render_secrets_for_cos(cos_secret: str):
@@ -657,7 +685,7 @@ be fully qualified (i.e., prefixed with their package names).
         )
 
     @staticmethod
-    def render_secrets_for_op(op: Dict) -> str:
+    def render_secrets_for_generic_op(op: Dict) -> str:
         """
         Render any Kubernetes secrets defined for the specified op for use in
         the Airflow DAG template
