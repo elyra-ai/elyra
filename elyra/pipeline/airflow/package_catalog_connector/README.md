@@ -11,6 +11,7 @@ https://elyra.readthedocs.io/en/stable/user_guide/pipeline-components.html#manag
 1. Specify a catalog name, e.g. '`Airflow 1.10.15 wheel`'.
 1. (Optional) Specify a category under which the loaded operators will be organized in the palette.
 1. Configure the '`Airflow package download URL`'. The URL must reference a location that Elyra can access using an HTTP `GET` request. If the resource is secured, provide credentials, such as a user id and password or API key.
+1. If desired, include operators that are located in the `airflow.contrib.operators` package. The connector excludes them by default.
 
 ### Example
 
