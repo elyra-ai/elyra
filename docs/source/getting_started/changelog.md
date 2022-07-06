@@ -2,6 +2,29 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.10.0rc0 - 07/06/2022
+
+- Optionally search for operators in airflow.contrib.operators package - [#2819](https://github.com/elyra-ai/elyra/pull/2819)
+- Support data exchange between custom & generic components via volumes - [#2799](https://github.com/elyra-ai/elyra/pull/2799)
+- Bump moment from 2.29.3 to 2.29.4 - [#2821](https://github.com/elyra-ai/elyra/pull/2821)
+- Bump parse-url from 6.0.0 to 6.0.2 - [#2820](https://github.com/elyra-ai/elyra/pull/2820)
+- Remove last instance of AIRFLOW_COMPONENT_CACHE_INSTANCE - [#2817](https://github.com/elyra-ai/elyra/pull/2817)
+- Fix Airflow operation processing for number data types - [#2815](https://github.com/elyra-ai/elyra/pull/2815)
+- Customize rendering of component catalog list - [#2813](https://github.com/elyra-ai/elyra/pull/2813)
+- Remove dependency on path location in pipeline tests - [#2811](https://github.com/elyra-ai/elyra/pull/2811)
+- Add authentication support to URL catalog connector - [#2804](https://github.com/elyra-ai/elyra/pull/2804)
+- Update prerequisite version information - [#2809](https://github.com/elyra-ai/elyra/pull/2809)
+- Update developer guide with CI test information - [#2807](https://github.com/elyra-ai/elyra/pull/2807)
+- Add release notes instructions to release guide - [#2806](https://github.com/elyra-ai/elyra/pull/2806)
+- Fix invalid URLs in 'Elyra in an air gapped environment' topic - [#2810](https://github.com/elyra-ai/elyra/pull/2810)
+- Update docs to reflect proper generic op output file usage - [#2798](https://github.com/elyra-ai/elyra/pull/2798)
+- Add authentication support to Airflow connectors - [#2791](https://github.com/elyra-ai/elyra/pull/2791)
+- Fix for Script Editor console does not properly highlight error messages - [#2800](https://github.com/elyra-ai/elyra/pull/2800)
+- Install jupyterlab during normal builds - [#2790](https://github.com/elyra-ai/elyra/pull/2790)
+- CI: fetch packages info if server tests fail - [#2783](https://github.com/elyra-ai/elyra/pull/2783)
+- Add timing information to pytests - [#2776](https://github.com/elyra-ai/elyra/pull/2776)
+- Display errors in tag editor - [#2769](https://github.com/elyra-ai/elyra/pull/2769)
+
 ## Release 3.9.1 - 06/10/2022
 
 - Clear all singleton instances during shutdown - [#2781](https://github.com/elyra-ai/elyra/pull/2781)
