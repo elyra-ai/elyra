@@ -77,7 +77,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
       - Properties that appy to every pipeline node (both generic and custom)
          - **Data volumes**
            - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export.
-           - The referenced PVCs must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+           - The referenced PVCs must exist in the Kubernetes namespace where the pipeline nodes are executed.
            - Data volumes are not mounted when the pipeline is executed locally.
       - Properties that apply to every generic pipeline node. In this release the following properties are supported:
         - **Object storage path prefix**. Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
