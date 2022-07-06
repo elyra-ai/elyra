@@ -480,6 +480,10 @@ class PipelineValidationManager(SingletonConfigurable):
         current_parameter_defaults_list.remove("component_source")
         current_parameter_defaults_list.remove("label")
 
+        volumes = node.get_component_parameter(MOUNTED_VOLUMES)
+        if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
+            self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
+
         for default_parameter in current_parameter_defaults_list:
             node_param = node.get_component_parameter(default_parameter)
             if self._is_required_property(component_property_dict, default_parameter):
