@@ -636,25 +636,17 @@ be fully qualified (i.e., prefixed with their package names).
 
         :returns: a dict defining the volumes and mounts to be rendered in the DAG
         """
-        executor_config = {
-            "KubernetesExecutor": {
-                "volumes": [],
-                "volume_mounts": [],
-            }
-        }
-        for idx, volume in enumerate(op.get("volumes", [])):
+        executor_config = {"KubernetesExecutor": {"volumes": [], "volume_mounts": []}}
+        for volume in op.get("volumes", []):
             # Define volumes and volume mounts
             executor_config["KubernetesExecutor"]["volumes"].append(
                 {
                     "name": volume.pvc_name,
-                    "hostPath": {"path": "/tmp/"},
+                    "persistentVolumeClaim": {"claimName": "test-pvc"},
                 }
             )
             executor_config["KubernetesExecutor"]["volume_mounts"].append(
-                {
-                    "mountPath": volume.path,
-                    "name": volume.pvc_name,
-                }
+                {"mountPath": volume.path, "name": volume.pvc_name, "read_only": False}
             )
 
         return executor_config
