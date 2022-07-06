@@ -50,11 +50,11 @@ During pipeline execution in the Kubeflow Pipelines or Apache Airflow environmen
 - **Container registry**: All pipeline nodes are executed in containers. The runtime environment must be configured to have read access to the registries (e.g. Docker Hub) where the container images are stored that the generic and custom components are referencing.
 - **Elyra runtime artifacts**: When processing pipeline nodes that are implemented using [generic components](../user_guide/pipeline-components.html#generic-components), Elyra downloads a few dependencies to the container. By default these dependencies are located in a _release-specific branch_ in the [Elyra GitHub repository](https://github.com/elyra-ai/elyra):
   ```
-    https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/kfp/pip.conf
-    https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py
-    https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/airflow/bootstrapper.py
-    https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt
-    https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt
+    https://raw.githubusercontent.com/elyra-ai/elyra/v3.10.0rc0/etc/kfp/pip.conf/
+    https://raw.githubusercontent.com/elyra-ai/elyra/v3.10.0rc0/elyra/kfp/bootstrapper.py
+    https://raw.githubusercontent.com/elyra-ai/elyra/v3.10.0rc0/elyra/airflow/bootstrapper.py
+    https://raw.githubusercontent.com/elyra-ai/elyra/v3.10.0rc0/etc/generic/requirements-elyra-py37.txt
+    https://raw.githubusercontent.com/elyra-ai/elyra/v3.10.0rc0/etc/generic/requirements-elyra.txt
   ```
   In air-gapped environments you must store a copy of these files in a location that is accessible via an anonymous HTTP `GET` request and configure the following environment variables _in the environment where JupyterLab is running_:
     - For Kubeflow Pipelines:
