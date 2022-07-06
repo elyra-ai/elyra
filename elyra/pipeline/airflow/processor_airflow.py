@@ -642,7 +642,7 @@ be fully qualified (i.e., prefixed with their package names).
             executor_config["KubernetesExecutor"]["volumes"].append(
                 {
                     "name": volume.pvc_name,
-                    "persistentVolumeClaim": {"claimName": "test-pvc"},
+                    "persistentVolumeClaim": {"claimName": volume.pvc_name},
                 }
             )
             executor_config["KubernetesExecutor"]["volume_mounts"].append(
