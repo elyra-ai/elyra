@@ -48,18 +48,6 @@
             {% else %}
             "format": "{{ property.data_type }}",
             {% endif %}
-            "required": {{ property.required|lower }}
-            {% if property.control_id == "EnumControl" %}
-            ,
-            "items": [
-              {% for item in property.items %}
-              "{{ item }}"
-              {% if loop.index != property.items|length %}
-              ,
-              {% endif %}
-              {% endfor %}
-            ]
-          {% endif %}
           }
         },
         {% endfor %}

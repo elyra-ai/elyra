@@ -248,14 +248,14 @@ class KfpComponentParser(ComponentParser):
 
         if data_type_info.undetermined:
             if "inputpath" in data_type_info.parsed_data:
-                data_type_info.data_type = "inputpath"
-                data_type_info.control_id = "NestedEnumControl"
+                data_type_info.data_type = "string"
+                data_type_info.control = "inputpath"
                 data_type_info.undetermined = False
                 data_type_info.default_value = None
             elif "outputpath" in data_type_info.parsed_data:
-                data_type_info.data_type = "outputpath"
+                data_type_info.data_type = "string"
                 data_type_info.required = False
-                data_type_info.control = "readonly"
+                data_type_info.control = "outputpath"
                 data_type_info.undetermined = False
 
         return data_type_info
