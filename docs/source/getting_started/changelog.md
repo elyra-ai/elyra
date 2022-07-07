@@ -2,6 +2,10 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.10.0 - 07/07/2022
+
+- Fix version issue in release script - [#2824](https://github.com/elyra-ai/elyra/pull/2824)
+
 ## Release 3.10.0rc0 - 07/06/2022
 
 - Optionally search for operators in airflow.contrib.operators package - [#2819](https://github.com/elyra-ai/elyra/pull/2819)
