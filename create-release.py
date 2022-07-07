@@ -217,7 +217,7 @@ def update_version_to_release() -> None:
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/main/etc/kfp/pip.conf",
-            rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf/",
+            rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
@@ -327,7 +327,7 @@ def update_version_to_dev() -> None:
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
-            rf"elyra-ai/elyra/main/etc/kfp/pip.conf/",
+            rf"elyra-ai/elyra/main/etc/kfp/pip.conf",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
