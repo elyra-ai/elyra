@@ -37,7 +37,7 @@ AND
 - A Kubernetes Cluster without Apache Airflow installed
     - Ensure Kubernetes is at least v1.18. Earlier versions might work  but have not been tested.
     - Helm v3.0 or later
-    - Use the [Helm chart](https://github.com/airflow-helm/charts/tree/v3.10.0/charts/airflow) available in the Airflow source distribution with the [Elyra sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/v3.10.0/etc/kubernetes/airflow/helm/values.yaml).
+    - Use the [Helm chart](https://github.com/airflow-helm/charts/tree/main/charts/airflow) available in the Airflow source distribution with the [Elyra sample configuration](https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/kubernetes/airflow/helm/values.yaml).
     
 OR  
   
@@ -50,7 +50,7 @@ OR
 
 In order to use Apache Airflow with Elyra, it must be configured to use a Git repository to store DAGs.
 
-- Create a private repository on github.com, GitHub Enterprise, gitlab.com, or GitLab Enterprise. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.) Next, create a branch (e.g `v3.10.0`) in your repository. This will be referenced later for storing the DAGs. 
+- Create a private repository on github.com, GitHub Enterprise, gitlab.com, or GitLab Enterprise. (Elyra produces DAGs that contain credentials, which are not encrypted. Therefore you should not use a public repository.) Next, create a branch (e.g `main`) in your repository. This will be referenced later for storing the DAGs. 
 - Generate a personal access token with push access to the repository. This token is used by Elyra to upload DAGs.
    - [Instructions for GitHub](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token)
    - [Instructions for GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
@@ -61,7 +61,7 @@ In order to use Apache Airflow with Elyra, it must be configured to use a Git re
 Take note of the following information:
  - Git API endpoint (e.g. `https://api.github.com` for github.com or `https://gitlab.com` for gitlab.com)
  - Repository name (e.g. `your-git-org/your-dag-repo`)
- - Repository branch name (e.g. `v3.10.0`)
+ - Repository branch name (e.g. `main`)
  - Personal access token (e.g. `4d79206e616d6520697320426f6e642e204a616d657320426f6e64`)
 
 You need to provide this information in addition to your cloud object storage credentials when you [create a runtime configuration](../user_guide/runtime-conf) in Elyra for the Apache Airflow deployment.
@@ -79,9 +79,9 @@ To deploy Apache Airflow on a new Kubernetes cluster:
    kubectl create secret generic airflow-secret --from-file=id_rsa=.ssh/id_rsa --from-file=known_hosts=.ssh/known_hosts --from-file=id_rsa.pub=.ssh/id_rsa.pub -n airflow
    ```
   
-2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/v3.10.0/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration). This sample configuration will use the `KubernetesExecutor` by default.
+2. Download, review, and customize the [sample `helm` configuration](https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/kubernetes/airflow/helm/values.yaml) (or customize an existing configuration). This sample configuration will use the `KubernetesExecutor` by default.
    - Set `git.url` to the URL of the private repository you created earlier, e.g. `ssh://git@github.com/your-git-org/your-dag-repo`. **Note: Make sure your ssh URL contains only forward slashes.**   
-   - Set `git.ref` to the DAG branch, e.g. `v3.10.0` you created earlier.
+   - Set `git.ref` to the DAG branch, e.g. `main` you created earlier.
    - Set `git.secret` to the name of the secret you created, e.g. `airflow-secret`.
    - Adjust the `git.gitSync.refreshTime` as desired.
 
@@ -103,7 +103,7 @@ To deploy Apache Airflow on a new Kubernetes cluster:
 
      ## the branch/tag/sha1 which we clone
      ##
-     ref: "v3.10.0"
+     ref: "main"
 
      ## the name of a pre-created secret containing files for ~/.ssh/
      ##
@@ -127,7 +127,7 @@ To deploy Apache Airflow on a new Kubernetes cluster:
      repository: elyra/airflow
    ```    
   
-   The container image is created using [this `Dockerfile`](https://github.com/elyra-ai/elyra/tree/v3.10.0/etc/docker/airflow) and published on [Docker Hub](https://hub.docker.com/r/elyra/airflow) and [quay.io](https://quay.io/repository/elyra/airflow).
+   The container image is created using [this `Dockerfile`](https://github.com/elyra-ai/elyra/tree/main/etc/docker/airflow) and published on [Docker Hub](https://hub.docker.com/r/elyra/airflow) and [quay.io](https://quay.io/repository/elyra/airflow).
 
 3. Install Apache Airflow using the customized configuration.
   
