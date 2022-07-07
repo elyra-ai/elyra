@@ -326,28 +326,28 @@ def update_version_to_dev() -> None:
         # Update GitHub references in documentation
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
-            rf"elyra-ai/elyra/main/etc/kfp/pip.conf",
+            rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
+            r"elyra-ai/elyra/main/etc/kfp/pip.conf",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
-            rf"elyra-ai/elyra/main/elyra/kfp/bootstrapper.py",
+            rf"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
+            r"elyra-ai/elyra/main/elyra/kfp/bootstrapper.py",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
-            rf"elyra-ai/elyra/main/elyra/airflow/bootstrapper.py",
+            rf"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
+            r"elyra-ai/elyra/main/elyra/airflow/bootstrapper.py",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
-            rf"elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt",
+            rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
+            r"elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
-            rf"elyra-ai/elyra/main/etc/generic/requirements-elyra.txt",
+            rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
+            r"elyra-ai/elyra/main/etc/generic/requirements-elyra.txt",
         )
 
         # update documentation references in schema definitions
