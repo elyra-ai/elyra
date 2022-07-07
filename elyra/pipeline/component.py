@@ -468,7 +468,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
             parsed_data=parsed_data,
             data_type=data_type,
             default_data_type=default_data_type,
-            data_label=data_label or ControllerMap[control_id].value,
+            data_label=data_label or ControllerMap(control_id).value,
             default_value=default_value,
             required=required,
             default_control_type=default_control_type,
@@ -486,3 +486,8 @@ class ControllerMap(Enum):
     NumberControl = "Please enter a number value :"
     BooleanControl = "Please select or deselect the checkbox :"
     NestedEnumControl = "Please select an output from a parent :"
+
+    @classmethod
+    def _missing_(cls, value):
+        """Default to StringControl"""
+        return cls.StringControl
