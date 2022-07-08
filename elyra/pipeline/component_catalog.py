@@ -40,7 +40,7 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
-from elyra.pipeline.component import Component
+from elyra.pipeline.component import Component, ComponentParameter
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
 from elyra.pipeline.runtime_type import RuntimeProcessorType
@@ -667,11 +667,14 @@ class ComponentCache(SingletonConfigurable):
         If component_id is one of the generic set, generic template is rendered,
         otherwise, the  runtime-specific property template is rendered
         """
+        rendering_functions = {}
         if ComponentCache.get_generic_component(component.id) is not None:
             template = ComponentCache.load_jinja_template("generic_properties_template.jinja2")
         else:
             template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
+            rendering_functions["render_parameter_details"] = ComponentParameter.render_parameter_details
 
+        template.globals.update(rendering_functions)
         canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)
 

@@ -381,7 +381,7 @@ be fully qualified (i.e., prefixed with their package names).
                     self.log.debug(f"Active property name : {active_property_name}, value : {property_value}")
                     self.log.debug(
                         f"Processing component parameter '{component_property.name}' "
-                        f"of type '{component_property.data_type}'"
+                        f"of type '{component_property.json_data_type}'"
                     )
 
                     if (
@@ -396,16 +396,16 @@ be fully qualified (i.e., prefixed with their package names).
                         )
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "boolean":
+                    elif component_property.json_data_type == "boolean":
                         operation.component_params[component_property.ref] = property_value
-                    elif component_property.data_type == "string":
+                    elif component_property.json_data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
                         operation.component_params[component_property.ref] = json.dumps(property_value)
-                    elif component_property.data_type == "dictionary":
+                    elif component_property.json_data_type == "object":
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "list":
+                    elif component_property.json_data_type == "array":
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
 

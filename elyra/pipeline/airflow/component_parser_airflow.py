@@ -24,7 +24,6 @@ from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component import ControllerMap
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 CONTROL_ID = "OneOfControl"
@@ -231,29 +230,19 @@ class AirflowComponentParser(ComponentParser):
                 self.log.debug(
                     f"Data type from parsed data ('{(data_type_parsed or data_type_from_ast)}') "
                     f"could not be determined. Proceeding as if "
-                    f"'{data_type_info.data_type}' was detected."
+                    f"'{data_type_info.json_data_type}' was detected."
                 )
-            elif "xcom" in arg_name.lower() and data_type_info.data_type == "boolean":
+            elif "xcom" in arg_name.lower() and data_type_info.json_data_type == "boolean":
                 # Override a default of False for xcom push
                 data_type_info.default_value = True
-
-            # Create Dict of control ids that this property can use
-            default_control_type = data_type_info.control_id
-            one_of_control_types = [
-                (default_control_type, data_type_info.data_type, ControllerMap[default_control_type].value),
-                ("NestedEnumControl", "inputpath", ControllerMap["NestedEnumControl"].value),
-            ]
 
             component_param = ComponentParameter(
                 id=arg_name,
                 name=arg_name,
-                data_type=data_type_info.data_type,
+                json_data_type=data_type_info.json_data_type,
+                allowed_input_types=data_type_info.allowed_input_types,
                 value=(arg_attributes.get("default_value") or data_type_info.default_value),
                 description=description,
-                default_control_type=default_control_type,
-                control_id=CONTROL_ID,
-                one_of_control_types=one_of_control_types,
-                allow_no_options=True,
                 required=arg_attributes.get("required"),
             )
             properties.append(component_param)
@@ -385,24 +374,6 @@ class AirflowComponentParser(ComponentParser):
             # Remove quotation marks and newline characters in preparation for eventual json.loads()
             return match.group(1).strip().replace('"', "'").replace("\n", " ").replace("\t", " ")
         return default
-
-    def get_runtime_specific_properties(self) -> List[ComponentParameter]:
-        """
-        Define properties that are common to the Airflow runtime.
-        """
-
-        return [
-            ComponentParameter(
-                id="runtime_image",
-                name="Runtime Image",
-                data_type="string",
-                value="",
-                description="Container image used as execution environment.",
-                control="string",
-                control_id="EnumControl",
-                required=True,
-            )
-        ]
 
     def _get_content_between_lines(self, start_line: int, end_line: int, content: str) -> str:
         """

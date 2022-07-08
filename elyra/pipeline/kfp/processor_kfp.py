@@ -589,13 +589,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         f"of type '{component_property.data_type}'"
                     )
 
-                    if component_property.data_type == "inputpath":
+                    if component_property.allowed_input_types == ["outputpath"]:
+                        # Outputs are skipped
+                        continue
+                    elif component_property.allowed_input_types == ["inputpath"]:
+                        # KFP path-based parameters can only accept an input from a parent
                         output_node_id = property_value["value"]
                         output_node_parameter_key = property_value["option"].replace("elyra_output_", "")
                         operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
                             output_node_parameter_key
                         ]
-                    elif component_property.data_type == "inputvalue":
+                    else:
+                        # TODO logic will have to be added here to account for file vs. raw-value entry
                         active_property = property_value["activeControl"]
                         active_property_value = property_value.get(active_property, None)
 
@@ -612,10 +617,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
                                 output_node_parameter_key
                             ]
-                        elif component_property.default_data_type == "dictionary":
+                        elif component_property.json_data_type == "object":
                             processed_value = self._process_dictionary_value(active_property_value)
                             operation.component_params[component_property.ref] = processed_value
-                        elif component_property.default_data_type == "list":
+                        elif component_property.json_data_type == "array":
                             processed_value = self._process_list_value(active_property_value)
                             operation.component_params[component_property.ref] = processed_value
                         else:
