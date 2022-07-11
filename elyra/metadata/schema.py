@@ -22,6 +22,7 @@ from logging import getLogger
 from logging import Logger
 import os
 import re
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -37,6 +38,7 @@ except ImportError:
 
 from entrypoints import get_group_all
 from jsonschema import draft7_format_checker
+from jsonschema import Draft7Validator
 from jsonschema import validate
 from jsonschema import ValidationError
 from traitlets.config import LoggingConfigurable
@@ -56,11 +58,14 @@ class SchemaManager(SingletonConfigurable):
     # Maps SchemaspaceID AND SchemaspaceName to Schemaspace instance (two entries from Schemaspace instance)
     schemaspaces: Dict[str, "Schemaspace"]
 
-    # Maps SchemaspaceID to ShemaspaceName
+    # Maps SchemaspaceID to SchemaspaceName
     schemaspace_id_to_name: Dict[str, str]
 
     # Maps SchemaspaceID to mapping of schema name to SchemasProvider
     schemaspace_schemasproviders: Dict[str, Dict[str, "SchemasProvider"]]
+
+    # Maps SchemaspaceID to mapping of schema name to validator
+    schemaspace_schema_validators: Dict[str, Dict[str, Any]]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -68,6 +73,7 @@ class SchemaManager(SingletonConfigurable):
         self.schemaspaces = {}
         self.schemaspace_id_to_name = {}
         self.schemaspace_schemasproviders = {}
+        self.schemaspace_schema_validators = {}
 
         # The following exposes the metadata-test schemaspace if true or 1.
         # Metadata testing will enable this env.  Note: this cannot be globally
@@ -137,6 +143,12 @@ class SchemaManager(SingletonConfigurable):
         self.log.debug("SchemaManager: Reloading all schemas for all schemaspaces.")
         self._load_schemaspace_schemas()
 
+    def validate_instance(self, schemaspace_name_or_id: str, schema_name: str, instance: dict) -> None:
+        self._validate_schemaspace(schemaspace_name_or_id)
+        schemaspace_id = self.schemaspaces[schemaspace_name_or_id].id
+        validator = self.schemaspace_schema_validators[schemaspace_id][schema_name]
+        validator.validate(instance)
+
     def _validate_schemaspace(self, schemaspace_name_or_id: str) -> None:
         """Ensures the schemaspace is valid and raises ValueError if it is not."""
         if schemaspace_name_or_id.lower() not in self.schemaspaces:
@@ -200,6 +212,7 @@ class SchemaManager(SingletonConfigurable):
                         f"SchemasProvider instance '{schemas_provider_ep.name}' is not an "
                         f"instance of '{SchemasProvider.__name__}'!"
                     )
+                provider_validators = {}
                 schemas = schemas_provider.get_schemas()
                 for schema in schemas:
                     try:
@@ -230,7 +243,10 @@ class SchemaManager(SingletonConfigurable):
                         self.schemaspaces[schemaspace_id].add_schema(schema)
                         providers = self.schemaspace_schemasproviders.get(schemaspace_id, {})
                         providers[schema_name] = schemas_provider  # Capture the schemasprovider for this schema
+                        provider_validators = self.schemaspace_schema_validators.get(schemaspace_id, {})
+                        provider_validators[schema_name] = schemas_provider.get_validator(schema)  # Capture validator
                         self.schemaspace_schemasproviders[schemaspace_id] = providers
+                        self.schemaspace_schema_validators[schemaspace_id] = provider_validators
 
                     except Exception as schema_err:
                         self.log.error(
@@ -422,3 +438,11 @@ class SchemasProvider(ABC):
         The method will return a list of migrated instances or an empty array.
         """
         return list()
+
+    def get_validator(self, schema: dict) -> Any:
+        """Returns an instance of a validator used to validate instances of the given schema.
+
+        The default implementation uses the `Draft7Validator`.  SchemasProviders requiring the use
+        of a different validator must override this method.
+        """
+        return Draft7Validator(schema, format_checker=draft7_format_checker)
