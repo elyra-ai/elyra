@@ -92,7 +92,6 @@ setup_args = dict(
         "requests>=2.25.1",
         "rfc3986-validator>=0.1.1",
         "tornado>=6.1.0",
-        "typing-extensions>=3.10,<4",  # Cap from kfp
         "traitlets>=4.3.2",
         "urllib3>=1.26.5",
         "watchdog>=2.1.3",
