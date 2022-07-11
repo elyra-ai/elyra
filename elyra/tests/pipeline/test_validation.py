@@ -16,7 +16,7 @@
 
 import os
 
-from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
+from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
@@ -644,13 +644,13 @@ async def test_pipeline_invalid_kfp_inputpath_missing_connection(
     assert issues[0]["data"]["nodeID"] == invalid_node_id
 
 
-@pytest.mark.parametrize("catalog_instance", [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 async def test_pipeline_aa_parent_node_missing_xcom_push(
     validation_manager, load_pipeline, catalog_instance, component_cache
 ):
 
     invalid_node_id = "b863d458-21b5-4a46-8420-5a814b7bd525"
-    invalid_operator = "BashOperator"
+    invalid_operator = "TestOperator"
 
     pipeline, response = load_pipeline("aa_parent_node_missing_xcom.pipeline")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)

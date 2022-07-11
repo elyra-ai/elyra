@@ -25,6 +25,9 @@
         }
     {% endif %},
 {% endfor %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
+      "elyra_mounted_volumes": [],
+{% endif %}
       "component_source": {{ component.component_source|tojson|safe }}
     },
     "parameters": [
@@ -39,6 +42,11 @@
         "id": "elyra_{{ property.ref }}"
       },
 {% endfor %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
+      {
+        "id": "elyra_mounted_volumes"
+      },
+{% endif %}
       {
         "id": "component_source"
       }
@@ -126,6 +134,25 @@
           }
         },
 {% endfor %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
+        {
+          "parameter_ref": "elyra_mounted_volumes",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Data Volumes"
+          },
+          "description": {
+           "default": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "required": false,
+            "placeholder": "/mount/path=pvc-name",
+            "keyValueEntries": true
+          }
+        },
+{% endif %}
         {
           "parameter_ref": "component_source",
           "control": "readonly",
@@ -187,6 +214,25 @@
               "parameter_refs": ["elyra_{{ property.ref }}"]
             },
     {% endfor %}
+{% endif %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
+            {
+              "id": "elyra_other_propertiesCategoryHeader",
+              "type": "textPanel",
+              "class_name": "elyra_categoryHeader",
+              "label": {
+                "default": "Additional Properties"
+              },
+              "description": {
+                "default": "Additional properties used by Elyra that are not given in the component definition.",
+                "placement": "on_panel"
+              }
+            },
+            {
+              "id": "elyra_mounted_volumes",
+              "type": "controls",
+              "parameter_refs": ["elyra_mounted_volumes"]
+            },
 {% endif %}
             {
               "id": "elyra_component_sourceCategoryHeader",

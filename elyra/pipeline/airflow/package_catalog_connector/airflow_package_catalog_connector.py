@@ -148,6 +148,10 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             # Locate Python scripts that are stored in the 'airflow/operators' directory
             python_scripts = [s for s in self.tmp_archive_dir.glob("airflow/operators/*.py")]
 
+            # If requested, also locate Python scripts that are stored in the 'airflow/contrib/operators' directory
+            if catalog_metadata.get("search_contrib"):
+                python_scripts.extend([s for s in self.tmp_archive_dir.glob("airflow/contrib/operators/*.py")])
+
             #
             # Identify Python scripts that define classes that extend the
             # airflow.models.BaseOperator class
