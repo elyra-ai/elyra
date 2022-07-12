@@ -153,7 +153,6 @@ class MetadataManager(LoggingConfigurable):
 
         try:
             self.schema_mgr.validate_instance(self.schemaspace, schema_name, metadata_dict)
-            metadata_dict = None
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
             first_line = str(ve).partition("\n")[0]
