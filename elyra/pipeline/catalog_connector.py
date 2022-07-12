@@ -29,7 +29,8 @@ from typing import Optional
 
 from deprecation import deprecated
 from jupyter_core.paths import ENV_JUPYTER_PATH
-import requests
+from requests import get
+from requests.auth import HTTPBasicAuth
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import default
 from traitlets.traitlets import Integer
@@ -607,6 +608,8 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
     Read a singular component definition from a url
     """
 
+    REQUEST_TIMEOUT = 30
+
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Returns a list of catalog_entry_data dictionary instances, one per entry in the given catalog.
@@ -633,13 +636,41 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
             individual catalog entries
         """
         url = catalog_entry_data.get("url")
+
+        # determine whether authentication needs to be performed
+        auth_id = catalog_metadata.get("auth_id")
+        auth_password = catalog_metadata.get("auth_password")
+        if auth_id and auth_password:
+            auth = HTTPBasicAuth(auth_id, auth_password)
+        elif auth_id or auth_password:
+            self.log.error(
+                f"Error. URL catalog connector '{catalog_metadata.get('display_name')}' "
+                "is not configured properly. "
+                "Authentication requires a user id and password or API key."
+            )
+            return None
+        else:
+            auth = None
+
         try:
-            res = requests.get(url)
+            res = get(
+                url,
+                timeout=UrlComponentCatalogConnector.REQUEST_TIMEOUT,
+                allow_redirects=True,
+                auth=auth,
+            )
         except Exception as e:
-            self.log.warning(f"Failed to connect to URL for component: {url}: {e}")
+            self.log.error(
+                f"Error. The URL catalog connector '{catalog_metadata.get('display_name')}' "
+                f"encountered an issue downloading '{url}': {e} "
+            )
         else:
             if res.status_code != HTTPStatus.OK:
-                self.log.warning(f"Invalid location for component: {url} (HTTP code {res.status_code})")
+                self.log.error(
+                    f"Error. The URL catalog connector '{catalog_metadata.get('display_name')}' "
+                    f"encountered an issue downloading '{url}'. "
+                    f"HTTP response code: {res.status_code}"
+                )
             else:
                 return EntryData(definition=res.text)
 

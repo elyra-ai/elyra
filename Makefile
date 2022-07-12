@@ -17,7 +17,8 @@
 .PHONY: help purge uninstall-src uninstall clean
 .PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
-.PHONY: build-dependencies yarn-install build-ui package-ui package-ui-dev build-server install-server-package install-server
+.PHONY: build-dependencies dev-dependencies yarn-install build-ui package-ui package-ui-dev
+.PHONY: build-server install-server-package install-server
 .PHONY: install install-all install-dev install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
@@ -109,7 +110,7 @@ lint-dependencies:
 	@$(PYTHON_PIP) install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
-	$(PYTHON) -m flake8 elyra
+	$(PYTHON) -m flake8 elyra .github
 	@echo $(BLACK_CMD)
 	@$(BLACK_CMD) || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
 
@@ -151,6 +152,10 @@ build-dependencies:
 	@$(PYTHON_PIP) install -q --upgrade pip
 	@$(PYTHON_PIP) install -q -r build_requirements.txt
 
+dev-dependencies:
+	@$(PYTHON_PIP) install -q --upgrade pip
+	@$(PYTHON_PIP) install -q jupyter-packaging
+
 yarn-install:
 	yarn install
 
@@ -159,7 +164,7 @@ build-ui: # Build packages
 
 package-ui: build-dependencies yarn-install lint-ui build-ui
 
-package-ui-dev: build-dependencies yarn-install dev-link lint-ui build-ui
+package-ui-dev: dev-dependencies yarn-install dev-link lint-ui build-ui
 
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist

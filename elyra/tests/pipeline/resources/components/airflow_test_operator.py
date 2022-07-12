@@ -57,6 +57,8 @@ class TestOperator(BaseOperator):
     :param long_description_property: a string parameter with a very long description
         that wraps lines and also has an escaped underscore in it, as shown here: (\_)  # noqa W605
     :type long_description_property: str
+    :param: mounted_volumes: a property with the same name as an Elyra system property
+    :type: str
     """
 
     def __init__(
@@ -79,6 +81,7 @@ class TestOperator(BaseOperator):
         unusual_type_list=None,
         fallback_type=None,
         long_description_property=None,
+        mounted_volumes=None,
         *args,
         **kwargs,
     ):

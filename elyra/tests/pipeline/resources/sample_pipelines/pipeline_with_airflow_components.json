@@ -11,25 +11,29 @@
         {
           "id": "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3",
           "type": "execution_node",
-          "op": "url-catalog:6571bc331575",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
           "app_data": {
             "label": "b",
             "component_parameters": {
-              "bash_command": {
+              "str_no_default": {
                 "activeControl": "StringControl",
-                "StringControl": "echo hello"
+                "StringControl": "echo 'test one'"
               },
-              "xcom_push": {
+              "bool_no_default": {
                 "activeControl": "BooleanControl",
                 "BooleanControl": true
               },
-              "env": {
+              "unusual_type_dict": {
                 "activeControl": "StringControl",
-                "StringControl": ""
+                "StringControl": "{}"
               },
-              "output_encoding": {
+              "unusual_type_list": {
                 "activeControl": "StringControl",
-                "StringControl": "utf-8"
+                "StringControl": "[1, 2]"
+              },
+              "int_default_non_zero": {
+                "activeControl": "NumberControl",
+                "NumberControl": 2
               }
             },
             "ui_data": {
