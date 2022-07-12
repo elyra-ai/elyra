@@ -21,7 +21,7 @@ This section describes the steps necessary to build Elyra in a development envir
 #### Requirements
 
 * [Python 3 Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-* [NodeJS 16+](https://nodejs.org/en/)
+* [NodeJS 16+](https://nodejs.org/en/) 
 * [Yarn](https://yarnpkg.com/lang/en/docs/install)
 
 ### Setting up your development environment
@@ -59,11 +59,21 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     ```
     conda install -y -c conda-forge/label/main nodejs
     ```
+* Verify node is installed correctly 
+
+    ```
+    node --version 
+    ```
 
 * Install Yarn
 
     ```
     conda install -y -c conda-forge/label/main yarn
+    ```
+* Verify yarn is installed correctly 
+
+    ```
+    yarn --version 
     ```
 
 ### Setting up your Elyra Github repository
