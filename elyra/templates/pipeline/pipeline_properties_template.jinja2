@@ -162,11 +162,28 @@
             "parameter_refs": ["cos_object_prefix"]
           },
           {
-            "id": "elyra_outputCategoryHeader",
+            "id": "elyra_nodesCategoryHeader",
             "type": "textPanel",
             "class_name": "elyra_categoryHeader",
             "label": {
-              "default": "Generic nodes defaults"
+              "default": "Node Defaults"
+            },
+            "description": {
+              "default": "Default values are applied to all nodes in this pipeline and can be customized in each node.",
+              "placement": "on_panel"
+            }
+          },
+          {
+            "id": "elyra_mounted_volumes",
+            "type": "controls",
+            "parameter_refs": ["elyra_mounted_volumes"]
+          },
+          {
+            "id": "elyra_generic_nodesCategoryHeader",
+            "type": "textPanel",
+            "class_name": "elyra_categoryHeader",
+            "label": {
+              "default": "Generic Node Defaults"
             },
             "description": {
               "default": "Default values are applied to all generic nodes in this pipeline and can be customized in each node.",
@@ -187,11 +204,6 @@
             "id": "elyra_kubernetes_secrets",
             "type": "controls",
             "parameter_refs": ["elyra_kubernetes_secrets"]
-          },
-          {
-            "id": "elyra_mounted_volumes",
-            "type": "controls",
-            "parameter_refs": ["elyra_mounted_volumes"]
           }
         ]
       }

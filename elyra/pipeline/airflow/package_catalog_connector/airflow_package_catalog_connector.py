@@ -26,7 +26,8 @@ from typing import Optional
 from urllib.parse import urlparse
 import zipfile
 
-import requests
+from requests import get
+from requests.auth import HTTPBasicAuth
 
 from elyra.pipeline.catalog_connector import AirflowEntryData
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
@@ -66,11 +67,27 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
         if not airflow_package_name:
             self.log.error(
-                "Error. The Airflow package connector is not configured properly. "
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                "is not configured properly. "
                 f"The package download URL '{airflow_package_download_url}' "
                 "does not include a file name."
             )
             return operator_key_list
+
+        # determine whether authentication needs to be performed
+        auth_id = catalog_metadata.get("auth_id")
+        auth_password = catalog_metadata.get("auth_password")
+        if auth_id and auth_password:
+            auth = HTTPBasicAuth(auth_id, auth_password)
+        elif auth_id or auth_password:
+            self.log.error(
+                f"Error. Airflow connector '{catalog_metadata.get('display_name')}' "
+                "is not configured properly. "
+                "Authentication requires a user id and password or API key."
+            )
+            return operator_key_list
+        else:
+            auth = None
 
         # tmp_archive_dir is used to store the downloaded archive and as working directory
         if hasattr(self, "tmp_archive_dir"):
@@ -83,24 +100,24 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             # download archive; abort after 30 seconds
             try:
-                response = requests.get(
+                response = get(
                     airflow_package_download_url,
                     timeout=AirflowPackageCatalogConnector.REQUEST_TIMEOUT,
                     allow_redirects=True,
+                    auth=auth,
                 )
             except Exception as ex:
                 self.log.error(
-                    "Error. The Airflow package connector is not configured properly. "
-                    f"Download of '{airflow_package_download_url}' failed: "
-                    f"{ex}"
+                    f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                    f"encountered an issue downloading '{airflow_package_download_url}': {ex}"
                 )
                 return operator_key_list
             if response.status_code != 200:
                 # download failed. Log error and abort processing
                 self.log.error(
-                    "Error. The Airflow package connector is not configured properly. "
-                    f"Download of archive '{airflow_package_download_url}' "
-                    f"failed. HTTP response code: {response.status_code}"
+                    f"Error. The Airflow package connector '{catalog_metadata.get('display_name')}' "
+                    f"encountered an issue downloading '{airflow_package_download_url}'. "
+                    f"HTTP response code: {response.status_code}"
                 )
                 return operator_key_list
 
@@ -117,8 +134,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                     zip_ref.extractall(self.tmp_archive_dir)
             except Exception as ex:
                 self.log.error(
-                    "Error. The Airflow package connector is not configured properly. "
-                    f"Error extracting downloaded Airflow archive '{archive}': "
+                    f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                    f"encountered an issue extracting downloaded archive '{archive}': "
                     f"{ex}"
                 )
                 os.remove(archive)
@@ -130,6 +147,10 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             # Locate Python scripts that are stored in the 'airflow/operators' directory
             python_scripts = [s for s in self.tmp_archive_dir.glob("airflow/operators/*.py")]
+
+            # If requested, also locate Python scripts that are stored in the 'airflow/contrib/operators' directory
+            if catalog_metadata.get("search_contrib"):
+                python_scripts.extend([s for s in self.tmp_archive_dir.glob("airflow/contrib/operators/*.py")])
 
             #
             # Identify Python scripts that define classes that extend the
@@ -225,7 +246,9 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             self.log.debug(f"Operator key list: {operator_key_list}")
         except Exception as ex:
             self.log.error(
-                "Error retrieving operator list from Airflow package " f"{airflow_package_download_url}: {ex}"
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                "encountered an issue processing operator list in Airflow package "
+                f"'{airflow_package_download_url}': {ex}"
             )
 
         return operator_key_list
@@ -250,7 +273,8 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
         if hasattr(self, "tmp_archive_dir") is False:
             # Log error and return None
             self.log.error(
-                "Error. Cannot fetch operator definition. The " " downloaded Airflow package archive was not found."
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                "encountered an issue reading the operator source: The downloaded file was not found."
             )
             return None
 
@@ -265,7 +289,10 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             with open(operator_source, "r") as source:
                 return AirflowEntryData(definition=source.read(), package_name=package)
         except Exception as ex:
-            self.log.error(f"Error reading operator source '{operator_source}': {ex}")
+            self.log.error(
+                f"Error. Airflow package connector '{catalog_metadata.get('display_name')}' "
+                f"encountered an issue reading the operator source '{operator_source}': {ex}"
+            )
 
         return None
 

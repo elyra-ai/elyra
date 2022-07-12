@@ -589,6 +589,9 @@ def describe(json_option, pipeline_path):
     for node in primary_pipeline.nodes:
         # update describe_dict stats that take into account every operation
         # (... there are none today)
+        # volumes
+        for vm in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
+            describe_dict["volume_dependencies"]["value"].add(vm.pvc_name)
 
         if Operation.is_generic_operation(node.op):
             # update stats that are specific to generic components
@@ -610,10 +613,6 @@ def describe(json_option, pipeline_path):
                 describe_dict["container_image_dependencies"]["value"].add(
                     node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
                 )
-
-            # volumes
-            for vm in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
-                describe_dict["volume_dependencies"]["value"].add(vm.pvc_name)
 
             # Kubernetes secrets
             for ks in node.get_component_parameter(pipeline_constants.KUBERNETES_SECRETS, []):
