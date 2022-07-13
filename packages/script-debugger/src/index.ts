@@ -56,12 +56,11 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
 
     const updateDebugger = async (widget: ScriptEditor): Promise<void> => {
       const kernelSelection = (widget as ScriptEditor).kernelSelection;
-
       const debuggerAvailable = await widget.isDebuggerAvailable(
         kernelSelection
       );
       console.log(
-        '#####updateDebugger debuggerAvailable=' + !!debuggerAvailable
+        `#####updateDebugger kernelSelection= ' ${kernelSelection} \n debuggerAvailable= ' ${!!debuggerAvailable}`
       );
       if (!debuggerAvailable) {
         return;
@@ -71,29 +70,12 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       try {
         const path = widget.context.path;
         let sessionModel = await sessions.findByPath(path);
-
-        console.log('#####updateDebugger sessionModel=' + !!sessionModel);
         if (!sessionModel) {
           // Start a kernel session for the selected kernel supporting debug
-          try {
-            const sessionConnection = await startSession(kernelSelection, path);
-            sessionModel = await sessions.findByPath(path);
-
-            if (!sessionModel) {
-              // TODO throw error bla bla bla
-              throw new Error(
-                'ERROR: session model not found even after started'
-              );
-            }
-
+          const sessionConnection = await startSession(kernelSelection, path);
+          sessionModel = await sessions.findByPath(path);
+          if (sessionConnection && sessionModel) {
             activeSessions[sessionModel.id] = sessionConnection;
-            console.log(
-              `Kernel session started for ${path} file with selected ${kernelSelection} kernel.`
-            );
-          } catch (e) {
-            console.warn(
-              `Could not start session for ${kernelSelection} kernel to debug ${path} script`
-            );
           }
         }
 
@@ -111,6 +93,16 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             sessionConnection = sessions.connectTo({ model: sessionModel });
             activeSessions[sessionModel.id] = sessionConnection;
           }
+          if (sessionModel.kernel?.name !== kernelSelection) {
+            // New kernel selection detected, restart session connection for new kernel
+            await shutdownSession(sessionConnection);
+
+            sessionConnection = await startSession(kernelSelection, path);
+            sessionModel = await sessions.findByPath(path);
+            if (sessionConnection && sessionModel) {
+              activeSessions[sessionModel.id] = sessionConnection;
+            }
+          }
 
           console.log(
             '#####updateDebugger updating debugger handler sessionConnection=' +
@@ -119,9 +111,8 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
           await handler.update(widget, sessionConnection);
           app.commands.notifyCommandChanged();
         }
-      } catch (ex) {
-        // TODO
-        console.log('#####updateDebugger exception=' + ex);
+      } catch (e) {
+        console.log('Exception: shutdown = ' + JSON.stringify(e));
       }
     };
 
@@ -168,7 +159,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     const startSession = async (
       kernelSelection: string,
       path: string
-    ): Promise<Session.ISessionConnection> => {
+    ): Promise<Session.ISessionConnection | null> => {
       const options: Session.ISessionOptions = {
         kernel: {
           name: kernelSelection
@@ -177,10 +168,29 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         type: 'file',
         name: path
       };
-      const sessionConnection = await sessionManager.startNew(options);
-      sessionConnection.setPath(path);
-
+      let sessionConnection;
+      try {
+        sessionConnection = await sessionManager.startNew(options);
+        sessionConnection.setPath(path);
+        console.log(
+          `Kernel session started for ${path} file with selected ${kernelSelection} kernel.`
+        );
+      } catch (e) {
+        console.log('Exception: start session = ' + JSON.stringify(e));
+        sessionConnection = null;
+      }
       return sessionConnection;
+    };
+
+    const shutdownSession = async (
+      sessionConnection: Session.ISessionConnection
+    ): Promise<void> => {
+      try {
+        await sessionConnection.shutdown();
+        console.log(name + ' kernel shut down');
+      } catch (e) {
+        console.log('Exception: shutdown = ' + JSON.stringify(e));
+      }
     };
   }
 };

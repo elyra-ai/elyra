@@ -143,12 +143,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   }
 
   public get kernelSelection(): string {
-    const selection =
-      this.kernelSelectorRef?.current?.getSelection() ??
-      this.defaultKernel ??
-      '';
-    console.log('kernelSelection: ' + selection);
-    return selection;
+    return this.kernelName ?? this.defaultKernel ?? '';
   }
 
   public isDebuggerAvailable = async (kernelName: string): Promise<boolean> =>
