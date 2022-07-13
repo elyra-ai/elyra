@@ -39,7 +39,7 @@ ARCHIVE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resource
 
 @pytest.fixture
 def processor(setup_factory_data):
-    processor = KfpPipelineProcessor(os.getcwd())
+    processor = KfpPipelineProcessor(root_dir=os.getcwd())
     return processor
 
 

@@ -43,8 +43,8 @@ from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.processor import PipelineProcessor
-from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
+from elyra.pipeline.processor import RuntimePipelineProcessorResponse
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.github import GithubClient
@@ -91,8 +91,8 @@ be fully qualified (i.e., prefixed with their package names).
     # Contains mappings from class to import statement for each available Airflow operator
     class_import_map = {}
 
-    def __init__(self, root_dir, **kwargs):
-        super().__init__(root_dir, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         if not self.class_import_map:  # Only need to load once
             for package in self.available_airflow_operators:
                 parts = package.rsplit(".", 1)
@@ -713,7 +713,7 @@ be fully qualified (i.e., prefixed with their package names).
         return dedent(str_to_render)
 
 
-class AirflowPipelineProcessorResponse(PipelineProcessorResponse):
+class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):
 
     _type = RuntimeProcessorType.APACHE_AIRFLOW
     _name = "airflow"

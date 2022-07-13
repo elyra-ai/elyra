@@ -365,9 +365,9 @@ class ComponentCache(SingletonConfigurable):
         ),
     }
 
-    def __init__(self, emulate_server_app: Optional[bool] = False, **kwargs):
+    def __init__(self, **kwargs):
+        emulate_server_app: bool = kwargs.pop("emulate_server_app", False)
         super().__init__(**kwargs)
-
         self._component_cache = {}
         self.is_server_process = ComponentCache._determine_server_process(emulate_server_app, **kwargs)
         self.manifest_dir = jupyter_runtime_dir()
@@ -391,7 +391,7 @@ class ComponentCache(SingletonConfigurable):
             self.manifest_filename = os.path.join(self.manifest_dir, f"elyra-component-manifest-{os.getpid()}.json")
 
     @staticmethod
-    def _determine_server_process(emulate_server_app: Optional[bool] = False, **kwargs) -> bool:
+    def _determine_server_process(emulate_server_app: bool, **kwargs) -> bool:
         """Determines if this process is a server (extension) process."""
         app_names = ["ServerApp", "ElyraApp"]
         is_server_process = False
