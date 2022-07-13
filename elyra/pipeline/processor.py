@@ -53,9 +53,9 @@ elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 class PipelineProcessorRegistry(SingletonConfigurable):
     _processors: Dict[str, "PipelineProcessor"] = {}
 
-    def __init__(self, **kwargs):
+    def __init__(self, root_dir: str, **kwargs):
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
+        self.root_dir = get_expanded_path(root_dir)
         # Register all known processors based on entrypoint configuration
         for processor in entrypoints.get_group_all("elyra.pipeline.processors"):
             try:
@@ -109,10 +109,10 @@ class PipelineProcessorRegistry(SingletonConfigurable):
 class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
-    def __init__(self, **kwargs):
+    def __init__(self, root_dir: str, **kwargs):
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
-        self._registry = PipelineProcessorRegistry.instance()
+        self.root_dir = get_expanded_path(root_dir)
+        self._registry = PipelineProcessorRegistry.instance(root_dir=self.root_dir)
 
     def get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)
@@ -225,7 +225,7 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                                 (default=True). (ELYRA_ENABLE_PIPELINE_INFO env var)""",
     )
 
-    def __init__(self, root_dir, **kwargs):
+    def __init__(self, root_dir: str, **kwargs):
         super().__init__(**kwargs)
         self.root_dir = root_dir
 

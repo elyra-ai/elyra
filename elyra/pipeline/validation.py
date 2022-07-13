@@ -117,9 +117,9 @@ class ValidationResponse(object):
 
 
 class PipelineValidationManager(SingletonConfigurable):
-    def __init__(self, **kwargs):
+    def __init__(self, root_dir, **kwargs):
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
+        self.root_dir = get_expanded_path(root_dir)
 
     async def validate(self, pipeline: Dict) -> ValidationResponse:
         """
@@ -317,8 +317,8 @@ class PipelineValidationManager(SingletonConfigurable):
                         "pipelineRuntime": pipeline_runtime,
                     },
                 )
-            elif PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime):
-                component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
+            elif PipelineProcessorManager.instance(root_dir=self.root_dir).is_supported_runtime(pipeline_runtime):
+                component_list = await PipelineProcessorManager.instance(root_dir=self.root_dir).get_components(pipeline_runtime)
                 for component in component_list:
                     supported_ops.append(component.op)
 
