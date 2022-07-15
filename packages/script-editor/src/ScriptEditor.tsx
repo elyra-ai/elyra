@@ -175,6 +175,7 @@ export abstract class ScriptEditor extends DocumentWidget<
         )
       );
     }
+    this._kernelSelectionChanged.emit(this.kernelSelection);
   };
 
   private handleKernelSelectionUpdate = async (

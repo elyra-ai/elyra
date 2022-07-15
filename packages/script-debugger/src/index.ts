@@ -59,9 +59,9 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       const debuggerAvailable = await widget.isDebuggerAvailable(
         kernelSelection
       );
-      console.log(
-        `#####updateDebugger kernelSelection= ' ${kernelSelection} \n debuggerAvailable= ' ${!!debuggerAvailable}`
-      );
+      // console.log(
+      //   `#####updateDebugger kernelSelection= ' ${kernelSelection} \n debuggerAvailable= ' ${!!debuggerAvailable}`
+      // );
       if (!debuggerAvailable) {
         return;
       }
@@ -82,9 +82,6 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         if (sessionModel) {
           let sessionConnection: Session.ISessionConnection | null =
             activeSessions[sessionModel.id];
-          console.log(
-            '#####updateDebugger sessionConnection=' + !!sessionConnection
-          );
           if (!sessionConnection) {
             // Use `connectTo` only if the session does not exist.
             // `connectTo` sends a kernel_info_request on the shell
@@ -103,11 +100,6 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
               activeSessions[sessionModel.id] = sessionConnection;
             }
           }
-
-          console.log(
-            '#####updateDebugger updating debugger handler sessionConnection=' +
-              !!sessionConnection
-          );
           await handler.update(widget, sessionConnection);
           app.commands.notifyCommandChanged();
         }
@@ -130,31 +122,28 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         }
         updateDebugger(widget);
 
-        // listen to possible kernel selection changes
+        // Listen to possible kernel selection changes
         widget.kernelSelectionChanged.disconnect(callbackFn);
         widget.kernelSelectionChanged.connect(callbackFn);
       }
     };
 
     if (labShell) {
-      // listen to main area's current focus changes.
+      // Listen to main area's current focus changes.
       labShell.currentChanged.connect((_, widget) => {
-        console.log(
-          'labShell.currentChanged####### old=' +
-            widget.oldValue?.constructor.name +
-            ' new=' +
-            widget.newValue?.constructor.name
-        );
         return update(widget.newValue);
       });
     }
 
-    // if (editorTracker){
-    //   // listen to script editor's current instance changes
-    //   editorTracker.currentChanged.connect((_, widget) => { console.log('editorTracker.currentChanged#######'); return update(widget); });
-    //   // listen to script editor's widget updates
-    //   editorTracker.widgetUpdated.connect((_, widget) => { console.log('editorTracker.widgetUpdated#######'); return update(widget); });
-    // }
+    if (editorTracker) {
+      // Listen to script editor's current instance changes.
+      editorTracker.currentChanged.connect((_, widget) => {
+        console.log('editorTracker.currentChanged#######');
+        return update(widget);
+      });
+      // listen to script editor's widget updates
+      // editorTracker.widgetUpdated.connect((_, widget) => { console.log('editorTracker.widgetUpdated#######'); return update(widget); });
+    }
 
     const startSession = async (
       kernelSelection: string,
@@ -173,7 +162,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         sessionConnection = await sessionManager.startNew(options);
         sessionConnection.setPath(path);
         console.log(
-          `Kernel session started for ${path} file with selected ${kernelSelection} kernel.`
+          `Kernel session started for ${path} with selected ${kernelSelection} kernel.`
         );
       } catch (e) {
         console.log('Exception: start session = ' + JSON.stringify(e));
