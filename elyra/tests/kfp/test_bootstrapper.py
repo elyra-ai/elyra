@@ -47,6 +47,9 @@ from elyra.kfp import bootstrapper
 
 MINIO_HOST_PORT = os.getenv("MINIO_HOST_PORT", "127.0.0.1:9000")
 
+ELYRA_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+RESOURCES_DIR = os.path.join(ELYRA_ROOT_DIR, "elyra", "tests", "kfp", "resources")
+
 
 @pytest.fixture(scope="module", autouse=True)
 def start_minio():
@@ -76,7 +79,6 @@ def start_minio_container(raise_on_failure: bool = False) -> Optional[CompletedP
     try:
         minio = run(
             ["docker", "run", "--name", "test_minio", "-d", "-p", "9000:9000", "minio/minio", "server", "/data"],
-            cwd=os.getcwd(),
             check=True,
         )
     except CalledProcessError as ex:
@@ -116,17 +118,17 @@ def main_method_setup_execution(monkeypatch, s3_setup, tmpdir, argument_dict):
     s3_setup.fput_object(
         bucket_name=argument_dict["cos-bucket"],
         object_name="test-directory/test-file.txt",
-        file_path="elyra/tests/kfp/resources/test-requirements-elyra.txt",
+        file_path=os.path.join(RESOURCES_DIR, "test-requirements-elyra.txt"),
     )
     s3_setup.fput_object(
         bucket_name=argument_dict["cos-bucket"],
         object_name="test-directory/test,file.txt",
-        file_path="elyra/tests/kfp/resources/test-bad-requirements-elyra.txt",
+        file_path=os.path.join(RESOURCES_DIR, "test-bad-requirements-elyra.txt"),
     )
     s3_setup.fput_object(
         bucket_name=argument_dict["cos-bucket"],
         object_name="test-directory/test-archive.tgz",
-        file_path="elyra/tests/kfp/resources/test-archive.tgz",
+        file_path=os.path.join(RESOURCES_DIR, "test-archive.tgz"),
     )
 
     with tmpdir.as_cwd():
@@ -182,7 +184,7 @@ def test_main_method(monkeypatch, s3_setup, tmpdir):
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-archive.tgz",
-        "filepath": "elyra/tests/kfp/resources/test-notebookA.ipynb",
+        "filepath": os.path.join(RESOURCES_DIR, "test-notebookA.ipynb"),
         "inputs": "test-file.txt;test,file.txt",
         "outputs": "test-file/test-file-copy.txt;test-file/test,file/test,file-copy.txt",
         "user-volume-path": None,
@@ -196,7 +198,7 @@ def test_main_method_with_wildcard_outputs(monkeypatch, s3_setup, tmpdir):
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-archive.tgz",
-        "filepath": "elyra/tests/kfp/resources/test-notebookA.ipynb",
+        "filepath": os.path.join(RESOURCES_DIR, "test-notebookA.ipynb"),
         "inputs": "test-file.txt;test,file.txt",
         "outputs": "test-file/*",
         "user-volume-path": None,
@@ -210,7 +212,7 @@ def test_main_method_with_dir_outputs(monkeypatch, s3_setup, tmpdir):
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-archive.tgz",
-        "filepath": "elyra/tests/kfp/resources/test-notebookA.ipynb",
+        "filepath": os.path.join(RESOURCES_DIR, "test-notebookA.ipynb"),
         "inputs": "test-file.txt;test,file.txt",
         "outputs": "test-file",  # this is the directory that contains the outputs
         "user-volume-path": None,
@@ -256,7 +258,7 @@ def test_process_metrics_method_not_writable_dir(monkeypatch, s3_setup, tmpdir):
             "cos-bucket": "test-bucket",
             "cos-directory": "test-directory",
             "cos-dependencies-archive": "test-archive.tgz",
-            "filepath": "elyra/tests/kfp/resources/test-notebookA.ipynb",
+            "filepath": os.path.join(RESOURCES_DIR, "test-notebookA.ipynb"),
             "inputs": "test-file.txt;test,file.txt",
             "outputs": "test-file/test-file-copy.txt;test-file/test,file/test,file-copy.txt",
             "user-volume-path": None,
@@ -279,7 +281,7 @@ def test_process_metrics_method_no_metadata_file(monkeypatch, s3_setup, tmpdir):
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-archive.tgz",
-        "filepath": "elyra/tests/kfp/resources/test-notebookA.ipynb",
+        "filepath": os.path.join(RESOURCES_DIR, "test-notebookA.ipynb"),
         "inputs": "test-file.txt;test,file.txt",
         "outputs": "test-file/test-file-copy.txt;test-file/test,file/test,file-copy.txt",
         "user-volume-path": None,
@@ -332,7 +334,7 @@ def test_process_metrics_method_valid_metadata_file(monkeypatch, s3_setup, tmpdi
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-archive.tgz",
-        "filepath": "elyra/tests/kfp/resources/test-notebookA.ipynb",
+        "filepath": os.path.join(RESOURCES_DIR, "test-notebookA.ipynb"),
         "inputs": "test-file.txt;test,file.txt",
         "outputs": "test-file/test-file-copy.txt;test-file/test,file/test,file-copy.txt",
         "user-volume-path": None,
@@ -403,7 +405,7 @@ def test_process_metrics_method_invalid_metadata_file(monkeypatch, s3_setup, tmp
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-archive.tgz",
-        "filepath": "elyra/tests/kfp/resources/test-notebookA.ipynb",
+        "filepath": os.path.join(RESOURCES_DIR, "test-notebookA.ipynb"),
         "inputs": "test-file.txt;test,file.txt",
         "outputs": "test-file/test-file-copy.txt;test-file/test,file/test,file-copy.txt",
         "user-volume-path": None,
@@ -461,7 +463,7 @@ def test_fail_bad_notebook_main_method(monkeypatch, s3_setup, tmpdir):
         "cos-bucket": "test-bucket",
         "cos-directory": "test-directory",
         "cos-dependencies-archive": "test-bad-archiveB.tgz",
-        "filepath": "elyra/tests/kfp/resources/test-bad-notebookB.ipynb",
+        "filepath": os.path.join(RESOURCES_DIR, "test-bad-notebookB.ipynb"),
         "inputs": "test-file.txt",
         "outputs": "test-file/test-copy-file.txt",
         "user-volume-path": None,
@@ -485,11 +487,15 @@ def test_fail_bad_notebook_main_method(monkeypatch, s3_setup, tmpdir):
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "minioadmin")
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "minioadmin")
 
-    s3_setup.fput_object(bucket_name=argument_dict["cos-bucket"], object_name="test-file.txt", file_path="README.md")
+    s3_setup.fput_object(
+        bucket_name=argument_dict["cos-bucket"],
+        object_name="test-file.txt",
+        file_path=os.path.join(ELYRA_ROOT_DIR, "README.md"),
+    )
     s3_setup.fput_object(
         bucket_name=argument_dict["cos-bucket"],
         object_name="test-bad-archiveB.tgz",
-        file_path="elyra/tests/kfp/resources/test-bad-archiveB.tgz",
+        file_path=os.path.join(RESOURCES_DIR, "test-bad-archiveB.tgz"),
     )
 
     with tmpdir.as_cwd():
@@ -600,7 +606,7 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
 
 
 def test_convert_notebook_to_html(tmpdir):
-    notebook_file = os.getcwd() + "/elyra/tests/kfp/resources/test-notebookA.ipynb"
+    notebook_file = os.path.join(RESOURCES_DIR, "test-notebookA.ipynb")
     notebook_output_html_file = "test-notebookA.html"
 
     with tmpdir.as_cwd():
@@ -616,7 +622,7 @@ def test_convert_notebook_to_html(tmpdir):
 
 
 def test_fail_convert_notebook_to_html(tmpdir):
-    notebook_file = os.getcwd() + "/elyra/tests/kfp/resources/test-bad-notebookA.ipynb"
+    notebook_file = os.path.join(RESOURCES_DIR, "test-bad-notebookA.ipynb")
     notebook_output_html_file = "bad-notebookA.html"
     with tmpdir.as_cwd():
         # Recent versions raising typeError due to #1130
@@ -627,17 +633,18 @@ def test_fail_convert_notebook_to_html(tmpdir):
 
 def test_get_file_object_store(monkeypatch, s3_setup, tmpdir):
     file_to_get = "README.md"
-    current_directory = os.getcwd() + "/"
     bucket_name = "test-bucket"
 
-    s3_setup.fput_object(bucket_name=bucket_name, object_name=file_to_get, file_path=file_to_get)
+    s3_setup.fput_object(
+        bucket_name=bucket_name, object_name=file_to_get, file_path=os.path.join(ELYRA_ROOT_DIR, file_to_get)
+    )
 
     with tmpdir.as_cwd():
         op = _get_operation_instance(monkeypatch, s3_setup)
 
         op.get_file_from_object_storage(file_to_get)
         assert os.path.isfile(file_to_get)
-        assert _fileChecksum(file_to_get) == _fileChecksum(current_directory + file_to_get)
+        assert _fileChecksum(file_to_get) == _fileChecksum(os.path.join(ELYRA_ROOT_DIR, file_to_get))
 
 
 def test_fail_get_file_object_store(monkeypatch, s3_setup, tmpdir):
@@ -653,15 +660,14 @@ def test_fail_get_file_object_store(monkeypatch, s3_setup, tmpdir):
 def test_put_file_object_store(monkeypatch, s3_setup, tmpdir):
     bucket_name = "test-bucket"
     file_to_put = "LICENSE"
-    current_directory = os.getcwd() + "/"
 
     op = _get_operation_instance(monkeypatch, s3_setup)
-    op.put_file_to_object_storage(file_to_upload=file_to_put)
+    op.put_file_to_object_storage(object_name=file_to_put, file_to_upload=os.path.join(ELYRA_ROOT_DIR, file_to_put))
 
     with tmpdir.as_cwd():
         s3_setup.fget_object(bucket_name, file_to_put, file_to_put)
         assert os.path.isfile(file_to_put)
-        assert _fileChecksum(file_to_put) == _fileChecksum(current_directory + file_to_put)
+        assert _fileChecksum(file_to_put) == _fileChecksum(os.path.join(ELYRA_ROOT_DIR, file_to_put))
 
 
 def test_fail_invalid_filename_put_file_object_store(monkeypatch, s3_setup):
@@ -679,12 +685,12 @@ def test_fail_bucket_put_file_object_store(monkeypatch, s3_setup):
     with pytest.raises(minio.error.S3Error) as exc_info:
         op = _get_operation_instance(monkeypatch, s3_setup)
         monkeypatch.setattr(op, "cos_bucket", bucket_name)
-        op.put_file_to_object_storage(file_to_upload=file_to_put)
+        op.put_file_to_object_storage(file_to_upload=os.path.join(ELYRA_ROOT_DIR, file_to_put))
     assert exc_info.value.code == "NoSuchBucket"
 
 
 def test_find_best_kernel_nb(tmpdir):
-    source_nb_file = os.path.join(os.getcwd(), "elyra/tests/kfp/resources/test-notebookA.ipynb")
+    source_nb_file = os.path.join(RESOURCES_DIR, "test-notebookA.ipynb")
     nb_file = os.path.join(tmpdir, "test-notebookA.ipynb")
 
     # "Copy" nb file to destination - this test does not update the kernel or language.
@@ -698,7 +704,7 @@ def test_find_best_kernel_nb(tmpdir):
 
 def test_find_best_kernel_lang(tmpdir, caplog):
     caplog.set_level(logging.INFO)
-    source_nb_file = os.path.join(os.getcwd(), "elyra/tests/kfp/resources/test-notebookA.ipynb")
+    source_nb_file = os.path.join(RESOURCES_DIR, "test-notebookA.ipynb")
     nb_file = os.path.join(tmpdir, "test-notebookA.ipynb")
 
     # "Copy" nb file to destination after updating the kernel name - forcing a language match
@@ -715,7 +721,7 @@ def test_find_best_kernel_lang(tmpdir, caplog):
 
 
 def test_find_best_kernel_nomatch(tmpdir, caplog):
-    source_nb_file = os.path.join(os.getcwd(), "elyra/tests/kfp/resources/test-notebookA.ipynb")
+    source_nb_file = os.path.join(RESOURCES_DIR, "test-notebookA.ipynb")
     nb_file = os.path.join(tmpdir, "test-notebookA.ipynb")
 
     # "Copy" nb file to destination after updating the kernel name and language - forcing use of updated name

@@ -21,8 +21,8 @@ inputs:
 - {name: test_unusual_type_dict, description: 'The test command description', type: Dictionary of arrays}
 - {name: test_unusual_type_list, description: 'The test command description', type: An array}
 - {name: test_unusual_type_string, description: 'The test command description', type: A string}
-- {name: test_unusual_type_file, description: 'The test command description', type: Notebook}
 - {name: test_unusual_type_notgiven, description: 'The test command description'}
+- {name: mounted_volumes, description: 'A property with the same name as an Elyra system property', type: String}
 outputs:
 - {name: Filtered text}
 implementation:
@@ -32,13 +32,8 @@ implementation:
     - sh
     - -ec
     - |
-      text_path=$0
-      pattern=$1
-      filtered_text_path=$2
-      mkdir -p "$(dirname "$filtered_text_path")"
+      test_string_no_default=$0
+      mkdir -p "$(dirname "test_string_no_default")"
 
-      grep "$pattern" < "$text_path" > "$filtered_text_path"
-    - {inputPath: Text}
-    - {inputValue: Pattern}
-    - {inputPath: test_unusual_type_file}
+    - {inputValue: test_string_no_default}
     - {outputPath: Filtered text}
