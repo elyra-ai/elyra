@@ -57,26 +57,24 @@ Click on a link below to try Elyra, on a sandbox environment, without having to 
 
 #### Using Docker
 
-You can also try Elyra by running one of the docker images from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags):
+You can also try Elyra by running one of the container images from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) or [quay.io](https://quay.io/repository/elyra/elyra?tab=tags):
 - `elyra/elyra:latest` has the latest released version installed.
 - `elyra/elyra:x.y.z` has a specific version installed.
-- `elyra/elyra:dev` is automatically re-built each time a change is committed to the main branch.
 
-The command below starts the most recent development build in a clean environment:
+The command below starts the most recent official release in a clean environment:
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:latest jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:dev jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:latest jupyter lab --debug
 ```
 
-These should produce output similar to that below, where you can then find the URL to be used
-to access Elyra in your local browser.
+These should produce output similar to that below, where you can then find the URL to be used to access Elyra in your local browser.
 
 ```
     To access the notebook, open this file in a browser:
@@ -86,19 +84,18 @@ to access Elyra in your local browser.
      or http://127.0.0.1:8888/?token=d690bde267ec75d6f88c64a39825f8b05b919dd084451f82
 ```
 
+Refer to the [installation documentation](https://elyra.readthedocs.io/en/stable/getting_started/installation.html#docker) for details.
+
 ## Installation
-Elyra can be installed from PyPI:
+
+For detailed information refer to the [installation documentation](https://elyra.readthedocs.io/en/stable/getting_started/installation.html).
 
 ### Prerequisites :
-* [NodeJS 16+](https://nodejs.org/en/)
+* [Node.js 16+](https://nodejs.org/en/)
 * [Python 3.7+](https://www.python.org/downloads/)
+* [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (optional)
 
-##### Optional :
-* [Miniconda](https://docs.conda.io/en/latest/miniconda.html) 
-
-#### JupyterLab support
-
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 3.x is supported on **Elyra 2.0.0 and above**
+### Install current release (for JupyterLab 3.x)
 
   Install Elyra from PyPI ( Elyra >= 3.7.0 ):
 
@@ -111,19 +108,24 @@ Elyra can be installed from PyPI:
   conda install -c conda-forge "elyra[all]>=3.7.0"
   ```
 
-* For versions of Elyra prior to 3.7 `jupyter lab build` must be run after install to enable the extensions.
+### Install older release
 
-  Install Elyra from PyPI ( Elyra >= 3.1.0 ):
+Installation instructions and JupyterLab support vary by release. Note that a JupyterLab build is required. Release specific installation instructions are located in the [corresponding](https://elyra.readthedocs.io/en/stable/), which can be accessed by selecting a specific version. 
+
+<details>
+  <summary>Elyra 3.1 < 3.7 (JupyterLab 3.x)</summary>
 
   ```bash
   pip3 install --upgrade "elyra[all]>=3.1.0" && jupyter lab build
   ```
 
-  Install fom Conda ( Elyra >= 3.1.0 ):
   ```bash
   conda install -c conda-forge "elyra[all]>=3.1.0" && jupyter lab build
   ```
+</details>
 
+<details>
+  <summary>Elyra 2.0 < 3.1 (JupyterLab 3.x)</summary>
   Install Elyra from PyPI ( Elyra < 3.1.0 ):
 
   ```bash
@@ -134,8 +136,25 @@ Elyra can be installed from PyPI:
   ```bash
   conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
   ```
+</details>
 
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 2.x is supported on **Elyra 1.0.0 and above**
+<details>
+  <summary>Elyra 2.0 < 3.1 (JupyterLab 3.x)</summary>
+  Install Elyra from PyPI ( Elyra < 3.1.0 ):
+
+  ```bash
+  pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
+  ```
+
+  Install fom Conda ( Elyra < 3.1.0 ):
+  ```bash
+  conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
+  ```
+</details>
+
+<details>
+  <summary>Elyra 1.0 < 2.0 (JupyterLab 2.x)</summary>
+  Install Elyra from PyPI ( Elyra < 3.1.0 ):
 
   Install from PyPI:
   ```bash
@@ -146,13 +165,7 @@ Elyra can be installed from PyPI:
   ```bash
   conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
   ```
-
-* [JupyterLab](https://github.com/jupyterlab/jupyterlab) 1.x is supported on **Elyra 0.10.x and below**
-
-  Install from PyPI:
-  ```bash
-  pip3 install elyra==0.10.3 && jupyter lab build
-  ```
+</details>
 
 ### Verify Installation 
 
