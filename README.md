@@ -64,14 +64,14 @@ You can also try Elyra by running one of the container images from [Docker Hub](
 The command below starts the most recent official release in a clean environment:
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:latest jupyter lab --debug
+docker run -it -p 8888:8888 elyra/elyra:latest jupyter lab
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:latest jupyter lab --debug
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:latest jupyter lab
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used to access Elyra in your local browser.
@@ -97,16 +97,19 @@ For detailed information refer to the [installation documentation](https://elyra
 
 ### Install current release (for JupyterLab 3.x)
 
-  Install Elyra from PyPI ( Elyra >= 3.7.0 ):
+The current release version is displayed at the top of this page.
 
-  ```bash
-  pip3 install --upgrade "elyra[all]>=3.7.0"
-  ```
+  - Install from PyPI
 
-  Install fom Conda ( Elyra >= 3.7.0 ):
-  ```bash
-  conda install -c conda-forge "elyra[all]>=3.7.0"
-  ```
+    ```bash
+    pip3 install --upgrade "elyra[all]"
+    ```
+
+  - Install from conda-forge
+
+    ```bash
+    conda install -c conda-forge "elyra[all]"
+    ```
 
 ### Install older release
 
