@@ -148,21 +148,6 @@ Installation instructions and JupyterLab support vary by release. Note that a Ju
 </details>
 
 <details>
-  <summary>Elyra 2.0 < 3.1 (JupyterLab 3.x)</summary>
-
-  - Install from PyPI
-
-    ```bash
-    pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
-    ```
-
-  - Install from conda-forge
-    ```bash
-    conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
-    ```
-</details>
-
-<details>
   <summary>Elyra 1.0 < 2.0 (JupyterLab 2.x)</summary>
 
   - Install from PyPI
