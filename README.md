@@ -110,61 +110,69 @@ For detailed information refer to the [installation documentation](https://elyra
 
 ### Install older release
 
-Installation instructions and JupyterLab support vary by release. Note that a JupyterLab build is required. Release specific installation instructions are located in the [corresponding](https://elyra.readthedocs.io/en/stable/), which can be accessed by selecting a specific version. 
+Installation instructions and JupyterLab support vary by release. Note that a JupyterLab build is required. Installation instructions are located in the [release-specific documentation](https://elyra.readthedocs.io/en/stable/), which can be accessed by selecting a specific version. 
 
 <details>
   <summary>Elyra 3.1 < 3.7 (JupyterLab 3.x)</summary>
 
-  ```bash
-  pip3 install --upgrade "elyra[all]>=3.1.0" && jupyter lab build
-  ```
+  - Install from PyPI
 
-  ```bash
-  conda install -c conda-forge "elyra[all]>=3.1.0" && jupyter lab build
-  ```
+    ```bash
+    pip3 install --upgrade "elyra[all]>=3.1.0" && jupyter lab build
+    ```
+
+  - Install from conda-forge
+
+    ```bash
+    conda install -c conda-forge "elyra[all]>=3.1.0" && jupyter lab build
+    ```
 </details>
 
 <details>
   <summary>Elyra 2.0 < 3.1 (JupyterLab 3.x)</summary>
-  Install Elyra from PyPI ( Elyra < 3.1.0 ):
 
-  ```bash
-  pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
-  ```
+  - Install from PyPI
+  
+    ```bash
+    pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
+    ```
 
-  Install fom Conda ( Elyra < 3.1.0 ):
-  ```bash
-  conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
-  ```
+  - Install from conda-forge
+
+    ```bash
+    conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
+    ```
 </details>
 
 <details>
   <summary>Elyra 2.0 < 3.1 (JupyterLab 3.x)</summary>
-  Install Elyra from PyPI ( Elyra < 3.1.0 ):
 
-  ```bash
-  pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
-  ```
+  - Install from PyPI
 
-  Install fom Conda ( Elyra < 3.1.0 ):
-  ```bash
-  conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
-  ```
+    ```bash
+    pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
+    ```
+
+  - Install from conda-forge
+    ```bash
+    conda install -c conda-forge "elyra>=2.0.1" && jupyter lab build
+    ```
 </details>
 
 <details>
   <summary>Elyra 1.0 < 2.0 (JupyterLab 2.x)</summary>
-  Install Elyra from PyPI ( Elyra < 3.1.0 ):
 
-  Install from PyPI:
-  ```bash
-  pip3 install --upgrade "elyra<2.0.0" && jupyter lab build
-  ```
+  - Install from PyPI
 
-  Install from Conda:
-  ```bash
-  conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
-  ```
+    ```bash
+    pip3 install --upgrade "elyra<2.0.0" && jupyter lab build
+    ```
+
+  - Install from conda-forge
+
+    ```bash
+    conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
+    ```
 </details>
 
 ### Verify Installation 
