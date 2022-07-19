@@ -23,6 +23,7 @@ import {
   IMetadataDisplayState,
   IMetadataActionButton
 } from '@elyra/metadata-common';
+import { IDictionary } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { IThemeManager } from '@jupyterlab/apputils';
@@ -44,7 +45,7 @@ const handleError = (error: any): void => {
 };
 
 /**
- * A React Component for displaying the runtime images list.
+ * A React Component for displaying the component catalogs list.
  */
 class ComponentCatalogsDisplay extends MetadataDisplay<
   IMetadataDisplayProps,
@@ -66,6 +67,43 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
       ...super.actionButtons(metadata)
     ];
   }
+  // render catalog entries
+  renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
+    let category_output = <li key="No category">No category</li>;
+    if (metadata.metadata.categories) {
+      category_output = metadata.metadata.categories.map((category: string) => (
+        <li key={category}>{category}</li>
+      ));
+    }
+
+    return (
+      <div>
+        <h6>Runtime Type</h6>
+        {metadata.metadata.runtime_type}
+        <br />
+        <br />
+        <h6>Description</h6>
+        {metadata.metadata.description ?? 'No description'}
+        <br />
+        <br />
+        <h6>Categories</h6>
+        <ul>{category_output}</ul>
+      </div>
+    );
+  }
+
+  // Allow for filtering by display_name, name, and description
+  matchesSearch(searchValue: string, metadata: IMetadata): boolean {
+    searchValue = searchValue.toLowerCase();
+    // True if search string is in name or display_name,
+    // or if the search string is empty
+    const description = (metadata.metadata.description || '').toLowerCase();
+    return (
+      metadata.name.toLowerCase().includes(searchValue) ||
+      metadata.display_name.toLowerCase().includes(searchValue) ||
+      description.includes(searchValue)
+    );
+  }
 }
 
 /**
@@ -83,7 +121,7 @@ export interface IComponentCatalogsWidgetProps extends IMetadataWidgetProps {
 }
 
 /**
- * A widget for displaying runtime images.
+ * A widget for displaying component catalogs.
  */
 export class ComponentCatalogsWidget extends MetadataWidget {
   refreshButtonTooltip: string;

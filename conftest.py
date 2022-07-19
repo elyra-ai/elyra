@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from pathlib import Path
+
 import pytest
 
 from elyra.metadata.metadata import Metadata
@@ -30,16 +32,14 @@ KFP_COMPONENT_CACHE_INSTANCE = {
     "schema_name": "elyra-kfp-examples-catalog",
 }
 
-AIRFLOW_COMPONENT_CACHE_INSTANCE = {
-    "display_name": "Airflow Example Components",
+AIRFLOW_TEST_OPERATOR_CATALOG = {
+    "display_name": "Airflow Test Operator",
     "metadata": {
         "runtime_type": "APACHE_AIRFLOW",
-        "categories": ["examples"],
-        "paths": [
-            "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components/bash_operator.py"  # noqa
-        ],
+        "base_path": str(Path(__file__).parent / "elyra" / "tests" / "pipeline" / "resources" / "components"),
+        "paths": ["airflow_test_operator.py"],
     },
-    "schema_name": "url-catalog",
+    "schema_name": "local-file-catalog",
 }
 
 

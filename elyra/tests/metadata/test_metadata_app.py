@@ -1100,7 +1100,7 @@ def test_remove_no_name(script_runner):
     assert "ERROR: '--name' is a required parameter." in ret.stdout
 
 
-def test_remove_with_no_equals(script_runner):
+def test_remove_with_no_equals(script_runner, mock_data_dir):
     # Attempt removal w/o the '=' between parameter and value
     metadata_manager = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
     valid = Metadata(**valid_metadata_json)

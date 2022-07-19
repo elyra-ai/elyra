@@ -236,12 +236,17 @@ class AirflowComponentParser(ComponentParser):
                 # Override a default of False for xcom push
                 data_type_info.default_value = True
 
+            value = arg_attributes.get("default_value") or data_type_info.default_value
+            if isinstance(value, str):
+                # Escape quotation marks to avoid error during json.loads
+                value = value.replace('"', '\\"').replace('"""', '\\"\\"\\"')
+
             component_param = ComponentParameter(
                 id=arg_name,
                 name=arg_name,
                 json_data_type=data_type_info.json_data_type,
                 allowed_input_types=data_type_info.allowed_input_types,
-                value=(arg_attributes.get("default_value") or data_type_info.default_value),
+                value=value,
                 description=description,
                 required=arg_attributes.get("required"),
             )
@@ -293,6 +298,12 @@ class AirflowComponentParser(ComponentParser):
                 elif isinstance(default, ast.Num):
                     # The value of interest in this case is accessed by the 'n' attribute
                     default_value = default.n
+                if isinstance(default, ast.Attribute):
+                    if hasattr(default.value, "id") and hasattr(default, "attr"):
+                        # The value of interest in accessed by the 'attr' attribute and value 'id' attribute
+                        default_value = f"{default.value.id}.{default.attr}"
+                    else:
+                        default_value = ""
 
                 # If a default value is provided in the argument list, the processor
                 # can use this value if the user doesn't supply their own

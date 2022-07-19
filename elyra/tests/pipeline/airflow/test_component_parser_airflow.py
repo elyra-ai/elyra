@@ -18,7 +18,7 @@ import os
 from subprocess import CompletedProcess
 from subprocess import run
 
-from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
+from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import TEST_CATALOG_NAME
 import jupyter_core.paths
 import pytest
@@ -49,7 +49,7 @@ def _get_resource_path(filename):
     return resource_path
 
 
-@pytest.mark.parametrize("catalog_instance", [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 def test_component_catalog_can_load_components_from_registries(catalog_instance, component_cache):
     components = component_cache.get_all_components(RUNTIME_PROCESSOR)
     assert len(components) > 0
@@ -171,7 +171,7 @@ async def test_directory_based_component_catalog(component_cache, metadata_manag
 
     # Get new set of components from all active registries, including added test registry
     components_after_create = component_cache.get_all_components(RUNTIME_PROCESSOR)
-    assert len(components_after_create) == len(initial_components) + 6
+    assert len(components_after_create) == len(initial_components) + 5
 
     # Check that all relevant components from the new registry have been added
     added_component_names = [component.name for component in components_after_create]
@@ -213,12 +213,14 @@ def test_parse_airflow_component_file():
 
     # Helper method to retrieve the requested parameter value from the dictionary
     def get_parameter_value(param_name):
+        param_name = f"elyra_{param_name}"  # add elyra_prefix to param name
         property_dict = properties_json["current_parameters"][param_name]
         return property_dict[property_dict["activeControl"]]
 
     # Helper method to retrieve the requested parameter info from the dictionary
     def get_parameter_format(param_name, control_id="StringControl"):
         param_info = None
+        param_name = f"elyra_{param_name}"  # add elyra_prefix to param name
         for prop_info in properties_json["uihints"]["parameter_info"]:
             if prop_info.get("parameter_ref") == param_name:
                 param_info = prop_info["data"]["controls"][control_id]["format"]
@@ -229,6 +231,7 @@ def test_parse_airflow_component_file():
     # Helper method to retrieve the requested parameter description from the dictionary
     def get_parameter_description(param_name):
         param_desc = None
+        param_name = f"elyra_{param_name}"  # add elyra_prefix to param name
         for prop_info in properties_json["uihints"]["parameter_info"]:
             if prop_info.get("parameter_ref") == param_name:
                 param_desc = prop_info["description"]["default"]
@@ -239,6 +242,7 @@ def test_parse_airflow_component_file():
     # Helper method to retrieve whether the requested parameter is required
     def get_parameter_required(param_name):
         param_info = None
+        param_name = f"elyra_{param_name}"  # add elyra_prefix to param name
         for prop_info in properties_json["uihints"]["parameter_info"]:
             if prop_info.get("parameter_ref") == param_name:
                 param_info = prop_info["data"]["required"]
@@ -257,112 +261,119 @@ def test_parse_airflow_component_file():
     assert properties_json["current_parameters"]["component_source"] == component_source
 
     # Ensure component parameters are prefixed with 'elyra_' and values are as expected
-    assert get_parameter_value("elyra_str_no_default") == ""
-    assert get_parameter_value("elyra_str_default") == "default"
-    assert get_parameter_value("elyra_str_empty") == ""
-    assert get_parameter_value("elyra_str_not_in_docstring") == ""
+    assert get_parameter_value("str_no_default") == ""
+    assert get_parameter_value("str_default") == "default"
+    assert get_parameter_value("str_empty") == ""
+    assert get_parameter_value("str_not_in_docstring") == ""
 
-    assert get_parameter_value("elyra_bool_no_default") is False
-    assert get_parameter_value("elyra_bool_default_false") is False
-    assert get_parameter_value("elyra_bool_default_true") is True
-    assert get_parameter_value("elyra_bool_not_in_docstring") is False
+    assert get_parameter_value("bool_no_default") is False
+    assert get_parameter_value("bool_default_false") is False
+    assert get_parameter_value("bool_default_true") is True
+    assert get_parameter_value("bool_not_in_docstring") is False
 
-    assert get_parameter_value("elyra_int_no_default") == 0
-    assert get_parameter_value("elyra_int_default_zero") == 0
-    assert get_parameter_value("elyra_int_default_non_zero") == 2
-    assert get_parameter_value("elyra_int_not_in_docstring") == 3
+    assert get_parameter_value("int_no_default") == 0
+    assert get_parameter_value("int_default_zero") == 0
+    assert get_parameter_value("int_default_non_zero") == 2
+    assert get_parameter_value("int_not_in_docstring") == 3
 
-    assert get_parameter_value("elyra_dict_default_is_none") == "{}"  # {}
-    assert get_parameter_value("elyra_list_default_is_none") == "[]"  # []
+    assert get_parameter_value("dict_default_is_none") == "{}"  # {}
+    assert get_parameter_value("list_default_is_none") == "[]"  # []
 
     # Ensure that type information is inferred correctly for properties that
     # define 'unusual' types, such as 'a dictionary of lists'
-    assert get_parameter_format("elyra_unusual_type_dict") == "dictionary"
-    assert get_parameter_format("elyra_unusual_type_list") == "list"
+    assert get_parameter_format("unusual_type_dict") == "dictionary"
+    assert get_parameter_format("unusual_type_list") == "list"
+
+    # TestOperator has a property, 'mounted_volumes', whose id/ref collides with
+    # the system-defined property of the same id. In these cases, the parsed property
+    # should be preferred to the system-defined property, which should not appear.
+    # Here we ensure that the 'mounted_volumes' property is a string-type (as defined
+    # in the Operator class) rather than the system-defined list-type
+    assert get_parameter_format("mounted_volumes") == "string"
 
     # Ensure that type information falls back to string if no type hint present
     # and no ':type: <type info>' phrase found in docstring
-    assert get_parameter_format("elyra_fallback_type") == "string"
+    assert get_parameter_format("fallback_type") == "string"
 
     # Ensure component parameters are marked as required in the correct circumstances
     # (parameter is required if there is no default value provided or if a type hint
     # does not include 'Optional[...]')
-    assert get_parameter_required("elyra_str_no_default") is True
-    assert get_parameter_required("elyra_str_default") is False
-    assert get_parameter_required("elyra_str_empty") is False
+    assert get_parameter_required("str_no_default") is True
+    assert get_parameter_required("str_default") is False
+    assert get_parameter_required("str_empty") is False
 
     # Ensure descriptions are rendered properly with type hint in parentheses
     assert (
-        get_parameter_description("elyra_unusual_type_dict") == "a dictionary parameter with the "
+        get_parameter_description("unusual_type_dict") == "a dictionary parameter with the "
         "phrase 'list' in type description "
         "(type: a dictionary of arrays)"
     )
     assert (
-        get_parameter_description("elyra_unusual_type_list") == "a list parameter with the phrase "
+        get_parameter_description("unusual_type_list") == "a list parameter with the phrase "
         "'string' in type description "
         "(type: a list of strings)"
     )
-    assert get_parameter_description("elyra_fallback_type") == "(type: str)"
+    assert get_parameter_description("fallback_type") == "(type: str)"
 
     # Ensure that a long description with line wrapping and a backslash escape has rendered
     # (and hence did not raise an error during json.loads in the properties API request)
     parsed_description = """a string parameter with a very long description
         that wraps lines and also has an escaped underscore in it, as shown here: (\_)  # noqa W605"""
     modified_description = parsed_description.replace("\n", " ") + " (type: str)"  # modify desc acc. to parser rules
-    assert get_parameter_description("elyra_long_description_property") == modified_description
+    assert get_parameter_description("long_description_property") == modified_description
 
     # Retrieve properties for DeriveFromTestOperator
     # DeriveFromTestOperator includes type hints for all init arguments
     properties_json = ComponentCache.to_canvas_properties(derive_test_op)
 
     # Ensure default values are parsed correct in the case where type hints are present
-    assert get_parameter_value("elyra_str_default") == "default"
-    assert get_parameter_value("elyra_bool_default") is True
-    assert get_parameter_value("elyra_int_default") == 2
+    assert get_parameter_value("str_default") == "default"
+    assert get_parameter_value("bool_default") is True
+    assert get_parameter_value("int_default") == 2
 
     # Ensure component parameters are prefixed with 'elyra_' and types are as expected
     # in the case when a type hint is provided (and regardless of whether or not the
     # parameter type is included in the docstring)
-    assert get_parameter_format("elyra_str_no_default") == "string"
-    assert get_parameter_format("elyra_str_default") == "string"
-    assert get_parameter_format("elyra_str_optional_default") == "string"
-    assert get_parameter_format("elyra_str_not_in_docstring") == "string"
+    assert get_parameter_format("str_no_default") == "string"
+    assert get_parameter_format("str_default") == "string"
+    assert get_parameter_format("str_optional_default") == "string"
+    assert get_parameter_format("str_not_in_docstring") == "string"
 
-    assert get_parameter_format("elyra_bool_no_default", "BooleanControl") == "boolean"
-    assert get_parameter_format("elyra_bool_default", "BooleanControl") == "boolean"
-    assert get_parameter_format("elyra_bool_not_in_docstring", "BooleanControl") == "boolean"
+    assert get_parameter_format("bool_no_default", "BooleanControl") == "boolean"
+    assert get_parameter_format("bool_default", "BooleanControl") == "boolean"
+    assert get_parameter_format("bool_not_in_docstring", "BooleanControl") == "boolean"
 
-    assert get_parameter_format("elyra_int_no_default", "NumberControl") == "number"
-    assert get_parameter_format("elyra_int_default", "NumberControl") == "number"
-    assert get_parameter_format("elyra_int_not_in_docstring", "NumberControl") == "number"
+    assert get_parameter_format("int_no_default", "NumberControl") == "number"
+    assert get_parameter_format("int_default", "NumberControl") == "number"
+    assert get_parameter_format("int_not_in_docstring", "NumberControl") == "number"
 
-    assert get_parameter_format("elyra_list_optional_default") == "list"
+    assert get_parameter_format("list_optional_default") == "list"
 
     # Ensure component parameters are marked as required in the correct circumstances
-    assert get_parameter_required("elyra_str_no_default") is True
-    assert get_parameter_required("elyra_str_default") is False
-    assert get_parameter_required("elyra_str_optional_default") is False
-    assert get_parameter_required("elyra_str_not_in_docstring") is True
+    assert get_parameter_required("str_no_default") is True
+    assert get_parameter_required("str_default") is False
+    assert get_parameter_required("str_optional_default") is False
+    assert get_parameter_required("str_not_in_docstring") is True
 
     # Retrieve properties for DeriveFromImportedOperator
-    # DeriveFromImportedOperator includes type hints for  dictionary and
+    # DeriveFromImportedOperator includes type hints for dictionary and
     # list values to test the more complex parsing required in this case
     properties_json = ComponentCache.to_canvas_properties(import_test_op)
 
-    # Ensure component parameters are prefixed with 'elyra_' and types are as expected
-    assert get_parameter_format("elyra_dict_no_default") == "dictionary"
-    assert get_parameter_format("elyra_dict_optional_no_default") == "dictionary"
-    assert get_parameter_format("elyra_nested_dict_default") == "dictionary"
-    assert get_parameter_format("elyra_dict_not_in_docstring") == "dictionary"
+    # Ensure component parameters are prefixed with '' and types are as expected
+    assert get_parameter_format("dict_no_default") == "dictionary"
+    assert get_parameter_format("dict_optional_no_default") == "dictionary"
+    assert get_parameter_format("nested_dict_default") == "dictionary"
+    assert get_parameter_format("dict_not_in_docstring") == "dictionary"
 
-    assert get_parameter_format("elyra_list_no_default") == "list"
-    assert get_parameter_format("elyra_list_optional_no_default") == "list"
-    assert get_parameter_format("elyra_list_default") == "list"
-    assert get_parameter_format("elyra_list_optional_default") == "list"
-    assert get_parameter_format("elyra_list_not_in_docstring") == "list"
+    assert get_parameter_format("list_no_default") == "list"
+    assert get_parameter_format("list_optional_no_default") == "list"
+    assert get_parameter_format("list_default") == "list"
+    assert get_parameter_format("list_optional_default") == "list"
+    assert get_parameter_format("list_not_in_docstring") == "list"
 
-    assert get_parameter_value("elyra_dict_no_default") == "{}"
-    assert get_parameter_value("elyra_list_no_default") == "[]"
+    assert get_parameter_value("dict_no_default") == "{}"
+    assert get_parameter_value("list_no_default") == "[]"
 
 
 def test_parse_airflow_component_url():
@@ -371,7 +382,7 @@ def test_parse_airflow_component_url():
     reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
     # Read contents of given path
-    url = "https://raw.githubusercontent.com/apache/airflow/1.10.15/airflow/operators/bash_operator.py"  # noqa: E501
+    url = "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components/airflow_test_operator.py"  # noqa: E501
     catalog_entry_data = {"url": url}
 
     # Construct a catalog instance
@@ -399,10 +410,11 @@ def test_parse_airflow_component_url():
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
     assert properties_json["current_parameters"]["component_source"] == component_source
-    assert get_parameter("elyra_bash_command") == ""
-    assert get_parameter("elyra_xcom_push") is True
-    assert get_parameter("elyra_env") == "{}"  # {}
-    assert get_parameter("elyra_output_encoding") == "utf-8"
+    assert get_parameter("elyra_str_no_default") == ""
+    assert get_parameter("elyra_bool_default_true") is True
+    assert get_parameter("elyra_int_default_non_zero") == 2
+    assert get_parameter("elyra_unusual_type_dict") == "{}"  # {}
+    assert get_parameter("elyra_unusual_type_list") == "[]"
 
 
 def test_parse_airflow_component_file_no_inputs():
@@ -430,15 +442,17 @@ def test_parse_airflow_component_file_no_inputs():
     properties_json = ComponentCache.to_canvas_properties(no_input_op)
 
     # Properties JSON should only include the two parameters common to every
-    # component:'label' and 'component_source'
-    num_common_params = 2
+    # component: ('label', 'component_source' and 'mounted_volumes')
+    num_common_params = 3
     assert len(properties_json["current_parameters"].keys()) == num_common_params
     assert len(properties_json["parameters"]) == num_common_params
     assert len(properties_json["uihints"]["parameter_info"]) == num_common_params
 
-    # Total number of groups includes one for each parameter, plus 1 for the component_source header
+    # Total number of groups includes one for each parameter,
+    # plus 1 for the component_source header,
+    # plus 1 for the 'other properties' header (that includes, e.g., mounted_volumes)
     # (Airflow does not include an output header since there are no formally defined outputs)
-    num_groups = num_common_params + 1
+    num_groups = num_common_params + 2
     assert len(properties_json["uihints"]["group_info"][0]["group_info"]) == num_groups
 
     # Ensure that template still renders the two common parameters correctly

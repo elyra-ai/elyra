@@ -34,9 +34,12 @@ from elyra.pipeline.pipeline import Pipeline
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
 
+ARCHIVE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "archive")
+
+
 @pytest.fixture
 def processor(setup_factory_data):
-    processor = KfpPipelineProcessor(os.getcwd())
+    processor = KfpPipelineProcessor(root_dir=os.getcwd())
     return processor
 
 
@@ -65,7 +68,7 @@ def test_fail_get_metadata_configuration_invalid_namespace(processor):
 
 
 def test_generate_dependency_archive(processor):
-    pipelines_test_file = processor.root_dir + "/elyra/tests/pipeline/resources/archive/test.ipynb"
+    pipelines_test_file = os.path.join(ARCHIVE_DIR, "test.ipynb")
     pipeline_dependencies = ["airflow.json"]
     correct_filelist = ["test.ipynb", "airflow.json"]
     component_parameters = {
@@ -94,7 +97,7 @@ def test_generate_dependency_archive(processor):
 
 
 def test_fail_generate_dependency_archive(processor):
-    pipelines_test_file = processor.root_dir + "/elyra/pipeline/tests/resources/archive/test.ipynb"
+    pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     pipeline_dependencies = ["non_existent_file.json"]
     component_parameters = {
         "filename": pipelines_test_file,
@@ -114,9 +117,9 @@ def test_fail_generate_dependency_archive(processor):
 
 
 def test_get_dependency_source_dir(processor):
-    pipelines_test_file = "elyra/pipeline/tests/resources/archive/test.ipynb"
+    pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     processor.root_dir = "/this/is/an/abs/path/"
-    correct_filepath = "/this/is/an/abs/path/elyra/pipeline/tests/resources/archive"
+    correct_filepath = "/this/is/an/abs/path/this/is/a/rel/path"
     component_parameters = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
     test_operation = GenericOperation(
         id="123e4567-e89b-12d3-a456-426614174000",
@@ -132,7 +135,7 @@ def test_get_dependency_source_dir(processor):
 
 
 def test_get_dependency_archive_name(processor):
-    pipelines_test_file = "elyra/pipeline/tests/resources/archive/test.ipynb"
+    pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     correct_filename = "test-this-is-a-test-id.tar.gz"
     component_parameters = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
     test_operation = GenericOperation(
@@ -149,7 +152,7 @@ def test_get_dependency_archive_name(processor):
 
 
 def test_collect_envs(processor):
-    pipelines_test_file = "elyra/pipeline/tests/resources/archive/test.ipynb"
+    pipelines_test_file = "this/is/a/rel/path/test.ipynb"
 
     # add system-owned envs with bogus values to ensure they get set to system-derived values,
     # and include some user-provided edge cases

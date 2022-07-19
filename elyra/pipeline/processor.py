@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from abc import ABC
 from abc import abstractmethod
 import ast
 import asyncio
@@ -54,15 +53,16 @@ class PipelineProcessorRegistry(SingletonConfigurable):
     _processors: Dict[str, "PipelineProcessor"] = {}
 
     def __init__(self, **kwargs):
+        root_dir: Optional[str] = kwargs.pop("root_dir", None)
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
+        self.root_dir = get_expanded_path(root_dir)
         # Register all known processors based on entrypoint configuration
         for processor in entrypoints.get_group_all("elyra.pipeline.processors"):
             try:
                 # instantiate an actual instance of the processor
-                processor_instance = processor.load()(self.root_dir, parent=kwargs.get("parent"))  # Load an instance
+                processor_instance = processor.load()(root_dir=self.root_dir, parent=kwargs.get("parent"))
                 self.log.info(
-                    f"Registering {processor.name} processor " f'"{processor.module_name}.{processor.object_name}"...'
+                    f"Registering {processor.name} processor '{processor.module_name}.{processor.object_name}'..."
                 )
                 self.add_processor(processor_instance)
             except Exception as err:
@@ -110,9 +110,10 @@ class PipelineProcessorManager(SingletonConfigurable):
     _registry: PipelineProcessorRegistry
 
     def __init__(self, **kwargs):
+        root_dir: Optional[str] = kwargs.pop("root_dir", None)
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
-        self._registry = PipelineProcessorRegistry.instance()
+        self.root_dir = get_expanded_path(root_dir)
+        self._registry = PipelineProcessorRegistry.instance(root_dir=self.root_dir)
 
     def get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)
@@ -157,15 +158,10 @@ class PipelineProcessorManager(SingletonConfigurable):
         return res
 
 
-class PipelineProcessorResponse(ABC):
+class PipelineProcessorResponse:
 
     _type: RuntimeProcessorType = None
     _name: str = None
-
-    def __init__(self, run_url, object_storage_url, object_storage_path):
-        self._run_url = run_url
-        self._object_storage_url = object_storage_url
-        self._object_storage_path = object_storage_path
 
     @property
     def type(self) -> str:  # Return the string value of the name so that JSON serialization works
@@ -178,6 +174,19 @@ class PipelineProcessorResponse(ABC):
         if self._name is None:
             raise NotImplementedError("_name must have a value!")
         return self._name
+
+    def to_json(self):
+        return {
+            "platform": self.type,
+        }
+
+
+class RuntimePipelineProcessorResponse(PipelineProcessorResponse):
+    def __init__(self, run_url, object_storage_url, object_storage_path):
+        super().__init__()
+        self._run_url = run_url
+        self._object_storage_url = object_storage_url
+        self._object_storage_path = object_storage_path
 
     @property
     def run_url(self):
@@ -216,18 +225,14 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     _type: RuntimeProcessorType = None
     _name: str = None
 
-    root_dir = Unicode(allow_none=True)
+    root_dir: str = Unicode(allow_none=True)
 
-    enable_pipeline_info = Bool(
+    enable_pipeline_info: bool = Bool(
         config=True,
         default_value=(os.getenv("ELYRA_ENABLE_PIPELINE_INFO", "true").lower() == "true"),
         help="""Produces formatted logging of informational messages with durations
                                 (default=True). (ELYRA_ENABLE_PIPELINE_INFO env var)""",
     )
-
-    def __init__(self, root_dir, **kwargs):
-        super().__init__(**kwargs)
-        self.root_dir = root_dir
 
     @property
     def type(self):
@@ -348,9 +353,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
 
 class RuntimePipelineProcessor(PipelineProcessor):
-    def __init__(self, root_dir: str, **kwargs):
-        super().__init__(root_dir, **kwargs)
-
     def _get_dependency_archive_name(self, operation: Operation) -> str:
         return f"{Path(operation.filename).stem}-{operation.id}.tar.gz"
 

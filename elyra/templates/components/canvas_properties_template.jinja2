@@ -24,6 +24,12 @@
           {{ render_parameter_details(property) }}
         },
         {% endfor %}
+        {% if "mounted_volumes" not in elyra_property_collisions_list %}
+        "elyra_mounted_volumes": {
+          "type": "string",
+          "title": "Mounted Volumes"
+        },
+        {% endif %}
         "component_source": {
           "type": "string",
           "title": "Component Source",

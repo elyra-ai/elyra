@@ -63,7 +63,8 @@ Invalid directory layout examples:
 
 #### File output
 
-All changes to the file system (e.g. new files or modified files) are discarded after processing of the notebook/script has completed. To retain these files you must store those files on cloud storage, or declare those files as output files in the notebook/script node properties. 
+All changes to the file system (e.g. new files or modified files) are discarded after processing of the notebook/script has completed. To retain these files you must store those files on cloud storage, or declare those files as output files in the notebook/script node properties.  
+NOTE: If you need to output a large number of files, instead of using a wildcard expression e.g. `directory/*`, compress them into an archive (e.g. tar, zip) as a step in your notebook/workflow and then add the archive here.
 
 ![Define output files](../images/user_guide/best-practices-file-based-nodes/vpe-node-output-files.png)
 

@@ -40,9 +40,11 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
-from elyra.pipeline.component import Component, ComponentParameter
+from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
+from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 BLOCKING_TIMEOUT = 0.5
@@ -365,10 +367,10 @@ class ComponentCache(SingletonConfigurable):
     }
 
     def __init__(self, **kwargs):
+        emulate_server_app: bool = kwargs.pop("emulate_server_app", False)
         super().__init__(**kwargs)
-
         self._component_cache = {}
-        self.is_server_process = ComponentCache._determine_server_process(**kwargs)
+        self.is_server_process = ComponentCache._determine_server_process(emulate_server_app, **kwargs)
         self.manifest_dir = jupyter_runtime_dir()
         # Ensure queue attribute exists for non-server instances as well.
         self.refresh_queue: Optional[RefreshQueue] = None
@@ -390,13 +392,13 @@ class ComponentCache(SingletonConfigurable):
             self.manifest_filename = os.path.join(self.manifest_dir, f"elyra-component-manifest-{os.getpid()}.json")
 
     @staticmethod
-    def _determine_server_process(**kwargs) -> bool:
+    def _determine_server_process(emulate_server_app: bool, **kwargs) -> bool:
         """Determines if this process is a server (extension) process."""
         app_names = ["ServerApp", "ElyraApp"]
         is_server_process = False
         if "parent" in kwargs and kwargs["parent"].__class__.__name__ in app_names:
             is_server_process = True
-        elif "emulate_server_app" in kwargs and kwargs["emulate_server_app"]:  # Used in unittests
+        elif emulate_server_app:  # Used in unittests
             is_server_process = True
 
         return is_server_process
@@ -667,14 +669,22 @@ class ComponentCache(SingletonConfigurable):
         If component_id is one of the generic set, generic template is rendered,
         otherwise, the  runtime-specific property template is rendered
         """
-        rendering_functions = {}
+        template_vars = {}
         if ComponentCache.get_generic_component(component.id) is not None:
             template = ComponentCache.load_jinja_template("generic_properties_template.jinja2")
         else:
-            template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
-            rendering_functions["render_parameter_details"] = ComponentParameter.render_parameter_details
+            # Determine which component properties parsed from the definition
+            # collide with Elyra-defined properties (in the case of a collision,
+            # only the parsed property will be displayed)
+            template_vars["elyra_property_collisions_list"] = []
+            for param in component.properties:
+                if param.ref in ELYRA_COMPONENT_PROPERTIES:
+                    template_vars["elyra_property_collisions_list"].append(param.ref)
 
-        template.globals.update(rendering_functions)
+            template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
+            template_vars["render_parameter_details"] = ComponentParameter.render_parameter_details
+
+        template.globals.update(template_vars)
         canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)
 

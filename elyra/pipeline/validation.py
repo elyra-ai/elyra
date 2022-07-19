@@ -118,8 +118,9 @@ class ValidationResponse(object):
 
 class PipelineValidationManager(SingletonConfigurable):
     def __init__(self, **kwargs):
+        root_dir: Optional[str] = kwargs.pop("root_dir", None)
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
+        self.root_dir = get_expanded_path(root_dir)
 
     async def validate(self, pipeline: Dict) -> ValidationResponse:
         """
@@ -310,57 +311,62 @@ class PipelineValidationManager(SingletonConfigurable):
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidRuntime",
-                    message="Pipeline runtime platform is not compatible " "with selected runtime configuration.",
+                    message="Pipeline runtime platform is not compatible with selected runtime configuration.",
                     data={
                         "pipelineID": primary_pipeline_id,
                         "pipelineType": pipeline_type,
                         "pipelineRuntime": pipeline_runtime,
                     },
                 )
-            elif PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime):
-                component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-                for component in component_list:
-                    supported_ops.append(component.op)
-
-                # Checks pipeline node types are compatible with the runtime selected
-                for sub_pipeline in pipeline_definition.pipelines:
-                    for node in sub_pipeline.nodes:
-                        if node.op not in ComponentCache.get_generic_component_ops() and pipeline_runtime == "local":
-                            response.add_message(
-                                severity=ValidationSeverity.Error,
-                                message_type="invalidNodeType",
-                                message="This pipeline contains at least one runtime-specific "
-                                "component, but pipeline runtime is 'local'. Specify a "
-                                "runtime config or remove runtime-specific components "
-                                "from the pipeline",
-                                data={"nodeID": node.id, "nodeOpName": node.op, "pipelineId": sub_pipeline.id},
-                            )
-                            break
-                        if node.type == "execution_node" and node.op not in supported_ops:
-                            response.add_message(
-                                severity=ValidationSeverity.Error,
-                                message_type="invalidNodeType",
-                                message="This component was not found in the catalog. Please add it "
-                                "to your component catalog or remove this node from the "
-                                "pipeline",
-                                data={
-                                    "nodeID": node.id,
-                                    "nodeOpName": node.op,
-                                    "nodeName": node.label,
-                                    "pipelineId": sub_pipeline.id,
-                                },
-                            )
             else:
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidRuntime",
-                    message="Unsupported pipeline runtime",
-                    data={
-                        "pipelineRuntime": pipeline_runtime,
-                        "pipelineType": pipeline_type,
-                        "pipelineId": primary_pipeline_id,
-                    },
-                )
+                processor_manager = PipelineProcessorManager.instance(root_dir=self.root_dir)
+                if processor_manager.is_supported_runtime(pipeline_runtime):
+                    component_list = await processor_manager.get_components(pipeline_runtime)
+                    for component in component_list:
+                        supported_ops.append(component.op)
+
+                    # Checks pipeline node types are compatible with the runtime selected
+                    for sub_pipeline in pipeline_definition.pipelines:
+                        for node in sub_pipeline.nodes:
+                            if (
+                                node.op not in ComponentCache.get_generic_component_ops()
+                                and pipeline_runtime == "local"
+                            ):
+                                response.add_message(
+                                    severity=ValidationSeverity.Error,
+                                    message_type="invalidNodeType",
+                                    message="This pipeline contains at least one runtime-specific "
+                                    "component, but pipeline runtime is 'local'. Specify a "
+                                    "runtime config or remove runtime-specific components "
+                                    "from the pipeline",
+                                    data={"nodeID": node.id, "nodeOpName": node.op, "pipelineId": sub_pipeline.id},
+                                )
+                                break
+                            if node.type == "execution_node" and node.op not in supported_ops:
+                                response.add_message(
+                                    severity=ValidationSeverity.Error,
+                                    message_type="invalidNodeType",
+                                    message="This component was not found in the catalog. Please add it "
+                                    "to your component catalog or remove this node from the "
+                                    "pipeline",
+                                    data={
+                                        "nodeID": node.id,
+                                        "nodeOpName": node.op,
+                                        "nodeName": node.label,
+                                        "pipelineId": sub_pipeline.id,
+                                    },
+                                )
+                else:
+                    response.add_message(
+                        severity=ValidationSeverity.Error,
+                        message_type="invalidRuntime",
+                        message="Unsupported pipeline runtime",
+                        data={
+                            "pipelineRuntime": pipeline_runtime,
+                            "pipelineType": pipeline_type,
+                            "pipelineId": primary_pipeline_id,
+                        },
+                    )
 
     async def _validate_node_properties(
         self,
@@ -479,6 +485,10 @@ class PipelineValidationManager(SingletonConfigurable):
         # Remove the non component_parameter jinja templated values we do not check against
         current_parameter_defaults_list.remove("component_source")
         current_parameter_defaults_list.remove("label")
+
+        volumes = node.get_component_parameter(MOUNTED_VOLUMES)
+        if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
+            self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
 
         for default_parameter in current_parameter_defaults_list:
             node_param = node.get_component_parameter(default_parameter)

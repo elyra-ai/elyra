@@ -689,6 +689,37 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
     assert byo_1.resource.startswith(str(factory_location))
 
 
+@pytest.mark.skipif(
+    os.getenv("TEST_VALIDATION_PERFORMANCE", "0") != "1",
+    reason="test_validation_performance - enable via env TEST_VALIDATION_PERFORMANCE=1",
+)
+def test_validation_performance():
+    import psutil
+
+    metadata_mgr = MetadataManager(schemaspace=METADATA_TEST_SCHEMASPACE)
+    metadata_dict = {**valid_metadata_json}
+    metadata = Metadata.from_dict(METADATA_TEST_SCHEMASPACE_ID, metadata_dict)
+
+    process = psutil.Process(os.getpid())
+    # warm up
+    metadata_mgr.validate("perf_test", metadata)
+
+    iterations = 10000
+    memory_start = process.memory_info()
+    t0 = time.time()
+    for _ in range(0, iterations):
+        metadata_mgr.validate("perf_test", metadata)
+
+    t1 = time.time()
+    memory_end = process.memory_info()
+    diff = (memory_end.rss - memory_start.rss) / 1024
+    print(
+        f"Memory: {diff:,} kb, Start: {memory_start.rss / 1024 / 1024:,.3f} mb, "
+        f"End: {memory_end.rss / 1024 / 1024:,.3f} mb., "
+        f"Elapsed time: {t1-t0:.3f}s over {iterations} iterations."
+    )
+
+
 # ########################## MetadataStore Tests ###########################
 def test_store_schemaspace(store_manager, schemaspace_location):
     # Delete the metadata dir contents and attempt listing metadata
