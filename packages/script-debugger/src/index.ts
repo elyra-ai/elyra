@@ -175,8 +175,9 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       sessionConnection: Session.ISessionConnection
     ): Promise<void> => {
       try {
+        const kernelName = sessionConnection.kernel?.name;
         await sessionConnection.shutdown();
-        console.log(name + ' kernel shut down');
+        console.log(`${kernelName} kernel shut down.`);
       } catch (e) {
         console.log('Exception: shutdown = ' + JSON.stringify(e));
       }

@@ -43,11 +43,12 @@
     "unlink:dev": "yarn unlink @jupyterlab/builder"
   },
   "dependencies": {
-    "@elyra/script-editor": "3.10.0-dev",
+    "@elyra/script-editor": "3.11.0-dev",
     "@jupyterlab/application": "^3.4.0",
     "@jupyterlab/debugger": "^3.4.0",
-    "@jupyterlab/docregistry": "^3.4.0",
-    "@jupyterlab/fileeditor": "^3.4.0"
+    "@jupyterlab/fileeditor": "^3.4.0",
+    "@jupyterlab/services": "^6.4.0",
+    "@lumino/widgets": "^1.19.0"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.4.0",

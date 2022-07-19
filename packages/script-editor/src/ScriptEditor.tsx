@@ -36,8 +36,10 @@ import {
   stopIcon,
   LabIcon
 } from '@jupyterlab/ui-components';
+
 import { Signal, ISignal } from '@lumino/signaling';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
+
 import React, { RefObject } from 'react';
 
 import { KernelDropdown, ISelect } from './KernelDropdown';
