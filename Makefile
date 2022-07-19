@@ -271,12 +271,15 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(ELYRA_IMAGE)
 	docker push quay.io/$(ELYRA_IMAGE)
-	# If we're building a release from main, tag latest and push
-	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "main" ]; then \
-		docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
-		docker push docker.io/$(ELYRA_IMAGE_LATEST); \
-		docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
-		docker push quay.io/$(ELYRA_IMAGE_LATEST); \
+	# If we're building an official release, tag latest and push
+	if [ "$(TAG)" != "dev" ]; then \
+		if [ "$(shell git branch --show-current)" == "main" ] || \
+		   [ "$(shell git describe --tag)" == "v${TAG}" ]; then \
+			docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
+			docker push docker.io/$(ELYRA_IMAGE_LATEST); \
+			docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
+			docker push quay.io/$(ELYRA_IMAGE_LATEST); \
+		fi \
 	fi
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
@@ -298,12 +301,15 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 	# this is a privileged operation; a `docker login` might be required
 	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
-	# If we're building a release from main, tag latest and push
-	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "main" ]; then \
-		docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+	# If we're building an official release, tag latest and push
+	if [ "$(TAG)" != "dev" ]; then \
+		if [ "$(shell git branch --show-current)" == "main" ] || \
+		   [ "$(shell git describe --tag)" == "v${TAG}" ]; then \
+			docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+			docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+			docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+			docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		fi \
 	fi
 
 container-images: elyra-image kf-notebook-image ## Build all container images
