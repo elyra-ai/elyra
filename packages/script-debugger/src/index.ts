@@ -101,8 +101,10 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
           await handler.update(widget, sessionConnection);
           app.commands.notifyCommandChanged();
         }
-      } catch (e) {
-        console.log('Exception: shutdown = ' + JSON.stringify(e));
+      } catch (error) {
+        console.warn(
+          'Exception: session connection = ' + JSON.stringify(error)
+        );
       }
     };
 
@@ -160,8 +162,8 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         console.log(
           `Kernel session started for ${path} with selected ${kernelSelection} kernel.`
         );
-      } catch (e) {
-        console.log('Exception: start session = ' + JSON.stringify(e));
+      } catch (error) {
+        console.warn('Exception: start session = ' + JSON.stringify(error));
         sessionConnection = null;
       }
       return sessionConnection;
@@ -174,8 +176,8 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         const kernelName = sessionConnection.kernel?.name;
         await sessionConnection.shutdown();
         console.log(`${kernelName} kernel shut down.`);
-      } catch (e) {
-        console.log('Exception: shutdown = ' + JSON.stringify(e));
+      } catch (error) {
+        console.warn('Exception: shutdown = ' + JSON.stringify(error));
       }
     };
   }
