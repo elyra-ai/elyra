@@ -273,8 +273,7 @@ publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	docker push quay.io/$(ELYRA_IMAGE)
 	# If we're building an official release, tag latest and push
 	if [ "$(TAG)" != "dev" ]; then \
-		if [ "$(shell git branch --show-current)" == "main" ] || \
-		   [ "$(shell git describe --tag)" == "v${TAG}" ]; then \
+		if [ "$(shell git describe --tag)" == "v${TAG}" ]; then \
 			docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
 			docker push docker.io/$(ELYRA_IMAGE_LATEST); \
 			docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
@@ -303,8 +302,7 @@ publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with 
 	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
 	# If we're building an official release, tag latest and push
 	if [ "$(TAG)" != "dev" ]; then \
-		if [ "$(shell git branch --show-current)" == "main" ] || \
-		   [ "$(shell git describe --tag)" == "v${TAG}" ]; then \
+		if [ "$(shell git describe --tag)" == "v${TAG}" ]; then \
 			docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 			docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 			docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
