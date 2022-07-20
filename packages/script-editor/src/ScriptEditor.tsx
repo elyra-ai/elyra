@@ -56,7 +56,6 @@ const OUTPUT_AREA_CHILD_CLASS = 'elyra-ScriptEditor-OutputArea-child';
 const OUTPUT_AREA_OUTPUT_CLASS = 'elyra-ScriptEditor-OutputArea-output';
 const OUTPUT_AREA_PROMPT_CLASS = 'elyra-ScriptEditor-OutputArea-prompt';
 const RUN_BUTTON_CLASS = 'elyra-ScriptEditor-Run';
-// const RUN_AND_DEBUG_BUTTON_CLASS = 'elyra-ScriptEditor-Run-Debug';
 const TOOLBAR_CLASS = 'elyra-ScriptEditor-Toolbar';
 
 /**

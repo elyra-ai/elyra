@@ -59,9 +59,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       const debuggerAvailable = await widget.isDebuggerAvailable(
         kernelSelection
       );
-      // console.log(
-      //   `#####updateDebugger kernelSelection= ' ${kernelSelection} \n debuggerAvailable= ' ${!!debuggerAvailable}`
-      // );
+
       if (!debuggerAvailable) {
         return;
       }
@@ -108,7 +106,8 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       }
     };
 
-    // Use a weakmap to track the callback function used by signal listeners so that the object can be cleared by gargabe collector when no longer in use, avoiding memory leaks
+    // Use a weakmap to track the callback function used by signal listeners
+    // The object is cleared by garbabe collector when no longer in use avoiding memory leaks
     // Key: ScriptEditor widget
     // Value: instance of updateDebugger function
     const callbackControl = new WeakMap<ScriptEditor, () => Promise<void>>();
@@ -138,11 +137,8 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     if (editorTracker) {
       // Listen to script editor's current instance changes.
       editorTracker.currentChanged.connect((_, widget) => {
-        console.log('editorTracker.currentChanged#######');
         return update(widget);
       });
-      // listen to script editor's widget updates
-      // editorTracker.widgetUpdated.connect((_, widget) => { console.log('editorTracker.widgetUpdated#######'); return update(widget); });
     }
 
     const startSession = async (
