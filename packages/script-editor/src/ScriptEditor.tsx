@@ -240,17 +240,8 @@ export abstract class ScriptEditor extends DocumentWidget<
   };
 
   private disableRunButton = (disabled: boolean): void => {
-    this.runButton.parent = null;
-    const newRunButton = new ToolbarButton({
-      className: RUN_BUTTON_CLASS,
-      icon: runIcon,
-      onClick: this.runScript,
-      tooltip: 'Run',
-      enabled: !disabled
-    });
-    this.toolbar.insertAfter('save', 'run', newRunButton);
+    this.runButton.enabled = !disabled;
     this.runDisabled = disabled;
-    this.runButton = newRunButton;
   };
 
   /**
