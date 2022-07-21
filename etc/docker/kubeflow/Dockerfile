@@ -37,7 +37,7 @@ RUN if [ "$TAG" = "dev" ] ; then \
 
 # Cleanup
 USER root
-RUN rm README.md ${ELYRA_PACKAGE}*
+RUN rm -f README.md ${ELYRA_PACKAGE}
 USER jovyan
 
 # Install component examples catalog
