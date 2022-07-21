@@ -24,6 +24,7 @@ A custom Elyra container image is included with [Open Data Hub](https://opendata
 
 The [s2i-lab-elyra](https://github.com/opendatahub-io/s2i-lab-elyra) repository contains the artifacts that make Elyra available as an image stream.
 
+- Install pipenv<=2022.1.8 from PyPi. e.g. `pip install pipenv==2022.1.8`
 - Fork the `https://github.com/opendatahub-io/s2i-lab-elyra` repository.
 - Git clone the fork. 
   ```
@@ -31,7 +32,14 @@ The [s2i-lab-elyra](https://github.com/opendatahub-io/s2i-lab-elyra) repository 
   ```
 - Create a new branch named `update-to-vX.Y.Z` (replacing X, Y, and Z with the major, minor, and patch version number).
 
-- Update ...
+- Update the following as needed:
+  - `.aicoe-ci.yaml` if any version changes to the base container image are needed
+  - `.s2i/environment` if any additional environmental variables need to bet changed or set
+  - `.s2i/run` if any additional bash setup commands need to be added/changed prior to starting Elyra
+
+- Update the Elyra package in `Pipfile` with the latest version required
+
+- Regenerate the `pipfile.lock` by running `pipenv lock --pre`
 
 - Take note of the new image version `vY.Y.Y`. (The image version is different from the Elyra version!)
 
