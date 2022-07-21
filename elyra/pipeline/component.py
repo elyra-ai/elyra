@@ -151,10 +151,9 @@ class ComponentParameter(object):
             input_type = param.allowed_input_types[0]
             if not input_type:
                 # This is an output
-                str_to_render = "'uihints': {'readonly': true}"
+                str_to_render = "'type': 'string', 'uihints': {'readonly': true}"
             elif input_type in ["inputpath", "file"]:
-                str_to_render = "'type': 'string',"
-                str_to_render += f"'uihints': {{'ui:widget': '{input_type}'}}"
+                str_to_render = f"'type': 'string', 'uihints': {{'ui:widget': '{input_type}'}}"
             else:
                 str_to_render = f"'type': '{param.value_entry_type}',"
         else:
