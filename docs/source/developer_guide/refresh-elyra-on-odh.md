@@ -69,7 +69,7 @@ Once the image stream pull request was merged you can update Open Data Hub manif
   ```
   $ git clone git@github.com:<your-fork>/odh-manifests.git
   ```
-- Create a new branch named `update-to-vX.Y.Z` (replacing X, Y, and Z with the major, minor, and patch version number).
+- Create a new branch named `update-to-vY.Y.Y` replacing YYY with the image release number.
 
 - Update `jupyterhub/notebook-images/overlays/additional/elyra-notebook-imagestream.yaml`
     - Change the existing `opendatahub.io/notebook-python-dependencies` annotation from `"version":"X.X.X"` to `"version":"X.Y.Z"`.
