@@ -24,30 +24,41 @@ A custom Elyra container image is included with [Open Data Hub](https://opendata
 
 The [s2i-lab-elyra](https://github.com/opendatahub-io/s2i-lab-elyra) repository contains the artifacts that make Elyra available as an image stream.
 
-- Install pipenv<=2022.1.8 from PyPi. e.g. `pip install pipenv==2022.1.8`
+- Install pipenv (version <= 2022.1.8) from PyPI.
+  ```
+  $ pip install pipenv==2022.1.8
+  ```
 - Fork the `https://github.com/opendatahub-io/s2i-lab-elyra` repository.
 - Git clone the fork. 
   ```
   $ git clone git@github.com:<your-fork>/s2i-lab-elyra.git
   ```
-- Create a new branch named `update-to-vX.Y.Z` (replacing X, Y, and Z with the major, minor, and patch version number).
+- Create a new branch named `update-to-vX.Y.Z` (replacing X, Y, and Z with the latest major, minor, and patch version number for Elyra).
 
 - Update the following as needed:
   - `.aicoe-ci.yaml` if any version changes to the base container image are needed
-  - `.s2i/environment` if any additional environmental variables need to bet changed or set
+  - `.s2i/environment` if any additional environment variables need to bet changed or set
   - `.s2i/run` if any additional bash setup commands need to be added/changed prior to starting Elyra
 
-- Update the Elyra package in `Pipfile` with the latest version required
+- Update `Pipfile`:
+  - Replace the Elyra version number
+    ```
+    "elyra[all]" = "==X.Y.Z"
+    ```
 
-- Regenerate the `pipfile.lock` by running `pipenv lock --pre`
-
-- Take note of the new image version `vY.Y.Y`. (The image version is different from the Elyra version!)
+- Regenerate the `pipfile.lock` file
+  ```
+  $ pipenv lock --pre
+  ```
 
 - Create a pull request providing the following information:
-  - title: `Update elyra image to vX.Y.Z`
-  - description: add links to the [release notes](https://github.com/elyra-ai/elyra/releases) for every version that isn't available yet on Open Data Hub. For example, if the last version on ODH is 3.9.1 and you are bumping Elyra to 3.10.1, add links to the release notes for 3.10.0 and 3.10.1. This enables reviewers and users to determine what is new and why an upgrade to this release should be considered.
+  - Title: `Update elyra image to vX.Y.Z`
+  - Description: add links to the [release notes](https://github.com/elyra-ai/elyra/releases) for every version that isn't available yet on Open Data Hub. For example, if the last version on ODH is 3.9.1 and you are bumping Elyra to 3.10.1, add links to the release notes for 3.10.0 and 3.10.1. This enables reviewers and users to determine what is new and why an upgrade to this release should be considered.
 
   Example pull request: https://github.com/opendatahub-io/s2i-lab-elyra/pull/43 
+
+- After the pull request was merged a [new image release](https://github.com/opendatahub-io/s2i-lab-elyra/releases) is created for you. Take note of the new release `vY.Y.Y`. 
+  > The release version is different from the Elyra version! 
 
 ## Update manifest files
 
@@ -62,7 +73,7 @@ Once the image stream pull request was merged you can update Open Data Hub manif
 
 - Update `jupyterhub/notebook-images/overlays/additional/elyra-notebook-imagestream.yaml`
     - Change the existing `opendatahub.io/notebook-python-dependencies` annotation from `"version":"X.X.X"` to `"version":"X.Y.Z"`.
-    - Change all existing occurrences of the old image version `vX.X.X` to the new image version `vY.Y.Y`.
+    - Change all existing occurrences of the old image release `vX.X.X` to the new image release `vY.Y.Y`.
 - Update `jupyterhub/notebook-images/overlays/build/elyra-notebook-buildconfig.yaml`
     - Change the existing image stream tag name from `s2i-lab-elyra:vX.X.X` to `s2i-lab-elyra:vY.Y.Y`.
     - Change the git ref from `ref: vX.X.X` to `ref: vY.Y.Y`.
