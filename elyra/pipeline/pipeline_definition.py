@@ -28,11 +28,13 @@ from jinja2 import Undefined
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
@@ -433,6 +435,16 @@ class Node(AppDataBase):
                 secret_objects.append(KubernetesSecret(env_var_name, secret_name.strip(), secret_key))
 
             self.set_component_parameter(KUBERNETES_SECRETS, secret_objects)
+
+        kubernetes_tolerations = self.get_component_parameter(KUBERNETES_TOLERATIONS)
+        if kubernetes_tolerations and isinstance(kubernetes_tolerations, KeyValueList):
+            tolerations_objects = []
+            for key, operator, value, effect in kubernetes_tolerations.to_dict().items():
+
+                # Create a KubernetesToleration class instance and add to list
+                tolerations_objects.append(KubernetesToleration(key, operator, value, effect))
+
+            self.set_component_parameter(KUBERNETES_TOLERATIONS, tolerations_objects)
 
 
 class PipelineDefinition(object):

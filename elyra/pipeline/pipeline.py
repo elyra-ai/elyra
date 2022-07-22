@@ -26,6 +26,7 @@ from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
 # TODO: Make pipeline version available more widely
@@ -105,6 +106,17 @@ class Operation(object):
             # The mounted_volumes property is the Elyra system property (ie, not defined in the component
             # spec) and must be removed from the component_params dict
             self._mounted_volumes = self._component_params.pop(MOUNTED_VOLUMES, [])
+
+        self._kubernetes_tolerations = []
+        param_tolerations = component_params.get(KUBERNETES_TOLERATIONS)
+        if (
+            param_tolerations
+            and isinstance(param_tolerations, list)
+            and isinstance(param_tolerations[0], KubernetesToleration)
+        ):
+            # The kubernetes_tolerations property is the Elyra system property (ie, not defined in the component
+            # spec) and must be removed from the component_params dict
+            self._kubernetes_tolerations = self._component_params.pop(KUBERNETES_TOLERATIONS, [])
 
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
@@ -329,6 +341,10 @@ class GenericOperation(Operation):
     def kubernetes_secrets(self) -> List["KubernetesSecret"]:
         return self._component_params.get(KUBERNETES_SECRETS)
 
+    @property
+    def kubernetes_tolerations(self) -> List["KubernetesToleration"]:
+        return self._component_params.get(KUBERNETES_TOLERATIONS)
+
     def __eq__(self, other: "GenericOperation") -> bool:
         if isinstance(self, other.__class__):
             return super().__eq__(other)
@@ -543,6 +559,14 @@ class KubernetesSecret:
     env_var: str
     name: str
     key: str
+
+
+@dataclass
+class KubernetesToleration:
+    key: str
+    operator: str
+    value: str
+    effect: str
 
 
 class DataClassJSONEncoder(json.JSONEncoder):
