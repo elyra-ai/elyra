@@ -36,8 +36,8 @@ The [s2i-lab-elyra](https://github.com/opendatahub-io/s2i-lab-elyra) repository 
 - Create a new branch named `update-to-vX.Y.Z` (replacing X, Y, and Z with the latest major, minor, and patch version number for Elyra).
 
 - Update the following as needed:
-  - `.aicoe-ci.yaml` if any version changes to the base container image are needed
-  - `.s2i/environment` if any additional environment variables need to bet changed or set
+  - `.aicoe-ci.yaml` if any version changes to the base container image are needed. Only updated periodically after a new version of the [base image](https://quay.io/repository/thoth-station/s2i-minimal-py38-notebook?tab=tags&tag=latest) has been released and tested and vetted by the upstream team for ODH.
+  - `.s2i/environment` if any additional environment variables need to be changed or set
   - `.s2i/run` if any additional bash setup commands need to be added/changed prior to starting Elyra
 
 - Update `Pipfile`:
