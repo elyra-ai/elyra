@@ -274,9 +274,10 @@ class ExecuteFileOp(ContainerOp):
                     )
                 )
 
+        # add user-defined tolerations
         if self.kubernetes_tolerations:
             for toleration in self.kubernetes_tolerations:
-                self.container.add_toleration(
+                self.add_toleration(
                     V1Toleration(
                         effect=toleration.effect,
                         key=toleration.key,
