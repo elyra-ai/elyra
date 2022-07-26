@@ -116,7 +116,6 @@ def update_version_to_release() -> None:
 
         # Update docker related tags
         sed(_source("Makefile"), r"^TAG:=dev", f"TAG:={new_version}")
-        sed(_source("README.md"), r"elyra:dev ", f"elyra:{new_version} ")
         if config.rc is None and config.beta is None:
             # Update the stable version Binder link
             sed(_source("README.md"), r"/v[0-9].[0-9].[0-9]?", f"/v{new_version}?")
@@ -266,7 +265,6 @@ def update_version_to_dev() -> None:
 
         # Update docker related tags
         sed(_source("Makefile"), rf"^TAG:={new_version}", "TAG:=dev")
-        sed(_source("README.md"), rf"elyra:{new_version} ", "elyra:dev ")
         sed(_source("etc/docker/kubeflow/README.md"), rf"kf-notebook:{new_version}", "kf-notebook:dev")
         # this does not goes back to dev
         # sed(source('README.md'), rf"/v[0-9].[0-9].[0-9]", "/v{dev_version}")

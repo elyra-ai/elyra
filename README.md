@@ -55,7 +55,7 @@ Click on a link below to try Elyra, on a sandbox environment, without having to 
 - [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v3.10.0?urlpath=lab/tree/binder-demo) (Latest stable version - see the [releases page](https://github.com/elyra-ai/elyra/releases) for a new features summary)
 - [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/main?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
-#### Using Docker
+#### Using container images
 
 You can also try Elyra by running one of the container images from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) or [quay.io](https://quay.io/repository/elyra/elyra?tab=tags):
 - `elyra/elyra:latest` has the latest released version installed.
@@ -85,6 +85,8 @@ These should produce output similar to that below, where you can then find the U
 ```
 
 Refer to the [installation documentation](https://elyra.readthedocs.io/en/stable/getting_started/installation.html#docker) for details.
+
+Note: To build a container image from the `main` branch ("dev build") or a customized version, follow the instructions for [the stand-alone image](https://github.com/elyra-ai/elyra/tree/main/etc/docker/elyra) or the [Kubeflow Notebook Server image](https://github.com/elyra-ai/elyra/tree/main/etc/docker/kubeflow). 
 
 ## Installation
 
