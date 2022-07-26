@@ -214,22 +214,6 @@
           }
         },
         {
-          "parameter_ref": "elyra_kubernetes_tolerations",
-          "control": "custom",
-          "custom_control_id": "StringArrayControl",
-          "label": {
-            "default": "Kubernetes Tolerations"
-          },
-          "description": {
-            "default": "Kubernetes tolerations to attach to the pod where the node is executed.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "placeholder": "key:operator:value:effect",
-            "keyValueEntries": true
-          }
-        },
-        {
           "parameter_ref": "elyra_outputs",
           "control": "custom",
           "custom_control_id": "StringArrayControl",
@@ -257,6 +241,22 @@
           },
           "data": {
             "placeholder": "/mount/path=pvc-name",
+            "keyValueEntries": true
+          }
+        },
+        {
+          "parameter_ref": "elyra_kubernetes_tolerations",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Kubernetes Tolerations"
+          },
+          "description": {
+            "default": "Kubernetes tolerations to attach to the pod where the node is executed.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "placeholder": "TBD-TODO",
             "keyValueEntries": true
           }
         }
