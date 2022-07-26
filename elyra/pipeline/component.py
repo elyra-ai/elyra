@@ -167,11 +167,11 @@ class ComponentParameter(object):
                     "uihints": {"widget": {"ui:widget": "hidden"}},
                 }
                 if widget_type == "inputvalue":
-                    value_obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
+                    obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
                     obj["properties"]["widget"]["default"] = param.value_entry_type
                     value_obj["type"] = param.value_entry_type
                 else:  # inputpath or file types
-                    value_obj["title"] = InputTypeDescriptionMap[widget_type].value
+                    obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
                     value_obj["type"] = "string"
                     if widget_type == "outputpath":
