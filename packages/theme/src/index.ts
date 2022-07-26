@@ -39,7 +39,8 @@ const ELYRA_THEME_NAMESPACE = 'elyra-theme-extension';
  */
 const CommandIDs = {
   create: 'launcher:create',
-  openHelp: 'elyra:open-help'
+  openHelp: 'elyra:open-help',
+  releases: 'elyra:releases'
 };
 
 /**
@@ -159,10 +160,24 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       }
     });
 
+    commands.addCommand(CommandIDs.releases, {
+      label: "What's new",
+      icon: helpIcon,
+      execute: (args: any) => {
+        window.open('https://github.com/elyra-ai/elyra/releases', '_blank');
+      }
+    });
+
     model.add({
       command: CommandIDs.openHelp,
       category: 'Elyra',
       rank: 10
+    });
+
+    model.add({
+      command: CommandIDs.releases,
+      category: 'Elyra',
+      rank: 11
     });
 
     return model;
