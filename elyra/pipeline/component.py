@@ -160,17 +160,25 @@ class ComponentParameter(object):
             # Parameter accepts multiple types of inputs; render a oneOf block
             one_of = []
             for widget_type in param.allowed_input_types:
-                obj = {}
+                value_obj = {}
+                obj = {
+                    "type": "object",
+                    "properties": {"widget": {"type": "string"}},
+                    "uihints": {"widget": {"ui:widget": "hidden"}},
+                }
                 if widget_type == "inputvalue":
-                    obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
-                    obj["type"] = param.value_entry_type
+                    value_obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
+                    obj["properties"]["widget"]["default"] = param.value_entry_type
+                    value_obj["type"] = param.value_entry_type
                 else:  # inputpath or file types
-                    obj["title"] = InputTypeDescriptionMap[widget_type].value
-                    obj["type"] = "string"
+                    value_obj["title"] = InputTypeDescriptionMap[widget_type].value
+                    obj["properties"]["widget"]["default"] = widget_type
+                    value_obj["type"] = "string"
                     if widget_type == "outputpath":
-                        obj["uihints"] = {"readonly": True}
+                        obj["uihints"]["value"] = {"readonly": True}
                     else:
-                        obj["uihints"] = {"ui:widget": widget_type}
+                        obj["uihints"]["value"] = {"ui:widget": widget_type}
+                obj["properties"]["value"] = value_obj
                 one_of.append(obj)
             str_to_render = f"'oneOf': {one_of}"
 
