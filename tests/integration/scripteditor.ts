@@ -35,7 +35,6 @@ describe('Script Editor tests', () => {
   });
 
   // Python Tests
-
   it('opens blank Python editor from launcher', () => {
     cy.createNewScriptEditor('Python');
     cy.get('.lm-TabBar-tab[data-type="document-title"]');
@@ -133,6 +132,7 @@ describe('Script Editor tests', () => {
   it('checks for valid output', () => {
     openFile('py');
     clickRunButton();
+    cy.wait(1000);
     cy.get('.elyra-ScriptEditor-OutputArea-output').should(
       'have.text',
       'Hello Elyra\n'
@@ -148,10 +148,11 @@ describe('Script Editor tests', () => {
   // check for error message running an invalid code
   it('checks for Error message', () => {
     cy.createNewScriptEditor('Python');
+    cy.wait(1000);
 
     // Add some code with syntax error to the editor (wait code editor to load)
-    cy.wait(1000);
-    cy.get('span[role="presentation"]')
+    cy.get('.CodeMirror-lines')
+      .first()
       .should('be.visible')
       .type('print"test"');
 
