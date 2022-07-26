@@ -85,9 +85,20 @@ Another option is to install the R language server through the [CRAN](https://cr
 $ R -e install.packages("languageserver")
 ```
 
-## Ability to execute a Python and R script as a pipeline
+## Scala script execution support
 
-Elyra allows the execution of Python and R scripts as a pipeline or batch job in remote cloud environments. This feature leverages the AI pipelines feature and requires access to either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
+In the JupyterLab Launcher, click the `Scala Editor` icon to create a new Scala script and open the Scala Editor.
+
+![Open Scala Editor](../images/launcher-scala-editor.png)
+
+When used in conjunction with `Jupyter Enterprise Gateway`, the dropdown in the editor's toolbar will be populated with more kernel options,
+allowing users to run their scripts with remote kernels with more specialized resources.
+
+To run your script locally, select the `Spark/Scala Toree Kernel` option in the dropdown menu, and click the `Run` icon.
+
+## Ability to execute a Python, R and Scala script as a pipeline
+
+Elyra allows the execution of Python, R and Scala scripts as a pipeline or batch job in remote cloud environments. This feature leverages the AI pipelines feature and requires access to either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
 
 To run a Python or R script as a pipeline, open the script file and select `Run as Pipeline` button from the editor toolbar.
 
@@ -97,6 +108,6 @@ To learn more about [runtime configurations](../user_guide/runtime-conf) and [ru
 
 ## Script Editors components
 
-The Elyra Python Editor and R Editor are based on the JupyterLab editor which is currently based on CodeMirror.
+The Elyra Python Editor, R Editor and Scala Editor are based on the JupyterLab editor which is currently based on CodeMirror.
 
 ![Python Editor and R Editor Components](../images/script-editor-components.png)
