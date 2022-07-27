@@ -39,7 +39,7 @@ PIPELINE_FILE_CUSTOM_COMPONENTS = "resources/sample_pipelines/pipeline_with_airf
 
 @pytest.fixture
 def processor(monkeypatch, setup_factory_data):
-    processor = AirflowPipelineProcessor(os.getcwd())
+    processor = AirflowPipelineProcessor(root_dir=os.getcwd())
 
     # Add spoofed TestOperator to class import map
     class_import_map = {"TestOperator": "from airflow.operators.test_operator import TestOperator"}

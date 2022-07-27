@@ -2,6 +2,13 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.10.1 - 07/18/2022
+
+- Cap markdown for docs - [#2836](https://github.com/elyra-ai/elyra/pull/2836)
+- Update typing extensions dependency version cap - [#2831](https://github.com/elyra-ai/elyra/pull/2831)
+- Revert "Remove typing extension dependency cap" - [#2830](https://github.com/elyra-ai/elyra/pull/2830)
+- Remove typing extension dependency cap
+
 ## Release 3.10.0 - 07/07/2022
 
 - Fix version issue in release script - [#2824](https://github.com/elyra-ai/elyra/pull/2824)
