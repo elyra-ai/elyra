@@ -57,14 +57,15 @@ def get_runtime_processor_type(runtime_type: str, log: Logger, request_path: str
     """
     processor_manager = PipelineProcessorManager.instance()
     if processor_manager.is_supported_runtime(runtime_type):
-        # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
-        # 'airflow'). This case and its associated functions should eventually be removed
-        # in favor of using the RuntimeProcessorType name in the request path.
-        log.warning(
-            f"Deprecation warning: when calling endpoint '{request_path}' "
-            f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
-            f"instead of shorthand name (e.g., 'kfp', 'airflow')"
-        )
+        if runtime_type != "local":
+            # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
+            # 'airflow'). This case and its associated functions should eventually be removed
+            # in favor of using the RuntimeProcessorType name in the request path.
+            log.warning(
+                f"Deprecation warning: when calling endpoint '{request_path}' "
+                f"use runtime type name (e.g. 'KUBEFLOW_PIPELINES', 'APACHE_AIRFLOW') "
+                f"instead of shorthand name (e.g., 'kfp', 'airflow')"
+            )
         return processor_manager.get_runtime_type(runtime_type)
     elif processor_manager.is_supported_runtime_type(runtime_type):
         # The request path uses the appropriate RuntimeProcessorType name. Use this
