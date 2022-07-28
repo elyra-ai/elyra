@@ -580,7 +580,7 @@ def prepare_extensions_release() -> None:
             packages=["code-snippet-extension", "metadata-extension", "theme-extension"],
             description=f"The Code Snippet editor extension adds support for reusable code fragments, "
             f"making programming in JupyterLab more efficient by reducing repetitive work. "
-            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/code-snippets.html",
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
         ),
         "elyra-code-viewer-extension": SimpleNamespace(
             packages=["code-viewer-extension"],
@@ -594,21 +594,21 @@ def prepare_extensions_release() -> None:
             description=f"The Visual Editor Pipeline extension is used to build AI pipelines from notebooks, "
             f"Python scripts and R scripts, simplifying the conversion of multiple notebooks "
             f"or script files into batch jobs or workflows."
-            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/pipelines.html",
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/pipelines.html",
         ),
         "elyra-python-editor-extension": SimpleNamespace(
             packages=["python-editor-extension", "metadata-extension", "theme-extension"],
             description=f"The Python Script editor extension contains support for Python files, "
             f"which can take advantage of the Hybrid Runtime Support enabling users to "
             f"locally edit .py scripts and execute them against local or cloud-based resources."
-            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/enhanced-script-support.html",
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
         "elyra-r-editor-extension": SimpleNamespace(
             packages=["r-editor-extension", "metadata-extension", "theme-extension"],
             description=f"The R Script editor extension contains support for R files, which can take "
             f"advantage of the Hybrid Runtime Support enabling users to locally edit .R scripts "
             f"and execute them against local or cloud-based resources."
-            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/enhanced-script-support.html",
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
     }
 
