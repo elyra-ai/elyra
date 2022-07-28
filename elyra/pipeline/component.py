@@ -173,11 +173,12 @@ class ComponentParameter(object):
                 else:  # inputpath or file types
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
-                    value_obj["type"] = "string"
                     if widget_type == "outputpath":
-                        obj["uihints"]["value"] = {"readonly": True}
+                        value_obj["type"] = "string"
+                        obj["uihints"]["value"] = {"readonly": True, "outputpath": True}
                     else:
                         obj["uihints"]["value"] = {"ui:widget": widget_type}
+
                 obj["properties"]["value"] = value_obj
                 one_of.append(obj)
             str_to_render = f"'oneOf': {one_of}"
