@@ -27,17 +27,17 @@ ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
 ARG ELYRA_EXTRAS=[kfp-tekton,kfp-examples]
 
 # Includes the readme as a token file for COPY that always exists, otherwise production builds fail when whl not present
-COPY $ELYRA_PACKAGE README.md ./
+COPY README.md ${ELYRA_PACKAGE}* ./
 
 # Install Elyra
 RUN if [ "$TAG" = "dev" ] ; then \
-    python -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE""$ELYRA_EXTRAS"; \
+    python -m pip install --quiet --no-cache-dir "${ELYRA_PACKAGE}${ELYRA_EXTRAS}" ; \
     else \
-    python -m pip install --quiet --no-cache-dir elyra"$ELYRA_EXTRAS"=="$TAG" ; fi
+    python -m pip install --quiet --no-cache-dir "elyra${ELYRA_EXTRAS}"=="$TAG" ; fi
 
 # Cleanup
 USER root
-RUN rm $ELYRA_PACKAGE README.md
+RUN rm -f README.md ${ELYRA_PACKAGE}
 USER jovyan
 
 # Install component examples catalog
