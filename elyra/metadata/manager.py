@@ -13,20 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 import re
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Union
 
-from jsonschema import draft7_format_checker
-from jsonschema import validate
 from jsonschema import ValidationError
 from traitlets import Type  # noqa H306
 from traitlets.config import LoggingConfigurable  # noqa H306
 
-from elyra.metadata.error import SchemaNotFoundError
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.storage import FileMetadataStore
@@ -155,9 +151,8 @@ class MetadataManager(LoggingConfigurable):
                 f"Instance '{name}' in the {self.schemaspace} schemaspace is missing a 'schema_name' field!"
             )
 
-        schema = self._get_schema(schema_name)  # returns a value or throws
         try:
-            validate(instance=metadata_dict, schema=schema, format_checker=draft7_format_checker)
+            self.schema_mgr.validate_instance(self.schemaspace, schema_name, metadata_dict)
         except ValidationError as ve:
             # Because validation errors are so verbose, only provide the first line.
             first_line = str(ve).partition("\n")[0]
@@ -178,21 +173,6 @@ class MetadataManager(LoggingConfigurable):
         if not name[-1].isalnum():
             name = name + "_0"
         return name
-
-    def _get_schema(self, schema_name: str) -> dict:
-        """Loads the schema based on the schema_name and returns the loaded schema json.
-        Throws ValidationError if schema file is not present.
-        """
-        schema_json = self.schema_mgr.get_schema(self.schemaspace, schema_name)
-        if schema_json is None:
-            schema_file = os.path.join(os.path.dirname(__file__), "schemas", schema_name + ".json")
-            if not os.path.exists(schema_file):
-                self.log.error(
-                    f"The file for schema '{schema_name}' is missing from its expected location: '{schema_file}'"
-                )
-                raise SchemaNotFoundError(f"The file for schema '{schema_name}' is missing!")
-
-        return schema_json
 
     def _save(self, name: str, metadata: Metadata, for_update: bool = False, for_migration: bool = False) -> Metadata:
         if not metadata:

@@ -90,7 +90,7 @@ def test_pipeline_execution(pipeline_dir):
 
     pipeline = construct_pipeline("p1", nodes=nodes, location=pipeline_dir)
 
-    LocalPipelineProcessor(pipeline_dir).process(pipeline)
+    LocalPipelineProcessor(root_dir=pipeline_dir).process(pipeline)
 
     # Confirm outputs
     for node in nodes:
@@ -116,7 +116,7 @@ def test_pipeline_execution_missing_kernelspec(pipeline_dir):
     nbformat.write(nb, node1nb_file)
 
     with pytest.raises(RuntimeError) as e:
-        LocalPipelineProcessor(pipeline_dir).process(pipeline)
+        LocalPipelineProcessor(root_dir=pipeline_dir).process(pipeline)
     assert (
         "Error processing operation node1 (node1.ipynb): No kernel "
         "name found in notebook and no override provided." in str(e.value)
@@ -136,7 +136,7 @@ def test_pipeline_execution_bad_notebook(pipeline_dir):
     pipeline = construct_pipeline("p1", nodes=nodes, location=pipeline_dir)
 
     with pytest.raises(RuntimeError) as e:
-        LocalPipelineProcessor(pipeline_dir).process(pipeline)
+        LocalPipelineProcessor(root_dir=pipeline_dir).process(pipeline)
     assert "Error processing operation node3" in str(e.value)
 
     # Confirm outputs (and non-outputs)
@@ -162,7 +162,7 @@ def test_pipeline_execution_bad_python(pipeline_dir):
     pipeline = construct_pipeline("p1", nodes=nodes, location=pipeline_dir)
 
     with pytest.raises(RuntimeError) as e:
-        LocalPipelineProcessor(pipeline_dir).process(pipeline)
+        LocalPipelineProcessor(root_dir=pipeline_dir).process(pipeline)
     assert "Error processing operation node2" in str(e.value)
 
     # Confirm outputs (and non-outputs)

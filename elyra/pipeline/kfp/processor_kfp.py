@@ -51,8 +51,8 @@ from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.processor import PipelineProcessor
-from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
+from elyra.pipeline.processor import RuntimePipelineProcessorResponse
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.path import get_absolute_path
@@ -67,9 +67,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     # must exist and be known before the container is started.
     # Defaults to `/tmp`
     WCD = os.getenv("ELYRA_WRITABLE_CONTAINER_DIR", "/tmp").strip().rstrip("/")
-
-    def __init__(self, root_dir, **kwargs):
-        super().__init__(root_dir, **kwargs)
 
     def process(self, pipeline):
         """
@@ -769,7 +766,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         return normalized_name.replace(" ", "_")
 
 
-class KfpPipelineProcessorResponse(PipelineProcessorResponse):
+class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     _name = "kfp"
 
