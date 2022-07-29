@@ -209,9 +209,14 @@ async def test_get_pipeline_properties_definition(jp_fetch):
 async def test_get_pipeline_to_work(jp_fetch):
     # using util utility to read in pipeline data from Json
     body = _read_pipeline_resource("resources/sample_pipelines/pipeline_with_airflow_components.json")
-    json_body = json.dumps(body, indent=4)
+    json_body = {
+      "pipeline": body,
+      "export_format": "py",
+      "export_path": "test.py",
+      "overwrite": True }
+    request_body = json.dumps(json_body, indent=4)
     # I can send it over the wire with jp_fetch
-    r = await jp_fetch("elyra", "pipeline", "export", body=json_body, method="POST")
+    r = await jp_fetch("elyra", "pipeline", "export", body=request_body, method="POST")
 
     # you can also use "pytest -v -k test_get_pipeline_to_work" to just run that one test
     # python3 -m pytest -v elyra/tests/pipeline/test_handlers.py
