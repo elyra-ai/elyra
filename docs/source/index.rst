@@ -79,3 +79,4 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    developer_guide/trackers.md
    developer_guide/troubleshooting.md
    developer_guide/release.md
+   developer_guide/refresh-elyra-on-odh.md
