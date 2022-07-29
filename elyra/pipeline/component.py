@@ -151,9 +151,11 @@ class ComponentParameter(object):
             input_type = param.allowed_input_types[0]
             if not input_type:
                 # This is an output
-                str_to_render = "'type': 'string', 'uihints': {'readonly': true}"
-            elif input_type in ["inputpath", "file"]:
-                str_to_render = f"'type': 'string', 'uihints': {{'ui:widget': '{input_type}'}}"
+                str_to_render = "'type': 'string', 'uihints': {'ui:readonly': true, 'outputpath': true}"
+            elif input_type == "inputpath":
+                str_to_render = "'uihints': {'inputpath': true}"
+            elif input_type == "file":
+                str_to_render = f"'type': 'string', 'uihints': {{'ui:widget': {input_type}}}"
             else:
                 str_to_render = f"'type': '{param.value_entry_type}',"
         else:
@@ -175,8 +177,12 @@ class ComponentParameter(object):
                     obj["properties"]["widget"]["default"] = widget_type
                     if widget_type == "outputpath":
                         value_obj["type"] = "string"
-                        obj["uihints"]["value"] = {"readonly": True, "outputpath": True}
+                        obj["uihints"]["value"] = {"ui:readonly": "true", "outputpath": "true"}
+                    elif widget_type == "inputpath":
+                        value_obj["oneOf"] = []
+                        obj["uihints"]["value"] = {"inputpath": "true"}
                     else:
+                        value_obj["type"] = "string"
                         obj["uihints"]["value"] = {"ui:widget": widget_type}
 
                 obj["properties"]["value"] = value_obj
