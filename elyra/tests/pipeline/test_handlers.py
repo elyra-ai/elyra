@@ -205,11 +205,11 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             {"id": "elyra_mounted_volumes"},
         ]
 
+
 async def test_get_pipeline_to_work(jp_fetch):
     # using util utility to read in pipeline data from Json
     body = _read_pipeline_resource("resources/sample_pipelines/pipeline_with_airflow_components.json")
 
     # I can send it over the wire with jp_fetch
-    r = await jp_fetch(
-        "elyra", "pipeline", "export", body=body, method="POST"
-    )
+    r = await jp_fetch("elyra", "pipeline", "export", body=body, method="POST")
+    
