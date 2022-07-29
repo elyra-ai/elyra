@@ -421,7 +421,11 @@ span.bx--list-box__label {
   margin-right: 4px;
 }
 
-.elyra-PipelineEditor .elyra-formEditor .field-object > fieldset > legend {
+.elyra-PipelineEditor .elyra-formEditor .field-object > fieldset > legend,
+.elyra-PipelineEditor
+  .form-group.field.field-oneOf
+  .form-group.field-object
+  .label-header {
   display: none;
 }
 

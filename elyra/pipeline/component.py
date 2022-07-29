@@ -151,7 +151,7 @@ class ComponentParameter(object):
             input_type = param.allowed_input_types[0]
             if not input_type:
                 # This is an output
-                str_to_render = "'type': 'string', 'uihints': {'ui:readonly': true, 'outputpath': true}"
+                str_to_render = "'type': 'string', 'uihints': {'ui:widget': 'hidden', 'outputpath': true}"
             elif input_type == "inputpath":
                 str_to_render = "'uihints': {'inputpath': true}"
             elif input_type == "file":
