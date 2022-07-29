@@ -29,7 +29,7 @@ from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.tests.pipeline import resources
 from elyra.tests.util.handlers_utils import expected_http_error
-
+from elyra.tests.pipeline.util import _read_pipeline_resource
 
 try:
     import importlib.resources as pkg_resources
@@ -204,3 +204,12 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             {"id": "elyra_kubernetes_secrets"},
             {"id": "elyra_mounted_volumes"},
         ]
+
+async def test_get_pipeline_to_work(jp_fetch):
+    # using util utility to read in pipeline data from Json
+    body = _read_pipeline_resource("resources/sample_pipelines/pipeline_with_airflow_components.json")
+
+    # I can send it over the wire with jp_fetch
+    r = await jp_fetch(
+        "elyra", "pipeline", "export", body=body, method="POST"
+    )
