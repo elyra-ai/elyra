@@ -421,6 +421,14 @@ span.bx--list-box__label {
   margin-right: 4px;
 }
 
+.elyra-PipelineEditor .elyra-formEditor .field-object > fieldset > legend {
+  display: none;
+}
+
+.elyra-PipelineEditor .elyra-formEditor {
+  padding: 10px 47px;
+}
+
 .elyra-stringArrayControl-listRow:hover .elyra-stringArrayControl-listActions {
   height: 100%;
   align-items: center;
