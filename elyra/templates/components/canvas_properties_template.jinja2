@@ -17,14 +17,46 @@
     "component_parameters": {
       "type": "object",
       "properties": {
-        {% for property in component.properties %}
+        {% if component.input_properties|length > 0 %}
+        "Inputs": {
+          "type": "null",
+          "title": "Inputs",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% for property in component.input_properties %}
         "{{ property.ref }}": {
           "title": "{{ property.name }}",
           "description": {{ property.description|tojson|safe }},
           {{ render_parameter_details(property) }}
         },
         {% endfor %}
+        {% endif %}
+        {% if component.output_properties|length > 0 %}
+        "Outputs": {
+          "type": "null",
+          "title": "Outputs",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% for property in component.output_properties %}
+        "{{ property.ref }}": {
+          "title": "{{ property.name }}",
+          "description": {{ property.description|tojson|safe }},
+          {{ render_parameter_details(property) }}
+        },
+        {% endfor %}
+        {% endif %}
         {% if "mounted_volumes" not in elyra_property_collisions_list %}
+        "additionalproperties": {
+          "type": "null",
+          "title": "Additional Properties",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
         "elyra_mounted_volumes": {
           "type": "array",
           "items": {

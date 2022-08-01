@@ -429,6 +429,21 @@ span.bx--list-box__label {
   display: none;
 }
 
+.elyra-PipelineEditor .elyra-formEditor .label-header.category-header {
+  font-size: var(--jp-content-font-size2);
+}
+
+.elyra-PipelineEditor #root > .form-group.field {
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-top: 12px;
+  padding-bottom: 18px;
+}
+
+.elyra-PipelineEditor #root > .form-group.field.field-null {
+  padding-left: 0;
+}
+
 .elyra-PipelineEditor .elyra-formEditor {
   padding: 10px 47px;
 }

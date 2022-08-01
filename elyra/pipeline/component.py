@@ -333,11 +333,11 @@ class Component(object):
 
     @property
     def input_properties(self) -> List[ComponentParameter]:
-        return [prop for prop in self._properties if prop.data_type != "outputpath"]
+        return [prop for prop in self._properties if None not in prop.allowed_input_types]
 
     @property
     def output_properties(self) -> List[ComponentParameter]:
-        return [prop for prop in self._properties if prop.data_type == "outputpath"]
+        return [prop for prop in self._properties if None in prop.allowed_input_types]
 
     @property
     def file_extension(self) -> Optional[str]:
