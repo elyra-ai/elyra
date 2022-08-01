@@ -53,6 +53,7 @@
         "additionalproperties": {
           "type": "null",
           "title": "Additional Properties",
+          "description": "Additional properties used by Elyra that are not given in the component definition.",
           "uihints": {
             "ui:field": "header"
           }
@@ -72,6 +73,13 @@
           }
         },
         {% endif %}
+        "component_source_header": {
+          "type": "null",
+          "title": "Component Source",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
         "component_source": {
           "type": "string",
           "title": "Component Source",
