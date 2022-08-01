@@ -686,6 +686,7 @@ class ComponentCache(SingletonConfigurable):
 
         template.globals.update(template_vars)
         canvas_properties = template.render(component=component)
+        print(canvas_properties)
         return json.loads(canvas_properties)
 
 
