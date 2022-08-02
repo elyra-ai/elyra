@@ -23,6 +23,7 @@ This section describes the steps necessary to build Elyra in a development envir
 * [Python 3 Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 * [Node.js 16+](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/lang/en/docs/install)
+* [GNU Make](https://www.gnu.org/software/make/)
 
 ### Setting up your development environment
 
@@ -75,6 +76,14 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     ```
     yarn --version 
     ```
+
+* Install GNU Make 
+
+    Refer to the following link for installation instructions: 
+    [GNU Make](https://www.gnu.org/software/make/)
+
+    To verify the installation, run `make`. 
+    Check with the output written below in [Build and Installation](#build-installation) to confirm that you have correctly installed `make`.
 
 ### Setting up your Elyra Github repository
 
