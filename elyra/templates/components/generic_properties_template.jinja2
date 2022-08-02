@@ -252,7 +252,7 @@
             "default": "Kubernetes Tolerations"
           },
           "description": {
-            "default": "Kubernetes tolerations to attach to the pod where the node is executed.",
+            "default": "Kubernetes tolerations to apply to the pod where the node is executed.",
             "placement": "on_panel"
           },
           "data": {
@@ -307,11 +307,6 @@
               "parameter_refs": ["elyra_kubernetes_secrets"]
             },
             {
-              "id": "elyra_kubernetes_tolerations",
-              "type": "controls",
-              "parameter_refs": ["elyra_kubernetes_tolerations"]
-            },
-            {
               "id": "elyra_outputs",
               "type": "controls",
               "parameter_refs": ["elyra_outputs"]
@@ -320,6 +315,11 @@
               "id": "elyra_mounted_volumes",
               "type": "controls",
               "parameter_refs": ["elyra_mounted_volumes"]
+            },
+            {
+              "id": "elyra_kubernetes_tolerations",
+              "type": "controls",
+              "parameter_refs": ["elyra_kubernetes_tolerations"]
             }
           ]
         }

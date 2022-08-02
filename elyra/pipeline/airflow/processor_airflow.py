@@ -334,6 +334,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "doc": operation.doc,
                     "volumes": operation.mounted_volumes,
                     "secrets": operation.kubernetes_secrets,
+                    "kubernetes_tolerations": operation.kubernetes_tolerations,
                 }
 
                 if runtime_image_pull_secret is not None:
@@ -447,6 +448,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "is_generic_operator": operation.is_generic,
                     "doc": operation.doc,
                     "volumes": operation.mounted_volumes,
+                    "kubernetes_tolerations": operation.kubernetes_tolerations,
                 }
 
                 target_ops.append(target_op)
@@ -499,6 +501,7 @@ be fully qualified (i.e., prefixed with their package names).
                 "render_executor_config_for_custom_op": AirflowPipelineProcessor.render_executor_config_for_custom_op,
                 "render_secrets_for_generic_op": AirflowPipelineProcessor.render_secrets_for_generic_op,
                 "render_secrets_for_cos": AirflowPipelineProcessor.render_secrets_for_cos,
+                "render_tolerations_for_generic_op": AirflowPipelineProcessor.render_tolerations_for_generic_op,
             }
             template.globals.update(rendering_functions)
 
@@ -631,23 +634,42 @@ be fully qualified (i.e., prefixed with their package names).
     @staticmethod
     def render_executor_config_for_custom_op(op: Dict) -> Dict[str, Dict[str, List]]:
         """
-        Render any data volumes defined for the specified custom op for use in
-        the Airflow DAG template
+        Render any data volumes or tolerations defined for the specified custom op
+        for use in the Airflow DAG template
 
         :returns: a dict defining the volumes and mounts to be rendered in the DAG
         """
-        executor_config = {"KubernetesExecutor": {"volumes": [], "volume_mounts": []}}
-        for volume in op.get("volumes", []):
-            # Define volumes and volume mounts
-            executor_config["KubernetesExecutor"]["volumes"].append(
-                {
-                    "name": volume.pvc_name,
-                    "persistentVolumeClaim": {"claimName": volume.pvc_name},
-                }
-            )
-            executor_config["KubernetesExecutor"]["volume_mounts"].append(
-                {"mountPath": volume.path, "name": volume.pvc_name, "read_only": False}
-            )
+        executor_config = {"KubernetesExecutor": {}}
+
+        # Handle volume mounts
+        if op.get("volumes"):
+            executor_config["KubernetesExecutor"]["volumes"] = []
+            executor_config["KubernetesExecutor"]["volume_mounts"] = []
+            for volume in op.get("volumes", []):
+                # Add volume and volume mount entry
+                executor_config["KubernetesExecutor"]["volumes"].append(
+                    {
+                        "name": volume.pvc_name,
+                        "persistentVolumeClaim": {"claimName": volume.pvc_name},
+                    }
+                )
+                executor_config["KubernetesExecutor"]["volume_mounts"].append(
+                    {"mountPath": volume.path, "name": volume.pvc_name, "read_only": False}
+                )
+
+        # Handle tolerations
+        if op.get("kubernetes_tolerations"):
+            executor_config["KubernetesExecutor"]["tolerations"] = []
+            for toleration in op.get("kubernetes_tolerations", []):
+                # Add Kubernetes toleration entry
+                executor_config["KubernetesExecutor"]["tolerations"].append(
+                    {
+                        "key": toleration.key,
+                        "operator": toleration.operator,
+                        "value": toleration.value,
+                        "effect": toleration.effect,
+                    }
+                )
 
         return executor_config
 
@@ -710,6 +732,38 @@ be fully qualified (i.e., prefixed with their package names).
             """
 
             op["secret_vars"].append(var_name)
+        return dedent(str_to_render)
+
+    @staticmethod
+    def render_tolerations_for_generic_op(op: Dict) -> str:
+        """
+        Render Kubernetes tolerations defined for the specified generic op for use in
+        the Airflow DAG template
+
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        if not op.get("kubernetes_tolerations"):
+            return ""
+        op["toleration_vars"] = []  # store variable names in op's dict for template to access
+
+        # Include import statements and comment
+        str_to_render = f"""
+            # Kubernetes tolerations for operation '{op['id']}'"""
+        for idx, toleration in enumerate(op.get("kubernetes_tolerations", [])):
+            var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"toleration_{op['id']}_{idx}")
+
+            # Define toleration 'objects'
+            str_to_render += f"""
+                toleration_{var_name} = {
+                    "key": "{toleration.key}",
+                    "operator": "{toleration.operator}",
+                    "value": "{toleration.value}",
+                    "effect": "{toleration.effect}",
+                }
+            """
+
+            op["toleration_vars"].append(var_name)
+
         return dedent(str_to_render)
 
 
