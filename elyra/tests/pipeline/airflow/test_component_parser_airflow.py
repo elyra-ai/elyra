@@ -442,8 +442,8 @@ def test_parse_airflow_component_file_no_inputs():
     properties_json = ComponentCache.to_canvas_properties(no_input_op)
 
     # Properties JSON should only include the two parameters common to every
-    # component: ('label', 'component_source' and 'mounted_volumes')
-    num_common_params = 3
+    # component: ('label', 'component_source', 'mounted_volumes', and 'kubernetes_tolerations')
+    num_common_params = 4
     assert len(properties_json["current_parameters"].keys()) == num_common_params
     assert len(properties_json["parameters"]) == num_common_params
     assert len(properties_json["uihints"]["parameter_info"]) == num_common_params
