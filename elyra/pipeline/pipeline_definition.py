@@ -623,7 +623,7 @@ class PipelineDefinition(object):
                 if not pipeline_default_value:
                     continue
 
-                if not Operation.is_generic_operation(node) and property_name not in ELYRA_COMPONENT_PROPERTIES:
+                if not Operation.is_generic_operation(node.op) and property_name not in ELYRA_COMPONENT_PROPERTIES:
                     # Do not propagate default properties that do not apply to custom components, e.g. runtime image
                     continue
 
