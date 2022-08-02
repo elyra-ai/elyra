@@ -26,6 +26,7 @@ Object {
               "filename": "producer.ipynb",
               "include_subdirectories": false,
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
                 "output-1.csv",
@@ -82,6 +83,7 @@ Object {
               "filename": "consumer.ipynb",
               "include_subdirectories": false,
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
               "runtime_image": "continuumio/anaconda3:2021.11",
@@ -137,6 +139,7 @@ Object {
               "filename": "../scripts/setup.py",
               "include_subdirectories": false,
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
               "runtime_image": "continuumio/anaconda3:2021.11",
@@ -190,6 +193,7 @@ Object {
               "filename": "create-source-files.py",
               "include_subdirectories": false,
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
                 "input-1.csv",
@@ -246,6 +250,7 @@ Object {
               "filename": "producer-script.py",
               "include_subdirectories": false,
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
                 "output-3.csv",
