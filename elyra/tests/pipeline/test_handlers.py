@@ -31,6 +31,11 @@ from elyra.tests.pipeline import resources
 from elyra.tests.util.handlers_utils import expected_http_error
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
+from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.validation import PipelineValidationManager
+from elyra.pipeline.validation import ValidationResponse
+from elyra.pipeline.parser import PipelineParser
+
 try:
     import importlib.resources as pkg_resources
 except ImportError:
@@ -206,17 +211,25 @@ async def test_get_pipeline_properties_definition(jp_fetch):
         ]
 
 
-async def test_get_pipeline_to_work(jp_fetch):
+async def test_get_pipeline_to_work(jp_fetch, monkeypatch):
     # using util utility to read in pipeline data from Json
-    body = _read_pipeline_resource("resources/sample_pipelines/pipeline_with_airflow_components.json")
+    # body = _read_pipeline_resource("resources/sample_pipelines/pipeline_with_airflow_components.json")
     json_body = {
-      "pipeline": body,
+      "pipeline": "body",
       "export_format": "py",
       "export_path": "test.py",
       "overwrite": True }
     request_body = json.dumps(json_body, indent=4)
+    
+    validation_response = ValidationResponse()
+    monkeypatch.setattr(PipelineValidationManager, "validate", lambda pipeline: validation_response)
+    monkeypatch.setattr(PipelineParser, "parse", lambda x: "Dummy_Data")
+    monkeypatch.setattr(PipelineProcessorManager, "export", lambda x, y, z, aa: "test.py")
+
     # I can send it over the wire with jp_fetch
     r = await jp_fetch("elyra", "pipeline", "export", body=request_body, method="POST")
+    response_dict = json.loads(r)
+    assert response_dict["export_path"] == "test.py"
 
     # you can also use "pytest -v -k test_get_pipeline_to_work" to just run that one test
     # python3 -m pytest -v elyra/tests/pipeline/test_handlers.py
