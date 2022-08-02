@@ -46,7 +46,7 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 If you use `pip`, install Elyra with:
 
 ```bash
-pip3 install --upgrade elyra[all]
+pip3 install --upgrade "elyra[all]"
 ```
 
 If desired, you can install these Elyra extensions independently:
@@ -86,7 +86,7 @@ If desired, you can install these Elyra extensions independently:
 If you use `conda`, install Elyra with:
 
 ```bash
-conda install -c conda-forge elyra[all]
+conda install -c conda-forge "elyra[all]"
 ```
 
 **NOTE:**

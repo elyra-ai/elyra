@@ -28,5 +28,5 @@ OS user has that symbol in its name (e.g. `user@domain.com`)
 
 This happens when trying to install Elyra via the Z Shell. The Z shell is the default shell on macOS versions of Catalina or later. Ensure that the argument is surrounded by single quotes as follows - this is not necessary when running on bash.
 ```
-pip install --upgrade 'elyra[all]'
+pip install --upgrade "elyra[all]"
 ```
