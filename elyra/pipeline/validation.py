@@ -734,28 +734,26 @@ class PipelineValidationManager(SingletonConfigurable):
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidKubernetesToleration",
-                    message=f"Operator '{toleration.operator}' must be one of 'Exists' or 'Equal'.",
+                    message=f"'{toleration.operator}' is not a valid operator. "
+                    "The value must be one of 'Exists' or 'Equal'.",
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
                         "propertyName": KUBERNETES_TOLERATIONS,
-                        "value": KeyValueList.to_str(
-                            toleration.key, toleration.operator, toleration.value, toleration.effect
-                        ),
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
                     },
                 )
             if len(toleration.key.strip()) == 0 and toleration.operator == "Equal":
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidKubernetesToleration",
-                    message=f"Operator '{toleration.operator}' must be 'Equal' if no key is specified.",
+                    message=f"'{toleration.operator}' is not a valid operator. "
+                    "Operator must be 'Exists' if no key is specified.",
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
                         "propertyName": KUBERNETES_TOLERATIONS,
-                        "value": KeyValueList.to_str(
-                            toleration.key, toleration.operator, toleration.value, toleration.effect
-                        ),
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
                     },
                 )
             if len(toleration.effect.strip()) > 0 and toleration.effect not in [
@@ -766,29 +764,25 @@ class PipelineValidationManager(SingletonConfigurable):
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidKubernetesToleration",
-                    message=f"Effect '{toleration.effect}' must be one of "
+                    message=f"'{toleration.effect}' is not a valid effect. Effect must be one of "
                     "'NoExecute', 'NoSchedule', or 'PreferNoSchedule'.",
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
                         "propertyName": KUBERNETES_TOLERATIONS,
-                        "value": KeyValueList.to_str(
-                            toleration.key, toleration.operator, toleration.value, toleration.effect
-                        ),
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
                     },
                 )
             if toleration.operator == "Exists" and len(toleration.value.strip()) > 0:
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidKubernetesToleration",
-                    message=f"Value '{toleration.value}' should be empty if operator is 'Exists'.",
+                    message=f"'{toleration.value}' is not a valid value. It should be empty if operator is 'Exists'.",
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
                         "propertyName": KUBERNETES_TOLERATIONS,
-                        "value": KeyValueList.to_str(
-                            toleration.key, toleration.operator, toleration.value, toleration.effect
-                        ),
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
                     },
                 )
 

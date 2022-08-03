@@ -439,8 +439,10 @@ class Node(AppDataBase):
         kubernetes_tolerations = self.get_component_parameter(KUBERNETES_TOLERATIONS)
         if kubernetes_tolerations and isinstance(kubernetes_tolerations, KeyValueList):
             tolerations_objects = []
-            for key, operator, value, effect in kubernetes_tolerations.to_dict().items():
-
+            for toleration, toleration_definition in kubernetes_tolerations.to_dict().items():
+                # A definition comprises of "<key>:<operator>:<value>:<effect>"
+                # Validation should have verified that the provided values are valid
+                key, operator, value, effect = toleration_definition.split(":", 4)
                 # Create a KubernetesToleration class instance and add to list
                 tolerations_objects.append(KubernetesToleration(key, operator, value, effect))
 
