@@ -29,7 +29,6 @@ In order to perform a release, one will need to have publish access to
   - [elyra-scala-editor-extension](https://pypi.org/manage/project/elyra-scala-editor-extension/collaboration/)
   - [elyra-python-editor-extension](https://pypi.org/manage/project/elyra-python-editor-extension/collaboration/)
   - [elyra-pipeline-editor-extension](https://pypi.org/manage/project/elyra-pipeline-editor-extension/collaboration/)
-  - [elyra-scala-editor-extension](https://pypi.org/manage/project/elyra-scala-editor-extension/collaboration/)
   - [elyra-code-snippet-extension](https://pypi.org/manage/project/elyra-code-snippet-extension/collaboration/)
   - [elyra-code-viewer-extension](https://pypi.org/manage/project/elyra-code-viewer-extension/collaboration/)
   - [kfp-notebook](https://pypi.org/manage/project/kfp-notebook/collaboration/)
