@@ -42,6 +42,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     labShell: ILabShell | null
   ) => {
     console.log('Elyra - script-debugger extension is activated!');
+
     const handler = new Debugger.Handler({
       type: 'file',
       shell: app.shell,
@@ -55,6 +56,11 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     });
 
     const updateDebugger = async (widget: ScriptEditor): Promise<void> => {
+      const widgetInFocus = app.shell.currentWidget;
+      if (widget !== widgetInFocus) {
+        return;
+      }
+
       const kernelSelection = (widget as ScriptEditor).kernelSelection;
       const debuggerAvailable = await widget.isDebuggerAvailable(
         kernelSelection
