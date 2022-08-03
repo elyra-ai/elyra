@@ -96,9 +96,9 @@ allowing users to run their scripts with remote kernels with more specialized re
 
 To run your script locally, select the `Spark/Scala Toree Kernel` option in the dropdown menu, and click the `Run` icon.
 
-## Ability to execute a Python, R and Scala script as a pipeline
+## Ability to execute a Python and R script as a pipeline
 
-Elyra allows the execution of Python, R and Scala scripts as a pipeline or batch job in remote cloud environments. This feature leverages the AI pipelines feature and requires access to either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
+Elyra allows the execution of Python and R script as a pipeline or batch job in remote cloud environments. This feature leverages the AI pipelines feature and requires access to either a Kubeflow Pipelines or Apache Airflow deployment via a [runtime configuration](../user_guide/runtime-conf).
 
 To run a Python or R script as a pipeline, open the script file and select `Run as Pipeline` button from the editor toolbar.
 
