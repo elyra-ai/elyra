@@ -433,6 +433,15 @@ span.bx--list-box__label {
   font-size: var(--jp-content-font-size2);
 }
 
+.elyra-PipelineEditor .form-group.field {
+  min-width: auto;
+  width: 100%;
+}
+
+.elyra-PipelineEditor .elyra-formEditor select.form-control {
+  padding-right: 1.5em;
+}
+
 .elyra-PipelineEditor #root > .form-group.field {
   padding-left: 14px;
   padding-right: 14px;
