@@ -349,10 +349,6 @@ class GenericOperation(Operation):
     def kubernetes_secrets(self) -> List["KubernetesSecret"]:
         return self._component_params.get(KUBERNETES_SECRETS)
 
-    @property
-    def kubernetes_tolerations(self) -> List["KubernetesToleration"]:
-        return self._component_params.get(KUBERNETES_TOLERATIONS)
-
     def __eq__(self, other: "GenericOperation") -> bool:
         if isinstance(self, other.__class__):
             return super().__eq__(other)

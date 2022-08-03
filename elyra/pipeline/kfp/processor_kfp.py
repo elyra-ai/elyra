@@ -375,7 +375,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             object_storage_path=object_storage_path,
         )
 
-    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
+    def export(self, pipeline: Pipeline, pipeline_export_format: str, pipeline_export_path: str, overwrite: bool):
         # Verify that the KfpPipelineProcessor supports the given export format
         self._verify_export_format(pipeline_export_format)
 
@@ -546,6 +546,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     },
                     volume_mounts=operation.mounted_volumes,
                     kubernetes_secrets=operation.kubernetes_secrets,
+                    kubernetes_tolerations=operation.kubernetes_tolerations,
                 )
 
                 if operation.doc:

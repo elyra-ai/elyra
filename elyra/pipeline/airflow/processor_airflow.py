@@ -746,21 +746,21 @@ be fully qualified (i.e., prefixed with their package names).
             return ""
         op["toleration_vars"] = []  # store variable names in op's dict for template to access
 
-        # Include import statements and comment
+        # Add comment
         str_to_render = f"""
             # Kubernetes tolerations for operation '{op['id']}'"""
+
         for idx, toleration in enumerate(op.get("kubernetes_tolerations", [])):
             var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"toleration_{op['id']}_{idx}")
 
-            # Define toleration 'objects'
+            # Define toleration variables
             str_to_render += f"""
-                toleration_{var_name} = {
+                {var_name} = {{
                     "key": "{toleration.key}",
                     "operator": "{toleration.operator}",
                     "value": "{toleration.value}",
-                    "effect": "{toleration.effect}",
-                }
-            """
+                    "effect": "{toleration.effect}"
+                }}"""
 
             op["toleration_vars"].append(var_name)
 
