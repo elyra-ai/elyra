@@ -762,6 +762,8 @@ def publish_release(working_dir) -> None:
         f"{config.work_dir}/elyra-python-editor-extension/dist/elyra-python-editor-extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-r-editor-extension/dist/elyra_r_editor_extension-{config.new_version}-py3-none-any.whl",
         f"{config.work_dir}/elyra-r-editor-extension/dist/elyra-r-editor-extension-{config.new_version}.tar.gz",
+        f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra_scala_editor_extension-{config.new_version}-py3-none-any.whl",
+        f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra-scala-editor-extension-{config.new_version}.tar.gz",
     ]
 
     print("-----------------------------------------------------------------")
