@@ -80,6 +80,12 @@ If desired, you can install these Elyra extensions independently:
    ```bash
    pip3 install --upgrade elyra-r-editor-extension
    ```
+  
+- [Scala Editor](https://pypi.org/project/elyra-scala-editor-extension/)
+
+   ```bash
+   pip3 install --upgrade elyra-scala-editor-extension
+   ```
 
 ### conda
 

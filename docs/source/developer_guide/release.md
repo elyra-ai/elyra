@@ -29,6 +29,7 @@ In order to perform a release, one will need to have publish access to
   - [elyra-scala-editor-extension](https://pypi.org/manage/project/elyra-scala-editor-extension/collaboration/)
   - [elyra-python-editor-extension](https://pypi.org/manage/project/elyra-python-editor-extension/collaboration/)
   - [elyra-pipeline-editor-extension](https://pypi.org/manage/project/elyra-pipeline-editor-extension/collaboration/)
+  - [elyra-scala-editor-extension](https://pypi.org/manage/project/elyra-scala-editor-extension/collaboration/)
   - [elyra-code-snippet-extension](https://pypi.org/manage/project/elyra-code-snippet-extension/collaboration/)
   - [elyra-code-viewer-extension](https://pypi.org/manage/project/elyra-code-viewer-extension/collaboration/)
   - [kfp-notebook](https://pypi.org/manage/project/kfp-notebook/collaboration/)
@@ -164,6 +165,7 @@ elyra-code-viewer-extension
 elyra-pipeline-editor-extension
 elyra-python-editor-extension
 elyra-r-editor-extension
+elyra-scala-editor-extension
 ```
 - Test the release
   - Run multiple scenarios, to make sure each extension is working ok
@@ -207,7 +209,6 @@ docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && d
   - https://github.com/conda-forge/elyra-pipeline-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-r-editor-extension-feedstock/pulls
-  - https://github.com/conda-forge/elyra-scala-editor-extension-feedstock/pulls
 
 
 ## Publish the release [notes]
