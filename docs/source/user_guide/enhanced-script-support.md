@@ -85,7 +85,7 @@ Another option is to install the R language server through the [CRAN](https://cr
 $ R -e install.packages("languageserver")
 ```
 
-## Scala script execution support
+## Scala script execution support (experimental)
 
 In the JupyterLab Launcher, click the `Scala Editor` icon to create a new Scala script and open the Scala Editor.
 
