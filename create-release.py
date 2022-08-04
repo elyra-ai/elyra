@@ -610,6 +610,13 @@ def prepare_extensions_release() -> None:
             f"and execute them against local or cloud-based resources."
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
+        "elyra-scala-editor-extension": SimpleNamespace(
+            packages=["scala-editor-extension", "metadata-extension", "theme-extension"],
+            description=f"The Scala Language editor extension contains support for Scala files, which can take "
+            f"advantage of the Hybrid Runtime Support enabling users to locally edit .scala files "
+            f"and execute them against local or cloud-based resources."
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
+        ),
     }
 
     for extension in extensions:
@@ -755,6 +762,8 @@ def publish_release(working_dir) -> None:
         f"{config.work_dir}/elyra-python-editor-extension/dist/elyra-python-editor-extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-r-editor-extension/dist/elyra_r_editor_extension-{config.new_version}-py3-none-any.whl",
         f"{config.work_dir}/elyra-r-editor-extension/dist/elyra-r-editor-extension-{config.new_version}.tar.gz",
+        f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra_scala_editor_extension-{config.new_version}-py3-none-any.whl",
+        f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra-scala-editor-extension-{config.new_version}.tar.gz",
     ]
 
     print("-----------------------------------------------------------------")
