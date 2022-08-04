@@ -104,8 +104,12 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
               activeSessions[sessionModel.id] = sessionConnection;
             }
           }
-          await handler.update(widget, sessionConnection);
-          app.commands.notifyCommandChanged();
+
+          // Temporary solution to give enough time for the handler to update the UI on page reload.
+          setTimeout(async () => {
+            await handler.update(widget, sessionConnection);
+            app.commands.notifyCommandChanged();
+          }, 1000);
         }
       } catch (error) {
         console.warn(
