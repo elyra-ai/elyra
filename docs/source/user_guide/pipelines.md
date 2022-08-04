@@ -76,9 +76,14 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
       - An optional description, summarizing the pipeline purpose. 
       - Properties that appy to every pipeline node (both generic and custom)
          - **Data volumes**
-           - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export.
+           - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component. 
+           - Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export.
            - The referenced PVCs must exist in the Kubernetes namespace where the pipeline nodes are executed.
            - Data volumes are not mounted when the pipeline is executed locally.
+         - **Kubernetes tolerations**
+           - A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the component is executed.
+           - Format: `TOL_ID=key:operator:value:effect`. Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of the values for `key`, `operator`, `value`, and `effect`. `TOL_ID` can be any unique identifier, such as `tol_1`. It's value is only used internally by Elyra.
+           - Tolerations are ignored when the pipeline is executed locally.
       - Properties that apply to every generic pipeline node. In this release the following properties are supported:
         - **Object storage path prefix**. Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
           ![artifacts default storage layout on object storage](../images/user_guide/pipelines/node-artifacts-on-object-storage.png)
@@ -96,10 +101,6 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
            - A list of [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. Entries with a secret name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) or with [an invalid secret key](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) will raise a validation error after pipeline submission or export.
            - The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
            - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
-         - **Kubernetes Tolerations**
-           - A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the Jupyter notebook or script is executed.
-           - Tolerations are ignored when the pipeline is executed locally.
-
 
 #### Adding nodes
 
@@ -149,16 +150,18 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
    - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
    - Example: `ENV_VAR=secret-name:secret-key`
    
-   Both generic and certain [custom components](pipeline-components.html#custom-components) support the following property:
+   Both generic and certain [custom components](pipeline-components.html#custom-components) support the following properties:
 
    **Data Volumes**
    - Optional. A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component and allows for data exchange between components. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export. The referenced PVCs must exist in the Kubernetes namespace where the node is executed. Note that only certain Apache Airflow operators are capable of supporting volumes in the manner explained here.
    - Data volumes are not mounted when the pipeline is executed locally.   
    - Example: `/mnt/vol1=data-pvc`
 
-   **Kubernetes Tolerations**
-   - Optional. A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod that executes the component.
-   - Tolerations are ignored when the pipeline is executed locally.   
+   **Kubernetes tolerations**
+   - Optional. A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the component is executed.
+   - Format: `TOL_ID=key:operator:value:effect`. Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of the values for `key`, `operator`, `value`, and `effect`.
+   - Tolerations are ignored when the pipeline is executed locally.
+   - Example: `TOL_1=my-key:Exists::NoExecute` 
 
 5. Associate each node with a comment to document its purpose.
 
