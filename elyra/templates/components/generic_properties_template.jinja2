@@ -15,7 +15,6 @@
           "description": "The path to the {{ component.name }}.",
           "uihints": {
             "ui:widget": "file",
-            "required": true,
             "extensions": {{ component.extensions|tojson }}
           }
         },
@@ -119,7 +118,9 @@
             "keyValueEntries": true
           }
         }
-      }
+      },
+      "required": ["filename"]
     }
-  }
+  },
+  "required": ["component_parameters"]
 }

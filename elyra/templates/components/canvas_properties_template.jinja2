@@ -88,9 +88,8 @@
             "ui:readonly": true
           }
         }
-      }
-    },
-    "required": [
+      },
+      "required": [
       {% for property in component.properties %}
         {% if property.required|lower %}
         "{{ property.ref }}"
@@ -99,7 +98,8 @@
             {% endif %}
           {% endif %}
       {% endfor %}
-    ]
+      ]
+    }
   },
   "required": ["component_parameters"]
 }

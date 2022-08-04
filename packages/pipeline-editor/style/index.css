@@ -433,6 +433,16 @@ span.bx--list-box__label {
   font-size: var(--jp-content-font-size2);
 }
 
+.elyra-PipelineEditor .errorIndicator {
+  width: 3px;
+  background: var(--jp-error-color1);
+  height: 100%;
+  position: absolute;
+  left: -3px;
+  bottom: 0px;
+  top: 0px;
+}
+
 .elyra-PipelineEditor .form-group.field {
   min-width: auto;
   width: 100%;
