@@ -9,7 +9,7 @@
       "id": "primary",
       "nodes": [
         {
-          "id": "{{uuid}}",
+          "id": "{{uuid-Notebook}}",
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
@@ -30,7 +30,7 @@
           }
         },
         {
-          "id": "{{uuid}}",
+          "id": "{{uuid-TestOperator1}}",
           "type": "execution_node",
           "op": "local-file-catalog:8371f5970c7b:TestOperator",
           "app_data": {
@@ -41,12 +41,12 @@
             "component_source": "{{component_source}}",
             "ui_data": {
               "label": "{{label}}",
-              "description": "Notebook file"
+              "description": "A test operator"
             }
           }
         },
         {
-          "id": "{{uuid}}",
+          "id": "{{uuid-DeriveFromTestOperator1}}",
           "type": "execution_node",
           "op": "local-file-catalog:8371f5970c7b:DeriveFromTestOperator",
           "app_data": {
@@ -57,7 +57,23 @@
             "component_source": "{{component_source}}",
             "ui_data": {
               "label": "{{label}}",
-              "description": "Notebook file"
+              "description": "An operator that derives from TestOperator"
+            }
+          }
+        },
+        {
+          "id": "{{uuid-DeriveFromTestOperator2}}",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:DeriveFromTestOperator",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "mounted_volumes": []
+            },
+            "component_source": "{{component_source}}",
+            "ui_data": {
+              "label": "{{label}}",
+              "description": "An operator that derives from TestOperator"
             }
           }
         }

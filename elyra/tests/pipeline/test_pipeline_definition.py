@@ -24,6 +24,7 @@ from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.tests.pipeline.util import _read_pipeline_resource
@@ -164,37 +165,67 @@ def test_propagate_pipeline_default_properties(monkeypatch):
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 
-    node = None
+    generic_node = None
+    custom_node_derive1 = None
+    custom_node_derive2 = None
+    custom_node_test = None
     for node in pipeline_definition.pipeline_nodes:
-        if node.op == "execute-notebook-node":  # assign the generic node to the node variable
-            break
-    assert node.get_component_parameter(pipeline_constants.ENV_VARIABLES) == kv_list_correct
-    assert node.get_component_parameter(kv_test_property_name) == kv_list_correct
+        if "Notebook" in node.id:
+            generic_node = node
+        elif "DeriveFromTestOperator1" in node.id:
+            custom_node_derive1 = node
+        elif "DeriveFromTestOperator2" in node.id:
+            custom_node_derive2 = node
+        elif "TestOperator1" in node.id:
+            custom_node_test = node
+
+    # Ensure that default properties have been propagated
+    assert generic_node.get_component_parameter(pipeline_constants.ENV_VARIABLES) == kv_list_correct
+    assert generic_node.get_component_parameter(kv_test_property_name) == kv_list_correct
+
+    # Ensure that runtime image and env vars are not propagated to custom components
+    assert custom_node_test.get_component_parameter(RUNTIME_IMAGE) is None
+    assert custom_node_derive1.get_component_parameter(RUNTIME_IMAGE) is None
+    assert custom_node_derive2.get_component_parameter(ENV_VARIABLES) is None
 
 
 @pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 def test_property_id_collision_with_system_property(monkeypatch, catalog_instance):
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
+
+    custom_node_derive1 = None
+    custom_node_derive2 = None
+    custom_node_test = None
     for node in pipeline_definition.pipeline_nodes:
-        if node.op.endswith(":DeriveFromTestOperator"):
-            # DeriveFromTestOperator does not define its own 'mounted_volumes'
-            # property and should not skip the Elyra 'mounted_volumes' property
-            assert MOUNTED_VOLUMES not in node.elyra_properties_to_skip
+        if "DeriveFromTestOperator1" in node.id:
+            custom_node_derive1 = node
+        elif "DeriveFromTestOperator2" in node.id:
+            custom_node_derive2 = node
+        elif "TestOperator1" in node.id:
+            custom_node_test = node
 
-            # Property value should be a combination of the lists given on the
-            # pipeline node and in the pipeline default properties
-            assert node.get_component_parameter(MOUNTED_VOLUMES) == [
-                VolumeMount(path="/mnt/vol2", pvc_name="pvc-claim-2"),
-                VolumeMount(path="/mnt/vol1", pvc_name="pvc-claim-1"),
-            ]
-        elif node.op.endswith(":TestOperator"):
-            # TestOperator defines its own 'mounted_volumes' property
-            # and should skip the Elyra system property of the same name
-            assert MOUNTED_VOLUMES in node.elyra_properties_to_skip
+    # DeriveFromTestOperator does not define its own 'mounted_volumes'
+    # property and should not skip the Elyra 'mounted_volumes' property
+    assert MOUNTED_VOLUMES not in custom_node_derive1.elyra_properties_to_skip
+    assert MOUNTED_VOLUMES not in custom_node_derive2.elyra_properties_to_skip
 
-            # Property value should be as-assigned in pipeline file
-            assert node.get_component_parameter(MOUNTED_VOLUMES) == "a component-parsed property"
+    # Property value should be a combination of the lists given on the
+    # pipeline node and in the pipeline default properties
+    assert custom_node_derive1.get_component_parameter(MOUNTED_VOLUMES) == [
+        VolumeMount(path="/mnt/vol2", pvc_name="pvc-claim-2"),
+        VolumeMount(path="/mnt/vol1", pvc_name="pvc-claim-1"),
+    ]
+    assert custom_node_derive2.get_component_parameter(MOUNTED_VOLUMES) == [
+        VolumeMount(path="/mnt/vol2", pvc_name="pvc-claim-2")
+    ]
+
+    # TestOperator defines its own 'mounted_volumes' property
+    # and should skip the Elyra system property of the same name
+    assert MOUNTED_VOLUMES in custom_node_test.elyra_properties_to_skip
+
+    # Property value should be as-assigned in pipeline file
+    assert custom_node_test.get_component_parameter(MOUNTED_VOLUMES) == "a component-parsed property"
 
 
 def test_remove_env_vars_with_matching_secrets(monkeypatch):
