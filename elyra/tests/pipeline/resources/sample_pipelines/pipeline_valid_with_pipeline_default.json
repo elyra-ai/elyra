@@ -41,7 +41,7 @@
             "component_source": "{{component_source}}",
             "ui_data": {
               "label": "{{label}}",
-              "description": "Notebook file"
+              "description": "A test operator"
             }
           }
         },
@@ -57,7 +57,7 @@
             "component_source": "{{component_source}}",
             "ui_data": {
               "label": "{{label}}",
-              "description": "Notebook file"
+              "description": "An operator that derives from TestOperator"
             }
           }
         },
@@ -73,7 +73,7 @@
             "component_source": "{{component_source}}",
             "ui_data": {
               "label": "{{label}}",
-              "description": "Notebook file"
+              "description": "An operator that derives from TestOperator"
             }
           }
         }
