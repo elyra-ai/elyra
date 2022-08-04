@@ -28,6 +28,7 @@ from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
 from kubernetes.client import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client import V1Toleration
 from kubernetes.client import V1Volume
 from kubernetes.client import V1VolumeMount
 
@@ -674,6 +675,21 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             container_op.add_volume_mount(
                                 V1VolumeMount(mount_path=volume_mount.path, name=volume_mount.pvc_name)
                             )
+
+                    # Add user-specified Kubernetes tolerations
+                    if operation.kubernetes_tolerations:
+                        unique_tolerations = []
+                        for toleration in operation.kubernetes_tolerations:
+                            if str(toleration) not in unique_tolerations:
+                                container_op.add_toleration(
+                                    V1Toleration(
+                                        effect=toleration.effect,
+                                        key=toleration.key,
+                                        operator=toleration.operator,
+                                        value=toleration.value,
+                                    )
+                                )
+                                unique_tolerations.append(str(toleration))
 
                     target_ops[operation.id] = container_op
                 except Exception as e:
