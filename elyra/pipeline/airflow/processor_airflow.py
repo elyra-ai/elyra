@@ -501,7 +501,7 @@ be fully qualified (i.e., prefixed with their package names).
                 "render_executor_config_for_custom_op": AirflowPipelineProcessor.render_executor_config_for_custom_op,
                 "render_secrets_for_generic_op": AirflowPipelineProcessor.render_secrets_for_generic_op,
                 "render_secrets_for_cos": AirflowPipelineProcessor.render_secrets_for_cos,
-                "render_tolerations_for_generic_op": AirflowPipelineProcessor.render_tolerations_for_generic_op,
+                "render_executor_config_for_generic_op": AirflowPipelineProcessor.render_executor_config_for_generic_op,
             }
             template.globals.update(rendering_functions)
 
@@ -674,6 +674,32 @@ be fully qualified (i.e., prefixed with their package names).
         return executor_config
 
     @staticmethod
+    def render_executor_config_for_generic_op(op: Dict) -> Dict[str, Dict[str, List]]:
+        """
+        Render tolerations defined for the specified generic op
+        for use in the Airflow DAG template
+
+        :returns: a dict defining the tolerations to be rendered in the DAG
+        """
+        executor_config = {"KubernetesExecutor": {}}
+
+        # Handle tolerations
+        if op.get("kubernetes_tolerations"):
+            executor_config["KubernetesExecutor"]["tolerations"] = []
+            for toleration in op.get("kubernetes_tolerations", []):
+                # Add Kubernetes toleration entry
+                executor_config["KubernetesExecutor"]["tolerations"].append(
+                    {
+                        "key": toleration.key,
+                        "operator": toleration.operator,
+                        "value": toleration.value,
+                        "effect": toleration.effect,
+                    }
+                )
+
+        return executor_config
+
+    @staticmethod
     def render_secrets_for_cos(cos_secret: str):
         """
         Render the Kubernetes secrets required for COS
@@ -732,38 +758,6 @@ be fully qualified (i.e., prefixed with their package names).
             """
 
             op["secret_vars"].append(var_name)
-        return dedent(str_to_render)
-
-    @staticmethod
-    def render_tolerations_for_generic_op(op: Dict) -> str:
-        """
-        Render Kubernetes tolerations defined for the specified generic op for use in
-        the Airflow DAG template
-
-        :returns: a string literal containing the python code to be rendered in the DAG
-        """
-        if not op.get("kubernetes_tolerations"):
-            return ""
-        op["toleration_vars"] = []  # store variable names in op's dict for template to access
-
-        # Add comment
-        str_to_render = f"""
-            # Kubernetes tolerations for operation '{op['id']}'"""
-
-        for idx, toleration in enumerate(op.get("kubernetes_tolerations", [])):
-            var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"toleration_{op['id']}_{idx}")
-
-            # Define toleration variables
-            str_to_render += f"""
-                {var_name} = {{
-                    "key": "{toleration.key}",
-                    "operator": "{toleration.operator}",
-                    "value": "{toleration.value}",
-                    "effect": "{toleration.effect}"
-                }}"""
-
-            op["toleration_vars"].append(var_name)
-
         return dedent(str_to_render)
 
 

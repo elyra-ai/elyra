@@ -27,7 +27,6 @@ dag = DAG(
 {% else %}
 {{ render_secrets_for_generic_op(operation) }}
 {{ render_volumes_for_generic_op(operation) }}
-{{ render_tolerations_for_generic_op(operation) }}
 
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 {% endif %}
@@ -75,7 +74,7 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                           volume_mounts=[{% for mount_var in operation.volume_mount_vars %}{{ mount_var }},{% endfor %}],
     {% endif %}
     {% if operation.kubernetes_tolerations %}
-                                                          tolerations=[{% for toleration_var in operation.toleration_vars %}{{ toleration_var }},{% endfor %}],
+                                                          executor_config={{ render_executor_config_for_generic_op(operation) }},
     {% endif %}    
                                                           in_cluster={{ in_cluster }},
                                                           config_file="{{ kube_config_path }}",
