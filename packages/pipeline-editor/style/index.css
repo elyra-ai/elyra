@@ -434,11 +434,11 @@ span.bx--list-box__label {
 }
 
 .elyra-PipelineEditor .errorIndicator {
-  width: 3px;
-  background: var(--jp-error-color1);
-  height: 100%;
+  width: 2px;
+  background: var(--jp-error-color0);
+  height: 92%;
   position: absolute;
-  left: -3px;
+  left: -2px;
   bottom: 0px;
   top: 0px;
 }
