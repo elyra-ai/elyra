@@ -243,7 +243,7 @@ async def test_get_pipeline_properties_definition(jp_fetch):
     # python3 -m pytest -v elyra/tests/pipeline/test_handlers.py
 
 # ========================================================================================================================
-async def test_get_pipeline_to_work(jp_fetch, monkeypatch):
+async def test_pipeline_success(jp_fetch, monkeypatch):
     # using util utility to read in pipeline data from Json
     request_body = {"pipeline": "body",
                     "export_format": "py",
@@ -263,7 +263,7 @@ async def test_get_pipeline_to_work(jp_fetch, monkeypatch):
     # Basic check for success code
     assert http_response.code == 201
 
-async def test_get_bad_pipeline_to_work(jp_fetch, monkeypatch):
+async def test_pipeline_failure(jp_fetch, monkeypatch):
     # Mock request to send, we dont actually need any of this info
     request_body = {"pipeline": "body",
                     "export_format": "py",
