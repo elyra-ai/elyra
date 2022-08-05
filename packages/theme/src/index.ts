@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { elyraIcon, helpIcon } from '@elyra/ui-components';
+import { elyraIcon, helpIcon, whatsNewIcon } from '@elyra/ui-components';
 import {
   ILabShell,
   JupyterFrontEnd,
@@ -162,7 +162,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
     commands.addCommand(CommandIDs.releases, {
       label: "What's new",
-      icon: helpIcon,
+      icon: whatsNewIcon,
       execute: (args: any) => {
         window.open('https://github.com/elyra-ai/elyra/releases', '_blank');
       }
