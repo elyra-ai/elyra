@@ -20,9 +20,11 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
+from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline import VolumeMount
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import PipelineDefinition
@@ -433,6 +435,61 @@ def test_invalid_node_property_volumes(validation_manager):
     assert issues[0]["data"]["propertyName"] == MOUNTED_VOLUMES
     assert issues[0]["data"]["nodeID"] == "test-id"
     assert "not a valid Kubernetes resource name" in issues[0]["message"]
+
+
+def test_valid_node_property_kubernetes_pod_annotation(validation_manager):
+    """
+    Validate that valid kubernetes pod annotation definitions are not flagged as invalid.
+    Constraints are documented in
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+    """
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    # The following annotations are valid
+    annotations = [
+        # parameters are key and value
+        KubernetesAnnotation("key", "value"),
+        KubernetesAnnotation("prefix/name", "value"),
+    ]
+    validation_manager._validate_kubernetes_pod_annotations(
+        node_id=node["id"], node_label=node["app_data"]["label"], annotations=annotations, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == 0, response.to_json()
+
+
+def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
+    """
+    Validate that valid kubernetes pod annotation definitions are not flagged as invalid.
+    Constraints are documented in
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+    """
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    # The following annotations are invalid
+    invalid_annotations = [
+        # parameters are key and value
+        KubernetesAnnotation("", ""),  # empty key
+    ]
+    expected_error_messages = [
+        "'' is not a valid Kubernetes annotation key.",
+    ]
+
+    # verify that the number of annotations in this test matches the number of error messages
+    assert len(invalid_annotations) == len(expected_error_messages), "Test setup error. "
+
+    validation_manager._validate_kubernetes_pod_annotations(
+        node_id=node["id"], node_label=node["app_data"]["label"], annotations=invalid_annotations, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == len(invalid_annotations), response.to_json()
+    index = 0
+    for issue in issues:
+        assert issue["type"] == "invalidKubernetesAnnotation"
+        assert issue["data"]["propertyName"] == KUBERNETES_POD_ANNOTATIONS
+        assert issue["data"]["nodeID"] == "test-id"
+        assert issue["message"] == expected_error_messages[index], f"Index is {index}"
+        index = index + 1
 
 
 def test_invalid_node_property_secrets(validation_manager):

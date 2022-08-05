@@ -546,6 +546,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     },
                     volume_mounts=operation.mounted_volumes,
                     kubernetes_secrets=operation.kubernetes_secrets,
+                    kubernetes_pod_annotations=operation.kubernetes_pod_annotations,
                 )
 
                 if operation.doc:
@@ -673,6 +674,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             container_op.add_volume_mount(
                                 V1VolumeMount(mount_path=volume_mount.path, name=volume_mount.pvc_name)
                             )
+
+                    # Add user-specified pod annotations
+                    if operation.kubernetes_pod_annotations:
+                        unique_annotations = []
+                        for annotation in operation.kubernetes_pod_annotations:
+                            if annotation.key not in unique_annotations:
+                                container_op.add_pod_annotation(annotation.key, annotation.value)
+                                unique_annotations.append(annotation.key)
 
                     target_ops[operation.id] = container_op
                 except Exception as e:

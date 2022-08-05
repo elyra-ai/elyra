@@ -51,3 +51,34 @@ def is_valid_kubernetes_key(name: str) -> bool:
         return False
 
     return re.match(r"^[\w\-_.]+$", name) is not None
+
+
+def is_valid_annotation_key(key: str) -> bool:
+    """
+    Returns a truthy value indicating whether name meets the kubernetes
+    naming constraints for annotation keys, as outlined in the link below.
+
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+    """
+    if key is None or (len(key) == 0) or (len(key) > 253 + 1 + 63):
+        return False
+
+    parts = key.split("/")
+    if len(parts) == 1:
+        prefix = ""
+        name = parts[0]
+    elif len(parts) == 2:
+        prefix = parts[0]
+        name = parts[1]
+    else:
+        return False
+
+    # validate prefix
+    if len(prefix) > 0 and not is_valid_kubernetes_resource_name(prefix):
+        return False
+
+    # validate name
+    if len(name) > 63 or not name[0].isalnum() or not name[-1].isalnum():
+        return False
+
+    return re.match(r"^[\w\-_.]+$", name) is not None

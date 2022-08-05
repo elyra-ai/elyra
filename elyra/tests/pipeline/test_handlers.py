@@ -220,4 +220,5 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             {"id": "elyra_env_vars"},
             {"id": "elyra_kubernetes_secrets"},
             {"id": "elyra_mounted_volumes"},
+            {"id": "elyra_kubernetes_pod_annotations"},
         ]
