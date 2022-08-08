@@ -660,15 +660,10 @@ be fully qualified (i.e., prefixed with their package names).
 
         # Handle annotations
         if op.get("kubernetes_pod_annotations"):
-            executor_config["KubernetesExecutor"]["pod_override"] = []
+            executor_config["KubernetesExecutor"]["annotations"] = {}
             for annotation in op.get("kubernetes_pod_annotations", []):
                 # Add Kubernetes annotation entry
-                executor_config["KubernetesExecutor"]["pod_override"].append(
-                    {
-                        "key": annotation.key,
-                        "value": annotation.value,
-                    }
-                )
+                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
 
         return executor_config
 
@@ -683,15 +678,10 @@ be fully qualified (i.e., prefixed with their package names).
 
         # Handle annotations
         if op.get("kubernetes_pod_annotations"):
-            executor_config["KubernetesExecutor"]["pod_override"] = []
+            executor_config["KubernetesExecutor"]["annotations"] = {}
             for annotation in op.get("kubernetes_pod_annotations", []):
                 # Add Kubernetes annotation entry
-                executor_config["KubernetesExecutor"]["pod_override"].append(
-                    {
-                        "key": annotation.key,
-                        "value": annotation.value,
-                    }
-                )
+                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
 
         return executor_config
 
