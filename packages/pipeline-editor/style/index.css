@@ -429,6 +429,10 @@ span.bx--list-box__label {
   display: none;
 }
 
+.elyra-PipelineEditor .form-group.field.field-integer {
+  width: 30%;
+}
+
 .elyra-PipelineEditor .elyra-formEditor .label-header.category-header {
   font-size: var(--jp-content-font-size2);
 }
