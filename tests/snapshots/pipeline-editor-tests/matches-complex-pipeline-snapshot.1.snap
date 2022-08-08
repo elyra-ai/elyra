@@ -25,6 +25,7 @@ Object {
               ],
               "filename": "producer.ipynb",
               "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
@@ -81,6 +82,7 @@ Object {
               "env_vars": Array [],
               "filename": "consumer.ipynb",
               "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
@@ -136,6 +138,7 @@ Object {
               "env_vars": Array [],
               "filename": "../scripts/setup.py",
               "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
@@ -189,6 +192,7 @@ Object {
               "env_vars": Array [],
               "filename": "create-source-files.py",
               "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
@@ -245,6 +249,7 @@ Object {
               "env_vars": Array [],
               "filename": "producer-script.py",
               "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
