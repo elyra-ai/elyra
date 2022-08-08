@@ -43,11 +43,26 @@ Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
   --cos_password=minioadmin \
   --cos_bucket=test-bucket';
 
+ 
   cy.exec(
     type === 'kfp' ? kfpRuntimeInstallCommand : airflowRuntimeInstallCommand,
     { failOnNonZeroExit: false }
   );
 });
+
+
+const brokenAirFlowRunTimeInstallCommand =
+'elyra-metadata create runtimes \
+--schema_name=airflow \
+--display_name="Airflow Test Runtime" \
+--api_endpoint=https://kubernetes-service.ibm.com/pipeline \
+--github_repo=akchinstc/test-repo \
+--github_branch=main \
+--github_repo_token=xxxxxxxx \
+--github_api_endpoint=https://api.github.com \
+--cos_endpoint=http://0.0.0.0:9000 \
+--cos_bucket=test-bucket';
+
 
 // Only used for testing filling out form for runtime metadata editor
 Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
@@ -81,8 +96,12 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   }
 
   cy.findByLabelText(/object storage endpoint/i).type('http://0.0.0.0:9000');
+
+  if(type !== 'broken') {
   cy.findByLabelText(/object storage username/i).type('minioadmin');
   cy.findByLabelText(/object storage password/i).type('minioadmin');
+  }
+  
   cy.findByLabelText(/object storage bucket/i).type('test-bucket');
 
   // save it

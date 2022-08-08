@@ -586,17 +586,29 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
+  //error dialog tests
   it('airflow pipeline should display expected export options', () => {
-    cy.createPipeline({ type: 'airflow' });
+    cy.createPipeline({ type: 'kfp' });
     cy.savePipeline();
 
-    cy.installRuntimeConfig({ type: 'airflow' });
+    cy.installRuntimeConfig({ type: 'kfp' });
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
-    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
-    cy.findByRole('option', { name: /yaml/i }).should('not.exist');
+    cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
+    cy.findByRole('option', { name: /python/i }).should('not.exist');
 
+    // Dismiss dialog
+    cy.findByRole('button', { name: /cancel/i }).click();
+  });
+
+  it('kfp pipeline should display error dialog if username and password are not filled in', () => {
+    cy.createPipeline({ type: 'airflow' });
+    cy.savePipeline();
+
+    cy.createRuntimeConfig({ type: 'broken' });
+    cy.get('.jp-Dialog-header').contains('Error making request');
+  
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();
   });
