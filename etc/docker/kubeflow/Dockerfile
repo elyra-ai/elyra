@@ -29,11 +29,11 @@ ARG ELYRA_EXTRAS=[kfp-tekton,kfp-examples]
 # Includes the readme as a token file for COPY that always exists, otherwise production builds fail when whl not present
 COPY README.md ${ELYRA_PACKAGE}* ./
 
+# Update pip
+RUN python3 -m pip install --upgrade pip
+
 # Install Elyra
-RUN if [ "$TAG" = "dev" ] ; then \
-    python -m pip install --quiet --no-cache-dir "${ELYRA_PACKAGE}${ELYRA_EXTRAS}" ; \
-    else \
-    python -m pip install --quiet --no-cache-dir "elyra${ELYRA_EXTRAS}"=="$TAG" ; fi
+RUN python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE""$ELYRA_EXTRAS"
 
 # Cleanup
 USER root

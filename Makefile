@@ -29,6 +29,9 @@
 
 SHELL:=/bin/bash
 
+# Container execs
+CONTAINER_EXEC=docker
+
 # Python execs
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
@@ -38,6 +41,7 @@ CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda act
 
 ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
 TAG:=dev
+IMAGE_IS_LATEST=True
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
 ELYRA_IMAGE_ENV?=elyra-image-env
@@ -255,10 +259,8 @@ elyra-image: # Build Elyra stand-alone container image
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
 	@mkdir -p build/docker/elyra
-	if [ "$(TAG)" == "dev" ]; then \
-		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/; \
-  	fi
-	docker buildx build \
+	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/
+	$(CONTAINER_EXEC) buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(ELYRA_IMAGE) \
@@ -269,25 +271,21 @@ elyra-image: # Build Elyra stand-alone container image
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
-	docker push docker.io/$(ELYRA_IMAGE)
-	docker push quay.io/$(ELYRA_IMAGE)
-	# If we're building an official release, tag latest and push
-	if [ "$(TAG)" != "dev" ]; then \
-		if [ "$(shell git describe --tag)" == "v${TAG}" ]; then \
-			docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
-			docker push docker.io/$(ELYRA_IMAGE_LATEST); \
-			docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
-			docker push quay.io/$(ELYRA_IMAGE_LATEST); \
-		fi \
+	$(CONTAINER_EXEC) push docker.io/$(ELYRA_IMAGE)
+	$(CONTAINER_EXEC) push quay.io/$(ELYRA_IMAGE)
+	# If we're building a release from main, tag latest and push
+	if [ "$(IMAGE_IS_LATEST)" == "True" ]; then \
+		$(CONTAINER_EXEC) tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) push docker.io/$(ELYRA_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) push quay.io/$(ELYRA_IMAGE_LATEST); \
 	fi
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
 	cp etc/docker/kubeflow/* build/docker-kubeflow/
-	if [ "$(TAG)" == "dev" ]; then \
-		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/; \
-  	fi
-	docker buildx build \
+	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/
+	$(CONTAINER_EXEC) buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
@@ -298,23 +296,21 @@ kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 
 publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server
 	# this is a privileged operation; a `docker login` might be required
-	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
-	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
-	# If we're building an official release, tag latest and push
-	if [ "$(TAG)" != "dev" ]; then \
-		if [ "$(shell git describe --tag)" == "v${TAG}" ]; then \
-			docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-			docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-			docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-			docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		fi \
+	$(CONTAINER_EXEC) push docker.io/$(KF_NOTEBOOK_IMAGE)
+	$(CONTAINER_EXEC) push quay.io/$(KF_NOTEBOOK_IMAGE)
+	# If we're building a release from main, tag latest and push
+	if [ "$(IMAGE_IS_LATEST)" == "True" ]; then \
+		$(CONTAINER_EXEC) tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 	fi
 
 container-images: elyra-image kf-notebook-image ## Build all container images
-	docker images $(ELYRA_IMAGE)
-	docker images quay.io/$(ELYRA_IMAGE)
-	docker images $(KF_NOTEBOOK_IMAGE)
-	docker images quay.io/$(KF_NOTEBOOK_IMAGE)
+	$(CONTAINER_EXEC) images $(ELYRA_IMAGE)
+	$(CONTAINER_EXEC) images quay.io/$(ELYRA_IMAGE)
+	$(CONTAINER_EXEC) images $(KF_NOTEBOOK_IMAGE)
+	$(CONTAINER_EXEC) images quay.io/$(KF_NOTEBOOK_IMAGE)
 
 publish-container-images: publish-elyra-image publish-kf-notebook-image ## Publish all container images
 
