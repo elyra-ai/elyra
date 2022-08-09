@@ -26,12 +26,13 @@ from typing import Optional
 from urllib.parse import urlparse
 import zipfile
 
-from requests import get
+from requests import session
 from requests.auth import HTTPBasicAuth
 
 from elyra.pipeline.catalog_connector import AirflowEntryData
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.catalog_connector import EntryData
+from elyra.util.url import FileTransportAdapter
 
 
 class AirflowPackageCatalogConnector(ComponentCatalogConnector):
@@ -74,20 +75,22 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
             )
             return operator_key_list
 
-        # determine whether authentication needs to be performed
-        auth_id = catalog_metadata.get("auth_id")
-        auth_password = catalog_metadata.get("auth_password")
-        if auth_id and auth_password:
-            auth = HTTPBasicAuth(auth_id, auth_password)
-        elif auth_id or auth_password:
-            self.log.error(
-                f"Error. Airflow connector '{catalog_metadata.get('display_name')}' "
-                "is not configured properly. "
-                "Authentication requires a user id and password or API key."
-            )
-            return operator_key_list
-        else:
-            auth = None
+        pr = urlparse(airflow_package_download_url)
+        auth = None
+
+        if pr.scheme != "file":
+            # determine whether authentication needs to be performed
+            auth_id = catalog_metadata.get("auth_id")
+            auth_password = catalog_metadata.get("auth_password")
+            if auth_id and auth_password:
+                auth = HTTPBasicAuth(auth_id, auth_password)
+            elif auth_id or auth_password:
+                self.log.error(
+                    f"Error. Airflow connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
+                    "Authentication requires a user id and password or API key."
+                )
+                return operator_key_list
 
         # tmp_archive_dir is used to store the downloaded archive and as working directory
         if hasattr(self, "tmp_archive_dir"):
@@ -100,7 +103,10 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             # download archive; abort after 30 seconds
             try:
-                response = get(
+                requests_session = session()
+                if pr.scheme == "file":
+                    requests_session.mount("file://", FileTransportAdapter())
+                response = requests_session.get(
                     airflow_package_download_url,
                     timeout=AirflowPackageCatalogConnector.REQUEST_TIMEOUT,
                     allow_redirects=True,
