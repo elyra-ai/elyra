@@ -46,7 +46,7 @@ Prior to version 3.1, the `elyra` package included all dependencies. Subsequent 
 If you use `pip`, install Elyra with:
 
 ```bash
-pip3 install --upgrade elyra[all]
+pip3 install --upgrade "elyra[all]"
 ```
 
 If desired, you can install these Elyra extensions independently:
@@ -80,13 +80,19 @@ If desired, you can install these Elyra extensions independently:
    ```bash
    pip3 install --upgrade elyra-r-editor-extension
    ```
+  
+- [Scala Editor](https://pypi.org/project/elyra-scala-editor-extension/)
+
+   ```bash
+   pip3 install --upgrade elyra-scala-editor-extension
+   ```
 
 ### conda
 
 If you use `conda`, install Elyra with:
 
 ```bash
-conda install -c conda-forge elyra[all]
+conda install -c conda-forge "elyra[all]"
 ```
 
 **NOTE:**
@@ -189,6 +195,7 @@ JupyterLab [version]
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK
+        @elyra/scala-editor-extension [version] enabled OK
         @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
         @jupyterlab/git [version] enabled OK (python, jupyterlab-git)

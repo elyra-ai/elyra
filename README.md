@@ -223,6 +223,7 @@ JupyterLab [version]
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK
+        @elyra/scala-editor-extension [version] enabled OK
         @elyra/r-editor-extension [version] enabled OK
         @elyra/theme-extension [version] enabled OK
         @jupyterlab/git [version] enabled OK (python, jupyterlab-git)

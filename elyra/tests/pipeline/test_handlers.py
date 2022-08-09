@@ -87,6 +87,23 @@ async def test_get_components(jp_fetch):
     assert payload == palette
 
 
+async def test_get_components_runtime_name_vs_type(jp_fetch, caplog):
+    # Ensure deprecation warning appears when querying endpoint with shorthand runtime name
+    runtime_name = "kfp"
+    response = await jp_fetch("elyra", "pipeline", "components", runtime_name)
+    assert response.code == 200
+    assert "Deprecation warning: when calling endpoint" in caplog.text
+    caplog.clear()
+
+    # Ensure no deprecation warning appears when using runtime type name. The type
+    # is case-insensitive, e.g., a runtime type can use either lowercase 'local' or
+    # uppercase 'LOCAL'
+    runtime_type = RuntimeProcessorType.LOCAL  # use LOCAL runtime type
+    response = await jp_fetch("elyra", "pipeline", "components", runtime_type.name.lower())  # fetch with 'local'
+    assert response.code == 200
+    assert "Deprecation warning: when calling endpoint" not in caplog.text
+
+
 async def test_get_component_properties_config(jp_fetch):
     # Ensure all valid component_entry properties can be found
     runtime_type = RuntimeProcessorType.LOCAL
