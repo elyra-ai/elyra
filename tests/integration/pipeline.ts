@@ -586,23 +586,22 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  //error dialog tests
   it('airflow pipeline should display expected export options', () => {
-    cy.createPipeline({ type: 'kfp' });
+    cy.createPipeline({ type: 'airflow' });
     cy.savePipeline();
 
-    cy.installRuntimeConfig({ type: 'kfp' });
+    cy.installRuntimeConfig({ type: 'airflow' });
 
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
-    cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
-    cy.findByRole('option', { name: /python/i }).should('not.exist');
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
+    cy.findByRole('option', { name: /yaml/i }).should('not.exist');
 
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  it('kfp pipeline should display error dialog if username and password are not filled in', () => {
+  it('airflow pipeline should display error dialog if username and password are not filled in', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.savePipeline();
 
