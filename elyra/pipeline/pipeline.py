@@ -107,7 +107,7 @@ class Operation(object):
             and isinstance(param_volumes, list)
             and (len(param_volumes) == 0 or isinstance(param_volumes[0], VolumeMount))
         ):
-            # The mounted_volumes property is the Elyra system property (ie, not defined in the component
+            # The mounted_volumes property is an Elyra system property (ie, not defined in the component
             # spec) and must be removed from the component_params dict
             self._mounted_volumes = self._component_params.pop(MOUNTED_VOLUMES, [])
 

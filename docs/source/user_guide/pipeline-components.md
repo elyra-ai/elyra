@@ -79,7 +79,7 @@ To help you get started with custom components, the Elyra community has selected
 
 Whether or not your Elyra includes the example components depends on how you deployed it:
 - The community maintained [pre-built container images](getting_started.html#docker) have the example component catalogs for Kubeflow Pipelines pre-installed and enabled. The components are ready to use in the pipeline editor.
-- All-inclusive stand-alone installations (e.g. `pip install elyra[all]`) include the example components. However, the catalog must be explicitly added to the palette.
+- All-inclusive stand-alone installations (e.g. `pip install "elyra[all]"`) include the example components. However, the catalog must be explicitly added to the palette.
 - Core-only installations (e.g. `pip install elyra`) do not include the example components. The example catalog must be separately installed and explicitly added to the palette. 
 
 **Installing and enabling the component examples catalogs**

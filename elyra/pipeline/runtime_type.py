@@ -45,7 +45,7 @@ class RuntimeProcessorType(Enum):
 
         Raises KeyError if parameter is not a name in the enumeration.
         """
-        return RuntimeProcessorType.__members__[name]
+        return RuntimeProcessorType.__members__[name.upper()]
 
     @staticmethod
     def get_instance_by_value(value: str) -> "RuntimeProcessorType":

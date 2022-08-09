@@ -42,7 +42,10 @@ def processor(monkeypatch, setup_factory_data):
     processor = AirflowPipelineProcessor(root_dir=os.getcwd())
 
     # Add spoofed TestOperator to class import map
-    class_import_map = {"TestOperator": "from airflow.operators.test_operator import TestOperator"}
+    class_import_map = {
+        "TestOperator": "from airflow.operators.test_operator import TestOperator",
+        "DeriveFromTestOperator": "from airflow.operators.test_operator import DeriveFromTestOperator",
+    }
     monkeypatch.setattr(processor, "class_import_map", class_import_map)
     return processor
 
@@ -305,7 +308,13 @@ def test_create_file_custom_components(
 
         # For every node in the original pipeline json
         for node in pipeline_json["pipelines"][0]["nodes"]:
-            component_parameters = node["app_data"]["component_parameters"]
+            for op_id, op in parsed_pipeline.operations.items():
+                if op_id == node["id"]:
+                    # Component parameters must be compared with those on the Operation
+                    # object rather than those given in the pipeline JSON, since property
+                    # propagation in PipelineDefinition can result in changed parameters
+                    component_parameters = op.component_params
+                    break
             for i in range(len(file_as_lines)):
                 # Matches custom component operators
                 if f"op_{node['id'].replace('-', '_')} = " in file_as_lines[i]:
@@ -319,6 +328,7 @@ def test_create_file_custom_components(
         op_id = "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
         op_params = parsed_ordered_dict[op_id].get("component_params", {})
         expected_params = {
+            "mounted_volumes": '"a component-defined property"',
             "str_no_default": "\"echo 'test one'\"",
             "bool_no_default": True,
             "unusual_type_list": [1, 2],

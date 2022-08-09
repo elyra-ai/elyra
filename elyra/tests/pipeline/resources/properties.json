@@ -132,8 +132,7 @@
           "placement": "on_panel"
         },
         "data": {
-          "minimum": 0,
-          "maximum": 99
+          "minimum": 0
         }
       },
       {
@@ -148,8 +147,7 @@
           "placement": "on_panel"
         },
         "data": {
-          "minimum": 0,
-          "maximum": 99
+          "minimum": 0
         }
       },
       {

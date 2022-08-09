@@ -31,6 +31,7 @@ import pyIconSvg from '../style/icons/py-logo.svg';
 import rIconSvg from '../style/icons/r-logo.svg';
 import runtimesSvg from '../style/icons/runtimes.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
+import scalaIconSvg from '../style/icons/scala-logo.svg';
 import tagIconSvg from '../style/icons/tag.svg';
 import trashIconSvg from '../style/icons/trashIcon.svg';
 import viewOffIconSvg from '../style/icons/view--off.svg';
@@ -100,6 +101,10 @@ export const rIcon = new LabIcon({
 export const pyIcon = new LabIcon({
   name: 'elyra:pyIcon',
   svgstr: pyIconSvg
+});
+export const scalaIcon = new LabIcon({
+  name: 'elyra:scalaIcon',
+  svgstr: scalaIconSvg
 });
 export const viewIcon = new LabIcon({
   name: 'elyra:view',
