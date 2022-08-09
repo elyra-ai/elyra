@@ -61,17 +61,19 @@ You can also try Elyra by running one of the container images from [Docker Hub](
 - `elyra/elyra:latest` has the latest released version installed.
 - `elyra/elyra:x.y.z` has a specific version installed.
 
-The command below starts the most recent official release in a clean environment:
+Note: You can also [build a container image from the `main` branch ("dev build")](https://github.com/elyra-ai/elyra/tree/main/etc/docker/elyra) to try out features that have not been released yet.  
+
+To run one of the container images, issue the following command, specifying a tag of your choice.
 
 ```
-docker run -it -p 8888:8888 elyra/elyra:latest jupyter lab
+docker run -it -p 8888:8888 elyra/elyra:dev jupyter lab --debug
 ```
 
 To make a local directory containing your Notebooks (e.g. ${HOME}/opensource/jupyter-notebooks/) available in your
 docker container, you can use a mount command similar to the following:
 
 ```
-docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:latest jupyter lab
+docker run -it -p 8888:8888 -v ${HOME}/opensource/jupyter-notebooks/:/home/jovyan/work -w /home/jovyan/work elyra/elyra:dev jupyter lab --debug
 ```
 
 These should produce output similar to that below, where you can then find the URL to be used to access Elyra in your local browser.
@@ -85,8 +87,6 @@ These should produce output similar to that below, where you can then find the U
 ```
 
 Refer to the [installation documentation](https://elyra.readthedocs.io/en/stable/getting_started/installation.html#docker) for details.
-
-Note: To build a container image from the `main` branch ("dev build") or a customized version, follow the instructions for [the stand-alone image](https://github.com/elyra-ai/elyra/tree/main/etc/docker/elyra) or the [Kubeflow Notebook Server image](https://github.com/elyra-ai/elyra/tree/main/etc/docker/kubeflow). 
 
 ## Installation
 
