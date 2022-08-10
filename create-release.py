@@ -35,8 +35,8 @@ config: SimpleNamespace
 
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
-DEFAULT_GIT_ORG = "elyra-ai"
-DEFAULT_GIT_BRANCH = "main"
+DEFAULT_GIT_ORG = "akchinstc"
+DEFAULT_GIT_BRANCH = "launcher-tile"
 DEFAULT_BUILD_DIR = "build/release"
 
 
@@ -146,7 +146,7 @@ def update_version_to_release() -> None:
         sed(
             _source("packages/theme/src/index.ts"),
             r"What's new in latest",
-            rf"What's new in v{new_version}/",
+            rf"What's new in v{new_version}",
         )
 
         sed(
@@ -306,7 +306,7 @@ def update_version_to_dev() -> None:
         sed(
             _source("packages/theme/src/index.ts"),
             rf"https://github.com/elyra-ai/elyra/releases/v{new_version}/",
-            rf"https://github.com/elyra-ai/elyra/releases/",
+            rf"https://github.com/elyra-ai/elyra/releases/latest/",
         )
 
         sed(
