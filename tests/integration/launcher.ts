@@ -50,7 +50,7 @@ describe('Elyra launcher is in use', () => {
       '.jp-LauncherCard[data-category="Elyra"][title="Documentation"]:visible'
     );
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="What\'s new"]:visible'
+      '.jp-LauncherCard[data-category="Elyra"][title="What\'s new in latest"]:visible'
     );
   });
 });
