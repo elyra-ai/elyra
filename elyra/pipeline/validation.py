@@ -32,6 +32,7 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import DataClassJSONEncoder
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import Operation
@@ -39,6 +40,7 @@ from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
@@ -47,6 +49,7 @@ from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_kubernetes_key
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_expanded_path
@@ -422,6 +425,7 @@ class PipelineValidationManager(SingletonConfigurable):
         volumes = node.get_component_parameter(MOUNTED_VOLUMES)
         secrets = node.get_component_parameter(KUBERNETES_SECRETS)
         tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
+        annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
 
         self._validate_filepath(
             node_id=node.id, node_label=node_label, property_name="filename", filename=filename, response=response
@@ -447,6 +451,8 @@ class PipelineValidationManager(SingletonConfigurable):
                 self._validate_kubernetes_secrets(node.id, node_label, secrets, response=response)
             if tolerations:
                 self._validate_kubernetes_tolerations(node.id, node_label, tolerations, response=response)
+            if annotations:
+                self._validate_kubernetes_pod_annotations(node.id, node_label, annotations, response=response)
 
         self._validate_label(node_id=node.id, node_label=node_label, response=response)
         if dependencies:
@@ -498,6 +504,10 @@ class PipelineValidationManager(SingletonConfigurable):
         tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
         if tolerations and KUBERNETES_TOLERATIONS not in node.elyra_properties_to_skip:
             self._validate_kubernetes_tolerations(node.id, node.label, tolerations, response=response)
+
+        annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
+        if annotations and KUBERNETES_POD_ANNOTATIONS not in node.elyra_properties_to_skip:
+            self._validate_kubernetes_pod_annotations(node.id, node.label, annotations, response=response)
 
         for default_parameter in current_parameter_defaults_list:
             node_param = node.get_component_parameter(default_parameter)
@@ -783,6 +793,32 @@ class PipelineValidationManager(SingletonConfigurable):
                         "nodeName": node_label,
                         "propertyName": KUBERNETES_TOLERATIONS,
                         "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
+                    },
+                )
+
+    def _validate_kubernetes_pod_annotations(
+        self, node_id: str, node_label: str, annotations: List[KubernetesAnnotation], response: ValidationResponse
+    ) -> None:
+        """
+        Checks the format of the user-provided annotations to ensure they're in the correct form
+        e.g. annotation_key=annotation_value
+        :param node_id: the unique ID of the node
+        :param node_label: the given node name or user customized name/label of the node
+        :param annotations: a KeyValueList of annotations to check
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        for annotation in annotations:
+            # Ensure the annotation key is valid
+            if not is_valid_annotation_key(annotation.key):
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesAnnotation",
+                    message=f"'{annotation.key}' is not a valid Kubernetes annotation key.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_POD_ANNOTATIONS,
+                        "value": KeyValueList.to_str(annotation.key, annotation.value),
                     },
                 )
 

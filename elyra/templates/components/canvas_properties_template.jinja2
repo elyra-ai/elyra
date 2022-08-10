@@ -31,6 +31,9 @@
 {% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
       "elyra_kubernetes_tolerations": [],
 {% endif %}
+{% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+      "elyra_kubernetes_pod_annotations": [],
+{% endif %}
       "component_source": {{ component.component_source|tojson|safe }}
     },
     "parameters": [
@@ -53,6 +56,11 @@
 {% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
       {
         "id": "elyra_kubernetes_tolerations"
+      },
+{% endif %}
+{% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+      {
+        "id": "elyra_kubernetes_pod_annotations"
       },
 {% endif %}
       {
@@ -180,6 +188,25 @@
           }
         },
 {% endif %}
+{% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+        {
+          "parameter_ref": "elyra_kubernetes_pod_annotations",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Kubernetes Pod Annotations"
+          },
+          "description": {
+           "default": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "required": false,
+            "placeholder": "annotation_key=annotation_value",
+            "keyValueEntries": true
+          }
+        },
+{% endif %}
         {
           "parameter_ref": "component_source",
           "control": "readonly",
@@ -242,7 +269,8 @@
             },
     {% endfor %}
 {% endif %}
-{% if "mounted_volumes" not in elyra_property_collisions_list %}
+{% if (("mounted_volumes" not in elyra_property_collisions_list) or
+       ("kubernetes_pod_annotations" not in elyra_property_collisions_list)) %}
             {
               "id": "elyra_other_propertiesCategoryHeader",
               "type": "textPanel",
@@ -255,6 +283,8 @@
                 "placement": "on_panel"
               }
             },
+{% endif %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
             {
               "id": "elyra_mounted_volumes",
               "type": "controls",
@@ -266,6 +296,13 @@
               "id": "elyra_kubernetes_tolerations",
               "type": "controls",
               "parameter_refs": ["elyra_kubernetes_tolerations"]
+            },
+{% endif %}
+{% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+            {
+              "id": "elyra_kubernetes_pod_annotations",
+              "type": "controls",
+              "parameter_refs": ["elyra_kubernetes_pod_annotations"]
             },
 {% endif %}
             {

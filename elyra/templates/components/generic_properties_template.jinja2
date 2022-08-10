@@ -10,6 +10,7 @@
       "elyra_env_vars": [],
       "elyra_kubernetes_secrets": [],
       "elyra_kubernetes_tolerations": [],
+      "elyra_kubernetes_pod_annotations": [],
       "elyra_dependencies": [],
       "elyra_include_subdirectories": false,
       "elyra_mounted_volumes": []
@@ -47,6 +48,9 @@
       },
       {
         "id": "elyra_kubernetes_tolerations"
+      },
+      {
+        "id": "elyra_kubernetes_pod_annotations"
       },
       {
         "id": "elyra_outputs"
@@ -132,8 +136,7 @@
             "placement": "on_panel"
           },
           "data": {
-            "minimum": 0,
-            "maximum": 99
+            "minimum": 0
           }
         },
         {
@@ -148,8 +151,7 @@
             "placement": "on_panel"
           },
           "data": {
-            "minimum": 0,
-            "maximum": 99
+            "minimum": 0
           }
         },
         {
@@ -259,6 +261,22 @@
             "placeholder": "TOL_ID=key:operator:value:effect",
             "keyValueEntries": true
           }
+        },
+        {
+          "parameter_ref": "elyra_kubernetes_pod_annotations",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Kubernetes Pod Annotations"
+          },
+          "description": {
+           "default": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "placeholder": "annotation_key=annotation_value",
+            "keyValueEntries": true
+          }
         }
       ],
       "group_info": [
@@ -320,6 +338,11 @@
               "id": "elyra_kubernetes_tolerations",
               "type": "controls",
               "parameter_refs": ["elyra_kubernetes_tolerations"]
+            },
+            {
+              "id": "elyra_kubernetes_pod_annotations",
+              "type": "controls",
+              "parameter_refs": ["elyra_kubernetes_pod_annotations"]
             }
           ]
         }

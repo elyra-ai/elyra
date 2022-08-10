@@ -335,6 +335,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "volumes": operation.mounted_volumes,
                     "secrets": operation.kubernetes_secrets,
                     "kubernetes_tolerations": operation.kubernetes_tolerations,
+                    "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
                 }
 
                 if runtime_image_pull_secret is not None:
@@ -449,6 +450,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "doc": operation.doc,
                     "volumes": operation.mounted_volumes,
                     "kubernetes_tolerations": operation.kubernetes_tolerations,
+                    "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
                 }
 
                 target_ops.append(target_op)
@@ -671,15 +673,22 @@ be fully qualified (i.e., prefixed with their package names).
                     }
                 )
 
+        # Handle annotations
+        if op.get("kubernetes_pod_annotations"):
+            executor_config["KubernetesExecutor"]["annotations"] = {}
+            for annotation in op.get("kubernetes_pod_annotations", []):
+                # Add Kubernetes annotation entry
+                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
+
         return executor_config
 
     @staticmethod
     def render_executor_config_for_generic_op(op: Dict) -> Dict[str, Dict[str, List]]:
         """
-        Render tolerations defined for the specified generic op
+        Render tolerations and annotations defined for the specified generic op
         for use in the Airflow DAG template
 
-        :returns: a dict defining the tolerations to be rendered in the DAG
+        :returns: a dict defining the tolerations and annotations to be rendered in the DAG
         """
         executor_config = {"KubernetesExecutor": {}}
 
@@ -696,6 +705,13 @@ be fully qualified (i.e., prefixed with their package names).
                         "effect": toleration.effect,
                     }
                 )
+
+        # Handle annotations
+        if op.get("kubernetes_pod_annotations"):
+            executor_config["KubernetesExecutor"]["annotations"] = {}
+            for annotation in op.get("kubernetes_pod_annotations", []):
+                # Add Kubernetes annotation entry
+                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
 
         return executor_config
 

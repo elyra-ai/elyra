@@ -16,9 +16,9 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# Running Elyra in an air gapped environment
+# Running Elyra in an air-gapped environment
 
-This document outlines how to prepare an air gapped environment for Elyra.
+ Elyra requires access to resources that are commonly located in remote environments. Deployment of Elyra in an [air-gapped environment](https://en.wikipedia.org/wiki/Air_gap_(networking)) (a network environment that is physically separated from other environments, public or private) therefore requires additional considerations. This document identifies resources that must be made available to successfully install and run Elyra in such an environment.
 
 ## Installation dependencies
 

@@ -39,7 +39,7 @@ op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
         {% for param, value in operation.component_params.items() %}
                                                            {{ param }}={{ value }},
         {% endfor %}
-        {% if operation.volumes or operation.kubernetes_tolerations %}
+        {% if operation.volumes or operation.kubernetes_tolerations or operation.kubernetes_pod_annotations %}
                                                             executor_config={{ render_executor_config_for_custom_op(operation) }},
         {% endif %}
 {% else %}
@@ -73,9 +73,9 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                           volumes=[{% for volume_var in operation.volume_vars %}{{ volume_var }},{% endfor %}],
                                                           volume_mounts=[{% for mount_var in operation.volume_mount_vars %}{{ mount_var }},{% endfor %}],
     {% endif %}
-    {% if operation.kubernetes_tolerations %}
+    {% if operation.kubernetes_tolerations or operation.kubernetes_pod_annotations %}
                                                           executor_config={{ render_executor_config_for_generic_op(operation) }},
-    {% endif %}    
+    {% endif %}
                                                           in_cluster={{ in_cluster }},
                                                           config_file="{{ kube_config_path }}",
     {% endif %}

@@ -27,12 +27,14 @@ from jinja2 import Undefined
 
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
@@ -448,6 +450,16 @@ class Node(AppDataBase):
 
             self.set_component_parameter(KUBERNETES_TOLERATIONS, tolerations_objects)
 
+        kubernetes_pod_annotations = self.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
+        if kubernetes_pod_annotations and isinstance(kubernetes_pod_annotations, KeyValueList):
+            annotations_objects = []
+            for annotation_key, annotation_value in kubernetes_pod_annotations.to_dict().items():
+                # Validation should have verified that the provided values are valid
+                # Create a KubernetesAnnotation class instance and add to list
+                annotations_objects.append(KubernetesAnnotation(annotation_key, annotation_value))
+
+            self.set_component_parameter(KUBERNETES_POD_ANNOTATIONS, annotations_objects)
+
 
 class PipelineDefinition(object):
     """
@@ -635,6 +647,10 @@ class PipelineDefinition(object):
 
             for property_name, pipeline_default_value in pipeline_default_properties.items():
                 if not pipeline_default_value:
+                    continue
+
+                if not Operation.is_generic_operation(node.op) and property_name not in ELYRA_COMPONENT_PROPERTIES:
+                    # Do not propagate default properties that do not apply to custom components, e.g. runtime image
                     continue
 
                 node_value = node.get_component_parameter(property_name)

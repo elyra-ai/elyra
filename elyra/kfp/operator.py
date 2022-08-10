@@ -33,6 +33,7 @@ from kubernetes.client.models import V1Volume
 from kubernetes.client.models import V1VolumeMount
 
 from elyra._version import __version__
+from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import VolumeMount
@@ -94,6 +95,7 @@ class ExecuteFileOp(ContainerOp):
         volume_mounts: Optional[List[VolumeMount]] = None,
         kubernetes_secrets: Optional[List[KubernetesSecret]] = None,
         kubernetes_tolerations: Optional[List[KubernetesToleration]] = None,
+        kubernetes_pod_annotations: Optional[List[KubernetesAnnotation]] = None,
         **kwargs,
     ):
         """Create a new instance of ContainerOp.
@@ -120,6 +122,7 @@ class ExecuteFileOp(ContainerOp):
           volume_mounts: data volumes to be mounted
           kubernetes_secrets: secrets to be made available as environment variables
           kubernetes_tolerations: Kubernetes tolerations to be added to the pod
+          kubernetes_pod_annotations: annotations to be applied to the pod
           kwargs: additional key value pairs to pass e.g. name, image, sidecars & is_exit_handler.
                   See Kubeflow pipelines ContainerOp definition for more parameters or how to use
                   https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.ContainerOp
@@ -151,6 +154,7 @@ class ExecuteFileOp(ContainerOp):
         self.kubernetes_tolerations = (
             kubernetes_tolerations  # optional Kubernetes tolerations to be attached to the pod
         )
+        self.kubernetes_pod_annotations = kubernetes_pod_annotations  # optional annotations
 
         argument_list = []
 
@@ -274,7 +278,7 @@ class ExecuteFileOp(ContainerOp):
                     )
                 )
 
-        # add user-defined tolerations
+        # add user-provided tolerations
         if self.kubernetes_tolerations:
             for toleration in self.kubernetes_tolerations:
                 self.add_toleration(
@@ -285,6 +289,11 @@ class ExecuteFileOp(ContainerOp):
                         value=toleration.value,
                     )
                 )
+
+        # add user-provided annotations to pod
+        if self.kubernetes_pod_annotations:
+            for annotation in self.kubernetes_pod_annotations:
+                self.add_pod_annotation(annotation.key, annotation.value)
 
         # If crio volume size is found then assume kubeflow pipelines environment is using CRI-o as
         # its container runtime

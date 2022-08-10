@@ -87,7 +87,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
 
     def is_valid_runtime_type(self, runtime_type_name: str) -> bool:
         for processor in self._processors.values():
-            if processor.type.name == runtime_type_name:
+            if processor.type.name == runtime_type_name.upper():
                 return True
         return False
 

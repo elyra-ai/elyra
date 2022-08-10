@@ -84,6 +84,11 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
            - A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the component is executed.
            - Format: `TOL_ID=key:operator:value:effect`. Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of the values for `key`, `operator`, `value`, and `effect`. `TOL_ID` can be any unique identifier, such as `tol_1`. It's value is only used internally by Elyra.
            - Tolerations are ignored when the pipeline is executed locally.
+         - **Kubernetes pod annotations** 
+           - A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
+           - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
+           - Annotations are ignored when the pipeline is executed locally.
+
       - Properties that apply to every generic pipeline node. In this release the following properties are supported:
         - **Object storage path prefix**. Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
           ![artifacts default storage layout on object storage](../images/user_guide/pipelines/node-artifacts-on-object-storage.png)
@@ -157,11 +162,16 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
    - Data volumes are not mounted when the pipeline is executed locally.   
    - Example: `/mnt/vol1=data-pvc`
 
-   **Kubernetes tolerations**
+   **Kubernetes Tolerations**
    - Optional. A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the component is executed.
    - Format: `TOL_ID=key:operator:value:effect`. Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of the values for `key`, `operator`, `value`, and `effect`.
    - Tolerations are ignored when the pipeline is executed locally.
    - Example: `TOL_1=my-key:Exists::NoExecute` 
+
+   **Kubernetes Pod Annotations** 
+   - Optional. A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
+   - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
+   - Annotations are ignored when the pipeline is executed locally.   
 
 5. Associate each node with a comment to document its purpose.
 

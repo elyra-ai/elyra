@@ -82,6 +82,7 @@ uninstall-src: # Uninstalls source extensions if they're still installed
 	- jupyter labextension uninstall --no-build @elyra/pipeline-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/python-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/r-editor-extension
+	- jupyter labextension uninstall --no-build @elyra/scala-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/code-viewer-extension
 	- jupyter labextension unlink --no-build @elyra/pipeline-services
 	- jupyter labextension unlink --no-build @elyra/pipeline-editor

@@ -431,11 +431,11 @@ def test_parse_kfp_component_file_no_inputs():
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Properties JSON should only include the four parameters common to every
-    # component ('label', 'component_source', 'mounted_volumes', and 'kubernetes_tolerations'),
-    # the component description if it exists (which it does for this component), and
-    # the output parameter for this component
-    num_common_params = 6
-    assert len(properties_json["current_parameters"].keys()) == num_common_params
+    # component ('label', 'component_source', 'mounted_volumes', 'kubernetes_pod_annotations',
+    # and 'kubernetes_tolerations'), the component description if it exists (which it does for
+    # this component), and the output parameter for this component
+    num_common_params = 7
+    assert len(properties_json["current_parameters"].keys()) == num_common_params, properties_json["current_parameters"]
     assert len(properties_json["parameters"]) == num_common_params
     assert len(properties_json["uihints"]["parameter_info"]) == num_common_params
 

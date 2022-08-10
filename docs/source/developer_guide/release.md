@@ -26,6 +26,7 @@ In order to perform a release, one will need to have publish access to
   - [elyra](https://pypi.org/manage/project/elyra/collaboration/)
   - [elyra-server](https://pypi.org/manage/project/elyra-server/collaboration/)
   - [elyra-r-editor-extension](https://pypi.org/manage/project/elyra-r-editor-extension/collaboration/)
+  - [elyra-scala-editor-extension](https://pypi.org/manage/project/elyra-scala-editor-extension/collaboration/)
   - [elyra-python-editor-extension](https://pypi.org/manage/project/elyra-python-editor-extension/collaboration/)
   - [elyra-pipeline-editor-extension](https://pypi.org/manage/project/elyra-pipeline-editor-extension/collaboration/)
   - [elyra-code-snippet-extension](https://pypi.org/manage/project/elyra-code-snippet-extension/collaboration/)
@@ -163,6 +164,7 @@ elyra-code-viewer-extension
 elyra-pipeline-editor-extension
 elyra-python-editor-extension
 elyra-r-editor-extension
+elyra-scala-editor-extension
 ```
 - Test the release
   - Run multiple scenarios, to make sure each extension is working ok
