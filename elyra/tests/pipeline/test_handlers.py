@@ -55,6 +55,7 @@ def _async_return(result):
     f.set_result(result)
     return f
 
+
 def _get_resource_path(filename):
     resource_path = os.path.join(os.path.dirname(__file__), "resources", "components", filename)
     resource_path = os.path.normpath(resource_path)
@@ -219,57 +220,25 @@ async def test_get_pipeline_properties_definition(jp_fetch):
         ]
 
 
-#async def test_get_pipeline_to_work(jp_fetch, monkeypatch):
-    # using util utility to read in pipeline data from Json
-    # body = _read_pipeline_resource("resources/sample_pipelines/pipeline_with_airflow_components.json")
-    # json_body = {
-    #   "pipeline": "body",
-    #   "export_format": "py",
-    #   "export_path": "test.py",
-    #   "overwrite": True }
-    # request_body = json.dumps(json_body, indent=4)
-    
-    # validation_response = ValidationResponse()
-    # monkeypatch.setattr(PipelineValidationManager, "validate", lambda pipeline: validation_response)
-    # monkeypatch.setattr(PipelineParser, "parse", lambda x: "Dummy_Data")
-    # monkeypatch.setattr(PipelineProcessorManager, "export", lambda x, y, z, aa: "test.py")
-
-    # # I can send it over the wire with jp_fetch
-    # r = await jp_fetch("elyra", "pipeline", "export", body=request_body, method="POST")
-    # response_dict = json.loads(r)
-    # assert response_dict["export_path"] == "test.py"
-
-    # you can also use "pytest -v -k test_get_pipeline_to_work" to just run that one test
-    # python3 -m pytest -v elyra/tests/pipeline/test_handlers.py
-
-# ========================================================================================================================
 async def test_pipeline_success(jp_fetch, monkeypatch):
-    # using util utility to read in pipeline data from Json
-    request_body = {"pipeline": "body",
-                    "export_format": "py",
-                    "export_path": "test.py",
-                    "overwrite": True
-                    }
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
 
     monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(ValidationResponse()))
     monkeypatch.setattr(PipelineParser, "parse", lambda x, y: "Dummy_Data")
     monkeypatch.setattr(PipelineProcessorManager, "export", lambda x, y, z, aa, bb: _async_return("test.py"))
 
     json_body = json.dumps(request_body)
-    
+
     # I can send it over the wire with jp_fetch
     http_response = await jp_fetch("elyra", "pipeline", "export", body=json_body, method="POST")
-    # Standard response number for successful http request was fuffiled and successful resource was created
+    # Standard response number for successful http request was fulfilled and successful resource was created
     # Basic check for success code
     assert http_response.code == 201
 
+
 async def test_pipeline_failure(jp_fetch, monkeypatch):
     # Mock request to send, we dont actually need any of this info
-    request_body = {"pipeline": "body",
-                    "export_format": "py",
-                    "export_path": "test.py",
-                    "overwrite": True
-                    }
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
 
     # Create a response that will trigger the fatal code path
     bad_validation_response = ValidationResponse()
@@ -278,27 +247,20 @@ async def test_pipeline_failure(jp_fetch, monkeypatch):
     monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(bad_validation_response))
 
     json_body = json.dumps(request_body)
-    
+
     # Will raise HTTP error so we need to catch with pytest
     with pytest.raises(HTTPClientError):
         await jp_fetch("elyra", "pipeline", "export", body=json_body, method="POST")
 
+
 async def test_validation_handler(jp_fetch, monkeypatch):
-    # using util utility to read in pipeline data from Json
-    request_body = {"pipeline": "body",
-                    "export_format": "py",
-                    "export_path": "test.py",
-                    "overwrite": True
-                    }
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
 
     monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(ValidationResponse()))
 
     json_body = json.dumps(request_body)
-    
+
     # I can send it over the wire with jp_fetch
     http_response = await jp_fetch("elyra", "pipeline", "validate", body=json_body, method="POST")
     # Standard response number for successful http request
     assert http_response.code == 200
-
-    # you can also use "pytest -v -k test_get_pipeline_to_work" to just run that one test
-    # python3 -m pytest -v elyra/tests/pipeline/test_handlers.py
