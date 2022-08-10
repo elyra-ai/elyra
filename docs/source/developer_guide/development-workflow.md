@@ -83,7 +83,11 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     [GNU Make](https://www.gnu.org/software/make/)
 
     To verify the installation, run `make`. 
-    Check with the output written below in [Build and Installation](#build-installation) to confirm that you have correctly installed `make`.
+    If you have yet to [set up the repository](#setting-up-your-development-environment), you should see a message like the following:
+    ```
+    make: *** No targets specified and no makefile found.  Stop.
+    ```
+    Once the repository is set up, running `make` from that location should display the available tasks that are listed in the [Build & Installation](#build-installation) section below.
 
 ### Setting up your Elyra Github repository
 
