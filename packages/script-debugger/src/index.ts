@@ -62,9 +62,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       }
 
       const kernelSelection = (widget as ScriptEditor).kernelSelection;
-      const debuggerAvailable = await widget.isDebuggerAvailable(
-        kernelSelection
-      );
+      const debuggerAvailable = await widget.debuggerAvailable(kernelSelection);
 
       if (!debuggerAvailable) {
         return;

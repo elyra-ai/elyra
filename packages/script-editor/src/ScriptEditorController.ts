@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Toolbar, ToolbarButton } from '@jupyterlab/apputils';
 import { KernelSpec, KernelSpecManager } from '@jupyterlab/services';
 
 export class ScriptEditorController {
@@ -75,8 +76,27 @@ export class ScriptEditorController {
   /**
    * Return value of debugger boolean property from the kernel spec of a given name.
    */
-  isDebuggerAvailable = async (kernelName: string | ''): Promise<boolean> => {
+  debuggerAvailable = async (kernelName: string | ''): Promise<boolean> => {
     const specs = await this.getKernelSpecsByName(kernelName);
     return !!(specs?.kernelspecs[kernelName]?.metadata?.['debugger'] ?? false);
+  };
+
+  /**
+   * Return true if debugger state is enabled.
+   * TODO: Implement a better way to check this state that is not through the UI.
+   */
+  debuggerEnabled = (toolbar: Toolbar): boolean => {
+    const childrenIt = toolbar.children();
+    for (let child = childrenIt.next(); child; child = childrenIt.next()) {
+      const button = child as ToolbarButton;
+      if (
+        button.node.children[0]?.className?.match(/debugger/i) &&
+        button.pressed
+      ) {
+        // debugger is enabled
+        return true;
+      }
+    }
+    return false;
   };
 }

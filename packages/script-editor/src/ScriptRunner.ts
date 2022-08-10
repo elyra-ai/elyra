@@ -71,7 +71,8 @@ export class ScriptRunner {
     kernelName: string | null,
     contextPath: string,
     code: string,
-    handleKernelMsg: (msgOutput: any) => void
+    handleKernelMsg: (msgOutput: any) => void,
+    debuggerEnabled: boolean
   ): Promise<any> => {
     if (!kernelName) {
       this.disableButton(true);
@@ -130,7 +131,11 @@ export class ScriptRunner {
 
       try {
         await future.done;
-        this.shutdownSession();
+        // Keep session open if debug is on
+        if (!debuggerEnabled) {
+          this.shutdownSession();
+        }
+        this.disableButton(false);
       } catch (e) {
         console.log('Exception: done = ' + JSON.stringify(e));
       }
@@ -167,7 +172,6 @@ export class ScriptRunner {
       const name = this.sessionConnection.kernel?.name;
 
       try {
-        this.disableButton(false);
         await this.sessionConnection.shutdown();
         this.sessionConnection = null;
         console.log(name + ' kernel shut down');
