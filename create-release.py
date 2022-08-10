@@ -830,6 +830,7 @@ def publish_release(working_dir) -> None:
     check_run(["make", "publish-container-images", f"IMAGE_IS_LATEST={is_latest}"], cwd=config.source_dir)
     check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
 
+
 def initialize_config(args=None) -> SimpleNamespace:
     if not args:
         raise ValueError("Invalid command line arguments")
