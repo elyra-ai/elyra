@@ -433,6 +433,12 @@ span.bx--list-box__label {
   width: 30%;
 }
 
+.elyra-PipelineEditor .array-pipelineDefaults.form-control {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--jp-border-color3);
+}
+
 .elyra-PipelineEditor .elyra-formEditor .label-header.category-header {
   font-size: var(--jp-content-font-size2);
 }
