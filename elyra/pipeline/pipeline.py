@@ -25,6 +25,7 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
@@ -110,6 +111,17 @@ class Operation(object):
             # spec) and must be removed from the component_params dict
             self._mounted_volumes = self._component_params.pop(MOUNTED_VOLUMES, [])
 
+        self._kubernetes_pod_annotations = []
+        param_annotations = component_params.get(KUBERNETES_POD_ANNOTATIONS)
+        if (
+            param_annotations is not None
+            and isinstance(param_annotations, list)
+            and (len(param_annotations) == 0 or isinstance(param_annotations[0], KubernetesAnnotation))
+        ):
+            # The kubernetes_pod_annotations property is an Elyra system property (ie, not defined in the component
+            # spec) and must be removed from the component_params dict
+            self._kubernetes_pod_annotations = self._component_params.pop(KUBERNETES_POD_ANNOTATIONS, [])
+
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
         self._component_params["outputs"] = Operation._scrub_list(component_params.get("outputs", []))
@@ -157,6 +169,10 @@ class Operation(object):
     @property
     def mounted_volumes(self) -> List["VolumeMount"]:
         return self._mounted_volumes
+
+    @property
+    def kubernetes_pod_annotations(self) -> List["KubernetesAnnotation"]:
+        return self._kubernetes_pod_annotations
 
     @property
     def inputs(self) -> Optional[List[str]]:
@@ -547,6 +563,12 @@ class KubernetesSecret:
     env_var: str
     name: str
     key: str
+
+
+@dataclass
+class KubernetesAnnotation:
+    key: str
+    value: str
 
 
 class DataClassJSONEncoder(json.JSONEncoder):

@@ -7,7 +7,8 @@
     "elyra_runtime_image": null,
     "elyra_env_vars": [],
     "elyra_kubernetes_secrets": [],
-    "elyra_mounted_volumes": []
+    "elyra_mounted_volumes": [],
+    "elyra_kubernetes_pod_annotations": []
   },
   "parameters": [
     {
@@ -33,7 +34,10 @@
     },
     {
       "id": "elyra_mounted_volumes"
-    }
+    },
+    {
+      "id": "elyra_kubernetes_pod_annotations"
+    }    
   ],
   "uihints": {
     "id": "nodeProperties",
@@ -134,6 +138,22 @@
           "placeholder": "/mount/path=pvc-name",
           "keyValueEntries": true
         }
+      },
+      {
+        "parameter_ref": "elyra_kubernetes_pod_annotations",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Kubernetes Pod Annotations"
+        },
+        "description": {
+          "default": "Metadata to be added to all nodes. The metadata is exposed as annotations in the Kubernetes pods that execute the nodes.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "annotation_key=annotation_value",
+          "keyValueEntries": true
+        }
       }
     ],
     "group_info": [
@@ -177,6 +197,11 @@
             "id": "elyra_mounted_volumes",
             "type": "controls",
             "parameter_refs": ["elyra_mounted_volumes"]
+          },
+          {
+            "id": "elyra_kubernetes_pod_annotations",
+            "type": "controls",
+            "parameter_refs": ["elyra_kubernetes_pod_annotations"]
           },
           {
             "id": "elyra_generic_nodesCategoryHeader",

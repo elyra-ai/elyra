@@ -27,11 +27,13 @@ from jinja2 import Undefined
 
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
@@ -433,6 +435,16 @@ class Node(AppDataBase):
                 secret_objects.append(KubernetesSecret(env_var_name, secret_name.strip(), secret_key))
 
             self.set_component_parameter(KUBERNETES_SECRETS, secret_objects)
+
+        kubernetes_pod_annotations = self.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
+        if kubernetes_pod_annotations and isinstance(kubernetes_pod_annotations, KeyValueList):
+            annotations_objects = []
+            for annotation_key, annotation_value in kubernetes_pod_annotations.to_dict().items():
+                # Validation should have verified that the provided values are valid
+                # Create a KubernetesAnnotation class instance and add to list
+                annotations_objects.append(KubernetesAnnotation(annotation_key, annotation_value))
+
+            self.set_component_parameter(KUBERNETES_POD_ANNOTATIONS, annotations_objects)
 
 
 class PipelineDefinition(object):
