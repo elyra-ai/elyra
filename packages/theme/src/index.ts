@@ -161,10 +161,13 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     });
 
     commands.addCommand(CommandIDs.releases, {
-      label: "What's new",
+      label: "What's new in latest",
       icon: whatsNewIcon,
       execute: (args: any) => {
-        window.open('https://github.com/elyra-ai/elyra/releases', '_blank');
+        window.open(
+          'https://github.com/elyra-ai/elyra/releases/latest/',
+          '_blank'
+        );
       }
     });
 
