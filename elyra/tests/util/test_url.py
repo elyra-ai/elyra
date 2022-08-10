@@ -29,7 +29,7 @@ def test_valid_file_url():
 
     # utilize the test source code as resource
     this_file = __file__
-    url = f"file://{this_file}"
+    url = Path(this_file).as_uri()
     res = requests_session.get(url)
     assert res.status_code == 200, this_file
     with open(this_file, "r") as source:
@@ -51,21 +51,21 @@ def test_invalid_file_url():
     this_file_p = Path(__file__)
 
     # requested resource is a directory
-    url = f"file://{this_file_p.parent}"
+    url = this_file_p.parent.as_uri()
     res = requests_session.get(url)
     assert res.status_code == 400, url
     assert res.reason == "Not a file"
     assert len(res.text) == 0
 
     # requested resource wasn't found
-    url = f"file://{this_file_p.resolve().with_name('no-such-file')}"
+    url = this_file_p.resolve().with_name("no-such-file").as_uri()
     res = requests_session.get(url)
     assert res.status_code == 404, url
     assert res.reason == "File not found"
     assert len(res.text) == 0
 
     # request method is not supported
-    url = f"file://{this_file_p}"
+    url = this_file_p.as_uri()
     unsupported_methods = [
         requests_session.delete,
         requests_session.head,
