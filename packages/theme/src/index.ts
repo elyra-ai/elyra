@@ -162,6 +162,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
     commands.addCommand(CommandIDs.releases, {
       label: "What's new in latest",
+      caption: "What's new in this release",
       icon: whatsNewIcon,
       execute: (args: any) => {
         window.open(

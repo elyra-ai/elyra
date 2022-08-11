@@ -35,8 +35,8 @@ config: SimpleNamespace
 
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
-DEFAULT_GIT_ORG = "akchinstc"
-DEFAULT_GIT_BRANCH = "launcher-tile"
+DEFAULT_GIT_ORG = "elyra-ai"
+DEFAULT_GIT_BRANCH = "main"
 DEFAULT_BUILD_DIR = "build/release"
 
 
