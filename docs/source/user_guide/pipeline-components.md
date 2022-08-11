@@ -59,7 +59,7 @@ Elyra includes connectors for the following component catalog types:
 
    Example: A directory component catalog that is configured using the `/users/jdoe/kubeflow_components/test` path makes all component files in that directory available to Elyra.
 
- - [_URL component catalogs_](#url-component-catalog) provide access to components that are stored on the web and can be retrieved using anonymous HTTP `GET` requests.
+ - [_URL component catalogs_](#url-component-catalog) provide access to components that are stored on the web and can be retrieved using HTTP `GET` requests.
 
     Example: A URL component catalog that is configured using the `http://myserver:myport/mypath/my_component.yaml` URL makes the `my_component.yaml` component file available to Elyra.
 
@@ -395,36 +395,62 @@ Examples (CLI):
 
 The URL component catalog connector provides access to components that are stored on the web:
 - You can specify one or more URL resources.
-- The specified URLs must be retrievable using an HTTP `GET` request.
+- The specified URLs must be retrievable using an HTTP `GET` request. `http`, `https`, and `file` [URI schemes](https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml) are supported.
 - If the resources are secured, provide credentials, such as a user id and password or API key.
 
 Examples (GUI):
- - `https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml`
+ - HTTPS URL
+   ```
+   https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml
+   ```
+ - Local file URL
+   ```
+   file:///absolute/path/to/component.yaml
+   ```
 
 Examples (CLI):
- - `['https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']`
- - `['<URL_1>','<URL_2>']`
+ - HTTPS URL
+   ```
+   ['https://raw.githubusercontent.com/elyra-ai/examples/main/component-catalog-connectors/kfp-example-components-connector/kfp_examples_connector/resources/filter_text_using_shell_and_grep.yaml']
+   ```
+ - Local file URL
+   ```
+   ['file:///absolute/path/to/component.yaml']
+   ```
+ - Multiple URLs
+   ```
+   ['<URL_1>','<URL_2>']
+   ```
 
 
 #### Apache Airflow package catalog
 
 The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/package_catalog_connector) provides access to operators that are stored in Apache Airflow [built distributions](https://packaging.python.org/en/latest/glossary/#term-built-distribution):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
-- The specified URL must be retrievable using an HTTP `GET` request.
+- The specified URL must be retrievable using an HTTP `GET` request. `http`, `https`, and `file` [URI schemes](https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml) are supported.
 
 Examples:
  - [Apache Airflow](https://pypi.org/project/apache-airflow/) (v1.10.15): 
    ```
    https://files.pythonhosted.org/packages/f0/3a/f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/apache_airflow-1.10.15-py2.py3-none-any.whl
+   ```
+ - Local copy of a downloaded Apache Airflow package
+   ```
+   file:///absolute/path/to/apache_airflow-1.10.15-py2.py3-none-any.whl
    ``` 
 
 #### Apache Airflow provider package catalog
 The [Apache Airflow provider package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/provider_package_catalog_connector) provides access to operators that are stored in [Apache Airflow provider packages](https://airflow.apache.org/docs/apache-airflow-providers/):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
-- The specified URL must be retrievable using an HTTP `GET` request.
+- The specified URL must be retrievable using an HTTP `GET` request. `http`, `https`, and `file` [URI schemes](https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml) are supported.
 
 Examples:
  - [apache-airflow-providers-http](https://airflow.apache.org/docs/apache-airflow-providers-http/stable/index.html) (v2.0.2): 
    ```
    https://files.pythonhosted.org/packages/a1/08/91653e9f394cbefe356ac07db809be7e69cc89b094379ad91d6cef3d2bc9/apache_airflow_providers_http-2.0.2-py3-none-any.whl
+   ```
+
+ - Local copy of a downloaded provider package
+   ```
+   file:///absolute/path/to/apache_airflow_providers_http-2.0.2-py3-none-any.whl
    ```
