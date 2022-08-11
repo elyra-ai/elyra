@@ -405,7 +405,7 @@ Examples (GUI):
    ```
  - Local file URL
    ```
-   file://local/path/to/component.yaml
+   file:///absolute/path/to/component.yaml
    ```
 
 Examples (CLI):
@@ -415,7 +415,7 @@ Examples (CLI):
    ```
  - Local file URL
    ```
-   ['file://local/path/to/component.yaml']
+   ['file:///absolute/path/to/component.yaml']
    ```
  - Multiple URLs
    ```
@@ -436,7 +436,7 @@ Examples:
    ```
  - Local copy of a downloaded Apache Airflow package
    ```
-   file:///local/path/to/apache_airflow-1.10.15-py2.py3-none-any.whl
+   file:///absolute/path/to/apache_airflow-1.10.15-py2.py3-none-any.whl
    ``` 
 
 #### Apache Airflow provider package catalog
@@ -452,5 +452,5 @@ Examples:
 
  - Local copy of a downloaded provider package
    ```
-   file:///local/path/to/apache_airflow_providers_http-2.0.2-py3-none-any.whl
+   file:///absolute/path/to/apache_airflow_providers_http-2.0.2-py3-none-any.whl
    ```
