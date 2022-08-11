@@ -65,7 +65,8 @@ class ComponentParameter(object):
         :param description: A description of the property for display
         :param items: For properties with a control of 'EnumControl', the items making up the enum
         :param required: Whether the property is required
-        :param allow_no_options: TODO
+        :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
+            define output properties to be selected as input to this node parameter
         """
 
         if not id:
