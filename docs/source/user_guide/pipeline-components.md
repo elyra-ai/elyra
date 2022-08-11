@@ -436,7 +436,7 @@ Examples:
    ```
  - Local copy of a downloaded Apache Airflow package
    ```
-   file://local/path/to/apache_airflow-1.10.15-py2.py3-none-any.whl
+   file:///local/path/to/apache_airflow-1.10.15-py2.py3-none-any.whl
    ``` 
 
 #### Apache Airflow provider package catalog
