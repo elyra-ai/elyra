@@ -334,6 +334,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "doc": operation.doc,
                     "volumes": operation.mounted_volumes,
                     "secrets": operation.kubernetes_secrets,
+                    "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
                 }
 
                 if runtime_image_pull_secret is not None:
@@ -380,7 +381,7 @@ be fully qualified (i.e., prefixed with their package names).
                     self.log.debug(f"Active property name : {active_property_name}, value : {property_value}")
                     self.log.debug(
                         f"Processing component parameter '{component_property.name}' "
-                        f"of type '{component_property.json_data_type}'"
+                        f"of type '{component_property.data_type}'"
                     )
 
                     if (
@@ -395,14 +396,14 @@ be fully qualified (i.e., prefixed with their package names).
                         )
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.json_data_type == "string":
+                    elif component_property.data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
                         operation.component_params[component_property.ref] = json.dumps(property_value)
-                    elif component_property.json_data_type == "object":
+                    elif component_property.data_type == "dictionary":
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.json_data_type == "array":
+                    elif component_property.data_type == "list":
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
                     else:  # booleans and numbers can be rendered as-is
@@ -444,8 +445,10 @@ be fully qualified (i.e., prefixed with their package names).
                     "parent_operation_ids": operation.parent_operation_ids,
                     "component_params": operation.component_params_as_dict,
                     "operator_source": component.component_source,
-                    "is_generic_operator": False,
+                    "is_generic_operator": operation.is_generic,
                     "doc": operation.doc,
+                    "volumes": operation.mounted_volumes,
+                    "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
                 }
 
                 target_ops.append(target_op)
@@ -498,6 +501,7 @@ be fully qualified (i.e., prefixed with their package names).
                 "render_executor_config_for_custom_op": AirflowPipelineProcessor.render_executor_config_for_custom_op,
                 "render_secrets_for_generic_op": AirflowPipelineProcessor.render_secrets_for_generic_op,
                 "render_secrets_for_cos": AirflowPipelineProcessor.render_secrets_for_cos,
+                "render_executor_config_for_generic_op": AirflowPipelineProcessor.render_executor_config_for_generic_op,
             }
             template.globals.update(rendering_functions)
 
@@ -635,18 +639,49 @@ be fully qualified (i.e., prefixed with their package names).
 
         :returns: a dict defining the volumes and mounts to be rendered in the DAG
         """
-        executor_config = {"KubernetesExecutor": {"volumes": [], "volume_mounts": []}}
-        for volume in op.get("volumes", []):
-            # Define volumes and volume mounts
-            executor_config["KubernetesExecutor"]["volumes"].append(
-                {
-                    "name": volume.pvc_name,
-                    "persistentVolumeClaim": {"claimName": volume.pvc_name},
-                }
-            )
-            executor_config["KubernetesExecutor"]["volume_mounts"].append(
-                {"mountPath": volume.path, "name": volume.pvc_name, "read_only": False}
-            )
+
+        executor_config = {"KubernetesExecutor": {}}
+
+        # Handle volume mounts
+        if op.get("volumes"):
+            executor_config["KubernetesExecutor"]["volumes"] = []
+            executor_config["KubernetesExecutor"]["volume_mounts"] = []
+            for volume in op.get("volumes", []):
+                # Add volume and volume mount entry
+                executor_config["KubernetesExecutor"]["volumes"].append(
+                    {
+                        "name": volume.pvc_name,
+                        "persistentVolumeClaim": {"claimName": volume.pvc_name},
+                    }
+                )
+                executor_config["KubernetesExecutor"]["volume_mounts"].append(
+                    {"mountPath": volume.path, "name": volume.pvc_name, "read_only": False}
+                )
+
+        # Handle annotations
+        if op.get("kubernetes_pod_annotations"):
+            executor_config["KubernetesExecutor"]["annotations"] = {}
+            for annotation in op.get("kubernetes_pod_annotations", []):
+                # Add Kubernetes annotation entry
+                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
+
+        return executor_config
+
+    @staticmethod
+    def render_executor_config_for_generic_op(op: Dict) -> Dict[str, Dict[str, List]]:
+        """
+        Render annotations defined for the specified generic op
+        for use in the Airflow DAG template
+        :returns: a dict defining the annotations to be rendered in the DAG
+        """
+        executor_config = {"KubernetesExecutor": {}}
+
+        # Handle annotations
+        if op.get("kubernetes_pod_annotations"):
+            executor_config["KubernetesExecutor"]["annotations"] = {}
+            for annotation in op.get("kubernetes_pod_annotations", []):
+                # Add Kubernetes annotation entry
+                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
 
         return executor_config
 

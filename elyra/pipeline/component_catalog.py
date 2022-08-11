@@ -676,13 +676,18 @@ class ComponentCache(SingletonConfigurable):
             # Determine which component properties parsed from the definition
             # collide with Elyra-defined properties (in the case of a collision,
             # only the parsed property will be displayed)
-            template_vars["elyra_property_collisions_list"] = []
+            property_collisions_list = []
             for param in component.properties:
                 if param.ref in ELYRA_COMPONENT_PROPERTIES:
-                    template_vars["elyra_property_collisions_list"].append(param.ref)
+                    property_collisions_list.append(param.ref)
 
-            template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
+            template_vars["elyra_property_collisions_list"] = property_collisions_list
+
+            if len(property_collisions_list) != len(ELYRA_COMPONENT_PROPERTIES):
+                template_vars["additional_properties_apply"] = True
+
             template_vars["render_parameter_details"] = ComponentParameter.render_parameter_details
+            template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
 
         template.globals.update(template_vars)
         canvas_properties = template.render(component=component)

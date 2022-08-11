@@ -26,10 +26,11 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from urllib.parse import urlparse
 
 from deprecation import deprecated
 from jupyter_core.paths import ENV_JUPYTER_PATH
-from requests import get
+from requests import session
 from requests.auth import HTTPBasicAuth
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import default
@@ -40,6 +41,7 @@ from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.util.url import FileTransportAdapter
 
 
 class EntryData(object):
@@ -636,24 +638,28 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
             individual catalog entries
         """
         url = catalog_entry_data.get("url")
+        pr = urlparse(url)
+        auth = None
 
-        # determine whether authentication needs to be performed
-        auth_id = catalog_metadata.get("auth_id")
-        auth_password = catalog_metadata.get("auth_password")
-        if auth_id and auth_password:
-            auth = HTTPBasicAuth(auth_id, auth_password)
-        elif auth_id or auth_password:
-            self.log.error(
-                f"Error. URL catalog connector '{catalog_metadata.get('display_name')}' "
-                "is not configured properly. "
-                "Authentication requires a user id and password or API key."
-            )
-            return None
-        else:
-            auth = None
+        if pr.scheme != "file":
+            # determine whether authentication needs to be performed
+            auth_id = catalog_metadata.get("auth_id")
+            auth_password = catalog_metadata.get("auth_password")
+            if auth_id and auth_password:
+                auth = HTTPBasicAuth(auth_id, auth_password)
+            elif auth_id or auth_password:
+                self.log.error(
+                    f"Error. URL catalog connector '{catalog_metadata.get('display_name')}' "
+                    "is not configured properly. "
+                    "Authentication requires a user id and password or API key."
+                )
+                return None
 
         try:
-            res = get(
+            requests_session = session()
+            if pr.scheme == "file":
+                requests_session.mount("file://", FileTransportAdapter())
+            res = requests_session.get(
                 url,
                 timeout=UrlComponentCatalogConnector.REQUEST_TIMEOUT,
                 allow_redirects=True,
