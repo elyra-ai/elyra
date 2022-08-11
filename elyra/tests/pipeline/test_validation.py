@@ -505,6 +505,7 @@ def test_invalid_node_property_kubernetes_toleration(validation_manager):
     # The following tolerations are invalid
     invalid_tolerations = [
         # parameters are key, operator, value, effect
+        KubernetesToleration("", "", "", ""),  # cannot be all empty
         # invalid values for 'operator'
         KubernetesToleration("", "Equal", "value", ""),  # empty key requires 'Exists'
         KubernetesToleration("key0", "exists", "", ""),  # wrong case
@@ -517,6 +518,7 @@ def test_invalid_node_property_kubernetes_toleration(validation_manager):
         KubernetesToleration("key5", "Exists", "", "no-such-effect"),  # wrong keyword
     ]
     expected_error_messages = [
+        "'' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
         "'Equal' is not a valid operator. Operator must be 'Exists' if no key is specified.",
         "'exists' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
         "'Exist' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
