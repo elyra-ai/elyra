@@ -452,5 +452,5 @@ Examples:
 
  - Local copy of a downloaded provider package
    ```
-   file://local/path/to/apache_airflow_providers_http-2.0.2-py3-none-any.whl
+   file:///local/path/to/apache_airflow_providers_http-2.0.2-py3-none-any.whl
    ```
