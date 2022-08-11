@@ -185,7 +185,7 @@ export class ScriptRunner {
   /**
    * Function: Shuts down kernel.
    */
-  shutDownKernel = async (): Promise<void> => {
+  shutdownKernel = async (): Promise<void> => {
     if (this.sessionConnection) {
       const kernel = this.sessionConnection.kernel;
       kernel && (await KernelAPI.shutdownKernel(kernel.id));
