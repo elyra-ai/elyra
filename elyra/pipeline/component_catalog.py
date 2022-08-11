@@ -694,7 +694,7 @@ class ComponentCache(SingletonConfigurable):
         try:
             json.loads(canvas_properties)
         except Exception:
-            print('error')
+            print("error")
         return json.loads(canvas_properties)
 
 
