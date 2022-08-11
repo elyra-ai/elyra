@@ -16,6 +16,7 @@
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import {
+  KernelAPI,
   KernelManager,
   KernelSpecManager,
   Session,
@@ -131,10 +132,10 @@ export class ScriptRunner {
 
       try {
         await future.done;
-        // Keep session open if debug is on
-        if (!debuggerEnabled) {
-          this.shutdownSession();
-        }
+        // Always keep session open
+        // if (!debuggerEnabled) {
+        //   this.shutdownSession();
+        // }
         this.disableButton(false);
       } catch (e) {
         console.log('Exception: done = ' + JSON.stringify(e));
@@ -178,6 +179,16 @@ export class ScriptRunner {
       } catch (e) {
         console.log('Exception: shutdown = ' + JSON.stringify(e));
       }
+    }
+  };
+
+  /**
+   * Function: Shuts down kernel.
+   */
+  shutDownKernel = async (): Promise<void> => {
+    if (this.sessionConnection) {
+      const kernel = this.sessionConnection.kernel;
+      kernel && (await KernelAPI.shutdownKernel(kernel.id));
     }
   };
 }
