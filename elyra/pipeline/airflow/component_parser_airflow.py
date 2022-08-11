@@ -249,6 +249,7 @@ class AirflowComponentParser(ComponentParser):
                 value=value,
                 description=description,
                 required=arg_attributes.get("required"),
+                allow_no_options=True,
             )
             properties.append(component_param)
 

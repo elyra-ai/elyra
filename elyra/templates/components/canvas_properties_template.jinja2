@@ -26,11 +26,7 @@
           }
         },
         {% for property in component.input_properties %}
-        "{{ property.ref }}": {
-          "title": "{{ property.name }}",
-          "description": {{ property.description|tojson|safe }},
-          {{ render_parameter_details(property) }}
-        },
+        "{{ property.ref }}": {{ render_parameter_details(property) }},
         {% endfor %}
         {% endif %}
         {% if component.output_properties|length > 0 %}
@@ -42,11 +38,7 @@
           }
         },
         {% for property in component.output_properties %}
-        "{{ property.ref }}": {
-          "title": "{{ property.name }}",
-          "description": {{ property.description|tojson|safe }},
-          {{ render_parameter_details(property) }}
-        },
+        "{{ property.ref }}": {{ render_parameter_details(property) }},
         {% endfor %}
         {% endif %}
         {% if "mounted_volumes" not in elyra_property_collisions_list %}

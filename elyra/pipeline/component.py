@@ -20,7 +20,6 @@ from enum import Enum
 from importlib import import_module
 import json
 from logging import Logger
-from textwrap import dedent
 from typing import Any
 from typing import Dict
 from typing import List
@@ -54,6 +53,7 @@ class ComponentParameter(object):
         value: str,
         description: str,
         required: Optional[bool] = False,
+        allow_no_options: Optional[bool] = False,
         items: Optional[List[str]] = None,
     ):
         """
@@ -65,6 +65,7 @@ class ComponentParameter(object):
         :param description: A description of the property for display
         :param items: For properties with a control of 'EnumControl', the items making up the enum
         :param required: Whether the property is required
+        :param allow_no_options: TODO
         """
 
         if not id:
@@ -101,6 +102,7 @@ class ComponentParameter(object):
             required = True
 
         self._required = required
+        self._allow_no_options = allow_no_options
 
     @property
     def ref(self) -> str:
@@ -138,6 +140,10 @@ class ComponentParameter(object):
     def required(self) -> bool:
         return bool(self._required)
 
+    @property
+    def allow_no_options(self) -> bool:
+        return self._allow_no_options
+
     @staticmethod
     def render_parameter_details(param: "ComponentParameter") -> str:
         """
@@ -146,18 +152,21 @@ class ComponentParameter(object):
 
         :returns: a string literal containing the JSON object to be rendered in the DAG
         """
+        json_dict = {"title": param.name, "description": param.description}  # TODO ensure '| tojson | safe' in enforced
         if len(param.allowed_input_types) == 1:
             # Parameter only accepts a single type of input
             input_type = param.allowed_input_types[0]
             if not input_type:
                 # This is an output
-                str_to_render = "'type': 'string', 'uihints': {'ui:widget': 'hidden', 'outputpath': true}"
+                json_dict["type"] = "string"
+                json_dict["uihints"] = {"ui:widget": "hidden", "outputpath": True}
             elif input_type == "inputpath":
-                str_to_render = "'uihints': {'inputpath': true}"
+                json_dict["uihints"] = {"inputpath": True}
             elif input_type == "file":
-                str_to_render = f"'type': 'string', 'uihints': {{'ui:widget': {input_type}}}"
+                json_dict["type"] = "string"
+                json_dict["uihints"] = {"ui:widget": input_type}
             else:
-                str_to_render = f"'type': '{param.value_entry_type}',"
+                json_dict["type"] = param.value_entry_type
         else:
             # Parameter accepts multiple types of inputs; render a oneOf block
             one_of = []
@@ -181,15 +190,18 @@ class ComponentParameter(object):
                     elif widget_type == "inputpath":
                         value_obj["oneOf"] = []
                         obj["uihints"]["value"] = {"inputpath": "true"}
+                        if param.allow_no_options:
+                            obj["allownooptions"] = param.allow_no_options
                     else:
                         value_obj["type"] = "string"
                         obj["uihints"]["value"] = {"ui:widget": widget_type}
 
                 obj["properties"]["value"] = value_obj
                 one_of.append(obj)
-            str_to_render = f"'oneOf': {one_of}"
 
-        return dedent(str_to_render.replace("'", '"'))
+            json_dict["oneOf"] = one_of
+
+        return json.dumps(json_dict)
 
 
 class Component(object):
