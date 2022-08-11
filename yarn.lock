@@ -1253,13 +1253,13 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@~1.9.0":
+"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1e68cc68/@elyra/pipeline-editor":
   version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.9.0.tgz#da3ce85a6c4b1d1f9c509bbf19176322271f81f8"
-  integrity sha512-eT0ozcpDLEBCnkYijMF7QiO9L3E2E0ZWHi8XFUDnn/fQGl9tvEoa50jxAFk+F8wN8ObdpE/a5Y3YCl/Z4xUI+Q==
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1e68cc68/@elyra/pipeline-editor#9fdbe0f6e73457ff51e3e274381018c88e0818c8"
   dependencies:
     "@elyra/canvas" "^12.11.2"
-    "@elyra/pipeline-services" "^1.9.0"
+    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1e68cc68/@elyra/pipeline-services"
+    "@rjsf/core" "^4.2.0"
     carbon-components "^10.43.0"
     carbon-components-react "^7.48.0"
     carbon-icons "7.0.7"
@@ -1277,10 +1277,10 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.57.tgz#8b5dc239c8ad8f77abe6b8b7205e06d91fa08d50"
   integrity sha512-Nitf1WdRj3/zNLznJGbFfTFhUi+KZK4f0nmO8vaxjJtwDP5CdZ8NGwpmiuCqCfheQohAMVjeWaj2DsHKtd5+gw==
 
-"@elyra/pipeline-services@^1.9.0", "@elyra/pipeline-services@~1.9.0":
+"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1e68cc68/@elyra/pipeline-services":
   version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.9.0.tgz#9de40dda50a3885a628357b53324cc27c41d1135"
-  integrity sha512-ULVbNCn2sJm/7eq95dH+ufSy9OV/eHMzvpKDHM2c86ZlxWJl1pF+Z2rqdqMxF9N2pwZFGtQ/YAql9eVY56WOUg==
+  uid "9b985a5eb7f2b76b3d14ee31a9c02639ed32d4d7"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1e68cc68/@elyra/pipeline-services#9b985a5eb7f2b76b3d14ee31a9c02639ed32d4d7"
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
@@ -3537,6 +3537,22 @@
     nanoid "^3.1.23"
     prop-types "^15.7.2"
     react-is "^16.9.0"
+
+"@rjsf/core@^4.2.0":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/@rjsf/core/-/core-4.2.3.tgz#7ff2fb593f0af20485dc267391a8971378eec655"
+  integrity sha512-dRXhd1Tac/9OcG0VDrYDF2boNTyKINEEITEtJ4L1Yce2iMVk66U52BhWKIFp/WXDM27vwnOfwQo4NwGiqeQeHw==
+  dependencies:
+    "@types/json-schema" "^7.0.7"
+    ajv "^6.7.0"
+    core-js-pure "^3.6.5"
+    json-schema-merge-allof "^0.6.0"
+    jsonpointer "^5.0.0"
+    lodash "^4.17.15"
+    lodash-es "^4.17.15"
+    nanoid "^3.1.23"
+    prop-types "^15.7.2"
+    react-is "16.9.0"
 
 "@rollup/plugin-node-resolve@^7.1.1":
   version "7.1.3"
@@ -12896,6 +12912,11 @@ lockfile@1.0.4:
   dependencies:
     signal-exit "^3.0.2"
 
+lodash-es@^4.17.15:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"
+  integrity sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==
+
 lodash._reinterpolate@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/lodash._reinterpolate/-/lodash._reinterpolate-3.0.0.tgz#0ccf2d89166af03b3663c796538b75ac6e114d9d"
@@ -16214,6 +16235,11 @@ react-intl@*, react-intl@^3.0.0, react-intl@^5.0.0, react-intl@^5.10.15:
     intl-messageformat "^7.8.4"
     intl-messageformat-parser "^3.6.4"
     shallow-equal "^1.2.1"
+
+react-is@16.9.0:
+  version "16.9.0"
+  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.9.0.tgz#21ca9561399aad0ff1a7701c01683e8ca981edcb"
+  integrity sha512-tJBzzzIgnnRfEm046qRcURvwQnZVXmuCbscxUO5RWrGTXpon2d4c8mI0D8WE6ydVIm29JiLB6+RslkIvym9Rjw==
 
 react-is@^16.13.1, react-is@^16.7.0, react-is@^16.8.4, react-is@^16.9.0:
   version "16.13.1"
