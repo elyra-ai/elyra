@@ -329,7 +329,7 @@ const clickRunAsPipelineButton = (): void => {
 
 // Click Run button
 const clickRunButton = (): void => {
-  cy.get('button[title="Run"]').click();
+  cy.get('button[title="Run"]', { timeout: 30000 }).click();
 };
 
 // Dismiss LSP code assistant box if visible
