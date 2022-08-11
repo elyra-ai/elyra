@@ -69,17 +69,12 @@
           }
         },
         "kubernetes_pod_annotations": {
+          "title": "Kubernetes Pod Annotations",
+          "description":
+            "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
           "type": "array",
           "items": {
             "type": "string"
-          },
-          "title": "Kubernetes Pod Annotations",
-          "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
-          "uihints": {
-            "items": {
-              "ui:placeholder": "annotation_key=annotation_value"
-            },
-            "keyValueEntries": true
           }
         }
       }
