@@ -51,18 +51,6 @@ Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
 });
 
 
-const brokenAirFlowRunTimeInstallCommand =
-'elyra-metadata create runtimes \
---schema_name=airflow \
---display_name="Airflow Test Runtime" \
---api_endpoint=https://kubernetes-service.ibm.com/pipeline \
---github_repo=akchinstc/test-repo \
---github_branch=main \
---github_repo_token=xxxxxxxx \
---github_api_endpoint=https://api.github.com \
---cos_endpoint=http://0.0.0.0:9000 \
---cos_bucket=test-bucket';
-
 
 // Only used for testing filling out form for runtime metadata editor
 Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
@@ -97,7 +85,7 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
 
   cy.findByLabelText(/object storage endpoint/i).type('http://0.0.0.0:9000');
 
-  if(type !== 'broken') {
+  if(type !== 'invald') {
   cy.findByLabelText(/object storage username/i).type('minioadmin');
   cy.findByLabelText(/object storage password/i).type('minioadmin');
   }
@@ -121,8 +109,10 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
     );
   });
 
+  if(type !== 'invald') {
   cy.findByRole('tab', { name: /component catalogs/i }).click();
   cy.findByRole('button', { name: /create new component catalog/i }).click();
+  }
 
   if (type === 'kfp') {
     cy.findByRole('menuitem', {

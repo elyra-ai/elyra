@@ -601,15 +601,15 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
-  it('airflow pipeline should display error dialog if username and password are not filled in', () => {
-    cy.createPipeline({ type: 'airflow' });
+  it('saving airflow runtime config should error if required fields are missing', () => {
+  
     cy.savePipeline();
 
-    cy.createRuntimeConfig({ type: 'broken' });
+    cy.createRuntimeConfig({ type: 'invalid' });
     cy.get('.jp-Dialog-header').contains('Error making request');
   
     // Dismiss dialog
-    cy.findByRole('button', { name: /cancel/i }).click();
+    cy.findByRole('button', { name: /ok/i }).click();
   });
 
   it('generic pipeline should display expected export options', () => {
