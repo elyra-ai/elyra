@@ -72,74 +72,64 @@ export class ScriptRunner {
     kernelName: string | null,
     contextPath: string,
     code: string,
-    handleKernelMsg: (msgOutput: any) => void,
-    debuggerEnabled: boolean
+    handleKernelMsg: (msgOutput: any) => void
   ): Promise<any> => {
     if (!kernelName) {
       this.disableButton(true);
       return this.errorDialog(KERNEL_ERROR_MSG);
     }
+    this.disableButton(true);
 
-    if (!this.sessionConnection) {
-      this.disableButton(true);
+    try {
+      await this.startSession(kernelName, contextPath);
+    } catch (e) {
+      return this.errorDialog(SESSION_ERROR_MSG);
+    }
 
-      try {
-        await this.startSession(kernelName, contextPath);
-      } catch (e) {
-        return this.errorDialog(SESSION_ERROR_MSG);
-      }
+    if (!this.sessionConnection?.kernel) {
+      // session didn't get started
+      return this.errorDialog(SESSION_ERROR_MSG);
+    }
 
-      // This is a bit weird, seems like typescript doesn't believe that `startSession`
-      // can set `sessionConnection`
-      this.sessionConnection = this
-        .sessionConnection as Session.ISessionConnection | null;
-      if (!this.sessionConnection?.kernel) {
-        // session didn't get started
-        return this.errorDialog(SESSION_ERROR_MSG);
-      }
+    const future = this.sessionConnection.kernel.requestExecute({ code });
 
-      const future = this.sessionConnection.kernel.requestExecute({ code });
+    future.onIOPub = (msg: any): void => {
+      const msgOutput: any = {};
 
-      future.onIOPub = (msg: any): void => {
-        const msgOutput: any = {};
-
-        if (msg.msg_type === 'error') {
-          msgOutput.error = {
-            type: msg.content.ename,
-            output: msg.content.evalue
-          };
-        } else if (
-          msg.msg_type === 'execute_result' ||
-          msg.msg_type === 'display_data'
-        ) {
-          if ('text/plain' in msg.content.data) {
-            msgOutput.output = msg.content.data['text/plain'];
-          } else {
-            // ignore
-            console.log('Ignoring received message ' + msg);
-          }
-        } else if (msg.msg_type === 'stream') {
-          msgOutput.output = msg.content.text;
-        } else if (msg.msg_type === 'status') {
-          msgOutput.status = msg.content.execution_state;
+      if (msg.msg_type === 'error') {
+        msgOutput.error = {
+          type: msg.content.ename,
+          output: msg.content.evalue
+        };
+      } else if (
+        msg.msg_type === 'execute_result' ||
+        msg.msg_type === 'display_data'
+      ) {
+        if ('text/plain' in msg.content.data) {
+          msgOutput.output = msg.content.data['text/plain'];
         } else {
-          // ignore other message types
+          // ignore
+          console.log('Ignoring received message ' + msg);
         }
-
-        // Notify UI
-        handleKernelMsg(msgOutput);
-      };
-
-      try {
-        await future.done;
-        // Always keep session open
-        // if (!debuggerEnabled) {
-        //   this.shutdownSession();
-        // }
-        this.disableButton(false);
-      } catch (e) {
-        console.log('Exception: done = ' + JSON.stringify(e));
+      } else if (msg.msg_type === 'stream') {
+        msgOutput.output = msg.content.text;
+      } else if (msg.msg_type === 'status') {
+        msgOutput.status = msg.content.execution_state;
+      } else {
+        // ignore other message types
       }
+
+      // Notify UI
+      handleKernelMsg(msgOutput);
+    };
+
+    try {
+      await future.done;
+      // Keep session open but shut down kernel
+      // this.shutdownKernel(); // this also shuts down session for some reason...
+      this.disableButton(false);
+    } catch (e) {
+      console.log('Exception: done = ' + JSON.stringify(e));
     }
   };
 
@@ -159,9 +149,10 @@ export class ScriptRunner {
       name: contextPath
     };
 
-    this.sessionConnection = await this.sessionManager.startNew(options);
-    this.sessionConnection.setPath(contextPath);
-
+    if (!this.sessionConnection) {
+      this.sessionConnection = await this.sessionManager.startNew(options);
+      this.sessionConnection.setPath(contextPath);
+    }
     return this.sessionConnection;
   };
 
@@ -188,7 +179,12 @@ export class ScriptRunner {
   shutdownKernel = async (): Promise<void> => {
     if (this.sessionConnection) {
       const kernel = this.sessionConnection.kernel;
-      kernel && (await KernelAPI.shutdownKernel(kernel.id));
+      try {
+        kernel && (await KernelAPI.shutdownKernel(kernel.id));
+        console.log(kernel?.name + ' kernel shutdown');
+      } catch (e) {
+        console.log('Exception: shutdown = ' + JSON.stringify(e));
+      }
     }
   };
 }

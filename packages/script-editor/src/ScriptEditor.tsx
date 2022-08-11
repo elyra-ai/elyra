@@ -223,13 +223,11 @@ export abstract class ScriptEditor extends DocumentWidget<
     if (!this.runDisabled) {
       this.clearOutputArea();
       this.displayOutputArea();
-      const debuggerEnabled = this.controller.debuggerEnabled(this.toolbar);
       await this.runner.runScript(
         this.kernelName,
         this.context.path,
         this.model.value.text,
-        this.handleKernelMsg,
-        debuggerEnabled
+        this.handleKernelMsg
       );
     }
   };

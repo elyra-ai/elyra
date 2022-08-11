@@ -81,7 +81,7 @@ describe('@elyra/script-editor', () => {
         const testCallback = async (kernelMsg: any): Promise<void> =>
           kernelMsg.output && expect(kernelMsg.output).toMatch(/test/i);
         expect(kernelName).not.toBe('');
-        await runner.runScript(kernelName, testPath, code, testCallback, false);
+        await runner.runScript(kernelName, testPath, code, testCallback);
         await runner.shutdownSession();
       });
 
@@ -90,7 +90,7 @@ describe('@elyra/script-editor', () => {
         const testCallback = async (kernelMsg: any): Promise<void> =>
           kernelMsg.error && expect(kernelMsg.error.type).toMatch(/error/i);
         expect(kernelName).not.toBe('');
-        await runner.runScript(kernelName, testPath, code, testCallback, false);
+        await runner.runScript(kernelName, testPath, code, testCallback);
         await runner.shutdownSession();
       });
     });
