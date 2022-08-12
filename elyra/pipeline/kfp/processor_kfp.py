@@ -587,23 +587,26 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                     self.log.debug(
                         f"Processing component parameter '{component_property.name}' "
-                        f"of type '{component_property.data_type}'"
+                        f"of type '{component_property.json_data_type}'"
                     )
 
-                    if component_property.allowed_input_types == ["outputpath"]:
+                    if component_property.allowed_input_types == [None]:
                         # Outputs are skipped
                         continue
                     elif component_property.allowed_input_types == ["inputpath"]:
                         # KFP path-based parameters can only accept an input from a parent
                         output_node_id = property_value["value"]
-                        output_node_parameter_key = property_value["option"].replace("elyra_output_", "")
+                        output_node_parameter_key = property_value["option"]
                         operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
                             output_node_parameter_key
                         ]
                     else:
                         # TODO logic will have to be added here to account for file vs. raw-value entry
-                        active_property = property_value["activeControl"]
-                        active_property_value = property_value.get(active_property, None)
+                        # active_property = property_value["activeControl"]
+                        active_property_value = property_value.get("value", None)
+                        if property_value.get("widget", "") == "file":
+                            # TODO load file into active_property_value
+                            pass
 
                         # If the value is not found, assign it the default value assigned in parser
                         if active_property_value is None:

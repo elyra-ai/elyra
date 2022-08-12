@@ -487,15 +487,22 @@ class PipelineValidationManager(SingletonConfigurable):
 
         # Full dict of properties for the operation e.g. current params, optionals etc
         component_property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
-
-        # List of just the current parameters for the component
-        current_parameter_defaults_list = list(
-            map(lambda x: str(x).replace("elyra_", ""), component_property_dict["current_parameters"].keys())
-        )
+        current_parameters = component_property_dict["properties"]["component_parameters"]["properties"]
 
         # Remove the non component_parameter jinja templated values we do not check against
-        current_parameter_defaults_list.remove("component_source")
-        current_parameter_defaults_list.remove("label")
+        props_to_remove = [
+            "inputs_header",
+            "outputs_header",
+            "additional_properties_header",
+            "component_source_header",
+            "component_source",
+            "label",
+        ]
+        for prop in props_to_remove:
+            current_parameters.pop(prop, None)
+
+        # List of just the current parameters for the component
+        current_parameter_defaults_list = list(map(lambda x: str(x).replace("elyra_", ""), current_parameters.keys()))
 
         volumes = node.get_component_parameter(MOUNTED_VOLUMES)
         if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
@@ -546,6 +553,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             data={"nodeID": node.id, "nodeName": node.label},
                         )
                 elif isinstance(node_param, dict) and node_param.get("activeControl") == "NestedEnumControl":
+                    # TODO when is this reached?
                     if not node_param.get("NestedEnumControl"):
                         response.add_message(
                             severity=ValidationSeverity.Error,
@@ -1122,16 +1130,13 @@ class PipelineValidationManager(SingletonConfigurable):
 
     def _is_required_property(self, property_dict: dict, node_property: str) -> bool:
         """
-        Determine whether or not a component parameter is required to function correctly
+        Determine whether a component parameter is required to function correctly
         :param property_dict: the dictionary for the component
         :param node_property: the component property to check
         :return:
         """
-        node_op_parameter_list = property_dict["uihints"]["parameter_info"]
-        for parameter in node_op_parameter_list:
-            if parameter["parameter_ref"] == f"elyra_{node_property}":
-                return parameter["data"]["required"]
-        return False
+        required_parameters = property_dict["properties"]["component_parameters"]["required"]
+        return node_property in required_parameters
 
     def _get_component_type(self, property_dict: dict, node_property: str, control_id: str = "") -> Optional[str]:
         """
@@ -1141,13 +1146,17 @@ class PipelineValidationManager(SingletonConfigurable):
         :param control_id: when using OneOfControl, include the control_id to retrieve the correct format
         :return: the data type associated with node_property, defaults to 'string'
         """
-        for prop in property_dict["uihints"]["parameter_info"]:
-            if prop["parameter_ref"] == f"elyra_{node_property}":
-                if control_id:
-                    return prop["data"]["controls"][control_id].get("format", "string")
-                else:
-                    return prop["data"].get("format", "string")
-        return None
+        prop = property_dict["properties"]["component_parameters"]["properties"].get(node_property, None)
+        if not prop:
+            return None
+
+        if prop.get("uihints", {}).get("inputpath", False):
+            return "inputpath"
+
+        if prop.get("oneOf"):
+            return prop["oneOf"][0]["properties"]["value"].get("type", "string")
+
+        return "string"
 
     def _get_parent_id_list(
         self, pipeline_definition: PipelineDefinition, node_id_list: list, parent_list: list

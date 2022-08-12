@@ -18,7 +18,7 @@
       "type": "object",
       "properties": {
         {% if component.input_properties|length > 0 %}
-        "Inputs": {
+        "inputs_header": {
           "type": "null",
           "title": "Inputs",
           "uihints": {
@@ -30,7 +30,7 @@
         {% endfor %}
         {% endif %}
         {% if component.output_properties|length > 0 %}
-        "Outputs": {
+        "outputs_header": {
           "type": "null",
           "title": "Outputs",
           "uihints": {
@@ -42,7 +42,7 @@
         {% endfor %}
         {% endif %}
         {% if additional_properties_apply %}
-        "additionalproperties": {
+        "additional_properties_header": {
           "type": "null",
           "title": "Additional Properties",
           "description": "Additional properties used by Elyra that are not given in the component definition.",
