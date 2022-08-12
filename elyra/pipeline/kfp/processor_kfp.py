@@ -56,7 +56,7 @@ from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
-from elyra.util.path import get_absolute_path
+from elyra.util.path import get_absolute_path, get_expanded_path
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
@@ -601,12 +601,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             output_node_parameter_key
                         ]
                     else:
-                        # TODO logic will have to be added here to account for file vs. raw-value entry
-                        # active_property = property_value["activeControl"]
                         active_property_value = property_value.get("value", None)
                         if property_value.get("widget", "") == "file":
-                            # TODO load file into active_property_value
-                            pass
+                            absolute_path = get_absolute_path(self.root_dir, active_property_value)
+                            with open(absolute_path, "r") as f:
+                                active_property_value = f.read()
 
                         # If the value is not found, assign it the default value assigned in parser
                         if active_property_value is None:
