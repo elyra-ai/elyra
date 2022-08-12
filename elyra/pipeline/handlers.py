@@ -96,7 +96,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         pipeline_export_path = payload["export_path"]
         pipeline_overwrite = payload["overwrite"]
 
-        response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
+        response = await PipelineValidationManager.instance().validate(pipeline_definition)
         self.log.debug(f"Validation checks completed. Results as follows: {response.to_json()}")
 
         if not response.has_fatal:
@@ -283,7 +283,7 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
         pipeline_definition = self.get_json_body()
         self.log.debug(f"Pipeline payload: {pipeline_definition}")
 
-        response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
+        response = await PipelineValidationManager.instance().validate(pipeline_definition)
         json_msg = response.to_json()
 
         self.set_status(200)

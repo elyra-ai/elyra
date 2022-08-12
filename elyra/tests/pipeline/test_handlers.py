@@ -25,6 +25,7 @@ from tornado.httpclient import HTTPClientError
 
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
+from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_constants import (
     COS_OBJECT_PREFIX,
     ENV_VARIABLES,
@@ -35,11 +36,14 @@ from elyra.pipeline.pipeline_constants import (
     PIPELINE_DEFAULTS,
     RUNTIME_IMAGE,
 )
+from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
+from elyra.pipeline.validation import PipelineValidationManager
+from elyra.pipeline.validation import ValidationResponse
+from elyra.pipeline.validation import ValidationSeverity
 from elyra.tests.pipeline import resources
 from elyra.tests.util.handlers_utils import expected_http_error
-
 
 try:
     import importlib.resources as pkg_resources
@@ -50,6 +54,13 @@ except ImportError:
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], "components")
 TEST_CATALOG_NAME = "test_handlers_catalog"
+
+
+def _async_return(result):
+    # Helper function to return an arbitrary value when mocking awaits
+    f = asyncio.Future()
+    f.set_result(result)
+    return f
 
 
 def _get_resource_path(filename):
@@ -234,5 +245,47 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             MOUNTED_VOLUMES,
             KUBERNETES_POD_ANNOTATIONS,
         ]
-
         assert all(prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties)
+
+
+async def test_pipeline_success(jp_fetch, monkeypatch):
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
+
+    # Create a response that will trigger the valid code path
+    validation_response = ValidationResponse()
+
+    monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(validation_response))
+    monkeypatch.setattr(PipelineParser, "parse", lambda x, y: "Dummy_Data")
+    monkeypatch.setattr(PipelineProcessorManager, "export", lambda x, y, z, aa, bb: _async_return("test.py"))
+
+    json_body = json.dumps(request_body)
+
+    http_response = await jp_fetch("elyra", "pipeline", "export", body=json_body, method="POST")
+
+    assert http_response.code == 201
+
+
+async def test_pipeline_failure(jp_fetch, monkeypatch):
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
+
+    # Create a response that will trigger the fatal code path
+    bad_validation_response = ValidationResponse()
+    bad_validation_response.add_message(severity=ValidationSeverity.Error, message_type="invalidJSON", message="issue")
+
+    monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(bad_validation_response))
+
+    json_body = json.dumps(request_body)
+
+    # Will raise HTTP error so we need to catch with pytest
+    with pytest.raises(HTTPClientError):
+        await jp_fetch("elyra", "pipeline", "export", body=json_body, method="POST")
+
+
+async def test_validation_handler(jp_fetch, monkeypatch):
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
+
+    monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(ValidationResponse()))
+    json_body = json.dumps(request_body)
+    http_response = await jp_fetch("elyra", "pipeline", "validate", body=json_body, method="POST")
+
+    assert http_response.code == 200
