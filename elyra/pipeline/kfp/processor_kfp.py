@@ -101,6 +101,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # unpack Cloud Object Storage configs
         cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
+        cos_public_endpoint = runtime_configuration.metadata.get("cos_public_endpoint", cos_endpoint)
         cos_bucket = runtime_configuration.metadata["cos_bucket"]
 
         # Determine which provider to use to authenticate with Kubeflow
@@ -362,7 +363,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             )
 
         if pipeline.contains_generic_operations():
-            object_storage_url = f"{cos_endpoint}"
+            object_storage_url = f"{cos_public_endpoint}"
             os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
             object_storage_path = f"/{cos_bucket}/{os_path}"
         else:
