@@ -56,7 +56,7 @@ from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
-from elyra.util.path import get_absolute_path, get_expanded_path
+from elyra.util.path import get_absolute_path
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):

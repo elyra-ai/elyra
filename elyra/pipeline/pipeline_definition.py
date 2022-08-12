@@ -770,13 +770,10 @@ class PipelineDefinition(object):
         )
 
         kv_properties = set()
-        parameter_info = canvas_pipeline_properties.get("uihints", {}).get("parameter_info", [])
-        for parameter in parameter_info:
-            if parameter.get("data", {}).get("keyValueEntries", False):
-                parameter_ref = parameter.get("parameter_ref", "")
-                if parameter_ref.startswith("elyra_"):
-                    parameter_ref = parameter_ref.replace("elyra_", "")
-                kv_properties.add(parameter_ref)
+        properties = canvas_pipeline_properties["properties"]["pipeline_defaults"]["properties"]
+        for prop_id, prop in properties.items():
+            if prop.get("uihints", {}).get("keyValueEntries", False):
+                kv_properties.add(prop_id)
 
         return kv_properties
 

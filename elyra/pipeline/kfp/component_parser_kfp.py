@@ -112,12 +112,12 @@ class KfpComponentParser(ComponentParser):
 
                 description = param.get("description") or ""
 
-                if "inputpath" in data_type_info.allowed_input_types:
+                if data_type_info.allowed_input_types == [None]:
+                    # This is an output
+                    ref_name = f"output_{ref_name}"  # TODO will this be needed any longer?
+                else:
                     # Add parsed data type hint to description in parenthesis
                     description = self._format_description(description=description, data_type=data_type_parsed)
-
-                if "outputpath" in data_type_info.allowed_input_types:
-                    ref_name = f"output_{ref_name}"  # TODO will this be needed any longer?
 
                 component_params = ComponentParameter(
                     id=ref_name,

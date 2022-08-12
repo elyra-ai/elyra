@@ -369,9 +369,9 @@ be fully qualified (i.e., prefixed with their package names).
 
                     # Process value as file input, if required
                     if property_value_dict.get("widget", "") == "file":
-                        absolute_path = get_absolute_path(self.root_dir, active_property_value)
+                        absolute_path = get_absolute_path(self.root_dir, property_value)
                         with open(absolute_path, "r") as f:
-                            active_property_value = f.read()
+                            property_value = f.read()
 
                     # If the value is not found, assign it the default value assigned in parser
                     if property_value is None:

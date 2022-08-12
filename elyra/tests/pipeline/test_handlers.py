@@ -25,6 +25,16 @@ from tornado.httpclient import HTTPClientError
 
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
+from elyra.pipeline.pipeline_constants import (
+    COS_OBJECT_PREFIX,
+    ENV_VARIABLES,
+    KUBERNETES_POD_ANNOTATIONS,
+    KUBERNETES_SECRETS,
+    KUBERNETES_TOLERATIONS,
+    MOUNTED_VOLUMES,
+    PIPELINE_DEFAULTS,
+    RUNTIME_IMAGE,
+)
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.tests.pipeline import resources
@@ -211,15 +221,18 @@ async def test_get_pipeline_properties_definition(jp_fetch):
         assert response.code == 200
         payload = json.loads(response.body.decode())
         # Spot check
-        assert payload["parameters"] == [
-            {"id": "name"},
-            {"id": "runtime"},
-            {"id": "description"},
-            {"id": "cos_object_prefix"},
-            {"id": "elyra_runtime_image"},
-            {"id": "elyra_env_vars"},
-            {"id": "elyra_kubernetes_secrets"},
-            {"id": "elyra_kubernetes_tolerations"},
-            {"id": "elyra_mounted_volumes"},
-            {"id": "elyra_kubernetes_pod_annotations"},
+
+        pipeline_properties = ["name", "runtime", "description", PIPELINE_DEFAULTS]
+        assert all(prop in payload["properties"] for prop in pipeline_properties)
+
+        default_properties = [
+            COS_OBJECT_PREFIX,
+            RUNTIME_IMAGE,
+            ENV_VARIABLES,
+            KUBERNETES_SECRETS,
+            KUBERNETES_TOLERATIONS,
+            MOUNTED_VOLUMES,
+            KUBERNETES_POD_ANNOTATIONS,
         ]
+
+        assert all(prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties)

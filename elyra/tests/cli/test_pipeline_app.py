@@ -335,8 +335,8 @@ def test_describe_notebooks_scripts_report():
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
     assert result.exit_code == 0
     assert "Notebook dependencies:\n" in result.output
-    assert "notebooks/notebook_1.ipyn" in result.output
-    assert "notebooks/notebook_2.ipyn" in result.output
+    assert "notebooks/notebook_1.ipynb" in result.output
+    assert "notebooks/notebook_2.ipynb" in result.output
     # Ensure no entries for scripts
     assert "Script dependencies: None specified" in result.output
     assert "Number of generic nodes: 2" in result.output
@@ -366,8 +366,8 @@ def test_describe_notebooks_scripts_report():
     result = runner.invoke(pipeline, ["describe", str(pipeline_file_path)])
     assert result.exit_code == 0
     assert "Notebook dependencies:\n" in result.output
-    assert "notebooks/notebook_1.ipyn" in result.output
-    assert "notebooks/notebook_2.ipyn" in result.output
+    assert "notebooks/notebook_1.ipynb" in result.output
+    assert "notebooks/notebook_2.ipynb" in result.output
     assert "Script dependencies:\n" in result.output
     assert "scripts/script_1.py" in result.output
     assert "scripts/script_2.py" in result.output

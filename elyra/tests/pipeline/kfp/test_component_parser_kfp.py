@@ -222,144 +222,86 @@ def test_parse_kfp_component_file():
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(catalog_entry)[0]
+    props_as_dict = {param.ref: param for param in component.input_properties}
+
     properties_json = ComponentCache.to_canvas_properties(component)
+
+    # Helper method to retrieve the requested parameter value from the dictionary
+    def get_parameter_value(param_name):
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        return property_dict["oneOf"][0]["properties"]["value"]["default"]
+
+    # Helper method to retrieve the requested parameter info from the dictionary
+    def get_parameter_format(param_name):
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        return property_dict["oneOf"][0]["properties"]["value"]["type"]
+
+    # Helper method to retrieve the requested parameter description from the dictionary
+    def get_parameter_description(param_name):
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        return property_dict["description"]
+
+    # Helper method to retrieve whether the requested parameter is required
+    def get_parameter_required(param_name):
+        required_parameters = properties_json["properties"]["component_parameters"]["required"]
+        return param_name in required_parameters
 
     # Ensure description is rendered even with an unescaped character
     description = 'This component description contains an unescaped " character'
-    assert properties_json["current_parameters"]["component_description"] == description
+    assert properties_json["properties"]["component_description"]["default"] == description
 
-    # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
-    assert properties_json["current_parameters"]["label"] == ""
+    # Ensure system parameters are present
+    assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert properties_json["current_parameters"]["component_source"] == component_source
-    assert properties_json["current_parameters"]["elyra_test_string_no_default"] == {
-        "StringControl": "",
-        "activeControl": "StringControl",
-    }
+    assert (
+        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
+        == component_source
+    )
 
-    assert properties_json["current_parameters"]["elyra_test_string_default_value"] == {
-        "StringControl": "default",
-        "activeControl": "StringControl",
-    }
-    assert properties_json["current_parameters"]["elyra_test_string_default_empty"] == {
-        "StringControl": "",
-        "activeControl": "StringControl",
-    }
-
-    assert properties_json["current_parameters"]["elyra_test_bool_default"] == {
-        "BooleanControl": False,
-        "activeControl": "BooleanControl",
-    }
-    assert properties_json["current_parameters"]["elyra_test_bool_false"] == {
-        "BooleanControl": False,
-        "activeControl": "BooleanControl",
-    }
-    assert properties_json["current_parameters"]["elyra_test_bool_true"] == {
-        "BooleanControl": True,
-        "activeControl": "BooleanControl",
-    }
-
-    assert properties_json["current_parameters"]["elyra_test_int_default"] == {
-        "NumberControl": 0,
-        "activeControl": "NumberControl",
-    }
-    assert properties_json["current_parameters"]["elyra_test_int_zero"] == {
-        "NumberControl": 0,
-        "activeControl": "NumberControl",
-    }
-    assert properties_json["current_parameters"]["elyra_test_int_non_zero"] == {
-        "NumberControl": 1,
-        "activeControl": "NumberControl",
-    }
-
-    assert properties_json["current_parameters"]["elyra_test_float_default"] == {
-        "NumberControl": 0.0,
-        "activeControl": "NumberControl",
-    }
-    assert properties_json["current_parameters"]["elyra_test_float_zero"] == {
-        "NumberControl": 0.0,
-        "activeControl": "NumberControl",
-    }
-    assert properties_json["current_parameters"]["elyra_test_float_non_zero"] == {
-        "NumberControl": 1.0,
-        "activeControl": "NumberControl",
-    }
-
-    assert properties_json["current_parameters"]["elyra_test_dict_default"] == {
-        "StringControl": "{}",
-        "activeControl": "StringControl",
-    }  # {}
-    assert properties_json["current_parameters"]["elyra_test_list_default"] == {
-        "StringControl": "[]",
-        "activeControl": "StringControl",
-    }  # []
-
-    assert properties_json["current_parameters"]["elyra_mounted_volumes"] == {
-        "StringControl": "",
-        "activeControl": "StringControl",
-    }
+    assert get_parameter_value("test_string_no_default") == ""
+    assert get_parameter_value("test_string_default_value") == "default"
+    assert get_parameter_value("test_string_default_empty") == ""
+    assert get_parameter_value("test_bool_default") is False
+    assert get_parameter_value("test_bool_false") is False
+    assert get_parameter_value("test_bool_true") is True
+    assert get_parameter_value("test_int_default") == 0
+    assert get_parameter_value("test_int_zero") == 0
+    assert get_parameter_value("test_int_non_zero") == 1
+    assert get_parameter_value("test_float_default") == 0.0
+    assert get_parameter_value("test_float_zero") == 0.0
+    assert get_parameter_value("test_float_non_zero") == 1.1
+    assert get_parameter_value("test_dict_default") == "{}"
+    assert get_parameter_value("test_list_default") == "[]"
+    assert get_parameter_value("mounted_volumes") == ""
 
     # Ensure that the 'required' attribute was set correctly. KFP components default to required
     # unless explicitly marked otherwise in component YAML.
-    required_property = next(
-        prop
-        for prop in properties_json["uihints"]["parameter_info"]
-        if prop.get("parameter_ref") == "elyra_test_required_property"
-    )
-    assert required_property["data"]["required"] is True
-
-    optional_property = next(
-        prop
-        for prop in properties_json["uihints"]["parameter_info"]
-        if prop.get("parameter_ref") == "elyra_test_optional_property"
-    )
-    assert optional_property["data"]["required"] is False
-
-    default_required_property = next(
-        prop
-        for prop in properties_json["uihints"]["parameter_info"]
-        if prop.get("parameter_ref") == "elyra_test_required_property_default"
-    )
-    assert default_required_property["data"]["required"] is True
+    assert get_parameter_required("test_required_property") is True
+    assert get_parameter_required("test_optional_property") is False
+    assert get_parameter_required("test_required_property_default") is True
 
     # Ensure that type information is inferred correctly
-    unusual_dict_property = next(
-        prop
-        for prop in properties_json["uihints"]["parameter_info"]
-        if prop.get("parameter_ref") == "elyra_test_unusual_type_dict"
-    )
-    assert unusual_dict_property["data"]["controls"]["StringControl"]["format"] == "dictionary"
+    assert get_parameter_format("test_unusual_type_dict") == "string"
+    assert props_as_dict["test_unusual_type_dict"].json_data_type == "object"
 
-    unusual_list_property = next(
-        prop
-        for prop in properties_json["uihints"]["parameter_info"]
-        if prop.get("parameter_ref") == "elyra_test_unusual_type_list"
-    )
-    assert unusual_list_property["data"]["controls"]["StringControl"]["format"] == "list"
+    assert get_parameter_format("test_unusual_type_list") == "string"
+    assert props_as_dict["test_unusual_type_list"].json_data_type == "array"
 
-    unusual_string_property = next(
-        prop
-        for prop in properties_json["uihints"]["parameter_info"]
-        if prop.get("parameter_ref") == "elyra_test_unusual_type_string"
-    )
-    assert unusual_string_property["data"]["controls"]["StringControl"]["format"] == "string"
+    assert get_parameter_format("test_unusual_type_string") == "string"
+    assert props_as_dict["test_unusual_type_string"].json_data_type == "string"
 
-    no_type_property = next(
-        prop
-        for prop in properties_json["uihints"]["parameter_info"]
-        if prop.get("parameter_ref") == "elyra_test_unusual_type_notgiven"
-    )
-    assert no_type_property["data"]["controls"]["StringControl"]["format"] == "string"
+    assert get_parameter_format("test_unusual_type_notgiven") == "string"
+    assert props_as_dict["test_unusual_type_notgiven"].json_data_type == "string"
 
     # Ensure descriptions are rendered properly with type hint in parentheses
     assert (
-        unusual_dict_property["description"]["default"] == "The test command description "
+        get_parameter_description("test_unusual_type_dict") == "The test command description "
         "(type: Dictionary of arrays)"
     )
-    assert unusual_list_property["description"]["default"] == "The test command description (type: An array)"
-    assert unusual_string_property["description"]["default"] == "The test command description (type: A string)"
-    assert no_type_property["description"]["default"] == "The test command description (type: string)"
+    assert get_parameter_description("test_unusual_type_list") == "The test command description (type: An array)"
+    assert get_parameter_description("test_unusual_type_string") == "The test command description (type: A string)"
+    assert get_parameter_description("test_unusual_type_notgiven") == "The test command description (type: string)"
 
 
 def test_parse_kfp_component_url():
@@ -384,26 +326,30 @@ def test_parse_kfp_component_url():
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(catalog_entry)[0]
+
     properties_json = ComponentCache.to_canvas_properties(component)
 
-    # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
-    assert properties_json["current_parameters"]["label"] == ""
+    # Helper method to retrieve the requested parameter value from the dictionary
+    def get_parameter_value(param_name):
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        if "oneOf" not in property_dict:
+            # This is an inputpath-only param and doesn't have a default value
+            return None
+        return property_dict["oneOf"][0]["properties"]["value"]["default"]
+
+    # Ensure system parameters are present
+    assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert properties_json["current_parameters"]["component_source"] == component_source
-    assert properties_json["current_parameters"]["elyra_notebook"] == "None"  # Default value for type `inputpath`
-    assert properties_json["current_parameters"]["elyra_parameters"] == {
-        "StringControl": "{}",
-        "activeControl": "StringControl",
-    }
-    assert properties_json["current_parameters"]["elyra_packages_to_install"] == {
-        "StringControl": "[]",
-        "activeControl": "StringControl",
-    }
-    assert properties_json["current_parameters"]["elyra_input_data"] == {
-        "StringControl": "",
-        "activeControl": "StringControl",
-    }
+    assert (
+        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
+        == component_source
+    )
+
+    assert get_parameter_value("notebook") is None  # Default value for type `inputpath`
+    assert get_parameter_value("parameters") == "{}"
+    assert get_parameter_value("packages_to_install") == "[]"
+    assert get_parameter_value("input_data") == ""
 
 
 def test_parse_kfp_component_file_no_inputs():
@@ -431,26 +377,24 @@ def test_parse_kfp_component_file_no_inputs():
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Properties JSON should only include the four parameters common to every
-    # component ('label', 'component_source', 'mounted_volumes', 'kubernetes_pod_annotations',
-    # and 'kubernetes_tolerations'), the component description if it exists (which it does for
-    # this component), and the output parameter for this component
-    num_common_params = 7
-    assert len(properties_json["current_parameters"].keys()) == num_common_params, properties_json["current_parameters"]
-    assert len(properties_json["parameters"]) == num_common_params
-    assert len(properties_json["uihints"]["parameter_info"]) == num_common_params
+    # component ('component_source', 'mounted_volumes', 'kubernetes_pod_annotations',
+    # and 'kubernetes_tolerations'), and the output parameter for this component
+    num_common_params = 5
+    properties_from_json = [
+        prop
+        for prop in properties_json["properties"]["component_parameters"]["properties"].keys()
+        if "header" not in prop
+    ]
+    assert len(properties_from_json) == num_common_params
 
-    # Total number of groups includes one for each parameter,
-    # plus 1 for the output group header,
-    # plus 1 for the component_source header,
-    # plus 1 for the 'other properties' header (that includes, e.g., mounted_volumes)
-    num_groups = num_common_params + 3
-    assert len(properties_json["uihints"]["group_info"][0]["group_info"]) == num_groups
-
-    # Ensure that template still renders the two common parameters correctly
-    assert properties_json["current_parameters"]["label"] == ""
+    # Ensure system parameters are present
+    assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert properties_json["current_parameters"]["component_source"] == component_source
+    assert (
+        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
+        == component_source
+    )
 
 
 async def test_parse_components_not_a_file():
@@ -534,47 +478,32 @@ async def test_parse_components_additional_metatypes():
     component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
-    # Ensure component parameters are prefixed (and system parameters are not) and all hold correct values
-    assert properties_json["current_parameters"]["label"] == ""
+    # Helper method to retrieve the requested parameter value from the dictionary
+    def get_parameter_value(param_name):
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        if "oneOf" not in property_dict:
+            # This is an inputpath-only param and doesn't have a default value
+            return None
+        return property_dict["oneOf"][0]["properties"]["value"]["default"]
+
+    # Ensure system parameters are present
+    assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert properties_json["current_parameters"]["component_source"] == component_source
-    assert properties_json["current_parameters"]["elyra_training_features"] == "None"  # inputPath
-    assert properties_json["current_parameters"]["elyra_training_labels"] == "None"  # inputPath
-    assert properties_json["current_parameters"]["elyra_network_json"] == "None"  # inputPath
-    assert properties_json["current_parameters"]["elyra_loss_name"] == {
-        "StringControl": "categorical_crossentropy",
-        "activeControl": "StringControl",
-    }
-    assert properties_json["current_parameters"]["elyra_num_classes"] == {
-        "NumberControl": 0,
-        "activeControl": "NumberControl",
-    }
-    assert properties_json["current_parameters"]["elyra_optimizer"] == {
-        "StringControl": "rmsprop",
-        "activeControl": "StringControl",
-    }
-    assert properties_json["current_parameters"]["elyra_optimizer_config"] == {
-        "StringControl": "",
-        "activeControl": "StringControl",
-    }
-    assert properties_json["current_parameters"]["elyra_learning_rate"] == {
-        "NumberControl": 0.01,
-        "activeControl": "NumberControl",
-    }
-    assert properties_json["current_parameters"]["elyra_num_epochs"] == {
-        "NumberControl": 100,
-        "activeControl": "NumberControl",
-    }
-    assert properties_json["current_parameters"]["elyra_batch_size"] == {
-        "NumberControl": 32,
-        "activeControl": "NumberControl",
-    }
-    assert properties_json["current_parameters"]["elyra_metrics"] == {
-        "StringControl": "['accuracy']",
-        "activeControl": "StringControl",
-    }
-    assert properties_json["current_parameters"]["elyra_random_seed"] == {
-        "NumberControl": 0,
-        "activeControl": "NumberControl",
-    }
+    assert (
+        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
+        == component_source
+    )
+
+    assert get_parameter_value("training_features") is None  # inputPath
+    assert get_parameter_value("training_labels") is None  # inputPath
+    assert get_parameter_value("network_json") is None  # inputPath
+    assert get_parameter_value("loss_name") == "categorical_crossentropy"
+    assert get_parameter_value("num_classes") == 0
+    assert get_parameter_value("optimizer") == "rmsprop"
+    assert get_parameter_value("optimizer_config") == ""
+    assert get_parameter_value("learning_rate") == 0.01
+    assert get_parameter_value("num_epochs") == 100
+    assert get_parameter_value("batch_size") == 32
+    assert get_parameter_value("metrics") == "['accuracy']"
+    assert get_parameter_value("random_seed") == 0

@@ -7,7 +7,8 @@
       "title": "Component Description",
       "uihints": {
         "ui:readonly": true
-      }
+      },
+      "default": {{component.description|tojson|safe}}
     },{% endif %}
     "label": {
       "type": "string",
@@ -52,7 +53,7 @@
         },
         {% endif %}
         {% if "mounted_volumes" not in elyra_property_collisions_list %}
-        "elyra_mounted_volumes": {
+        "mounted_volumes": {
           "type": "array",
           "items": {
             "type": "string"
@@ -68,7 +69,7 @@
         },
         {% endif %}
         {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
-        "elyra_kubernetes_pod_annotations": {
+        "kubernetes_pod_annotations": {
           "type": "array",
           "items": {
             "type": "string"
@@ -84,7 +85,7 @@
         },
         {% endif %}
         {% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
-        "elyra_kubernetes_tolerations": {
+        "kubernetes_tolerations": {
           "type": "array",
           "items": {
             "type": "string"

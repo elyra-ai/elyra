@@ -502,7 +502,7 @@ class PipelineValidationManager(SingletonConfigurable):
             current_parameters.pop(prop, None)
 
         # List of just the current parameters for the component
-        current_parameter_defaults_list = list(map(lambda x: str(x).replace("elyra_", ""), current_parameters.keys()))
+        current_parameter_defaults_list = list(current_parameters.keys())
 
         volumes = node.get_component_parameter(MOUNTED_VOLUMES)
         if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
@@ -530,6 +530,7 @@ class PipelineValidationManager(SingletonConfigurable):
                     # Any component property with type `InputPath` will be a dictionary of two keys
                     # "value": the node ID of the parent node containing the output
                     # "option": the name of the key (which is an output) of the above referenced node
+                    # TODO this will have to be fixed
                     if (
                         not isinstance(node_param, dict)
                         or len(node_param) != 2
@@ -553,7 +554,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             data={"nodeID": node.id, "nodeName": node.label},
                         )
                 elif isinstance(node_param, dict) and node_param.get("activeControl") == "NestedEnumControl":
-                    # TODO when is this reached?
+                    # TODO this will have to be fixed
                     if not node_param.get("NestedEnumControl"):
                         response.add_message(
                             severity=ValidationSeverity.Error,
