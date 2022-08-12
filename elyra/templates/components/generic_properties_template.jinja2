@@ -131,6 +131,20 @@
             },
             "keyValueEntries": true
           }
+        },
+        "kubernetes_tolerations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Kubernetes Tolerations",
+          "description": "Kubernetes tolerations to apply to the pod where the node is executed.",
+          "uihints": {
+            "items": {
+              "ui:placeholder": "TOL_ID=key:operator:value:effect"
+            },
+            "keyValueEntries": true
+          }
         }
       },
       "required": ["filename", "runtime_image"]

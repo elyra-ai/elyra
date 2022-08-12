@@ -28,12 +28,14 @@ from kubernetes.client.models import V1EnvVarSource
 from kubernetes.client.models import V1ObjectFieldSelector
 from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
 from kubernetes.client.models import V1SecretKeySelector
+from kubernetes.client.models import V1Toleration
 from kubernetes.client.models import V1Volume
 from kubernetes.client.models import V1VolumeMount
 
 from elyra._version import __version__
 from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import VolumeMount
 
 """
@@ -92,6 +94,7 @@ class ExecuteFileOp(ContainerOp):
         workflow_engine: Optional[str] = "argo",
         volume_mounts: Optional[List[VolumeMount]] = None,
         kubernetes_secrets: Optional[List[KubernetesSecret]] = None,
+        kubernetes_tolerations: Optional[List[KubernetesToleration]] = None,
         kubernetes_pod_annotations: Optional[List[KubernetesAnnotation]] = None,
         **kwargs,
     ):
@@ -118,6 +121,7 @@ class ExecuteFileOp(ContainerOp):
           workflow_engine: Kubeflow workflow engine, defaults to 'argo'
           volume_mounts: data volumes to be mounted
           kubernetes_secrets: secrets to be made available as environment variables
+          kubernetes_tolerations: Kubernetes tolerations to be added to the pod
           kubernetes_pod_annotations: annotations to be applied to the pod
           kwargs: additional key value pairs to pass e.g. name, image, sidecars & is_exit_handler.
                   See Kubeflow pipelines ContainerOp definition for more parameters or how to use
@@ -147,6 +151,9 @@ class ExecuteFileOp(ContainerOp):
         self.gpu_limit = gpu_limit
         self.volume_mounts = volume_mounts  # optional data volumes to be mounted to the pod
         self.kubernetes_secrets = kubernetes_secrets  # optional secrets to be made available as env vars
+        self.kubernetes_tolerations = (
+            kubernetes_tolerations  # optional Kubernetes tolerations to be attached to the pod
+        )
         self.kubernetes_pod_annotations = kubernetes_pod_annotations  # optional annotations
 
         argument_list = []
@@ -268,6 +275,18 @@ class ExecuteFileOp(ContainerOp):
                     V1EnvVar(
                         name=secret.env_var,
                         value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=secret.name, key=secret.key)),
+                    )
+                )
+
+        # add user-provided tolerations
+        if self.kubernetes_tolerations:
+            for toleration in self.kubernetes_tolerations:
+                self.add_toleration(
+                    V1Toleration(
+                        effect=toleration.effect,
+                        key=toleration.key,
+                        operator=toleration.operator,
+                        value=toleration.value,
                     )
                 )
 

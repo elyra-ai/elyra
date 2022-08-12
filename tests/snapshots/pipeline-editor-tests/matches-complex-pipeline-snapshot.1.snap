@@ -27,6 +27,7 @@ Object {
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
                 "output-1.csv",
@@ -84,6 +85,7 @@ Object {
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
               "runtime_image": "continuumio/anaconda3:2021.11",
@@ -140,6 +142,7 @@ Object {
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
               "runtime_image": "continuumio/anaconda3:2021.11",
@@ -194,6 +197,7 @@ Object {
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
                 "input-1.csv",
@@ -251,6 +255,7 @@ Object {
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
                 "output-3.csv",

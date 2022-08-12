@@ -83,6 +83,22 @@
           }
         },
         {% endif %}
+        {% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+        "elyra_kubernetes_tolerations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Kubernetes Tolerations",
+          "description": "Kubernetes tolerations to attach to the pod where the node is executed.",
+          "uihints": {
+            "items": {
+              "ui:placeholder": "TOL_ID=key:operator:value:effect"
+            },
+          "keyValueEntries": true
+          }
+        },
+        {% endif %}
         "component_source_header": {
           "type": "null",
           "title": "Component Source",

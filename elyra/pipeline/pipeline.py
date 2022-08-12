@@ -27,6 +27,7 @@ from typing import Optional
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
 # TODO: Make pipeline version available more widely
@@ -111,6 +112,17 @@ class Operation(object):
             # spec) and must be removed from the component_params dict
             self._mounted_volumes = self._component_params.pop(MOUNTED_VOLUMES, [])
 
+        self._kubernetes_tolerations = []
+        param_tolerations = component_params.get(KUBERNETES_TOLERATIONS)
+        if (
+            param_tolerations is not None
+            and isinstance(param_tolerations, list)
+            and (len(param_tolerations) == 0 or isinstance(param_tolerations[0], KubernetesToleration))
+        ):
+            # The kubernetes_tolerations property is the Elyra system property (ie, not defined in the component
+            # spec) and must be removed from the component_params dict
+            self._kubernetes_tolerations = self._component_params.pop(KUBERNETES_TOLERATIONS, [])
+
         self._kubernetes_pod_annotations = []
         param_annotations = component_params.get(KUBERNETES_POD_ANNOTATIONS)
         if (
@@ -169,6 +181,10 @@ class Operation(object):
     @property
     def mounted_volumes(self) -> List["VolumeMount"]:
         return self._mounted_volumes
+
+    @property
+    def kubernetes_tolerations(self) -> List["KubernetesToleration"]:
+        return self._kubernetes_tolerations
 
     @property
     def kubernetes_pod_annotations(self) -> List["KubernetesAnnotation"]:
@@ -563,6 +579,14 @@ class KubernetesSecret:
     env_var: str
     name: str
     key: str
+
+
+@dataclass
+class KubernetesToleration:
+    key: str
+    operator: str
+    value: str
+    effect: str
 
 
 @dataclass
