@@ -22,10 +22,12 @@ import pytest
 
 from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.validation import PipelineValidationManager
@@ -437,6 +439,30 @@ def test_invalid_node_property_volumes(validation_manager):
     assert "not a valid Kubernetes resource name" in issues[0]["message"]
 
 
+def test_valid_node_property_kubernetes_toleration(validation_manager):
+    """
+    Validate that valid kubernetes toleration definitions are not flagged as invalid.
+    Constraints are documented in
+    https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
+    """
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    # The following tolerations are valid
+    tolerations = [
+        # parameters are key, operator, value, effect
+        KubernetesToleration("", "Exists", "", "NoExecute"),
+        KubernetesToleration("key0", "Exists", "", ""),
+        KubernetesToleration("key1", "Exists", "", "NoSchedule"),
+        KubernetesToleration("key2", "Equal", "value2", "NoExecute"),
+        KubernetesToleration("key3", "Equal", "value3", "PreferNoSchedule"),
+    ]
+    validation_manager._validate_kubernetes_tolerations(
+        node_id=node["id"], node_label=node["app_data"]["label"], tolerations=tolerations, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == 0, response.to_json()
+
+
 def test_valid_node_property_kubernetes_pod_annotation(validation_manager):
     """
     Validate that valid kubernetes pod annotation definitions are not flagged as invalid.
@@ -466,6 +492,58 @@ def test_valid_node_property_kubernetes_pod_annotation(validation_manager):
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 0, response.to_json()
+
+
+def test_invalid_node_property_kubernetes_toleration(validation_manager):
+    """
+    Validate that invalid kubernetes toleration definitions are properly detected.
+    Constraints are documented in
+    https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
+    """
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    # The following tolerations are invalid
+    invalid_tolerations = [
+        # parameters are key, operator, value, effect
+        KubernetesToleration("", "", "", ""),  # cannot be all empty
+        # invalid values for 'operator'
+        KubernetesToleration("", "Equal", "value", ""),  # empty key requires 'Exists'
+        KubernetesToleration("key0", "exists", "", ""),  # wrong case
+        KubernetesToleration("key1", "Exist", "", ""),  # wrong keyword
+        KubernetesToleration("key2", "", "", ""),  # wrong keyword (technically valid but enforced)
+        # invalid values for 'value'
+        KubernetesToleration("key3", "Exists", "value3", ""),  # 'Exists' -> no value
+        # invalid values for 'effect'
+        KubernetesToleration("key4", "Exists", "", "noschedule"),  # wrong case
+        KubernetesToleration("key5", "Exists", "", "no-such-effect"),  # wrong keyword
+    ]
+    expected_error_messages = [
+        "'' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
+        "'Equal' is not a valid operator. Operator must be 'Exists' if no key is specified.",
+        "'exists' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
+        "'Exist' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
+        "'' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
+        "'value3' is not a valid value. It should be empty if operator is 'Exists'.",
+        "'noschedule' is not a valid effect. Effect must be one of 'NoExecute', 'NoSchedule', or 'PreferNoSchedule'.",
+        "'no-such-effect' is not a valid effect. Effect must be one of 'NoExecute', "
+        "'NoSchedule', or 'PreferNoSchedule'.",
+    ]
+
+    # verify that the number of tolerations in this test matches the number of error messages
+    assert len(invalid_tolerations) == len(expected_error_messages), "Test setup error. "
+
+    validation_manager._validate_kubernetes_tolerations(
+        node_id=node["id"], node_label=node["app_data"]["label"], tolerations=invalid_tolerations, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == len(invalid_tolerations), response.to_json()
+    index = 0
+    for issue in issues:
+        assert issue["type"] == "invalidKubernetesToleration"
+        assert issue["data"]["propertyName"] == KUBERNETES_TOLERATIONS
+        assert issue["data"]["nodeID"] == "test-id"
+        assert issue["message"] == expected_error_messages[index], f"Index is {index}"
+        index = index + 1
 
 
 def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):

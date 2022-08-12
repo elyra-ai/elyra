@@ -334,6 +334,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "doc": operation.doc,
                     "volumes": operation.mounted_volumes,
                     "secrets": operation.kubernetes_secrets,
+                    "kubernetes_tolerations": operation.kubernetes_tolerations,
                     "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
                 }
 
@@ -448,6 +449,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "is_generic_operator": operation.is_generic,
                     "doc": operation.doc,
                     "volumes": operation.mounted_volumes,
+                    "kubernetes_tolerations": operation.kubernetes_tolerations,
                     "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
                 }
 
@@ -634,12 +636,11 @@ be fully qualified (i.e., prefixed with their package names).
     @staticmethod
     def render_executor_config_for_custom_op(op: Dict) -> Dict[str, Dict[str, List]]:
         """
-        Render any data volumes defined for the specified custom op for use in
-        the Airflow DAG template
+        Render any data volumes or tolerations defined for the specified custom op
+        for use in the Airflow DAG template
 
         :returns: a dict defining the volumes and mounts to be rendered in the DAG
         """
-
         executor_config = {"KubernetesExecutor": {}}
 
         # Handle volume mounts
@@ -658,6 +659,20 @@ be fully qualified (i.e., prefixed with their package names).
                     {"mountPath": volume.path, "name": volume.pvc_name, "read_only": False}
                 )
 
+        # Handle tolerations
+        if op.get("kubernetes_tolerations"):
+            executor_config["KubernetesExecutor"]["tolerations"] = []
+            for toleration in op.get("kubernetes_tolerations", []):
+                # Add Kubernetes toleration entry
+                executor_config["KubernetesExecutor"]["tolerations"].append(
+                    {
+                        "key": toleration.key,
+                        "operator": toleration.operator,
+                        "value": toleration.value,
+                        "effect": toleration.effect,
+                    }
+                )
+
         # Handle annotations
         if op.get("kubernetes_pod_annotations"):
             executor_config["KubernetesExecutor"]["annotations"] = {}
@@ -670,11 +685,26 @@ be fully qualified (i.e., prefixed with their package names).
     @staticmethod
     def render_executor_config_for_generic_op(op: Dict) -> Dict[str, Dict[str, List]]:
         """
-        Render annotations defined for the specified generic op
+        Render tolerations and annotations defined for the specified generic op
         for use in the Airflow DAG template
-        :returns: a dict defining the annotations to be rendered in the DAG
+
+        :returns: a dict defining the tolerations and annotations to be rendered in the DAG
         """
         executor_config = {"KubernetesExecutor": {}}
+
+        # Handle tolerations
+        if op.get("kubernetes_tolerations"):
+            executor_config["KubernetesExecutor"]["tolerations"] = []
+            for toleration in op.get("kubernetes_tolerations", []):
+                # Add Kubernetes toleration entry
+                executor_config["KubernetesExecutor"]["tolerations"].append(
+                    {
+                        "key": toleration.key,
+                        "operator": toleration.operator,
+                        "value": toleration.value,
+                        "effect": toleration.effect,
+                    }
+                )
 
         # Handle annotations
         if op.get("kubernetes_pod_annotations"):

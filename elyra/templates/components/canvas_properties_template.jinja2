@@ -28,6 +28,9 @@
 {% if "mounted_volumes" not in elyra_property_collisions_list %}
       "elyra_mounted_volumes": [],
 {% endif %}
+{% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+      "elyra_kubernetes_tolerations": [],
+{% endif %}
 {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
       "elyra_kubernetes_pod_annotations": [],
 {% endif %}
@@ -48,6 +51,11 @@
 {% if "mounted_volumes" not in elyra_property_collisions_list %}
       {
         "id": "elyra_mounted_volumes"
+      },
+{% endif %}
+{% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+      {
+        "id": "elyra_kubernetes_tolerations"
       },
 {% endif %}
 {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
@@ -161,6 +169,25 @@
           }
         },
 {% endif %}
+{% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+        {
+          "parameter_ref": "elyra_kubernetes_tolerations",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Kubernetes Tolerations"
+          },
+          "description": {
+           "default": "Kubernetes tolerations to attach to the pod where the node is executed.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "required": false,
+            "placeholder": "TOL_ID=key:operator:value:effect",
+            "keyValueEntries": true
+          }
+        },
+{% endif %}
 {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
         {
           "parameter_ref": "elyra_kubernetes_pod_annotations",
@@ -262,6 +289,13 @@
               "id": "elyra_mounted_volumes",
               "type": "controls",
               "parameter_refs": ["elyra_mounted_volumes"]
+            },
+{% endif %}
+{% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+            {
+              "id": "elyra_kubernetes_tolerations",
+              "type": "controls",
+              "parameter_refs": ["elyra_kubernetes_tolerations"]
             },
 {% endif %}
 {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}

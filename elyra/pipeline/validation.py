@@ -34,6 +34,7 @@ from elyra.pipeline.pipeline import DataClassJSONEncoder
 from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
@@ -41,6 +42,7 @@ from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
@@ -422,6 +424,7 @@ class PipelineValidationManager(SingletonConfigurable):
         env_vars = node.get_component_parameter(ENV_VARIABLES)
         volumes = node.get_component_parameter(MOUNTED_VOLUMES)
         secrets = node.get_component_parameter(KUBERNETES_SECRETS)
+        tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
         annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
 
         self._validate_filepath(
@@ -446,6 +449,8 @@ class PipelineValidationManager(SingletonConfigurable):
                 self._validate_mounted_volumes(node.id, node_label, volumes, response=response)
             if secrets:
                 self._validate_kubernetes_secrets(node.id, node_label, secrets, response=response)
+            if tolerations:
+                self._validate_kubernetes_tolerations(node.id, node_label, tolerations, response=response)
             if annotations:
                 self._validate_kubernetes_pod_annotations(node.id, node_label, annotations, response=response)
 
@@ -495,6 +500,10 @@ class PipelineValidationManager(SingletonConfigurable):
         volumes = node.get_component_parameter(MOUNTED_VOLUMES)
         if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
             self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
+
+        tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
+        if tolerations and KUBERNETES_TOLERATIONS not in node.elyra_properties_to_skip:
+            self._validate_kubernetes_tolerations(node.id, node.label, tolerations, response=response)
 
         annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
         if annotations and KUBERNETES_POD_ANNOTATIONS not in node.elyra_properties_to_skip:
@@ -714,6 +723,76 @@ class PipelineValidationManager(SingletonConfigurable):
                         "nodeName": node_label,
                         "propertyName": KUBERNETES_SECRETS,
                         "value": KeyValueList.to_str(secret.env_var, f"{secret.name}:{secret.key}"),
+                    },
+                )
+
+    def _validate_kubernetes_tolerations(
+        self, node_id: str, node_label: str, tolerations: List[KubernetesToleration], response: ValidationResponse
+    ) -> None:
+        """
+        Checks the format of kubernetes tolerations to ensure they're in the correct form
+        e.g. key:operator:value:effect
+        :param node_id: the unique ID of the node
+        :param node_label: the given node name or user customized name/label of the node
+        :param tolerations: a KeyValueList of tolerations to check
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        for toleration in tolerations:
+            # Verify key, operator, value, and effect according to the constraints defined in
+            # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
+            if toleration.operator not in ["Exists", "Equal"]:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesToleration",
+                    message=f"'{toleration.operator}' is not a valid operator. "
+                    "The value must be one of 'Exists' or 'Equal'.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_TOLERATIONS,
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
+                    },
+                )
+            if len(toleration.key.strip()) == 0 and toleration.operator == "Equal":
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesToleration",
+                    message=f"'{toleration.operator}' is not a valid operator. "
+                    "Operator must be 'Exists' if no key is specified.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_TOLERATIONS,
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
+                    },
+                )
+            if len(toleration.effect.strip()) > 0 and toleration.effect not in [
+                "NoExecute",
+                "NoSchedule",
+                "PreferNoSchedule",
+            ]:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesToleration",
+                    message=f"'{toleration.effect}' is not a valid effect. Effect must be one of "
+                    "'NoExecute', 'NoSchedule', or 'PreferNoSchedule'.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_TOLERATIONS,
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
+                    },
+                )
+            if toleration.operator == "Exists" and len(toleration.value.strip()) > 0:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesToleration",
+                    message=f"'{toleration.value}' is not a valid value. It should be empty if operator is 'Exists'.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_TOLERATIONS,
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
                     },
                 )
 

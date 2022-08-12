@@ -7,6 +7,7 @@
     "elyra_runtime_image": null,
     "elyra_env_vars": [],
     "elyra_kubernetes_secrets": [],
+    "elyra_kubernetes_tolerations": [],
     "elyra_mounted_volumes": [],
     "elyra_kubernetes_pod_annotations": []
   },
@@ -32,6 +33,9 @@
     {
       "id": "elyra_kubernetes_secrets"
     },
+    {
+      "id": "elyra_kubernetes_tolerations"
+    },    
     {
       "id": "elyra_mounted_volumes"
     },
@@ -124,6 +128,22 @@
         }
       },
       {
+        "parameter_ref": "elyra_kubernetes_tolerations",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Kubernetes Tolerations"
+        },
+        "description": {
+          "default": "Kubernetes tolerations to attach to the pod where the node is executed.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "TOL_ID=key:operator:value:effect",
+          "keyValueEntries": true
+        }
+      },
+      {
         "parameter_ref": "elyra_mounted_volumes",
         "control": "custom",
         "custom_control_id": "StringArrayControl",
@@ -197,6 +217,11 @@
             "id": "elyra_mounted_volumes",
             "type": "controls",
             "parameter_refs": ["elyra_mounted_volumes"]
+          },
+          {
+            "id": "elyra_kubernetes_tolerations",
+            "type": "controls",
+            "parameter_refs": ["elyra_kubernetes_tolerations"]
           },
           {
             "id": "elyra_kubernetes_pod_annotations",

@@ -28,6 +28,7 @@ Object {
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
             },

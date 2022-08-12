@@ -29,12 +29,14 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
@@ -435,6 +437,19 @@ class Node(AppDataBase):
                 secret_objects.append(KubernetesSecret(env_var_name, secret_name.strip(), secret_key))
 
             self.set_component_parameter(KUBERNETES_SECRETS, secret_objects)
+
+        kubernetes_tolerations = self.get_component_parameter(KUBERNETES_TOLERATIONS)
+        if kubernetes_tolerations and isinstance(kubernetes_tolerations, KeyValueList):
+            tolerations_objects = []
+            for toleration, toleration_definition in kubernetes_tolerations.to_dict().items():
+                # A definition comprises of "<key>:<operator>:<value>:<effect>"
+                parts = toleration_definition.split(":")
+                key, operator, value, effect = (parts + [""] * 4)[:4]
+                # Create a KubernetesToleration class instance and add to list
+                # Note that the instance might be invalid.
+                tolerations_objects.append(KubernetesToleration(key, operator, value, effect))
+
+            self.set_component_parameter(KUBERNETES_TOLERATIONS, tolerations_objects)
 
         kubernetes_pod_annotations = self.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
         if kubernetes_pod_annotations and isinstance(kubernetes_pod_annotations, KeyValueList):
