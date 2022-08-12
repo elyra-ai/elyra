@@ -15,7 +15,6 @@
 #
 from abc import abstractmethod
 from dataclasses import dataclass
-from dataclasses import field
 from enum import Enum
 from importlib import import_module
 import json
@@ -49,9 +48,9 @@ class ComponentParameter(object):
         id: str,
         name: str,
         json_data_type: str,
-        allowed_input_types: List[Optional[str]],
-        value: str,
+        value: Any,
         description: str,
+        allowed_input_types: List[Optional[str]] = None,
         required: Optional[bool] = False,
         allow_no_options: Optional[bool] = False,
         items: Optional[List[str]] = None,
@@ -77,7 +76,6 @@ class ComponentParameter(object):
         self._ref = id
         self._name = name
         self._json_data_type = json_data_type
-        self._allowed_input_types = allowed_input_types
 
         # The JSON type that the value entered for this property will be rendered in.
         # E.g., array types are entered by users and processed by the backend as
@@ -86,8 +84,24 @@ class ComponentParameter(object):
         if json_data_type in ["array", "object"]:
             self._value_entry_type = "string"
 
+        if json_data_type == "boolean" and isinstance(value, str):
+            value = bool(value in ["True", "true"])
+        elif json_data_type == "number" and isinstance(value, str):
+            try:
+                # Attempt to coerce string to integer value
+                value = int(value)
+            except ValueError:
+                # Value could not be coerced to integer, assume float
+                value = float(value)
+        if json_data_type in ["array", "object"] and not isinstance(value, str):
+            value = str(value)
         self._value = value
+
         self._description = description
+
+        if not allowed_input_types:
+            allowed_input_types = ["inputvalue", "inputpath", "file"]
+        self._allowed_input_types = allowed_input_types
 
         self._items = items or []
 
@@ -123,7 +137,7 @@ class ComponentParameter(object):
         return self._value_entry_type
 
     @property
-    def value(self) -> str:
+    def value(self) -> Any:
         return self._value
 
     @property
@@ -181,9 +195,11 @@ class ComponentParameter(object):
                 }
                 if widget_type == "inputvalue":
                     obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
-                    if param.value:
-                        obj["properties"]["widget"]["default"] = param.value
+                    obj["properties"]["widget"]["default"] = param.value_entry_type
                     value_obj["type"] = param.value_entry_type
+
+                    if param.value is not None:
+                        value_obj["default"] = param.value
                 else:  # inputpath or file types
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
@@ -355,6 +371,10 @@ class Component(object):
         return [prop for prop in self._properties if None in prop.allowed_input_types]
 
     @property
+    def required_properties(self) -> List[ComponentParameter]:
+        return [prop for prop in self.input_properties if prop.required]
+
+    @property
     def file_extension(self) -> Optional[str]:
         """
         The file extension of the definition file representing this
@@ -491,7 +511,7 @@ class ParameterTypeInfo:
 
     parsed_data: str
     json_data_type: Optional[str] = "string"
-    allowed_input_types: Optional[List[str]] = field(default_factory=lambda: ["inputvalue", "inputpath", "file"])
+    allowed_input_types: Optional[List[str]] = None
     default_value: Optional[Any] = ""
     required: Optional[bool] = True
     undetermined: Optional[bool] = False

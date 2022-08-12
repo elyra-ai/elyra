@@ -100,12 +100,10 @@
         }
       },
       "required": [
-      {% for property in component.input_properties %}
-        {% if property.required|lower %}
+      {% for property in component.required_properties %}
         "{{ property.ref }}"
-            {% if loop.index != loop|length %}
-            ,
-            {% endif %}
+          {% if loop.index != loop|length %}
+          ,
           {% endif %}
       {% endfor %}
       ]

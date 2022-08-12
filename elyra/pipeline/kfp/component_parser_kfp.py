@@ -203,6 +203,7 @@ class KfpComponentParser(ComponentParser):
         """
         data_type_info = super().determine_type_information(parsed_type)
 
+        data_type_info.allowed_input_types = []
         # By default, original input type (determined by parent) is stored as the `json_data_type`
         # and then overridden with Kubeflow Pipeline's meta-type
         if data_type_info.undetermined:
