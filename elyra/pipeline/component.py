@@ -82,12 +82,9 @@ class ComponentParameter(object):
         # The JSON type that the value entered for this property will be rendered in.
         # E.g., array types are entered by users and processed by the backend as
         # strings whereas boolean types are entered and processed as booleans
-        try:
-            # Map the JSON data type to the value entry type
-            self._value_entry_type = JSONTypeToValueEntryTypeMap[json_data_type].value
-        except KeyError:
-            # Any key not in the mapping simply uses its standardized JSON type as the value entry type
-            self._value_entry_type = json_data_type
+        self._value_entry_type = json_data_type
+        if json_data_type in ["array", "object"]:
+            self._value_entry_type = "string"
 
         self._value = value
         self._description = description
@@ -153,7 +150,7 @@ class ComponentParameter(object):
 
         :returns: a string literal containing the JSON object to be rendered in the DAG
         """
-        json_dict = {"title": param.name, "description": param.description}  # TODO ensure '| tojson | safe' in enforced
+        json_dict = {"title": param.name, "description": param.description}
         if len(param.allowed_input_types) == 1:
             # Parameter only accepts a single type of input
             input_type = param.allowed_input_types[0]
@@ -168,6 +165,10 @@ class ComponentParameter(object):
                 json_dict["uihints"] = {"ui:widget": input_type}
             else:
                 json_dict["type"] = param.value_entry_type
+
+            if param.value:
+                # Include a default value
+                json_dict["default"] = param.value
         else:
             # Parameter accepts multiple types of inputs; render a oneOf block
             one_of = []
@@ -180,7 +181,8 @@ class ComponentParameter(object):
                 }
                 if widget_type == "inputvalue":
                     obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
-                    obj["properties"]["widget"]["default"] = param.value_entry_type
+                    if param.value:
+                        obj["properties"]["widget"]["default"] = param.value
                     value_obj["type"] = param.value_entry_type
                 else:  # inputpath or file types
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
@@ -469,21 +471,6 @@ class InputTypeDescriptionMap(Enum):
     file = "Please select a file to use as input:"
     inputpath = "Please select an output from a parent:"
     outputpath = None  # outputs are read-only and don't require a description
-
-
-class JSONTypeToValueEntryTypeMap(Enum):
-    """
-    A mapping of JSON data types to the format a value for a property of that type will
-    take when entered by the user and then processed by the pipeline processing logic
-    """
-
-    object = "string"
-    array = "string"
-
-    @classmethod
-    def _missing_(cls, value: object) -> Any:
-        """Return None, the caller will use its JSON data type as the value entry type"""
-        return None
 
 
 @dataclass
