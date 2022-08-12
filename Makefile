@@ -23,7 +23,7 @@
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
-.PHONY: container-images publish-container-images validate-runtime-images
+.PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
 
 .ONESHELL:
 
@@ -323,48 +323,73 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 			echo ERROR: $$file does not define the image_name property ; \
 			exit 1; \
 		fi; \
-		fail=0; \
-		for cmd in $$required_commands ; do \
-			echo Checking $$image in $$file for $$cmd... ; \
-			docker inspect $$image > /dev/null 2>&1 ; \
-			if [ $$? -ne 0 ]; then \
-				echo Image $$image is not present, pulling... ; \
-			fi; \
-			docker run --rm $$image which $$cmd > /dev/null 2>&1 ; \
-			if [ $$? -ne 0 ]; then \
-				echo ERROR: Image $$image did not meet criteria for command: $$cmd ; \
-				fail=1; \
-			fi; \
-			if [ $$cmd == "python3" ]; then \
-				IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2` ; \
-				if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
-					echo WARNING: Image $$image requires at Python 3.8 or greater for latest generic component dependency installation; \
-					docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra-py37.txt && \
-								   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
-								   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
-					if [ $$? -ne 0 ]; then \
-						echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra-py37.txt ; \
-						fail=1; \
-					fi; \
-				elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
-					docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
-								   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
-								   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
-					if [ $$? -ne 0 ]; then \
-						echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra.txt ; \
-						fail=1; \
-					fi; \
-				else \
-					echo ERROR: Image $$image unable to parse python version ; \
-					fail=1; \
-				fi; \
-			fi; \
-		done; \
-		if [ $(REMOVE_RUNTIME_IMAGE) -eq 1 ]; then \
-			echo Removing image $$image... ; \
-			docker rmi $$image > /dev/null ; \
-		fi; \
-		if [ $$fail -eq 1 ]; then \
+		make validate-runtime-image image=$$image ; \
+	done
+
+validate-runtime-image: # Validate that runtime image meets minimum criteria
+	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
+	if [[ $$image == "" ]] ; then \
+		echo "Usage: make validate-runtime-image image=<container-image-name>" ; \
+		exit 1 ; \
+	fi ; \
+	$(PYTHON_PIP) install -q jq ; \
+	fail=0; \
+	echo "***********************************************************" ; \
+	echo "Validating container image $$image" ; \
+	echo "-----------------------------------------------------------" ; \
+	echo "=> Loading container image ..." ; \
+	docker inspect $$image > /dev/null 2>&1 ; \
+	if [ $$? -ne 0 ]; then \
+		echo Container image $$image is not present, pulling... ; \
+		docker pull $$image ; \
+		if [ $$? -ne 0 ]; then \
+			echo "ERROR: pull of container image $$image failed" ; \
 			exit 1; \
 		fi; \
-	done
+	fi; \
+	for cmd in $$required_commands ; do \
+        echo "=> Checking container image $$image for $$cmd..." ; \
+		docker run --rm $$image which $$cmd > /dev/null 2>&1 ; \
+		if [ $$? -ne 0 ]; then \
+			echo "ERROR: Container image $$image does not meet criteria for command: $$cmd" ; \
+			fail=1; \
+			continue; \
+		fi; \
+		if [ $$cmd == "python3" ]; then \
+			IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2` ; \
+			if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
+				echo "WARNING: Container image $$image requires Python 3.8 or greater for latest generic component dependency installation" ; \
+				echo "=> Checking notebook execution..." ; \
+				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra-py37.txt && \
+							   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
+							   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
+				if [ $$? -ne 0 ]; then \
+					echo "ERROR: Container image $$image does not meet Python requirements criteria in requirements-elyra-py37.txt" ; \
+					fail=1; \
+				fi; \
+			elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
+				echo "=> Checking notebook execution..." ; \
+				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
+							   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
+							   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
+				if [ $$? -ne 0 ]; then \
+					echo "ERROR: Image $$image does not meet Python requirements criteria in requirements-elyra.txt" ; \
+					fail=1; \
+				fi; \
+			else \
+				echo "ERROR: Container image $$image: unable to parse Python version" ; \
+				fail=1; \
+			fi; \
+		fi; \
+	done ; \
+	if [ $(REMOVE_RUNTIME_IMAGE) -eq 1 ]; then \
+		echo Removing container image $$image... ; \
+		docker rmi $$image > /dev/null ; \
+	fi; \
+	echo "-----------------------------------------------------------" ; \
+	if [ $$fail -eq 1 ]; then \
+		echo "=> ERROR: Container image $$image is not a suitable Elyra runtime image" ; \
+		exit 1 ; \
+	else \
+		echo "=> Container image $$image is a suitable Elyra runtime image" ; \
+	fi; \
