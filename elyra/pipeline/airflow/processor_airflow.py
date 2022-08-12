@@ -365,24 +365,21 @@ be fully qualified (i.e., prefixed with their package names).
 
                     # Get corresponding property's value from parsed pipeline
                     property_value_dict = operation.component_params.get(component_property.ref)
+                    property_value = property_value_dict.get("value", None)
 
-                    # The type and value of this property can vary depending on what the user chooses
-                    # in the pipeline editor. So we get the current active parameter (e.g. StringControl)
-                    # from the activeControl value
-                    active_property_name = property_value_dict["activeControl"]
-
-                    # One we have the value (e.g. StringControl) we use can retrieve the value
-                    # assigned to it
-                    property_value = property_value_dict.get(active_property_name, None)
+                    # Process value as file input, if required
+                    if property_value_dict.get("widget", "") == "file":
+                        absolute_path = get_absolute_path(self.root_dir, active_property_value)
+                        with open(absolute_path, "r") as f:
+                            active_property_value = f.read()
 
                     # If the value is not found, assign it the default value assigned in parser
                     if property_value is None:
                         property_value = component_property.value
 
-                    self.log.debug(f"Active property name : {active_property_name}, value : {property_value}")
                     self.log.debug(
                         f"Processing component parameter '{component_property.name}' "
-                        f"of type '{component_property.data_type}'"
+                        f"of type '{component_property.json_data_type}'"
                     )
 
                     if (
@@ -397,14 +394,14 @@ be fully qualified (i.e., prefixed with their package names).
                         )
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "string":
+                    elif component_property.json_data_type == "string":
                         # Add surrounding quotation marks to string value for correct rendering
                         # in jinja DAG template
                         operation.component_params[component_property.ref] = json.dumps(property_value)
-                    elif component_property.data_type == "dictionary":
+                    elif component_property.json_data_type == "object":
                         processed_value = self._process_dictionary_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "list":
+                    elif component_property.json_data_type == "array":
                         processed_value = self._process_list_value(property_value)
                         operation.component_params[component_property.ref] = processed_value
                     else:  # booleans and numbers can be rendered as-is
