@@ -1253,13 +1253,13 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/c5ff7816/@elyra/pipeline-editor":
+"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/f1ac3a20/@elyra/pipeline-editor":
   version "1.9.0"
-  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/c5ff7816/@elyra/pipeline-editor#af19f42752843a7698120d6207fba554b74ec7a7"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/f1ac3a20/@elyra/pipeline-editor#159bfa3fff3c73082e6f0607371d0c57fb6cd98b"
   dependencies:
     "@elyra/canvas" "^12.11.2"
-    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/c5ff7816/@elyra/pipeline-services"
-    "@rjsf/core" "4.2.3"
+    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/f1ac3a20/@elyra/pipeline-services"
+    "@rjsf/core" "^4.2.3"
     carbon-components "^10.43.0"
     carbon-components-react "^7.48.0"
     carbon-icons "7.0.7"
@@ -1277,9 +1277,9 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.57.tgz#8b5dc239c8ad8f77abe6b8b7205e06d91fa08d50"
   integrity sha512-Nitf1WdRj3/zNLznJGbFfTFhUi+KZK4f0nmO8vaxjJtwDP5CdZ8NGwpmiuCqCfheQohAMVjeWaj2DsHKtd5+gw==
 
-"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/c5ff7816/@elyra/pipeline-services":
+"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/f1ac3a20/@elyra/pipeline-services":
   version "1.9.0"
-  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/c5ff7816/@elyra/pipeline-services#9b985a5eb7f2b76b3d14ee31a9c02639ed32d4d7"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/f1ac3a20/@elyra/pipeline-services#9b985a5eb7f2b76b3d14ee31a9c02639ed32d4d7"
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
@@ -3522,22 +3522,6 @@
     schema-utils "^2.6.5"
     source-map "^0.7.3"
 
-"@rjsf/core@4.2.3":
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/@rjsf/core/-/core-4.2.3.tgz#7ff2fb593f0af20485dc267391a8971378eec655"
-  integrity sha512-dRXhd1Tac/9OcG0VDrYDF2boNTyKINEEITEtJ4L1Yce2iMVk66U52BhWKIFp/WXDM27vwnOfwQo4NwGiqeQeHw==
-  dependencies:
-    "@types/json-schema" "^7.0.7"
-    ajv "^6.7.0"
-    core-js-pure "^3.6.5"
-    json-schema-merge-allof "^0.6.0"
-    jsonpointer "^5.0.0"
-    lodash "^4.17.15"
-    lodash-es "^4.17.15"
-    nanoid "^3.1.23"
-    prop-types "^15.7.2"
-    react-is "16.9.0"
-
 "@rjsf/core@^3.1.0":
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/@rjsf/core/-/core-3.2.1.tgz#8a7b24c9a6f01f0ecb093fdfc777172c12b1b009"
@@ -3552,6 +3536,22 @@
     nanoid "^3.1.23"
     prop-types "^15.7.2"
     react-is "^16.9.0"
+
+"@rjsf/core@^4.2.3":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/@rjsf/core/-/core-4.2.3.tgz#7ff2fb593f0af20485dc267391a8971378eec655"
+  integrity sha512-dRXhd1Tac/9OcG0VDrYDF2boNTyKINEEITEtJ4L1Yce2iMVk66U52BhWKIFp/WXDM27vwnOfwQo4NwGiqeQeHw==
+  dependencies:
+    "@types/json-schema" "^7.0.7"
+    ajv "^6.7.0"
+    core-js-pure "^3.6.5"
+    json-schema-merge-allof "^0.6.0"
+    jsonpointer "^5.0.0"
+    lodash "^4.17.15"
+    lodash-es "^4.17.15"
+    nanoid "^3.1.23"
+    prop-types "^15.7.2"
+    react-is "16.9.0"
 
 "@rollup/plugin-node-resolve@^7.1.1":
   version "7.1.3"

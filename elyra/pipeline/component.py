@@ -213,7 +213,7 @@ class ComponentParameter(object):
                         value_obj["oneOf"] = []
                         obj["uihints"]["value"] = {"inputpath": "true"}
                         if param.allow_no_options:
-                            obj["allownooptions"] = param.allow_no_options
+                            obj["uihints"]["allownooptions"] = param.allow_no_options
                     else:
                         value_obj["type"] = "string"
                         obj["uihints"]["value"] = {"ui:widget": widget_type}

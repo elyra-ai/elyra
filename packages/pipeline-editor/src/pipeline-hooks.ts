@@ -245,7 +245,6 @@ const updateRuntimeImages = (
   properties: any,
   runtimeImages: IRuntimeImage[] | undefined
 ): void => {
-  console.log(properties);
   const runtimeImageProperties =
     properties?.properties?.component_parameters?.properties?.runtime_image ??
     properties?.properties?.pipeline_defaults?.properties?.runtime_image;
