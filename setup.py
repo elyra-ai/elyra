@@ -43,7 +43,7 @@ data_files_spec = [
 
 runtime_extras = {
     "kfp-tekton": [
-        "kfp-tekton~=1.2.0",
+        "kfp-tekton~=1.3.0",
     ],  # See elyra-ai/elyra/pull/2034 for fix pack pinning
     # Kubeflow Pipelines example components
     # (https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector)
