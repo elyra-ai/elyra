@@ -26,10 +26,7 @@ ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
 COPY requirements.txt ${ELYRA_PACKAGE}* ./
 
 # Install Elyra
-RUN if [ "$TAG" = "dev" ] ; then \
-    python3 -m pip install --quiet --no-cache-dir "${ELYRA_PACKAGE}[all]" && rm ${ELYRA_PACKAGE} ; \
-    else \
-    python3 -m pip install --quiet --no-cache-dir "elyra[all]"=="$TAG" ; fi
+RUN python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE"[all] && rm $ELYRA_PACKAGE
 
 # Install custom requirements
 RUN python3 -m pip install -r requirements.txt && rm requirements.txt

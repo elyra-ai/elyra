@@ -33,11 +33,11 @@ In order to perform a release, one will need to have publish access to
   - [elyra-code-viewer-extension](https://pypi.org/manage/project/elyra-code-viewer-extension/collaboration/)
   - [kfp-notebook](https://pypi.org/manage/project/kfp-notebook/collaboration/)
   - [airflow-notebook](https://pypi.org/manage/project/airflow-notebook/collaboration/)
-- Npm
+- npm
   - [elyra](https://www.npmjs.com/settings/elyra/members)
-- DockerHub org
+- `elyra` org on Docker Hub
   - [elyra](https://hub.docker.com/orgs/elyra)
-- Quay.io org
+- `elyra` org on quay.io
   - [quay.io](https://quay.io/organization/elyra)
 
 ## Configuring your environment
@@ -152,7 +152,7 @@ create release prepare-changelog --version 2.3.0
 
 ## Prepare the release artifacts
 ```bash
-create-release.py prepare --version 2.0.0 --dev-version 2.1.0 [--rc 0][--beta 0]
+create-release.py prepare --version 2.3.0 --dev-version 2.4.0 [--rc 0][--beta 0]
 ```
 - The artifacts for the new release will then be available at `./build/release/`
   - The Elyra folder is the main release
@@ -173,32 +173,14 @@ elyra-scala-editor-extension
 
 ### Publish the release
 ```bash
-create-release.py publish --version 2.0.0 [--rc 0] [--beta 0]
+create-release.py publish --version 2.3.0 [--rc 0] [--beta 0]
 ```
 - Build and publish container images based on release tag
 ```bash
 git pull --rebase
-git checkout tags/v2.0.0
+git checkout tags/v2.3.0
 make container-images publish-container-images
 ```  
-
-- Update dev and latest image tags based on release tag
-```bash
-docker tag elyra/elyra:2.0.0 elyra/elyra:dev && docker push elyra/elyra:dev
-docker tag elyra/elyra:2.0.0 elyra/elyra:latest && docker push elyra/elyra:latest
-docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:dev && docker push quay.io/elyra/elyra:dev
-docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:latest && docker push quay.io/elyra/elyra:latest
-
-docker tag elyra/airflow:2.0.0 elyra/airflow:dev && docker push elyra/airflow:dev
-docker tag elyra/airflow:2.0.0 elyra/airflow:latest && docker push elyra/airflow:latest
-docker tag quay.io/elyra/airflow:2.0.0 quay.io/elyra/airflow:dev && docker push quay.io/elyra/airflow:dev
-docker tag quay.io/elyra/airflow:2.0.0 quay.io/elyra/airflow:latest && docker push quay.io/elyra/airflow:latest
-
-docker tag elyra/kf-notebook:2.0.0 elyra/kf-notebook:dev && docker push elyra/kf-notebook:dev
-docker tag elyra/kf-notebook:2.0.0 elyra/kf-notebook:latest && docker push elyra/kf-notebook:latest
-docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:dev && docker push quay.io/elyra/kf-notebook:dev
-docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && docker push quay.io/elyra/kf-notebook:latest
-```
 
 - Merge changes for conda-forge
   - https://github.com/conda-forge/elyra-feedstock/pulls
