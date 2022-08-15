@@ -1140,12 +1140,10 @@ class PipelineValidationManager(SingletonConfigurable):
     def _get_component_type(self, node_param: dict) -> Optional[str]:
         """
         Helper function to determine the type of a node property
-        :param property_dict: a dictionary containing the full list of property parameters and descriptions
-        :param node_property: the property to look for
-        :param control_id: when using OneOfControl, include the control_id to retrieve the correct format
+        :param node_param: a dictionary containing the value of the property given in piepline JSON
         :return: the data type associated with node_property, defaults to 'string'
         """
-        return node_param.get("widget", None)
+        return node_param.get("widget", "string")
 
     def _get_parent_id_list(
         self, pipeline_definition: PipelineDefinition, node_id_list: list, parent_list: list
