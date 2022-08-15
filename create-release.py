@@ -138,6 +138,18 @@ def update_version_to_release() -> None:
         )
 
         sed(
+            _source("packages/theme/src/index.ts"),
+            r"https://github.com/elyra-ai/elyra/releases/latest/",
+            rf"https://github.com/elyra-ai/elyra/releases/v{new_version}/",
+        )
+
+        sed(
+            _source("packages/theme/src/index.ts"),
+            r"What's new in latest",
+            rf"What's new in v{new_version}",
+        )
+
+        sed(
             _source("elyra/cli/pipeline_app.py"),
             r"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
@@ -289,6 +301,18 @@ def update_version_to_dev() -> None:
             _source("packages/theme/src/index.ts"),
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
             rf"https://elyra.readthedocs.io/en/latest/",
+        )
+
+        sed(
+            _source("packages/theme/src/index.ts"),
+            rf"https://github.com/elyra-ai/elyra/releases/v{new_version}/",
+            rf"https://github.com/elyra-ai/elyra/releases/latest/",
+        )
+
+        sed(
+            _source("packages/theme/src/index.ts"),
+            rf"What's new in v{new_version}",
+            rf"What's new in latest",
         )
 
         # Update documentation references in documentation
