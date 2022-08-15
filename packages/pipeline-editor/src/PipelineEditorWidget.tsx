@@ -718,6 +718,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       PipelineService.setNodePathsRelativeToWorkspace(
         pipelineJson.pipelines[0],
+        getAllPaletteNodes(palette),
         contextRef.current.path
       );
 

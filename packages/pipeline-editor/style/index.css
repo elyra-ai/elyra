@@ -454,6 +454,10 @@ span.bx--list-box__label {
   cursor: text;
 }
 
+.elyra-PipelineEditor .array-item .errorIndicator {
+  left: -10px;
+}
+
 .elyra-PipelineEditor .elyra-formEditor .label-header.category-header {
   font-size: var(--jp-content-font-size2);
 }
