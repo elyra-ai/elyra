@@ -75,13 +75,13 @@ class CosClient(LoggingConfigurable):
                     raise RuntimeError(
                         "Cannot connect to object storage. "
                         f"Authentication provider '{auth_type}' requires "
-                        "environment variables AWS_ROLE_ARN and AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS."
+                        "environment variables AWS_ROLE_ARN and AWS_WEB_IDENTITY_TOKEN_FILE."
                     )
                 # Verify that AWS_WEB_IDENTITY_TOKEN_FILE exists
                 if Path(os.environ["AWS_WEB_IDENTITY_TOKEN_FILE"]).is_file() is False:
                     raise RuntimeError(
                         "Cannot connect to object storage. The value of environment "
-                        "variable AWS_IAM_ROLES_FOR_SERVICE_ACCOUNTS references "
+                        "variable AWS_WEB_IDENTITY_TOKEN_FILE references "
                         f"'{os.environ['AWS_WEB_IDENTITY_TOKEN_FILE']}', which is not a valid file."
                     )
                 cred_provider = providers.IamAwsProvider()
