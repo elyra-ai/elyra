@@ -1137,7 +1137,7 @@ class PipelineValidationManager(SingletonConfigurable):
         required_parameters = property_dict["properties"]["component_parameters"]["required"]
         return node_property in required_parameters
 
-    def _get_component_type(self, node_param: dict, node_property: str) -> Optional[str]:
+    def _get_component_type(self, node_param: dict) -> Optional[str]:
         """
         Helper function to determine the type of a node property
         :param property_dict: a dictionary containing the full list of property parameters and descriptions
