@@ -526,15 +526,15 @@ class PipelineValidationManager(SingletonConfigurable):
                         message="Node is missing required property.",
                         data={"nodeID": node.id, "nodeName": node.label, "propertyName": default_parameter},
                     )
-                elif self._get_component_type(component_property_dict, default_parameter) == "inputpath":
+                elif self._get_component_type(node_param) == "inputpath":
                     # Any component property with type `InputPath` will be a dictionary of two keys
                     # "value": the node ID of the parent node containing the output
                     # "option": the name of the key (which is an output) of the above referenced node
-                    # TODO this will have to be fixed
+                    inputpath_param_dict = node_param.get("value")
                     if (
-                        not isinstance(node_param, dict)
-                        or len(node_param) != 2
-                        or set(node_param.keys()) != {"value", "option"}
+                        not isinstance(inputpath_param_dict, dict)
+                        or len(inputpath_param_dict) != 2
+                        or set(inputpath_param_dict.keys()) != {"value", "option"}
                     ):
                         response.add_message(
                             severity=ValidationSeverity.Error,
@@ -544,8 +544,8 @@ class PipelineValidationManager(SingletonConfigurable):
                         )
                     node_ids = list(x.get("node_id_ref", None) for x in node.component_links)
                     parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
-                    node_param_value = node_param.get("value")
-                    if node_param_value not in parent_list:
+                    upstream_node_id = inputpath_param_dict.get("value")
+                    if upstream_node_id not in parent_list:
                         response.add_message(
                             severity=ValidationSeverity.Error,
                             message_type="invalidNodeProperty",
@@ -553,21 +553,10 @@ class PipelineValidationManager(SingletonConfigurable):
                             "check your node-to-node connections",
                             data={"nodeID": node.id, "nodeName": node.label},
                         )
-                elif isinstance(node_param, dict) and node_param.get("activeControl") == "NestedEnumControl":
-                    # TODO this will have to be fixed
-                    if not node_param.get("NestedEnumControl"):
-                        response.add_message(
-                            severity=ValidationSeverity.Error,
-                            message_type="invalidNodeProperty",
-                            message="Node contains an invalid reference to an node output. Please "
-                            "check the node properties are configured properly",
-                            data={"nodeID": node.id, "nodeName": node.label},
-                        )
-                    else:
+                    if pipeline_runtime == "airflow":
                         # TODO: Update this hardcoded check for xcom_push. This parameter is specific to a runtime
                         # (Airflow). i.e. abstraction for byo validation?
-                        node_param_value = node_param["NestedEnumControl"].get("value")
-                        upstream_node = pipeline_definition.get_node(node_param_value)
+                        upstream_node = pipeline_definition.get_node(upstream_node_id)
                         xcom_param = upstream_node.get_component_parameter("xcom_push")
                         if xcom_param:
                             xcom_value = xcom_param.get("BooleanControl")
@@ -583,6 +572,15 @@ class PipelineValidationManager(SingletonConfigurable):
                                         "parentNodeID": upstream_node.label,
                                     },
                                 )
+                elif self._get_component_type(node_param) == "file":
+                    filename = node_param.get("value")
+                    self._validate_filepath(
+                        node_id=node.id,
+                        node_label=node.label,
+                        property_name=default_parameter,
+                        filename=filename,
+                        response=response,
+                    )
 
     def _validate_container_image_name(
         self, node_id: str, node_label: str, image_name: str, response: ValidationResponse
@@ -1139,25 +1137,13 @@ class PipelineValidationManager(SingletonConfigurable):
         required_parameters = property_dict["properties"]["component_parameters"]["required"]
         return node_property in required_parameters
 
-    def _get_component_type(self, property_dict: dict, node_property: str, control_id: str = "") -> Optional[str]:
+    def _get_component_type(self, node_param: dict) -> Optional[str]:
         """
         Helper function to determine the type of a node property
-        :param property_dict: a dictionary containing the full list of property parameters and descriptions
-        :param node_property: the property to look for
-        :param control_id: when using OneOfControl, include the control_id to retrieve the correct format
+        :param node_param: a dictionary containing the value of the property given in piepline JSON
         :return: the data type associated with node_property, defaults to 'string'
         """
-        prop = property_dict["properties"]["component_parameters"]["properties"].get(node_property, None)
-        if not prop:
-            return None
-
-        if prop.get("uihints", {}).get("inputpath", False):
-            return "inputpath"
-
-        if prop.get("oneOf"):
-            return prop["oneOf"][0]["properties"]["value"].get("type", "string")
-
-        return "string"
+        return node_param.get("widget", "string")
 
     def _get_parent_id_list(
         self, pipeline_definition: PipelineDefinition, node_id_list: list, parent_list: list

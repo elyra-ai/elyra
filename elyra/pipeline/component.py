@@ -197,6 +197,8 @@ class ComponentParameter(object):
                     obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
                     obj["properties"]["widget"]["default"] = param.value_entry_type
                     value_obj["type"] = param.value_entry_type
+                    if param.value_entry_type == "boolean":
+                        value_obj["title"] = " "
 
                     if param.value is not None:
                         value_obj["default"] = param.value
