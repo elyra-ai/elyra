@@ -439,6 +439,21 @@ span.bx--list-box__label {
   background-color: var(--jp-border-color3);
 }
 
+.elyra-PipelineEditor .nodeDescription {
+  display: block;
+  margin: 10px 47px;
+  font-size: var(--jp-content-font-size1);
+  color: var(--jp-content-font-color0);
+  white-space: normal;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+
 .elyra-PipelineEditor .elyra-formEditor .label-header.category-header {
   font-size: var(--jp-content-font-size2);
 }
