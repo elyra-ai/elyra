@@ -24,7 +24,7 @@
       }
     },
     "pipeline_defaults": {
-      "title": "Node Defaults",
+      "title": "Default Properties",
       "type": "object",
       "properties": {
         "cos_object_prefix": {
@@ -34,6 +34,69 @@
             "For generic components, this path prefix is used when storing artifacts on Object Storage.",
           "uihints": {
             "ui:placeholder": "project/subproject"
+          }
+        },
+        "node_defaults_header": {
+          "type": "null",
+          "title": "Node Defaults",
+          "description":
+            "Default values are applied to all nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        "kubernetes_tolerations": {
+          "title": "Kubernetes Tolerations",
+          "description":
+            "Kubernetes tolerations to attach to the pod where the node is executed.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "items": {
+                "ui:placeholder": "TOL_ID=key:operator:value:effect"
+            },
+            "keyValueEntries": true
+          }
+        },
+        "mounted_volumes": {
+          "title": "Data Volumes",
+          "description":
+            "Volumes to be mounted in all nodes. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the nodes are executed or the pipeline will not run.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "items": {
+                "ui:placeholder": "/mount/path=pvc-name"
+            },
+            "keyValueEntries": true
+          }
+        },
+        "kubernetes_pod_annotations": {
+          "title": "Kubernetes Pod Annotations",
+          "description":
+            "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "items": {
+                "ui:placeholder": "annotation_key=annotation_value"
+            },
+            "keyValueEntries": true
+          }
+        },
+        "generic_node_defaults_header": {
+          "type": "null",
+          "title": "Generic Node Defaults",
+          "description":
+            "Default values are applied to all generic nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
           }
         },
         "runtime_image": {
@@ -50,6 +113,9 @@
             "type": "string"
           },
           "uihints": {
+            "items": {
+                "ui:placeholder": "env_var=VALUE"
+            },
             "keyValueEntries": true
           }
         },
@@ -62,42 +128,9 @@
             "type": "string"
           },
           "uihints": {
-            "keyValueEntries": true
-          }
-        },
-        "kubernetes_tolerations": {
-          "title": "Kubernetes Tolerations",
-          "description":
-            "Kubernetes tolerations to attach to the pod where the node is executed.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uihints": {
-            "keyValueEntries": true
-          }
-        },
-        "mounted_volumes": {
-          "title": "Data Volumes",
-          "description":
-            "Volumes to be mounted in all nodes. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the nodes are executed or the pipeline will not run.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uihints": {
-            "keyValueEntries": true
-          }
-        },
-        "kubernetes_pod_annotations": {
-          "title": "Kubernetes Pod Annotations",
-          "description":
-            "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uihints": {
+            "items": {
+                "ui:placeholder": "env_var=secret-name:secret-key"
+            },
             "keyValueEntries": true
           }
         }
