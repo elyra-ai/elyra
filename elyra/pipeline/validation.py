@@ -575,8 +575,11 @@ class PipelineValidationManager(SingletonConfigurable):
                 elif self._get_component_type(node_param) == "file":
                     filename = node_param.get("value")
                     self._validate_filepath(
-                        node_id=node.id, node_label=node.label, property_name=default_parameter, filename=filename,
-                        response=response
+                        node_id=node.id,
+                        node_label=node.label,
+                        property_name=default_parameter,
+                        filename=filename,
+                        response=response,
                     )
 
     def _validate_container_image_name(
