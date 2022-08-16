@@ -66,9 +66,10 @@
             },
           "keyValueEntries": true
           }
-        },
+        }
         {% endif %}
         {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+        ,
         "kubernetes_pod_annotations": {
           "type": "array",
           "items": {
@@ -82,9 +83,10 @@
             },
           "keyValueEntries": true
           }
-        },
+        }
         {% endif %}
         {% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+        ,
         "kubernetes_tolerations": {
           "type": "array",
           "items": {
@@ -98,23 +100,8 @@
             },
           "keyValueEntries": true
           }
-        },
-        {% endif %}
-        "component_source_header": {
-          "type": "null",
-          "title": "Component Source",
-          "uihints": {
-            "ui:field": "header"
-          }
-        },
-        "component_source": {
-          "type": "string",
-          "title": "Component Source",
-          "default": {{ component.component_source|tojson|safe }},
-          "uihints": {
-            "ui:readonly": true
-          }
         }
+        {% endif %}
       },
       "required": [
       {% for property in component.required_properties %}
@@ -124,6 +111,21 @@
           {% endif %}
       {% endfor %}
       ]
+    },
+    "component_source_header": {
+      "type": "null",
+      "title": "Component Source",
+      "uihints": {
+        "ui:field": "header"
+      }
+    },
+    "component_source": {
+      "type": "string",
+      "title": "Component Source",
+      "default": {{ component.component_source|tojson|safe }},
+      "uihints": {
+        "ui:readonly": true
+      }
     }
   },
   "required": ["component_parameters"]

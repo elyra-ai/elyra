@@ -180,8 +180,8 @@ class ComponentParameter(object):
             else:
                 json_dict["type"] = param.value_entry_type
 
-            if param.value:
-                # Include a default value
+            # Render default value if it is not None or empty string
+            if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
                 json_dict["default"] = param.value
         else:
             # Parameter accepts multiple types of inputs; render a oneOf block
@@ -200,7 +200,8 @@ class ComponentParameter(object):
                     if param.value_entry_type == "boolean":
                         value_obj["title"] = " "
 
-                    if param.value is not None:
+                    # Render default value if it is not None or empty string
+                    if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
                         value_obj["default"] = param.value
                 else:  # inputpath or file types
                     obj["title"] = InputTypeDescriptionMap[widget_type].value

@@ -504,17 +504,20 @@ class PipelineValidationManager(SingletonConfigurable):
         # List of just the current parameters for the component
         current_parameter_defaults_list = list(current_parameters.keys())
 
-        volumes = node.get_component_parameter(MOUNTED_VOLUMES)
-        if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
-            self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
+        if MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
+            volumes = node.get_component_parameter(MOUNTED_VOLUMES)
+            if volumes and isinstance(volumes, list) and isinstance(volumes[0], VolumeMount):
+                self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
 
-        tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
-        if tolerations and KUBERNETES_TOLERATIONS not in node.elyra_properties_to_skip:
-            self._validate_kubernetes_tolerations(node.id, node.label, tolerations, response=response)
+        if KUBERNETES_TOLERATIONS not in node.elyra_properties_to_skip:
+            tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
+            if tolerations:
+                self._validate_kubernetes_tolerations(node.id, node.label, tolerations, response=response)
 
-        annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
-        if annotations and KUBERNETES_POD_ANNOTATIONS not in node.elyra_properties_to_skip:
-            self._validate_kubernetes_pod_annotations(node.id, node.label, annotations, response=response)
+        if KUBERNETES_POD_ANNOTATIONS not in node.elyra_properties_to_skip:
+            annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
+            if annotations:
+                self._validate_kubernetes_pod_annotations(node.id, node.label, annotations, response=response)
 
         for default_parameter in current_parameter_defaults_list:
             node_param = node.get_component_parameter(default_parameter)
