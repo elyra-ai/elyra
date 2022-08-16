@@ -206,7 +206,6 @@ class ComponentParameter(object):
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
                     if widget_type == "outputpath":
-                        # TODO will this ever be hit?
                         value_obj["type"] = "string"
                         obj["uihints"]["value"] = {"ui:readonly": "true", "outputpath": "true"}
                     elif widget_type == "inputpath":
