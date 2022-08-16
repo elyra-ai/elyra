@@ -600,7 +600,7 @@ def prepare_extensions_release() -> None:
             packages=["python-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
             description=f"The Python Script editor extension contains support for Python files, "
             f"which can take advantage of the Hybrid Runtime Support enabling users to "
-            f"locally edit .py scripts and execute them against local or cloud-based resources."
+            f"locally edit, execute and debug .py scripts against local or cloud-based resources."
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
         "elyra-r-editor-extension": SimpleNamespace(
