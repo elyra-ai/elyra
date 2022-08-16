@@ -125,8 +125,9 @@ export class ScriptRunner {
 
     try {
       await future.done;
-      // Keep session open but shut down kernel
-      // this.shutdownKernel(); // this also shuts down session for some reason...
+      // TO DO: Keep session open but shut down kernel
+      // this.interruptKernel(); // debugger is not triggered after this
+      // this.shutdownKernel(); // also shuts down session for some reason
       this.disableButton(false);
     } catch (e) {
       console.log('Exception: done = ' + JSON.stringify(e));
@@ -149,7 +150,7 @@ export class ScriptRunner {
       name: contextPath
     };
 
-    if (!this.sessionConnection) {
+    if (!this.sessionConnection || !this.sessionConnection.kernel) {
       this.sessionConnection = await this.sessionManager.startNew(options);
       this.sessionConnection.setPath(contextPath);
     }
@@ -168,7 +169,7 @@ export class ScriptRunner {
         this.sessionConnection = null;
         console.log(name + ' kernel shut down');
       } catch (e) {
-        console.log('Exception: shutdown = ' + JSON.stringify(e));
+        console.log('Exception: session shutdown = ' + JSON.stringify(e));
       }
     }
   };
@@ -183,7 +184,24 @@ export class ScriptRunner {
         kernel && (await KernelAPI.shutdownKernel(kernel.id));
         console.log(kernel?.name + ' kernel shutdown');
       } catch (e) {
-        console.log('Exception: shutdown = ' + JSON.stringify(e));
+        console.log('Exception: kernel shutdown = ' + JSON.stringify(e));
+      }
+    }
+  };
+
+  /**
+   * Function: Interrupts kernel.
+   * TO DO: Interrupting kernel does not notify debugger service. Same behavior debugging notebooks.
+   */
+  interruptKernel = async (): Promise<void> => {
+    if (this.sessionConnection) {
+      const kernel = this.sessionConnection.kernel;
+      try {
+        kernel &&
+          (await KernelAPI.interruptKernel(kernel.id, kernel.serverSettings));
+        console.log(kernel?.name + ' kernel interrupted.');
+      } catch (e) {
+        console.log('Exception: kernel interrupt = ' + JSON.stringify(e));
       }
     }
   };

@@ -233,7 +233,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   };
 
   private stopRun = async (): Promise<void> => {
-    await this.runner.shutdownKernel();
+    await this.runner.interruptKernel();
     if (!this.dockPanel?.isEmpty) {
       this.updatePromptText(' ');
     }
