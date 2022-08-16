@@ -323,6 +323,13 @@ This should be the URL address of your S3-compatible Object Storage. If running 
 
 Example: `https://minio-service.kubeflow:9000`
 
+##### Public Cloud Object Storage endpoint (public_cos_endpoint)
+
+If the `Cloud Object Storage endpoint` setting identifies a URL that can only be resolved within the kubernetes cluster, Elyra cannot generate valid links to the object storage page. 
+If your instalation requires a different public URL specify it as `Public Cloud Object Storage endpoint`.
+
+Example: `https://public-kubernetes-service-url/storage`
+
 ##### Cloud Object Storage bucket name (cos_bucket)
 
 Name of the bucket you want Elyra to store pipeline artifacts in. This setting is required. If the bucket doesn't exist, it will be created. The specified bucket name must meet the naming conventions imposed by the Object Storage service.
