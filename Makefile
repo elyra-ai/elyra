@@ -25,8 +25,6 @@
 .PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
 
-.ONESHELL:
-
 SHELL:=/bin/bash
 
 # Container execs
