@@ -138,6 +138,18 @@ def update_version_to_release() -> None:
         )
 
         sed(
+            _source("packages/theme/src/index.ts"),
+            r"https://github.com/elyra-ai/elyra/releases/latest/",
+            rf"https://github.com/elyra-ai/elyra/releases/v{new_version}/",
+        )
+
+        sed(
+            _source("packages/theme/src/index.ts"),
+            r"What's new in latest",
+            rf"What's new in v{new_version}",
+        )
+
+        sed(
             _source("elyra/cli/pipeline_app.py"),
             r"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
@@ -291,6 +303,18 @@ def update_version_to_dev() -> None:
             rf"https://elyra.readthedocs.io/en/latest/",
         )
 
+        sed(
+            _source("packages/theme/src/index.ts"),
+            rf"https://github.com/elyra-ai/elyra/releases/v{new_version}/",
+            rf"https://github.com/elyra-ai/elyra/releases/latest/",
+        )
+
+        sed(
+            _source("packages/theme/src/index.ts"),
+            rf"What's new in v{new_version}",
+            rf"What's new in latest",
+        )
+
         # Update documentation references in documentation
         sed(
             _source("docs/source/user_guide/jupyterlab-interface.md"),
@@ -438,7 +462,13 @@ def build_release():
     print("----------------------- Building Release ------------------------")
     print("-----------------------------------------------------------------")
 
+    # Build wheels and source packages
     check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
+
+    # Build container images from tagged release
+    check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
+    check_run(["make", "container-images"], cwd=config.source_dir, capture_output=False)
+    check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
 
     print("")
 
@@ -813,6 +843,17 @@ def publish_release(working_dir) -> None:
         cwd=config.source_dir,
     )
 
+    print("-----------------------------------------------------------------")
+    print("-------------------- Pushing container images -------------------")
+    print("-----------------------------------------------------------------")
+    # push container images
+    print()
+    print(f"Pushing container images")
+    is_latest = config.git_branch == "main" and not config.pre_release
+    check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
+    check_run(["make", "publish-container-images", f"IMAGE_IS_LATEST={is_latest}"], cwd=config.source_dir)
+    check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
+
 
 def initialize_config(args=None) -> SimpleNamespace:
     if not args:
@@ -851,6 +892,7 @@ def initialize_config(args=None) -> SimpleNamespace:
         else f"v{args.version}rc{args.rc}"
         if args.rc
         else f"v{args.version}b{args.beta}",
+        "pre_release": True if (args.rc or args.beta) else False,
     }
 
     global config
