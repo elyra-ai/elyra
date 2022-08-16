@@ -50,9 +50,10 @@
           "uihints": {
             "ui:field": "header"
           }
-        },
+        }
         {% endif %}
         {% if "mounted_volumes" not in elyra_property_collisions_list %}
+        ,
         "mounted_volumes": {
           "type": "array",
           "items": {
