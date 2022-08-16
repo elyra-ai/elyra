@@ -25,16 +25,15 @@ from tornado.httpclient import HTTPClientError
 
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
+from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
-from elyra.tests.pipeline import resources
-from elyra.tests.util.handlers_utils import expected_http_error
-
-from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationResponse
-from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.validation import ValidationSeverity
+from elyra.tests.pipeline import resources
+from elyra.tests.util.handlers_utils import expected_http_error
 
 try:
     import importlib.resources as pkg_resources
