@@ -120,7 +120,7 @@
             "ui:placeholder": "https://your-cos-service:port"
           }
         },
-        "cos_public_endpoint": {
+        "public_cos_endpoint": {
           "title": "Public Cloud Object Storage Endpoint",
           "description": "The public Cloud Object Storage endpoint",
           "type": "string",
