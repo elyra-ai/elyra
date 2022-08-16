@@ -394,7 +394,8 @@ class Node(AppDataBase):
                 return
 
             # Convert plain list to KeyValueList
-            self.set_component_parameter(kv_property, KeyValueList(value))
+            if kv_property not in self.elyra_properties_to_skip:
+                self.set_component_parameter(kv_property, KeyValueList(value))
 
     def remove_env_vars_with_matching_secrets(self):
         """
@@ -650,7 +651,9 @@ class PipelineDefinition(object):
                 if not pipeline_default_value:
                     continue
 
-                if not Operation.is_generic_operation(node.op) and property_name not in ELYRA_COMPONENT_PROPERTIES:
+                if not Operation.is_generic_operation(node.op) and (
+                    property_name not in ELYRA_COMPONENT_PROPERTIES or property_name in node.elyra_properties_to_skip
+                ):
                     # Do not propagate default properties that do not apply to custom components, e.g. runtime image
                     continue
 
