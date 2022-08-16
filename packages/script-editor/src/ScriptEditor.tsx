@@ -117,17 +117,17 @@ export abstract class ScriptEditor extends DocumentWidget<
       enabled: !this.runDisabled
     });
 
-    const stopButton = new ToolbarButton({
+    const interruptButton = new ToolbarButton({
       icon: stopIcon,
-      onClick: this.stopRun,
-      tooltip: 'Stop'
+      onClick: this.interruptRun,
+      tooltip: 'Interrupt the kernel'
     });
 
     // Populate toolbar with button widgets
     const toolbar = this.toolbar;
     toolbar.addItem('save', saveButton);
     toolbar.addItem('run', runButton);
-    toolbar.addItem('stop', stopButton);
+    toolbar.addItem('interrupt', interruptButton);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
 
@@ -232,7 +232,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     }
   };
 
-  private stopRun = async (): Promise<void> => {
+  private interruptRun = async (): Promise<void> => {
     await this.runner.interruptKernel();
     if (!this.dockPanel?.isEmpty) {
       this.updatePromptText(' ');
@@ -335,7 +335,7 @@ export abstract class ScriptEditor extends DocumentWidget<
           outputTab.currentTitle.closable = true;
         }
         outputTab.disposed.connect((sender, args) => {
-          this.stopRun();
+          this.interruptRun();
           this.clearOutputArea();
         }, this);
       }

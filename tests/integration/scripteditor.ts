@@ -248,8 +248,8 @@ const checkToolbarContent = (): void => {
   cy.get('button[title="Run"]');
   cy.get('svg[data-icon="ui-components:run"]');
 
-  // check stop button exists and icon
-  cy.get('button[title="Stop"]');
+  // check interrupt kernel button exists and icon
+  cy.get('button[title="Interrupt the kernel"]');
   cy.get('svg[data-icon="ui-components:stop"]');
 
   // check select kernel dropdown exists
