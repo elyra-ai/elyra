@@ -601,6 +601,7 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
+  //error dialog tests
   it('saving airflow runtime config should error if required fields are missing', () => {
   
     cy.savePipeline();
@@ -608,6 +609,22 @@ describe('Pipeline Editor tests', () => {
     cy.createRuntimeConfig({ type: 'invalid' });
     cy.get('.jp-Dialog-header').contains('Error making request');
   
+    // Dismiss dialog
+    cy.findByRole('button', { name: /ok/i }).click();
+  });
+
+  it('exporting airflow pipeline with invalid runtime should give error', () => {
+    cy.createPipeline();
+    cy.savePipeline();
+
+    cy.createRuntimeConfig({ type: 'airflow' });
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    cy.contains('OK').click();
+
+    cy.get('.jp-Dialog-header').contains('Error making request');
+
     // Dismiss dialog
     cy.findByRole('button', { name: /ok/i }).click();
   });
