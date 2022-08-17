@@ -101,7 +101,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # unpack Cloud Object Storage configs
         cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
-        cos_public_endpoint = runtime_configuration.metadata.get("cos_public_endpoint", cos_endpoint)
+        cos_public_endpoint = runtime_configuration.metadata.get("public_cos_endpoint", cos_endpoint)
         cos_bucket = runtime_configuration.metadata["cos_bucket"]
 
         # Determine which provider to use to authenticate with Kubeflow

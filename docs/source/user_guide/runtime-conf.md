@@ -325,8 +325,8 @@ Example: `https://minio-service.kubeflow:9000`
 
 ##### Public Cloud Object Storage endpoint (public_cos_endpoint)
 
-If the `Cloud Object Storage endpoint` setting identifies a URL that can only be resolved within the kubernetes cluster, Elyra cannot generate valid links to the object storage page. 
-If your instalation requires a different public URL specify it as `Public Cloud Object Storage endpoint`.
+If the `Cloud Object Storage endpoint` setting identifies a URL that can only be resolved within the Kubernetes cluster, Elyra cannot generate valid links to the object storage page. 
+If your installation requires a different public URL specify it as `Public Cloud Object Storage endpoint`.
 
 Example: `https://public-kubernetes-service-url/storage`
 
