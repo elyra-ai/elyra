@@ -644,9 +644,7 @@ def describe(json_option, pipeline_path):
                     describe_dict["notebook_dependencies"]["value"]
                 ),
                 describe_dict["file_dependencies"]["json_name"]: list(describe_dict["file_dependencies"]["value"]),
-                describe_dict["component_dependencies"]["json_name"]: list(
-                    describe_dict["component_dependencies"]["value"]
-                ),
+                describe_dict["component_dependencies"]["json_name"]: [],
                 describe_dict["container_image_dependencies"]["json_name"]: list(
                     describe_dict["container_image_dependencies"]["value"]
                 ),
@@ -656,6 +654,12 @@ def describe(json_option, pipeline_path):
                 ),
             },
         }
+
+        for component_dependency in describe_dict["component_dependencies"]["value"]:
+            output_dict["dependencies"][describe_dict["component_dependencies"]["json_name"]].append(
+                json.loads(component_dependency)
+            )
+
         click.echo(json.dumps(output_dict, indent=indent_length))
     else:
         # produce human-readable output

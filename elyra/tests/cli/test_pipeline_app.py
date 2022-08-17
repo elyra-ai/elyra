@@ -264,16 +264,16 @@ def test_describe_with_kfp_components():
     assert "Number of generic nodes: 0" in result.output
     assert "Local file dependencies: None specified" in result.output
     assert (
-        "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/"
-        "basics/Calculate_hash/component.yaml" in result.output
+        '- {"catalog_type": "elyra-kfp-examples-catalog", "component_ref": {"component-id": "download_data.yaml"}}'
+        in result.output
     )
     assert (
-        "- /opt/anaconda3/envs/elyra-dev/share/jupyter/components/"
-        "kfp/filter_text_using_shell_and_grep.yaml" in result.output
+        '- {"catalog_type": "elyra-kfp-examples-catalog", "component_ref": '
+        '{"component-id": "filter_text_using_shell_and_grep.yaml"}}' in result.output
     )
     assert (
-        "- https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/"
-        "web/Download/component.yaml" in result.output
+        '- {"catalog_type": "elyra-kfp-examples-catalog", "component_ref": {"component-id": "calculate_hash.yaml"}}'
+        in result.output
     )
     assert result.exit_code == 0
 
@@ -843,6 +843,37 @@ def test_describe_kubernetes_secrets_json():
     assert "secret-1" in dependencies["kubernetes_secrets"], dependencies["kubernetes_secrets"]
     assert "secret-2" in dependencies["kubernetes_secrets"], dependencies["kubernetes_secrets"]
     assert "secret-3" in dependencies["kubernetes_secrets"], dependencies["kubernetes_secrets"]
+
+
+def test_describe_custom_component_dependencies_json():
+    """
+    Test JSON output for the 'custom_components' dependency property
+    """
+    runner = CliRunner()
+
+    #
+    # - Pipeline contains only custom components
+
+    pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
+    result = runner.invoke(pipeline, ["describe", "--json", str(pipeline_file_path)])
+    assert result.exit_code == 0
+    result_json = json.loads(result.output)
+    assert result_json["generic_node_count"] == 0
+    assert result_json["custom_node_count"] == 3
+    assert isinstance(result_json.get("dependencies"), dict)
+    dependencies = result_json["dependencies"]
+    assert isinstance(dependencies["custom_components"], list)
+    assert len(dependencies["custom_components"]) == 3
+    assert dependencies["custom_components"][0]["catalog_type"] == "elyra-kfp-examples-catalog"
+    assert dependencies["custom_components"][1]["catalog_type"] == "elyra-kfp-examples-catalog"
+    assert dependencies["custom_components"][2]["catalog_type"] == "elyra-kfp-examples-catalog"
+    expected_component_ids = ["download_data.yaml", "filter_text_using_shell_and_grep.yaml", "calculate_hash.yaml"]
+    assert dependencies["custom_components"][0]["component_ref"]["component-id"] in expected_component_ids
+    expected_component_ids.remove(dependencies["custom_components"][0]["component_ref"]["component-id"])
+    assert dependencies["custom_components"][1]["component_ref"]["component-id"] in expected_component_ids
+    expected_component_ids.remove(dependencies["custom_components"][1]["component_ref"]["component-id"])
+    assert dependencies["custom_components"][2]["component_ref"]["component-id"] in expected_component_ids
+    expected_component_ids.remove(dependencies["custom_components"][2]["component_ref"]["component-id"])
 
 
 # ------------------------------------------------------------------
