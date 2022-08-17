@@ -173,54 +173,57 @@ class ComponentParameter(object):
                 json_dict["type"] = "string"
                 json_dict["uihints"] = {"ui:widget": "hidden", "outputpath": True}
             elif input_type == "inputpath":
-                json_dict["uihints"] = {"inputpath": True}
+                json_dict.update(
+                    {
+                        "type": "object",
+                        "properties": {"widget": {"type": "string", "default": input_type}, "value": {"oneOf": []}},
+                        "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: "true"}},
+                    }
+                )
             elif input_type == "file":
                 json_dict["type"] = "string"
                 json_dict["uihints"] = {"ui:widget": input_type}
             else:
                 json_dict["type"] = param.value_entry_type
 
-            # Render default value if it is not None or empty string
-            if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
-                json_dict["default"] = param.value
+                # Render default value if it is not None or empty string
+                if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
+                    json_dict["default"] = param.value
         else:
             # Parameter accepts multiple types of inputs; render a oneOf block
             one_of = []
             for widget_type in param.allowed_input_types:
-                value_obj = {}
                 obj = {
                     "type": "object",
-                    "properties": {"widget": {"type": "string"}},
-                    "uihints": {"widget": {"ui:widget": "hidden"}},
+                    "properties": {"widget": {"type": "string"}, "value": {}},
+                    "uihints": {"widget": {"ui:widget": "hidden"}, "value": {}},
                 }
                 if widget_type == "inputvalue":
                     obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
                     obj["properties"]["widget"]["default"] = param.value_entry_type
-                    value_obj["type"] = param.value_entry_type
+                    obj["properties"]["value"]["type"] = param.value_entry_type
                     if param.value_entry_type == "boolean":
-                        value_obj["title"] = " "
+                        obj["properties"]["value"]["title"] = " "
 
                     # Render default value if it is not None or empty string
                     if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
-                        value_obj["default"] = param.value
+                        obj["properties"]["value"]["default"] = param.value
                 else:  # inputpath or file types
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
                     if widget_type == "outputpath":
-                        value_obj["type"] = "string"
-                        obj["uihints"]["value"] = {"ui:readonly": "true", "outputpath": "true"}
+                        obj["uihints"]["value"] = {"ui:readonly": "true", widget_type: True}
+                        obj["properties"]["value"]["type"] = "string"
                     elif widget_type == "inputpath":
-                        value_obj["oneOf"] = []
-                        obj["uihints"]["value"] = {"inputpath": "true"}
+                        obj["uihints"]["value"] = {widget_type: True}
+                        obj["properties"]["value"]["oneOf"] = []
                         if param.allow_no_options:
                             obj["uihints"]["allownooptions"] = param.allow_no_options
                     else:
-                        value_obj["type"] = "string"
                         obj["uihints"]["value"] = {"ui:widget": widget_type}
+                        obj["properties"]["value"]["type"] = "string"
 
-                obj["properties"]["value"] = value_obj
                 one_of.append(obj)
-
             json_dict["oneOf"] = one_of
 
         return json.dumps(json_dict)
