@@ -155,12 +155,11 @@ export abstract class ScriptEditor extends DocumentWidget<
    * and populates toolbar kernel selector.
    */
   protected initializeKernelSpecs = async (): Promise<void> => {
+    const language = this.getLanguage();
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
-      this.getLanguage()
+      language
     );
-    this.defaultKernel = await this.controller.getDefaultKernel(
-      this.getLanguage()
-    );
+    this.defaultKernel = await this.controller.getDefaultKernel(language);
     this.kernelName = this.defaultKernel;
     this.kernelSelectorRef = React.createRef<ISelect>();
 

@@ -62,14 +62,22 @@ export class ScriptEditorController {
   };
 
   /**
-   * Get the default kernel name from a given language.
+   * Get the default kernel name from a given language
+   * or the name of the first kernel from the list of kernelspecs.
    */
-  getDefaultKernel = async (language: string): Promise<string | null> => {
-    const kernelSpecs = await this.getKernelSpecs();
+  getDefaultKernel = async (language: string): Promise<string> => {
+    const kernelSpecs: KernelSpec.ISpecModels | null = await this.getKernelSpecs();
     if (!kernelSpecs) {
-      return null;
+      return '';
     }
-    return kernelSpecs.default.includes(language) ? kernelSpecs.default : null;
+
+    if (kernelSpecs.default?.includes(language)) {
+      return kernelSpecs.default;
+    }
+
+    const specsByLang = await this.getKernelSpecsByLanguage(language);
+    const first = (k: any): any => k[Object.keys(k)[0]];
+    return first(specsByLang?.kernelspecs).name;
   };
 
   /**

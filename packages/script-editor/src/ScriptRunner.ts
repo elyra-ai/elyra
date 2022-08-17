@@ -140,7 +140,7 @@ export class ScriptRunner {
   startSession = async (
     kernelName: string,
     contextPath: string
-  ): Promise<Session.ISessionConnection> => {
+  ): Promise<void> => {
     const options: Session.ISessionOptions = {
       kernel: {
         name: kernelName
@@ -151,10 +151,13 @@ export class ScriptRunner {
     };
 
     if (!this.sessionConnection || !this.sessionConnection.kernel) {
-      this.sessionConnection = await this.sessionManager.startNew(options);
-      this.sessionConnection.setPath(contextPath);
+      try {
+        this.sessionConnection = await this.sessionManager.startNew(options);
+        this.sessionConnection.setPath(contextPath);
+      } catch (e) {
+        console.log('Exception: kernel start = ' + JSON.stringify(e));
+      }
     }
-    return this.sessionConnection;
   };
 
   /**
