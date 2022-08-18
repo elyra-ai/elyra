@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
+
 from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum
@@ -23,8 +25,12 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Type
 
 from traitlets.config import LoggingConfigurable
+
+from elyra.pipeline.pipeline import ElyraOwnedProperty
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 # Rather than importing only the CatalogEntry class needed in the Component parse
 # type hint below, the catalog_connector module must be imported in its
@@ -35,7 +41,6 @@ except ImportError:
     import sys
 
     catalog_connector = sys.modules[__package__ + ".catalog_connector"]
-from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
 class ComponentParameter(object):
@@ -48,12 +53,13 @@ class ComponentParameter(object):
         id: str,
         name: str,
         json_data_type: str,
-        value: Any,
         description: str,
-        allowed_input_types: List[Optional[str]] = None,
+        value: Optional[Any] = "",
+        allowed_input_types: Optional[List[Optional[str]]] = None,
         required: Optional[bool] = False,
         allow_no_options: Optional[bool] = False,
         items: Optional[List[str]] = None,
+        dataclass: Optional[Type[ElyraOwnedProperty]] = None,
     ):
         """
         :param id: Unique identifier for a property
@@ -62,10 +68,11 @@ class ComponentParameter(object):
         :param allowed_input_types: The input types that the property can accept, including those for custom rendering
         :param value: The default value of the property
         :param description: A description of the property for display
-        :param items: For properties with a control of 'EnumControl', the items making up the enum
         :param required: Whether the property is required
         :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
             define output properties to be selected as input to this node parameter
+        :param items: For properties with a control of 'EnumControl', the items making up the enum
+        :param dataclass: A dataclass object that represents this (Elyra-owned) parameter
         """
 
         if not id:
@@ -115,6 +122,7 @@ class ComponentParameter(object):
 
         self._required = required
         self._allow_no_options = allow_no_options
+        self._dataclass = dataclass
 
     @property
     def ref(self) -> str:
@@ -156,6 +164,10 @@ class ComponentParameter(object):
     def allow_no_options(self) -> bool:
         return self._allow_no_options
 
+    @property
+    def dataclass(self) -> Optional[ElyraOwnedProperty]:
+        return self._dataclass
+
     @staticmethod
     def render_parameter_details(param: "ComponentParameter") -> str:
         """
@@ -164,6 +176,9 @@ class ComponentParameter(object):
 
         :returns: a string literal containing the JSON object to be rendered in the DAG
         """
+        if param.dataclass:
+            return json.dumps(param.dataclass.get_schema())
+
         json_dict = {"title": param.name, "description": param.description}
         if len(param.allowed_input_types) == 1:
             # Parameter only accepts a single type of input
@@ -395,6 +410,41 @@ class Component(object):
         else:
             print(f"WARNING: {msg}")
 
+    def get_elyra_parameters(self) -> List[ComponentParameter]:
+        """
+        Retrieve the list of Elyra-owned ComponentParameters that apply to this
+        component, removing any whose id collides with a property parsed from
+        the component definition.
+        """
+        op_type = "generic" if self.component_reference == "elyra" else "custom"
+        elyra_params = Component.get_parameters_for_component_type(op_type)
+        if self.properties:
+            # Remove certain Elyra-owned parameters if a parameter of the same id is already present
+            parsed_property_ids = [param.ref for param in self.properties]
+            elyra_params = [param for param in elyra_params if param.ref not in parsed_property_ids]
+
+        return elyra_params
+
+    @staticmethod
+    def get_parameters_for_component_type(component_type: Optional[str] = None) -> List[ComponentParameter]:
+        """
+        Retrieve a list of Elyra-owned ComponentParameters that apply to the
+        given type of component (either "generic" or "custom").
+        """
+        extra_params = []
+        for dc in ElyraOwnedProperty.get_classes_for_component_type(component_type):
+            extra_params.append(
+                ComponentParameter(
+                    id=dc._property_id,
+                    name=dc._display_name,
+                    json_data_type=dc._json_data_type,
+                    description=dc.__doc__,
+                    required=dc._required,
+                    dataclass=dc,
+                )
+            )
+        return extra_params
+
 
 class ComponentParser(LoggingConfigurable):  # ABC
     component_platform: RuntimeProcessorType = None
@@ -421,7 +471,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         return self._file_types
 
     @abstractmethod
-    def parse(self, catalog_entry: "catalog_connector.CatalogEntry") -> Optional[List[Component]]:
+    def parse(self, catalog_entry: catalog_connector.CatalogEntry) -> Optional[List[Component]]:
         """
         Parse a component definition given in the catalog entry and return
         a list of fully-qualified Component objects

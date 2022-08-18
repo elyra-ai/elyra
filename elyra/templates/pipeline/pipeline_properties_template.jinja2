@@ -45,51 +45,9 @@
             "ui:field": "header"
           }
         },
-        "kubernetes_tolerations": {
-          "title": "Kubernetes Tolerations",
-          "description":
-            "Kubernetes tolerations to attach to the pod where the node is executed.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uihints": {
-            "items": {
-                "ui:placeholder": "TOL_ID=key:operator:value:effect"
-            },
-            "keyValueEntries": true
-          }
-        },
-        "mounted_volumes": {
-          "title": "Data Volumes",
-          "description":
-            "Volumes to be mounted in all nodes. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the nodes are executed or the pipeline will not run.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uihints": {
-            "items": {
-                "ui:placeholder": "/mount/path=pvc-name"
-            },
-            "keyValueEntries": true
-          }
-        },
-        "kubernetes_pod_annotations": {
-          "title": "Kubernetes Pod Annotations",
-          "description":
-            "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uihints": {
-            "items": {
-                "ui:placeholder": "annotation_key=annotation_value"
-            },
-            "keyValueEntries": true
-          }
-        },
+        {% for property in elyra_owned_parameters %}
+        "{{property.ref}}": {{ render_parameter_details(property) }},
+        {% endfor %}
         "generic_node_defaults_header": {
           "type": "null",
           "title": "Generic Node Defaults",
@@ -104,36 +62,12 @@
           "description": "Container image used as execution environment.",
           "type": "string"
         },
-        "env_vars": {
-          "title": "Environment Variables",
-          "description":
-            "Environment variables to be set on the execution environment.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uihints": {
-            "items": {
-                "ui:placeholder": "env_var=VALUE"
-            },
-            "keyValueEntries": true
-          }
-        },
-        "kubernetes_secrets": {
-          "title": "Kubernetes Secrets",
-          "description":
-            "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the nodes are executed or the pipeline will not run.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uihints": {
-            "items": {
-                "ui:placeholder": "env_var=secret-name:secret-key"
-            },
-            "keyValueEntries": true
-          }
-        }
+        {% for property in elyra_owned_generic_parameters %}
+        "{{property.ref}}": {{ render_parameter_details(property) }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
+        {% endfor %}
       }
     }
   }

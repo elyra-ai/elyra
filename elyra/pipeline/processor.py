@@ -37,6 +37,7 @@ from urllib3.exceptions import MaxRetryError
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.elyra_properties import ElyraOwnedListProperty
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -500,7 +501,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         :return: dictionary containing environment name/value pairs
         """
 
-        envs: Dict = operation.env_vars.to_dict()
+        envs: Dict = ElyraOwnedListProperty.to_dict(operation.env_vars)
         envs["ELYRA_RUNTIME_ENV"] = self.name
 
         # set environment variables for Minio/S3 access, in the following order of precedence:
