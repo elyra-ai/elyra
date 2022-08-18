@@ -1,15 +1,6 @@
 {
   "type": "object",
   "properties": {
-    {% if component.description %}
-    "component_description": {
-      "type": "string",
-      "title": "Component Description",
-      "uihints": {
-        "ui:readonly": true
-      },
-      "default": {{ component.description|tojson|safe }}
-    },{% endif %}
     "label": {
       "type": "string",
       "title": "Label",
