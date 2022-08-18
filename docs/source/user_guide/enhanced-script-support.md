@@ -17,13 +17,14 @@ limitations under the License.
 -->
 # Enhanced Script Support
 
-Elyra provides **Enhanced Script Support** where Python and R scripts can be developed and
-executed. It also leverages the **Hybrid Runtime Support** to enable running
+Elyra provides **Enhanced Script Support** where Python, R and Scala scripts can be edited and executed. It also leverages the **Hybrid Runtime Support** to enable running
 these scripts in remote environments.
 
 ![Enhanced Python Support](../images/python-editor.gif)
 
-The execution of these scripts leverages the available Python and R based Kernels. This enables users to run their scripts in different configurations and environments.
+The execution of these scripts leverages the available Python, R and Scala based kernels. This enables users to run their scripts in different configurations and environments.
+
+Debugging Python scripts is now available as an experimental feature, where users no longer need the extra steps of enabling it by opening a console for the editor, or switching to a general-purpose IDE.
 
 Elyra also allows submitting a Python and R scripts as a single node pipeline for execution in a Kubeflow Pipelines or Apache Airflow environment in the cloud. This feature is accessible when the Elyra [AI Pipelines](../user_guide/pipelines.md) extension is also enabled.
 
@@ -37,6 +38,39 @@ When used in conjunction with `Jupyter Enterprise Gateway`, the dropdown in the 
 allowing users to run their scripts with remote kernels with more specialized resources.
 
 To run your script locally, select the `Python 3` option in the dropdown menu, and click the `Run` icon.
+
+## Python script debugging support - experimental
+
+Elyra users can now expand their development experience and start debugging scripts from the Python Editor.
+In this experimental stage we provide an integration between [Elyra's Script Editor](https://github.com/elyra-ai/elyra/tree/main/packages/script-editor) and the existing [JupyterLab's debugger](https://jupyterlab.readthedocs.io/en/stable/user/debugger.html), allowing basic debugging tasks such as setting breakpoints to Python scripts, inspecting variables and navigating the call stack.
+
+Elyra extends JupyterLab's visual debugger which can be visible and enabled from the editor's toolbar if a kernel with debugger support is installed and selected.
+
+Currently only the Jupyter kernels below are known to support the Jupyter Debug Protocol, the first two for Python programming language:
+- [ipykernel](https://github.com/ipython/ipykernel) (6.0+)
+- [xeus-python](https://github.com/jupyter-xeus/xeus-python)
+- [xeus-robot](https://github.com/jupyter-xeus/xeus-robot)
+
+To list installed kernels run
+```bash
+jupyter kernelspec list
+```
+
+Once a kernel with supporting debugger is selected, the debugger can be enabled by clicking the bug button in the editor's toolbar. A sidebar will display a variable explorer, the list of breakpoints, a source preview and buttons to navigate the call stack.
+
+The user sets breakpoints from the editor's UI, the `Run` button executes the script, and visual markers will indicate where the current execution has hit a breakpoint.
+
+![Debugger usage](../images/debugger.gif)
+
+Since Elyra's Python debugging support is experimental, [here](https://github.com/elyra-ai/elyra/pull/2087) you can find a list of known issues.
+For feedback, bug reports and enhancement suggestions, before opening an issue in Elyra's repository, please also check [existing debugger issues open in JupyterLab](https://github.com/jupyterlab/jupyterlab/issues?q=is%3Aopen+is%3Aissue+label%3Apkg%3Adebugger).
+
+### Troubleshoot
+- Interrupting the kernel while debugger is running does not trigger breakpoints on subsequent debug runs (same behavior in notebooks).
+Solution:
+Open `Running termninal and kernels` left side tab, find and select the relevant file path under `Kernels`, click the `x` button to shut down and reload the page.
+
+![Manually restart the debugger service](../images/kernel-shutdown.png)
 
 ## R script execution support
 
