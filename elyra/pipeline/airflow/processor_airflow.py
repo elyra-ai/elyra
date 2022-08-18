@@ -113,7 +113,9 @@ be fully qualified (i.e., prefixed with their package names).
             schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
         )
         api_endpoint = runtime_configuration.metadata.get("api_endpoint")
-        cos_endpoint = runtime_configuration.metadata.get("cos_endpoint")
+        cos_endpoint = runtime_configuration.metadata.get(
+            "public_cos_endpoint", runtime_configuration.metadata.get("cos_endpoint")
+        )
         cos_bucket = runtime_configuration.metadata.get("cos_bucket")
 
         git_type = SupportedGitTypes.get_instance_by_name(
