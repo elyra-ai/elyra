@@ -27,14 +27,11 @@ from jinja2 import Undefined
 
 from elyra.pipeline.component import Component, ComponentParameter
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.pipeline import ElyraOwnedListProperty, KeyValueList
-from elyra.pipeline.pipeline import ElyraOwnedProperty
+from elyra.pipeline.elyra_properties import ElyraOwnedProperty
+from elyra.pipeline.elyra_properties import ElyraOwnedPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
-from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
@@ -229,15 +226,14 @@ class Pipeline(AppDataBase):
         """
         pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
         for param_id, param_value in pipeline_defaults.items():
-            # If property has already been properly converted, skip conversion
-            if isinstance(param_value, ElyraOwnedProperty) or ElyraOwnedListProperty.is_list_property(param_value):
+            if not param_value:
                 continue
 
-            if isinstance(param_value, list):
-                converted_value = PipelineDefinition.get_elyra_owned_property_instance(param_id, param_value)
-            else:
-                converted_value = ElyraOwnedProperty.create_instance(param_id, param_value)
+            # If property has already been properly converted, skip conversion
+            if isinstance(param_value, (ElyraOwnedProperty, ElyraOwnedPropertyList)):
+                continue
 
+            converted_value = ElyraOwnedProperty.create_instance_from_raw_value(param_id, param_value)
             if converted_value:
                 pipeline_defaults[param_id] = converted_value
 
@@ -380,8 +376,8 @@ class Node(AppDataBase):
         """
         env_vars = self.get_component_parameter(ENV_VARIABLES)
         secrets = self.get_component_parameter(KUBERNETES_SECRETS)
-        if ElyraOwnedListProperty.is_list_property(env_vars) and ElyraOwnedListProperty.is_list_property(secrets):
-            new_list = ElyraOwnedListProperty.difference(minuend=env_vars, subtrahend=secrets)
+        if isinstance(env_vars, ElyraOwnedPropertyList) and isinstance(secrets, ElyraOwnedPropertyList):
+            new_list = ElyraOwnedPropertyList.difference(minuend=env_vars, subtrahend=secrets)
             self.set_component_parameter(ENV_VARIABLES, new_list)
 
     def convert_elyra_owned_properties(self) -> None:
@@ -396,14 +392,10 @@ class Node(AppDataBase):
                 continue
 
             # If property has already been properly converted, skip conversion
-            if isinstance(param_value, ElyraOwnedProperty) or ElyraOwnedListProperty.is_list_property(param_value):
+            if isinstance(param_value, (ElyraOwnedProperty, ElyraOwnedPropertyList)):
                 continue
 
-            if isinstance(param_value, list):
-                converted_value = PipelineDefinition.get_elyra_owned_property_instance(param_id, param_value)
-            else:
-                converted_value = ElyraOwnedProperty.create_instance(param_id, param_value)
-
+            converted_value = ElyraOwnedProperty.create_instance_from_raw_value(param_id, param_value)
             if converted_value:
                 self.set_component_parameter(param_id, converted_value)
 
@@ -601,10 +593,8 @@ class PipelineDefinition(object):
                     node.set_component_parameter(property_name, pipeline_value)
                     continue
 
-                if ElyraOwnedListProperty.is_list_property(pipeline_value) and ElyraOwnedListProperty.is_list_property(
-                    node_value
-                ):
-                    merged_list = ElyraOwnedListProperty.merge(node_value, pipeline_value)
+                if all([isinstance(value, ElyraOwnedPropertyList) for value in [pipeline_value, node_value]]):
+                    merged_list = ElyraOwnedPropertyList.merge(node_value, pipeline_value)
                     node.set_component_parameter(property_name, merged_list)
 
             if self.primary_pipeline.runtime_config != "local":
@@ -713,52 +703,6 @@ class PipelineDefinition(object):
 
         output = template.render()
         return json.loads(output)
-
-    @staticmethod
-    def get_elyra_owned_property_instance(param_id: str, param_value: List[str]) -> List[ElyraOwnedListProperty]:
-        converted_value = []
-        param_list = []
-        if param_id == ENV_VARIABLES:
-            for env_var, value in KeyValueList(param_value).to_dict().items():
-                param_list.append({"env_var": env_var, "value": value})
-
-        elif param_id == MOUNTED_VOLUMES:
-            for mount_path, pvc_name in KeyValueList(param_value).to_dict().items():
-                param_list.append({"path": mount_path, "pvc_name": pvc_name})
-
-        elif param_id == KUBERNETES_SECRETS:
-            for env_var_name, secret in KeyValueList(param_value).to_dict().items():
-                secret_name, *optional_key = secret.split(":", 1)
-
-                secret_key = ""
-                if optional_key:
-                    secret_key = optional_key[0]
-
-                param_list.append({"env_var": env_var_name, "name": secret_name, "key": secret_key})
-
-        elif param_id == KUBERNETES_POD_ANNOTATIONS:
-            for annotation_key, annotation_value in KeyValueList(param_value).to_dict().items():
-                param_list.append({"key": annotation_key, "value": annotation_value})
-
-        elif param_id == KUBERNETES_TOLERATIONS:
-            # TODO
-            for toleration, toleration_definition in KeyValueList(param_value).to_dict().items():
-                # A definition comprises of "<key>:<operator>:<value>:<effect>"
-                parts = toleration_definition.split(":")
-                key, operator, value, effect = (parts + [""] * 4)[:4]
-
-                # Note that the instance might be invalid.
-                param_list.append({"key": key, "operator": operator, "value": value, "effect": effect})
-
-        if param_list:
-            for item in param_list:
-                new_value = ElyraOwnedProperty.create_instance(param_id, item)
-                if new_value:
-                    already_exists = any([instance for instance in converted_value if instance == new_value])
-                    if not already_exists:
-                        converted_value.append(new_value)
-
-        return converted_value
 
 
 class SilentUndefined(Undefined):

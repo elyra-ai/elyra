@@ -16,13 +16,13 @@
 from __future__ import annotations
 
 import json
+import re
+from importlib import import_module
 from textwrap import dedent
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-
-from traitlets import import_item
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
@@ -46,16 +46,20 @@ class ElyraOwnedProperty:
     _required: bool = False
 
     @classmethod
-    def create_instance(cls, property_id: str, property_value: Any) -> Optional[ElyraOwnedProperty]:
-        """Class method that creates the appropriate instance of ElyraOwnedProperty based on inputs."""
-        for subclass in cls.__subclasses__():
-            if getattr(subclass, "_property_id", "") == property_id:
-                subclass_module = import_item(subclass.__module__)
-                return getattr(subclass_module, subclass.__name__)(property_value)
-            for sub_subclass in subclass.__subclasses__():
-                if getattr(sub_subclass, "_property_id", "") == property_id:
-                    subclass_module = import_item(sub_subclass.__module__)
-                    return getattr(subclass_module, sub_subclass.__name__)(**property_value)
+    def all_subclasses(cls):
+        """TODO"""
+        return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in c.all_subclasses()])
+
+    @classmethod
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
+        """TODO"""
+        for subclass in cls.all_subclasses():
+            if getattr(subclass, "_property_id", "") == prop_id:
+                if issubclass(subclass, ElyraOwnedPropertyListItem) and isinstance(prop_value, list):
+                    value_list = [subclass.create_instance_from_raw_value(prop_id, item) for item in prop_value]
+                    return ElyraOwnedPropertyList(value_list)
+                else:
+                    return subclass.create_instance_from_raw_value(prop_id, prop_value)
         return None
 
     @classmethod
@@ -65,12 +69,9 @@ class ElyraOwnedProperty:
         (if the class attribute _<component_type> is True).
         """
         dataclass_params = []
-        for subclass in cls.__subclasses__():
+        for subclass in cls.all_subclasses():
             if getattr(subclass, f"_{component_type}", False) is True:
                 dataclass_params.append(subclass)
-            for sub_subclass in subclass.__subclasses__():
-                if getattr(sub_subclass, f"_{component_type}", False) is True:
-                    dataclass_params.append(sub_subclass)
 
         return dataclass_params
 
@@ -78,7 +79,6 @@ class ElyraOwnedProperty:
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         class_description = dedent(cls.__doc__.replace("\n", " "))
-
         schema = {"title": cls._display_name, "description": class_description, "type": cls._json_data_type}
         return schema
 
@@ -87,8 +87,10 @@ class ElyraOwnedProperty:
         return []
 
 
-class RuntimeImage(ElyraOwnedProperty, str):
+class RuntimeImage(ElyraOwnedProperty):
     """Container image used as execution environment."""
+
+    image_name: str
 
     _property_id = RUNTIME_IMAGE
     _display_name = "Runtime Image"
@@ -96,6 +98,14 @@ class RuntimeImage(ElyraOwnedProperty, str):
     _generic = True
     _custom = False
     _required = True
+
+    def __init__(self, **kwargs):
+        self.image_name = kwargs.get("image_name", "").strip()
+
+    @classmethod
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
+        """TODO"""
+        return getattr(import_module(cls.__module__), cls.__name__)(image_name=prop_value)
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -105,66 +115,29 @@ class RuntimeImage(ElyraOwnedProperty, str):
         schema["uihints"] = {"items": []}
         return schema
 
+    def get_all_validation_errors(self) -> Optional[str]:
+        """Perform custom validation on an instance."""
+        validation_errors = []
+        if not self.image_name:
+            validation_errors.append("Required property value is missing.")
+        else:
+            image_regex = re.compile(r"[^/ ]+/[^/ ]+$")
+            matched = image_regex.search(self.image_name)
+            if not matched:
+                validation_errors.append(
+                    "Node contains an invalid runtime image. Runtime image "
+                    "must conform to the format [registry/]owner/image:tag"
+                )
+        return validation_errors
 
-class ElyraOwnedListProperty(ElyraOwnedProperty):
+
+class ElyraOwnedPropertyList(list):
     """
     TODO
     """
 
-    _property_id: str
-    _display_name: str
-    _json_data_type: str
-    _generic: bool
-    _custom: bool
-    _required: bool = False
-    _keys: List[str]
-
     @staticmethod
-    def is_list_property(property_list: Optional[list] = None) -> bool:
-        """
-        Determines whether a list consists of all ElyraOwnedListProperty instances.
-        """
-        if not property_list:
-            return False
-
-        return all(isinstance(prop, ElyraOwnedListProperty) for prop in property_list)
-
-    @classmethod
-    def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        class_description = dedent(cls.__doc__.replace("\n", " "))
-
-        schema = {
-            "title": cls._display_name,
-            "description": class_description,
-            "type": cls._json_data_type,
-            "items": {"type": "string"},
-            "uihints": {"items": {}},
-        }
-        return schema
-
-    def to_str(self) -> str:
-        """Convert instance to a string representation."""
-        pass
-
-    def get_key_for_dict_entry(self) -> str:
-        """
-        Given the attribute names in the 'key' property, construct a key
-        based on the attribute values of the instance.
-        """
-        prop_key = ""
-        for key_attr in self._keys:
-            key_part = getattr(self, key_attr)
-            if key_part:
-                prop_key += f"{key_part}:"
-        return prop_key
-
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
-        return self.to_str()
-
-    @staticmethod
-    def to_dict(property_list: List[ElyraOwnedListProperty], use_prop_as_value: bool = False) -> Dict[str, str]:
+    def to_dict(property_list: List[ElyraOwnedPropertyListItem], use_prop_as_value: bool = False) -> Dict[str, str]:
         """
         Each Elyra-owned property consists of a set of attributes, some subset of which represents
         a unique key. Lists of these properties, however, often need converted to dictionary
@@ -187,22 +160,22 @@ class ElyraOwnedListProperty(ElyraOwnedProperty):
 
     @staticmethod
     def merge(
-        primary: List[ElyraOwnedListProperty], secondary: List[ElyraOwnedListProperty]
-    ) -> List[ElyraOwnedListProperty]:
+        primary: List[ElyraOwnedPropertyList], secondary: List[ElyraOwnedPropertyList]
+    ) -> List[ElyraOwnedPropertyList]:
         """
         Merge two lists of Elyra-owned properties, preferring the values given in the
         primary parameter in the case of a matching key between the two lists.
         """
-        primary_dict = ElyraOwnedListProperty.to_dict(primary, use_prop_as_value=True)
-        secondary_dict = ElyraOwnedListProperty.to_dict(secondary, use_prop_as_value=True)
+        primary_dict = ElyraOwnedPropertyList.to_dict(primary, use_prop_as_value=True)
+        secondary_dict = ElyraOwnedPropertyList.to_dict(secondary, use_prop_as_value=True)
 
         merged_list = list({**secondary_dict, **primary_dict}.values())
-        return merged_list
+        return ElyraOwnedPropertyList(merged_list)
 
     @staticmethod
     def difference(
-        minuend: List[ElyraOwnedListProperty], subtrahend: List[ElyraOwnedListProperty]
-    ) -> List[ElyraOwnedListProperty]:
+        minuend: List[ElyraOwnedPropertyList], subtrahend: List[ElyraOwnedPropertyList]
+    ) -> List[ElyraOwnedPropertyList]:
         """
         Given two lists of Elyra-owned properties, remove any duplicate instances
         found in the second (subtrahend) from the first (minuend), if present.
@@ -212,16 +185,63 @@ class ElyraOwnedListProperty(ElyraOwnedProperty):
 
         :returns: the difference of the two lists
         """
-        subtract_dict = ElyraOwnedListProperty.to_dict(minuend)
-        for key in ElyraOwnedListProperty.to_dict(subtrahend).keys():
+        subtract_dict = ElyraOwnedPropertyList.to_dict(minuend)
+        for key in ElyraOwnedPropertyList.to_dict(subtrahend).keys():
             if key in subtract_dict:
                 subtract_dict.pop(key)
 
         diff_list = list(subtract_dict.values())
-        return diff_list
+        return ElyraOwnedPropertyList(diff_list)
 
 
-class EnvironmentVariable(ElyraOwnedListProperty):
+class ElyraOwnedPropertyListItem(ElyraOwnedProperty):
+    """
+    TODO
+    """
+
+    _property_id: str
+    _display_name: str
+    _json_data_type: str
+    _generic: bool
+    _custom: bool
+    _required: bool = False
+    _keys: List[str]
+    _ui_placeholder: str
+
+    @classmethod
+    def get_schema(cls) -> Dict[str, Any]:
+        """Build the JSON schema for an Elyra-owned component property"""
+        schema = super().get_schema()
+        schema["items"] = {"type": "string"}
+        schema["uihints"] = {"items": {"ui:placeholder": cls._ui_placeholder}}
+        return schema
+
+    def to_str(self) -> str:
+        """Convert instance to a string representation."""
+        pass
+
+    def get_key_for_dict_entry(self) -> str:
+        """
+        Given the attribute names in the 'key' property, construct a key
+        based on the attribute values of the instance.
+        """
+        prop_key = ""
+        for key_attr in self._keys:
+            key_part = getattr(self, key_attr)
+            if key_part:
+                prop_key += f"{key_part}:"
+        return prop_key
+
+    def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
+        return self.to_str()
+
+    def get_all_validation_errors(self) -> Optional[str]:
+        """Perform custom validation on an instance."""
+        return []
+
+
+class EnvironmentVariable(ElyraOwnedPropertyListItem):
     """
     Environment variables to be set on the execution environment.
     """
@@ -242,11 +262,19 @@ class EnvironmentVariable(ElyraOwnedListProperty):
         self.value = kwargs.get("value", "").strip()
 
     @classmethod
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
+        """TODO"""
+        str_parts = prop_value.split("=", 1)
+        env_var, value = (str_parts + [""] * 2)[:2]
+        return getattr(import_module(cls.__module__), cls.__name__)(
+            env_var=env_var, value=value
+        )  # TODO maybe change these back to dataclasses?
+
+    @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
         schema["uihints"]["canRefresh"] = True
-        schema["uihints"]["items"]["ui:placeholder"] = cls._ui_placeholder
         return schema
 
     def to_str(self) -> str:
@@ -266,7 +294,7 @@ class EnvironmentVariable(ElyraOwnedListProperty):
         return validation_errors
 
 
-class KubernetesSecret(ElyraOwnedListProperty):
+class KubernetesSecret(ElyraOwnedPropertyListItem):
     """
     TODO
     """
@@ -284,20 +312,21 @@ class KubernetesSecret(ElyraOwnedListProperty):
     _ui_placeholder = "env_var=secret-name:secret-key"
 
     def __init__(self, **kwargs):
+        self.env_var = kwargs.pop("env_var", "").strip()
+        self.name = kwargs.pop("name", "").strip()
         self.key = kwargs.pop("key", "").strip()
-        self.value = kwargs.pop("value", "").strip()
 
     @classmethod
-    def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        schema = super().get_schema()
-        schema["uihints"]["items"]["ui:placeholder"] = cls._ui_placeholder
-
-        return schema
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
+        """TODO"""
+        env_var, value = prop_value.split("=", 1)
+        value_parts = value.split(":")
+        name, key = (value_parts + [""] * 2)[:2]
+        return getattr(import_module(cls.__module__), cls.__name__)(env_var=env_var, name=name, key=key)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
-        return f"{self.key}={self.value}"
+        return f"{self.env_var}={self.name}:{self.key}"
 
     def get_all_validation_errors(self) -> Optional[str]:
         """Perform custom validation on an instance."""
@@ -321,7 +350,7 @@ class KubernetesSecret(ElyraOwnedListProperty):
         return validation_errors
 
 
-class VolumeMount(ElyraOwnedListProperty):
+class VolumeMount(ElyraOwnedPropertyListItem):
     """
     TODO
     """
@@ -342,11 +371,11 @@ class VolumeMount(ElyraOwnedListProperty):
         self.pvc_name = kwargs.pop("pvc_name", "").strip()
 
     @classmethod
-    def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        schema = super().get_schema()
-        schema["uihints"]["items"]["ui:placeholder"] = cls._ui_placeholder
-        return schema
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
+        """TODO"""
+        str_parts = prop_value.split("=", 1)
+        path, pvc_name = (str_parts + [""] * 2)[:2]
+        return getattr(import_module(cls.__module__), cls.__name__)(path=path, pvc_name=pvc_name)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -362,7 +391,7 @@ class VolumeMount(ElyraOwnedListProperty):
         return validation_errors
 
 
-class KubernetesAnnotation(ElyraOwnedListProperty):
+class KubernetesAnnotation(ElyraOwnedPropertyListItem):
     """
     TODO
     """
@@ -383,11 +412,11 @@ class KubernetesAnnotation(ElyraOwnedListProperty):
         self.value = kwargs.pop("value", "").strip()
 
     @classmethod
-    def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        schema = super().get_schema()
-        schema["uihints"]["items"]["ui:placeholder"] = cls._ui_placeholder
-        return schema
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
+        """TODO"""
+        str_parts = prop_value.split("=", 1)
+        key, value = (str_parts + [""] * 2)[:2]
+        return getattr(import_module(cls.__module__), cls.__name__)(key=key, value=value)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -402,7 +431,7 @@ class KubernetesAnnotation(ElyraOwnedListProperty):
         return validation_errors
 
 
-class KubernetesToleration(ElyraOwnedListProperty):
+class KubernetesToleration(ElyraOwnedPropertyListItem):
     """
     TODO
     """
@@ -427,11 +456,13 @@ class KubernetesToleration(ElyraOwnedListProperty):
         self.effect = kwargs.pop("effect", "Exists").strip()
 
     @classmethod
-    def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        schema = super().get_schema()
-        schema["uihints"]["items"]["ui:placeholder"] = cls._ui_placeholder
-        return schema
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
+        """TODO"""
+        parts = prop_value.split(":")
+        key, operator, value, effect = (parts + [""] * 4)[:4]
+        return getattr(import_module(cls.__module__), cls.__name__)(
+            key=key, operator=operator, value=value, effect=effect
+        )
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -467,14 +498,13 @@ class KubernetesToleration(ElyraOwnedListProperty):
 class DataClassJSONEncoder(json.JSONEncoder):
     """
     A JSON Encoder class to prevent errors during serialization of dataclasses.
+    TODO rename
     """
 
     def default(self, o):
         """
         Render dataclass content as dict
         """
-        # if is_dataclass(o):
-        #    return dataclass_asdict(o)
         if isinstance(o, ElyraOwnedProperty):
             return o.__dict__
         return super().default(o)

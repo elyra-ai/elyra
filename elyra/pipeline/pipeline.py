@@ -22,7 +22,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.elyra_properties import ElyraOwnedListProperty
+from elyra.pipeline.elyra_properties import ElyraOwnedPropertyList, RuntimeImage
 from elyra.pipeline.elyra_properties import ElyraOwnedProperty
 from elyra.pipeline.elyra_properties import EnvironmentVariable
 from elyra.pipeline.elyra_properties import KubernetesAnnotation
@@ -210,7 +210,7 @@ class Operation(object):
             f"component_parameters: {{\n{params}}} \n"
         )
 
-    def get_elyra_owned_property(self, property_id: str) -> Optional[List[ElyraOwnedListProperty] | ElyraOwnedProperty]:
+    def get_elyra_owned_property(self, property_id: str) -> Optional[List[ElyraOwnedPropertyList] | ElyraOwnedProperty]:
         """
         Determine whether a given property is an Elyra-owned property, and if so,
         return the list popped off the component_params dictionary.
@@ -219,7 +219,7 @@ class Operation(object):
         if param_value is not None:
             # The property in question is an Elyra system property (ie, not defined in
             # the component spec) and must be removed from the component_params dict
-            if isinstance(param_value, ElyraOwnedProperty) or ElyraOwnedListProperty.is_list_property(param_value):
+            if isinstance(param_value, (ElyraOwnedProperty, ElyraOwnedPropertyList)):
                 return self._component_params.pop(property_id)
 
         return None
@@ -300,7 +300,7 @@ class GenericOperation(Operation):
 
         # Re-build object to include default values
         self._component_params["filename"] = component_params.get("filename")
-        self._component_params["runtime_image"] = component_params.get("runtime_image")  # TODO
+        self._component_params["runtime_image"] = component_params.get("runtime_image")
         self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
         self._component_params["env_vars"] = component_params.get(ENV_VARIABLES, [])
@@ -324,7 +324,10 @@ class GenericOperation(Operation):
 
     @property
     def runtime_image(self) -> str:
-        return self._component_params.get("runtime_image")
+        runtime_image = self._component_params.get("runtime_image")
+        if not isinstance(runtime_image, RuntimeImage):
+            return runtime_image
+        return runtime_image.image_name
 
     @property
     def dependencies(self) -> Optional[List[str]]:

@@ -30,7 +30,7 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.elyra_properties import DataClassJSONEncoder, ElyraOwnedListProperty
+from elyra.pipeline.elyra_properties import DataClassJSONEncoder, ElyraOwnedPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
@@ -549,40 +549,6 @@ class PipelineValidationManager(SingletonConfigurable):
                         response=response,
                     )
 
-    def _validate_container_image_name(
-        self, node_id: str, node_label: str, image_name: str, response: ValidationResponse
-    ) -> None:
-        """
-        Validates the image name exists and is proper in syntax
-        :param node_id: the unique ID of the node
-        :param node_label: the given node name or user customized name/label of the node
-        :param image_name: container image name to be evaluated
-        :param response: ValidationResponse containing the issue list to be updated
-        """
-        if not image_name:
-            response.add_message(
-                severity=ValidationSeverity.Error,
-                message_type="invalidNodeProperty",
-                message="Required property value is missing.",
-                data={"nodeID": node_id, "nodeName": node_label, "propertyName": "runtime_image"},
-            )
-        else:
-            image_regex = re.compile(r"[^/ ]+/[^/ ]+$")
-            matched = image_regex.search(image_name)
-            if not matched:
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidNodeProperty",
-                    message="Node contains an invalid runtime image. Runtime image "
-                    "must conform to the format [registry/]owner/image:tag",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": "runtime_image",
-                        "imageName": image_name,
-                    },
-                )
-
     def _validate_resource_value(
         self, node_id: str, node_label: str, resource_name: str, resource_value: str, response: ValidationResponse
     ) -> None:
@@ -647,8 +613,8 @@ class PipelineValidationManager(SingletonConfigurable):
                 )
 
         param_value = node.get_component_parameter(param_name)
-        if param_value and param_name in node.elyra_owned_properties:
-            if ElyraOwnedListProperty.is_list_property(param_value):
+        if param_value:
+            if isinstance(param_value, ElyraOwnedPropertyList):
                 for prop in param_value:
                     validate_elyra_owned_property(prop)
             else:
