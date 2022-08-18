@@ -598,7 +598,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     if data_entry_type == "inputpath":
                         # KFP path-based parameters accept an input from a parent
                         output_node_id = property_value["value"]  # parent node id
-                        output_node_parameter_key = property_value["option"].replace("elyra_output_", "")  # parent node parameter name
+                        output_node_parameter_key = property_value["option"].replace("output_", "")  # parent param
                         operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
                             output_node_parameter_key
                         ]

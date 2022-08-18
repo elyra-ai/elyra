@@ -224,12 +224,17 @@ def test_parse_kfp_component_file():
     component = parser.parse(catalog_entry)[0]
     props_as_dict = {param.ref: param for param in component.input_properties}
 
+    # Ensure description with unsafe characters is rendered without error
+    palette_json = ComponentCache.to_canvas_palette([component])
+    expected_description = 'This component description contains an unescaped " character'
+    assert expected_description == palette_json["categories"][0]["node_types"][0]["description"]
+
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Helper method to retrieve the requested parameter value from the dictionary
     def get_parameter_value(param_name):
         property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
-        return property_dict["oneOf"][0]["properties"]["value"]["default"]
+        return property_dict["oneOf"][0]["properties"]["value"].get("default", "")
 
     # Helper method to retrieve the requested parameter info from the dictionary
     def get_parameter_format(param_name):
@@ -246,18 +251,11 @@ def test_parse_kfp_component_file():
         required_parameters = properties_json["properties"]["component_parameters"]["required"]
         return param_name in required_parameters
 
-    # Ensure description is rendered even with an unescaped character
-    description = 'This component description contains an unescaped " character'
-    assert properties_json["properties"]["component_description"]["default"] == description
-
     # Ensure system parameters are present
     assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert (
-        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
-        == component_source
-    )
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
     assert get_parameter_value("test_string_no_default") == ""
     assert get_parameter_value("test_string_default_value") == "default"
@@ -335,21 +333,22 @@ def test_parse_kfp_component_url():
         if "oneOf" not in property_dict:
             # This is an inputpath-only param and doesn't have a default value
             return None
-        return property_dict["oneOf"][0]["properties"]["value"]["default"]
+        return property_dict["oneOf"][0]["properties"]["value"].get("default", "")
 
     # Ensure system parameters are present
     assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert (
-        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
-        == component_source
-    )
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
     assert get_parameter_value("notebook") is None  # Default value for type `inputpath`
     assert get_parameter_value("parameters") == "{}"
     assert get_parameter_value("packages_to_install") == "[]"
     assert get_parameter_value("input_data") == ""
+
+    # Ensure 'Notebook' param exists as both an input and an output (same name defined in yaml)
+    assert "notebook" in properties_json["properties"]["component_parameters"]["properties"]
+    assert "output_notebook" in properties_json["properties"]["component_parameters"]["properties"]
 
 
 def test_parse_kfp_component_file_no_inputs():
@@ -374,12 +373,13 @@ def test_parse_kfp_component_file_no_inputs():
     # Parse the component entry
     parser = KfpComponentParser.create_instance(platform=RUNTIME_PROCESSOR)
     component = parser.parse(catalog_entry)[0]
+
     properties_json = ComponentCache.to_canvas_properties(component)
 
     # Properties JSON should only include the four parameters common to every
-    # component ('component_source', 'mounted_volumes', 'kubernetes_pod_annotations',
-    # and 'kubernetes_tolerations'), and the output parameter for this component
-    num_common_params = 5
+    # component ('mounted_volumes', 'kubernetes_pod_annotations', and
+    # 'kubernetes_tolerations'), and the output parameter for this component
+    num_common_params = 4
     properties_from_json = [
         prop
         for prop in properties_json["properties"]["component_parameters"]["properties"].keys()
@@ -391,10 +391,7 @@ def test_parse_kfp_component_file_no_inputs():
     assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert (
-        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
-        == component_source
-    )
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
 
 async def test_parse_components_not_a_file():
@@ -484,16 +481,13 @@ async def test_parse_components_additional_metatypes():
         if "oneOf" not in property_dict:
             # This is an inputpath-only param and doesn't have a default value
             return None
-        return property_dict["oneOf"][0]["properties"]["value"]["default"]
+        return property_dict["oneOf"][0]["properties"]["value"].get("default", "")
 
     # Ensure system parameters are present
     assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert (
-        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
-        == component_source
-    )
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
     assert get_parameter_value("training_features") is None  # inputPath
     assert get_parameter_value("training_labels") is None  # inputPath
