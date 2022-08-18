@@ -24,14 +24,18 @@ Elyra changes.
 #### Building the image
 
 To build a custom version of this container image:
-1. Clone this repository.
-1. [Optional] Add custom Python package requirements to `requirements.yml` in the `etc/docker/elyra_development` directory.
+1. Clone this repository
+   - `git clone https://github.com/elyra-ai/elyra`
+1. [Optional] Add custom Python package requirements to `requirements.yml` in the `path_to_elyra_repo_root/etc/docker/elyra_development` directory.
+
 1. Build the image using the `Dockerfile`:
-  - `docker build -t <DOCKER ID>/elyra-environment:dev etc/docker/elyra_development/` 
+  - `docker build -t image_name:tag path_to_elyra_repo_root/etc/docker/elyra_development/` 
 
 #### Using this image
 This image mounts your local Elyra repository into a directory in the image (`/dev/elyra`) so all changes are persisted. 
 1. Run in terminal
-  - `docker run -t <DOCKER ID>/elyra-environment:dev -v <host_fs_elyra_repo>:/dev/elyra -p 8888:8888`
-1. Example : 
-  - `docker run -t test_user/elyra-environment:dev -v /etc/github/elyra:/dev/elyra -p 8888:8888`
+  - `docker run -t image_name:tag -v <host_fs_elyra_repo>:/dev/elyra -p 8888:8888`
+1. Example :
+  - Image was built and named `test_user/elyra-environment:dev`
+  - The cloned elyra repository is located at `/path_to_elyra_repo_root`
+  - `docker run -t test_user/elyra-environment:dev -v /path_to_elyra_repo_root:/dev/elyra -p 8888:8888`
