@@ -614,10 +614,10 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('exporting airflow pipeline with invalid runtime should give error', () => {
-    cy.createPipeline();
+    cy.createPipeline({type: 'airflow'});
     cy.savePipeline();
 
-    cy.createRuntimeConfig({ type: 'airflow' });
+    cy.installRuntimeConfig({ type: 'airflow' });
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
@@ -628,6 +628,23 @@ describe('Pipeline Editor tests', () => {
     // Dismiss dialog
     cy.findByRole('button', { name: /ok/i }).click();
   });
+
+  it('exporting kubeflow pipeline with invalid runtime should give error', () => {
+    cy.createPipeline({type: 'kfp'});
+    cy.savePipeline();
+
+    cy.installRuntimeConfig({ type: 'kfp' });
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    cy.contains('OK').click();
+
+    cy.get('.jp-Dialog-header').contains('Error making request');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /ok/i }).click();
+  });
+
 
   it('generic pipeline should display expected export options', () => {
     cy.createPipeline();
