@@ -41,7 +41,7 @@ This image mounts your local Elyra repository into a directory in the image (`/d
 In a terminal window run the following command, replacing the `<image_name>`, `<tag>`, and `<host_fs_elyra_repo>` placeholders as appropriate.
 
 ```
-$ docker run -t <image_name>:<tag> -v <host_fs_elyra_repo>:/dev/elyra -p 8888:8888
+$ docker run -v <host_fs_elyra_repo>:/dev/elyra -p 8888:8888 -it <image_name>:<tag>
 ```
 
 **Example**
