@@ -98,11 +98,11 @@ class RuntimesDisplay extends MetadataDisplay<
         // user specified a public API endpoint. use it instead of the API endpoint
         apiEndpoint = addTrailingSlash(metadata.metadata.public_api_endpoint);
       }
+    }
 
-      if (metadata.metadata.public_cos_endpoint) {
-        // user specified a public COS endpoint. use it instead of the API endpoint
-        cosEndpoint = addTrailingSlash(metadata.metadata.public_cos_endpoint);
-      }
+    if (metadata.metadata.public_cos_endpoint) {
+      // user specified a public COS endpoint. use it instead of the API endpoint
+      cosEndpoint = addTrailingSlash(metadata.metadata.public_cos_endpoint);
     }
 
     return (
