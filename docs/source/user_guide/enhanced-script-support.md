@@ -42,33 +42,33 @@ To run your script locally, select the `Python 3` option in the dropdown menu, a
 ## Python script debugging support (experimental)
 
 Elyra users can now expand their development experience and start debugging scripts from the Python Editor.
-In this experimental stage we provide an integration between [Elyra's Script Editor](https://github.com/elyra-ai/elyra/tree/main/packages/script-editor) and the existing [JupyterLab's debugger](https://jupyterlab.readthedocs.io/en/stable/user/debugger.html), allowing basic debugging tasks such as setting breakpoints to Python scripts, inspecting variables and navigating the call stack.
+In this experimental stage we provide an integration between [Elyra's Script Editor](https://github.com/elyra-ai/elyra/tree/main/packages/script-editor) and the existing [JupyterLab debugger](https://jupyterlab.readthedocs.io/en/stable/user/debugger.html), allowing basic debugging tasks such as setting breakpoints, inspecting variables and navigating the call stack.
 
-Elyra extends JupyterLab's visual debugger which can be visible and enabled from the editor's toolbar if a kernel with debugger support is installed and selected.
+Elyra extends JupyterLab's visual debugger which will be visible and enabled in the editor's toolbar if a kernel with debugger support is installed and selected.
 
-Currently only the Jupyter kernels below are known to support the Jupyter Debug Protocol, the first two for Python programming language:
+Currently only the Jupyter kernels below are known to support the Jupyter Debug Protocol, the first two for the Python programming language:
 - [ipykernel](https://github.com/ipython/ipykernel) (6.0+)
 - [xeus-python](https://github.com/jupyter-xeus/xeus-python)
 - [xeus-robot](https://github.com/jupyter-xeus/xeus-robot)
 
-To list installed kernels run in a terminal window
+To list installed kernels run the command below in a terminal window:
 ```bash
 jupyter kernelspec list
 ```
 
 Once a kernel with supporting debugger is selected, the debugger can be enabled by clicking the bug button in the editor's toolbar. A sidebar will display a variable explorer, the list of breakpoints, a source preview and buttons to navigate the call stack.
 
-The user sets breakpoints from the editor's UI, the `Run` button executes the script, and visual markers will indicate where the current execution has hit a breakpoint.
+The user can set breakpoints from the editor's UI, and then click the `Run` button to execute the script. Visual markers will indicate where the current execution has hit a breakpoint.
 
 ![Debugger usage](../images/debugger.gif)
 
 Since Elyra's Python debugging support is experimental, [here](https://github.com/elyra-ai/elyra/pull/2087) you can find a list of known issues.
-For feedback, bug reports and enhancement suggestions, before opening an issue in Elyra's repository, please also check [existing debugger issues open in JupyterLab](https://github.com/jupyterlab/jupyterlab/issues?q=is%3Aopen+is%3Aissue+label%3Apkg%3Adebugger).
+Before opening a bug report or enhancement suggestion for this feature in Elyra's repository, please also check [existing debugger issues open in JupyterLab](https://github.com/jupyterlab/jupyterlab/issues?q=is%3Aopen+is%3Aissue+label%3Apkg%3Adebugger).
 
 ### Troubleshooting
-- Interrupting the kernel while debugger is running does not trigger breakpoints on subsequent debug runs (same behavior in notebooks).
+- Interrupting the kernel while the debugger is running does not trigger breakpoints on subsequent debug runs (same behavior in notebooks).
 Solution:
-Open `Running termninal and kernels` left side tab, find and select the relevant file path under `Kernels`, click the `x` button to shut down and reload the page.
+Open the `Running terminal and kernels` tab on the left side, find and select the relevant file path under `Kernels`, click the `x` button to shut down the kernel, then reload the page.
 
 ![Manually restart the debugger service](../images/kernel-shutdown.png)
 
