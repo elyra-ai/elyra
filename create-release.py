@@ -611,7 +611,7 @@ def prepare_extensions_release() -> None:
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
         "elyra-scala-editor-extension": SimpleNamespace(
-            packages=["scala-editor-extension", "metadata-extension", "theme-extension"],
+            packages=["scala-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
             description=f"The Scala Language editor extension contains support for Scala files, which can take "
             f"advantage of the Hybrid Runtime Support enabling users to locally edit .scala files "
             f"and execute them against local or cloud-based resources."
