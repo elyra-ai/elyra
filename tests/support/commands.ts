@@ -297,7 +297,7 @@ Cypress.Commands.add('checkRightClickTabContent', (fileType: string): void => {
 Cypress.Commands.add(
   'openFileAndCheckContent',
   (fileExtension: string): void => {
-    openFile(fileExtension);
+    cy.openHelloWorld(fileExtension);
     // Ensure that the file contents are as expected
     cy.get('span[role="presentation"]').should($span => {
       expect($span.get(0).innerText).to.eq('print("Hello Elyra")');
@@ -307,6 +307,16 @@ Cypress.Commands.add(
     cy.closeTab(-1);
   }
 );
+
+// Open helloworld.* using file -> open from path
+Cypress.Commands.add('openHelloWorld', (fileExtension: string): void => {
+  cy.findByRole('menuitem', { name: /file/i }).click();
+  cy.findByText(/^open from path$/i).click({ force: true });
+
+  // Search for helloworld file and open
+  cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
+  cy.get('.p-Panel .jp-mod-accept').click();
+});
 
 // Dismiss LSP code assistant box if visible
 Cypress.Commands.add('dismissAssistant', (): void => {

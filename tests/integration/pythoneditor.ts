@@ -109,7 +109,7 @@ describe('Python Editor tests', () => {
 
   // check for new output console and scroll up/down buttons
   it('opens new output console', () => {
-    openFile('py');
+    cy.openHelloWorld('py');
     clickRunButton();
     cy.get('[id=tab-ScriptEditor-output]').should(
       'have.text',
@@ -128,7 +128,7 @@ describe('Python Editor tests', () => {
   // TODO: Investigate CI failures commented below
   // check for expected output on running a valid code
   // it('checks for valid output', () => {
-  //   openFile('py');
+  //   cy.openHelloWorld('py');
   //   clickRunButton();
   //   cy.wait(1000);
   //   cy.get('.elyra-ScriptEditor-OutputArea-output').should(
@@ -191,16 +191,6 @@ describe('Python Editor tests', () => {
 // ------------------------------
 // ----- Utility Functions
 // ------------------------------
-
-// Open helloworld.py using file-> open from path
-const openFile = (fileExtension: string): void => {
-  cy.findByRole('menuitem', { name: /file/i }).click();
-  cy.findByText(/^open from path$/i).click({ force: true });
-
-  // Search for helloworld file and open
-  cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
-  cy.get('.p-Panel .jp-mod-accept').click();
-};
 
 // Click Run as Pipeline button
 const clickRunAsPipelineButton = (): void => {
