@@ -16,7 +16,7 @@ limitations under the License.
 {% endcomment %}
 -->
 
-### Elyra Development Docker Image
+### Elyra Development Container Image
 
 Builds an Elyra development workspace image. This image provides all the necessary libraries and frameworks to build and test
 Elyra changes. 
@@ -25,17 +25,30 @@ Elyra changes.
 
 To build a custom version of this container image:
 1. Clone this repository
-   - `git clone https://github.com/elyra-ai/elyra`
+   ```
+   git clone https://github.com/elyra-ai/elyra.git
+   ```
 1. [Optional] Add custom Python package requirements to `requirements.yml` in the `path_to_elyra_repo_root/etc/docker/elyra_development` directory.
 
-1. Build the image using the `Dockerfile`:
-  - `docker build -t image_name:tag path_to_elyra_repo_root/etc/docker/elyra_development/` 
+1. Build the image using the `Dockerfile` in the `path_to_elyra_repo_root/etc/docker/elyra_development` directory, replacing the `<path_to_elyra_repo_root>`, `<image_name>`, and `<tag>` placeholders as appropriate.
+   ```
+   docker build -t <image_name>:<tag> <path_to_elyra_repo_root>/etc/docker/elyra_development/
+   ``` 
 
 #### Using this image
 This image mounts your local Elyra repository into a directory in the image (`/dev/elyra`) so all changes are persisted. 
-1. Run in terminal
-  - `docker run -t image_name:tag -v <host_fs_elyra_repo>:/dev/elyra -p 8888:8888`
-1. Example :
-  - Image was built and named `test_user/elyra-environment:dev`
-  - The cloned elyra repository is located at `/path_to_elyra_repo_root`
-  - `docker run -t test_user/elyra-environment:dev -v /path_to_elyra_repo_root:/dev/elyra -p 8888:8888`
+
+In a terminal window run the following command, replacing the `<image_name>`, `<tag>`, and `<host_fs_elyra_repo>` placeholders as appropriate.
+
+```
+docker run -t <image_name>:<tag> -v <host_fs_elyra_repo>:/dev/elyra -p 8888:8888
+```
+
+**Example**
+
+Assuming the container image was built and named `test_user/elyra-environment:dev` and 
+the cloned Elyra repository is located at `/path_to_elyra_repo_root`, run
+
+```
+docker run -t test_user/elyra-environment:dev -v /path_to_elyra_repo_root:/dev/elyra -p 8888:8888
+```
