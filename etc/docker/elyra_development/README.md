@@ -50,5 +50,5 @@ Assuming the container image was built and named `test_user/elyra-environment:de
 the cloned Elyra repository is located at `/path_to_elyra_repo_root`, run
 
 ```
-docker run -t test_user/elyra-environment:dev -v /path_to_elyra_repo_root:/dev/elyra -p 8888:8888
+docker run -v /path_to_elyra_repo_root:/dev/elyra -p 8888:8888 -it test_user/elyra-environment:dev
 ```
