@@ -56,5 +56,5 @@ $ docker run -v /path_to_elyra_repo_root:/dev/elyra -p 8888:8888 -it test_user/e
 #### Starting Elyra in the container
 Once inside the container, after building with your changes in Elyra, start JupyterLab with:
 ```bash
-jupyter lab --allow-root --ip=0.0.0.0 --debug
+$ jupyter lab --allow-root --ip=0.0.0.0 --debug
 ```
