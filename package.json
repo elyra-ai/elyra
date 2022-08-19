@@ -4,7 +4,16 @@
   "private": true,
   "workspaces": {
     "packages": [
-      "packages/*"
+      "packages/code-snippet",
+      "packages/code-viewer",
+      "packages/metadata",
+      "packages/metadata-common",
+      "packages/python-editor",
+      "packages/script-editor",
+      "packages/services",
+      "packages/template",
+      "packages/theme",
+      "packages/ui-components"
     ],
     "nohoist": [
       "**/@jupyterlab/builder"

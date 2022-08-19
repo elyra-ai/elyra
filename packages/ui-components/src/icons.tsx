@@ -32,6 +32,7 @@ import runtimesSvg from '../style/icons/runtimes.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
 import scalaIconSvg from '../style/icons/scala-logo.svg';
 import tagIconSvg from '../style/icons/tag.svg';
+import templateSvg from '../style/icons/template.svg';
 import trashIconSvg from '../style/icons/trashIcon.svg';
 import viewOffIconSvg from '../style/icons/view--off.svg';
 import viewIconSvg from '../style/icons/view.svg';
@@ -44,6 +45,10 @@ export const importIcon = new LabIcon({
 export const codeSnippetIcon = new LabIcon({
   name: 'elyra:code-snippet',
   svgstr: codeSnippetSvg
+});
+export const templateIcon = new LabIcon({
+  name: 'elyra:template',
+  svgstr: templateSvg
 });
 export const dragDropIcon = new LabIcon({
   name: 'elyra:dragdrop',

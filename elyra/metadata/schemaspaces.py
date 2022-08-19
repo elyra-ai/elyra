@@ -57,6 +57,20 @@ class CodeSnippets(Schemaspace):
         )
 
 
+class Templates(Schemaspace):
+    TEMPLATES_SCHEMASPACE_ID = "9b55e002-1cc6-11ed-861d-0242ac120002"
+    TEMPLATES_SCHEMASPACE_NAME = "templates"
+    TEMPLATES_SCHEMASPACE_DISPLAY_NAME = "Templates"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            schemaspace_id=Templates.TEMPLATES_SCHEMASPACE_ID,
+            name=Templates.TEMPLATES_SCHEMASPACE_NAME,
+            display_name=Templates.TEMPLATES_SCHEMASPACE_DISPLAY_NAME,
+            description="Schemaspace for instances of Elyra templates configurations",
+        )
+
+
 class ComponentCatalogs(Schemaspace):
     COMPONENT_CATALOGS_SCHEMASPACE_ID = "8dc89ca3-4b90-41fd-adb9-9510ad346620"
     COMPONENT_CATALOGS_SCHEMASPACE_NAME = "component-catalogs"

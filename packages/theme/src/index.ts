@@ -156,7 +156,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       label: 'Documentation',
       icon: helpIcon,
       execute: (args: any) => {
-        window.open('https://elyra.readthedocs.io/en/latest/', '_blank');
+        window.open('https://github.com/elevo-ai/tutorial', '_blank');
       }
     });
 
@@ -174,7 +174,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
     model.add({
       command: CommandIDs.openHelp,
-      category: 'Elyra',
+      category: 'Integra',
       rank: 10
     });
 

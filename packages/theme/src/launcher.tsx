@@ -31,7 +31,7 @@ import * as React from 'react';
 /**
  * The known categories of launcher items and their default ordering.
  */
-const ELYRA_CATEGORY = 'Elyra';
+const ELYRA_CATEGORY = 'Integra';
 
 const CommandIDs = {
   newFile: 'fileeditor:create-new',

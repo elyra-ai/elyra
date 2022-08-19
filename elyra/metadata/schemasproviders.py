@@ -34,6 +34,7 @@ from elyra.metadata.schemaspaces import CodeSnippets
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.metadata.schemaspaces import Templates
 from elyra.pipeline.kfp.kfp_authentication import SupportedAuthProviders
 from elyra.util.gitutil import SupportedGitTypes
 
@@ -141,6 +142,13 @@ class CodeSnippetsSchemas(ElyraSchemasProvider):
 
     def get_schemas(self) -> List[Dict]:
         return self.get_local_schemas_by_schemaspace(CodeSnippets.CODE_SNIPPETS_SCHEMASPACE_ID)
+
+
+class TemplatesSchemas(ElyraSchemasProvider):
+    """Returns schemas relative to Templates schemaspace."""
+
+    def get_schemas(self) -> List[Dict]:
+        return self.get_local_schemas_by_schemaspace(Templates.TEMPLATES_SCHEMASPACE_ID)
 
 
 class ComponentCatalogsSchemas(ElyraSchemasProvider):
