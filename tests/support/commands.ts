@@ -230,3 +230,92 @@ Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
     `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
   ).click();
 });
+
+Cypress.Commands.add('checkScriptEditorToolbarContent', (): void => {
+  cy.get('.elyra-ScriptEditor .jp-Toolbar');
+
+  // check save button exists and icon
+  cy.get('button[title="Save file contents"]');
+  cy.get('svg[data-icon="ui-components:save"]');
+
+  // check run button exists and icon
+  cy.get('button[title="Run"]');
+  cy.get('svg[data-icon="ui-components:run"]');
+
+  // check interrupt kernel button exists and icon
+  cy.get('button[title="Interrupt the kernel"]');
+  cy.get('svg[data-icon="ui-components:stop"]');
+
+  // check select kernel dropdown exists
+  cy.get('.elyra-ScriptEditor .jp-Toolbar select');
+
+  // check Run as Pipeline button exists
+  cy.contains('Run as Pipeline');
+});
+
+Cypress.Commands.add('checkRightClickTabContent', (fileType: string): void => {
+  // Open right-click context menu
+  cy.get('.lm-TabBar-tab[data-type="document-title"]').rightclick({
+    force: true
+  });
+
+  // Check contents of each menu item
+  cy.get('[data-command="application:close"] > .lm-Menu-itemLabel').contains(
+    'Close Tab'
+  );
+  cy.get(
+    '[data-command="application:close-other-tabs"] > .lm-Menu-itemLabel'
+  ).contains('Close All Other Tabs');
+  cy.get(
+    '[data-command="application:close-right-tabs"] > .lm-Menu-itemLabel'
+  ).contains('Close Tabs to Right');
+  cy.get(
+    '[data-command="filemenu:create-console"] > .lm-Menu-itemLabel'
+  ).contains('Create Console for Editor');
+  cy.get('[data-command="docmanager:rename"] > .lm-Menu-itemLabel').contains(
+    `Rename ${fileType} File…`
+  );
+  cy.get('[data-command="docmanager:delete"] > .lm-Menu-itemLabel').contains(
+    `Delete ${fileType} File`
+  );
+  cy.get('[data-command="docmanager:clone"] > .lm-Menu-itemLabel').contains(
+    `New View for ${fileType} File`
+  );
+  cy.get(
+    '[data-command="docmanager:show-in-file-browser"] > .lm-Menu-itemLabel'
+  ).contains('Show in File Browser');
+  cy.get(
+    '[data-command="__internal:context-menu-info"] > .lm-Menu-itemLabel'
+  ).contains('Shift+Right Click for Browser Menu');
+
+  // Dismiss menu
+  cy.get(
+    '[data-command="docmanager:show-in-file-browser"] > .lm-Menu-itemLabel'
+  ).click();
+});
+
+Cypress.Commands.add(
+  'openFileAndCheckContent',
+  (fileExtension: string): void => {
+    openFile(fileExtension);
+    // Ensure that the file contents are as expected
+    cy.get('span[role="presentation"]').should($span => {
+      expect($span.get(0).innerText).to.eq('print("Hello Elyra")');
+    });
+
+    // Close the file editor
+    cy.closeTab(-1);
+  }
+);
+
+// Dismiss LSP code assistant box if visible
+Cypress.Commands.add('dismissAssistant', (): void => {
+  cy.get('body').then($body => {
+    if ($body.find('.lsp-completer').length > 0) {
+      // Dismiss code assistant box
+      cy.get('.CodeMirror-lines')
+        .first()
+        .type('{esc}');
+    }
+  });
+});

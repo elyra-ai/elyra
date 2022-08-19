@@ -38,5 +38,9 @@ declare namespace Cypress {
     checkTabMenuOptions(fileType: string): Chainable<void>;
     closeTab(index: number): Chainable<void>;
     createNewScriptEditor(language: string): Chainable<void>;
+    checkScriptEditorToolbarContent(): Chainable<void>;
+    checkRightClickTabContent(fileType: string): Chainable<void>;
+    openFileAndCheckContent(fileExtension: string): Chainable<void>;
+    dismissAssistant(): Chainable<void>;
   }
 }
