@@ -120,6 +120,6 @@ describe('Code snippet from cells tests', () => {
 const populateCells = (): void => {
   cy.get('span[role="presentation"]').each(cell => {
     cy.get(cell).type('print("test")');
-    cy.dismissAssistant();
+    cy.dismissAssistant('notebook');
   });
 };

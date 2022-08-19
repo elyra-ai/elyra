@@ -90,7 +90,7 @@ describe('Python Editor tests', () => {
       .type('print("test")');
 
     cy.wait(500);
-    cy.dismissAssistant();
+    cy.dismissAssistant('scripteditor');
 
     clickRunAsPipelineButton();
 
@@ -155,7 +155,7 @@ describe('Python Editor tests', () => {
   //     .type('print"test"');
 
   //   cy.wait(500);
-  //   cy.dismissAssistant();
+  //   cy.dismissAssistant('scripteditor');
   //   clickRunButton();
   //   cy.findByText(/Error : SyntaxError/i).should('be.visible');
 

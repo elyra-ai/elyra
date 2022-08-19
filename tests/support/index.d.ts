@@ -42,6 +42,6 @@ declare namespace Cypress {
     checkRightClickTabContent(fileType: string): Chainable<void>;
     openFileAndCheckContent(fileExtension: string): Chainable<void>;
     openHelloWorld(fileExtension: string): Chainable<void>;
-    dismissAssistant(): Chainable<void>;
+    dismissAssistant(fileType: string): Chainable<void>;
   }
 }

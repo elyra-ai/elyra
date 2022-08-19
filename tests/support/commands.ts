@@ -319,11 +319,12 @@ Cypress.Commands.add('openHelloWorld', (fileExtension: string): void => {
 });
 
 // Dismiss LSP code assistant box if visible
-Cypress.Commands.add('dismissAssistant', (): void => {
+Cypress.Commands.add('dismissAssistant', (fileType: string): void => {
   cy.get('body').then($body => {
     if ($body.find('.lsp-completer').length > 0) {
       // Dismiss code assistant box
-      cy.get('.CodeMirror-lines')
+      const selector = fileType === 'notebook' ? 'body' : '.CodeMirror-lines';
+      cy.get(selector)
         .first()
         .type('{esc}');
     }

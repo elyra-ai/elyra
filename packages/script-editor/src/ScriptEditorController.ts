@@ -77,7 +77,11 @@ export class ScriptEditorController {
 
     const specsByLang = await this.getKernelSpecsByLanguage(language);
     const first = (k: any): any => k[Object.keys(k)[0]];
-    return first(specsByLang?.kernelspecs).name;
+    let kernelName = '';
+    if (specsByLang && Object.keys(specsByLang.kernelspecs).length !== 0) {
+      kernelName = first(specsByLang.kernelspecs.name);
+    }
+    return kernelName;
   };
 
   /**
