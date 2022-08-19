@@ -24,7 +24,7 @@ these scripts in remote environments.
 
 The execution of these scripts leverages the available Python, R and Scala based kernels. This enables users to run their scripts in different configurations and environments.
 
-Debugging Python scripts is now available as an experimental feature, where users no longer need the extra steps of enabling it by opening a console for the editor, or switching to a general-purpose IDE.
+The python script debugger now available as an experimental feature. Users no longer need to go through the extra steps of enabling one by opening a console for the editor, or switching to a general-purpose IDE.
 
 Elyra also allows submitting a Python and R scripts as a single node pipeline for execution in a Kubeflow Pipelines or Apache Airflow environment in the cloud. This feature is accessible when the Elyra [AI Pipelines](../user_guide/pipelines.md) extension is also enabled.
 
@@ -41,15 +41,14 @@ To run your script locally, select the `Python 3` option in the dropdown menu, a
 
 ## Python script debugging support (experimental)
 
-Elyra users can now expand their development experience and start debugging scripts from the Python Editor.
-In this experimental stage we provide an integration between [Elyra's Script Editor](https://github.com/elyra-ai/elyra/tree/main/packages/script-editor) and the existing [JupyterLab debugger](https://jupyterlab.readthedocs.io/en/stable/user/debugger.html), allowing basic debugging tasks such as setting breakpoints, inspecting variables and navigating the call stack.
+Elyra users can now enhance their development experience by debugging scripts directly within the Python Editor.
+In this experimental stage, we provide an integration between [Elyra's Script Editor](https://github.com/elyra-ai/elyra/tree/main/packages/script-editor) and the existing [JupyterLab debugger](https://jupyterlab.readthedocs.io/en/stable/user/debugger.html). This facilitates basic debugging tasks such as setting breakpoints, inspecting variables and navigating the call stack.
 
-Elyra extends JupyterLab's visual debugger which will be visible and enabled in the editor's toolbar if a kernel with debugger support is installed and selected.
+Elyra extends JupyterLab's visual debugger which will be visible and enabled in the editor's toolbar **if** a kernel with debugger support is installed and selected.
 
-Currently only the Jupyter kernels below are known to support the Jupyter Debug Protocol, the first two for the Python programming language:
+Currently the Jupyter kernels below are known to support the Jupyter Debug Protocol:
 - [ipykernel](https://github.com/ipython/ipykernel) (6.0+)
 - [xeus-python](https://github.com/jupyter-xeus/xeus-python)
-- [xeus-robot](https://github.com/jupyter-xeus/xeus-robot)
 
 To list installed kernels run the command below in a terminal window:
 ```bash
