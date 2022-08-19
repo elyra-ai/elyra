@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/meta-schema.json",
+  "$id": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/schemas/template.json",
+  "title": "Template",
+  "name": "template",
+  "schemaspace": "templates",
+  "schemaspace_id": "9b55e002-1cc6-11ed-861d-0242ac120002",
+  "uihints": {
+    "title": "Templates",
+    "icon": "elyra:template",
+    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/code-snippets.html"
+  },
+  "properties": {
+    "schema_name": {
+      "title": "Schema Name",
+      "description": "The schema associated with this instance",
+      "type": "string",
+      "const": "template"
+    },
+    "display_name": {
+      "title": "Display Name",
+      "description": "The display name of the Template",
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "description": "Additional data specific to this Template",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "description": "Template description",
+          "type": "string"
+        },
+        "tags": {
+          "title": "Tags",
+          "description": "Tags for categorizing temps",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "minLength": 1,
+            "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
+          },
+          "uihints": {
+            "ui:field": "tags"
+          }
+        },
+        "language": {
+          "title": "Language",
+          "description": "Template implementation language",
+          "type": "string",
+          "uihints": {
+            "ui:field": "dropdown",
+            "default_choices": ["Python", "Java", "R", "Scala", "Markdown"],
+            "category": "Source"
+          },
+          "minLength": 1
+        },
+        "code": {
+          "title": "Code",
+          "description": "Template code lines",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uihints": {
+            "ui:field": "code",
+            "category": "Source"
+          }
+        }
+      },
+      "required": ["language", "code"]
+    }
+  },
+  "required": ["schema_name", "display_name", "metadata"]
+}
