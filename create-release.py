@@ -627,21 +627,21 @@ def prepare_extensions_release() -> None:
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/pipelines.html",
         ),
         "elyra-python-editor-extension": SimpleNamespace(
-            packages=["python-editor-extension", "metadata-extension", "theme-extension"],
+            packages=["python-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
             description=f"The Python Script editor extension contains support for Python files, "
             f"which can take advantage of the Hybrid Runtime Support enabling users to "
-            f"locally edit .py scripts and execute them against local or cloud-based resources."
+            f"locally edit, execute and debug .py scripts against local or cloud-based resources."
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
         "elyra-r-editor-extension": SimpleNamespace(
-            packages=["r-editor-extension", "metadata-extension", "theme-extension"],
+            packages=["r-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
             description=f"The R Script editor extension contains support for R files, which can take "
             f"advantage of the Hybrid Runtime Support enabling users to locally edit .R scripts "
             f"and execute them against local or cloud-based resources."
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
         "elyra-scala-editor-extension": SimpleNamespace(
-            packages=["scala-editor-extension", "metadata-extension", "theme-extension"],
+            packages=["scala-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
             description=f"The Scala Language editor extension contains support for Scala files, which can take "
             f"advantage of the Hybrid Runtime Support enabling users to locally edit .scala files "
             f"and execute them against local or cloud-based resources."

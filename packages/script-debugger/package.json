@@ -1,7 +1,7 @@
 {
-  "name": "@elyra/python-editor-extension",
-  "version": "3.11.0-dev",
-  "description": "JupyterLab extension - Run python scripts using a kernel runtime",
+  "name": "@elyra/script-debugger-extension",
+  "version": "3.10.0-dev",
+  "description": "JupyterLab extension - visual debugging support for script editors",
   "keywords": [
     "jupyter",
     "jupyterlab",
@@ -30,8 +30,8 @@
     "build:lib": "tsc",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
-    "clean": "rimraf lib tsconfig.tsbuildinfo ../../dist/labextensions/@elyra/python-editor-extension",
-    "lab:dev": "jupyter labextension develop --overwrite ../../dist/labextensions/@elyra/python-editor-extension",
+    "clean": "rimraf lib tsconfig.tsbuildinfo ../../dist/labextensions/@elyra/script-debugger-extension",
+    "lab:dev": "jupyter labextension develop --overwrite ../../dist/labextensions/@elyra/script-debugger-extension",
     "dist": "npm pack .",
     "prepare": "npm run build",
     "watch": "run-p watch:src watch:labextension",
@@ -44,18 +44,11 @@
   },
   "dependencies": {
     "@elyra/script-editor": "3.11.0-dev",
-    "@elyra/ui-components": "3.11.0-dev",
     "@jupyterlab/application": "^3.4.0",
-    "@jupyterlab/apputils": "^3.4.0",
-    "@jupyterlab/codeeditor": "^3.4.0",
-    "@jupyterlab/docregistry": "^3.4.0",
-    "@jupyterlab/filebrowser": "^3.4.0",
+    "@jupyterlab/debugger": "^3.4.0",
     "@jupyterlab/fileeditor": "^3.4.0",
-    "@jupyterlab/launcher": "^3.4.0",
-    "@jupyterlab/mainmenu": "^3.4.0",
-    "@jupyterlab/settingregistry": "^3.4.0",
-    "@jupyterlab/ui-components": "^3.4.0",
-    "@lumino/coreutils": "^1.5.6"
+    "@jupyterlab/services": "^6.4.0",
+    "@lumino/widgets": "^1.19.0"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.4.0",
@@ -67,6 +60,6 @@
   },
   "jupyterlab": {
     "extension": true,
-    "outputDir": "../../dist/labextensions/@elyra/python-editor-extension"
+    "outputDir": "../../dist/labextensions/@elyra/script-debugger-extension"
   }
 }

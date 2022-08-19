@@ -62,11 +62,15 @@ describe('@elyra/script-editor', () => {
       });
 
       it('should start a kernel session', async () => {
-        const session = await runner.startSession(kernelName, testPath);
-        expect(session.id).toEqual(runner.sessionConnection?.id);
-        expect(runner.sessionConnection?.kernel?.connectionStatus).toEqual(
-          'connecting'
-        );
+        await runner.startSession(kernelName, testPath);
+        const session = runner.sessionConnection;
+        expect(session).not.toBeNull;
+        if (session) {
+          expect(session.id).toEqual(runner.sessionConnection?.id);
+          expect(runner.sessionConnection?.kernel?.connectionStatus).toEqual(
+            'connecting'
+          );
+        }
         runner.shutdownSession();
       });
 
