@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
+# ********************************************************************************************
+#
+# This program is an unpublished work fully protected by the United States
+# copyright laws and is considered a trade secret belonging to Attala Systems Corporation.
+# To the extent that this work may be considered "published", the following notice applies
+# "(C) 2020, 2021, Attala Systems Corporation"
+#
+# Any unauthorized use, reproduction, distribution, display, modification,
+# or disclosure of this program is strictly prohibited.
+#
+# File: create_integra_release.py
+# Functional Description: This module creates integra distributions.
+#
+# ********************************************************************************************
 import argparse
-import elyra
-import elyra._version
-# import git
 import io
 import os
 import re
@@ -56,7 +67,7 @@ def dependency_exists(command) -> bool:
 def sed(file: str, pattern: str, replace: str) -> None:
     """Perform regex substitution on a given file"""
     try:
-        check_run(["sed", "-i", "", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
+        check_run(["sed", "-i", f"s#{pattern}#{replace}#g", file], capture_output=False)
     except Exception as ex:
         raise RuntimeError(f"Error processing updated to file {file}: ") from ex
 
@@ -77,6 +88,13 @@ def _source(file: str) -> str:
 
 def build_server():
     global config
+  
+    print("-----------------------------------------------------------------")
+    print("------------------------ Installing elyra ------------------------")
+    print("-----------------------------------------------------------------")
+
+    # install elyra
+    check_run(["make", "black-format", "clean", "install"], cwd=config.source_dir, capture_output=False)
 
     print("-----------------------------------------------------------------")
     print("------------------------ Building Server ------------------------")
@@ -91,11 +109,30 @@ def build_server():
         "Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. "
         "Please install the 'elyra' package instead. e.g. pip install elyra[all]\"",
     )
-    # install elyra
-    check_run(["make", "clean" "install"], cwd=config.source_dir, capture_output=False)
 
     # build server wheel
     check_run(["make", "build-server"], cwd=config.source_dir, capture_output=False)
+    print(
+        f'Copying : {_source("dist/elyra_server-" + config.new_version + "-py3-none-any.whl")} to {config.elevo_depend_files}'
+    )
+    check_run(
+        [
+            "cp",
+            _source("dist/elyra_server-" + config.new_version + "-py3-none-any.whl"),
+            config.elevo_depend_files,
+        ],
+        cwd=config.work_dir,
+    )
+    print("")
+
+    sed(_source("setup.py"), r'name="elyra-server"', 'name="elyra"')
+    sed(
+        _source("setup.py"),
+        r'description="The elyra/Integra-server package provides common core libraries and functions that are required by '
+        "Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. "
+        "Please install the 'elyra' package instead. e.g. pip install elyra[all]\"",
+        'description="Elyra provides AI Centric extensions to JupyterLab"'
+    )
 
 
 def copy_extension_dir(extension: str, work_dir: str) -> None:
@@ -113,21 +150,20 @@ def prepare_extensions_release() -> None:
     print("-----------------------------------------------------------------")
     print("--------------- Preparing Individual Extensions -----------------")
     print("-----------------------------------------------------------------")
-
+    tar_dest = "/nfs/projects1/shared-tools/mounikam"
     extensions = {
         "elyra-template-extension": SimpleNamespace(
             packages=["template-extension", "metadata-extension", "theme-extension"],
             description=f"The Template editor extension adds support for reusable code fragments, "
-                        f"making programming in JupyterLab more efficient by reducing repetitive work. "
-                        f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/templates.html",
+            f"making programming in JupyterLab more efficient by reducing repetitive work. "
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/templates.html",
         ),
         "elyra-code-snippet-extension": SimpleNamespace(
             packages=["code-snippet-extension", "metadata-extension", "theme-extension"],
             description=f"The code-snippet editor extension adds support for reusable code fragments, "
-                        f"making programming in JupyterLab more efficient by reducing repetitive work. "
-                        f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
+            f"making programming in JupyterLab more efficient by reducing repetitive work. "
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
         ),
-
     }
 
     for extension in extensions:
@@ -153,6 +189,17 @@ def prepare_extensions_release() -> None:
 
         # build extension
         check_run(["python", "setup.py", "bdist_wheel", "sdist"], cwd=extension_source_dir)
+        print(
+            f'Copying : {_source(extension_source_dir + "/dist/" + extension + "-" + config.new_version + ".tar.gz")} to {config.elevo_depend_files}'
+        )
+        check_run(
+            [
+                "cp",
+                _source(extension_source_dir + "/dist/" + extension + "-" + config.new_version + ".tar.gz"),
+                config.elevo_depend_files,
+            ],
+            cwd=config.work_dir,
+        )
         print("")
 
 
@@ -161,7 +208,7 @@ def prepare_release() -> None:
     Prepare a release
     """
     global config
-    print(f"Processing release from {config.old_version} to {config.new_version} ")
+    print(f"Processing release from {config.new_version} ")
     print("")
 
     # server-only wheel
@@ -175,14 +222,15 @@ def initialize_config(args=None) -> SimpleNamespace:
     if not args:
         raise ValueError("Invalid command line arguments")
 
-    v = re.search(VERSION_REG_EX, elyra._version.__version__)
+    # v = re.search(VERSION_REG_EX, elyra._version.__version__)
 
     configuration = {
         "goal": args.goal,
         "base_dir": os.getcwd(),
         "work_dir": os.path.join(os.getcwd()),
         "source_dir": os.path.join(os.getcwd()),
-        "new_version": args.version
+        "new_version": args.version,
+        "elevo_depend_files": os.path.join("/nfs/projects1/shared-tools/elevo-dependfiles"),
     }
 
     global config
@@ -260,8 +308,7 @@ def main(args=None):
 
             print("")
             print("")
-            print(f"Release version: {config.new_version} is ready for review")
-            print("After you are done, run the script again to [publish] the release.")
+            print(f"Release version: {config.new_version} is ready")
             print("")
             print("")
         else:
@@ -274,3 +321,4 @@ def main(args=None):
 
 if __name__ == "__main__":
     main()
+
