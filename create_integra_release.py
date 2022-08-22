@@ -133,6 +133,7 @@ def build_server():
         "Please install the 'elyra' package instead. e.g. pip install elyra[all]\"",
         'description="Elyra provides AI Centric extensions to JupyterLab"'
     )
+    print("")
 
 
 def copy_extension_dir(extension: str, work_dir: str) -> None:
@@ -150,19 +151,19 @@ def prepare_extensions_release() -> None:
     print("-----------------------------------------------------------------")
     print("--------------- Preparing Individual Extensions -----------------")
     print("-----------------------------------------------------------------")
-    tar_dest = "/nfs/projects1/shared-tools/mounikam"
+  
     extensions = {
         "elyra-template-extension": SimpleNamespace(
             packages=["template-extension", "metadata-extension", "theme-extension"],
             description=f"The Template editor extension adds support for reusable code fragments, "
-            f"making programming in JupyterLab more efficient by reducing repetitive work. "
-            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/templates.html",
+                        f"making programming in JupyterLab more efficient by reducing repetitive work. "
+                        f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/templates.html",
         ),
         "elyra-code-snippet-extension": SimpleNamespace(
             packages=["code-snippet-extension", "metadata-extension", "theme-extension"],
             description=f"The code-snippet editor extension adds support for reusable code fragments, "
-            f"making programming in JupyterLab more efficient by reducing repetitive work. "
-            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
+                        f"making programming in JupyterLab more efficient by reducing repetitive work. "
+                        f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
         ),
     }
 
@@ -221,8 +222,6 @@ def prepare_release() -> None:
 def initialize_config(args=None) -> SimpleNamespace:
     if not args:
         raise ValueError("Invalid command line arguments")
-
-    # v = re.search(VERSION_REG_EX, elyra._version.__version__)
 
     configuration = {
         "goal": args.goal,
