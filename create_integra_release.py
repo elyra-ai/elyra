@@ -9,8 +9,20 @@
 # Any unauthorized use, reproduction, distribution, display, modification,
 # or disclosure of this program is strictly prohibited.
 #
-# File: create_integra_release.py
-# Functional Description: This module creates integra distributions.
+#
+# Copyright 2018-2022 Elyra Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # ********************************************************************************************
 import argparse
@@ -251,31 +263,18 @@ def print_config() -> None:
 
 
 def print_help() -> str:
-    return """create-release.py [ prepare | publish ] --version VERSION
+    return """create_integra_release.py [ prepare ] --version VERSION
 
     DESCRIPTION
-    Creates Elyra release based on git commit hash or from HEAD.
+    Creates Integra release based on git commit hash or from HEAD.
 
-    create release prepare-changelog --version 1.3.0 [--beta 0] [--rc 0]
-    This will prepare the release changelog and make it ready for review on the release workdir.
+    create-release.py prepare --version 3.11.0.dev0
+    This will install/build-sever and prepare server/extension distributions.
 
-    create-release.py prepare --version 1.3.0 --dev-version 1.4.0 [--beta 0] [--rc 0]
-    This will prepare a release candidate, build it locally and make it ready for review on the release workdir.
-
-    Note: that one can either use a beta or rc modifier for the release, but not both.
-
-    create-release.py publish --version 1.3.0 [--beta 0] [--rc 0]
-    This will build a previously prepared release, and publish the artifacts to public repositories.
-
-    Required software dependencies for building and publishing a release:
-     - Git
-     - Node
-     - Twine
+    Required software/environment dependencies for building and get distributions:
+     - conda envvironment
+     - Nodejs
      - Yarn
-
-     Required configurations for publishing a release:
-     - GPG with signing key configured
-
 
     """
 
