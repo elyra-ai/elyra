@@ -324,7 +324,7 @@ class EnvironmentVariable(ElyraOwnedPropertyListItem):
         return validation_errors
 
 
-class KubernetesSecret(ElyraOwnedPropertyListItem):
+class KubernetesSecret(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
     TODO
     """
@@ -403,7 +403,7 @@ class KubernetesSecret(ElyraOwnedPropertyListItem):
         ]
 
 
-class VolumeMount(ElyraOwnedPropertyListItem):
+class VolumeMount(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
     TODO
     """
@@ -480,7 +480,7 @@ class VolumeMount(ElyraOwnedPropertyListItem):
         ]
 
 
-class KubernetesAnnotation(ElyraOwnedPropertyListItem):
+class KubernetesAnnotation(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
     TODO
     """
@@ -537,7 +537,7 @@ class KubernetesAnnotation(ElyraOwnedPropertyListItem):
             kubernetes_executor["annotations"][annotation.key] = annotation.value
 
 
-class KubernetesToleration(ElyraOwnedPropertyListItem):
+class KubernetesToleration(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
     TODO
     """
