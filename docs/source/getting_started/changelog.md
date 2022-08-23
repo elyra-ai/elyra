@@ -2,6 +2,13 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.11.0 - 08/23/2022
+
+- Node package security updates - [#2896](https://github.com/elyra-ai/elyra/pull/2896)
+- Address component catalog SVG rendering issues - [#2895](https://github.com/elyra-ai/elyra/pull/2895)
+- Bump url-parse from 1.5.3 to 1.5.10 - [#2892](https://github.com/elyra-ai/elyra/pull/2892)
+- Bump nanoid from 3.1.25 to 3.3.4 - [#2893](https://github.com/elyra-ai/elyra/pull/2893)
+
 ## Release 3.11.0rc0 - 08/19/2022
 
 - Update release script container builds - [#2891](https://github.com/elyra-ai/elyra/pull/2891)
