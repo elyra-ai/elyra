@@ -15,14 +15,25 @@
 #
 from __future__ import annotations
 
+from importlib import import_module
 import json
 import re
-from importlib import import_module
 from textwrap import dedent
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+
+from kfp.dsl import ContainerOp
+from kubernetes.client import (
+    V1EnvVar,
+    V1EnvVarSource,
+    V1PersistentVolumeClaimVolumeSource,
+    V1SecretKeySelector,
+    V1Toleration,
+    V1Volume,
+    V1VolumeMount,
+)
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
@@ -46,34 +57,27 @@ class ElyraOwnedProperty:
     _required: bool = False
 
     @classmethod
-    def all_subclasses(cls):
-        """TODO"""
+    def all_subclasses(cls) -> set:
+        """Get all nested subclasses for a class."""
+        # TODO type hint
         return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in c.all_subclasses()])
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
-        """TODO"""
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any):
+        """Create an instance of a class with the given property id using the user-entered raw value."""
+        # TODO type hint
         for subclass in cls.all_subclasses():
             if getattr(subclass, "_property_id", "") == prop_id:
-                if issubclass(subclass, ElyraOwnedPropertyListItem) and isinstance(prop_value, list):
-                    value_list = [subclass.create_instance_from_raw_value(prop_id, item) for item in prop_value]
-                    return ElyraOwnedPropertyList(value_list)
-                else:
-                    return subclass.create_instance_from_raw_value(prop_id, prop_value)
+                return subclass.create_instance_from_raw_value(prop_id, prop_value)
         return None
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str):
         """
         Retrieve subclasses that apply to the given component type
-        (if the class attribute _<component_type> is True).
+        (e.g., if the class attribute _<component_type> is True).
         """
-        dataclass_params = []
-        for subclass in cls.all_subclasses():
-            if getattr(subclass, f"_{component_type}", False) is True:
-                dataclass_params.append(subclass)
-
-        return dataclass_params
+        return [subclass for subclass in cls.all_subclasses() if getattr(subclass, f"_{component_type}", False)]
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -85,6 +89,32 @@ class ElyraOwnedProperty:
     def get_all_validation_errors(self) -> Optional[str]:
         """Perform custom validation on an instance."""
         return []
+
+
+class KfpElyraOwnedProperty(ElyraOwnedProperty):
+    """
+    TODO
+    """
+
+    @classmethod
+    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+        """Add relevant property info to a given KFP ContainerOp"""
+        for subclass in cls.all_subclasses():
+            if getattr(subclass, "_property_id", "") == prop_id:
+                subclass.add_to_container_op(prop_id, prop_value, container_op)
+
+
+class AirflowElyraOwnedProperty(ElyraOwnedProperty):
+    """
+    TODO
+    """
+
+    @classmethod
+    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
+        for subclass in cls.all_subclasses():
+            if getattr(subclass, "_property_id", "") == prop_id:
+                subclass.add_to_executor_config(prop_id, prop_value, kubernetes_executor)
 
 
 class RuntimeImage(ElyraOwnedProperty):
@@ -262,13 +292,13 @@ class EnvironmentVariable(ElyraOwnedPropertyListItem):
         self.value = kwargs.get("value", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> List[ElyraOwnedPropertyListItem]:
         """TODO"""
-        str_parts = prop_value.split("=", 1)
-        env_var, value = (str_parts + [""] * 2)[:2]
-        return getattr(import_module(cls.__module__), cls.__name__)(
-            env_var=env_var, value=value
-        )  # TODO maybe change these back to dataclasses?
+        instance_list = []
+        for list_item in prop_value:
+            env_var, value = (list_item.split("=", 1) + [""] * 2)[:2]
+            instance_list.append(getattr(import_module(cls.__module__), cls.__name__)(env_var=env_var, value=value))
+        return ElyraOwnedPropertyList(instance_list)
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -319,10 +349,14 @@ class KubernetesSecret(ElyraOwnedPropertyListItem):
     @classmethod
     def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
         """TODO"""
-        env_var, value = prop_value.split("=", 1)
-        value_parts = value.split(":")
-        name, key = (value_parts + [""] * 2)[:2]
-        return getattr(import_module(cls.__module__), cls.__name__)(env_var=env_var, name=name, key=key)
+        instance_list = []
+        for list_item in prop_value:
+            env_var, value = list_item.split("=", 1)
+            name, key = (value.split(":") + [""] * 2)[:2]
+            instance_list.append(
+                getattr(import_module(cls.__module__), cls.__name__)(env_var=env_var, name=name, key=key)
+            )
+        return ElyraOwnedPropertyList(instance_list)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -349,6 +383,25 @@ class KubernetesSecret(ElyraOwnedPropertyListItem):
 
         return validation_errors
 
+    @classmethod
+    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+        """Add relevant property items to a given KFP ContainerOp"""
+        for secret in prop_value:  # Convert tuple entries to format kfp needs
+            container_op.container.add_env_variable(
+                V1EnvVar(
+                    name=secret.env_var,
+                    value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=secret.name, key=secret.key)),
+                )
+            )
+
+    @classmethod
+    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
+        kubernetes_executor["secrets"] = [
+            {"deploy_type": "env", "deploy_target": secret.env_var, "secret": secret.name, "key": secret.key}
+            for secret in prop_value
+        ]
+
 
 class VolumeMount(ElyraOwnedPropertyListItem):
     """
@@ -373,9 +426,11 @@ class VolumeMount(ElyraOwnedPropertyListItem):
     @classmethod
     def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
         """TODO"""
-        str_parts = prop_value.split("=", 1)
-        path, pvc_name = (str_parts + [""] * 2)[:2]
-        return getattr(import_module(cls.__module__), cls.__name__)(path=path, pvc_name=pvc_name)
+        instance_list = []
+        for list_item in prop_value:
+            path, pvc_name = (list_item.split("=", 1) + [""] * 2)[:2]
+            instance_list.append(getattr(import_module(cls.__module__), cls.__name__)(path=path, pvc_name=pvc_name))
+        return ElyraOwnedPropertyList(instance_list)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -389,6 +444,40 @@ class VolumeMount(ElyraOwnedPropertyListItem):
             validation_errors.append(f"PVC name '{self.pvc_name}' is not a valid Kubernetes resource name.")
 
         return validation_errors
+
+    @classmethod
+    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+        """Add relevant property items to a given KFP ContainerOp"""
+        unique_pvcs = []
+        for volume in prop_value:
+            if volume.pvc_name not in unique_pvcs:
+                container_op.add_volume(
+                    V1Volume(
+                        name=volume.pvc_name,
+                        persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=volume.pvc_name),
+                    )
+                )
+                unique_pvcs.append(volume.pvc_name)
+            container_op.container.add_volume(V1VolumeMount(mount_path=volume.path, name=volume.pvc_name))
+
+    @classmethod
+    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
+        kubernetes_executor["volumes"] = [
+            {
+                "name": volume.pvc_name,
+                "persistentVolumeClaim": {"claimName": volume.pvc_name},
+            }
+            for volume in prop_value
+        ]
+        kubernetes_executor["volume_mounts"] = [
+            {
+                "mountPath": volume.path,
+                "name": volume.pvc_name,
+                "read_only": False,
+            }
+            for volume in prop_value
+        ]
 
 
 class KubernetesAnnotation(ElyraOwnedPropertyListItem):
@@ -414,9 +503,11 @@ class KubernetesAnnotation(ElyraOwnedPropertyListItem):
     @classmethod
     def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
         """TODO"""
-        str_parts = prop_value.split("=", 1)
-        key, value = (str_parts + [""] * 2)[:2]
-        return getattr(import_module(cls.__module__), cls.__name__)(key=key, value=value)
+        instance_list = []
+        for list_item in prop_value:
+            key, value = (list_item.split("=", 1) + [""] * 2)[:2]
+            instance_list.append(getattr(import_module(cls.__module__), cls.__name__)(key=key, value=value))
+        return ElyraOwnedPropertyList(instance_list)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -429,6 +520,21 @@ class KubernetesAnnotation(ElyraOwnedPropertyListItem):
             validation_errors.append(f"'{self.key}' is not a valid Kubernetes annotation key.")
 
         return validation_errors
+
+    @classmethod
+    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+        """Add relevant property items to a given KFP ContainerOp"""
+        unique_annotations = []
+        for annotation in prop_value:
+            if annotation.key not in unique_annotations:
+                container_op.add_pod_annotation(annotation.key, annotation.value)
+                unique_annotations.append(annotation.key)
+
+    @classmethod
+    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
+        for annotation in prop_value:
+            kubernetes_executor["annotations"][annotation.key] = annotation.value
 
 
 class KubernetesToleration(ElyraOwnedPropertyListItem):
@@ -458,11 +564,15 @@ class KubernetesToleration(ElyraOwnedPropertyListItem):
     @classmethod
     def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
         """TODO"""
-        parts = prop_value.split(":")
-        key, operator, value, effect = (parts + [""] * 4)[:4]
-        return getattr(import_module(cls.__module__), cls.__name__)(
-            key=key, operator=operator, value=value, effect=effect
-        )
+        instance_list = []
+        for list_item in prop_value:
+            key, operator, value, effect = (list_item.split(":") + [""] * 4)[:4]
+            instance_list.append(
+                getattr(import_module(cls.__module__), cls.__name__)(
+                    key=key, operator=operator, value=value, effect=effect
+                )
+            )
+        return ElyraOwnedPropertyList(instance_list)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -494,6 +604,35 @@ class KubernetesToleration(ElyraOwnedPropertyListItem):
             )
         return validation_errors
 
+    @classmethod
+    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+        """Add relevant property items to a given KFP ContainerOp"""
+        unique_tolerations = []
+        for toleration in prop_value:
+            if toleration.to_str() not in unique_tolerations:
+                container_op.add_toleration(
+                    V1Toleration(
+                        effect=toleration.effect,
+                        key=toleration.key,
+                        operator=toleration.operator,
+                        value=toleration.value,
+                    )
+                )
+                unique_tolerations.append(toleration.to_str())
+
+    @classmethod
+    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
+        kubernetes_executor["tolerations"] = [
+            {
+                "key": toleration.key,
+                "operator": toleration.operator,
+                "value": toleration.value,
+                "effect": toleration.effect,
+            }
+            for toleration in prop_value
+        ]
+
 
 class DataClassJSONEncoder(json.JSONEncoder):
     """
@@ -505,6 +644,4 @@ class DataClassJSONEncoder(json.JSONEncoder):
         """
         Render dataclass content as dict
         """
-        if isinstance(o, ElyraOwnedProperty):
-            return o.__dict__
-        return super().default(o)
+        return o.__dict__ if isinstance(o, ElyraOwnedProperty) else super().default(o)

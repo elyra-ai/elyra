@@ -20,7 +20,6 @@ import os
 import re
 import string
 import tempfile
-from textwrap import dedent
 import time
 from typing import Dict
 from typing import List
@@ -38,6 +37,7 @@ from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.elyra_properties import AirflowElyraOwnedProperty
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -332,10 +332,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "operator_source": operation.filename,
                     "is_generic_operator": operation.is_generic,
                     "doc": operation.doc,
-                    "volumes": operation.mounted_volumes,
-                    "secrets": operation.kubernetes_secrets,
-                    "kubernetes_tolerations": operation.kubernetes_tolerations,
-                    "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
+                    "operation_object": operation,
                 }
 
                 if runtime_image_pull_secret is not None:
@@ -441,9 +438,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "operator_source": component.component_source,
                     "is_generic_operator": operation.is_generic,
                     "doc": operation.doc,
-                    "volumes": operation.mounted_volumes,
-                    "kubernetes_tolerations": operation.kubernetes_tolerations,
-                    "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
+                    "operation_object": operation,
                 }
 
                 target_ops.append(target_op)
@@ -492,11 +487,7 @@ be fully qualified (i.e., prefixed with their package names).
 
             # Pass functions used to render data volumes and secrets to the template env
             rendering_functions = {
-                "render_volumes_for_generic_op": AirflowPipelineProcessor.render_volumes_for_generic_op,
-                "render_executor_config_for_custom_op": AirflowPipelineProcessor.render_executor_config_for_custom_op,
-                "render_secrets_for_generic_op": AirflowPipelineProcessor.render_secrets_for_generic_op,
-                "render_secrets_for_cos": AirflowPipelineProcessor.render_secrets_for_cos,
-                "render_executor_config_for_generic_op": AirflowPipelineProcessor.render_executor_config_for_generic_op,
+                "render_elyra_owned_properties": AirflowPipelineProcessor.process_elyra_owned_properties,
             }
             template.globals.update(rendering_functions)
 
@@ -589,185 +580,43 @@ be fully qualified (i.e., prefixed with their package names).
         return None
 
     @staticmethod
-    def render_volumes_for_generic_op(op: Dict) -> str:
+    def process_elyra_owned_properties(operation: Operation, cos_secret: str):
         """
-        Render any data volumes defined for the specified generic op for use in
-        the Airflow DAG template
-
-        :returns: a string literal containing the python code to be rendered in the DAG
+        TODO
         """
-        if not op.get("volumes"):
-            return ""
-        op["volume_vars"] = []  # store variable names in op's dict for template to access
+        component = ComponentCache.get_generic_component_from_op(operation.id)
+        if not component:
+            component = ComponentCache.instance().get_component(AirflowPipelineProcessor._type, operation.classifier)
 
-        # Include import statements and comment
-        str_to_render = f"""
-            from airflow.contrib.kubernetes.volume import Volume
-            from airflow.contrib.kubernetes.volume_mount import VolumeMount
-            # Volumes and mounts for operation '{op['id']}'"""
-        for idx, volume in enumerate(op.get("volumes", [])):
-            var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"volume_{op['id']}_{idx}")
+        if not component:
+            return {}
 
-            # Define VolumeMount and Volume objects
-            str_to_render += f"""
-                mount_{var_name} = VolumeMount(
-                    name='{volume.pvc_name}',
-                    mount_path='{volume.path}',
-                    sub_path=None,
-                    read_only=False
-                )
-                {var_name} = Volume(
-                    name='{volume.pvc_name}', configs={{"persistentVolumeClaim": {{"claimName": "{volume.pvc_name}"}}}}
-                )
-            """
+        kubernetes_executor = {}
+        for prop_name in [param.ref for param in component.get_elyra_parameters()]:
+            prop_value = getattr(operation, prop_name, None)
+            if prop_value:
+                AirflowElyraOwnedProperty.add_to_executor_config(prop_name, prop_value, kubernetes_executor)
 
-            op["volume_vars"].append(var_name)
-
-        op["volume_mount_vars"] = [f"mount_{volume_var}" for volume_var in op["volume_vars"]]
-        return dedent(str_to_render)
-
-    @staticmethod
-    def render_executor_config_for_custom_op(op: Dict) -> Dict[str, Dict[str, List]]:
-        """
-        Render any data volumes or tolerations defined for the specified custom op
-        for use in the Airflow DAG template
-
-        :returns: a dict defining the volumes and mounts to be rendered in the DAG
-        """
-        executor_config = {"KubernetesExecutor": {}}
-
-        # Handle volume mounts
-        if op.get("volumes"):
-            executor_config["KubernetesExecutor"]["volumes"] = []
-            executor_config["KubernetesExecutor"]["volume_mounts"] = []
-            for volume in op.get("volumes", []):
-                # Add volume and volume mount entry
-                executor_config["KubernetesExecutor"]["volumes"].append(
+        if cos_secret:
+            kubernetes_executor["secrets"].extend(
+                [
                     {
-                        "name": volume.pvc_name,
-                        "persistentVolumeClaim": {"claimName": volume.pvc_name},
-                    }
-                )
-                executor_config["KubernetesExecutor"]["volume_mounts"].append(
-                    {"mountPath": volume.path, "name": volume.pvc_name, "read_only": False}
-                )
-
-        # Handle tolerations
-        if op.get("kubernetes_tolerations"):
-            executor_config["KubernetesExecutor"]["tolerations"] = []
-            for toleration in op.get("kubernetes_tolerations", []):
-                # Add Kubernetes toleration entry
-                executor_config["KubernetesExecutor"]["tolerations"].append(
+                        "deploy_type": "env",
+                        "deploy_target": "AWS_ACCESS_KEY_ID",
+                        "secret": cos_secret,
+                        "key": "AWS_ACCESS_KEY_ID",
+                    },
                     {
-                        "key": toleration.key,
-                        "operator": toleration.operator,
-                        "value": toleration.value,
-                        "effect": toleration.effect,
-                    }
-                )
-
-        # Handle annotations
-        if op.get("kubernetes_pod_annotations"):
-            executor_config["KubernetesExecutor"]["annotations"] = {}
-            for annotation in op.get("kubernetes_pod_annotations", []):
-                # Add Kubernetes annotation entry
-                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
-
-        return executor_config
-
-    @staticmethod
-    def render_executor_config_for_generic_op(op: Dict) -> Dict[str, Dict[str, List]]:
-        """
-        Render tolerations and annotations defined for the specified generic op
-        for use in the Airflow DAG template
-
-        :returns: a dict defining the tolerations and annotations to be rendered in the DAG
-        """
-        executor_config = {"KubernetesExecutor": {}}
-
-        # Handle tolerations
-        if op.get("kubernetes_tolerations"):
-            executor_config["KubernetesExecutor"]["tolerations"] = []
-            for toleration in op.get("kubernetes_tolerations", []):
-                # Add Kubernetes toleration entry
-                executor_config["KubernetesExecutor"]["tolerations"].append(
-                    {
-                        "key": toleration.key,
-                        "operator": toleration.operator,
-                        "value": toleration.value,
-                        "effect": toleration.effect,
-                    }
-                )
-
-        # Handle annotations
-        if op.get("kubernetes_pod_annotations"):
-            executor_config["KubernetesExecutor"]["annotations"] = {}
-            for annotation in op.get("kubernetes_pod_annotations", []):
-                # Add Kubernetes annotation entry
-                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
-
-        return executor_config
-
-    @staticmethod
-    def render_secrets_for_cos(cos_secret: str):
-        """
-        Render the Kubernetes secrets required for COS
-
-        :returns: a string literal of the python code to be rendered in the DAG
-        """
-        if not cos_secret:
-            return ""
-
-        return dedent(
-            f"""
-            from airflow.kubernetes.secret import Secret
-            ## Ensure that the secret '{cos_secret}' is defined in the Kubernetes namespace where the pipeline is run
-            env_var_secret_id = Secret(
-                deploy_type="env",
-                deploy_target="AWS_ACCESS_KEY_ID",
-                secret="{cos_secret}",
-                key="AWS_ACCESS_KEY_ID",
+                        "deploy_type": "env",
+                        "deploy_target": "AWS_SECRET_ACCESS_KEY",
+                        "secret": cos_secret,
+                        "key": "AWS_SECRET_ACCESS_KEY",
+                    },
+                ]
             )
-            env_var_secret_key = Secret(
-                deploy_type="env",
-                deploy_target="AWS_SECRET_ACCESS_KEY",
-                secret="{cos_secret}",
-                key="AWS_SECRET_ACCESS_KEY",
-            )
-            """
-        )
 
-    @staticmethod
-    def render_secrets_for_generic_op(op: Dict) -> str:
-        """
-        Render any Kubernetes secrets defined for the specified op for use in
-        the Airflow DAG template
-
-        :returns: a string literal containing the python code to be rendered in the DAG
-        """
-        if not op.get("secrets"):
-            return ""
-        op["secret_vars"] = []  # store variable names in op's dict for template to access
-
-        # Include import statement and comment
-        str_to_render = f"""
-        from airflow.kubernetes.secret import Secret
-        # Secrets for operation '{op['id']}'"""
-        for idx, secret in enumerate(op.get("secrets", [])):
-            var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"secret_{op['id']}_{idx}")
-
-            # Define Secret object
-            str_to_render += f"""
-                {var_name} = Secret(
-                    deploy_type='env',
-                    deploy_target="{secret.env_var}",
-                    secret="{secret.name}",
-                    key="{secret.key}",
-                )
-            """
-
-            op["secret_vars"].append(var_name)
-        return dedent(str_to_render)
+        executor_config = {"KubernetesExecutor": kubernetes_executor}
+        return executor_config
 
 
 class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):

@@ -40,7 +40,7 @@ try:
 except ImportError:
     import sys
 
-    catalog_connector = sys.modules[__package__ + ".catalog_connector"]
+    catalog_connector = sys.modules[f"{__package__}.catalog_connector"]
 
 
 class ComponentParameter(object):
@@ -88,11 +88,11 @@ class ComponentParameter(object):
         # E.g., array types are entered by users and processed by the backend as
         # strings whereas boolean types are entered and processed as booleans
         self._value_entry_type = json_data_type
-        if json_data_type in ["array", "object"]:
+        if json_data_type in {"array", "object"}:
             self._value_entry_type = "string"
 
         if json_data_type == "boolean" and isinstance(value, str):
-            value = bool(value in ["True", "true"])
+            value = value in ["True", "true"]
         elif json_data_type == "number" and isinstance(value, str):
             try:
                 # Attempt to coerce string to integer value
@@ -100,7 +100,7 @@ class ComponentParameter(object):
             except ValueError:
                 # Value could not be coerced to integer, assume float
                 value = float(value)
-        if json_data_type in ["array", "object"] and not isinstance(value, str):
+        if json_data_type in {"array", "object"} and not isinstance(value, str):
             value = str(value)
         self._value = value
 

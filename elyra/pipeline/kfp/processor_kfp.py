@@ -27,10 +27,6 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
-from kubernetes.client import V1PersistentVolumeClaimVolumeSource
-from kubernetes.client import V1Toleration
-from kubernetes.client import V1Volume
-from kubernetes.client import V1VolumeMount
 
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
@@ -45,6 +41,7 @@ from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.elyra_properties import KfpElyraOwnedProperty
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
@@ -509,6 +506,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Create pipeline operation
             # If operation is one of the "generic" set of NBs or scripts, construct custom ExecuteFileOp
             if isinstance(operation, GenericOperation):
+                component = ComponentCache.get_generic_component_from_op(operation.id)
 
                 # Collect env variables
                 pipeline_envs = self._collect_envs(
@@ -521,7 +519,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     f"Creating pipeline component archive '{operation_artifact_archive}' for operation '{operation}'"
                 )
 
-                target_ops[operation.id] = ExecuteFileOp(
+                container_op = ExecuteFileOp(
                     name=sanitized_operation_name,
                     pipeline_name=pipeline_name,
                     experiment_name=experiment_name,
@@ -545,25 +543,17 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
                         "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
                     },
-                    volume_mounts=operation.mounted_volumes,
-                    kubernetes_secrets=operation.kubernetes_secrets,
-                    kubernetes_tolerations=operation.kubernetes_tolerations,
-                    kubernetes_pod_annotations=operation.kubernetes_pod_annotations,
                 )
 
-                if operation.doc:
-                    target_ops[operation.id].add_pod_annotation("elyra/node-user-doc", operation.doc)
-
-                # TODO Can we move all of this to apply to non-standard components as well? Test when servers are up
                 if cos_secret and not export:
-                    target_ops[operation.id].apply(use_aws_secret(cos_secret))
+                    container_op.apply(use_aws_secret(cos_secret))
 
                 image_namespace = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
                 for image_instance in image_namespace:
                     if image_instance.metadata["image_name"] == operation.runtime_image and image_instance.metadata.get(
                         "pull_policy"
                     ):
-                        target_ops[operation.id].container.set_image_pull_policy(image_instance.metadata["pull_policy"])
+                        container_op.container.set_image_pull_policy(image_instance.metadata["pull_policy"])
 
                 self.log_pipeline_info(
                     pipeline_name,
@@ -654,57 +644,22 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     container_op = factory_function(**sanitized_component_params)
                     container_op.set_display_name(operation.name)
 
-                    # Attach node comment
-                    if operation.doc:
-                        container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
-
-                    # Add user-specified volume mounts: the referenced PVCs must exist
-                    # or this operation will fail
-                    if operation.mounted_volumes:
-                        unique_pvcs = []
-                        for volume_mount in operation.mounted_volumes:
-                            if volume_mount.pvc_name not in unique_pvcs:
-                                container_op.add_volume(
-                                    V1Volume(
-                                        name=volume_mount.pvc_name,
-                                        persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(
-                                            claim_name=volume_mount.pvc_name
-                                        ),
-                                    )
-                                )
-                                unique_pvcs.append(volume_mount.pvc_name)
-                            container_op.add_volume_mount(
-                                V1VolumeMount(mount_path=volume_mount.path, name=volume_mount.pvc_name)
-                            )
-
-                    # Add user-specified Kubernetes tolerations
-                    if operation.kubernetes_tolerations:
-                        unique_tolerations = []
-                        for toleration in operation.kubernetes_tolerations:
-                            if str(toleration) not in unique_tolerations:
-                                container_op.add_toleration(
-                                    V1Toleration(
-                                        effect=toleration.effect,
-                                        key=toleration.key,
-                                        operator=toleration.operator,
-                                        value=toleration.value,
-                                    )
-                                )
-                                unique_tolerations.append(str(toleration))
-
-                    # Add user-specified pod annotations
-                    if operation.kubernetes_pod_annotations:
-                        unique_annotations = []
-                        for annotation in operation.kubernetes_pod_annotations:
-                            if annotation.key not in unique_annotations:
-                                container_op.add_pod_annotation(annotation.key, annotation.value)
-                                unique_annotations.append(annotation.key)
-
-                    target_ops[operation.id] = container_op
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
                     self.log.error(f"Error constructing component {operation.name}: {str(e)}")
                     raise RuntimeError(f"Error constructing component {operation.name}.")
+
+            # Attach node comment
+            if operation.doc:
+                container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
+
+            for prop_name in [param.ref for param in component.get_elyra_parameters()]:
+                prop_value = getattr(operation, prop_name, None)
+                if prop_value:
+                    KfpElyraOwnedProperty.add_to_container_op(prop_name, prop_value, container_op)
+
+            # Add ContainerOp to target_ops dict
+            target_ops[operation.id] = container_op
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
