@@ -121,7 +121,11 @@ async def test_get_component_properties_config(jp_fetch):
     response = await jp_fetch("elyra", "pipeline", "components", runtime_type.name, "notebook", "properties")
     assert response.code == 200
     payload = json.loads(response.body.decode())
-    properties = json.loads(pkg_resources.read_text(resources, "properties.json"))
+
+    template = pkg_resources.read_text(resources, "generic_properties_template.jinja2")
+    properties = json.loads(
+        template.replace("{{ component.name }}", "Notebook").replace("{{ component.extensions|tojson }}", '[".ipynb"]')
+    )
     assert payload == properties
 
 
