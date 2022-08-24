@@ -594,7 +594,7 @@ class PipelineDefinition(object):
                     node.set_component_parameter(property_name, pipeline_value)
                     continue
 
-                if all([isinstance(value, ElyraOwnedPropertyList) for value in [pipeline_value, node_value]]):
+                if all(isinstance(value, ElyraOwnedPropertyList) for value in [pipeline_value, node_value]):
                     merged_list = ElyraOwnedPropertyList.merge(node_value, pipeline_value)
                     node.set_component_parameter(property_name, merged_list)
 

@@ -99,7 +99,7 @@ class ElyraOwnedProperty:
         schema = {"title": cls._display_name, "description": class_description, "type": cls._json_data_type}
         return schema
 
-    def get_all_validation_errors(self) -> Optional[str]:
+    def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         return []
 
@@ -165,7 +165,7 @@ class RuntimeImage(ElyraOwnedProperty, KfpElyraOwnedProperty, AirflowElyraOwnedP
         schema["uihints"] = {"items": []}
         return schema
 
-    def get_all_validation_errors(self) -> Optional[str]:
+    def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
         if not self.image_name:
@@ -223,12 +223,12 @@ class ElyraOwnedPropertyListItem(ElyraOwnedProperty):
         """Returns the value to be used when constructing a dict from a list of classes."""
         return self.to_str()
 
-    def get_all_validation_errors(self) -> Optional[str]:
+    def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         return []
 
 
-class EnvironmentVariable(ElyraOwnedPropertyListItem):
+class EnvironmentVariable(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
     Environment variables to be set on the execution environment.
     """
@@ -245,7 +245,7 @@ class EnvironmentVariable(ElyraOwnedPropertyListItem):
     _ui_placeholder = "env_var=VALUE"
 
     def __init__(self, **kwargs):
-        self.env_var = kwargs.get("env_var", "").strip()
+        self.env_var = kwargs.get("env_var", "").strip()  # TODO check class-scoping of variables
         self.value = kwargs.get("value", "").strip()
 
     @classmethod
@@ -274,7 +274,7 @@ class EnvironmentVariable(ElyraOwnedPropertyListItem):
         """Returns the value to be used when constructing a dict from a list of classes."""
         return self.value
 
-    def get_all_validation_errors(self) -> Optional[str]:
+    def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
         if not self.env_var or not self.value:
@@ -323,7 +323,7 @@ class KubernetesSecret(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Airflo
         """Convert instance to a string representation."""
         return f"{self.env_var}={self.name}:{self.key}"
 
-    def get_all_validation_errors(self) -> Optional[str]:
+    def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
         if not self.name or not self.key:
@@ -398,7 +398,7 @@ class VolumeMount(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyr
         """Convert instance to a string representation."""
         return f"{self.path}={self.pvc_name}"
 
-    def get_all_validation_errors(self) -> Optional[str]:
+    def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
         # Ensure the PVC name is syntactically a valid Kubernetes resource name
@@ -478,7 +478,7 @@ class KubernetesAnnotation(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Ai
         """Convert instance to a string representation."""
         return f"{self.key}={self.value}"
 
-    def get_all_validation_errors(self) -> Optional[str]:
+    def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
         if not is_valid_annotation_key(self.key):
@@ -545,7 +545,7 @@ class KubernetesToleration(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Ai
         """Convert instance to a string representation."""
         return f"{self.key}:{self.operator}:{self.value}:{self.effect}"
 
-    def get_all_validation_errors(self) -> Optional[str]:
+    def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
         # Ensure the PVC name is syntactically a valid Kubernetes resource name
