@@ -33,9 +33,16 @@ afterAll(async () => {
 
 describe('@elyra/script-editor', () => {
   describe('ScriptEditorController', () => {
-    describe('#getKernelSpecs', () => {
+    describe('#kernelSpecs', () => {
+      let controller: ScriptEditorController;
+      let kernelName: string;
+
+      beforeEach(async () => {
+        controller = new ScriptEditorController();
+        kernelName = await controller.getDefaultKernel(language);
+      });
+
       it('should get Python kernel specs', async () => {
-        const controller = new ScriptEditorController();
         const kernelSpecs = await controller.getKernelSpecsByLanguage(language);
         for (const [key, value] of Object.entries(
           kernelSpecs?.kernelspecs ?? []
@@ -43,6 +50,12 @@ describe('@elyra/script-editor', () => {
           expect(key).toContain(language);
           expect(value?.language).toContain(language);
         }
+      });
+
+      it('default kernel should have debugger available', async () => {
+        const available = await controller.debuggerAvailable(kernelName);
+        expect(kernelName).toContain(language);
+        expect(available).toBe(true);
       });
     });
   });
