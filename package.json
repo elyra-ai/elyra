@@ -47,7 +47,7 @@
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^1.3.1",
     "@cypress/webpack-preprocessor": "^5.5.0",
-    "@jupyterlab/testutils": "3.4.0",
+    "@jupyterlab/testutils": "^3.4.0",
     "@testing-library/cypress": "^7.0.4",
     "@types/jest": "^26.0.20",
     "@types/lodash": "^4.14.170",
@@ -70,7 +70,7 @@
     "husky": "^2.3.0",
     "jest": "^26.6.3",
     "jest-raw-loader": "^1.0.1",
-    "lerna": "^4.0.0",
+    "lerna": "^5.0.0",
     "lint-staged": "^9.5.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^1.19.1",
