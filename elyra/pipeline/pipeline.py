@@ -197,11 +197,11 @@ class Operation(object):
         return self._kubernetes_pod_annotations
 
     @property
-    def disallow_cached_output(self) -> bool:
+    def disallow_cached_output(self) -> Optional[bool]:
         """
-        Three-valued logic: True/re-use cached results,
-        False/don't re-use cached results, None/use runtime's
-        default.
+        Returns None if caching behavior is delegated to the runtime
+        Returns True if cached output may be used (instead of executing the op to produce it)
+        Returns False if cached output must not be used (instead of executing the op to produce it)
         """
         return self._disallow_cached_output
 
