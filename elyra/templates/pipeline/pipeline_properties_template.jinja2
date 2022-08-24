@@ -247,11 +247,6 @@
             "parameter_refs": ["elyra_kubernetes_pod_annotations"]
           },
           {
-            "id": "elyra_disallow_cached_output",
-            "type": "controls",
-            "parameter_refs": ["elyra_disallow_cached_output"]
-          },
-          {
             "id": "elyra_generic_nodesCategoryHeader",
             "type": "textPanel",
             "class_name": "elyra_categoryHeader",
@@ -277,6 +272,23 @@
             "id": "elyra_kubernetes_secrets",
             "type": "controls",
             "parameter_refs": ["elyra_kubernetes_secrets"]
+          },
+          {
+            "id": "elyra_custom_nodesCategoryHeader",
+            "type": "textPanel",
+            "class_name": "elyra_categoryHeader",
+            "label": {
+              "default": "Custom Node Defaults"
+            },
+            "description": {
+              "default": "Default values are applied to all custom nodes in this pipeline and can be customized in each node.",
+              "placement": "on_panel"
+            }
+          },
+          {
+            "id": "elyra_disallow_cached_output",
+            "type": "controls",
+            "parameter_refs": ["elyra_disallow_cached_output"]
           }
         ]
       }
