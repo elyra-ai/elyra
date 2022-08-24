@@ -37,7 +37,7 @@ from urllib3.exceptions import MaxRetryError
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.elyra_properties import ElyraOwnedPropertyList
+from elyra.pipeline.component_parameter import ElyraOwnedPropertyList
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline

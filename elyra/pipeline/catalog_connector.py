@@ -39,7 +39,7 @@ from traitlets.traitlets import Integer
 from elyra._version import __version__
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentParameter
+from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.url import FileTransportAdapter
 

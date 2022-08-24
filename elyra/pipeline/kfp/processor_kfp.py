@@ -41,7 +41,7 @@ from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.elyra_properties import KfpElyraOwnedProperty
+from elyra.pipeline.component_parameter import KfpElyraOwnedProperty
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation

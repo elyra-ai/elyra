@@ -37,7 +37,7 @@ from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.elyra_properties import AirflowElyraOwnedProperty
+from elyra.pipeline.component_parameter import AirflowElyraOwnedProperty
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline

@@ -25,10 +25,10 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Type
 
 from traitlets.config import LoggingConfigurable
 
+from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.pipeline import ElyraOwnedProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
@@ -41,207 +41,6 @@ except ImportError:
     import sys
 
     catalog_connector = sys.modules[f"{__package__}.catalog_connector"]
-
-
-class ComponentParameter(object):
-    """
-    Represents a single property for a pipeline component
-    """
-
-    def __init__(
-        self,
-        id: str,
-        name: str,
-        json_data_type: str,
-        description: str,
-        value: Optional[Any] = "",
-        allowed_input_types: Optional[List[Optional[str]]] = None,
-        required: Optional[bool] = False,
-        allow_no_options: Optional[bool] = False,
-        items: Optional[List[str]] = None,
-        dataclass: Optional[Type[ElyraOwnedProperty]] = None,
-    ):
-        """
-        :param id: Unique identifier for a property
-        :param name: The name of the property for display
-        :param json_data_type: The JSON data type that represents this parameters value
-        :param allowed_input_types: The input types that the property can accept, including those for custom rendering
-        :param value: The default value of the property
-        :param description: A description of the property for display
-        :param required: Whether the property is required
-        :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
-            define output properties to be selected as input to this node parameter
-        :param items: For properties with a control of 'EnumControl', the items making up the enum
-        :param dataclass: A dataclass object that represents this (Elyra-owned) parameter
-        """
-
-        if not id:
-            raise ValueError("Invalid component: Missing field 'id'.")
-        if not name:
-            raise ValueError("Invalid component: Missing field 'name'.")
-
-        self._ref = id
-        self._name = name
-        self._json_data_type = json_data_type
-
-        # The JSON type that the value entered for this property will be rendered in.
-        # E.g., array types are entered by users and processed by the backend as
-        # strings whereas boolean types are entered and processed as booleans
-        self._value_entry_type = json_data_type
-        if json_data_type in {"array", "object"}:
-            self._value_entry_type = "string"
-
-        if json_data_type == "boolean" and isinstance(value, str):
-            value = value in ["True", "true"]
-        elif json_data_type == "number" and isinstance(value, str):
-            try:
-                # Attempt to coerce string to integer value
-                value = int(value)
-            except ValueError:
-                # Value could not be coerced to integer, assume float
-                value = float(value)
-        if json_data_type in {"array", "object"} and not isinstance(value, str):
-            value = str(value)
-        self._value = value
-
-        self._description = description
-
-        if not allowed_input_types:
-            allowed_input_types = ["inputvalue", "inputpath", "file"]
-        self._allowed_input_types = allowed_input_types
-
-        self._items = items or []
-
-        # Check description for information about 'required' parameter
-        if "not optional" in description.lower() or (
-            "required" in description.lower()
-            and "not required" not in description.lower()
-            and "n't required" not in description.lower()
-        ):
-            required = True
-
-        self._required = required
-        self._allow_no_options = allow_no_options
-        self._dataclass = dataclass
-
-    @property
-    def ref(self) -> str:
-        return self._ref
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def allowed_input_types(self) -> List[Optional[str]]:
-        return self._allowed_input_types
-
-    @property
-    def json_data_type(self) -> str:
-        return self._json_data_type
-
-    @property
-    def value_entry_type(self) -> str:
-        return self._value_entry_type
-
-    @property
-    def value(self) -> Any:
-        return self._value
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @property
-    def items(self) -> List[str]:
-        return self._items
-
-    @property
-    def required(self) -> bool:
-        return bool(self._required)
-
-    @property
-    def allow_no_options(self) -> bool:
-        return self._allow_no_options
-
-    @property
-    def dataclass(self) -> Optional[ElyraOwnedProperty]:
-        return self._dataclass
-
-    @staticmethod
-    def render_parameter_details(param: "ComponentParameter") -> str:
-        """
-        Render the parameter data type and UI hints needed for the specified param for
-        use in the custom component properties DAG template
-
-        :returns: a string literal containing the JSON object to be rendered in the DAG
-        """
-        if param.dataclass:
-            return json.dumps(param.dataclass.get_schema())
-
-        json_dict = {"title": param.name, "description": param.description}
-        if len(param.allowed_input_types) == 1:
-            # Parameter only accepts a single type of input
-            input_type = param.allowed_input_types[0]
-            if not input_type:
-                # This is an output
-                json_dict["type"] = "string"
-                json_dict["uihints"] = {"ui:widget": "hidden", "outputpath": True}
-            elif input_type == "inputpath":
-                json_dict.update(
-                    {
-                        "type": "object",
-                        "properties": {"widget": {"type": "string", "default": input_type}, "value": {"oneOf": []}},
-                        "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: "true"}},
-                    }
-                )
-            elif input_type == "file":
-                json_dict["type"] = "string"
-                json_dict["uihints"] = {"ui:widget": input_type}
-            else:
-                json_dict["type"] = param.value_entry_type
-
-                # Render default value if it is not None or empty string
-                if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
-                    json_dict["default"] = param.value
-        else:
-            # Parameter accepts multiple types of inputs; render a oneOf block
-            one_of = []
-            for widget_type in param.allowed_input_types:
-                obj = {
-                    "type": "object",
-                    "properties": {"widget": {"type": "string"}, "value": {}},
-                    "uihints": {"widget": {"ui:widget": "hidden"}, "value": {}},
-                }
-                if widget_type == "inputvalue":
-                    obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
-                    obj["properties"]["widget"]["default"] = param.value_entry_type
-                    obj["properties"]["value"]["type"] = param.value_entry_type
-                    if param.value_entry_type == "boolean":
-                        obj["properties"]["value"]["title"] = " "
-
-                    # Render default value if it is not None or empty string
-                    if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
-                        obj["properties"]["value"]["default"] = param.value
-                else:  # inputpath or file types
-                    obj["title"] = InputTypeDescriptionMap[widget_type].value
-                    obj["properties"]["widget"]["default"] = widget_type
-                    if widget_type == "outputpath":
-                        obj["uihints"]["value"] = {"ui:readonly": "true", widget_type: True}
-                        obj["properties"]["value"]["type"] = "string"
-                    elif widget_type == "inputpath":
-                        obj["uihints"]["value"] = {widget_type: True}
-                        obj["properties"]["value"]["oneOf"] = []
-                        if param.allow_no_options:
-                            obj["uihints"]["allownooptions"] = param.allow_no_options
-                    else:
-                        obj["uihints"]["value"] = {"ui:widget": widget_type}
-                        obj["properties"]["value"]["type"] = "string"
-
-                one_of.append(obj)
-            json_dict["oneOf"] = one_of
-
-        return json.dumps(json_dict)
 
 
 class Component(object):
@@ -417,7 +216,7 @@ class Component(object):
         the component definition.
         """
         op_type = "generic" if self.component_reference == "elyra" else "custom"
-        elyra_params = Component.get_parameters_for_component_type(op_type)
+        elyra_params = Component.get_parameters_for_component_type(op_type, self.runtime_type)
         if self.properties:
             # Remove certain Elyra-owned parameters if a parameter of the same id is already present
             parsed_property_ids = [param.ref for param in self.properties]
@@ -426,23 +225,25 @@ class Component(object):
         return elyra_params
 
     @staticmethod
-    def get_parameters_for_component_type(component_type: Optional[str] = None) -> List[ComponentParameter]:
+    def get_parameters_for_component_type(
+        component_type: str, runtime_type: Optional[str] = None
+    ) -> List[ComponentParameter]:
         """
-        Retrieve a list of Elyra-owned ComponentParameters that apply to the
-        given type of component (either "generic" or "custom").
+        Retrieve a list of Elyra-owned ComponentParameters that apply to the given
+        type of component (either "generic" or "custom") and runtime type.
         """
-        extra_params = []
-        for dc in ElyraOwnedProperty.get_classes_for_component_type(component_type):
-            extra_params.append(
-                ComponentParameter(
-                    id=dc._property_id,
-                    name=dc._display_name,
-                    json_data_type=dc._json_data_type,
-                    description=dc.__doc__,
-                    required=dc._required,
-                    dataclass=dc,
-                )
+        extra_params = [
+            ComponentParameter(
+                id=dc._property_id,
+                name=dc._display_name,
+                json_data_type=dc._json_data_type,
+                description=dc.__doc__,
+                required=dc._required,
+                dataclass=dc,
             )
+            for dc in ElyraOwnedProperty.get_classes_for_component_type(component_type, runtime_type)
+        ]
+
         return extra_params
 
 

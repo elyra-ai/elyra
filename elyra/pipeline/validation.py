@@ -30,7 +30,7 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.elyra_properties import DataClassJSONEncoder, ElyraOwnedPropertyList
+from elyra.pipeline.component_parameter import ElyraOwnedPropertyJSONEncoder, ElyraOwnedPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
@@ -743,7 +743,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         :param pipeline: A dictionary describing the pipeline
         """
-        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraOwnedPropertyJSONEncoder))
 
         graph = nx.DiGraph()
 
@@ -794,7 +794,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param node_id: the node ID of the node
         :return: the pipeline ID of where the node is located
         """
-        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraOwnedPropertyJSONEncoder))
         for single_pipeline in pipeline_json["pipelines"]:
             node_list = single_pipeline["nodes"]
             for node in node_list:
@@ -835,7 +835,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :return: a string representing the name of the node
         """
         node_name_list = []
-        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraOwnedPropertyJSONEncoder))
         for node_id in node_id_list:
             found = False
             for single_pipeline in pipeline_json["pipelines"]:
@@ -861,7 +861,7 @@ class PipelineValidationManager(SingletonConfigurable):
         if link_ids is None:
             return None
 
-        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraOwnedPropertyJSONEncoder))
         node_labels = []
         for link_id in link_ids:
             for single_pipeline in pipeline_json["pipelines"]:

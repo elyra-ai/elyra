@@ -25,10 +25,11 @@ from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Undefined
 
-from elyra.pipeline.component import Component, ComponentParameter
+from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.elyra_properties import ElyraOwnedProperty
-from elyra.pipeline.elyra_properties import ElyraOwnedPropertyList
+from elyra.pipeline.component_parameter import ComponentParameter
+from elyra.pipeline.component_parameter import ElyraOwnedProperty
+from elyra.pipeline.component_parameter import ElyraOwnedPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -676,7 +677,7 @@ class PipelineDefinition(object):
         return supernode_list
 
     @staticmethod
-    def get_canvas_properties_from_template(package_name: str, template_name: str) -> Dict[str, Any]:
+    def get_canvas_properties_from_template(package_name: str, template_name: str, runtime_type: str) -> Dict[str, Any]:
         """
         Retrieves the dict representation of the canvas-formatted properties
         associated with the given template and package names. Rendering does
@@ -685,10 +686,10 @@ class PipelineDefinition(object):
         """
         loader = PackageLoader("elyra", package_name)
 
-        extra_params_custom = Component.get_parameters_for_component_type("custom")
-        extra_params_generic = Component.get_parameters_for_component_type("generic")
+        extra_params_custom = Component.get_parameters_for_component_type("custom", runtime_type)
+        extra_params_generic = Component.get_parameters_for_component_type("generic", runtime_type)
 
-        # Pare down generic list to only include those that don't apply to custom components
+        # Pare down generic list to only include those that don't also apply to custom components
         custom_ids = [component.ref for component in extra_params_custom]
         extra_params_generic = [component for component in extra_params_generic if component.ref not in custom_ids]
 

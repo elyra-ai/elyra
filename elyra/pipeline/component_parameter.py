@@ -19,7 +19,7 @@ from importlib import import_module
 import json
 import re
 from textwrap import dedent
-from typing import Any
+from typing import Any, Type
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -35,18 +35,20 @@ from kubernetes.client import (
     V1VolumeMount,
 )
 
+from elyra.pipeline.component import InputTypeDescriptionMap
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.kubernetes import is_valid_annotation_key, is_valid_kubernetes_key, is_valid_kubernetes_resource_name
 
 
 class ElyraOwnedProperty:
     """
-    TODO
+    A component property that is defined and processed by Elyra.
     """
 
     _property_id: str
@@ -57,32 +59,43 @@ class ElyraOwnedProperty:
     _required: bool = False
 
     @classmethod
-    def all_subclasses(cls) -> set:
+    def all_subclasses(cls):
         """Get all nested subclasses for a class."""
-        # TODO type hint
         return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in c.all_subclasses()])
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any):
+    def create_instance_from_raw_value(
+        cls, prop_id: str, prop_value: Any
+    ) -> ElyraOwnedProperty | ElyraOwnedPropertyList | None:
         """Create an instance of a class with the given property id using the user-entered raw value."""
-        # TODO type hint
         for subclass in cls.all_subclasses():
             if getattr(subclass, "_property_id", "") == prop_id:
-                return subclass.create_instance_from_raw_value(prop_id, prop_value)
+                return subclass.create_instance_from_raw_value(prop_value)
         return None
 
     @classmethod
-    def get_classes_for_component_type(cls, component_type: str):
+    def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = ""):
         """
-        Retrieve subclasses that apply to the given component type
-        (e.g., if the class attribute _<component_type> is True).
+        Retrieve property subclasses that apply to the given component type
+        (e.g., custom or generic) and to the given runtime type.
         """
-        return [subclass for subclass in cls.all_subclasses() if getattr(subclass, f"_{component_type}", False)]
+        runtime_subclass = cls
+        for subclass in cls.__subclasses__():
+            subclass_runtime_type = getattr(subclass, "_runtime_type", None)
+            if subclass_runtime_type and subclass_runtime_type.name == runtime_type:
+                runtime_subclass = subclass
+                break
+
+        all_subclasses = []
+        for subclass in runtime_subclass.all_subclasses():
+            if getattr(subclass, f"_{component_type}", False):
+                all_subclasses.append(subclass)
+        return all_subclasses
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
-        class_description = dedent(cls.__doc__.replace("\n", " "))
+        class_description = dedent(cls.__doc__).replace("\n", " ")
         schema = {"title": cls._display_name, "description": class_description, "type": cls._json_data_type}
         return schema
 
@@ -93,31 +106,38 @@ class ElyraOwnedProperty:
 
 class KfpElyraOwnedProperty(ElyraOwnedProperty):
     """
-    TODO
+    A component property that is defined and processed by Elyra
+    and applies to the KFP runtime.
     """
+
+    _runtime_type = RuntimeProcessorType.KUBEFLOW_PIPELINES
 
     @classmethod
     def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
         """Add relevant property info to a given KFP ContainerOp"""
         for subclass in cls.all_subclasses():
-            if getattr(subclass, "_property_id", "") == prop_id:
+            if getattr(subclass, "_property_id", "") == prop_id and hasattr(subclass, "add_to_container_op"):
                 subclass.add_to_container_op(prop_id, prop_value, container_op)
+                break
 
 
 class AirflowElyraOwnedProperty(ElyraOwnedProperty):
     """
-    TODO
+    A component property that is defined and processed by Elyra
+    and applies to the Airflow runtime.
     """
+
+    _runtime_type = RuntimeProcessorType.APACHE_AIRFLOW
 
     @classmethod
     def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
         for subclass in cls.all_subclasses():
-            if getattr(subclass, "_property_id", "") == prop_id:
+            if getattr(subclass, "_property_id", "") == prop_id and hasattr(subclass, "add_to_executor_config"):
                 subclass.add_to_executor_config(prop_id, prop_value, kubernetes_executor)
 
 
-class RuntimeImage(ElyraOwnedProperty):
+class RuntimeImage(ElyraOwnedProperty, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """Container image used as execution environment."""
 
     image_name: str
@@ -133,8 +153,8 @@ class RuntimeImage(ElyraOwnedProperty):
         self.image_name = kwargs.get("image_name", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
-        """TODO"""
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> RuntimeImage:
+        """Create an instance of a class with the given property id using the user-entered raw value."""
         return getattr(import_module(cls.__module__), cls.__name__)(image_name=prop_value)
 
     @classmethod
@@ -161,72 +181,9 @@ class RuntimeImage(ElyraOwnedProperty):
         return validation_errors
 
 
-class ElyraOwnedPropertyList(list):
-    """
-    TODO
-    """
-
-    @staticmethod
-    def to_dict(property_list: List[ElyraOwnedPropertyListItem], use_prop_as_value: bool = False) -> Dict[str, str]:
-        """
-        Each Elyra-owned property consists of a set of attributes, some subset of which represents
-        a unique key. Lists of these properties, however, often need converted to dictionary
-        form for processing - so we must convert.
-        """
-        prop_dict = {}
-        for prop in property_list:
-            prop_key = prop.get_key_for_dict_entry()
-            if not prop_key:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            prop_value = prop.get_value_for_dict_entry()
-            if use_prop_as_value:
-                # Force use of the property object itself as the value
-                prop_value = prop
-            prop_dict[prop_key] = prop_value
-
-        return prop_dict
-
-    @staticmethod
-    def merge(
-        primary: List[ElyraOwnedPropertyList], secondary: List[ElyraOwnedPropertyList]
-    ) -> List[ElyraOwnedPropertyList]:
-        """
-        Merge two lists of Elyra-owned properties, preferring the values given in the
-        primary parameter in the case of a matching key between the two lists.
-        """
-        primary_dict = ElyraOwnedPropertyList.to_dict(primary, use_prop_as_value=True)
-        secondary_dict = ElyraOwnedPropertyList.to_dict(secondary, use_prop_as_value=True)
-
-        merged_list = list({**secondary_dict, **primary_dict}.values())
-        return ElyraOwnedPropertyList(merged_list)
-
-    @staticmethod
-    def difference(
-        minuend: List[ElyraOwnedPropertyList], subtrahend: List[ElyraOwnedPropertyList]
-    ) -> List[ElyraOwnedPropertyList]:
-        """
-        Given two lists of Elyra-owned properties, remove any duplicate instances
-        found in the second (subtrahend) from the first (minuend), if present.
-
-        :param minuend: list to be subtracted from
-        :param subtrahend: list from which duplicates will be determined and given preference
-
-        :returns: the difference of the two lists
-        """
-        subtract_dict = ElyraOwnedPropertyList.to_dict(minuend)
-        for key in ElyraOwnedPropertyList.to_dict(subtrahend).keys():
-            if key in subtract_dict:
-                subtract_dict.pop(key)
-
-        diff_list = list(subtract_dict.values())
-        return ElyraOwnedPropertyList(diff_list)
-
-
 class ElyraOwnedPropertyListItem(ElyraOwnedProperty):
     """
-    TODO
+    An Elyra-owned property that is meant to be a member of an ElyraOwnedPropertyList.
     """
 
     _property_id: str
@@ -292,8 +249,10 @@ class EnvironmentVariable(ElyraOwnedPropertyListItem):
         self.value = kwargs.get("value", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> List[ElyraOwnedPropertyListItem]:
-        """TODO"""
+    def create_instance_from_raw_value(
+        cls, prop_id: str, prop_value: Any
+    ) -> ElyraOwnedPropertyList[EnvironmentVariable]:
+        """Create an instance of a class with the given property id using the user-entered raw value."""
         instance_list = []
         for list_item in prop_value:
             env_var, value = (list_item.split("=", 1) + [""] * 2)[:2]
@@ -326,7 +285,9 @@ class EnvironmentVariable(ElyraOwnedPropertyListItem):
 
 class KubernetesSecret(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
-    TODO
+    Kubernetes secrets to make available as environment variables to this node.
+    The secret name and key given must be present in the Kubernetes namespace
+    where the node is executed or this node will not run.
     """
 
     env_var: str
@@ -347,8 +308,8 @@ class KubernetesSecret(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Airflo
         self.key = kwargs.pop("key", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
-        """TODO"""
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> ElyraOwnedPropertyList[KubernetesSecret]:
+        """Create an instance of a class with the given property id using the user-entered raw value."""
         instance_list = []
         for list_item in prop_value:
             env_var, value = list_item.split("=", 1)
@@ -405,7 +366,8 @@ class KubernetesSecret(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Airflo
 
 class VolumeMount(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
-    TODO
+    Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the
+    Kubernetes namespace where the node is executed or this node will not run.
     """
 
     path: str
@@ -424,8 +386,8 @@ class VolumeMount(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyr
         self.pvc_name = kwargs.pop("pvc_name", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
-        """TODO"""
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> ElyraOwnedPropertyList[VolumeMount]:
+        """Create an instance of a class with the given property id using the user-entered raw value."""
         instance_list = []
         for list_item in prop_value:
             path, pvc_name = (list_item.split("=", 1) + [""] * 2)[:2]
@@ -482,7 +444,8 @@ class VolumeMount(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyr
 
 class KubernetesAnnotation(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
-    TODO
+    Metadata to be added to this node. The metadata is exposed as annotation
+    in the Kubernetes pod that executes this node.
     """
 
     key: str
@@ -501,8 +464,10 @@ class KubernetesAnnotation(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Ai
         self.value = kwargs.pop("value", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
-        """TODO"""
+    def create_instance_from_raw_value(
+        cls, prop_id: str, prop_value: Any
+    ) -> ElyraOwnedPropertyList[KubernetesAnnotation]:
+        """Create an instance of a class with the given property id using the user-entered raw value."""
         instance_list = []
         for list_item in prop_value:
             key, value = (list_item.split("=", 1) + [""] * 2)[:2]
@@ -539,7 +504,7 @@ class KubernetesAnnotation(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Ai
 
 class KubernetesToleration(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
     """
-    TODO
+    Kubernetes tolerations to apply to the pod where the node is executed.
     """
 
     key: str
@@ -562,8 +527,10 @@ class KubernetesToleration(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Ai
         self.effect = kwargs.pop("effect", "Exists").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> Optional[ElyraOwnedProperty]:
-        """TODO"""
+    def create_instance_from_raw_value(
+        cls, prop_id: str, prop_value: Any
+    ) -> ElyraOwnedPropertyList[KubernetesToleration]:
+        """Create an instance of a class with the given property id using the user-entered raw value."""
         instance_list = []
         for list_item in prop_value:
             key, operator, value, effect = (list_item.split(":") + [""] * 4)[:4]
@@ -634,7 +601,71 @@ class KubernetesToleration(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Ai
         ]
 
 
-class DataClassJSONEncoder(json.JSONEncoder):
+class ElyraOwnedPropertyList(list):
+    """
+    A list class that exposes functionality specific to lists whose entries are
+    of the class ElyraOwnedPropertyListItem.
+    """
+
+    @staticmethod
+    def to_dict(property_list: List[ElyraOwnedPropertyListItem], use_prop_as_value: bool = False) -> Dict[str, str]:
+        """
+        Each Elyra-owned property consists of a set of attributes, some subset of which represents
+        a unique key. Lists of these properties, however, often need converted to dictionary
+        form for processing - so we must convert.
+        """
+        prop_dict = {}
+        for prop in property_list:
+            prop_key = prop.get_key_for_dict_entry()
+            if not prop_key:
+                # Invalid entry; skip inclusion and continue
+                continue
+
+            prop_value = prop.get_value_for_dict_entry()
+            if use_prop_as_value:
+                # Force use of the property object itself as the value
+                prop_value = prop
+            prop_dict[prop_key] = prop_value
+
+        return prop_dict
+
+    @staticmethod
+    def merge(
+        primary: List[ElyraOwnedPropertyList], secondary: List[ElyraOwnedPropertyList]
+    ) -> List[ElyraOwnedPropertyList]:
+        """
+        Merge two lists of Elyra-owned properties, preferring the values given in the
+        primary parameter in the case of a matching key between the two lists.
+        """
+        primary_dict = ElyraOwnedPropertyList.to_dict(primary, use_prop_as_value=True)
+        secondary_dict = ElyraOwnedPropertyList.to_dict(secondary, use_prop_as_value=True)
+
+        merged_list = list({**secondary_dict, **primary_dict}.values())
+        return ElyraOwnedPropertyList(merged_list)
+
+    @staticmethod
+    def difference(
+        minuend: List[ElyraOwnedPropertyList], subtrahend: List[ElyraOwnedPropertyList]
+    ) -> List[ElyraOwnedPropertyList]:
+        """
+        Given two lists of Elyra-owned properties, remove any duplicate instances
+        found in the second (subtrahend) from the first (minuend), if present.
+
+        :param minuend: list to be subtracted from
+        :param subtrahend: list from which duplicates will be determined and given preference
+
+        :returns: the difference of the two lists
+        """
+        subtract_dict = ElyraOwnedPropertyList.to_dict(minuend)
+        for key in ElyraOwnedPropertyList.to_dict(subtrahend).keys():
+            if key in subtract_dict:
+                subtract_dict.pop(key)
+
+        diff_list = list(subtract_dict.values())
+        return ElyraOwnedPropertyList(diff_list)
+
+
+class ElyraOwnedPropertyJSONEncoder(json.JSONEncoder):
     """
     A JSON Encoder class to prevent errors during serialization of dataclasses.
     TODO rename
@@ -645,3 +676,204 @@ class DataClassJSONEncoder(json.JSONEncoder):
         Render dataclass content as dict
         """
         return o.__dict__ if isinstance(o, ElyraOwnedProperty) else super().default(o)
+
+
+class ComponentParameter(object):
+    """
+    Represents a single property for a pipeline component
+    """
+
+    def __init__(
+        self,
+        id: str,
+        name: str,
+        json_data_type: str,
+        description: str,
+        value: Optional[Any] = "",
+        allowed_input_types: Optional[List[Optional[str]]] = None,
+        required: Optional[bool] = False,
+        allow_no_options: Optional[bool] = False,
+        items: Optional[List[str]] = None,
+        dataclass: Optional[Type[ElyraOwnedProperty]] = None,
+    ):
+        """
+        :param id: Unique identifier for a property
+        :param name: The name of the property for display
+        :param json_data_type: The JSON data type that represents this parameters value
+        :param allowed_input_types: The input types that the property can accept, including those for custom rendering
+        :param value: The default value of the property
+        :param description: A description of the property for display
+        :param required: Whether the property is required
+        :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
+            define output properties to be selected as input to this node parameter
+        :param items: For properties with a control of 'EnumControl', the items making up the enum
+        :param dataclass: A dataclass object that represents this (Elyra-owned) parameter
+        """
+
+        if not id:
+            raise ValueError("Invalid component: Missing field 'id'.")
+        if not name:
+            raise ValueError("Invalid component: Missing field 'name'.")
+
+        self._ref = id
+        self._name = name
+        self._json_data_type = json_data_type
+
+        # The JSON type that the value entered for this property will be rendered in.
+        # E.g., array types are entered by users and processed by the backend as
+        # strings whereas boolean types are entered and processed as booleans
+        self._value_entry_type = json_data_type
+        if json_data_type in {"array", "object"}:
+            self._value_entry_type = "string"
+
+        if json_data_type == "boolean" and isinstance(value, str):
+            value = value in ["True", "true"]
+        elif json_data_type == "number" and isinstance(value, str):
+            try:
+                # Attempt to coerce string to integer value
+                value = int(value)
+            except ValueError:
+                # Value could not be coerced to integer, assume float
+                value = float(value)
+        if json_data_type in {"array", "object"} and not isinstance(value, str):
+            value = str(value)
+        self._value = value
+
+        self._description = description
+
+        if not allowed_input_types:
+            allowed_input_types = ["inputvalue", "inputpath", "file"]
+        self._allowed_input_types = allowed_input_types
+
+        self._items = items or []
+
+        # Check description for information about 'required' parameter
+        if "not optional" in description.lower() or (
+            "required" in description.lower()
+            and "not required" not in description.lower()
+            and "n't required" not in description.lower()
+        ):
+            required = True
+
+        self._required = required
+        self._allow_no_options = allow_no_options
+        self._dataclass = dataclass
+
+    @property
+    def ref(self) -> str:
+        return self._ref
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def allowed_input_types(self) -> List[Optional[str]]:
+        return self._allowed_input_types
+
+    @property
+    def json_data_type(self) -> str:
+        return self._json_data_type
+
+    @property
+    def value_entry_type(self) -> str:
+        return self._value_entry_type
+
+    @property
+    def value(self) -> Any:
+        return self._value
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def items(self) -> List[str]:
+        return self._items
+
+    @property
+    def required(self) -> bool:
+        return bool(self._required)
+
+    @property
+    def allow_no_options(self) -> bool:
+        return self._allow_no_options
+
+    @property
+    def dataclass(self) -> Optional[ElyraOwnedProperty]:
+        return self._dataclass
+
+    @staticmethod
+    def render_parameter_details(param: ComponentParameter) -> str:
+        """
+        Render the parameter data type and UI hints needed for the specified param for
+        use in the custom component properties DAG template
+
+        :returns: a string literal containing the JSON object to be rendered in the DAG
+        """
+        if param.dataclass:
+            return json.dumps(param.dataclass.get_schema())
+
+        json_dict = {"title": param.name, "description": param.description}
+        if len(param.allowed_input_types) == 1:
+            # Parameter only accepts a single type of input
+            input_type = param.allowed_input_types[0]
+            if not input_type:
+                # This is an output
+                json_dict["type"] = "string"
+                json_dict["uihints"] = {"ui:widget": "hidden", "outputpath": True}
+            elif input_type == "inputpath":
+                json_dict.update(
+                    {
+                        "type": "object",
+                        "properties": {"widget": {"type": "string", "default": input_type}, "value": {"oneOf": []}},
+                        "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: "true"}},
+                    }
+                )
+            elif input_type == "file":
+                json_dict["type"] = "string"
+                json_dict["uihints"] = {"ui:widget": input_type}
+            else:
+                json_dict["type"] = param.value_entry_type
+
+                # Render default value if it is not None or empty string
+                if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
+                    json_dict["default"] = param.value
+        else:
+            # Parameter accepts multiple types of inputs; render a oneOf block
+            one_of = []
+            for widget_type in param.allowed_input_types:
+                obj = {
+                    "type": "object",
+                    "properties": {"widget": {"type": "string"}, "value": {}},
+                    "uihints": {"widget": {"ui:widget": "hidden"}, "value": {}},
+                }
+                if widget_type == "inputvalue":
+                    obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
+                    obj["properties"]["widget"]["default"] = param.value_entry_type
+                    obj["properties"]["value"]["type"] = param.value_entry_type
+                    if param.value_entry_type == "boolean":
+                        obj["properties"]["value"]["title"] = " "
+
+                    # Render default value if it is not None or empty string
+                    if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
+                        obj["properties"]["value"]["default"] = param.value
+                else:  # inputpath or file types
+                    obj["title"] = InputTypeDescriptionMap[widget_type].value
+                    obj["properties"]["widget"]["default"] = widget_type
+                    if widget_type == "outputpath":
+                        obj["uihints"]["value"] = {"ui:readonly": "true", widget_type: True}
+                        obj["properties"]["value"]["type"] = "string"
+                    elif widget_type == "inputpath":
+                        obj["uihints"]["value"] = {widget_type: True}
+                        obj["properties"]["value"]["oneOf"] = []
+                        if param.allow_no_options:
+                            obj["uihints"]["allownooptions"] = param.allow_no_options
+                    else:
+                        obj["uihints"]["value"] = {"ui:widget": widget_type}
+                        obj["properties"]["value"]["type"] = "string"
+
+                one_of.append(obj)
+            json_dict["oneOf"] = one_of
+
+        return json.dumps(json_dict)

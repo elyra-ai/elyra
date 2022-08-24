@@ -22,14 +22,14 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.elyra_properties import ElyraOwnedProperty
-from elyra.pipeline.elyra_properties import ElyraOwnedPropertyList
-from elyra.pipeline.elyra_properties import EnvironmentVariable
-from elyra.pipeline.elyra_properties import KubernetesAnnotation
-from elyra.pipeline.elyra_properties import KubernetesSecret
-from elyra.pipeline.elyra_properties import KubernetesToleration
-from elyra.pipeline.elyra_properties import RuntimeImage
-from elyra.pipeline.elyra_properties import VolumeMount
+from elyra.pipeline.component_parameter import ElyraOwnedProperty
+from elyra.pipeline.component_parameter import ElyraOwnedPropertyList
+from elyra.pipeline.component_parameter import EnvironmentVariable
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesSecret
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import RuntimeImage
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
