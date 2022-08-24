@@ -88,6 +88,9 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
            - A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
            - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
            - Annotations are ignored when the pipeline is executed locally.
+         - **Disallow cached output**
+           - Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is given the same inputs the generated output is different - re-using the output from previous executions might lead to unexpected results.
+           - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.
 
       - Properties that apply to every generic pipeline node. In this release the following properties are supported:
         - **Object storage path prefix**. Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
@@ -171,7 +174,11 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
    **Kubernetes Pod Annotations** 
    - Optional. A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
    - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
-   - Annotations are ignored when the pipeline is executed locally.   
+   - Annotations are ignored when the pipeline is executed locally.
+
+   **Disallow cached output**
+   - Optional. Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is given the same inputs the generated output is different - re-using the output from previous executions might lead to unexpected results.
+   - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.  
 
 5. Associate each node with a comment to document its purpose.
 

@@ -6,14 +6,14 @@
     "elyra_cpu": null,
     "elyra_gpu": null,
     "elyra_memory": null,
-    "elyra_mounted_volumes": [],
     "elyra_outputs": [],
     "elyra_env_vars": [],
     "elyra_kubernetes_secrets": [],
     "elyra_kubernetes_tolerations": [],
     "elyra_kubernetes_pod_annotations": [],
     "elyra_dependencies": [],
-    "elyra_include_subdirectories": false
+    "elyra_include_subdirectories": false,
+    "elyra_mounted_volumes": []
   },
   "parameters": [
     {

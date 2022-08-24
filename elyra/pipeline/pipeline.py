@@ -24,6 +24,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -134,6 +135,11 @@ class Operation(object):
             # spec) and must be removed from the component_params dict
             self._kubernetes_pod_annotations = self._component_params.pop(KUBERNETES_POD_ANNOTATIONS, [])
 
+        # If disabled, this operation is requested to be re-executed in the
+        # target runtime environment, even if it was executed before.
+        param_disallow_cached_output = component_params.get(DISALLOW_CACHED_OUTPUT)
+        self._disallow_cached_output = param_disallow_cached_output
+
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
         self._component_params["outputs"] = Operation._scrub_list(component_params.get("outputs", []))
@@ -189,6 +195,15 @@ class Operation(object):
     @property
     def kubernetes_pod_annotations(self) -> List["KubernetesAnnotation"]:
         return self._kubernetes_pod_annotations
+
+    @property
+    def disallow_cached_output(self) -> bool:
+        """
+        Three-valued logic: True/re-use cached results,
+        False/don't re-use cached results, None/use runtime's
+        default.
+        """
+        return self._disallow_cached_output
 
     @property
     def inputs(self) -> Optional[List[str]]:
