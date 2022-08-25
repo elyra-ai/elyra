@@ -41,7 +41,7 @@ from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ElyraOwnedPropertyList
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
@@ -653,9 +653,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             if operation.doc:
                 container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
 
+            # Process Elyra-owned properties as required for each type
             for prop_name in [param.ref for param in component.get_elyra_parameters()]:
                 prop_value = getattr(operation, prop_name, None)
-                if prop_value and isinstance(prop_value, ElyraOwnedPropertyList):
+                if prop_value and isinstance(prop_value, ElyraPropertyList):
                     for value in prop_value:
                         value.add_to_container_op(container_op)
 

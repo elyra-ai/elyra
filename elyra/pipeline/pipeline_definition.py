@@ -28,8 +28,8 @@ from jinja2 import Undefined
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ComponentParameter
-from elyra.pipeline.component_parameter import ElyraOwnedProperty
-from elyra.pipeline.component_parameter import ElyraOwnedPropertyList
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -231,10 +231,10 @@ class Pipeline(AppDataBase):
                 continue
 
             # If property has already been properly converted, skip conversion
-            if isinstance(param_value, (ElyraOwnedProperty, ElyraOwnedPropertyList)):
+            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
                 continue
 
-            converted_value = ElyraOwnedProperty.create_instance_from_raw_value(param_id, param_value)
+            converted_value = ElyraProperty.create_instance_from_raw_value(param_id, param_value)
             if converted_value:
                 pipeline_defaults[param_id] = converted_value
 
@@ -377,8 +377,8 @@ class Node(AppDataBase):
         """
         env_vars = self.get_component_parameter(ENV_VARIABLES)
         secrets = self.get_component_parameter(KUBERNETES_SECRETS)
-        if isinstance(env_vars, ElyraOwnedPropertyList) and isinstance(secrets, ElyraOwnedPropertyList):
-            new_list = ElyraOwnedPropertyList.difference(minuend=env_vars, subtrahend=secrets)
+        if isinstance(env_vars, ElyraPropertyList) and isinstance(secrets, ElyraPropertyList):
+            new_list = ElyraPropertyList.difference(minuend=env_vars, subtrahend=secrets)
             self.set_component_parameter(ENV_VARIABLES, new_list)
 
     def convert_elyra_owned_properties(self) -> None:
@@ -393,10 +393,10 @@ class Node(AppDataBase):
                 continue
 
             # If property has already been properly converted, skip conversion
-            if isinstance(param_value, (ElyraOwnedProperty, ElyraOwnedPropertyList)):
+            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
                 continue
 
-            converted_value = ElyraOwnedProperty.create_instance_from_raw_value(param_id, param_value)
+            converted_value = ElyraProperty.create_instance_from_raw_value(param_id, param_value)
             if converted_value:
                 self.set_component_parameter(param_id, converted_value)
 
@@ -594,8 +594,8 @@ class PipelineDefinition(object):
                     node.set_component_parameter(property_name, pipeline_value)
                     continue
 
-                if all(isinstance(value, ElyraOwnedPropertyList) for value in [pipeline_value, node_value]):
-                    merged_list = ElyraOwnedPropertyList.merge(node_value, pipeline_value)
+                if all(isinstance(value, ElyraPropertyList) for value in [pipeline_value, node_value]):
+                    merged_list = ElyraPropertyList.merge(node_value, pipeline_value)
                     node.set_component_parameter(property_name, merged_list)
 
             if self.primary_pipeline.runtime_config != "local":

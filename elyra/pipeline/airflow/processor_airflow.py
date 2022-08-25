@@ -37,7 +37,7 @@ from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ElyraOwnedPropertyList
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -588,13 +588,10 @@ be fully qualified (i.e., prefixed with their package names).
         if not component:
             component = ComponentCache.instance().get_component(AirflowPipelineProcessor._type, operation.classifier)
 
-        if not component:
-            return {}
-
         kubernetes_executor = {}
         for prop_name in [param.ref for param in component.get_elyra_parameters()]:
             prop_value = getattr(operation, prop_name, None)
-            if prop_value and isinstance(prop_value, ElyraOwnedPropertyList):
+            if prop_value and isinstance(prop_value, ElyraPropertyList):
                 for value in prop_value:
                     value.add_to_executor_config(kubernetes_executor)
 

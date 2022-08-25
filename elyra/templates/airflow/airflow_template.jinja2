@@ -58,7 +58,7 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
         {% endif %}
                                                             in_cluster={{ in_cluster }},
                                                             config_file="{{ kube_config_path }}",
-    {% endif %}
+{% endif %}
                                                             executor_config={{ render_elyra_owned_properties(operation.operation_object, cos_secret) }},
                                                             dag=dag)
     {% if operation.image_pull_policy %}

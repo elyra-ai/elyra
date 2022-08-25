@@ -22,8 +22,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.component_parameter import ElyraOwnedProperty
-from elyra.pipeline.component_parameter import ElyraOwnedPropertyList
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.component_parameter import KubernetesAnnotation
 from elyra.pipeline.component_parameter import KubernetesSecret
@@ -211,7 +211,7 @@ class Operation(object):
             f"component_parameters: {{\n{params}}} \n"
         )
 
-    def get_elyra_owned_property(self, property_id: str) -> Optional[List[ElyraOwnedPropertyList] | ElyraOwnedProperty]:
+    def get_elyra_owned_property(self, property_id: str) -> Optional[List[ElyraPropertyList] | ElyraProperty]:
         """
         Determine whether a given property is an Elyra-owned property, and if so,
         return the list popped off the component_params dictionary.
@@ -220,7 +220,7 @@ class Operation(object):
         if param_value is not None:
             # The property in question is an Elyra system property (ie, not defined in
             # the component spec) and must be removed from the component_params dict
-            if isinstance(param_value, (ElyraOwnedProperty, ElyraOwnedPropertyList)):
+            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
                 return self._component_params.pop(property_id)
 
         return None

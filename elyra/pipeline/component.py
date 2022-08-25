@@ -29,7 +29,7 @@ from typing import Optional
 from traitlets.config import LoggingConfigurable
 
 from elyra.pipeline.component_parameter import ComponentParameter
-from elyra.pipeline.pipeline import ElyraOwnedProperty
+from elyra.pipeline.pipeline import ElyraProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 # Rather than importing only the CatalogEntry class needed in the Component parse
@@ -241,7 +241,7 @@ class Component(object):
                 required=dc._required,
                 dataclass=dc,
             )
-            for dc in ElyraOwnedProperty.get_classes_for_component_type(component_type, runtime_type)
+            for dc in ElyraProperty.get_classes_for_component_type(component_type, runtime_type)
         ]
 
         return extra_params
