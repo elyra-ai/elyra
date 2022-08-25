@@ -112,13 +112,9 @@ class KfpElyraOwnedProperty(ElyraOwnedProperty):
 
     _runtime_type = RuntimeProcessorType.KUBEFLOW_PIPELINES
 
-    @classmethod
-    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+    def add_to_container_op(self, container_op: ContainerOp) -> None:
         """Add relevant property info to a given KFP ContainerOp"""
-        for subclass in cls.all_subclasses():
-            if getattr(subclass, "_property_id", "") == prop_id and hasattr(subclass, "add_to_container_op"):
-                subclass.add_to_container_op(prop_id, prop_value, container_op)
-                break
+        pass
 
 
 class AirflowElyraOwnedProperty(ElyraOwnedProperty):
@@ -129,12 +125,9 @@ class AirflowElyraOwnedProperty(ElyraOwnedProperty):
 
     _runtime_type = RuntimeProcessorType.APACHE_AIRFLOW
 
-    @classmethod
-    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        for subclass in cls.all_subclasses():
-            if getattr(subclass, "_property_id", "") == prop_id and hasattr(subclass, "add_to_executor_config"):
-                subclass.add_to_executor_config(prop_id, prop_value, kubernetes_executor)
+        pass
 
 
 class RuntimeImage(ElyraOwnedProperty, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
@@ -344,24 +337,22 @@ class KubernetesSecret(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Airflo
 
         return validation_errors
 
-    @classmethod
-    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+    def add_to_container_op(self, container_op: ContainerOp) -> None:
         """Add relevant property items to a given KFP ContainerOp"""
-        for secret in prop_value:  # Convert tuple entries to format kfp needs
-            container_op.container.add_env_variable(
-                V1EnvVar(
-                    name=secret.env_var,
-                    value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=secret.name, key=secret.key)),
-                )
+        container_op.container.add_env_variable(
+            V1EnvVar(
+                name=self.env_var,
+                value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=self.name, key=self.key)),
             )
+        )
 
-    @classmethod
-    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        kubernetes_executor["secrets"] = [
-            {"deploy_type": "env", "deploy_target": secret.env_var, "secret": secret.name, "key": secret.key}
-            for secret in prop_value
-        ]
+        if "secrets" not in kubernetes_executor:
+            kubernetes_executor["secrets"] = []
+        kubernetes_executor["secrets"].append(
+            {"deploy_type": "env", "deploy_target": self.env_var, "secret": self.name, "key": self.key}
+        )
 
 
 class VolumeMount(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
@@ -407,39 +398,26 @@ class VolumeMount(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyr
 
         return validation_errors
 
-    @classmethod
-    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+    def add_to_container_op(self, container_op: ContainerOp) -> None:
         """Add relevant property items to a given KFP ContainerOp"""
-        unique_pvcs = []
-        for volume in prop_value:
-            if volume.pvc_name not in unique_pvcs:
-                container_op.add_volume(
-                    V1Volume(
-                        name=volume.pvc_name,
-                        persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=volume.pvc_name),
-                    )
-                )
-                unique_pvcs.append(volume.pvc_name)
-            container_op.container.add_volume(V1VolumeMount(mount_path=volume.path, name=volume.pvc_name))
+        volume = V1Volume(
+            name=self.pvc_name,
+            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=self.pvc_name),
+        )
+        if volume not in container_op.volumes:
+            container_op.add_volume(volume)
+        container_op.container.add_volume(V1VolumeMount(mount_path=self.path, name=self.pvc_name))
 
-    @classmethod
-    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        kubernetes_executor["volumes"] = [
-            {
-                "name": volume.pvc_name,
-                "persistentVolumeClaim": {"claimName": volume.pvc_name},
-            }
-            for volume in prop_value
-        ]
-        kubernetes_executor["volume_mounts"] = [
-            {
-                "mountPath": volume.path,
-                "name": volume.pvc_name,
-                "read_only": False,
-            }
-            for volume in prop_value
-        ]
+        if "volumes" not in kubernetes_executor:
+            kubernetes_executor["volumes"] = []
+            kubernetes_executor["volume_mounts"] = []
+        kubernetes_executor["volumes"].append({
+            "name": self.pvc_name,
+            "persistentVolumeClaim": {"claimName": self.pvc_name},
+        })
+        kubernetes_executor["volume_mounts"].append({"mountPath": self.path, "name": self.pvc_name, "read_only": False})
 
 
 class KubernetesAnnotation(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
@@ -486,20 +464,16 @@ class KubernetesAnnotation(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Ai
 
         return validation_errors
 
-    @classmethod
-    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+    def add_to_container_op(self, container_op: ContainerOp) -> None:
         """Add relevant property items to a given KFP ContainerOp"""
-        unique_annotations = []
-        for annotation in prop_value:
-            if annotation.key not in unique_annotations:
-                container_op.add_pod_annotation(annotation.key, annotation.value)
-                unique_annotations.append(annotation.key)
+        if self.key not in container_op.pod_annotations:
+            container_op.add_pod_annotation(self.key, self.value)
 
-    @classmethod
-    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        for annotation in prop_value:
-            kubernetes_executor["annotations"][annotation.key] = annotation.value
+        if "annotations" not in kubernetes_executor:
+            kubernetes_executor["annotations"] = {}
+        kubernetes_executor["annotations"][self.key] = self.value
 
 
 class KubernetesToleration(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, AirflowElyraOwnedProperty):
@@ -571,34 +545,29 @@ class KubernetesToleration(ElyraOwnedPropertyListItem, KfpElyraOwnedProperty, Ai
             )
         return validation_errors
 
-    @classmethod
-    def add_to_container_op(cls, prop_id: str, prop_value: Any, container_op: ContainerOp) -> None:
+    def add_to_container_op(self, container_op: ContainerOp) -> None:
         """Add relevant property items to a given KFP ContainerOp"""
-        unique_tolerations = []
-        for toleration in prop_value:
-            if toleration.to_str() not in unique_tolerations:
-                container_op.add_toleration(
-                    V1Toleration(
-                        effect=toleration.effect,
-                        key=toleration.key,
-                        operator=toleration.operator,
-                        value=toleration.value,
-                    )
-                )
-                unique_tolerations.append(toleration.to_str())
+        toleration = V1Toleration(
+                effect=self.effect,
+                key=self.key,
+                operator=self.operator,
+                value=self.value,
+        )
+        if toleration not in container_op.tolerations:
+            container_op.add_toleration(toleration)
 
-    @classmethod
-    def add_to_executor_config(cls, prop_id: str, prop_value: Any, kubernetes_executor: dict) -> None:
+    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        kubernetes_executor["tolerations"] = [
+        if "tolerations" not in kubernetes_executor:
+            kubernetes_executor["tolerations"] = []
+        kubernetes_executor["tolerations"].append(
             {
-                "key": toleration.key,
-                "operator": toleration.operator,
-                "value": toleration.value,
-                "effect": toleration.effect,
+                "key": self.key,
+                "operator": self.operator,
+                "value": self.value,
+                "effect": self.effect,
             }
-            for toleration in prop_value
-        ]
+        )
 
 
 class ElyraOwnedPropertyList(list):
