@@ -89,7 +89,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
            - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
            - Annotations are ignored when the pipeline is executed locally.
          - **Disallow cached output**
-           - Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is given the same inputs the generated output is different - re-using the output from previous executions might lead to unexpected results.
+           - Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is, when given the same inputs, the generated output is different - re-using the output from previous executions might lead to unexpected results.
            - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.
 
       - Properties that apply to every generic pipeline node. In this release the following properties are supported:
@@ -177,7 +177,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
    - Annotations are ignored when the pipeline is executed locally.
 
    **Disallow cached output**
-   - Optional. Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is given the same inputs the generated output is different - re-using the output from previous executions might lead to unexpected results.
+   - Optional. Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is, when given the same inputs, the generated output is different - re-using the output from previous executions might lead to unexpected results.
    - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.  
 
 5. Associate each node with a comment to document its purpose.
