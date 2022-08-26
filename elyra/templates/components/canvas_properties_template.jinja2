@@ -34,6 +34,9 @@
 {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
       "elyra_kubernetes_pod_annotations": [],
 {% endif %}
+{% if "disallow_cached_output" not in elyra_property_collisions_list %}
+      "elyra_disallow_cached_output": null,
+{% endif %}
       "component_source": {{ component.component_source|tojson|safe }}
     },
     "parameters": [
@@ -61,6 +64,11 @@
 {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
       {
         "id": "elyra_kubernetes_pod_annotations"
+      },
+{% endif %}
+{% if "disallow_cached_output" not in elyra_property_collisions_list %}
+      {
+        "id": "elyra_disallow_cached_output"
       },
 {% endif %}
       {
@@ -207,6 +215,23 @@
           }
         },
 {% endif %}
+{% if "disallow_cached_output" not in elyra_property_collisions_list %}
+        {
+          "parameter_ref": "elyra_disallow_cached_output",
+          "control": "custom",
+          "custom_control_id": "BooleanControl",
+          "label": {
+            "default": "Disallow cached output"
+          },
+          "description": {
+           "default": "Disable caching to force node re-execution in the target runtime environment.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "required": false
+          }
+        },
+{% endif %}
         {
           "parameter_ref": "component_source",
           "control": "readonly",
@@ -303,6 +328,13 @@
               "id": "elyra_kubernetes_pod_annotations",
               "type": "controls",
               "parameter_refs": ["elyra_kubernetes_pod_annotations"]
+            },
+{% endif %}
+{% if "disallow_cached_output" not in elyra_property_collisions_list %}
+            {
+              "id": "elyra_disallow_cached_output",
+              "type": "controls",
+              "parameter_refs": ["elyra_disallow_cached_output"]
             },
 {% endif %}
             {

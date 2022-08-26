@@ -237,6 +237,7 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             {"id": "elyra_kubernetes_tolerations"},
             {"id": "elyra_mounted_volumes"},
             {"id": "elyra_kubernetes_pod_annotations"},
+            {"id": "elyra_disallow_cached_output"},
         ]
 
 

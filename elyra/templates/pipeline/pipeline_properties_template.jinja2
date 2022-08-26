@@ -9,7 +9,8 @@
     "elyra_kubernetes_secrets": [],
     "elyra_kubernetes_tolerations": [],
     "elyra_mounted_volumes": [],
-    "elyra_kubernetes_pod_annotations": []
+    "elyra_kubernetes_pod_annotations": [],
+    "elyra_disallow_cached_output": null
   },
   "parameters": [
     {
@@ -41,7 +42,10 @@
     },
     {
       "id": "elyra_kubernetes_pod_annotations"
-    }    
+    },
+     {
+      "id": "elyra_disallow_cached_output"
+    }       
   ],
   "uihints": {
     "id": "nodeProperties",
@@ -174,7 +178,21 @@
           "placeholder": "annotation_key=annotation_value",
           "keyValueEntries": true
         }
-      }
+      },
+      {
+        "parameter_ref": "elyra_disallow_cached_output",
+        "control": "custom",
+        "custom_control_id": "BooleanControl",
+        "label": {
+          "default": "Disallow cached output"
+        },
+        "description": {
+          "default": "Disable caching to force node re-execution in the target runtime environment.",
+          "placement": "on_panel"
+        },
+        "data": {
+        }
+      }      
     ],
     "group_info": [
       {
@@ -254,6 +272,23 @@
             "id": "elyra_kubernetes_secrets",
             "type": "controls",
             "parameter_refs": ["elyra_kubernetes_secrets"]
+          },
+          {
+            "id": "elyra_custom_nodesCategoryHeader",
+            "type": "textPanel",
+            "class_name": "elyra_categoryHeader",
+            "label": {
+              "default": "Custom Node Defaults"
+            },
+            "description": {
+              "default": "Default values are applied to all custom nodes in this pipeline and can be customized in each node.",
+              "placement": "on_panel"
+            }
+          },
+          {
+            "id": "elyra_disallow_cached_output",
+            "type": "controls",
+            "parameter_refs": ["elyra_disallow_cached_output"]
           }
         ]
       }
