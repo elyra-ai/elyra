@@ -88,9 +88,6 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
            - A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
            - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
            - Annotations are ignored when the pipeline is executed locally.
-         - **Disallow cached output**
-           - Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is, when given the same inputs, the generated output is different - re-using the output from previous executions might lead to unexpected results.
-           - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.
 
       - Properties that apply to every generic pipeline node. In this release the following properties are supported:
         - **Object storage path prefix**. Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
@@ -109,6 +106,11 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
            - A list of [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. Entries with a secret name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) or with [an invalid secret key](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) will raise a validation error after pipeline submission or export.
            - The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
            - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
+
+      - Default values that apply to every pipeline node that is implemented by a [custom component](pipeline-components.html#custom-components). These values can be overridden for each node.
+         - **Disallow cached output**
+           - Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is, when given the same inputs, the generated output is different - re-using the output from previous executions might lead to unexpected results.
+           - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.
 
 #### Adding nodes
 
@@ -175,11 +177,7 @@ The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-ste
    - Optional. A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
    - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
    - Annotations are ignored when the pipeline is executed locally.
-
-   **Disallow cached output**
-   - Optional. Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is, when given the same inputs, the generated output is different - re-using the output from previous executions might lead to unexpected results.
-   - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.  
-
+  
 5. Associate each node with a comment to document its purpose.
 
    ![Add comment to node](../images/user_guide/pipelines/add-comment-to-node.gif)
