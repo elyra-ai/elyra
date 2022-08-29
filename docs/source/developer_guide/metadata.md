@@ -35,7 +35,7 @@ Schemaspaces and their schemas can be dynamically introduced via entrypoints.  W
 
 ### Metadata Components
 The Elyra metadata service is composed of several components, many of which were previously referenced, and each responsible for a different task.  
-![MetadataServiceRelationships](../images/metadata-service-relationships.png)
+![MetadataServiceRelationships](../images/developer_guide/metadata/metadata-service-relationships.png)
 
 The following briefly describes each of those components.
 
