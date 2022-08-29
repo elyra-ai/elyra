@@ -701,6 +701,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                                 container_op.add_pod_annotation(annotation.key, annotation.value)
                                 unique_annotations.append(annotation.key)
 
+                    # Force re-execution of the operation by setting staleness to zero days
+                    # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
+                    if operation.disallow_cached_output:
+                        container_op.set_caching_options(enable_caching=False)
+                        container_op.execution_options.caching_strategy.max_cache_staleness = "P0D"
+
                     target_ops[operation.id] = container_op
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
