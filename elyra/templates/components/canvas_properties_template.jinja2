@@ -96,6 +96,14 @@
           }
         }
         {% endif %}
+        {% if "disallow_cached_output" not in elyra_property_collisions_list %}
+        ,
+        "disallow_cached_output" : {
+          "type": "boolean",
+          "title": "Disallow cached output",
+          "description": "Disable caching to force node re-execution in the target runtime environment."
+        }
+        {% endif %}
       },
       "required": [
       {% for property in component.required_properties %}

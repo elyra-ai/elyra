@@ -376,10 +376,10 @@ def test_parse_kfp_component_file_no_inputs():
 
     properties_json = ComponentCache.to_canvas_properties(component)
 
-    # Properties JSON should only include the four parameters common to every
-    # component ('mounted_volumes', 'kubernetes_pod_annotations', and
-    # 'kubernetes_tolerations'), and the output parameter for this component
-    num_common_params = 4
+    # Properties JSON should only include the five parameters common to every
+    # component ('mounted_volumes', 'kubernetes_pod_annotations', 'kubernetes_tolerations',
+    # and 'disallow_cached_output), and the output parameter for this component
+    num_common_params = 5
     properties_from_json = [
         prop
         for prop in properties_json["properties"]["component_parameters"]["properties"].keys()

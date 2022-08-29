@@ -101,6 +101,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # unpack Cloud Object Storage configs
         cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
+        cos_public_endpoint = runtime_configuration.metadata.get("public_cos_endpoint", cos_endpoint)
         cos_bucket = runtime_configuration.metadata["cos_bucket"]
 
         # Determine which provider to use to authenticate with Kubeflow
@@ -362,7 +363,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             )
 
         if pipeline.contains_generic_operations():
-            object_storage_url = f"{cos_endpoint}"
+            object_storage_url = f"{cos_public_endpoint}"
             os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
             object_storage_path = f"/{cos_bucket}/{os_path}"
         else:
@@ -699,6 +700,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             if annotation.key not in unique_annotations:
                                 container_op.add_pod_annotation(annotation.key, annotation.value)
                                 unique_annotations.append(annotation.key)
+
+                    # Force re-execution of the operation by setting staleness to zero days
+                    # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
+                    if operation.disallow_cached_output:
+                        container_op.set_caching_options(enable_caching=False)
+                        container_op.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
                     target_ops[operation.id] = container_op
                 except Exception as e:

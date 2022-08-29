@@ -36,7 +36,10 @@ import {
   stopIcon,
   LabIcon
 } from '@jupyterlab/ui-components';
+
+import { Signal, ISignal } from '@lumino/signaling';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
+
 import React, { RefObject } from 'react';
 
 import { KernelDropdown, ISelect } from './KernelDropdown';
@@ -44,7 +47,7 @@ import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
 /**
- * The CSS class added to widgets.
+ * ScriptEditor widget CSS classes.
  */
 const SCRIPT_EDITOR_CLASS = 'elyra-ScriptEditor';
 const OUTPUT_AREA_CLASS = 'elyra-ScriptEditor-OutputArea';
@@ -63,15 +66,18 @@ export abstract class ScriptEditor extends DocumentWidget<
   DocumentRegistry.ICodeModel
 > {
   private runner: ScriptRunner;
-  private kernelName?: string;
   private dockPanel?: DockPanelSvg;
   private outputAreaWidget?: OutputArea;
   private scrollingWidget?: ScrollingWidget<OutputArea>;
   private model: any;
   private emptyOutput: boolean;
-  private runDisabled: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
+  private runDisabled: boolean;
+  private _kernelSelectionChanged: Signal<this, string>;
+  private kernelName: string | null;
+  protected runButton: ToolbarButton;
+  protected defaultKernel: string | null;
   abstract getLanguage(): string;
   abstract getIcon(): LabIcon | string;
 
@@ -84,12 +90,14 @@ export abstract class ScriptEditor extends DocumentWidget<
     super(options);
     this.addClass(SCRIPT_EDITOR_CLASS);
     this.model = this.content.model;
-    this.runner = new ScriptRunner(this.disableRun);
+    this.runner = new ScriptRunner(this.disableRunButton);
     this.kernelSelectorRef = null;
-    this.kernelName = '';
     this.emptyOutput = true;
-    this.runDisabled = false;
     this.controller = new ScriptEditorController();
+    this.runDisabled = false;
+    this.defaultKernel = null;
+    this.kernelName = null;
+    this._kernelSelectionChanged = new Signal<this, string>(this);
 
     // Add icon to main tab
     this.title.icon = this.getIcon();
@@ -105,47 +113,79 @@ export abstract class ScriptEditor extends DocumentWidget<
       className: RUN_BUTTON_CLASS,
       icon: runIcon,
       onClick: this.runScript,
-      tooltip: 'Run'
+      tooltip: 'Run',
+      enabled: !this.runDisabled
     });
 
-    const stopButton = new ToolbarButton({
+    const interruptButton = new ToolbarButton({
       icon: stopIcon,
-      onClick: this.stopRun,
-      tooltip: 'Stop'
+      onClick: this.interruptRun,
+      tooltip: 'Interrupt the kernel'
     });
 
     // Populate toolbar with button widgets
     const toolbar = this.toolbar;
     toolbar.addItem('save', saveButton);
     toolbar.addItem('run', runButton);
-    toolbar.addItem('stop', stopButton);
+    toolbar.addItem('interrupt', interruptButton);
 
     this.toolbar.addClass(TOOLBAR_CLASS);
+
+    this.runButton = runButton;
 
     // Create output area widget
     this.createOutputAreaWidget();
 
-    this.context.ready.then(() => {
-      this.initializeKernelSpecs();
-    });
+    this.context.ready.then(() => this.initializeKernelSpecs());
   }
 
-  initializeKernelSpecs = async (): Promise<void> => {
+  public get kernelSelectionChanged(): ISignal<this, string> {
+    return this._kernelSelectionChanged;
+  }
+
+  public get kernelSelection(): string {
+    return this.kernelName ?? this.defaultKernel ?? '';
+  }
+
+  public debuggerAvailable = async (kernelName: string): Promise<boolean> =>
+    await this.controller.debuggerAvailable(kernelName);
+
+  /**
+   * Function: Fetches kernel specs filtered by editor language
+   * and populates toolbar kernel selector.
+   */
+  protected initializeKernelSpecs = async (): Promise<void> => {
+    const language = this.getLanguage();
     const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
-      this.getLanguage()
+      language
     );
-
-    this.kernelName = Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name;
-
+    this.defaultKernel = await this.controller.getDefaultKernel(language);
+    this.kernelName = this.defaultKernel;
     this.kernelSelectorRef = React.createRef<ISelect>();
 
     if (kernelSpecs !== null) {
-      const kernelDropDown = new KernelDropdown(
-        kernelSpecs,
-        this.kernelSelectorRef
+      this.toolbar.insertItem(
+        4,
+        'select',
+        new KernelDropdown(
+          kernelSpecs,
+          this.defaultKernel,
+          this.kernelSelectorRef,
+          this.handleKernelSelectionUpdate
+        )
       );
-      this.toolbar.insertItem(3, 'select', kernelDropDown);
     }
+    this._kernelSelectionChanged.emit(this.kernelSelection);
+  };
+
+  private handleKernelSelectionUpdate = async (
+    selectedKernel: string
+  ): Promise<void> => {
+    if (selectedKernel === this.kernelName) {
+      return;
+    }
+    this.kernelName = selectedKernel;
+    this._kernelSelectionChanged.emit(selectedKernel);
   };
 
   /**
@@ -180,9 +220,8 @@ export abstract class ScriptEditor extends DocumentWidget<
    */
   private runScript = async (): Promise<void> => {
     if (!this.runDisabled) {
-      this.kernelName = this.kernelSelectorRef?.current?.getSelection();
-      this.resetOutputArea();
-      this.kernelName && this.displayOutputArea();
+      this.clearOutputArea();
+      this.displayOutputArea();
       await this.runner.runScript(
         this.kernelName,
         this.context.path,
@@ -192,24 +231,22 @@ export abstract class ScriptEditor extends DocumentWidget<
     }
   };
 
-  private stopRun = async (): Promise<void> => {
-    await this.runner.shutdownSession();
+  private interruptRun = async (): Promise<void> => {
+    await this.runner.interruptKernel();
     if (!this.dockPanel?.isEmpty) {
       this.updatePromptText(' ');
     }
   };
 
-  private disableRun = (disabled: boolean): void => {
+  private disableRunButton = (disabled: boolean): void => {
+    this.runButton.enabled = !disabled;
     this.runDisabled = disabled;
-    (document.querySelector(
-      '#' + this.id + ' .' + RUN_BUTTON_CLASS
-    ) as HTMLInputElement).disabled = disabled;
   };
 
   /**
    * Function: Clears existing output area.
    */
-  private resetOutputArea = (): void => {
+  private clearOutputArea = (): void => {
     // TODO: hide this.layout(), or set its height to 0
     this.dockPanel?.hide();
     this.outputAreaWidget?.model.clear();
@@ -267,7 +304,10 @@ export abstract class ScriptEditor extends DocumentWidget<
    * Function: Displays output area widget.
    */
   private displayOutputArea = (): void => {
-    if (this.outputAreaWidget === undefined) {
+    if (
+      this.outputAreaWidget === undefined ||
+      !this.kernelSelectorRef?.current?.getSelection()
+    ) {
       return;
     }
 
@@ -294,8 +334,8 @@ export abstract class ScriptEditor extends DocumentWidget<
           outputTab.currentTitle.closable = true;
         }
         outputTab.disposed.connect((sender, args) => {
-          this.stopRun();
-          this.resetOutputArea();
+          this.interruptRun();
+          this.clearOutputArea();
         }, this);
       }
     }
@@ -325,7 +365,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   };
 
   /**
-   * Function: Displays python code in OutputArea widget.
+   * Function: Displays code in OutputArea widget.
    */
   private displayOutput = (output: string): void => {
     if (output) {

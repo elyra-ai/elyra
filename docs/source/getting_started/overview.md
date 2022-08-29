@@ -89,10 +89,11 @@ Refer to the
 Elyra contributes a Script editor with support for Python and R files, which can take advantage of the
 **Hybrid Runtime Support** enabling users to locally edit scripts and execute
 them against local or cloud-based resources seamlessly.
+Elyra Script editors are now integrated with JupyterLab's debugger feature, allowing scripts to be easily debugged within the editors' UI. For the debugger to be enabled and visible in the editor's toolbar, a kernel with support for debugging is required.
 
 ![Enhanced Python Support](../images/python-editor.png)
 
-For information on how to use the Script editor refer to the [_Enhanced Script Support_ topic](../user_guide/enhanced-script-support) in the User Guide.
+For information on how to use the Script editor and the debugger requirements refer to the [_Enhanced Script Support_ topic](../user_guide/enhanced-script-support) in the User Guide.
 
 The Script editor feature can optionally be [installed as a stand-alone extension](installation).
 

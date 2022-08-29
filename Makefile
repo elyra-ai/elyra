@@ -25,8 +25,6 @@
 .PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
 
-.ONESHELL:
-
 SHELL:=/bin/bash
 
 # Container execs
@@ -88,6 +86,7 @@ uninstall-src: # Uninstalls source extensions if they're still installed
 	- jupyter labextension uninstall --no-build @elyra/r-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/scala-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/code-viewer-extension
+	- jupyter labextension uninstall --no-build @elyra/script-debugger-extension
 	- jupyter labextension unlink --no-build @elyra/pipeline-services
 	- jupyter labextension unlink --no-build @elyra/pipeline-editor
 
