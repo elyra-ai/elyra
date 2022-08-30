@@ -471,13 +471,13 @@ const PipelineWrapper: React.FC<IProps> = ({
   const onPropertiesUpdateRequested = async (args: any): Promise<any> => {
     const path = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
-      args.elyra_filename
+      args.component_parameters.filename
     );
     const new_env_vars = await ContentParser.getEnvVars(
       path
     ).then((response: any) => response.map((str: string) => str + '='));
 
-    const env_vars = args.elyra_env_vars ?? [];
+    const env_vars = args.component_parameters?.env_vars ?? [];
     const merged_env_vars = [
       ...env_vars,
       ...new_env_vars.filter(
@@ -487,7 +487,11 @@ const PipelineWrapper: React.FC<IProps> = ({
     ];
 
     return {
-      elyra_env_vars: merged_env_vars.filter(Boolean)
+      ...args,
+      component_parameters: {
+        ...args.component_parameters,
+        env_vars: merged_env_vars.filter(Boolean)
+      }
     };
   };
 
