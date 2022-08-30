@@ -46,7 +46,7 @@ AIRFLOW_TEST_OPERATOR_CATALOG = {
 @pytest.fixture
 def component_cache(jp_environ):
     """
-    Initialize a component cache
+    Initialize a component cache that emulates a running server process
     """
     # Create new instance and load the cache
     component_cache = ComponentCache.instance(emulate_server_app=True)
@@ -61,12 +61,27 @@ def component_cache(jp_environ):
 def catalog_instance(component_cache, request):
     """Creates an instance of a component catalog and removes after test."""
     instance_metadata = request.param
-
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
     catalog = md_mgr.create(instance_name, Metadata(**instance_metadata))
     component_cache.wait_for_all_cache_tasks()
     yield catalog
+    md_mgr.remove(instance_name)
+
+
+@pytest.fixture
+def catalog_instance_no_server_process(request):
+    """
+    Creates an instance of a component catalog that does not emulate a server process,
+    then removes instance after test. This is used for testing CLI functionality where
+    a server process would not be present.
+    """
+    instance_metadata = request.param
+    instance_name = "component_cache"
+    md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+    md_mgr.create(instance_name, Metadata(**instance_metadata))
+    ComponentCache.clear_instance()  # Clear cache instance created during instance creation
+    yield
     md_mgr.remove(instance_name)
 
 
