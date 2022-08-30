@@ -67,7 +67,6 @@ import {
 } from './EmptyPipelineContent';
 import { formDialogWidget } from './formDialogWidget';
 import {
-  componentFetcher,
   usePalette,
   useRuntimeImages,
   useRuntimesSchema
@@ -343,28 +342,19 @@ const PipelineWrapper: React.FC<IProps> = ({
           if (result.button.accept) {
             // proceed with migration
             console.log('migrating pipeline');
-            let migrationPalette = palette;
             const pipelineJSON: any = contextRef.current.model.toJSON();
-            const oldRuntime = pipelineJSON?.pipelines[0].app_data.runtime;
-            if (oldRuntime === 'kfp' || oldRuntime === 'airflow') {
-              migrationPalette = await componentFetcher(oldRuntime);
-            }
             try {
-              const migratedPipeline = migrate(
-                pipelineJSON,
-                migrationPalette,
-                pipeline => {
-                  // function for updating to relative paths in v2
-                  // uses location of filename as expected in v1
-                  for (const node of pipeline.nodes) {
-                    node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                      contextRef.current.path,
-                      node.app_data.filename
-                    );
-                  }
-                  return pipeline;
+              const migratedPipeline = migrate(pipelineJSON, pipeline => {
+                // function for updating to relative paths in v2
+                // uses location of filename as expected in v1
+                for (const node of pipeline.nodes) {
+                  node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                    contextRef.current.path,
+                    node.app_data.filename
+                  );
                 }
-              );
+                return pipeline;
+              });
               contextRef.current.model.fromString(
                 JSON.stringify(migratedPipeline, null, 2)
               );
@@ -418,7 +408,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [palette, shell.currentWidget]
+    [shell.currentWidget]
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {

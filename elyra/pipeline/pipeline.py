@@ -33,7 +33,7 @@ from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
-PIPELINE_CURRENT_VERSION = 7
+PIPELINE_CURRENT_VERSION = 7.5  # TODO: Update to 8 with update to pipeline-editor v1.10
 PIPELINE_CURRENT_SCHEMA = 3.0
 
 
