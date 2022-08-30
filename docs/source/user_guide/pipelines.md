@@ -167,7 +167,7 @@ Nodes that are implemented using [custom components](pipeline-components.html#cu
 
 #### Defining dependencies between nodes
 
-Dependencies between nodes are defined by by connecting them, essentially creating an execution graph.
+Dependencies between nodes are defined by connecting them, essentially creating an execution graph.
 
    ![Connecting two nodes](../images/user_guide/pipelines/connect-nodes.gif)
 
