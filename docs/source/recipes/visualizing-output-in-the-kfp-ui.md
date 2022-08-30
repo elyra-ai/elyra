@@ -26,7 +26,7 @@ You can try the visualizations shown in this document using [this pipeline in th
 
 The output viewer in the Kubeflow Pipelines UI can render output such as a confusion matrix, ROC curve, or markdown, that is displayed in the Kubeflow Pipelines UI.
 
-![Example notebook output](../images/kfp_mlpipeline_ui_metadata.png)
+![Example notebook output](../images/recipes/visualizing-output-in-the-kfp-ui/kfp_mlpipeline_ui_metadata.png)
 
 To produce this output add code to your notebook or Python script that creates a file named `mlpipeline-ui-metadata.json` in the current working directory. Refer to [_Visualize Results in the Pipelines UI_ in the Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/pipelines/sdk/output-viewer/#introduction) to learn about supported visualizations and the format of the `mlpipeline-ui-metadata.json` file. 
 
@@ -85,7 +85,7 @@ Note that the output is displayed only after notebook or Python script processin
 
 If your notebooks or Python scripts calculate scalar performance metrics they can be displayed as part of the run output in the Kubeflow Pipelines UI.
 
-![Example notebook output](../images/kfp_run_metrics.png)
+![Example notebook output](../images/recipes/visualizing-output-in-the-kfp-ui/kfp_run_metrics.png)
 
 To expose the metrics, add code to the notebook or Python script that stores them in a file named `mlpipeline-metrics.json` in the current working directory. Refer to [_Pipeline Metrics_ in the Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/pipelines/sdk/pipelines-metrics/) to learn more about the content of this file.
 
