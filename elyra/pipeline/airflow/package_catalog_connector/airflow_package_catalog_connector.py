@@ -33,6 +33,7 @@ from elyra.pipeline.catalog_connector import AirflowEntryData
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.catalog_connector import EntryData
 from elyra.util.url import FileTransportAdapter
+from elyra.util.url import get_verify_parm
 
 
 class AirflowPackageCatalogConnector(ComponentCatalogConnector):
@@ -111,6 +112,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                     timeout=AirflowPackageCatalogConnector.REQUEST_TIMEOUT,
                     allow_redirects=True,
                     auth=auth,
+                    verify=get_verify_parm(),
                 )
             except Exception as ex:
                 self.log.error(

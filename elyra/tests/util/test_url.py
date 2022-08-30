@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 from pathlib import Path
 
+import pytest
 from requests import session
 
 from elyra.util.url import FileTransportAdapter
+from elyra.util.url import get_verify_parm
 
 
 def test_valid_file_url():
@@ -78,3 +81,36 @@ def test_invalid_file_url():
         res = unsupported_method(url)
         assert res.status_code == 405, url
         assert res.reason == "Method not allowed"
+
+
+@pytest.fixture
+def setup_env_vars():
+    # runs before test (save the value of environment variable
+    # CA_CERT_BUNDLE_PATH to avoid any contamination by tests
+    # that modify it)
+    current_ca_cert_bundle_path_value = os.environ.get("CA_CERT_BUNDLE_PATH")
+    yield
+    # runs after test (restore the value of environment variable
+    # CA_CERT_BUNDLE_PATH, if it was defined)
+    if current_ca_cert_bundle_path_value is not None:
+        os.environ["CA_CERT_BUNDLE_PATH"] = current_ca_cert_bundle_path_value
+
+
+@pytest.mark.usefixtures("setup_env_vars")
+def test_get_verify_parm():
+    """
+    Verify that method get_verify_parm works as expected:
+     - env variable CA_CERT_BUNDLE_PATH is defined
+     - env variable CA_CERT_BUNDLE_PATH is not defined, but a default is specified
+     - env variable CA_CERT_BUNDLE_PATH is not defined and no default is specified
+    """
+    test_ca_cert_bundle_path_value = "/path/to/cert/bundle"
+    os.environ["CA_CERT_BUNDLE_PATH"] = test_ca_cert_bundle_path_value
+    assert get_verify_parm() == test_ca_cert_bundle_path_value
+    del os.environ["CA_CERT_BUNDLE_PATH"]
+    # set explicit default
+    assert get_verify_parm(False) is False
+    # set explicit default
+    assert get_verify_parm(True) is True
+    # use implicit default
+    assert get_verify_parm() is True
