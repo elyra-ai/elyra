@@ -36,7 +36,7 @@ config: SimpleNamespace
 VERSION_REG_EX = r"(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(\.(?P<pre_release>[a-z]+)(?P<build>\d+))?"
 
 DEFAULT_GIT_ORG = "elyra-ai"
-DEFAULT_GIT_BRANCH = "main"
+DEFAULT_GIT_BRANCH = "v3.11.x"
 DEFAULT_BUILD_DIR = "build/release"
 
 
@@ -469,7 +469,7 @@ def build_release():
         # Build container images from tagged release
         check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
         check_run(["make", "container-images"], cwd=config.source_dir, capture_output=False)
-        check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
+        check_run(["git", "checkout", "v3.11.x"], cwd=config.source_dir, capture_output=False)
 
     print("")
 
@@ -854,7 +854,7 @@ def publish_release(working_dir) -> None:
         is_latest = config.git_branch == "main"
         check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
         check_run(["make", "publish-container-images", f"IMAGE_IS_LATEST={is_latest}"], cwd=config.source_dir)
-        check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
+        check_run(["git", "checkout", "v3.11.x"], cwd=config.source_dir, capture_output=False)
 
 
 def initialize_config(args=None) -> SimpleNamespace:
