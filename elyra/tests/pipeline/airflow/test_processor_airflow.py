@@ -633,7 +633,7 @@ def test_process_dictionary_value_function(processor):
 
 
 @pytest.mark.parametrize(
-    "parsed_pipeline", ["resources/validation_pipelines/aa_operator_same_name.json"], indirect=True
+    "parsed_pipeline", ["resources/validation_pipelines/aa_operator_same_name.pipeline"], indirect=True
 )
 @pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance, parsed_pipeline, sample_metadata):
@@ -651,9 +651,9 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
     pipeline_def_operation_parameters = pipeline_def_operation.component_params_as_dict
     pipeline_def_operation_str_param = pipeline_def_operation_parameters["str_no_default"]
 
-    assert pipeline_def_operation_str_param["activeControl"] == "NestedEnumControl"
-    assert set(pipeline_def_operation_str_param["NestedEnumControl"].keys()) == {"value", "option"}
-    assert pipeline_def_operation_str_param["NestedEnumControl"]["value"] == upstream_task_id
+    assert pipeline_def_operation_str_param["widget"] == "inputpath"
+    assert set(pipeline_def_operation_str_param["value"].keys()) == {"value", "option"}
+    assert pipeline_def_operation_str_param["value"]["value"] == upstream_task_id
 
     ordered_operations = processor._cc_pipeline(
         parsed_pipeline, pipeline_name="some-name", pipeline_instance_id="some-instance-name"

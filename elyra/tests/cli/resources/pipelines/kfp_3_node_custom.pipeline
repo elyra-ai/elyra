@@ -15,12 +15,12 @@
           "app_data": {
             "component_parameters": {
               "url": {
-                "activeControl": "StringControl",
-                "StringControl": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/error.py"
+                "widget": "string",
+                "value": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/error.py"
               },
               "curl_options": {
-                "activeControl": "StringControl",
-                "StringControl": "--location"
+                "widget": "string",
+                "value": "--location"
               },
               "output_data": "",
               "mounted_volumes": [],
@@ -71,8 +71,8 @@
           "app_data": {
             "component_parameters": {
               "pattern": {
-                "activeControl": "StringControl",
-                "StringControl": ".*Error"
+                "widget": "string",
+                "value": ".*Error"
               },
               "output_filtered_text": "",
               "mounted_volumes": [],
@@ -136,8 +136,8 @@
           "app_data": {
             "component_parameters": {
               "hash_algorithm": {
-                "activeControl": "StringControl",
-                "StringControl": "SHA256"
+                "widget": "string",
+                "value": "SHA256"
               },
               "output_hash": "",
               "mounted_volumes": [],
@@ -197,7 +197,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7,
+        "version": 7.5,
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "pipeline_defaults": {},

@@ -20,6 +20,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Set
+from typing import Union
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
@@ -105,12 +106,20 @@ class Pipeline(AppDataBase):
         super().__init__(node)
 
     @property
-    def version(self) -> int:
+    def version(self) -> Union[int, float]:
         """
         The pipeline version
         :return: The version
         """
-        return int(self._node["app_data"].get("version"))
+        version = self._node["app_data"].get("version")
+        if isinstance(version, (int, float)):
+            return version
+
+        try:
+            version = int(version)
+        except ValueError:  # version is not an int
+            version = float(version)
+        return version
 
     @property
     def runtime(self) -> str:

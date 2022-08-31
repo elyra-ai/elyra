@@ -250,4 +250,4 @@ def test_custom_component_parsed_properties(monkeypatch, catalog_instance):
     custom_op = parsed_pipeline.operations[operation_id]
 
     # Ensure this operation's component params includes the value for the component-defined mounted volumes property
-    assert custom_op.component_params_as_dict.get(MOUNTED_VOLUMES)["StringControl"] == "a component-defined property"
+    assert custom_op.component_params_as_dict.get(MOUNTED_VOLUMES)["value"] == "a component-defined property"
