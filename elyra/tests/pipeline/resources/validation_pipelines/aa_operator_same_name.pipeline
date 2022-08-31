@@ -35,7 +35,7 @@
             "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
             "ui_data": {
               "label": "TestOperator",
-              "image": "/static/elyra/airflow.svg"
+              "image": "/static/elyra/airflow.svg",
               "x_pos": 128,
               "y_pos": 124.5
             }
@@ -96,7 +96,7 @@
             "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
             "ui_data": {
               "label": "TestOperator",
-              "image": "/static/elyra/airflow.svg"
+              "image": "/static/elyra/airflow.svg",
               "x_pos": 129,
               "y_pos": 230.5
             }
@@ -160,7 +160,7 @@
             "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
             "ui_data": {
               "label": "TestOperator",
-              "image": "/static/elyra/airflow.svg"
+              "image": "/static/elyra/airflow.svg",
               "x_pos": 128,
               "y_pos": 124.5
             }

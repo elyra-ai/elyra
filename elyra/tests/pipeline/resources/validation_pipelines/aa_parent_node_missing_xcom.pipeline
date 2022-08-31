@@ -43,7 +43,7 @@
             "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
             "ui_data": {
               "label": "TestOperator",
-              "image": "/static/elyra/airflow.svg"
+              "image": "/static/elyra/airflow.svg",
               "x_pos": 142,
               "y_pos": 106.5
             }
@@ -111,7 +111,7 @@
             "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
             "ui_data": {
               "label": "TestOperator",
-              "image": "/static/elyra/airflow.svg"
+              "image": "/static/elyra/airflow.svg",
               "x_pos": 416,
               "y_pos": 105.5
             }
