@@ -472,7 +472,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
     async def _validate_custom_component_node_properties(
         self, node: Node, response: ValidationResponse, pipeline_definition: PipelineDefinition, pipeline_runtime: str
-    ):
+    ):  # sourcery skip: merge-else-if-into-elif, swap-if-else-branches
         """
         Validates the properties of the custom component node
         :param node: the node to be validated
@@ -495,8 +495,6 @@ class PipelineValidationManager(SingletonConfigurable):
             "outputs_header",
             "additional_properties_header",
             "component_source_header",
-            "component_source",
-            "label",
         ]
         for prop in props_to_remove:
             current_parameters.pop(prop, None)
@@ -518,15 +516,16 @@ class PipelineValidationManager(SingletonConfigurable):
 
         for default_parameter in current_parameter_defaults_list:
             node_param = node.get_component_parameter(default_parameter)
-            if self._is_required_property(component_property_dict, default_parameter):
-                if not node_param:
+            if not node_param or node_param.get("value") is None:
+                if self._is_required_property(component_property_dict, default_parameter):
                     response.add_message(
                         severity=ValidationSeverity.Error,
                         message_type="invalidNodeProperty",
-                        message="Node is missing required property.",
+                        message="Node is missing a value for a required property.",
                         data={"nodeID": node.id, "nodeName": node.label, "propertyName": default_parameter},
                     )
-                elif node_param.get("widget") == "inputpath":
+            else:
+                if node_param.get("widget") == "inputpath":
                     # The value of any component property with widget type `inputpath` will be a
                     # dictionary of two keys:
                     #   "value": the node ID of the parent node containing the output
@@ -551,7 +550,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             severity=ValidationSeverity.Error,
                             message_type="invalidNodeProperty",
                             message="Node parameter takes output from a parent, but the referenced node is not a "
-                            "parent. Please check your node-to-node connections.",
+                            "parent. Check your node-to-node connections.",
                             data={"nodeID": node.id, "nodeName": node.label},
                         )
                     if pipeline_runtime == "airflow":
