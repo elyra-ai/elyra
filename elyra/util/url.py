@@ -71,10 +71,10 @@ def get_verify_parm(default: bool = True) -> Union[bool, str]:
     """
     Returns a value for the 'verify' parameter of the requests.request
     method (https://requests.readthedocs.io/en/latest/api/). The value
-    is determined as follows: if environment variable CA_CERT_BUNDLE_PATH
+    is determined as follows: if environment variable TRUSTED_CA_BUNDLE_PATH
     is defined, use its value, otherwise return the default value.
     """
-    if os.environ.get("CA_CERT_BUNDLE_PATH"):
-        return os.environ.get("CA_CERT_BUNDLE_PATH")
+    if len(os.environ.get("TRUSTED_CA_BUNDLE_PATH", "").strip()) > 0:
+        return os.environ.get("TRUSTED_CA_BUNDLE_PATH")
 
     return default
