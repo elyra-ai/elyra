@@ -75,13 +75,18 @@ export class ScriptEditorController {
       return kernelSpecs.default;
     }
 
+    return this.getFirstKernelName(language);
+  };
+
+  getFirstKernelName = async (language: string): Promise<string> => {
     const specsByLang = await this.getKernelSpecsByLanguage(language);
-    const first = (k: any): any => k[Object.keys(k)[0]];
-    let kernelName = '';
+
+    const empty = '';
     if (specsByLang && Object.keys(specsByLang.kernelspecs).length !== 0) {
-      kernelName = first(specsByLang.kernelspecs.name);
+      const [key, value]: any = Object.entries(specsByLang.kernelspecs)[0];
+      return value.name ?? key;
     }
-    return kernelName;
+    return empty;
   };
 
   /**
