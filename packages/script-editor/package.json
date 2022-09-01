@@ -1,6 +1,6 @@
 {
   "name": "@elyra/script-editor",
-  "version": "3.12.0-dev",
+  "version": "3.11.1",
   "description": "JupyterLab - Run python and R scripts using a kernel runtime",
   "keywords": [
     "jupyter",

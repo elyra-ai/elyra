@@ -9,7 +9,7 @@
   "metadata_class_name": "elyra.pipeline.component_metadata.FilenameCatalogMetadata",
   "uihints": {
     "icon": "",
-    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html#filesystem-component-catalog"
+    "reference_url": "https://elyra.readthedocs.io/en/v3.11.1/user_guide/pipeline-components.html#filesystem-component-catalog"
   },
   "properties": {
     "schema_name": {
