@@ -2,6 +2,13 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.11.1 - 09/01/2022
+
+- Enable debugger on kernel change - [#2903](https://github.com/elyra-ai/elyra/pull/2903)
+- Account for how canvas handle icon size - [#2914](https://github.com/elyra-ai/elyra/pull/2914)
+- Add branch specific release script updates
+- Update generic nodes to use static icon api - [#2908](https://github.com/elyra-ai/elyra/pull/2908)
+
 ## Release 3.11.0 - 08/23/2022
 
 - Node package security updates - [#2896](https://github.com/elyra-ai/elyra/pull/2896)
