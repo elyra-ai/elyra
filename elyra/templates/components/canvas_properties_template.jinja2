@@ -1,15 +1,6 @@
 {
   "type": "object",
   "properties": {
-    {% if component.description %}
-    "component_description": {
-      "type": "string",
-      "title": "Component Description",
-      "uihints": {
-        "ui:readonly": true
-      },
-      "default": {{ component.description|tojson|safe }}
-    },{% endif %}
     "label": {
       "type": "string",
       "title": "Label",
@@ -22,6 +13,7 @@
         "inputs_header": {
           "type": "null",
           "title": "Inputs",
+          "description": "Input properties for this component.",
           "uihints": {
             "ui:field": "header"
           }
@@ -34,6 +26,7 @@
         "outputs_header": {
           "type": "null",
           "title": "Outputs",
+          "description": "Outputs produced by this component.",
           "uihints": {
             "ui:field": "header"
           }
@@ -57,6 +50,14 @@
           ,
           {% endif %}
         {% endfor %}
+        {% endif %}
+        {% if "disallow_cached_output" not in elyra_property_collisions_list %}
+        ,
+        "disallow_cached_output" : {
+          "type": "boolean",
+          "title": "Disallow cached output",
+          "description": "Disable caching to force node re-execution in the target runtime environment."
+        }
         {% endif %}
       },
       "required": [

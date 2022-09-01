@@ -121,6 +121,16 @@
             "ui:placeholder": "https://your-cos-service:port"
           }
         },
+        "public_cos_endpoint": {
+          "title": "Public Cloud Object Storage Endpoint",
+          "description": "The public Cloud Object Storage endpoint",
+          "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Cloud Object Storage",
+            "ui:placeholder": "https://your-public-cos-endpoint:port"
+          }
+        },
         "cos_bucket": {
           "title": "Cloud Object Storage Bucket Name",
           "description": "The Cloud Object Storage bucket name",

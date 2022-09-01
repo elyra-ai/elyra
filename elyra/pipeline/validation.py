@@ -467,12 +467,10 @@ class PipelineValidationManager(SingletonConfigurable):
 
         # Remove the non component_parameter jinja templated values we do not check against
         props_to_remove = [
-            "inputs_header",
+            "inputs_header",  # TODO these headers can be removed pending an expected frontend change
             "outputs_header",
             "additional_properties_header",
             "component_source_header",
-            "component_source",
-            "label",
         ]
         for prop in props_to_remove:
             current_parameters.pop(prop, None)
@@ -485,61 +483,58 @@ class PipelineValidationManager(SingletonConfigurable):
 
         for default_parameter in current_parameter_defaults_list:
             node_param = node.get_component_parameter(default_parameter)
-            if self._is_required_property(component_property_dict, default_parameter):
-                if not node_param:
+            if not node_param or node_param.get("value") is None:
+                if self._is_required_property(component_property_dict, default_parameter):
                     response.add_message(
                         severity=ValidationSeverity.Error,
                         message_type="invalidNodeProperty",
-                        message="Node is missing required property.",
+                        message="Node is missing a value for a required property.",
                         data={"nodeID": node.id, "nodeName": node.label, "propertyName": default_parameter},
                     )
-                elif self._get_component_type(node_param) == "inputpath":
-                    # Any component property with type `InputPath` will be a dictionary of two keys
-                    # "value": the node ID of the parent node containing the output
-                    # "option": the name of the key (which is an output) of the above referenced node
-                    inputpath_param_dict = node_param.get("value")
+            else:
+                if node_param.get("widget") == "inputpath":
+                    # The value of any component property with widget type `inputpath` will be a
+                    # dictionary of two keys:
+                    #   "value": the node ID of the parent node containing the output
+                    #   "option": the name of the key (which is an output) of the above referenced node
+                    inputpath_value = node_param.get("value")
                     if (
-                        not isinstance(inputpath_param_dict, dict)
-                        or len(inputpath_param_dict) != 2
-                        or set(inputpath_param_dict.keys()) != {"value", "option"}
+                        not isinstance(inputpath_value, dict)
+                        or len(inputpath_value) != 2
+                        or set(inputpath_value.keys()) != {"value", "option"}
                     ):
                         response.add_message(
                             severity=ValidationSeverity.Error,
                             message_type="invalidNodeProperty",
-                            message="Node has malformed `InputPath` parameter structure",
+                            message="Node parameter takes output from a parent, but parameter structure is malformed.",
                             data={"nodeID": node.id, "nodeName": node.label},
                         )
-                    node_ids = list(x.get("node_id_ref", None) for x in node.component_links)
+                    node_ids = [x.get("node_id_ref", None) for x in node.component_links]
                     parent_list = self._get_parent_id_list(pipeline_definition, node_ids, [])
-                    upstream_node_id = inputpath_param_dict.get("value")
+                    upstream_node_id = inputpath_value.get("value")
                     if upstream_node_id not in parent_list:
                         response.add_message(
                             severity=ValidationSeverity.Error,
                             message_type="invalidNodeProperty",
-                            message="Node contains an invalid inputpath reference. Please "
-                            "check your node-to-node connections",
+                            message="Node parameter takes output from a parent, but the referenced node is not a "
+                            "parent. Check your node-to-node connections.",
                             data={"nodeID": node.id, "nodeName": node.label},
                         )
                     if pipeline_runtime == "airflow":
-                        # TODO: Update this hardcoded check for xcom_push. This parameter is specific to a runtime
-                        # (Airflow). i.e. abstraction for byo validation?
+                        # TODO: Update this runtime-specific check for xcom_push, i.e. abstraction for byo validation?
                         upstream_node = pipeline_definition.get_node(upstream_node_id)
                         xcom_param = upstream_node.get_component_parameter("xcom_push")
                         if xcom_param:
-                            xcom_value = xcom_param.get("BooleanControl")
+                            xcom_value = xcom_param.get("value")
                             if not xcom_value:
                                 response.add_message(
                                     severity=ValidationSeverity.Error,
                                     message_type="invalidNodeProperty",
-                                    message="Node contains an invalid input reference. The parent "
-                                    "node does not have the xcom_push property enabled",
-                                    data={
-                                        "nodeID": node.id,
-                                        "nodeName": node.label,
-                                        "parentNodeID": upstream_node.label,
-                                    },
+                                    message="Node parameter takes output from a parent, but the parent "
+                                    "node does not have the xcom_push property enabled.",
+                                    data={"nodeID": node.id, "nodeName": node.label, "parentNodeID": upstream_node_id},
                                 )
-                elif self._get_component_type(node_param) == "file":
+                elif node_param.get("widget") == "file":
                     filename = node_param.get("value")
                     self._validate_filepath(
                         node_id=node.id,
@@ -907,14 +902,6 @@ class PipelineValidationManager(SingletonConfigurable):
         """
         required_parameters = property_dict["properties"]["component_parameters"]["required"]
         return node_property in required_parameters
-
-    def _get_component_type(self, node_param: dict) -> Optional[str]:
-        """
-        Helper function to determine the type of a node property
-        :param node_param: a dictionary containing the value of the property given in piepline JSON
-        :return: the data type associated with node_property, defaults to 'string'
-        """
-        return node_param.get("widget", "string")
 
     def _get_parent_id_list(
         self, pipeline_definition: PipelineDefinition, node_id_list: list, parent_list: list

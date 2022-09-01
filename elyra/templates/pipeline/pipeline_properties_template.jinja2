@@ -62,6 +62,20 @@
           "description": "Container image used as execution environment.",
           "type": "string"
         },
+        "custom_node_defaults_header": {
+          "type": "null",
+          "title": "Custom Node Defaults",
+          "description":
+              "Default values are applied to all custom nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        "disallow_cached_output": {
+          "type": "boolean",
+          "title": "Disallow cached output",
+          "description": "Disable caching to force node re-execution in the target runtime environment."
+        }
         {% for property in elyra_owned_generic_parameters %}
         "{{property.ref}}": {{ render_parameter_details(property) }}
           {% if loop.index != loop|length %}

@@ -214,7 +214,7 @@ def test_parse_airflow_component_file():
     # Helper method to retrieve the requested parameter value from the dictionary
     def get_parameter_value(param_name):
         property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
-        return property_dict["oneOf"][0]["properties"]["value"]["default"]
+        return property_dict["oneOf"][0]["properties"]["value"].get("default", "")
 
     # Helper method to retrieve the requested parameter info from the dictionary
     def get_parameter_format(param_name):
@@ -240,10 +240,7 @@ def test_parse_airflow_component_file():
     assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert (
-        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
-        == component_source
-    )
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
     # Ensure component parameters are prefixed with 'elyra_' and values are as expected
     assert get_parameter_value("str_no_default") == ""
@@ -403,15 +400,12 @@ def test_parse_airflow_component_url():
     assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert (
-        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
-        == component_source
-    )
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
     # Helper method to retrieve the requested parameter value from the dictionary
     def get_parameter_value(param_name):
         property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
-        return property_dict["oneOf"][0]["properties"]["value"]["default"]
+        return property_dict["oneOf"][0]["properties"]["value"].get("default", "")
 
     assert get_parameter_value("str_no_default") == ""
     assert get_parameter_value("bool_default_true") is True
@@ -444,9 +438,9 @@ def test_parse_airflow_component_file_no_inputs():
     no_input_op = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(no_input_op)
 
-    # Properties JSON should only include the five parameters common to every
-    # component: ('component_source', 'mounted_volumes',
-    # 'kubernetes_pod_annotations', and 'kubernetes_tolerations')
+    # Properties JSON should only include the four parameters common to every
+    # component: ('mounted_volumes', 'kubernetes_pod_annotations',
+    # 'kubernetes_tolerations', and 'disallow_cached_output')
     num_common_params = 4
     properties_from_json = [
         prop
@@ -459,10 +453,7 @@ def test_parse_airflow_component_file_no_inputs():
     assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert (
-        properties_json["properties"]["component_parameters"]["properties"]["component_source"]["default"]
-        == component_source
-    )
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
 
 @pytest.mark.parametrize(

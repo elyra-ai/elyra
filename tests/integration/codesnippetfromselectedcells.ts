@@ -120,18 +120,6 @@ describe('Code snippet from cells tests', () => {
 const populateCells = (): void => {
   cy.get('span[role="presentation"]').each(cell => {
     cy.get(cell).type('print("test")');
-    dismissAssistant();
-  });
-};
-
-// Dismiss LSP code assistant box if visible
-const dismissAssistant = (): void => {
-  cy.get('body').then($body => {
-    if ($body.find('.lsp-completer').length > 0) {
-      // Dismiss code assistant box
-      cy.get('body')
-        .first()
-        .type('{esc}');
-    }
+    cy.dismissAssistant('notebook');
   });
 };

@@ -2,6 +2,50 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.11.0 - 08/23/2022
+
+- Node package security updates - [#2896](https://github.com/elyra-ai/elyra/pull/2896)
+- Address component catalog SVG rendering issues - [#2895](https://github.com/elyra-ai/elyra/pull/2895)
+- Bump url-parse from 1.5.3 to 1.5.10 - [#2892](https://github.com/elyra-ai/elyra/pull/2892)
+- Bump nanoid from 3.1.25 to 3.3.4 - [#2893](https://github.com/elyra-ai/elyra/pull/2893)
+
+## Release 3.11.0rc0 - 08/19/2022
+
+- Update release script container builds - [#2891](https://github.com/elyra-ai/elyra/pull/2891)
+- Add script editor debugger - experimental - [#2087](https://github.com/elyra-ai/elyra/pull/2087)
+- Update documentation for elyra development image - [#2889](https://github.com/elyra-ai/elyra/pull/2889)
+- Add support for COS public endpoint to Airflow runtime config - [#2890](https://github.com/elyra-ai/elyra/pull/2890)
+- Add support for COS public endpoint to KFP runtime config - [#2887](https://github.com/elyra-ai/elyra/pull/2887)
+- Improve JSON output of describe command - [#2878](https://github.com/elyra-ai/elyra/pull/2878)
+- Remove .ONESHELL directive in Makefile - [#2888](https://github.com/elyra-ai/elyra/pull/2888)
+- Fix linting errors - [#2885](https://github.com/elyra-ai/elyra/pull/2885)
+- Update 'Creating a custom runtime container image' documentation topic - [#2882](https://github.com/elyra-ai/elyra/pull/2882)
+- Fix and update release script and instructions - [#2843](https://github.com/elyra-ai/elyra/pull/2843)
+- Bump kfp-tekton dependency to 1.3.0 - [#2884](https://github.com/elyra-ai/elyra/pull/2884)
+- Add "what's new" tile to launcher - [#2857](https://github.com/elyra-ai/elyra/pull/2857)
+- Fix invalid variable names in error messages - [#2883](https://github.com/elyra-ai/elyra/pull/2883)
+- Add capability to validate individual runtime images - [#2879](https://github.com/elyra-ai/elyra/pull/2879)
+- Add export and validation handler tests - [#2876](https://github.com/elyra-ai/elyra/pull/2876)
+- Add support for Kubernetes tolerations - [#2848](https://github.com/elyra-ai/elyra/pull/2848)
+- Add support for 'file' URI scheme to URL-based connectors - [#2873](https://github.com/elyra-ai/elyra/pull/2873)
+- Dev workflow documentation updates - [#2832](https://github.com/elyra-ai/elyra/pull/2832)
+- Improve repository root README - [#2835](https://github.com/elyra-ai/elyra/pull/2835)
+- Add support for Kubernetes annotations - [#2868](https://github.com/elyra-ai/elyra/pull/2868)
+- Update air-gapped deployment documentation - [#2871](https://github.com/elyra-ai/elyra/pull/2871)
+- Fix Airflow Operator execution bugs in handling of Elyra-owned properties - [#2865](https://github.com/elyra-ai/elyra/pull/2865)
+- Add Scala editor - [#2850](https://github.com/elyra-ai/elyra/pull/2850)
+- Update user guide to enable elyra[all] install on zsh - [#2839](https://github.com/elyra-ai/elyra/pull/2839)
+- Remove deprecation warning for local runtime type - [#2862](https://github.com/elyra-ai/elyra/pull/2862)
+- Fix extension descriptions - [#2860](https://github.com/elyra-ai/elyra/pull/2860)
+- Add development env Dockerfile and requirements file - [#2808](https://github.com/elyra-ai/elyra/pull/2808)
+- Removes max limit for the GPU and RAM properties - [#2856](https://github.com/elyra-ai/elyra/pull/2856)
+- Fix doc requirements to address build issue - [#2853](https://github.com/elyra-ai/elyra/pull/2853)
+- Add Open Data Hub image refresh instructions - [#2847](https://github.com/elyra-ai/elyra/pull/2847)
+- Fix container image build issues for official releases - [#2845](https://github.com/elyra-ai/elyra/pull/2845)
+- Bump terser from 4.8.0 to 4.8.1 - [#2846](https://github.com/elyra-ai/elyra/pull/2846)
+- Add support for schema validators - [#2829](https://github.com/elyra-ai/elyra/pull/2829)
+- Address test warnings - [#2833](https://github.com/elyra-ai/elyra/pull/2833)
+
 ## Release 3.10.1 - 07/18/2022
 
 - Cap markdown for docs - [#2836](https://github.com/elyra-ai/elyra/pull/2836)

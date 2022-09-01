@@ -481,14 +481,22 @@ span.bx--list-box__label {
   padding-right: 1.5em;
 }
 
-.elyra-PipelineEditor #root > .form-group.field {
+.elyra-PipelineEditor #root > .form-group.field:not(.field-object) {
   padding-left: 14px;
   padding-right: 14px;
   padding-top: 12px;
   padding-bottom: 18px;
 }
 
-.elyra-PipelineEditor #root > .form-group.field.field-null {
+.elyra-PipelineEditor #root > .form-group.field > fieldset > .form-group.field {
+  padding-left: 14px;
+}
+
+.elyra-PipelineEditor
+  #root
+  > .form-group.field
+  > fieldset
+  > .form-group.field.field-null {
   padding-left: 0;
 }
 

@@ -115,6 +115,8 @@ class KfpComponentParser(ComponentParser):
                 if data_type_info.allowed_input_types != [None]:
                     # This is not an output; add parsed data type hint to description in parentheses
                     description = self._format_description(description=description, data_type=data_type_parsed)
+                else:
+                    ref_name = f"output_{ref_name}"
 
                 component_params = ComponentParameter(
                     id=ref_name,

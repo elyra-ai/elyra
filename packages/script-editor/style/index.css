@@ -30,10 +30,11 @@
   justify-content: center;
 }
 
+/* TODO: fix selector not beig picked up */
 .elyra-ScriptEditor-OutputArea-output {
   padding: var(--jp-code-padding);
   border: var(--jp-border-width) solid transparent;
-  margin-right: 64px;
+  margin: auto;
 }
 
 .elyra-ScriptEditor-scrollTop {
@@ -74,10 +75,20 @@ button.elyra-ScriptEditor-scrollBottom:hover {
   justify-content: flex-start;
 }
 
-select.elyra-ScriptEditor-KernelSelector {
+/* TODO: fix selector not beig picked up */
+/* fix border style in safari */
+.elyra-ScriptEditor-KernelSelector select {
+  background-color: initial;
   border: none;
-  background: none;
-  color: var(--jp-ui-font-color1);
-  display: inline-block;
-  vertical-align: text-bottom;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--jp-ui-font-color0);
+  display: block;
+  font-size: var(--jp-ui-font-size1);
+  height: 24px;
+  line-height: 14px;
+  padding: 0 25px 0 10px;
+  text-align: left;
+  -moz-appearance: none;
+  -webkit-appearance: none;
 }

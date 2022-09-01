@@ -98,6 +98,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # unpack Cloud Object Storage configs
         cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
+        cos_public_endpoint = runtime_configuration.metadata.get("public_cos_endpoint", cos_endpoint)
         cos_bucket = runtime_configuration.metadata["cos_bucket"]
 
         # Determine which provider to use to authenticate with Kubeflow
@@ -359,7 +360,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             )
 
         if pipeline.contains_generic_operations():
-            object_storage_url = f"{cos_endpoint}"
+            object_storage_url = f"{cos_public_endpoint}"
             os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
             object_storage_path = f"/{cos_bucket}/{os_path}"
         else:
@@ -588,7 +589,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     if data_entry_type == "inputpath":
                         # KFP path-based parameters accept an input from a parent
                         output_node_id = property_value["value"]  # parent node id
-                        output_node_parameter_key = property_value["option"]  # parent node parameter name
+                        output_node_parameter_key = property_value["option"].replace("output_", "")  # parent param
                         operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
                             output_node_parameter_key
                         ]
@@ -648,6 +649,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     # TODO Fix error messaging and break exceptions down into categories
                     self.log.error(f"Error constructing component {operation.name}: {str(e)}")
                     raise RuntimeError(f"Error constructing component {operation.name}.")
+
+                # Force re-execution of the operation by setting staleness to zero days
+                # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
+                if operation.disallow_cached_output:
+                    container_op.set_caching_options(enable_caching=False)
+                    container_op.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
             # Attach node comment
             if operation.doc:

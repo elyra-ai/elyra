@@ -28,6 +28,7 @@ from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_constants import (
     COS_OBJECT_PREFIX,
+    DISALLOW_CACHED_OUTPUT,
     ENV_VARIABLES,
     KUBERNETES_POD_ANNOTATIONS,
     KUBERNETES_SECRETS,
@@ -131,7 +132,11 @@ async def test_get_component_properties_config(jp_fetch):
     response = await jp_fetch("elyra", "pipeline", "components", runtime_type.name, "notebook", "properties")
     assert response.code == 200
     payload = json.loads(response.body.decode())
-    properties = json.loads(pkg_resources.read_text(resources, "properties.json"))
+
+    template = pkg_resources.read_text(resources, "generic_properties_template.jinja2")
+    properties = json.loads(
+        template.replace("{{ component.name }}", "Notebook").replace("{{ component.extensions|tojson }}", '[".ipynb"]')
+    )
     assert payload == properties
 
 
@@ -244,6 +249,7 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             KUBERNETES_TOLERATIONS,
             MOUNTED_VOLUMES,
             KUBERNETES_POD_ANNOTATIONS,
+            DISALLOW_CACHED_OUTPUT,
         ]
         assert all(prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties)
 

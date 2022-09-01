@@ -38,7 +38,7 @@ from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
-PIPELINE_CURRENT_VERSION = 7
+PIPELINE_CURRENT_VERSION = 7.5  # TODO: Update to 8 with update to pipeline-editor v1.10
 PIPELINE_CURRENT_SCHEMA = 3.0
 
 
@@ -111,6 +111,11 @@ class Operation(object):
         self._kubernetes_tolerations = self.get_elyra_owned_property(KUBERNETES_TOLERATIONS) or []
         self._kubernetes_pod_annotations = self.get_elyra_owned_property(KUBERNETES_POD_ANNOTATIONS) or []
 
+        # If disabled, this operation is requested to be re-executed in the
+        # target runtime environment, even if it was executed before.
+        param_disallow_cached_output = component_params.get(DISALLOW_CACHED_OUTPUT)
+        self._disallow_cached_output = param_disallow_cached_output
+
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
         self._component_params["outputs"] = Operation._scrub_list(component_params.get("outputs", []))
@@ -166,6 +171,15 @@ class Operation(object):
     @property
     def kubernetes_pod_annotations(self) -> List[KubernetesAnnotation]:
         return self._kubernetes_pod_annotations
+
+    @property
+    def disallow_cached_output(self) -> Optional[bool]:
+        """
+        Returns None if caching behavior is delegated to the runtime
+        Returns True if cached output may be used (instead of executing the op to produce it)
+        Returns False if cached output must not be used (instead of executing the op to produce it)
+        """
+        return self._disallow_cached_output
 
     @property
     def inputs(self) -> Optional[List[str]]:
