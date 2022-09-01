@@ -87,7 +87,7 @@
               "mounted_volumes": []
             },
             "ui_data": {
-              "label": "b",
+              "label": "a",
               "image": "/static/elyra/airflow.svg",
               "x_pos": 242,
               "y_pos": 37,

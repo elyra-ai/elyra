@@ -78,8 +78,11 @@
               "mounted_volumes": [],
               "kubernetes_pod_annotations": [],
               "text": {
-                "value": "4bde6fbe-3935-4fd8-a338-5d15d39d0ddc",
-                "option": "elyra_output_data"
+                "widget": "inputpath",
+                "value": {
+                  "value": "4bde6fbe-3935-4fd8-a338-5d15d39d0ddc",
+                  "option": "output_data"
+                }
               }
             },
             "component_description": "Filter input text according to the given regex pattern using shell and grep.",
@@ -143,8 +146,11 @@
               "mounted_volumes": [],
               "kubernetes_pod_annotations": [],
               "data": {
-                "value": "ce91f17a-f5d7-497d-810a-1950260bf60e",
-                "option": "elyra_output_filtered_text"
+                "widget": "inputpath",
+                "value": {
+                  "value": "ce91f17a-f5d7-497d-810a-1950260bf60e",
+                  "option": "output_filtered_text"
+                }
               }
             },
             "label": "",

@@ -21,8 +21,11 @@
               },
               "output_filtered_text": "",
               "text": {
-                "value": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
-                "option": "elyra_output_data"
+                "widget": "inputpath",
+                "value": {
+                  "value": "4ca98ef2-2e1a-4266-a6e7-6a1a42ec471a",
+                  "option": "elyra_output_data"
+                }
               }
             },
             "label": "",

@@ -565,11 +565,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                     message_type="invalidNodeProperty",
                                     message="Node parameter takes output from a parent, but the parent "
                                     "node does not have the xcom_push property enabled.",
-                                    data={
-                                        "nodeID": node.id,
-                                        "nodeName": node.label,
-                                        "parentNodeID": upstream_node.label,
-                                    },
+                                    data={"nodeID": node.id, "nodeName": node.label, "parentNodeID": upstream_node_id},
                                 )
                 elif node_param.get("widget") == "file":
                     filename = node_param.get("value")
