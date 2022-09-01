@@ -475,13 +475,12 @@ class PipelineValidationManager(SingletonConfigurable):
         for prop in props_to_remove:
             current_parameters.pop(prop, None)
 
-        # List of just the current parameters for the component
-        current_parameter_defaults_list = list(current_parameters.keys())
-
         for param in node.elyra_owned_properties:
             self._validate_elyra_owned_property(node.id, node.label, node, param, response=response)
 
-        for default_parameter in current_parameter_defaults_list:
+        # List of just the current parameters for the component
+        parsed_parameters = [p for p in current_parameters.keys() if p not in node.elyra_owned_properties]
+        for default_parameter in parsed_parameters:
             node_param = node.get_component_parameter(default_parameter)
             if not node_param or node_param.get("value") is None:
                 if self._is_required_property(component_property_dict, default_parameter):

@@ -69,7 +69,7 @@
           }
         },
         {% for property in elyra_owned_parameters %}
-        "{{property.ref}}": {{ render_parameter_details(property) }}{% if loop.index != loop|length %},{% endif %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}{% if loop.index != loop|length %},{% endif %}
         {% endfor %}
       }
     }

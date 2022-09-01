@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from enum import Enum
 from importlib import import_module
 import json
 from logging import Logger
@@ -216,35 +215,13 @@ class Component(object):
         the component definition.
         """
         op_type = "generic" if self.component_reference == "elyra" else "custom"
-        elyra_params = Component.get_parameters_for_component_type(op_type, self.runtime_type)
+        elyra_params = ElyraProperty.get_classes_for_component_type(op_type, self.runtime_type)
         if self.properties:
             # Remove certain Elyra-owned parameters if a parameter of the same id is already present
             parsed_property_ids = [param.ref for param in self.properties]
-            elyra_params = [param for param in elyra_params if param.ref not in parsed_property_ids]
+            elyra_params = [param for param in elyra_params if param.property_id not in parsed_property_ids]
 
         return elyra_params
-
-    @staticmethod
-    def get_parameters_for_component_type(
-        component_type: str, runtime_type: Optional[str] = None
-    ) -> List[ComponentParameter]:
-        """
-        Retrieve a list of Elyra-owned ComponentParameters that apply to the given
-        type of component (either "generic" or "custom") and runtime type.
-        """
-        extra_params = [
-            ComponentParameter(
-                id=dc._property_id,
-                name=dc._display_name,
-                json_data_type=dc._json_data_type,
-                description=dc.__doc__,
-                required=dc._required,
-                dataclass=dc,
-            )
-            for dc in ElyraProperty.get_classes_for_component_type(component_type, runtime_type)
-        ]
-
-        return extra_params
 
 
 class ComponentParser(LoggingConfigurable):  # ABC
@@ -337,17 +314,6 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 data_type_info = ParameterTypeInfo(parsed_data=parsed_type_lowered, undetermined=True)
 
         return data_type_info
-
-
-class InputTypeDescriptionMap(Enum):
-    """A mapping of input types to the description that will appear in the UI"""
-
-    string = "Please enter a string value:"
-    number = "Please enter a number value:"
-    boolean = "Please select or deselect the checkbox:"
-    file = "Please select a file to use as input:"
-    inputpath = "Please select an output from a parent:"
-    outputpath = None  # outputs are read-only and don't require a description
 
 
 @dataclass

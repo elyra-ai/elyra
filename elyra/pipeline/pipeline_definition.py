@@ -26,7 +26,6 @@ from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Undefined
 
-from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.component_parameter import ElyraProperty
@@ -345,7 +344,7 @@ class Node(AppDataBase):
         if component:
             # Properties that have the same ref (id) as Elyra-owned node properties
             # should be skipped during property propagation and conversion
-            self._elyra_owned_properties = [param.ref for param in component.get_elyra_parameters()]
+            self._elyra_owned_properties = [param.property_id for param in component.get_elyra_parameters()]
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
@@ -395,12 +394,8 @@ class Node(AppDataBase):
         Convert select node-level list properties to their corresponding dataclass
         object type. No validation is performed.
         """
-        # TODO
         for param_id in self.elyra_owned_properties:
             param_value = self.get_component_parameter(param_id)
-            if not param_value:
-                continue
-
             # If property has already been properly converted, skip conversion
             if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
                 continue
@@ -695,16 +690,16 @@ class PipelineDefinition(object):
         """
         loader = PackageLoader("elyra", package_name)
 
-        extra_params_custom = Component.get_parameters_for_component_type("custom", runtime_type)
-        extra_params_generic = Component.get_parameters_for_component_type("generic", runtime_type)
+        params_custom = ElyraProperty.get_classes_for_component_type("custom", runtime_type)
+        params_generic = ElyraProperty.get_classes_for_component_type("generic", runtime_type)
 
-        # Pare down generic list to only include those that don't also apply to custom components
-        custom_ids = [component.ref for component in extra_params_custom]
-        extra_params_generic = [component for component in extra_params_generic if component.ref not in custom_ids]
+        # Get intersection of parameter sets
+        params_both = params_custom & params_generic
 
         template_vars = {
-            "elyra_owned_parameters": extra_params_custom,
-            "elyra_owned_generic_parameters": extra_params_generic,
+            "elyra_owned_custom_parameters": params_both ^ params_custom,
+            "elyra_owned_generic_parameters": params_generic ^ params_both,
+            "elyra_owned_parameters": params_both,
             "render_parameter_details": ComponentParameter.render_parameter_details,
         }
         template_env = Environment(loader=loader, undefined=SilentUndefined)

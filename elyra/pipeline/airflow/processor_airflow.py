@@ -591,7 +591,7 @@ be fully qualified (i.e., prefixed with their package names).
             component = ComponentCache.instance().get_component(AirflowPipelineProcessor._type, operation.classifier)
 
         kubernetes_executor = {}
-        for prop_name in [param.ref for param in component.get_elyra_parameters()]:
+        for prop_name in [param.property_id for param in component.get_elyra_parameters()]:
             prop_value = getattr(operation, prop_name, None)
             if prop_value and isinstance(prop_value, ElyraPropertyList):
                 for value in prop_value:

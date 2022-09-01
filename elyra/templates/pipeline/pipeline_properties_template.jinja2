@@ -46,7 +46,7 @@
           }
         },
         {% for property in elyra_owned_parameters %}
-        "{{property.ref}}": {{ render_parameter_details(property) }},
+        "{{property.property_id}}": {{ property.get_schema()|tojson }},
         {% endfor %}
         "generic_node_defaults_header": {
           "type": "null",
@@ -57,11 +57,9 @@
             "ui:field": "header"
           }
         },
-        "runtime_image": {
-          "title": "Runtime image",
-          "description": "Container image used as execution environment.",
-          "type": "string"
-        },
+        {% for property in elyra_owned_generic_parameters %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }},
+        {% endfor %}
         "custom_node_defaults_header": {
           "type": "null",
           "title": "Custom Node Defaults",
@@ -71,13 +69,8 @@
             "ui:field": "header"
           }
         },
-        "disallow_cached_output": {
-          "type": "boolean",
-          "title": "Disallow cached output",
-          "description": "Disable caching to force node re-execution in the target runtime environment."
-        }
-        {% for property in elyra_owned_generic_parameters %}
-        "{{property.ref}}": {{ render_parameter_details(property) }}
+        {% for property in elyra_owned_custom_parameters %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
           {% if loop.index != loop|length %}
           ,
           {% endif %}

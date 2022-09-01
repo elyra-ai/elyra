@@ -15,6 +15,7 @@
 #
 from __future__ import annotations
 
+from enum import Enum
 from importlib import import_module
 import json
 import re
@@ -35,7 +36,7 @@ from kubernetes.client import (
     V1VolumeMount,
 )
 
-from elyra.pipeline.component import InputTypeDescriptionMap
+from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -51,14 +52,14 @@ class ElyraProperty:
     A component property that is defined and processed by Elyra.
     """
 
-    _property_map: Dict[str, type]
-
-    _property_id: str
+    property_id: str
     _display_name: str
     _json_data_type: str
     _generic: bool
     _custom: bool
     _required: bool = False
+
+    _property_map: Dict[str, type] = {}
 
     @classmethod
     def all_subclasses(cls):
@@ -66,19 +67,23 @@ class ElyraProperty:
         return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in c.all_subclasses()])
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> ElyraProperty | ElyraPropertyList | None:
+    def create_instance_from_raw_value(
+        cls, prop_id: str, prop_value: Optional[Any]
+    ) -> ElyraProperty | ElyraPropertyList | None:
         """Create an instance of a class with the given property id using the user-entered raw value."""
         if not cls._property_map:
-            cls._property_map = {sc._property_id: sc for sc in cls.all_subclasses() if hasattr(sc, "_property_id")}
+            cls._property_map = {sc.property_id: sc for sc in cls.all_subclasses() if hasattr(sc, "property_id")}
 
         subclass = cls._property_map.get(prop_id)
         if not subclass:
             return None
 
         if issubclass(subclass, ElyraPropertyListItem):
+            if not prop_value:
+                return None
             # Create instance for each list element and convert to ElyraPropertyList
-            return ElyraPropertyList([subclass.create_instance_from_raw_value(value) for value in prop_value])
-        return subclass.create_instance_from_raw_value(prop_value)
+            return ElyraPropertyList([subclass.create_instance_from_raw_value(prop_id, value) for value in prop_value])
+        return subclass.create_instance_from_raw_value(prop_id, prop_value)
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = ""):
@@ -87,16 +92,16 @@ class ElyraProperty:
         (e.g., custom or generic) and to the given runtime type.
         """
         runtime_subclass = cls
-        for subclass in cls.__subclasses__():
+        for subclass in runtime_subclass.__subclasses__():
             subclass_runtime_type = getattr(subclass, "_runtime_type", None)
             if subclass_runtime_type and subclass_runtime_type.name == runtime_type:
                 runtime_subclass = subclass
                 break
 
-        all_subclasses = []
+        all_subclasses = set()
         for subclass in runtime_subclass.all_subclasses():
             if getattr(subclass, f"_{component_type}", False):
-                all_subclasses.append(subclass)
+                all_subclasses.add(subclass)
         return all_subclasses
 
     @classmethod
@@ -142,18 +147,20 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
 
     image_name: str
 
-    _property_id = RUNTIME_IMAGE
+    property_id = RUNTIME_IMAGE
     _display_name = "Runtime Image"
     _json_data_type = "string"
     _generic = True
     _custom = False
     _required = True
 
+    __slots__ = ["image_name"]
+
     def __init__(self, **kwargs):
         self.image_name = kwargs.get("image_name", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> RuntimeImage:
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> RuntimeImage:
         """Create an instance of a class with the given property id using the user-entered raw value."""
         return getattr(import_module(cls.__module__), cls.__name__)(image_name=prop_value)
 
@@ -179,6 +186,45 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
                     "must conform to the format [registry/]owner/image:tag"
                 )
         return validation_errors
+
+    def add_to_container_op(self, container_op: ContainerOp) -> None:
+        """Add relevant property info to a given KFP ContainerOp"""
+        pass
+
+    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
+        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
+        pass
+
+
+class DisallowCachedOutput(KfpElyraProperty, AirflowElyraProperty):
+    """Disable caching to force node re-execution in the target runtime environment."""
+
+    selection: Optional[bool]
+
+    property_id = DISALLOW_CACHED_OUTPUT
+    _display_name = "Disallow cached output"
+    _json_data_type = "string"
+    _generic = False
+    _custom = True
+
+    __slots__ = ["selection"]
+
+    def __init__(self, **kwargs):
+        self.selection = kwargs.get("selection")
+
+    @classmethod
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> DisallowCachedOutput:
+        """Create an instance of a class with the given property id using the user-entered raw value."""
+        prop_value = bool(prop_value) if prop_value else prop_value  # convert to bool if applicable
+        return getattr(import_module(cls.__module__), cls.__name__)(selection=prop_value)
+
+    @classmethod
+    def get_schema(cls) -> Dict[str, Any]:
+        """Build the JSON schema for an Elyra-owned component property"""
+        schema = super().get_schema()
+        # schema["enum"] = ["Use runtime environment default", "True", "False"]
+        schema["enum"] = ["True", "False"]
+        return schema
 
     def add_to_container_op(self, container_op: ContainerOp) -> None:
         """Add relevant property info to a given KFP ContainerOp"""
@@ -238,7 +284,7 @@ class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraP
     env_var: str
     value: str
 
-    _property_id = ENV_VARIABLES
+    property_id = ENV_VARIABLES
     _display_name = "Environment Variables"
     _json_data_type = "array"
     _generic = True
@@ -246,12 +292,14 @@ class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraP
     _keys = ["env_var"]
     _ui_placeholder = "env_var=VALUE"
 
+    __slots__ = ["env_var", "value"]
+
     def __init__(self, **kwargs):
         self.env_var = kwargs.get("env_var", "").strip()
         self.value = kwargs.get("value", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> ElyraPropertyList[EnvironmentVariable]:
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> EnvironmentVariable:
         """Create an instance of a class with the given property id using the user-entered raw value."""
         env_var, value = (prop_value.split("=", 1) + [""] * 2)[:2]
         return getattr(import_module(cls.__module__), cls.__name__)(env_var=env_var, value=value)
@@ -299,7 +347,7 @@ class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProp
     name: str
     key: str
 
-    _property_id = KUBERNETES_SECRETS
+    property_id = KUBERNETES_SECRETS
     _display_name = "Kubernetes Secrets"
     _json_data_type = "array"
     _generic = True
@@ -307,13 +355,15 @@ class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProp
     _keys = ["env_var"]
     _ui_placeholder = "env_var=secret-name:secret-key"
 
+    __slots__ = ["env_var", "name", "key"]
+
     def __init__(self, **kwargs):
         self.env_var: str = kwargs.pop("env_var", "").strip()
         self.name = kwargs.pop("name", "").strip()
         self.key = kwargs.pop("key", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> ElyraPropertyList[KubernetesSecret]:
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> KubernetesSecret:
         """Create an instance of a class with the given property id using the user-entered raw value."""
         env_var, value = prop_value.split("=", 1)
         name, key = (value.split(":") + [""] * 2)[:2]
@@ -371,7 +421,7 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
     path: str
     pvc_name: str
 
-    _property_id = MOUNTED_VOLUMES
+    property_id = MOUNTED_VOLUMES
     _display_name = "Data Volumes"
     _json_data_type = "array"
     _generic = True
@@ -379,12 +429,14 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
     _keys = ["path"]
     _ui_placeholder = "/mount/path=pvc-name"
 
+    __slots__ = ["path", "pvc_name"]
+
     def __init__(self, **kwargs):
         self.path = f"/{kwargs.pop('path', '').strip('/')}"
         self.pvc_name = kwargs.pop("pvc_name", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> ElyraPropertyList[VolumeMount]:
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> VolumeMount:
         """Create an instance of a class with the given property id using the user-entered raw value."""
         path, pvc_name = (prop_value.split("=", 1) + [""] * 2)[:2]
         return getattr(import_module(cls.__module__), cls.__name__)(path=path, pvc_name=pvc_name)
@@ -410,7 +462,7 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
         )
         if volume not in container_op.volumes:
             container_op.add_volume(volume)
-        container_op.container.add_volume(V1VolumeMount(mount_path=self.path, name=self.pvc_name))
+        container_op.add_volume_mount(V1VolumeMount(mount_path=self.path, name=self.pvc_name))
 
     def add_to_executor_config(self, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
@@ -435,7 +487,7 @@ class KubernetesAnnotation(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
     key: str
     value: str
 
-    _property_id = KUBERNETES_POD_ANNOTATIONS
+    property_id = KUBERNETES_POD_ANNOTATIONS
     _display_name = "Kubernetes Pod Annotations"
     _json_data_type = "array"
     _generic = True
@@ -443,12 +495,14 @@ class KubernetesAnnotation(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
     _keys = ["key"]
     _ui_placeholder = "annotation_key=annotation_value"
 
+    __slots__ = ["key", "value"]
+
     def __init__(self, **kwargs):
         self.key = kwargs.pop("key", "").strip()
         self.value = kwargs.pop("value", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> ElyraPropertyList[KubernetesAnnotation]:
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> KubernetesAnnotation:
         """Create an instance of a class with the given property id using the user-entered raw value."""
         key, value = (prop_value.split("=", 1) + [""] * 2)[:2]
         return getattr(import_module(cls.__module__), cls.__name__)(key=key, value=value)
@@ -485,15 +539,17 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
     key: str
     operator: str
     value: Optional[str]
-    effect: str = "Exists"
+    effect: str
 
-    _property_id = KUBERNETES_TOLERATIONS
+    property_id = KUBERNETES_TOLERATIONS
     _display_name = "Kubernetes Tolerations"
     _json_data_type = "array"
     _generic = True
     _custom = True
     _keys = ["key", "operator", "value", "effect"]
     _ui_placeholder = "key:operator:value:effect"
+
+    __slots__ = ["key", "operator", "value", "effect"]
 
     def __init__(self, **kwargs):
         self.key = kwargs.pop("key", "").strip()
@@ -502,7 +558,7 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
         self.effect = kwargs.pop("effect", "Exists").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Any) -> ElyraPropertyList[KubernetesToleration]:
+    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> KubernetesToleration:
         """Create an instance of a class with the given property id using the user-entered raw value."""
         key, operator, value, effect = (prop_value.split(":") + [""] * 4)[:4]
         return getattr(import_module(cls.__module__), cls.__name__)(
@@ -769,9 +825,6 @@ class ComponentParameter(object):
 
         :returns: a string literal containing the JSON object to be rendered in the DAG
         """
-        if param.dataclass:
-            return json.dumps(param.dataclass.get_schema())
-
         json_dict = {"title": param.name, "description": param.description}
         if len(param.allowed_input_types) == 1:
             # Parameter only accepts a single type of input
@@ -835,3 +888,14 @@ class ComponentParameter(object):
             json_dict["oneOf"] = one_of
 
         return json.dumps(json_dict)
+
+
+class InputTypeDescriptionMap(Enum):
+    """A mapping of input types to the description that will appear in the UI"""
+
+    string = "Please enter a string value:"
+    number = "Please enter a number value:"
+    boolean = "Please select or deselect the checkbox:"
+    file = "Please select a file to use as input:"
+    inputpath = "Please select an output from a parent:"
+    outputpath = None  # outputs are read-only and don't require a description

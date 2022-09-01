@@ -22,6 +22,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline.component_parameter import DisallowCachedOutput
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
@@ -30,11 +31,13 @@ from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import RuntimeImage
 from elyra.pipeline.component_parameter import VolumeMount
+from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -113,8 +116,7 @@ class Operation(object):
 
         # If disabled, this operation is requested to be re-executed in the
         # target runtime environment, even if it was executed before.
-        param_disallow_cached_output = component_params.get(DISALLOW_CACHED_OUTPUT)
-        self._disallow_cached_output = param_disallow_cached_output
+        self._disallow_cached_output = self.get_elyra_owned_property(KUBERNETES_POD_ANNOTATIONS)
 
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
@@ -179,7 +181,8 @@ class Operation(object):
         Returns True if cached output may be used (instead of executing the op to produce it)
         Returns False if cached output must not be used (instead of executing the op to produce it)
         """
-        return self._disallow_cached_output
+        disallow_cache = self._component_params.get(DISALLOW_CACHED_OUTPUT)
+        return disallow_cache.selection if isinstance(disallow_cache, DisallowCachedOutput) else disallow_cache
 
     @property
     def inputs(self) -> Optional[List[str]]:
@@ -339,10 +342,8 @@ class GenericOperation(Operation):
 
     @property
     def runtime_image(self) -> str:
-        runtime_image = self._component_params.get("runtime_image")
-        if not isinstance(runtime_image, RuntimeImage):
-            return runtime_image
-        return runtime_image.image_name
+        runtime_image = self._component_params.get(RUNTIME_IMAGE)
+        return runtime_image.image_name if isinstance(runtime_image, RuntimeImage) else runtime_image
 
     @property
     def dependencies(self) -> Optional[List[str]]:

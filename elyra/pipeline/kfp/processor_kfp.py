@@ -661,7 +661,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
 
             # Process Elyra-owned properties as required for each type
-            for prop_name in [param.ref for param in component.get_elyra_parameters()]:
+            for prop_name in [param.property_id for param in component.get_elyra_parameters()]:
                 prop_value = getattr(operation, prop_name, None)
                 if prop_value and isinstance(prop_value, ElyraPropertyList):
                     for value in prop_value:
