@@ -20,7 +20,7 @@ limitations under the License.
 Elyra provides **Enhanced Script Support** where Python, R and Scala scripts can be edited and executed. It also leverages the **Hybrid Runtime Support** to enable running
 these scripts in remote environments.
 
-![Enhanced Python Support](../images/python-editor.gif)
+![Enhanced Python Support](../images/user_guide/enhanced-script-support/python-editor.gif)
 
 The execution of these scripts leverages the available Python, R and Scala based kernels. This enables users to run their scripts in different configurations and environments.
 
@@ -32,7 +32,7 @@ Elyra also allows submitting a Python and R scripts as a single node pipeline fo
 
 In the JupyterLab Launcher, click the `Python Editor` icon to create a new Python script and open the Python Editor.
 
-![Open Python Editor](../images/launcher-python-editor.png)
+![Open Python Editor](../images/user_guide/enhanced-script-support/launcher-python-editor.png)
 
 When used in conjunction with `Jupyter Enterprise Gateway`, the dropdown in the editor's toolbar will be populated with more kernel options,
 allowing users to run their scripts with remote kernels with more specialized resources.
@@ -59,7 +59,7 @@ Once a kernel with supporting debugger is selected, the debugger can be enabled 
 
 The user can set breakpoints from the editor's UI, and then click the `Run` button to execute the script. Visual markers will indicate where the current execution has hit a breakpoint.
 
-![Debugger usage](../images/debugger.gif)
+![Debugger usage](../images/user_guide/enhanced-script-support/debugger.gif)
 
 Since Elyra's Python debugging support is experimental, [here](https://github.com/elyra-ai/elyra/pull/2087) you can find a list of known issues.
 Before opening a bug report or enhancement suggestion for this feature in Elyra's repository, please also check [existing debugger issues open in JupyterLab](https://github.com/jupyterlab/jupyterlab/issues?q=is%3Aopen+is%3Aissue+label%3Apkg%3Adebugger).
@@ -69,13 +69,13 @@ Before opening a bug report or enhancement suggestion for this feature in Elyra'
 Solution:
 Open the `Running terminal and kernels` tab on the left side, find and select the relevant file path under `Kernels`, click the `x` button to shut down the kernel, then reload the page.
 
-![Manually restart the debugger service](../images/kernel-shutdown.png)
+![Manually restart the debugger service](../images/user_guide/enhanced-script-support/kernel-shutdown.png)
 
 ## R script execution support
 
 In the JupyterLab Launcher, click the `R Editor` icon to create a new R script and open the R Editor.
 
-![Open R Editor](../images/launcher-r-editor.png)
+![Open R Editor](../images/user_guide/enhanced-script-support/launcher-r-editor.png)
 
 To run your R script locally you will need to install an R kernel.
 
@@ -122,7 +122,7 @@ $ R -e install.packages("languageserver")
 
 In the JupyterLab Launcher, click the `Scala Editor` icon to create a new Scala script and open the Scala Editor.
 
-![Open Scala Editor](../images/launcher-scala-editor.png)
+![Open Scala Editor](../images/user_guide/enhanced-script-support/launcher-scala-editor.png)
 
 When used in conjunction with `Jupyter Enterprise Gateway`, the dropdown in the editor's toolbar will be populated with more kernel options,
 allowing users to run their scripts with remote kernels with more specialized resources.
@@ -135,7 +135,7 @@ Elyra allows the execution of Python and R script as a pipeline or batch job in 
 
 To run a Python or R script as a pipeline, open the script file and select `Run as Pipeline` button from the editor toolbar.
 
-![Run Python Script as pipeline](../images/submit-script.gif)
+![Run Python Script as pipeline](../images/user_guide/enhanced-script-support/submit-script.gif)
 
 To learn more about [runtime configurations](../user_guide/runtime-conf) and [runtime images](../user_guide/runtime-image-conf), follow those sections provided in the Elyra user guide documentation.
 
@@ -143,4 +143,4 @@ To learn more about [runtime configurations](../user_guide/runtime-conf) and [ru
 
 The Elyra Python Editor, R Editor and Scala Editor are based on the JupyterLab editor which is currently based on CodeMirror.
 
-![Python Editor and R Editor Components](../images/script-editor-components.png)
+![Python Editor and R Editor Components](../images/user_guide/enhanced-script-support/script-editor-components.png)

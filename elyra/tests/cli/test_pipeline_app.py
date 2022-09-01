@@ -883,8 +883,10 @@ def test_describe_custom_component_dependencies_json():
 # ------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_validate_with_kfp_components(jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance):
+@pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_validate_with_kfp_components(
+    jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance_no_server_process
+):
     runner = CliRunner()
     pipeline_file_path = Path(__file__).parent / "resources" / "pipelines" / "kfp_3_node_custom.pipeline"
     result = runner.invoke(
@@ -1066,8 +1068,10 @@ def test_export_incompatible_runtime_config(kubeflow_pipelines_runtime_instance,
     )
 
 
-@pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_export_kubeflow_output_option(jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance):
+@pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_export_kubeflow_output_option(
+    jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance_no_server_process
+):
     """Verify that the '--output' option works as expected for Kubeflow Pipelines"""
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -1217,8 +1221,10 @@ def test_export_airflow_output_option(airflow_runtime_instance):
         ), result.output
 
 
-@pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-def test_export_kubeflow_overwrite_option(jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance):
+@pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+def test_export_kubeflow_overwrite_option(
+    jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance_no_server_process
+):
     """Verify that the '--overwrite' option works as expected for Kubeflow Pipelines"""
     runner = CliRunner()
     with runner.isolated_filesystem():

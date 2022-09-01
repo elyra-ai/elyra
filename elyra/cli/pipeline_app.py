@@ -303,13 +303,10 @@ def validate(pipeline_path, runtime_config="local"):
     print_banner("Elyra Pipeline Validation")
 
     runtime = _get_runtime_schema_name(runtime_config)
-
-    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
-
-    pipeline_runtime_type = _get_pipeline_runtime_type(pipeline_definition)
-    if pipeline_runtime_type:
+    if runtime != "local":
         _build_component_cache()
 
+    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime=runtime, runtime_config=runtime_config)
     try:
         _validate_pipeline_definition(pipeline_definition)
     except Exception:
@@ -364,17 +361,13 @@ def submit(json_option, pipeline_path, runtime_config_name, monitor_option, time
     print_banner("Elyra Pipeline Submission")
 
     runtime_config = _get_runtime_config(runtime_config_name)
-
     runtime_schema = runtime_config.schema_name
+    if runtime_schema != "local":
+        _build_component_cache()
 
     pipeline_definition = _preprocess_pipeline(
         pipeline_path, runtime=runtime_schema, runtime_config=runtime_config_name
     )
-
-    pipeline_runtime_type = _get_pipeline_runtime_type(pipeline_definition)
-    if pipeline_runtime_type:
-        _build_component_cache()
-
     try:
         _validate_pipeline_definition(pipeline_definition)
     except Exception:
@@ -697,8 +690,10 @@ def export(pipeline_path, runtime_config, output, overwrite):
     print_banner("Elyra pipeline export")
 
     rtc = _get_runtime_config(runtime_config)
-    runtime_schema = rtc.schema_name
     runtime_type = rtc.metadata.get("runtime_type")
+    runtime_schema = rtc.schema_name
+    if runtime_schema != "local":
+        _build_component_cache()
 
     pipeline_definition = _preprocess_pipeline(pipeline_path, runtime=runtime_schema, runtime_config=runtime_config)
 
@@ -751,9 +746,6 @@ def export(pipeline_path, runtime_config, output, overwrite):
         raise click.ClickException(
             f"Output file '{str(output_file)}' exists and " "option '--overwrite' was not specified."
         )
-
-    if pipeline_runtime_type:
-        _build_component_cache()
 
     # validate the pipeline
     try:

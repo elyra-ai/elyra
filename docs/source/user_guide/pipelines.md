@@ -60,132 +60,210 @@ Note that it is not possible to convert a generic pipeline to a runtime-specific
 
 ### Creating pipelines using the Visual Pipeline Editor
 
-The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-step instructions for creating and running pipelines. To create a pipeline using the editor:
-
-1. Open the JupyterLab Launcher and select the desired pipeline editor type (Generic, Kubeflow Pipelines, or Apache Airflow).
+The [tutorials](/getting_started/tutorials.md) provide comprehensive step-by-step instructions for creating and running pipelines. To create a pipeline using the editor open the JupyterLab Launcher and select the desired pipeline editor type.
 
    ![Pipeline editor links in launcher](../images/user_guide/pipelines/editor-links.png)
 
+If you open an existing pipeline file from the JupyterLab File Browser the appropriate editor is launched.
+
 #### Defining pipeline properties
 
-1. Expand the properties panel and select the 'pipeline properties' tab.
+Pipelines include metadata, which is configurable in the "Pipeline Properties" panel.
+To access the panel click the "Open panel" button on the right side and select the "Pipeline Properties" tab.
 
-   ![Pipeline properties](../images/user_guide/pipelines/pipeline-properties.png)
+   ![Open the pipeline properties panel](../images/user_guide/pipelines/open-pipeline-properties.gif)
 
-   Pipeline properties include:
-      - An optional description, summarizing the pipeline purpose. 
-      - Properties that appy to every pipeline node (both generic and custom)
-         - **Data volumes**
-           - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component. 
-           - Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export.
-           - The referenced PVCs must exist in the Kubernetes namespace where the pipeline nodes are executed.
-           - Data volumes are not mounted when the pipeline is executed locally.
-         - **Kubernetes tolerations**
-           - A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the component is executed.
-           - Format: `TOL_ID=key:operator:value:effect`. Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of the values for `key`, `operator`, `value`, and `effect`. `TOL_ID` can be any unique identifier, such as `tol_1`. It's value is only used internally by Elyra.
-           - Tolerations are ignored when the pipeline is executed locally.
-         - **Kubernetes pod annotations** 
-           - A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
-           - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
-           - Annotations are ignored when the pipeline is executed locally.
+##### Generic node properties
 
-      - Properties that apply to every generic pipeline node. In this release the following properties are supported:
-        - **Object storage path prefix**. Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
-          ![artifacts default storage layout on object storage](../images/user_guide/pipelines/node-artifacts-on-object-storage.png)
+Generic node properties apply to all generic pipeline nodes. These properties cannot be customized for individual nodes.
 
-          Configure an object storage path prefix to store artifacts in a pipeline-specific location `/<path-prefix>/<pipeline-instance-name>`:
-          ![artifacts custom storage layout on object storage](../images/user_guide/pipelines/generic-node-artifacts-custom-layout.png)
+ **Object storage path prefix**
 
-      - Default values that apply to every pipeline node that is implemented by a [generic component](pipeline-components.html#generic-components). These values can be overridden for each node.
-         - **Runtime image** 
-           - Identifies the container image used to execute the Jupyter notebook or script. Select an image from the list or [add a new one](runtime-image-conf.md) that meets your requirements.
-           - The value is ignored when the pipeline is executed locally.
-         - **Environment variables**
-           - A list of environment variables to be set in the container that executes the Jupyter notebook or script. Format: `ENV_VAR_NAME=value`. Entries that are empty (`ENV_VAR_NAME=`) or malformed are ignored.
-         - **Kubernetes secrets**
-           - A list of [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. Entries with a secret name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) or with [an invalid secret key](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) will raise a validation error after pipeline submission or export.
-           - The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
-           - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
+Elyra stores pipeline input and output artifacts in a cloud object storage bucket. By default these artifacts are located in the `/<pipeline-instance-name>` path. The example below depicts the artifact location for several pipelines in the `pipeline-examples` bucket:
+   ![artifacts default storage layout on object storage](../images/user_guide/pipelines/node-artifacts-on-object-storage.png)
 
-      - Default values that apply to every pipeline node that is implemented by a [custom component](pipeline-components.html#custom-components). These values can be overridden for each node.
-         - **Disallow cached output**
-           - Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is, when given the same inputs, the generated output is different - re-using the output from previous executions might lead to unexpected results.
-           - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.
+   Configure an object storage path prefix to store artifacts in a pipeline-specific location `/<path-prefix>/<pipeline-instance-name>`:
+   ![artifacts custom storage layout on object storage](../images/user_guide/pipelines/generic-node-artifacts-custom-layout.png)
+
+##### Default node properties
+
+Each pipeline node is configured using properties. Default node properties are applied to all applicable nodes but can be customized for individual nodes, as outlined in section [_Configuring nodes_](#configuring-nodes). 
+
+**Default properties that apply to all nodes**
+
+ - [Data volumes](#data-volumes)
+ - [Kubernetes tolerations](#kubernetes-tolerations)
+ - [Kubernetes pod annotations](#kubernetes-pod-annotations)
+
+**Default properties that apply only to generic nodes**
+
+ - [Runtime image](#runtime-image)
+ - [Environment variables](#environment-variables)
+ - [Kubernetes secrets](#kubernetes-secrets)
+
+**Default properties that apply only to custom nodes**
+
+ - [Disallow cached output](#disallow-cached-output)
 
 #### Adding nodes
 
-1. Drag and drop components from the palette onto the canvas or double click on a palette entry.
-
-   ![Add components from palette](../images/user_guide/pipelines/add-components-from-palette.gif)
-
-   You can also drag and drop Jupyter notebooks, Python scripts, or R scripts from the JupyterLab _File Browser_ onto the canvas.
+Generic nodes are added to a pipeline by dragging notebooks or scripts from the JupyterLab File Browser onto the canvas. 
 
    ![Add generic components from file browser](../images/user_guide/pipelines/add-components-from-file-browser.gif)
 
-2. Define the dependencies between nodes by connecting them, essentially creating an execution graph.
+Generic nodes can also be added from the palette.
 
-   ![Connect nodes](../images/user_guide/pipelines/connect-nodes.gif)
+   ![Add components from palette](../images/user_guide/pipelines/add-components-from-palette.gif)
 
-3. Define the runtime properties for each node. Highlight a node, right click, and select `Open Properties`. Runtime properties configure a component and govern its execution behavior.
+Custom nodes can only be added from the palette. Refer to [_Managing pipeline components_](pipeline-components.html#managing-pipeline-components) for details on how to add custom components to the pipeline editor.
 
-   ![Configure node](../images/user_guide/pipelines/configure-node.gif)
+#### Configuring nodes
 
-   Runtime properties are component specific. For [generic components](pipeline-components.html#generic-components) (Jupyter notebook, Python script, and R script) the properties are defined as follows:
+Most nodes need to be configured before they can be used. To access the node properties
+highlight the node and choose _Open Properties_ from the context menu. 
 
-   **Runtime Image**
-   - Required. The container image you want to use to run the notebook or script.
-   - The value is ignored when the pipeline is executed locally. 
-   - A default runtime image can also be set in the pipeline properties tab. If a default image is set, the **Runtime Image** property in the node properties tab will indicate that a pipeline default is set. Individual nodes can override the pipeline default value. 
-   - Example: `TensorFlow 2.0`
+   ![Access node properties](../images/user_guide/pipelines/configure-node.gif)
 
-   **CPU, GPU, and RAM**
-   - Optional. Resources that the notebook or script requires.
-   - The values are ignored when the pipeline is executed locally. 
+Tip: You can configure the pipeline editor to open the node properties using double click. To change the default behavior:
+ - Open the advanced settings editor ("Settings" > "Advanced Settings Editor")
+ - Search for "elyra pipeline editor"
+ - Enable option "Double-click on pipeline node opens properties"
 
-   **File Dependencies**
-   - Optional. A list of files to be passed from the local working environment into each respective step of the pipeline. Files should be in the same directory (or subdirectory thereof) as the file it is associated with. Specify one file, directory, or expression per line. Supported patterns are `*` and `?`. 
-   - Example: `dependent-script.py`
+You can also use the shortcut to the pipeline editor settings that's displayed on the empty editor canvas.
 
-   **Environment Variables**
-   - Optional. A list of environment variables to be set inside in the container.  Specify one variable/value pair per line, separated by `=`.
-   - A set of default environment variables can also be set in the pipeline properties tab. If any default environment variables are set, the **Environment Variables** property in the node properties tab will include these variables and their values with a note that each is a pipeline default. Pipeline default environment variables are not editable from the node properties tab. Individual nodes can override a pipeline default value for a given variable by re-defining the variable/value pair in its own node properties. 
-   - Example: `TOKEN=value`
+ ![Access pipeline editor settings from canvas](../images/user_guide/pipelines/shortcut-to-pipeline-editor-settings.png)
 
-   **Output Files**
-   - Optional. A list of files generated by the notebook inside the image to be passed as inputs to the next step of the pipeline.  Specify one file, directory, or expression per line. Supported patterns are `*` and `?`.
-   - Example: `data/*.csv`
+Pipeline editor configuration settings vary by release.
 
-   **Kubernetes Secrets**
-   - Optional. A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. Entries with a secret name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) or with [an invalid secret key](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) will raise a validation error after pipeline submission or export. The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
-   - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
-   - Example: `ENV_VAR=secret-name:secret-key`
-   
-   Both generic and certain [custom components](pipeline-components.html#custom-components) support the following properties:
+##### Configuring common node properties
 
-   **Data Volumes**
-   - Optional. A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component and allows for data exchange between components. Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export. The referenced PVCs must exist in the Kubernetes namespace where the node is executed. Note that only certain Apache Airflow operators are capable of supporting volumes in the manner explained here.
-   - Data volumes are not mounted when the pipeline is executed locally.   
-   - Example: `/mnt/vol1=data-pvc`
+Generic nodes and custom nodes share common properties but also include properties that are specific to the component that implements the node. Shared properties include:
+   - [Label](#label)
 
-   **Kubernetes Tolerations**
-   - Optional. A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the component is executed.
-   - Format: `TOL_ID=key:operator:value:effect`. Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of the values for `key`, `operator`, `value`, and `effect`.
-   - Tolerations are ignored when the pipeline is executed locally.
-   - Example: `TOL_1=my-key:Exists::NoExecute` 
+##### Configuring generic nodes
 
-   **Kubernetes Pod Annotations** 
-   - Optional. A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
-   - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
-   - Annotations are ignored when the pipeline is executed locally.
-  
-5. Associate each node with a comment to document its purpose.
+Nodes that are implemented using [generic components](pipeline-components.html#generic-components) are configurable using these properties:
+
+   - [Filename](#filename)
+   - [Runtime image](#runtime-image)
+   - [Resources (CPU, GPU, and RAM)](#resources-cpu-gpu-and-ram) 
+   - [File dependencies](#file-dependencies)
+   - [Include subdirectories](#file-dependencies)
+   - [Environment variables](l#environment-variables)
+   - [Kubernetes secrets](#kubernetes-secrets)
+   - [Output files](#output-files)
+   - [Data volumes](#data-volumes)
+   - [Kubernetes tolerations](#kubernetes-tolerations)
+   - [Kubernetes pod annotations](#kubernetes-pod-annotations)
+
+##### Configuring custom nodes
+
+Nodes that are implemented using [custom components](pipeline-components.html#custom-components) are configured using these properties:
+
+   - [Data volumes](#data-volumes)
+   - [Kubernetes tolerations](#kubernetes-tolerations)
+   - [Kubernetes pod annotations](#kubernetes-pod-annotations)
+   - [Disallow cached output](#disallow-cached-output)
+
+#### Defining dependencies between nodes
+
+Dependencies between nodes are defined by connecting them, essentially creating an execution graph.
+
+   ![Connecting two nodes](../images/user_guide/pipelines/connect-nodes.gif)
+
+In the example above node labeled "notebook A" is referred to as upstream node, because its output port is connected to the input port of the other node. Node "notebook B" is a downstream node. If "notebook A" declares any output its downstream nodes have access to the output.
+
+The following rules are applied:
+ - If two nodes are connected the upstream node is executed first. The upstream node is the node who's output port is directly or indirectly connected to the input port of the other node.
+ - If nodes are not directly or indirectly connected, they will be executed in any order. If supported by the runtime environment, execution might be performed in parallel.
+ - If node execution fails pipeline execution is aborted.
+
+In the following example nodes "notebook A", "notebook B", "notebook C", "notebook D", and "notebook E" are assumed to be implemented using generic components. However, the same rules apply to custom components.
+
+   ![Node graph example](../images/user_guide/pipelines/node-graph-example.png)
+
+   - "notebook A" and "notebook E" are not dependent on each other and can be executed in any order
+   - "notebook B" and "notebook C" are executed only after "notebook A" was successfully executed
+   - "notebook B" and "notebook C" are executed in any order
+   - "notebook C" has access to the outputs of it's upstream node "notebook A", but not to the outputs "notebook B" has declared, because "notebook B" is not an upstream node
+   - "notebook D" is executed after "notebook B" and "notebook C"
+   - "notebook D" has access to the outputs of it's upstream nodes "notebook A", "notebook B", and "notebook C"   
+   - "notebook E" does not have access to outputs that "notebook A", "notebook B", "notebook C", or "notebook D" have declared  
+
+#### Adding node documentation
+
+Each pipeline node can be associated with comments to describe its purpose.
 
    ![Add comment to node](../images/user_guide/pipelines/add-comment-to-node.gif)
 
-6. Save the pipeline file.
 
-Note: You can rename the pipeline file in the JupyterLab _File Browser_.
+#### Node properties reference
 
+The following alphabetically sorted list identifies the node properties that are supported in this Elyra release. 
+
+##### Data volumes
+   - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component. 
+   - Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export.
+   - The referenced PVCs must exist in the Kubernetes namespace where the pipeline nodes are executed.
+   - Data volumes are not mounted when the pipeline is executed locally.
+
+##### Disallow cached output
+   - Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is, when given the same inputs, the generated output is different - re-using the output from previous executions might lead to unexpected results.
+   - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.
+
+##### Environment Variables
+   - This property applies only to generic components.
+   - A list of environment variables to be set inside in the container.  Specify one variable/value pair per line, separated by `=`.
+   - A set of default environment variables can also be set in the pipeline properties tab. If any default environment variables are set, the **Environment Variables** property in the node properties tab will include these variables and their values with a note that each is a pipeline default. Pipeline default environment variables are not editable from the node properties tab. Individual nodes can override a pipeline default value for a given variable by re-defining the variable/value pair in its own node properties. 
+   - Example: `TOKEN=value`
+
+##### File Dependencies
+   - This property applies only to generic components.
+   - A list of files to be passed from the local working environment into each respective step of the pipeline. Files should be in the same directory (or subdirectory thereof) as the file it is associated with. Specify one file, directory, or expression per line. Supported patterns are `*` and `?`.
+   - If the specified file dependencies reference one or more directories and the 'Include subdirectories' option is enabled, Elyra will include files that are stored in the specified locations.  
+   - Example: `dependent-script.py`
+
+##### Filename
+   - This property applies only to generic components.
+   - The filename identifies a Jupyter notebook a script that is stored in the filesystem where JupyterLab is running.
+   - Format: `path/to/supported/file.type`
+
+##### Kubernetes Pod Annotations
+   - A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
+   - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
+   - Annotations are ignored when the pipeline is executed locally.
+   - Example: `project=abandoned basket analysis`  
+
+##### Kubernetes Secrets
+   - A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. Entries with a secret name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) or with [an invalid secret key](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) will raise a validation error after pipeline submission or export. The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+   - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
+   - Example: `ENV_VAR=secret-name:secret-key`
+
+##### Kubernetes Tolerations
+   - A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the component is executed.
+   - Format: `TOL_ID=key:operator:value:effect`. Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of the values for `key`, `operator`, `value`, and `effect`.
+   - Tolerations are ignored when the pipeline is executed locally.
+   - Example: `TOL_1=my-key:Exists::NoExecute`
+
+##### Label
+   - Specify a label to replace the default node name. For generic components the default label is the file name. For custom components the default name is the component name.
+   - Example: `analyze data`
+
+##### Output Files
+   - A list of files generated by the notebook inside the image to be passed as inputs to the next step of the pipeline.  Specify one file, directory, or expression per line. Supported patterns are `*` and `?`.
+   - Example: `data/*.csv`
+
+##### Resources: CPU, GPU, and RAM
+   - Resources that the notebook or script requires.
+   - The values are ignored when the pipeline is executed locally. 
+
+##### Runtime image
+
+   - The container image you want to use to run the notebook or script.
+   - The value is ignored when the pipeline is executed locally. 
+   - A default runtime image can also be set in the pipeline properties tab. If a default image is set, the **Runtime Image** property in the node properties tab will indicate that a pipeline default is set. Individual nodes can override the pipeline default value. 
+   - Example: `TensorFlow 2.0`
+ 
 ### Running pipelines
 
 Pipelines can be run from the Visual Pipeline Editor and the `elyra-pipeline` command line interface. Before you can run a pipeline on Kubeflow Pipelines or Apache Airflow you must create a [`runtime configuration`](runtime-conf.md). A runtime configuration contains information about the target environment, such as server URL and credentials.
