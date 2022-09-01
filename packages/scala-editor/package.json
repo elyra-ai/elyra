@@ -1,6 +1,6 @@
 {
   "name": "@elyra/scala-editor-extension",
-  "version": "3.11.1",
+  "version": "3.11.2-dev",
   "description": "JupyterLab extension - Run scala code using a kernel runtime",
   "keywords": [
     "jupyter",
@@ -41,8 +41,8 @@
     "lab:uninstall": "jupyter labextension uninstall --no-build"
   },
   "dependencies": {
-    "@elyra/script-editor": "3.11.1",
-    "@elyra/ui-components": "3.11.1",
+    "@elyra/script-editor": "3.11.2-dev",
+    "@elyra/ui-components": "3.11.2-dev",
     "@jupyterlab/application": "^3.4.0",
     "@jupyterlab/apputils": "^3.4.0",
     "@jupyterlab/builder": "^3.4.0",
