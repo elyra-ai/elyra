@@ -106,10 +106,8 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
     );
   });
 
-  if (type !== 'invald') {
-    cy.findByRole('tab', { name: /component catalogs/i }).click();
-    cy.findByRole('button', { name: /create new component catalog/i }).click();
-  }
+  cy.findByRole('tab', { name: /component catalogs/i }).click();
+  cy.findByRole('button', { name: /create new component catalog/i }).click();
 
   if (type === 'kfp') {
     cy.findByRole('menuitem', {
