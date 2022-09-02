@@ -603,18 +603,17 @@ describe('Pipeline Editor tests', () => {
 
   //error dialog tests
   it('saving airflow runtime config should error if required fields are missing', () => {
-  
     cy.savePipeline();
 
     cy.createRuntimeConfig({ type: 'invalid' });
     cy.get('.jp-Dialog-header').contains('Error making request');
-  
+
     // Dismiss dialog
     cy.findByRole('button', { name: /ok/i }).click();
   });
 
   it('exporting airflow pipeline with invalid runtime should give error', () => {
-    cy.createPipeline({type: 'airflow'});
+    cy.createPipeline({ type: 'airflow' });
     cy.savePipeline();
 
     cy.installRuntimeConfig({ type: 'airflow' });
@@ -630,7 +629,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('exporting kubeflow pipeline with invalid runtime should give error', () => {
-    cy.createPipeline({type: 'kfp'});
+    cy.createPipeline({ type: 'kfp' });
     cy.savePipeline();
 
     cy.installRuntimeConfig({ type: 'kfp' });
@@ -644,7 +643,6 @@ describe('Pipeline Editor tests', () => {
     // Dismiss dialog
     cy.findByRole('button', { name: /ok/i }).click();
   });
-
 
   it('generic pipeline should display expected export options', () => {
     cy.createPipeline();

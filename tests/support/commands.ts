@@ -43,14 +43,11 @@ Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
   --cos_password=minioadmin \
   --cos_bucket=test-bucket';
 
- 
   cy.exec(
     type === 'kfp' ? kfpRuntimeInstallCommand : airflowRuntimeInstallCommand,
     { failOnNonZeroExit: false }
   );
 });
-
-
 
 // Only used for testing filling out form for runtime metadata editor
 Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
@@ -85,11 +82,11 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
 
   cy.findByLabelText(/object storage endpoint/i).type('http://0.0.0.0:9000');
 
-  if(type !== 'invald') {
-  cy.findByLabelText(/object storage username/i).type('minioadmin');
-  cy.findByLabelText(/object storage password/i).type('minioadmin');
+  if (type !== 'invald') {
+    cy.findByLabelText(/object storage username/i).type('minioadmin');
+    cy.findByLabelText(/object storage password/i).type('minioadmin');
   }
-  
+
   cy.findByLabelText(/object storage bucket/i).type('test-bucket');
 
   // save it
@@ -109,9 +106,9 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
     );
   });
 
-  if(type !== 'invald') {
-  cy.findByRole('tab', { name: /component catalogs/i }).click();
-  cy.findByRole('button', { name: /create new component catalog/i }).click();
+  if (type !== 'invald') {
+    cy.findByRole('tab', { name: /component catalogs/i }).click();
+    cy.findByRole('button', { name: /create new component catalog/i }).click();
   }
 
   if (type === 'kfp') {
