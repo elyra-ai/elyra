@@ -541,7 +541,7 @@ describe('Pipeline Editor tests', () => {
 
       cy.findByRole('menuitem', { name: /properties/i }).click();
 
-      cy.findByText('TEST_ENV_1=1').should('exist');
+      cy.get('input[value="TEST_ENV_1=1"]').should('exist');
 
       cy.findByText('helloworld.py').click();
 
@@ -552,16 +552,16 @@ describe('Pipeline Editor tests', () => {
         );
       });
 
-      cy.findByText('BAD=two').should('exist');
+      cy.get('input[value="BAD=two"]').should('exist');
 
       cy.findByText('helloworld.ipynb').click();
 
-      cy.findByText('TEST_ENV_1=1').should('exist');
-      cy.findByText('BAD=two').should('not.exist');
+      cy.get('input[value="TEST_ENV_1=1"]').should('exist');
+      cy.get('input[value="BAD=two"]').should('not.exist');
 
       cy.findByText('helloworld.py').click();
 
-      cy.findByText('BAD=two').should('exist');
+      cy.get('input[value="BAD=two"]').should('exist');
     });
   });
 
