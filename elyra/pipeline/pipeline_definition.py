@@ -19,19 +19,28 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
 
-from jinja2 import Environment, Undefined
+from jinja2 import Environment
 from jinja2 import PackageLoader
+from jinja2 import Undefined
 
+from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import VolumeMount
+from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
 class AppDataBase(object):  # ABC
@@ -216,7 +225,7 @@ class Pipeline(AppDataBase):
 
         self._node["app_data"]["properties"][key] = value
 
-    def convert_kv_properties(self, kv_properties: List[str]):
+    def convert_kv_properties(self, kv_properties: Set[str]):
         """
         Convert pipeline defaults-level list properties that have been identified
         as sets of key-value pairs from a plain list type to the KeyValueList type.
@@ -236,6 +245,7 @@ class Pipeline(AppDataBase):
 class Node(AppDataBase):
     def __init__(self, node: Dict):
         super().__init__(node)
+        self._elyra_properties_to_skip = set()
 
     @property
     def type(self) -> str:
@@ -297,6 +307,39 @@ class Node(AppDataBase):
             return self._node["app_data"].get("component_source", None)
         return None
 
+    @property
+    def elyra_properties_to_skip(self) -> Set[str]:
+        """
+        Elyra-defined node properties whose processing should be skipped
+        on the basis that their id collides with a property defined in
+        the component definition for this Node.
+        """
+        return self._elyra_properties_to_skip
+
+    def set_elyra_properties_to_skip(self, runtime_type_name: Optional[str]) -> None:
+        """
+        Determine which Elyra-defined node-level properties to skip
+        on the basis that their id collides with a property defined in
+        the component definition for this Node. Then, set the node
+        property accordingly.
+        """
+        if Operation.is_generic_operation(self.op):
+            # Generic operations will never have any collisions as all their properties are Elyra-owned
+            return
+
+        if not runtime_type_name:
+            return
+
+        runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_name)
+        component = ComponentCache.instance().get_component(runtime_type, self.op)
+        if not component:
+            return
+
+        # Properties that have the same ref (id) as Elyra-owned node properties
+        # should be skipped during property propagation and conversion
+        properties_to_skip = [prop.ref for prop in component.properties if prop.ref in ELYRA_COMPONENT_PROPERTIES]
+        self._elyra_properties_to_skip = set(properties_to_skip)
+
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
         Retrieve component parameter values.
@@ -305,7 +348,7 @@ class Node(AppDataBase):
         :param default_value: a default value in case the key is not found
         :return: the value or the default value if the key is not found
         """
-        value = self._node["app_data"]["component_parameters"].get(key, default_value)
+        value = self._node["app_data"].get("component_parameters", {}).get(key, default_value)
         return None if value == "None" else value
 
     def set_component_parameter(self, key: str, value: Any):
@@ -321,7 +364,10 @@ class Node(AppDataBase):
         if value is None:
             raise ValueError("Value is required")
 
-        self._node["app_data"]["component_parameters"][key] = value
+        if key not in self.elyra_properties_to_skip:
+            # This parameter has been parsed from a custom component definition and
+            # its value should not be manually set
+            self._node["app_data"]["component_parameters"][key] = value
 
     def get_all_component_parameters(self) -> Dict[str, Any]:
         """
@@ -329,7 +375,7 @@ class Node(AppDataBase):
         """
         return self._node["app_data"]["component_parameters"]
 
-    def convert_kv_properties(self, kv_properties: List[str]):
+    def convert_kv_properties(self, kv_properties: Set[str]):
         """
         Convert node-level list properties that have been identified as sets of
         key-value pairs from a plain list type to the KeyValueList type. If any
@@ -338,7 +384,7 @@ class Node(AppDataBase):
         """
         for kv_property in kv_properties:
             value = self.get_component_parameter(kv_property)
-            if not value:
+            if not value or not isinstance(value, list):  # not list or KeyValueList
                 continue
 
             if isinstance(value, KeyValueList) or not isinstance(value[0], str):
@@ -391,6 +437,29 @@ class Node(AppDataBase):
                 secret_objects.append(KubernetesSecret(env_var_name, secret_name.strip(), secret_key))
 
             self.set_component_parameter(KUBERNETES_SECRETS, secret_objects)
+
+        kubernetes_tolerations = self.get_component_parameter(KUBERNETES_TOLERATIONS)
+        if kubernetes_tolerations and isinstance(kubernetes_tolerations, KeyValueList):
+            tolerations_objects = []
+            for toleration, toleration_definition in kubernetes_tolerations.to_dict().items():
+                # A definition comprises of "<key>:<operator>:<value>:<effect>"
+                parts = toleration_definition.split(":")
+                key, operator, value, effect = (parts + [""] * 4)[:4]
+                # Create a KubernetesToleration class instance and add to list
+                # Note that the instance might be invalid.
+                tolerations_objects.append(KubernetesToleration(key, operator, value, effect))
+
+            self.set_component_parameter(KUBERNETES_TOLERATIONS, tolerations_objects)
+
+        kubernetes_pod_annotations = self.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
+        if kubernetes_pod_annotations and isinstance(kubernetes_pod_annotations, KeyValueList):
+            annotations_objects = []
+            for annotation_key, annotation_value in kubernetes_pod_annotations.to_dict().items():
+                # Validation should have verified that the provided values are valid
+                # Create a KubernetesAnnotation class instance and add to list
+                annotations_objects.append(KubernetesAnnotation(annotation_key, annotation_value))
+
+            self.set_component_parameter(KUBERNETES_POD_ANNOTATIONS, annotations_objects)
 
 
 class PipelineDefinition(object):
@@ -571,14 +640,18 @@ class PipelineDefinition(object):
 
         pipeline_default_properties = self.primary_pipeline.get_property(PIPELINE_DEFAULTS, {})
         for node in self.pipeline_nodes:
-            if not Operation.is_generic_operation(node.op):
-                continue
+            # Determine which Elyra-owned properties collide with parsed properties (and therefore must be skipped)
+            node.set_elyra_properties_to_skip(self.primary_pipeline.type)
 
             # Convert any key-value list node properties to the KeyValueList type if not done already
             node.convert_kv_properties(kv_properties)
 
             for property_name, pipeline_default_value in pipeline_default_properties.items():
                 if not pipeline_default_value:
+                    continue
+
+                if not Operation.is_generic_operation(node.op) and property_name not in ELYRA_COMPONENT_PROPERTIES:
+                    # Do not propagate default properties that do not apply to custom components, e.g. runtime image
                     continue
 
                 node_value = node.get_component_parameter(property_name)
@@ -686,7 +759,7 @@ class PipelineDefinition(object):
         return json.loads(output)
 
     @staticmethod
-    def get_kv_properties() -> List[str]:
+    def get_kv_properties() -> Set[str]:
         """
         Get pipeline properties in its canvas form and loop through to
         find those that should consist of key/value pairs, as given in
@@ -696,14 +769,14 @@ class PipelineDefinition(object):
             package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
         )
 
-        kv_properties = []
+        kv_properties = set()
         parameter_info = canvas_pipeline_properties.get("uihints", {}).get("parameter_info", [])
         for parameter in parameter_info:
             if parameter.get("data", {}).get("keyValueEntries", False):
                 parameter_ref = parameter.get("parameter_ref", "")
                 if parameter_ref.startswith("elyra_"):
                     parameter_ref = parameter_ref.replace("elyra_", "")
-                kv_properties.append(parameter_ref)
+                kv_properties.add(parameter_ref)
 
         return kv_properties
 

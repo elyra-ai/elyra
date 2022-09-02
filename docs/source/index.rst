@@ -36,6 +36,7 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    getting_started/tutorials.md
    getting_started/getting-help.md
    getting_started/changelog.md
+   getting_started/troubleshooting.md
 
 .. toctree::
    :maxdepth: 1
@@ -77,5 +78,5 @@ Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
    developer_guide/pipelines.md
    developer_guide/pipeline-component-connectors.md
    developer_guide/trackers.md
-   developer_guide/troubleshooting.md
    developer_guide/release.md
+   developer_guide/refresh-elyra-on-odh.md

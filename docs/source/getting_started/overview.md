@@ -47,7 +47,7 @@ Currently, pipelines can be executed locally in JupyterLab, on
 [**Kubeflow Pipelines**](https://www.kubeflow.org/docs/pipelines/overview/pipelines-overview/), or with
 [**Apache Airflow**](https://airflow.apache.org/docs/apache-airflow/stable/index.html).
 
-![Pipeline Editor](../images/pipeline-in-editor.png)
+![Pipeline Editor](../images/getting_started/overview/pipeline-in-editor.png)
 
 Learn more about the Pipeline Visual Editor in the [AI Pipelines topic](/user_guide/pipelines.md) in the User Guide,  explore the [tutorials](/getting_started/tutorials.md), or [example pipelines](https://github.com/elyra-ai/examples#aiml-pipelines).
 
@@ -59,7 +59,7 @@ Elyra extends the Jupyter Notebook UI to allow for execution of a notebook as a 
 
 To run a notebook as a batch job open the notebook and select `Run as Pipeline` button from the menu bar.
 
-![Run notebook as pipeline](../images/run-notebook-as-pipeline.gif)
+![Run notebook as pipeline](../images/getting_started/overview/run-notebook-as-pipeline.gif)
 
 Similarly, to submit a Python  or R script as a batch job, open a the script file and select `Run as Pipeline` button from the editor toolbar.
 
@@ -67,7 +67,7 @@ Similarly, to submit a Python  or R script as a batch job, open a the script fil
 
 The Code Snippet editor introduces support for reusable code fragments, making programming in JupyterLab more efficient by reducing repetitive work.
 
-![Code Snippets](../images/code-snippet-expanded.png)
+![Code Snippets](../images/getting_started/overview/code-snippet-expanded.png)
 
 For information on how to manage and use code snippets refer to the [_Code Snippets_ topic](../user_guide/code-snippets) in the User Guide.
 
@@ -89,10 +89,11 @@ Refer to the
 Elyra contributes a Script editor with support for Python and R files, which can take advantage of the
 **Hybrid Runtime Support** enabling users to locally edit scripts and execute
 them against local or cloud-based resources seamlessly.
+Elyra Script editors are now integrated with JupyterLab's debugger feature, allowing scripts to be easily debugged within the editors' UI. For the debugger to be enabled and visible in the editor's toolbar, a kernel with support for debugging is required.
 
-![Enhanced Python Support](../images/python-editor.png)
+![Enhanced Python Support](../images/getting_started/overview/python-editor.png)
 
-For information on how to use the Script editor refer to the [_Enhanced Script Support_ topic](../user_guide/enhanced-script-support) in the User Guide.
+For information on how to use the Script editor and the debugger requirements refer to the [_Enhanced Script Support_ topic](../user_guide/enhanced-script-support) in the User Guide.
 
 The Script editor feature can optionally be [installed as a stand-alone extension](installation).
 
@@ -103,13 +104,13 @@ a Table of Contents providing enhanced navigation capabilities.
 
 To access the Table of Contents, open a notebook and select the _Table of Contents_ tab from the sidebar.
 
-![Notebook Table of Contents](../images/notebook-toc.png)
+![Notebook Table of Contents](../images/getting_started/overview/notebook-toc.png)
 
 #### Language Server Protocol integration
 
 The [JupyterLab Language Server Protocol (LSP) integration](https://github.com/krassowski/jupyterlab-lsp) enhances the development experience in the notebook editor and file editors, delivering features common in IDEs such as autocompletion, code navigation, hover suggestions, code linting, and renaming.
 
-![LSP Integration](../images/lsp.gif)
+![LSP Integration](../images/getting_started/overview/lsp.gif)
 
 By default, Elyra installs the [Python Language Server package](https://pypi.org/project/python-lsp-server/), enabling the productivity features in the notebook editor and the Python editor. Support for other languages can be added by manually installing additional Language Server packages and their prerequisites.
 
@@ -121,6 +122,6 @@ To learn more about the `jupyterlab-lsp` extension and its features check out th
 
 With the integrated Git version control support users can clone Git repositories, track and manage changes (e.g. by comparing, committing, or discarding them) and share among team members - fostering productivity by enabling a collaborative working environment.
 
-![Git Integration](../images/git.png)
+![Git Integration](../images/getting_started/overview/git.png)
 
 To learn more about the git extension or how to install it individually refer to the [jupyterlab-git repository](https://github.com/jupyterlab/jupyterlab-git).

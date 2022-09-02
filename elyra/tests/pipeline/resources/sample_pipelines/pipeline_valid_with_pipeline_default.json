@@ -9,7 +9,7 @@
       "id": "primary",
       "nodes": [
         {
-          "id": "{{uuid}}",
+          "id": "{{uuid-Notebook}}",
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
@@ -28,11 +28,60 @@
               "description": "Notebook file"
             }
           }
+        },
+        {
+          "id": "{{uuid-TestOperator1}}",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "mounted_volumes": "a component-parsed property"
+            },
+            "component_source": "{{component_source}}",
+            "ui_data": {
+              "label": "{{label}}",
+              "description": "A test operator"
+            }
+          }
+        },
+        {
+          "id": "{{uuid-DeriveFromTestOperator1}}",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:DeriveFromTestOperator",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "mounted_volumes": ["/mnt/vol1=pvc-claim-1"]
+            },
+            "component_source": "{{component_source}}",
+            "ui_data": {
+              "label": "{{label}}",
+              "description": "An operator that derives from TestOperator"
+            }
+          }
+        },
+        {
+          "id": "{{uuid-DeriveFromTestOperator2}}",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:DeriveFromTestOperator",
+          "app_data": {
+            "label": "{{label}}",
+            "component_parameters": {
+              "mounted_volumes": []
+            },
+            "component_source": "{{component_source}}",
+            "ui_data": {
+              "label": "{{label}}",
+              "description": "An operator that derives from TestOperator"
+            }
+          }
         }
       ],
       "app_data": {
         "runtime": "{{runtime}}",
         "runtime_config": "{{runtime-config}}",
+        "runtime_type": "APACHE_AIRFLOW",
         "ui_data": {
           "comments": []
         },
@@ -45,7 +94,8 @@
               "var1=var_one  ",
               "var2=var2",
               "var3  =var_three"
-            ]
+            ],
+            "mounted_volumes": ["/mnt/vol2=pvc-claim-2"]
           },
           "runtime": "{{runtime description}}"
         },

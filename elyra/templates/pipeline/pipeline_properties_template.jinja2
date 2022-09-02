@@ -7,7 +7,10 @@
     "elyra_runtime_image": null,
     "elyra_env_vars": [],
     "elyra_kubernetes_secrets": [],
-    "elyra_mounted_volumes": []
+    "elyra_kubernetes_tolerations": [],
+    "elyra_mounted_volumes": [],
+    "elyra_kubernetes_pod_annotations": [],
+    "elyra_disallow_cached_output": null
   },
   "parameters": [
     {
@@ -32,8 +35,17 @@
       "id": "elyra_kubernetes_secrets"
     },
     {
+      "id": "elyra_kubernetes_tolerations"
+    },    
+    {
       "id": "elyra_mounted_volumes"
-    }
+    },
+    {
+      "id": "elyra_kubernetes_pod_annotations"
+    },
+     {
+      "id": "elyra_disallow_cached_output"
+    }       
   ],
   "uihints": {
     "id": "nodeProperties",
@@ -120,6 +132,22 @@
         }
       },
       {
+        "parameter_ref": "elyra_kubernetes_tolerations",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Kubernetes Tolerations"
+        },
+        "description": {
+          "default": "Kubernetes tolerations to attach to the pod where the node is executed.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "TOL_ID=key:operator:value:effect",
+          "keyValueEntries": true
+        }
+      },
+      {
         "parameter_ref": "elyra_mounted_volumes",
         "control": "custom",
         "custom_control_id": "StringArrayControl",
@@ -134,7 +162,37 @@
           "placeholder": "/mount/path=pvc-name",
           "keyValueEntries": true
         }
-      }
+      },
+      {
+        "parameter_ref": "elyra_kubernetes_pod_annotations",
+        "control": "custom",
+        "custom_control_id": "StringArrayControl",
+        "label": {
+          "default": "Kubernetes Pod Annotations"
+        },
+        "description": {
+          "default": "Metadata to be added to all nodes. The metadata is exposed as annotations in the Kubernetes pods that execute the nodes.",
+          "placement": "on_panel"
+        },
+        "data": {
+          "placeholder": "annotation_key=annotation_value",
+          "keyValueEntries": true
+        }
+      },
+      {
+        "parameter_ref": "elyra_disallow_cached_output",
+        "control": "custom",
+        "custom_control_id": "BooleanControl",
+        "label": {
+          "default": "Disallow cached output"
+        },
+        "description": {
+          "default": "Disable caching to force node re-execution in the target runtime environment.",
+          "placement": "on_panel"
+        },
+        "data": {
+        }
+      }      
     ],
     "group_info": [
       {
@@ -162,11 +220,38 @@
             "parameter_refs": ["cos_object_prefix"]
           },
           {
-            "id": "elyra_outputCategoryHeader",
+            "id": "elyra_nodesCategoryHeader",
             "type": "textPanel",
             "class_name": "elyra_categoryHeader",
             "label": {
-              "default": "Generic nodes defaults"
+              "default": "Node Defaults"
+            },
+            "description": {
+              "default": "Default values are applied to all nodes in this pipeline and can be customized in each node.",
+              "placement": "on_panel"
+            }
+          },
+          {
+            "id": "elyra_mounted_volumes",
+            "type": "controls",
+            "parameter_refs": ["elyra_mounted_volumes"]
+          },
+          {
+            "id": "elyra_kubernetes_tolerations",
+            "type": "controls",
+            "parameter_refs": ["elyra_kubernetes_tolerations"]
+          },
+          {
+            "id": "elyra_kubernetes_pod_annotations",
+            "type": "controls",
+            "parameter_refs": ["elyra_kubernetes_pod_annotations"]
+          },
+          {
+            "id": "elyra_generic_nodesCategoryHeader",
+            "type": "textPanel",
+            "class_name": "elyra_categoryHeader",
+            "label": {
+              "default": "Generic Node Defaults"
             },
             "description": {
               "default": "Default values are applied to all generic nodes in this pipeline and can be customized in each node.",
@@ -189,9 +274,21 @@
             "parameter_refs": ["elyra_kubernetes_secrets"]
           },
           {
-            "id": "elyra_mounted_volumes",
+            "id": "elyra_custom_nodesCategoryHeader",
+            "type": "textPanel",
+            "class_name": "elyra_categoryHeader",
+            "label": {
+              "default": "Custom Node Defaults"
+            },
+            "description": {
+              "default": "Default values are applied to all custom nodes in this pipeline and can be customized in each node.",
+              "placement": "on_panel"
+            }
+          },
+          {
+            "id": "elyra_disallow_cached_output",
             "type": "controls",
-            "parameter_refs": ["elyra_mounted_volumes"]
+            "parameter_refs": ["elyra_disallow_cached_output"]
           }
         ]
       }

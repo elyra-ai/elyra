@@ -49,5 +49,6 @@ describe('Elyra launcher is in use', () => {
     cy.get(
       '.jp-LauncherCard[data-category="Elyra"][title="Documentation"]:visible'
     );
+    cy.findByText(/what's new/i).should('be.visible');
   });
 });

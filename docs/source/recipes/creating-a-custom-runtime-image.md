@@ -71,7 +71,38 @@ The [default Python 3 Docker image](https://hub.docker.com/_/python) has Python 
 1. Build the container image by running the [`docker build`](https://docs.docker.com/engine/reference/commandline/build/) command in the terminal window, replacing `my-runtime-image` with the desired Docker image name.
 
    ```bash
-   docker build -t my-runtime-image .
+   $ docker build -t my-runtime-image .
+   ```
+
+## Verifying the basic runtime container image
+
+The [Elyra `Makefile`](https://github.com/elyra-ai/elyra/blob/main/Makefile) includes a task that can be used to verify that runtime images for [generic components](../user_guide/pipeline-components.html#generic-components) meet the basic prerequisites. 
+
+1. Clone the Elyra source code.
+
+   ```bash
+   $ git clone https://github.com/elyra-ai/elyra.git
+   $ cd elyra
+   ```
+
+1. Run the `validate-runtime-image` task, specifying the custom container image name as parameter. 
+
+   ```bash
+   $ make validate-runtime-image image=my-runtime-image
+   ```
+
+   If no problems were detected the output should look as follows:
+
+   ```
+   ***********************************************************
+   Validating container image my-runtime-image
+   -----------------------------------------------------------
+   => Loading container image ...
+   => Checking container image my-runtime-image for curl...
+   => Checking container image my-runtime-image for python3...
+   => Checking notebook execution...
+   ...
+   => Container image my-runtime-image is a suitable Elyra runtime image
    ```
 
 ## Publishing the basic runtime container image
@@ -83,13 +114,13 @@ For example, the following steps publish the container image you've just created
 1. Log in to Docker Hub using [`docker login`](https://docs.docker.com/engine/reference/commandline/login/) and provide your Docker id and password.
 
    ```bash
-   docker login
+   $ docker login
    ```
 
 1. Run [`docker images`](https://docs.docker.com/engine/reference/commandline/images/) and locate the image id for your Docker image. The image id uniquely identifies your Docker image.
 
     ```bash
-    docker images
+    $ docker images
 
     REPOSITORY         TAG      IMAGE ID            CREATED             SIZE 
     my-runtime-image   latest   0d1bd98fdd84        2 hours ago         887MB
@@ -98,7 +129,7 @@ For example, the following steps publish the container image you've just created
 1. Tag the container image using [`docker tag`](https://docs.docker.com/engine/reference/commandline/tag/), replacing `my-image-id`, `docker-id-or-org-id`, and `my-runtime-image` as necessary. (`docker-id-or-org-id` is either your Docker id or, if you are a member of a team in an organization, the id of that organization.)
 
    ```bash
-   docker tag my-image-id docker-id-or-org-id/my-runtime-image:latest
+   $ docker tag my-image-id docker-id-or-org-id/my-runtime-image:latest
    ```
 
    Note: For illustrative purposes this image is tagged `latest`, which makes it the default image. If desired, replace the tag with a specific version number or identifier, such as `Vx.y.z`.
@@ -106,7 +137,7 @@ For example, the following steps publish the container image you've just created
 1. Publish the container image on Docker Hub by running [`docker push`](https://docs.docker.com/engine/reference/commandline/push/), replacing `docker-id-or-org-id` and `my-runtime-image` as necessary.
 
     ```bash
-    docker push docker-id-or-org-id/my-runtime-image:latest
+    $ docker push docker-id-or-org-id/my-runtime-image:latest
     ```
 
 Once the image is published on Docker Hub you can [create a runtime image configuration using the Elyra UI or `elyra-metadata` CLI](/user_guide/runtime-image-conf.md) and reference the published `docker-id-or-org-id/my-runtime-image:latest` Docker image.
@@ -128,7 +159,7 @@ If a `Dockerfile` includes a [`CMD`](https://docs.docker.com/engine/reference/bu
 
 The `CMD` instruction launches an application that does not need to be running when the notebook is executed. For example, the official Python container images might launch the interactive Python shell by default, like so:
 
-```bash
+```
 ...
 CMD ["python3"]
 ```
@@ -163,7 +194,7 @@ If a container is configured to run as an executable by using the  [`ENTRYPOINT`
 
 The `ENTRYPOINT` instruction launches an application or service that a notebook consumes.
 
-```bash
+```
 ENTRYPOINT ["python3", "/path/to/application-or-service"]
 ```
 

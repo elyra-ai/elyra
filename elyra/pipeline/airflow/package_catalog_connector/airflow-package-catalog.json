@@ -56,10 +56,39 @@
         },
         "airflow_package_download_url": {
           "title": "Airflow package download URL",
-          "description": "URL where the Apache Airflow package wheel can be downloaded.",
+          "description": "URL where the Apache Airflow package wheel can be downloaded",
           "type": "string",
+          "format": "uri",
+          "uihints": {
+            "category": "Source",
+            "ui:placeholder": "https://host:port/path/apache_airflow.whl"
+          }
+        },
+        "search_contrib": {
+          "title": "Include operators in contrib package",
+          "description": "Include operators in package airflow.contrib.operators",
+          "type": "boolean",
           "uihints": {
             "category": "Source"
+          }
+        },
+        "auth_id": {
+          "title": "User Id",
+          "description": "User id that has read access for the specified URL resource",
+          "type": "string",
+          "minLength": 1,
+          "uihints": {
+            "category": "Source credentials"
+          }
+        },
+        "auth_password": {
+          "title": "Password",
+          "description": "Password or API key for the specified user id",
+          "type": "string",
+          "minLength": 1,
+          "uihints": {
+            "ui:field": "password",
+            "category": "Source credentials"
           }
         }
       },

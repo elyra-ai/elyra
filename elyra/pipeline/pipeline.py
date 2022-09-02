@@ -24,7 +24,12 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
+from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
+from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -97,6 +102,44 @@ class Operation(object):
         self._component_params = component_params or {}
         self._doc = None
 
+        self._mounted_volumes = []
+        param_volumes = component_params.get(MOUNTED_VOLUMES)
+        if (
+            param_volumes is not None
+            and isinstance(param_volumes, list)
+            and (len(param_volumes) == 0 or isinstance(param_volumes[0], VolumeMount))
+        ):
+            # The mounted_volumes property is an Elyra system property (ie, not defined in the component
+            # spec) and must be removed from the component_params dict
+            self._mounted_volumes = self._component_params.pop(MOUNTED_VOLUMES, [])
+
+        self._kubernetes_tolerations = []
+        param_tolerations = component_params.get(KUBERNETES_TOLERATIONS)
+        if (
+            param_tolerations is not None
+            and isinstance(param_tolerations, list)
+            and (len(param_tolerations) == 0 or isinstance(param_tolerations[0], KubernetesToleration))
+        ):
+            # The kubernetes_tolerations property is the Elyra system property (ie, not defined in the component
+            # spec) and must be removed from the component_params dict
+            self._kubernetes_tolerations = self._component_params.pop(KUBERNETES_TOLERATIONS, [])
+
+        self._kubernetes_pod_annotations = []
+        param_annotations = component_params.get(KUBERNETES_POD_ANNOTATIONS)
+        if (
+            param_annotations is not None
+            and isinstance(param_annotations, list)
+            and (len(param_annotations) == 0 or isinstance(param_annotations[0], KubernetesAnnotation))
+        ):
+            # The kubernetes_pod_annotations property is an Elyra system property (ie, not defined in the component
+            # spec) and must be removed from the component_params dict
+            self._kubernetes_pod_annotations = self._component_params.pop(KUBERNETES_POD_ANNOTATIONS, [])
+
+        # If disabled, this operation is requested to be re-executed in the
+        # target runtime environment, even if it was executed before.
+        param_disallow_cached_output = component_params.get(DISALLOW_CACHED_OUTPUT)
+        self._disallow_cached_output = param_disallow_cached_output
+
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
         self._component_params["outputs"] = Operation._scrub_list(component_params.get("outputs", []))
@@ -142,6 +185,27 @@ class Operation(object):
         return self._component_params or {}
 
     @property
+    def mounted_volumes(self) -> List["VolumeMount"]:
+        return self._mounted_volumes
+
+    @property
+    def kubernetes_tolerations(self) -> List["KubernetesToleration"]:
+        return self._kubernetes_tolerations
+
+    @property
+    def kubernetes_pod_annotations(self) -> List["KubernetesAnnotation"]:
+        return self._kubernetes_pod_annotations
+
+    @property
+    def disallow_cached_output(self) -> Optional[bool]:
+        """
+        Returns None if caching behavior is delegated to the runtime
+        Returns True if cached output may be used (instead of executing the op to produce it)
+        Returns False if cached output must not be used (instead of executing the op to produce it)
+        """
+        return self._disallow_cached_output
+
+    @property
     def inputs(self) -> Optional[List[str]]:
         return self._component_params.get("inputs")
 
@@ -152,6 +216,10 @@ class Operation(object):
     @property
     def outputs(self) -> Optional[List[str]]:
         return self._component_params.get("outputs")
+
+    @property
+    def is_generic(self) -> bool:
+        return isinstance(self, GenericOperation)
 
     @outputs.setter
     def outputs(self, value: List[str]):
@@ -307,6 +375,10 @@ class GenericOperation(Operation):
     @property
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
+
+    @property
+    def kubernetes_secrets(self) -> List["KubernetesSecret"]:
+        return self._component_params.get(KUBERNETES_SECRETS)
 
     def __eq__(self, other: "GenericOperation") -> bool:
         if isinstance(self, other.__class__):
@@ -522,6 +594,20 @@ class KubernetesSecret:
     env_var: str
     name: str
     key: str
+
+
+@dataclass
+class KubernetesToleration:
+    key: str
+    operator: str
+    value: str
+    effect: str
+
+
+@dataclass
+class KubernetesAnnotation:
+    key: str
+    value: str
 
 
 class DataClassJSONEncoder(json.JSONEncoder):

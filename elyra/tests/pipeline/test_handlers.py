@@ -25,11 +25,15 @@ from tornado.httpclient import HTTPClientError
 
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
+from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
+from elyra.pipeline.validation import PipelineValidationManager
+from elyra.pipeline.validation import ValidationResponse
+from elyra.pipeline.validation import ValidationSeverity
 from elyra.tests.pipeline import resources
 from elyra.tests.util.handlers_utils import expected_http_error
-
 
 try:
     import importlib.resources as pkg_resources
@@ -40,6 +44,13 @@ except ImportError:
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], "components")
 TEST_CATALOG_NAME = "test_handlers_catalog"
+
+
+def _async_return(result):
+    # Helper function to return an arbitrary value when mocking awaits
+    f = asyncio.Future()
+    f.set_result(result)
+    return f
 
 
 def _get_resource_path(filename):
@@ -87,13 +98,34 @@ async def test_get_components(jp_fetch):
     assert payload == palette
 
 
+async def test_get_components_runtime_name_vs_type(jp_fetch, caplog):
+    # Ensure deprecation warning appears when querying endpoint with shorthand runtime name
+    runtime_name = "kfp"
+    response = await jp_fetch("elyra", "pipeline", "components", runtime_name)
+    assert response.code == 200
+    assert "Deprecation warning: when calling endpoint" in caplog.text
+    caplog.clear()
+
+    # Ensure no deprecation warning appears when using runtime type name. The type
+    # is case-insensitive, e.g., a runtime type can use either lowercase 'local' or
+    # uppercase 'LOCAL'
+    runtime_type = RuntimeProcessorType.LOCAL  # use LOCAL runtime type
+    response = await jp_fetch("elyra", "pipeline", "components", runtime_type.name.lower())  # fetch with 'local'
+    assert response.code == 200
+    assert "Deprecation warning: when calling endpoint" not in caplog.text
+
+
 async def test_get_component_properties_config(jp_fetch):
     # Ensure all valid component_entry properties can be found
     runtime_type = RuntimeProcessorType.LOCAL
     response = await jp_fetch("elyra", "pipeline", "components", runtime_type.name, "notebook", "properties")
     assert response.code == 200
     payload = json.loads(response.body.decode())
-    properties = json.loads(pkg_resources.read_text(resources, "properties.json"))
+
+    template = pkg_resources.read_text(resources, "generic_properties_template.jinja2")
+    properties = json.loads(
+        template.replace("{{ component.name }}", "Notebook").replace("{{ component.extensions|tojson }}", '[".ipynb"]')
+    )
     assert payload == properties
 
 
@@ -202,5 +234,51 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             {"id": "elyra_runtime_image"},
             {"id": "elyra_env_vars"},
             {"id": "elyra_kubernetes_secrets"},
+            {"id": "elyra_kubernetes_tolerations"},
             {"id": "elyra_mounted_volumes"},
+            {"id": "elyra_kubernetes_pod_annotations"},
+            {"id": "elyra_disallow_cached_output"},
         ]
+
+
+async def test_pipeline_success(jp_fetch, monkeypatch):
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
+
+    # Create a response that will trigger the valid code path
+    validation_response = ValidationResponse()
+
+    monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(validation_response))
+    monkeypatch.setattr(PipelineParser, "parse", lambda x, y: "Dummy_Data")
+    monkeypatch.setattr(PipelineProcessorManager, "export", lambda x, y, z, aa, bb: _async_return("test.py"))
+
+    json_body = json.dumps(request_body)
+
+    http_response = await jp_fetch("elyra", "pipeline", "export", body=json_body, method="POST")
+
+    assert http_response.code == 201
+
+
+async def test_pipeline_failure(jp_fetch, monkeypatch):
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
+
+    # Create a response that will trigger the fatal code path
+    bad_validation_response = ValidationResponse()
+    bad_validation_response.add_message(severity=ValidationSeverity.Error, message_type="invalidJSON", message="issue")
+
+    monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(bad_validation_response))
+
+    json_body = json.dumps(request_body)
+
+    # Will raise HTTP error so we need to catch with pytest
+    with pytest.raises(HTTPClientError):
+        await jp_fetch("elyra", "pipeline", "export", body=json_body, method="POST")
+
+
+async def test_validation_handler(jp_fetch, monkeypatch):
+    request_body = {"pipeline": "body", "export_format": "py", "export_path": "test.py", "overwrite": True}
+
+    monkeypatch.setattr(PipelineValidationManager, "validate", lambda x, y: _async_return(ValidationResponse()))
+    json_body = json.dumps(request_body)
+    http_response = await jp_fetch("elyra", "pipeline", "validate", body=json_body, method="POST")
+
+    assert http_response.code == 200

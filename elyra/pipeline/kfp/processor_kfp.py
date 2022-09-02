@@ -27,6 +27,10 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
+from kubernetes.client import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client import V1Toleration
+from kubernetes.client import V1Volume
+from kubernetes.client import V1VolumeMount
 
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
@@ -47,11 +51,9 @@ from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.processor import PipelineProcessor
-from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.processor import RuntimePipelineProcessor
+from elyra.pipeline.processor import RuntimePipelineProcessorResponse
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.path import get_absolute_path
@@ -66,9 +68,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     # must exist and be known before the container is started.
     # Defaults to `/tmp`
     WCD = os.getenv("ELYRA_WRITABLE_CONTAINER_DIR", "/tmp").strip().rstrip("/")
-
-    def __init__(self, root_dir, **kwargs):
-        super().__init__(root_dir, **kwargs)
 
     def process(self, pipeline):
         """
@@ -102,6 +101,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # unpack Cloud Object Storage configs
         cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
+        cos_public_endpoint = runtime_configuration.metadata.get("public_cos_endpoint", cos_endpoint)
         cos_bucket = runtime_configuration.metadata["cos_bucket"]
 
         # Determine which provider to use to authenticate with Kubeflow
@@ -363,7 +363,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             )
 
         if pipeline.contains_generic_operations():
-            object_storage_url = f"{cos_endpoint}"
+            object_storage_url = f"{cos_public_endpoint}"
             os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
             object_storage_path = f"/{cos_bucket}/{os_path}"
         else:
@@ -377,7 +377,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             object_storage_path=object_storage_path,
         )
 
-    def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
+    def export(self, pipeline: Pipeline, pipeline_export_format: str, pipeline_export_path: str, overwrite: bool):
         # Verify that the KfpPipelineProcessor supports the given export format
         self._verify_export_format(pipeline_export_format)
 
@@ -546,8 +546,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
                         "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
                     },
-                    volume_mounts=operation.component_params.get(MOUNTED_VOLUMES, []),
-                    kubernetes_secrets=operation.component_params.get(KUBERNETES_SECRETS, []),
+                    volume_mounts=operation.mounted_volumes,
+                    kubernetes_secrets=operation.kubernetes_secrets,
+                    kubernetes_tolerations=operation.kubernetes_tolerations,
+                    kubernetes_pod_annotations=operation.kubernetes_pod_annotations,
                 )
 
                 if operation.doc:
@@ -653,8 +655,57 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     container_op = factory_function(**sanitized_component_params)
                     container_op.set_display_name(operation.name)
 
+                    # Attach node comment
                     if operation.doc:
                         container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
+
+                    # Add user-specified volume mounts: the referenced PVCs must exist
+                    # or this operation will fail
+                    if operation.mounted_volumes:
+                        unique_pvcs = []
+                        for volume_mount in operation.mounted_volumes:
+                            if volume_mount.pvc_name not in unique_pvcs:
+                                container_op.add_volume(
+                                    V1Volume(
+                                        name=volume_mount.pvc_name,
+                                        persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(
+                                            claim_name=volume_mount.pvc_name
+                                        ),
+                                    )
+                                )
+                                unique_pvcs.append(volume_mount.pvc_name)
+                            container_op.add_volume_mount(
+                                V1VolumeMount(mount_path=volume_mount.path, name=volume_mount.pvc_name)
+                            )
+
+                    # Add user-specified Kubernetes tolerations
+                    if operation.kubernetes_tolerations:
+                        unique_tolerations = []
+                        for toleration in operation.kubernetes_tolerations:
+                            if str(toleration) not in unique_tolerations:
+                                container_op.add_toleration(
+                                    V1Toleration(
+                                        effect=toleration.effect,
+                                        key=toleration.key,
+                                        operator=toleration.operator,
+                                        value=toleration.value,
+                                    )
+                                )
+                                unique_tolerations.append(str(toleration))
+
+                    # Add user-specified pod annotations
+                    if operation.kubernetes_pod_annotations:
+                        unique_annotations = []
+                        for annotation in operation.kubernetes_pod_annotations:
+                            if annotation.key not in unique_annotations:
+                                container_op.add_pod_annotation(annotation.key, annotation.value)
+                                unique_annotations.append(annotation.key)
+
+                    # Force re-execution of the operation by setting staleness to zero days
+                    # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
+                    if operation.disallow_cached_output:
+                        container_op.set_caching_options(enable_caching=False)
+                        container_op.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
                     target_ops[operation.id] = container_op
                 except Exception as e:
@@ -748,7 +799,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         return normalized_name.replace(" ", "_")
 
 
-class KfpPipelineProcessorResponse(PipelineProcessorResponse):
+class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     _name = "kfp"
 

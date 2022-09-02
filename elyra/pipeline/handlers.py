@@ -56,7 +56,11 @@ def get_runtime_processor_type(runtime_type: str, log: Logger, request_path: str
     :returns: the RuntimeProcessorType for the given runtime_type, or None
     """
     processor_manager = PipelineProcessorManager.instance()
-    if processor_manager.is_supported_runtime(runtime_type):
+    if processor_manager.is_supported_runtime_type(runtime_type):
+        # The request path uses the appropriate RuntimeProcessorType name. Use this
+        # to get the RuntimeProcessorType instance to pass to get_all_components
+        return RuntimeProcessorType.get_instance_by_name(runtime_type)
+    elif processor_manager.is_supported_runtime(runtime_type):
         # The endpoint path contains the shorthand version of a runtime (e.g., 'kfp',
         # 'airflow'). This case and its associated functions should eventually be removed
         # in favor of using the RuntimeProcessorType name in the request path.
@@ -66,10 +70,6 @@ def get_runtime_processor_type(runtime_type: str, log: Logger, request_path: str
             f"instead of shorthand name (e.g., 'kfp', 'airflow')"
         )
         return processor_manager.get_runtime_type(runtime_type)
-    elif processor_manager.is_supported_runtime_type(runtime_type):
-        # The request path uses the appropriate RuntimeProcessorType name. Use this
-        # to get the RuntimeProcessorType instance to pass to get_all_components
-        return RuntimeProcessorType.get_instance_by_name(runtime_type)
     return None
 
 
@@ -96,7 +96,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         pipeline_export_path = payload["export_path"]
         pipeline_overwrite = payload["overwrite"]
 
-        response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
+        response = await PipelineValidationManager.instance().validate(pipeline_definition)
         self.log.debug(f"Validation checks completed. Results as follows: {response.to_json()}")
 
         if not response.has_fatal:
@@ -283,7 +283,7 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
         pipeline_definition = self.get_json_body()
         self.log.debug(f"Pipeline payload: {pipeline_definition}")
 
-        response = await PipelineValidationManager.instance().validate(pipeline=pipeline_definition)
+        response = await PipelineValidationManager.instance().validate(pipeline_definition)
         json_msg = response.to_json()
 
         self.set_status(200)

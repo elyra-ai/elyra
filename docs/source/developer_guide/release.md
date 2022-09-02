@@ -26,17 +26,18 @@ In order to perform a release, one will need to have publish access to
   - [elyra](https://pypi.org/manage/project/elyra/collaboration/)
   - [elyra-server](https://pypi.org/manage/project/elyra-server/collaboration/)
   - [elyra-r-editor-extension](https://pypi.org/manage/project/elyra-r-editor-extension/collaboration/)
+  - [elyra-scala-editor-extension](https://pypi.org/manage/project/elyra-scala-editor-extension/collaboration/)
   - [elyra-python-editor-extension](https://pypi.org/manage/project/elyra-python-editor-extension/collaboration/)
   - [elyra-pipeline-editor-extension](https://pypi.org/manage/project/elyra-pipeline-editor-extension/collaboration/)
   - [elyra-code-snippet-extension](https://pypi.org/manage/project/elyra-code-snippet-extension/collaboration/)
   - [elyra-code-viewer-extension](https://pypi.org/manage/project/elyra-code-viewer-extension/collaboration/)
   - [kfp-notebook](https://pypi.org/manage/project/kfp-notebook/collaboration/)
   - [airflow-notebook](https://pypi.org/manage/project/airflow-notebook/collaboration/)
-- Npm
+- npm
   - [elyra](https://www.npmjs.com/settings/elyra/members)
-- DockerHub org
+- `elyra` org on Docker Hub
   - [elyra](https://hub.docker.com/orgs/elyra)
-- Quay.io org
+- `elyra` org on quay.io
   - [quay.io](https://quay.io/organization/elyra)
 
 ## Configuring your environment
@@ -105,6 +106,7 @@ Building an Elyra release consists of the following steps:
 - Building Elyra JupyterLab extensions as npm packages.
 - Generate and build the modified packages to enable single-extension deployment.
 - Build and publish multiple docker images
+- Update the release [notes] on GitHub
 
 Most of the steps required to prepare and publish a release have been automated through the `create-release.sh` script,
 which exposes three goals:
@@ -150,7 +152,7 @@ create release prepare-changelog --version 2.3.0
 
 ## Prepare the release artifacts
 ```bash
-create-release.py prepare --version 2.0.0 --dev-version 2.1.0 [--rc 0][--beta 0]
+create-release.py prepare --version 2.3.0 --dev-version 2.4.0 [--rc 0][--beta 0]
 ```
 - The artifacts for the new release will then be available at `./build/release/`
   - The Elyra folder is the main release
@@ -162,6 +164,7 @@ elyra-code-viewer-extension
 elyra-pipeline-editor-extension
 elyra-python-editor-extension
 elyra-r-editor-extension
+elyra-scala-editor-extension
 ```
 - Test the release
   - Run multiple scenarios, to make sure each extension is working ok
@@ -170,32 +173,14 @@ elyra-r-editor-extension
 
 ### Publish the release
 ```bash
-create-release.py publish --version 2.0.0 [--rc 0] [--beta 0]
+create-release.py publish --version 2.3.0 [--rc 0] [--beta 0]
 ```
 - Build and publish container images based on release tag
 ```bash
 git pull --rebase
-git checkout tags/v2.0.0
+git checkout tags/v2.3.0
 make container-images publish-container-images
 ```  
-
-- Update dev and latest image tags based on release tag
-```bash
-docker tag elyra/elyra:2.0.0 elyra/elyra:dev && docker push elyra/elyra:dev
-docker tag elyra/elyra:2.0.0 elyra/elyra:latest && docker push elyra/elyra:latest
-docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:dev && docker push quay.io/elyra/elyra:dev
-docker tag quay.io/elyra/elyra:2.0.0 quay.io/elyra/elyra:latest && docker push quay.io/elyra/elyra:latest
-
-docker tag elyra/airflow:2.0.0 elyra/airflow:dev && docker push elyra/airflow:dev
-docker tag elyra/airflow:2.0.0 elyra/airflow:latest && docker push elyra/airflow:latest
-docker tag quay.io/elyra/airflow:2.0.0 quay.io/elyra/airflow:dev && docker push quay.io/elyra/airflow:dev
-docker tag quay.io/elyra/airflow:2.0.0 quay.io/elyra/airflow:latest && docker push quay.io/elyra/airflow:latest
-
-docker tag elyra/kf-notebook:2.0.0 elyra/kf-notebook:dev && docker push elyra/kf-notebook:dev
-docker tag elyra/kf-notebook:2.0.0 elyra/kf-notebook:latest && docker push elyra/kf-notebook:latest
-docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:dev && docker push quay.io/elyra/kf-notebook:dev
-docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && docker push quay.io/elyra/kf-notebook:latest
-```
 
 - Merge changes for conda-forge
   - https://github.com/conda-forge/elyra-feedstock/pulls
@@ -205,3 +190,19 @@ docker tag quay.io/elyra/kf-notebook:2.0.0 quay.io/elyra/kf-notebook:latest && d
   - https://github.com/conda-forge/elyra-pipeline-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-r-editor-extension-feedstock/pulls
+
+
+## Publish the release [notes]
+
+To raise awerness for new releases, their new features and bug fixes we are also publishing them on [GitHub](https://github.com/elyra-ai/elyra/releases) along with release notes. As shown in [this release example](https://github.com/elyra-ai/elyra/releases/tag/v3.9.0), release notes are divided into multiple parts: quick links, new feature highlights, changelog (separated by new features, bug fixes, and other), and contributors.
+
+The quicklinks include version specific references to the changelog in the documentation, the documentation itself, the installation documentation topic, and getting help topic. With the exception of the documentation link, the other links are meant to be shortcuts to topics that a user would most likely want to access.
+
+To create the release [notes]:
+ - Review the labels for all closed PRs that are associated with the release. Make sure new features are tagged with `kind:enhancement` and bugs with `kind:bug`.
+ - [Create a draft release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release).
+ - Add the [release notes skeleton](https://github.com/elyra-ai/elyra/wiki/release-notes-skeleton) to the top of the document and customize it.
+ - Add descriptive summaries for each release highlight (features users should be aware of), including links to the relevant documentation.
+ - The contributor list and new contributor list is automatically generated by GitHub.
+
+ Request a release notes review once the draft is complete and publish the release.

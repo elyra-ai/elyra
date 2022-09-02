@@ -138,6 +138,18 @@ def update_version_to_release() -> None:
         )
 
         sed(
+            _source("packages/theme/src/index.ts"),
+            r"https://github.com/elyra-ai/elyra/releases/latest/",
+            rf"https://github.com/elyra-ai/elyra/releases/v{new_version}/",
+        )
+
+        sed(
+            _source("packages/theme/src/index.ts"),
+            r"What's new in latest",
+            rf"What's new in v{new_version}",
+        )
+
+        sed(
             _source("elyra/cli/pipeline_app.py"),
             r"https://elyra.readthedocs.io/en/latest/",
             rf"https://elyra.readthedocs.io/en/v{new_version}/",
@@ -217,7 +229,7 @@ def update_version_to_release() -> None:
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/main/etc/kfp/pip.conf",
-            rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf/",
+            rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
@@ -291,6 +303,18 @@ def update_version_to_dev() -> None:
             rf"https://elyra.readthedocs.io/en/latest/",
         )
 
+        sed(
+            _source("packages/theme/src/index.ts"),
+            rf"https://github.com/elyra-ai/elyra/releases/v{new_version}/",
+            rf"https://github.com/elyra-ai/elyra/releases/latest/",
+        )
+
+        sed(
+            _source("packages/theme/src/index.ts"),
+            rf"What's new in v{new_version}",
+            rf"What's new in latest",
+        )
+
         # Update documentation references in documentation
         sed(
             _source("docs/source/user_guide/jupyterlab-interface.md"),
@@ -326,28 +350,28 @@ def update_version_to_dev() -> None:
         # Update GitHub references in documentation
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
-            rf"elyra-ai/elyra/main/etc/kfp/pip.conf/",
+            rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
+            r"elyra-ai/elyra/main/etc/kfp/pip.conf",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
-            rf"elyra-ai/elyra/main/elyra/kfp/bootstrapper.py",
+            rf"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
+            r"elyra-ai/elyra/main/elyra/kfp/bootstrapper.py",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
-            rf"elyra-ai/elyra/main/elyra/airflow/bootstrapper.py",
+            rf"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
+            r"elyra-ai/elyra/main/elyra/airflow/bootstrapper.py",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
-            rf"elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt",
+            rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
+            r"elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
-            rf"elyra-ai/elyra/main/etc/generic/requirements-elyra.txt",
+            rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
+            r"elyra-ai/elyra/main/etc/generic/requirements-elyra.txt",
         )
 
         # update documentation references in schema definitions
@@ -438,7 +462,14 @@ def build_release():
     print("----------------------- Building Release ------------------------")
     print("-----------------------------------------------------------------")
 
+    # Build wheels and source packages
     check_run(["make", "release"], cwd=config.source_dir, capture_output=False)
+
+    if not config.pre_release:
+        # Build container images from tagged release
+        check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
+        check_run(["make", "container-images"], cwd=config.source_dir, capture_output=False)
+        check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
 
     print("")
 
@@ -580,7 +611,7 @@ def prepare_extensions_release() -> None:
             packages=["code-snippet-extension", "metadata-extension", "theme-extension"],
             description=f"The Code Snippet editor extension adds support for reusable code fragments, "
             f"making programming in JupyterLab more efficient by reducing repetitive work. "
-            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/code-snippets.html",
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
         ),
         "elyra-code-viewer-extension": SimpleNamespace(
             packages=["code-viewer-extension"],
@@ -594,21 +625,28 @@ def prepare_extensions_release() -> None:
             description=f"The Visual Editor Pipeline extension is used to build AI pipelines from notebooks, "
             f"Python scripts and R scripts, simplifying the conversion of multiple notebooks "
             f"or script files into batch jobs or workflows."
-            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/pipelines.html",
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/pipelines.html",
         ),
         "elyra-python-editor-extension": SimpleNamespace(
-            packages=["python-editor-extension", "metadata-extension", "theme-extension"],
+            packages=["python-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
             description=f"The Python Script editor extension contains support for Python files, "
             f"which can take advantage of the Hybrid Runtime Support enabling users to "
-            f"locally edit .py scripts and execute them against local or cloud-based resources."
-            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/enhanced-script-support.html",
+            f"locally edit, execute and debug .py scripts against local or cloud-based resources."
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
         "elyra-r-editor-extension": SimpleNamespace(
-            packages=["r-editor-extension", "metadata-extension", "theme-extension"],
+            packages=["r-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
             description=f"The R Script editor extension contains support for R files, which can take "
             f"advantage of the Hybrid Runtime Support enabling users to locally edit .R scripts "
             f"and execute them against local or cloud-based resources."
-            f"See https://elyra.readthedocs.io/en/{config.new_version}/user_guide/enhanced-script-support.html",
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
+        ),
+        "elyra-scala-editor-extension": SimpleNamespace(
+            packages=["scala-editor-extension", "metadata-extension", "theme-extension", "script-debugger-extension"],
+            description=f"The Scala Language editor extension contains support for Scala files, which can take "
+            f"advantage of the Hybrid Runtime Support enabling users to locally edit .scala files "
+            f"and execute them against local or cloud-based resources."
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/enhanced-script-support.html",
         ),
     }
 
@@ -755,6 +793,8 @@ def publish_release(working_dir) -> None:
         f"{config.work_dir}/elyra-python-editor-extension/dist/elyra-python-editor-extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-r-editor-extension/dist/elyra_r_editor_extension-{config.new_version}-py3-none-any.whl",
         f"{config.work_dir}/elyra-r-editor-extension/dist/elyra-r-editor-extension-{config.new_version}.tar.gz",
+        f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra_scala_editor_extension-{config.new_version}-py3-none-any.whl",
+        f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra-scala-editor-extension-{config.new_version}.tar.gz",
     ]
 
     print("-----------------------------------------------------------------")
@@ -804,6 +844,18 @@ def publish_release(working_dir) -> None:
         cwd=config.source_dir,
     )
 
+    print("-----------------------------------------------------------------")
+    print("-------------------- Pushing container images -------------------")
+    print("-----------------------------------------------------------------")
+    # push container images
+    print()
+    if not config.pre_release:
+        print(f"Pushing container images")
+        is_latest = config.git_branch == "main"
+        check_run(["git", "checkout", f"tags/v{config.new_version}"], cwd=config.source_dir, capture_output=False)
+        check_run(["make", "publish-container-images", f"IMAGE_IS_LATEST={is_latest}"], cwd=config.source_dir)
+        check_run(["git", "checkout", "main"], cwd=config.source_dir, capture_output=False)
+
 
 def initialize_config(args=None) -> SimpleNamespace:
     if not args:
@@ -842,6 +894,7 @@ def initialize_config(args=None) -> SimpleNamespace:
         else f"v{args.version}rc{args.rc}"
         if args.rc
         else f"v{args.version}b{args.beta}",
+        "pre_release": True if (args.rc or args.beta) else False,
     }
 
     global config

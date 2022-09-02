@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from pathlib import Path
+
 import pytest
 
 from elyra.metadata.metadata import Metadata
@@ -30,23 +32,21 @@ KFP_COMPONENT_CACHE_INSTANCE = {
     "schema_name": "elyra-kfp-examples-catalog",
 }
 
-AIRFLOW_COMPONENT_CACHE_INSTANCE = {
-    "display_name": "Airflow Example Components",
+AIRFLOW_TEST_OPERATOR_CATALOG = {
+    "display_name": "Airflow Test Operator",
     "metadata": {
         "runtime_type": "APACHE_AIRFLOW",
-        "categories": ["examples"],
-        "paths": [
-            "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components/bash_operator.py"  # noqa
-        ],
+        "base_path": str(Path(__file__).parent / "elyra" / "tests" / "pipeline" / "resources" / "components"),
+        "paths": ["airflow_test_operator.py"],
     },
-    "schema_name": "url-catalog",
+    "schema_name": "local-file-catalog",
 }
 
 
 @pytest.fixture
 def component_cache(jp_environ):
     """
-    Initialize a component cache
+    Initialize a component cache that emulates a running server process
     """
     # Create new instance and load the cache
     component_cache = ComponentCache.instance(emulate_server_app=True)
@@ -61,12 +61,27 @@ def component_cache(jp_environ):
 def catalog_instance(component_cache, request):
     """Creates an instance of a component catalog and removes after test."""
     instance_metadata = request.param
-
     instance_name = "component_cache"
     md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
     catalog = md_mgr.create(instance_name, Metadata(**instance_metadata))
     component_cache.wait_for_all_cache_tasks()
     yield catalog
+    md_mgr.remove(instance_name)
+
+
+@pytest.fixture
+def catalog_instance_no_server_process(request):
+    """
+    Creates an instance of a component catalog that does not emulate a server process,
+    then removes instance after test. This is used for testing CLI functionality where
+    a server process would not be present.
+    """
+    instance_metadata = request.param
+    instance_name = "component_cache"
+    md_mgr = MetadataManager(schemaspace=ComponentCatalogs.COMPONENT_CATALOGS_SCHEMASPACE_ID)
+    md_mgr.create(instance_name, Metadata(**instance_metadata))
+    ComponentCache.clear_instance()  # Clear cache instance created during instance creation
+    yield
     md_mgr.remove(instance_name)
 
 

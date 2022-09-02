@@ -32,19 +32,24 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import DataClassJSONEncoder
 from elyra.pipeline.pipeline import KeyValueList
+from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_kubernetes_key
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_expanded_path
@@ -118,8 +123,9 @@ class ValidationResponse(object):
 
 class PipelineValidationManager(SingletonConfigurable):
     def __init__(self, **kwargs):
+        root_dir: Optional[str] = kwargs.pop("root_dir", None)
         super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(kwargs.get("root_dir"))
+        self.root_dir = get_expanded_path(root_dir)
 
     async def validate(self, pipeline: Dict) -> ValidationResponse:
         """
@@ -310,57 +316,62 @@ class PipelineValidationManager(SingletonConfigurable):
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidRuntime",
-                    message="Pipeline runtime platform is not compatible " "with selected runtime configuration.",
+                    message="Pipeline runtime platform is not compatible with selected runtime configuration.",
                     data={
                         "pipelineID": primary_pipeline_id,
                         "pipelineType": pipeline_type,
                         "pipelineRuntime": pipeline_runtime,
                     },
                 )
-            elif PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime):
-                component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-                for component in component_list:
-                    supported_ops.append(component.op)
-
-                # Checks pipeline node types are compatible with the runtime selected
-                for sub_pipeline in pipeline_definition.pipelines:
-                    for node in sub_pipeline.nodes:
-                        if node.op not in ComponentCache.get_generic_component_ops() and pipeline_runtime == "local":
-                            response.add_message(
-                                severity=ValidationSeverity.Error,
-                                message_type="invalidNodeType",
-                                message="This pipeline contains at least one runtime-specific "
-                                "component, but pipeline runtime is 'local'. Specify a "
-                                "runtime config or remove runtime-specific components "
-                                "from the pipeline",
-                                data={"nodeID": node.id, "nodeOpName": node.op, "pipelineId": sub_pipeline.id},
-                            )
-                            break
-                        if node.type == "execution_node" and node.op not in supported_ops:
-                            response.add_message(
-                                severity=ValidationSeverity.Error,
-                                message_type="invalidNodeType",
-                                message="This component was not found in the catalog. Please add it "
-                                "to your component catalog or remove this node from the "
-                                "pipeline",
-                                data={
-                                    "nodeID": node.id,
-                                    "nodeOpName": node.op,
-                                    "nodeName": node.label,
-                                    "pipelineId": sub_pipeline.id,
-                                },
-                            )
             else:
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidRuntime",
-                    message="Unsupported pipeline runtime",
-                    data={
-                        "pipelineRuntime": pipeline_runtime,
-                        "pipelineType": pipeline_type,
-                        "pipelineId": primary_pipeline_id,
-                    },
-                )
+                processor_manager = PipelineProcessorManager.instance(root_dir=self.root_dir)
+                if processor_manager.is_supported_runtime(pipeline_runtime):
+                    component_list = await processor_manager.get_components(pipeline_runtime)
+                    for component in component_list:
+                        supported_ops.append(component.op)
+
+                    # Checks pipeline node types are compatible with the runtime selected
+                    for sub_pipeline in pipeline_definition.pipelines:
+                        for node in sub_pipeline.nodes:
+                            if (
+                                node.op not in ComponentCache.get_generic_component_ops()
+                                and pipeline_runtime == "local"
+                            ):
+                                response.add_message(
+                                    severity=ValidationSeverity.Error,
+                                    message_type="invalidNodeType",
+                                    message="This pipeline contains at least one runtime-specific "
+                                    "component, but pipeline runtime is 'local'. Specify a "
+                                    "runtime config or remove runtime-specific components "
+                                    "from the pipeline",
+                                    data={"nodeID": node.id, "nodeOpName": node.op, "pipelineId": sub_pipeline.id},
+                                )
+                                break
+                            if node.type == "execution_node" and node.op not in supported_ops:
+                                response.add_message(
+                                    severity=ValidationSeverity.Error,
+                                    message_type="invalidNodeType",
+                                    message="This component was not found in the catalog. Please add it "
+                                    "to your component catalog or remove this node from the "
+                                    "pipeline",
+                                    data={
+                                        "nodeID": node.id,
+                                        "nodeOpName": node.op,
+                                        "nodeName": node.label,
+                                        "pipelineId": sub_pipeline.id,
+                                    },
+                                )
+                else:
+                    response.add_message(
+                        severity=ValidationSeverity.Error,
+                        message_type="invalidRuntime",
+                        message="Unsupported pipeline runtime",
+                        data={
+                            "pipelineRuntime": pipeline_runtime,
+                            "pipelineType": pipeline_type,
+                            "pipelineId": primary_pipeline_id,
+                        },
+                    )
 
     async def _validate_node_properties(
         self,
@@ -413,6 +424,8 @@ class PipelineValidationManager(SingletonConfigurable):
         env_vars = node.get_component_parameter(ENV_VARIABLES)
         volumes = node.get_component_parameter(MOUNTED_VOLUMES)
         secrets = node.get_component_parameter(KUBERNETES_SECRETS)
+        tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
+        annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
 
         self._validate_filepath(
             node_id=node.id, node_label=node_label, property_name="filename", filename=filename, response=response
@@ -436,6 +449,10 @@ class PipelineValidationManager(SingletonConfigurable):
                 self._validate_mounted_volumes(node.id, node_label, volumes, response=response)
             if secrets:
                 self._validate_kubernetes_secrets(node.id, node_label, secrets, response=response)
+            if tolerations:
+                self._validate_kubernetes_tolerations(node.id, node_label, tolerations, response=response)
+            if annotations:
+                self._validate_kubernetes_pod_annotations(node.id, node_label, annotations, response=response)
 
         self._validate_label(node_id=node.id, node_label=node_label, response=response)
         if dependencies:
@@ -479,6 +496,18 @@ class PipelineValidationManager(SingletonConfigurable):
         # Remove the non component_parameter jinja templated values we do not check against
         current_parameter_defaults_list.remove("component_source")
         current_parameter_defaults_list.remove("label")
+
+        volumes = node.get_component_parameter(MOUNTED_VOLUMES)
+        if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
+            self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
+
+        tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
+        if tolerations and KUBERNETES_TOLERATIONS not in node.elyra_properties_to_skip:
+            self._validate_kubernetes_tolerations(node.id, node.label, tolerations, response=response)
+
+        annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
+        if annotations and KUBERNETES_POD_ANNOTATIONS not in node.elyra_properties_to_skip:
+            self._validate_kubernetes_pod_annotations(node.id, node.label, annotations, response=response)
 
         for default_parameter in current_parameter_defaults_list:
             node_param = node.get_component_parameter(default_parameter)
@@ -694,6 +723,102 @@ class PipelineValidationManager(SingletonConfigurable):
                         "nodeName": node_label,
                         "propertyName": KUBERNETES_SECRETS,
                         "value": KeyValueList.to_str(secret.env_var, f"{secret.name}:{secret.key}"),
+                    },
+                )
+
+    def _validate_kubernetes_tolerations(
+        self, node_id: str, node_label: str, tolerations: List[KubernetesToleration], response: ValidationResponse
+    ) -> None:
+        """
+        Checks the format of kubernetes tolerations to ensure they're in the correct form
+        e.g. key:operator:value:effect
+        :param node_id: the unique ID of the node
+        :param node_label: the given node name or user customized name/label of the node
+        :param tolerations: a KeyValueList of tolerations to check
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        for toleration in tolerations:
+            # Verify key, operator, value, and effect according to the constraints defined in
+            # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
+            if toleration.operator not in ["Exists", "Equal"]:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesToleration",
+                    message=f"'{toleration.operator}' is not a valid operator. "
+                    "The value must be one of 'Exists' or 'Equal'.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_TOLERATIONS,
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
+                    },
+                )
+            if len(toleration.key.strip()) == 0 and toleration.operator == "Equal":
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesToleration",
+                    message=f"'{toleration.operator}' is not a valid operator. "
+                    "Operator must be 'Exists' if no key is specified.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_TOLERATIONS,
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
+                    },
+                )
+            if len(toleration.effect.strip()) > 0 and toleration.effect not in [
+                "NoExecute",
+                "NoSchedule",
+                "PreferNoSchedule",
+            ]:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesToleration",
+                    message=f"'{toleration.effect}' is not a valid effect. Effect must be one of "
+                    "'NoExecute', 'NoSchedule', or 'PreferNoSchedule'.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_TOLERATIONS,
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
+                    },
+                )
+            if toleration.operator == "Exists" and len(toleration.value.strip()) > 0:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesToleration",
+                    message=f"'{toleration.value}' is not a valid value. It should be empty if operator is 'Exists'.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_TOLERATIONS,
+                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
+                    },
+                )
+
+    def _validate_kubernetes_pod_annotations(
+        self, node_id: str, node_label: str, annotations: List[KubernetesAnnotation], response: ValidationResponse
+    ) -> None:
+        """
+        Checks the format of the user-provided annotations to ensure they're in the correct form
+        e.g. annotation_key=annotation_value
+        :param node_id: the unique ID of the node
+        :param node_label: the given node name or user customized name/label of the node
+        :param annotations: a KeyValueList of annotations to check
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        for annotation in annotations:
+            # Ensure the annotation key is valid
+            if not is_valid_annotation_key(annotation.key):
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidKubernetesAnnotation",
+                    message=f"'{annotation.key}' is not a valid Kubernetes annotation key.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": KUBERNETES_POD_ANNOTATIONS,
+                        "value": KeyValueList.to_str(annotation.key, annotation.value),
                     },
                 )
 

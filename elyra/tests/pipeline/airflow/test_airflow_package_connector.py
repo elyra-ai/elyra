@@ -15,6 +15,7 @@
 #
 
 import io
+from pathlib import Path
 import zipfile
 
 from elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector import (
@@ -81,6 +82,31 @@ def test_invalid_download_input(requests_mock):
         zip_file.writestr("dummy_file.txt", "I am a dummy file, living in a ZIP archive.")
     requests_mock.get("http://server.domain.com/a-zip-file", content=zip_buffer.getvalue())
     ce = apc.get_catalog_entries({"airflow_package_download_url": "http://server.domain.com/a-zip-file"})
+    assert len(ce) == 0
+
+
+def test_invalid_get_entry_data():
+    """
+    Validate that AirflowPackageCatalogConnector.get_entry_data(...) returns
+    the expected results for invalid inputs
+    """
+    apc = AirflowPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
+
+    # Test invalid "file://" inputs ...
+    # ... input refers to a directory
+    resource_location = Path(__file__).parent / ".." / "resources" / "components"
+    resource_url = resource_location.as_uri()
+    ce = apc.get_catalog_entries({"airflow_package_download_url": resource_url, "display_name": "file://is-a-dir-test"})
+    assert isinstance(ce, list), resource_url
+    assert len(ce) == 0
+
+    # ... input refers to a non-existing whl file
+    resource_location = Path(__file__).parent / ".." / "resources" / "components" / "no-such.whl"
+    resource_url = resource_location.as_uri()
+    ce = apc.get_catalog_entries(
+        {"airflow_package_download_url": resource_url, "display_name": "file://no-such-file-test"}
+    )
+    assert isinstance(ce, list), resource_url
     assert len(ce) == 0
 
 

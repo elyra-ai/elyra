@@ -16,6 +16,7 @@
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import {
+  KernelAPI,
   KernelManager,
   KernelSpecManager,
   Session,
@@ -32,20 +33,20 @@ export interface IScriptOutput {
 }
 
 /**
- * Utility class to enable running scripts files in the context of a Kernel environment
+ * Utility class to enable running scripts in the context of a Kernel environment
  */
 export class ScriptRunner {
   sessionManager: SessionManager;
   sessionConnection: Session.ISessionConnection | null;
   kernelSpecManager: KernelSpecManager;
   kernelManager: KernelManager;
-  disableRun: (disabled: boolean) => void;
+  disableButton: (disabled: boolean) => void;
 
   /**
    * Construct a new runner.
    */
-  constructor(disableRun: (disabled: boolean) => void) {
-    this.disableRun = disableRun;
+  constructor(disableButton: (disabled: boolean) => void) {
+    this.disableButton = disableButton;
 
     this.kernelSpecManager = new KernelSpecManager();
     this.kernelManager = new KernelManager();
@@ -56,7 +57,7 @@ export class ScriptRunner {
   }
 
   private errorDialog = (errorMsg: string): Promise<Dialog.IResult<string>> => {
-    this.disableRun(false);
+    this.disableButton(false);
     return showDialog({
       title: 'Error',
       body: errorMsg,
@@ -68,82 +69,78 @@ export class ScriptRunner {
    * Function: Starts a session with a proper kernel and executes code from file editor.
    */
   runScript = async (
-    kernelName: string | undefined,
+    kernelName: string | null,
     contextPath: string,
     code: string,
     handleKernelMsg: (msgOutput: any) => void
   ): Promise<any> => {
     if (!kernelName) {
-      this.disableRun(true);
+      this.disableButton(true);
       return this.errorDialog(KERNEL_ERROR_MSG);
     }
+    this.disableButton(true);
 
-    if (!this.sessionConnection) {
-      this.disableRun(true);
+    try {
+      await this.startSession(kernelName, contextPath);
+    } catch (e) {
+      return this.errorDialog(SESSION_ERROR_MSG);
+    }
 
-      try {
-        await this.startSession(kernelName, contextPath);
-      } catch (e) {
-        return this.errorDialog(SESSION_ERROR_MSG);
-      }
+    if (!this.sessionConnection?.kernel) {
+      // session didn't get started
+      return this.errorDialog(SESSION_ERROR_MSG);
+    }
 
-      // This is a bit weird, seems like typescript doesn't believe that `startSession`
-      // can set `sessionConnection`
-      this.sessionConnection = this
-        .sessionConnection as Session.ISessionConnection | null;
-      if (!this.sessionConnection?.kernel) {
-        // session didn't get started
-        return this.errorDialog(SESSION_ERROR_MSG);
-      }
+    const future = this.sessionConnection.kernel.requestExecute({ code });
 
-      const future = this.sessionConnection.kernel.requestExecute({ code });
+    future.onIOPub = (msg: any): void => {
+      const msgOutput: any = {};
 
-      future.onIOPub = (msg: any): void => {
-        const msgOutput: any = {};
-
-        if (msg.msg_type === 'error') {
-          msgOutput.error = {
-            type: msg.content.ename,
-            output: msg.content.evalue
-          };
-        } else if (
-          msg.msg_type === 'execute_result' ||
-          msg.msg_type === 'display_data'
-        ) {
-          if ('text/plain' in msg.content.data) {
-            msgOutput.output = msg.content.data['text/plain'];
-          } else {
-            // ignore
-            console.log('Ignoring received message ' + msg);
-          }
-        } else if (msg.msg_type === 'stream') {
-          msgOutput.output = msg.content.text;
-        } else if (msg.msg_type === 'status') {
-          msgOutput.status = msg.content.execution_state;
+      if (msg.msg_type === 'error') {
+        msgOutput.error = {
+          type: msg.content.ename,
+          output: msg.content.evalue
+        };
+      } else if (
+        msg.msg_type === 'execute_result' ||
+        msg.msg_type === 'display_data'
+      ) {
+        if ('text/plain' in msg.content.data) {
+          msgOutput.output = msg.content.data['text/plain'];
         } else {
-          // ignore other message types
+          // ignore
+          console.log('Ignoring received message ' + msg);
         }
-
-        // Notify UI
-        handleKernelMsg(msgOutput);
-      };
-
-      try {
-        await future.done;
-        this.shutdownSession();
-      } catch (e) {
-        console.log('Exception: done = ' + JSON.stringify(e));
+      } else if (msg.msg_type === 'stream') {
+        msgOutput.output = msg.content.text;
+      } else if (msg.msg_type === 'status') {
+        msgOutput.status = msg.content.execution_state;
+      } else {
+        // ignore other message types
       }
+
+      // Notify UI
+      handleKernelMsg(msgOutput);
+    };
+
+    try {
+      await future.done;
+      // TO DO: Keep session open but shut down kernel
+      // this.interruptKernel(); // debugger is not triggered after this
+      // this.shutdownKernel(); // also shuts down session for some reason
+      this.disableButton(false);
+    } catch (e) {
+      console.log('Exception: done = ' + JSON.stringify(e));
     }
   };
 
   /**
-   * Function: Starts new kernel.
+   * Function: Starts new kernel session.
    */
   startSession = async (
     kernelName: string,
     contextPath: string
-  ): Promise<Session.ISessionConnection> => {
+  ): Promise<void> => {
     const options: Session.ISessionOptions = {
       kernel: {
         name: kernelName
@@ -153,26 +150,62 @@ export class ScriptRunner {
       name: contextPath
     };
 
-    this.sessionConnection = await this.sessionManager.startNew(options);
-    this.sessionConnection.setPath(contextPath);
-
-    return this.sessionConnection;
+    if (!this.sessionConnection || !this.sessionConnection.kernel) {
+      try {
+        this.sessionConnection = await this.sessionManager.startNew(options);
+        this.sessionConnection.setPath(contextPath);
+      } catch (e) {
+        console.log('Exception: kernel start = ' + JSON.stringify(e));
+      }
+    }
   };
 
   /**
-   * Function: Shuts down kernel.
+   * Function: Shuts down kernel session.
    */
   shutdownSession = async (): Promise<void> => {
     if (this.sessionConnection) {
       const name = this.sessionConnection.kernel?.name;
 
       try {
-        this.disableRun(false);
         await this.sessionConnection.shutdown();
         this.sessionConnection = null;
         console.log(name + ' kernel shut down');
       } catch (e) {
-        console.log('Exception: shutdown = ' + JSON.stringify(e));
+        console.log('Exception: session shutdown = ' + JSON.stringify(e));
+      }
+    }
+  };
+
+  /**
+   * Function: Shuts down kernel.
+   */
+  shutdownKernel = async (): Promise<void> => {
+    if (this.sessionConnection) {
+      const kernel = this.sessionConnection.kernel;
+      try {
+        kernel && (await KernelAPI.shutdownKernel(kernel.id));
+        console.log(kernel?.name + ' kernel shutdown');
+      } catch (e) {
+        console.log('Exception: kernel shutdown = ' + JSON.stringify(e));
+      }
+    }
+  };
+
+  /**
+   * Function: Interrupts kernel.
+   * TO DO: Interrupting kernel does not notify debugger service. Same behavior debugging notebooks.
+   */
+  interruptKernel = async (): Promise<void> => {
+    if (this.sessionConnection) {
+      const kernel = this.sessionConnection.kernel;
+      try {
+        kernel &&
+          (await KernelAPI.interruptKernel(kernel.id, kernel.serverSettings));
+        console.log(kernel?.name + ' kernel interrupted.');
+        this.disableButton(false);
+      } catch (e) {
+        console.log('Exception: kernel interrupt = ' + JSON.stringify(e));
       }
     }
   };

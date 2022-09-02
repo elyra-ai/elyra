@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { KernelSpec, KernelSpecManager } from '@jupyterlab/services';
 
 export class ScriptEditorController {
@@ -24,16 +23,18 @@ export class ScriptEditorController {
   }
 
   /**
-   * Get available kernelspecs.
+   * Get available kernel specs.
    */
   getKernelSpecs = async (): Promise<KernelSpec.ISpecModels | null> => {
     await this.kernelSpecManager.ready;
-    const kernelSpecs = await this.kernelSpecManager.specs;
-    return kernelSpecs;
+    const specs = this.kernelSpecManager.specs;
+
+    // return a deep copy of the object preserving the original type
+    return JSON.parse(JSON.stringify(specs)) as typeof specs;
   };
 
   /**
-   * Get available kernelspecs by language.
+   * Get available kernel specs by language.
    */
   getKernelSpecsByLanguage = async (
     language: string
@@ -44,5 +45,55 @@ export class ScriptEditorController {
       .forEach(entry => delete specs?.kernelspecs[entry[0]]);
 
     return specs;
+  };
+
+  /**
+   * Get kernel specs by name.
+   */
+  getKernelSpecsByName = async (
+    kernelName: string
+  ): Promise<KernelSpec.ISpecModels | null> => {
+    const specs = await this.getKernelSpecs();
+    Object.entries(specs?.kernelspecs ?? [])
+      .filter(entry => entry[1]?.name?.includes(kernelName) === false)
+      .forEach(entry => delete specs?.kernelspecs[entry[0]]);
+
+    return specs;
+  };
+
+  /**
+   * Get the default kernel name from a given language
+   * or the name of the first kernel from the list of kernelspecs.
+   */
+  getDefaultKernel = async (language: string): Promise<string> => {
+    const kernelSpecs: KernelSpec.ISpecModels | null = await this.getKernelSpecs();
+    if (!kernelSpecs) {
+      return '';
+    }
+
+    if (kernelSpecs.default?.includes(language)) {
+      return kernelSpecs.default;
+    }
+
+    return this.getFirstKernelName(language);
+  };
+
+  getFirstKernelName = async (language: string): Promise<string> => {
+    const specsByLang = await this.getKernelSpecsByLanguage(language);
+
+    const empty = '';
+    if (specsByLang && Object.keys(specsByLang.kernelspecs).length !== 0) {
+      const [key, value]: any = Object.entries(specsByLang.kernelspecs)[0];
+      return value.name ?? key;
+    }
+    return empty;
+  };
+
+  /**
+   * Return value of debugger boolean property from the kernel spec of a given name.
+   */
+  debuggerAvailable = async (kernelName: string | ''): Promise<boolean> => {
+    const specs = await this.getKernelSpecsByName(kernelName);
+    return !!(specs?.kernelspecs[kernelName]?.metadata?.['debugger'] ?? false);
   };
 }

@@ -25,6 +25,18 @@
         }
     {% endif %},
 {% endfor %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
+      "elyra_mounted_volumes": [],
+{% endif %}
+{% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+      "elyra_kubernetes_tolerations": [],
+{% endif %}
+{% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+      "elyra_kubernetes_pod_annotations": [],
+{% endif %}
+{% if "disallow_cached_output" not in elyra_property_collisions_list %}
+      "elyra_disallow_cached_output": null,
+{% endif %}
       "component_source": {{ component.component_source|tojson|safe }}
     },
     "parameters": [
@@ -39,6 +51,26 @@
         "id": "elyra_{{ property.ref }}"
       },
 {% endfor %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
+      {
+        "id": "elyra_mounted_volumes"
+      },
+{% endif %}
+{% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+      {
+        "id": "elyra_kubernetes_tolerations"
+      },
+{% endif %}
+{% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+      {
+        "id": "elyra_kubernetes_pod_annotations"
+      },
+{% endif %}
+{% if "disallow_cached_output" not in elyra_property_collisions_list %}
+      {
+        "id": "elyra_disallow_cached_output"
+      },
+{% endif %}
       {
         "id": "component_source"
       }
@@ -126,6 +158,80 @@
           }
         },
 {% endfor %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
+        {
+          "parameter_ref": "elyra_mounted_volumes",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Data Volumes"
+          },
+          "description": {
+           "default": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "required": false,
+            "placeholder": "/mount/path=pvc-name",
+            "keyValueEntries": true
+          }
+        },
+{% endif %}
+{% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+        {
+          "parameter_ref": "elyra_kubernetes_tolerations",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Kubernetes Tolerations"
+          },
+          "description": {
+           "default": "Kubernetes tolerations to attach to the pod where the node is executed.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "required": false,
+            "placeholder": "TOL_ID=key:operator:value:effect",
+            "keyValueEntries": true
+          }
+        },
+{% endif %}
+{% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+        {
+          "parameter_ref": "elyra_kubernetes_pod_annotations",
+          "control": "custom",
+          "custom_control_id": "StringArrayControl",
+          "label": {
+            "default": "Kubernetes Pod Annotations"
+          },
+          "description": {
+           "default": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "required": false,
+            "placeholder": "annotation_key=annotation_value",
+            "keyValueEntries": true
+          }
+        },
+{% endif %}
+{% if "disallow_cached_output" not in elyra_property_collisions_list %}
+        {
+          "parameter_ref": "elyra_disallow_cached_output",
+          "control": "custom",
+          "custom_control_id": "BooleanControl",
+          "label": {
+            "default": "Disallow cached output"
+          },
+          "description": {
+           "default": "Disable caching to force node re-execution in the target runtime environment.",
+           "placement": "on_panel"
+          },
+          "data": {
+            "required": false
+          }
+        },
+{% endif %}
         {
           "parameter_ref": "component_source",
           "control": "readonly",
@@ -187,6 +293,49 @@
               "parameter_refs": ["elyra_{{ property.ref }}"]
             },
     {% endfor %}
+{% endif %}
+{% if (("mounted_volumes" not in elyra_property_collisions_list) or
+       ("kubernetes_pod_annotations" not in elyra_property_collisions_list)) %}
+            {
+              "id": "elyra_other_propertiesCategoryHeader",
+              "type": "textPanel",
+              "class_name": "elyra_categoryHeader",
+              "label": {
+                "default": "Additional Properties"
+              },
+              "description": {
+                "default": "Additional properties used by Elyra that are not given in the component definition.",
+                "placement": "on_panel"
+              }
+            },
+{% endif %}
+{% if "mounted_volumes" not in elyra_property_collisions_list %}
+            {
+              "id": "elyra_mounted_volumes",
+              "type": "controls",
+              "parameter_refs": ["elyra_mounted_volumes"]
+            },
+{% endif %}
+{% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
+            {
+              "id": "elyra_kubernetes_tolerations",
+              "type": "controls",
+              "parameter_refs": ["elyra_kubernetes_tolerations"]
+            },
+{% endif %}
+{% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
+            {
+              "id": "elyra_kubernetes_pod_annotations",
+              "type": "controls",
+              "parameter_refs": ["elyra_kubernetes_pod_annotations"]
+            },
+{% endif %}
+{% if "disallow_cached_output" not in elyra_property_collisions_list %}
+            {
+              "id": "elyra_disallow_cached_output",
+              "type": "controls",
+              "parameter_refs": ["elyra_disallow_cached_output"]
+            },
 {% endif %}
             {
               "id": "elyra_component_sourceCategoryHeader",

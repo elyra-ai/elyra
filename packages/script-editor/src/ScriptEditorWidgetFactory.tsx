@@ -82,7 +82,7 @@ export namespace ScriptEditorWidgetFactory {
     factoryOptions: DocumentRegistry.IWidgetFactoryOptions<ScriptEditor>;
 
     /**
-     * The function that creates .
+     * The function that creates ScriptEditor instances.
      */
     instanceCreator: (
       options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>

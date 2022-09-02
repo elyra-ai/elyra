@@ -16,14 +16,18 @@
 
 import os
 
-from conftest import AIRFLOW_COMPONENT_CACHE_INSTANCE
+from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
+from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
+from elyra.pipeline.pipeline import KubernetesToleration
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline import VolumeMount
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.validation import PipelineValidationManager
@@ -435,6 +439,189 @@ def test_invalid_node_property_volumes(validation_manager):
     assert "not a valid Kubernetes resource name" in issues[0]["message"]
 
 
+def test_valid_node_property_kubernetes_toleration(validation_manager):
+    """
+    Validate that valid kubernetes toleration definitions are not flagged as invalid.
+    Constraints are documented in
+    https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
+    """
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    # The following tolerations are valid
+    tolerations = [
+        # parameters are key, operator, value, effect
+        KubernetesToleration("", "Exists", "", "NoExecute"),
+        KubernetesToleration("key0", "Exists", "", ""),
+        KubernetesToleration("key1", "Exists", "", "NoSchedule"),
+        KubernetesToleration("key2", "Equal", "value2", "NoExecute"),
+        KubernetesToleration("key3", "Equal", "value3", "PreferNoSchedule"),
+    ]
+    validation_manager._validate_kubernetes_tolerations(
+        node_id=node["id"], node_label=node["app_data"]["label"], tolerations=tolerations, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == 0, response.to_json()
+
+
+def test_valid_node_property_kubernetes_pod_annotation(validation_manager):
+    """
+    Validate that valid kubernetes pod annotation definitions are not flagged as invalid.
+    Constraints are documented in
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+    """
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    # The following annotations are valid
+    annotations = [
+        # parameters are key and value
+        KubernetesAnnotation("k", ""),
+        KubernetesAnnotation("key", "value"),
+        KubernetesAnnotation("n-a-m-e", "value"),
+        KubernetesAnnotation("n.a.m.e", "value"),
+        KubernetesAnnotation("n_a_m_e", "value"),
+        KubernetesAnnotation("n-a.m_e", "value"),
+        KubernetesAnnotation("prefix/name", "value"),
+        KubernetesAnnotation("abc.def/name", "value"),
+        KubernetesAnnotation("abc.def.ghi/n-a-m-e", "value"),
+        KubernetesAnnotation("abc.def.ghi.jkl/n.a.m.e", "value"),
+        KubernetesAnnotation("abc.def.ghi.jkl.mno/n_a_m_e", "value"),
+        KubernetesAnnotation("abc.def.ghijklmno.pqr/n-a.m_e", "value"),
+    ]
+    validation_manager._validate_kubernetes_pod_annotations(
+        node_id=node["id"], node_label=node["app_data"]["label"], annotations=annotations, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == 0, response.to_json()
+
+
+def test_invalid_node_property_kubernetes_toleration(validation_manager):
+    """
+    Validate that invalid kubernetes toleration definitions are properly detected.
+    Constraints are documented in
+    https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
+    """
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    # The following tolerations are invalid
+    invalid_tolerations = [
+        # parameters are key, operator, value, effect
+        KubernetesToleration("", "", "", ""),  # cannot be all empty
+        # invalid values for 'operator'
+        KubernetesToleration("", "Equal", "value", ""),  # empty key requires 'Exists'
+        KubernetesToleration("key0", "exists", "", ""),  # wrong case
+        KubernetesToleration("key1", "Exist", "", ""),  # wrong keyword
+        KubernetesToleration("key2", "", "", ""),  # wrong keyword (technically valid but enforced)
+        # invalid values for 'value'
+        KubernetesToleration("key3", "Exists", "value3", ""),  # 'Exists' -> no value
+        # invalid values for 'effect'
+        KubernetesToleration("key4", "Exists", "", "noschedule"),  # wrong case
+        KubernetesToleration("key5", "Exists", "", "no-such-effect"),  # wrong keyword
+    ]
+    expected_error_messages = [
+        "'' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
+        "'Equal' is not a valid operator. Operator must be 'Exists' if no key is specified.",
+        "'exists' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
+        "'Exist' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
+        "'' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
+        "'value3' is not a valid value. It should be empty if operator is 'Exists'.",
+        "'noschedule' is not a valid effect. Effect must be one of 'NoExecute', 'NoSchedule', or 'PreferNoSchedule'.",
+        "'no-such-effect' is not a valid effect. Effect must be one of 'NoExecute', "
+        "'NoSchedule', or 'PreferNoSchedule'.",
+    ]
+
+    # verify that the number of tolerations in this test matches the number of error messages
+    assert len(invalid_tolerations) == len(expected_error_messages), "Test setup error. "
+
+    validation_manager._validate_kubernetes_tolerations(
+        node_id=node["id"], node_label=node["app_data"]["label"], tolerations=invalid_tolerations, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == len(invalid_tolerations), response.to_json()
+    index = 0
+    for issue in issues:
+        assert issue["type"] == "invalidKubernetesToleration"
+        assert issue["data"]["propertyName"] == KUBERNETES_TOLERATIONS
+        assert issue["data"]["nodeID"] == "test-id"
+        assert issue["message"] == expected_error_messages[index], f"Index is {index}"
+        index = index + 1
+
+
+def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
+    """
+    Validate that valid kubernetes pod annotation definitions are not flagged as invalid.
+    Constraints are documented in
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+    """
+    response = ValidationResponse()
+    node = {"id": "test-id", "app_data": {"label": "test"}}
+    TOO_SHORT_LENGTH = 0
+    MAX_PREFIX_LENGTH = 253
+    MAX_NAME_LENGTH = 63
+    TOO_LONG_LENGTH = MAX_PREFIX_LENGTH + 1 + MAX_NAME_LENGTH + 1  # prefix + '/' + name
+
+    # The following annotations are invalid
+    invalid_annotations = [
+        # parameters are key and value
+        # test length violations (key name and prefix)
+        KubernetesAnnotation("a" * (TOO_SHORT_LENGTH), ""),  # empty key (min 1)
+        KubernetesAnnotation("a" * (TOO_LONG_LENGTH), ""),  # key too long
+        KubernetesAnnotation(f"{'a' * (MAX_PREFIX_LENGTH + 1)}/b", ""),  # key prefix too long
+        KubernetesAnnotation(f"{'a' * (MAX_NAME_LENGTH + 1)}", ""),  # key name too long
+        KubernetesAnnotation(f"prefix/{'a' * (MAX_NAME_LENGTH + 1)}", ""),  # key name too long
+        KubernetesAnnotation(f"{'a' * (MAX_PREFIX_LENGTH + 1)}/name", ""),  # key prefix too long
+        # test character violations (key name)
+        KubernetesAnnotation("-", ""),  # name must start and end with alphanum
+        KubernetesAnnotation("-a", ""),  # name must start with alphanum
+        KubernetesAnnotation("a-", ""),  # name must start with alphanum
+        KubernetesAnnotation("prefix/-b", ""),  # name start with alphanum
+        KubernetesAnnotation("prefix/b-", ""),  # name must end with alphanum
+        # test character violations (key prefix)
+        KubernetesAnnotation("PREFIX/name", ""),  # prefix must be lowercase
+        KubernetesAnnotation("pref!x/name", ""),  # prefix must contain alnum, '-' or '.'
+        KubernetesAnnotation("pre.fx./name", ""),  # prefix must contain alnum, '-' or '.'
+        KubernetesAnnotation("-pre.fx.com/name", ""),  # prefix must contain alnum, '-' or '.'
+        KubernetesAnnotation("pre.fx-./name", ""),  # prefix must contain alnum, '-' or '.'
+        KubernetesAnnotation("a/b/c", ""),  # only one separator char
+    ]
+    expected_error_messages = [
+        "'' is not a valid Kubernetes annotation key.",
+        f"'{'a' * (TOO_LONG_LENGTH)}' is not a valid Kubernetes annotation key.",
+        f"'{'a' * (MAX_PREFIX_LENGTH + 1)}/b' is not a valid Kubernetes annotation key.",
+        f"'{'a' * (MAX_NAME_LENGTH + 1)}' is not a valid Kubernetes annotation key.",
+        f"'prefix/{'a' * (MAX_NAME_LENGTH + 1)}' is not a valid Kubernetes annotation key.",
+        f"'{'a' * (MAX_PREFIX_LENGTH + 1)}/name' is not a valid Kubernetes annotation key.",
+        "'-' is not a valid Kubernetes annotation key.",
+        "'-a' is not a valid Kubernetes annotation key.",
+        "'a-' is not a valid Kubernetes annotation key.",
+        "'prefix/-b' is not a valid Kubernetes annotation key.",
+        "'prefix/b-' is not a valid Kubernetes annotation key.",
+        "'PREFIX/name' is not a valid Kubernetes annotation key.",
+        "'pref!x/name' is not a valid Kubernetes annotation key.",
+        "'pre.fx./name' is not a valid Kubernetes annotation key.",
+        "'-pre.fx.com/name' is not a valid Kubernetes annotation key.",
+        "'pre.fx-./name' is not a valid Kubernetes annotation key.",
+        "'a/b/c' is not a valid Kubernetes annotation key.",
+    ]
+
+    # verify that the number of annotations in this test matches the number of error messages
+    assert len(invalid_annotations) == len(expected_error_messages), "Test implementation error. "
+
+    validation_manager._validate_kubernetes_pod_annotations(
+        node_id=node["id"], node_label=node["app_data"]["label"], annotations=invalid_annotations, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == len(
+        invalid_annotations
+    ), f"validation returned unexpected results: {response.to_json()['issues']}"
+    index = 0
+    for issue in issues:
+        assert issue["type"] == "invalidKubernetesAnnotation"
+        assert issue["data"]["propertyName"] == KUBERNETES_POD_ANNOTATIONS
+        assert issue["data"]["nodeID"] == "test-id"
+        assert issue["message"] == expected_error_messages[index], f"Index is {index}"
+        index = index + 1
+
+
 def test_invalid_node_property_secrets(validation_manager):
     response = ValidationResponse()
     node = {"id": "test-id", "app_data": {"label": "test"}}
@@ -644,13 +831,13 @@ async def test_pipeline_invalid_kfp_inputpath_missing_connection(
     assert issues[0]["data"]["nodeID"] == invalid_node_id
 
 
-@pytest.mark.parametrize("catalog_instance", [AIRFLOW_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 async def test_pipeline_aa_parent_node_missing_xcom_push(
     validation_manager, load_pipeline, catalog_instance, component_cache
 ):
 
     invalid_node_id = "b863d458-21b5-4a46-8420-5a814b7bd525"
-    invalid_operator = "BashOperator"
+    invalid_operator = "TestOperator"
 
     pipeline, response = load_pipeline("aa_parent_node_missing_xcom.pipeline")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)

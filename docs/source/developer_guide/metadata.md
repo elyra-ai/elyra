@@ -35,7 +35,7 @@ Schemaspaces and their schemas can be dynamically introduced via entrypoints.  W
 
 ### Metadata Components
 The Elyra metadata service is composed of several components, many of which were previously referenced, and each responsible for a different task.  
-![MetadataServiceRelationships](../images/metadata-service-relationships.png)
+![MetadataServiceRelationships](../images/developer_guide/metadata/metadata-service-relationships.png)
 
 The following briefly describes each of those components.
 
@@ -197,6 +197,25 @@ class SchemasProvider(ABC):
 When called, the `SchemasProvider` instance is responsible for producing a list of schemas.  These schemas must conform to the metadata service's _meta-schema_ and, as a result, will include the schemaspace name and schemaspace id to which they correspond, in addition to a `name` property representing that schema's name.  The `SchemaManager` uses this meta-information to confirm the schemaspace has been loaded and register that schema with the schemaspace following its successful validation against the meta-schema.
 
 Some `SchemasProvider` instances may have schema information which is dynamic, based on the active configuration of the system.  In such cases, they are responsible for returning information pertinent to the current configuration.  For example, a schema may use an `enum` that holds a set of values pertinent to the system's configuration.  In this case, the `SchemasProvider` may alter its static schema to dynamically update its enumerated property corresponding to the current runtime environment.  Note however, that care should be taken when dynamically altering schema since it could lead to instances that will no longer load because they (now) fail schema validation if the contents of the enum no longer satisfy previous instance values.  Of course, this may very well be proper behavior, depending on the intention.
+
+#### Validators
+A [_validator_](https://python-jsonschema.readthedocs.io/en/stable/creating/) is used
+to validate instances of a given schema.  Within the metadata service, instances
+are validated whenever they are retrieved, and immediately prior to their persistence.
+
+The `SchemasProvider` base class provides an instance of the `Draft7Validator` which should
+be sufficient for most schemas.  Implementations requiring their own validator, or that wish to
+extend the `Draft7Validator`, must override the `get_validator()` method in their
+ subclass of `SchemasProvider`:
+```python
+    def get_validator(self, schema: dict) -> Any:
+        """Returns an instance of a validator used to validate instances of the given schema.
+
+        The default implementation uses the `Draft7Validator`.  SchemasProviders requiring
+        the use of a different validator must override this method.
+        """
+        return Draft7Validator(schema, format_checker=draft7_format_checker)
+```
 
 #### Registration
 Like `Schemaspaces`, `SchemasProvider` implementations are discovered via the entrypoints functionality.  When the `SchemaManager` starts, and after it loads all `Schemaspaces`, it fetches all entrypoint instances named by the group `'metadata.schemas_providers'`, and uses the entrypoint data to load each found instance.

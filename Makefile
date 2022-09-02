@@ -17,16 +17,18 @@
 .PHONY: help purge uninstall-src uninstall clean
 .PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
-.PHONY: build-dependencies yarn-install build-ui package-ui package-ui-dev build-server install-server-package install-server
+.PHONY: build-dependencies dev-dependencies yarn-install build-ui package-ui package-ui-dev
+.PHONY: build-server install-server-package install-server
 .PHONY: install install-all install-dev install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
-.PHONY: container-images publish-container-images validate-runtime-images
-
-.ONESHELL:
+.PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
 
 SHELL:=/bin/bash
+
+# Container execs
+CONTAINER_EXEC=docker
 
 # Python execs
 PYTHON?=python3
@@ -37,6 +39,7 @@ CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda act
 
 ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
 TAG:=dev
+IMAGE_IS_LATEST=False
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
 ELYRA_IMAGE_ENV?=elyra-image-env
@@ -81,7 +84,9 @@ uninstall-src: # Uninstalls source extensions if they're still installed
 	- jupyter labextension uninstall --no-build @elyra/pipeline-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/python-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/r-editor-extension
+	- jupyter labextension uninstall --no-build @elyra/scala-editor-extension
 	- jupyter labextension uninstall --no-build @elyra/code-viewer-extension
+	- jupyter labextension uninstall --no-build @elyra/script-debugger-extension
 	- jupyter labextension unlink --no-build @elyra/pipeline-services
 	- jupyter labextension unlink --no-build @elyra/pipeline-editor
 
@@ -109,7 +114,7 @@ lint-dependencies:
 	@$(PYTHON_PIP) install -q -r lint_requirements.txt
 
 lint-server: lint-dependencies
-	$(PYTHON) -m flake8 elyra
+	$(PYTHON) -m flake8 elyra .github
 	@echo $(BLACK_CMD)
 	@$(BLACK_CMD) || (echo "Black formatting encountered issues.  Use 'make black-format' to apply the suggested changes."; exit 1)
 
@@ -151,6 +156,10 @@ build-dependencies:
 	@$(PYTHON_PIP) install -q --upgrade pip
 	@$(PYTHON_PIP) install -q -r build_requirements.txt
 
+dev-dependencies:
+	@$(PYTHON_PIP) install -q --upgrade pip
+	@$(PYTHON_PIP) install -q jupyter-packaging
+
 yarn-install:
 	yarn install
 
@@ -159,7 +168,7 @@ build-ui: # Build packages
 
 package-ui: build-dependencies yarn-install lint-ui build-ui
 
-package-ui-dev: build-dependencies yarn-install dev-link lint-ui build-ui
+package-ui-dev: dev-dependencies yarn-install dev-link lint-ui build-ui
 
 build-server: # Build backend
 	$(PYTHON) -m setup bdist_wheel sdist
@@ -216,7 +225,7 @@ test-dependencies:
 	@$(PYTHON_PIP) install -q -r test_requirements.txt
 
 pytest:
-	$(PYTHON) -m pytest -v elyra
+	$(PYTHON) -m pytest -v --durations=0 --durations-min=60 elyra
 
 test-server: test-dependencies pytest # Run python unit tests
 
@@ -249,10 +258,8 @@ elyra-image: # Build Elyra stand-alone container image
 	cp etc/docker/elyra/start-elyra.sh build/docker/start-elyra.sh
 	cp etc/docker/elyra/requirements.txt build/docker/requirements.txt
 	@mkdir -p build/docker/elyra
-	if [ "$(TAG)" == "dev" ]; then \
-		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/; \
-  	fi
-	docker buildx build \
+	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/
+	$(CONTAINER_EXEC) buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(ELYRA_IMAGE) \
@@ -263,23 +270,21 @@ elyra-image: # Build Elyra stand-alone container image
 
 publish-elyra-image: elyra-image # Publish Elyra stand-alone container image
 	# this is a privileged operation; a `docker login` might be required
-	docker push docker.io/$(ELYRA_IMAGE)
-	docker push quay.io/$(ELYRA_IMAGE)
+	$(CONTAINER_EXEC) push docker.io/$(ELYRA_IMAGE)
+	$(CONTAINER_EXEC) push quay.io/$(ELYRA_IMAGE)
 	# If we're building a release from main, tag latest and push
-	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "main" ]; then \
-		docker tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
-		docker push docker.io/$(ELYRA_IMAGE_LATEST); \
-		docker tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
-		docker push quay.io/$(ELYRA_IMAGE_LATEST); \
+	if [ "$(IMAGE_IS_LATEST)" == "True" ]; then \
+		$(CONTAINER_EXEC) tag docker.io/$(ELYRA_IMAGE) docker.io/$(ELYRA_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) push docker.io/$(ELYRA_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) tag quay.io/$(ELYRA_IMAGE) quay.io/$(ELYRA_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) push quay.io/$(ELYRA_IMAGE_LATEST); \
 	fi
 
 kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	@mkdir -p build/docker-kubeflow
 	cp etc/docker/kubeflow/* build/docker-kubeflow/
-	if [ "$(TAG)" == "dev" ]; then \
-		cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/; \
-  	fi
-	docker buildx build \
+	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/
+	$(CONTAINER_EXEC) buildx build \
         --progress=plain \
         --output=type=docker \
 		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
@@ -290,21 +295,21 @@ kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 
 publish-kf-notebook-image: kf-notebook-image # Publish elyra image for use with Kubeflow Notebook Server
 	# this is a privileged operation; a `docker login` might be required
-	docker push docker.io/$(KF_NOTEBOOK_IMAGE)
-	docker push quay.io/$(KF_NOTEBOOK_IMAGE)
+	$(CONTAINER_EXEC) push docker.io/$(KF_NOTEBOOK_IMAGE)
+	$(CONTAINER_EXEC) push quay.io/$(KF_NOTEBOOK_IMAGE)
 	# If we're building a release from main, tag latest and push
-	if [ "$(TAG)" != "dev" -a "$(shell git branch --show-current)" == "main" ]; then \
-		docker tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		docker push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		docker tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
-		docker push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+	if [ "$(IMAGE_IS_LATEST)" == "True" ]; then \
+		$(CONTAINER_EXEC) tag docker.io/$(KF_NOTEBOOK_IMAGE) docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) push docker.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) tag quay.io/$(KF_NOTEBOOK_IMAGE) quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
+		$(CONTAINER_EXEC) push quay.io/$(KF_NOTEBOOK_IMAGE_LATEST); \
 	fi
 
 container-images: elyra-image kf-notebook-image ## Build all container images
-	docker images $(ELYRA_IMAGE)
-	docker images quay.io/$(ELYRA_IMAGE)
-	docker images $(KF_NOTEBOOK_IMAGE)
-	docker images quay.io/$(KF_NOTEBOOK_IMAGE)
+	$(CONTAINER_EXEC) images $(ELYRA_IMAGE)
+	$(CONTAINER_EXEC) images quay.io/$(ELYRA_IMAGE)
+	$(CONTAINER_EXEC) images $(KF_NOTEBOOK_IMAGE)
+	$(CONTAINER_EXEC) images quay.io/$(KF_NOTEBOOK_IMAGE)
 
 publish-container-images: publish-elyra-image publish-kf-notebook-image ## Publish all container images
 
@@ -317,48 +322,73 @@ validate-runtime-images: # Validates delivered runtime-images meet minimum crite
 			echo ERROR: $$file does not define the image_name property ; \
 			exit 1; \
 		fi; \
-		fail=0; \
-		for cmd in $$required_commands ; do \
-			echo Checking $$image in $$file for $$cmd... ; \
-			docker inspect $$image > /dev/null 2>&1 ; \
-			if [ $$? -ne 0 ]; then \
-				echo Image $$image is not present, pulling... ; \
-			fi; \
-			docker run --rm $$image which $$cmd > /dev/null 2>&1 ; \
-			if [ $$? -ne 0 ]; then \
-				echo ERROR: Image $$image did not meet criteria for command: $$cmd ; \
-				fail=1; \
-			fi; \
-			if [ $$cmd == "python3" ]; then \
-				IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2` ; \
-				if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
-					echo WARNING: Image $$image requires at Python 3.8 or greater for latest generic component dependency installation; \
-					docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra-py37.txt && \
-								   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
-								   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
-					if [ $$? -ne 0 ]; then \
-						echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra-py37.txt ; \
-						fail=1; \
-					fi; \
-				elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
-					docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
-								   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
-								   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
-					if [ $$? -ne 0 ]; then \
-						echo ERROR: Image $$image did not meet python requirements criteria in requirements-elyra.txt ; \
-						fail=1; \
-					fi; \
-				else \
-					echo ERROR: Image $$image unable to parse python version ; \
-					fail=1; \
-				fi; \
-			fi; \
-		done; \
-		if [ $(REMOVE_RUNTIME_IMAGE) -eq 1 ]; then \
-			echo Removing image $$image... ; \
-			docker rmi $$image > /dev/null ; \
-		fi; \
-		if [ $$fail -eq 1 ]; then \
+		make validate-runtime-image image=$$image ; \
+	done
+
+validate-runtime-image: # Validate that runtime image meets minimum criteria
+	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
+	if [[ $$image == "" ]] ; then \
+		echo "Usage: make validate-runtime-image image=<container-image-name>" ; \
+		exit 1 ; \
+	fi ; \
+	$(PYTHON_PIP) install -q jq ; \
+	fail=0; \
+	echo "***********************************************************" ; \
+	echo "Validating container image $$image" ; \
+	echo "-----------------------------------------------------------" ; \
+	echo "=> Loading container image ..." ; \
+	docker inspect $$image > /dev/null 2>&1 ; \
+	if [ $$? -ne 0 ]; then \
+		echo Container image $$image is not present, pulling... ; \
+		docker pull $$image ; \
+		if [ $$? -ne 0 ]; then \
+			echo "ERROR: pull of container image $$image failed" ; \
 			exit 1; \
 		fi; \
-	done
+	fi; \
+	for cmd in $$required_commands ; do \
+        echo "=> Checking container image $$image for $$cmd..." ; \
+		docker run --rm $$image which $$cmd > /dev/null 2>&1 ; \
+		if [ $$? -ne 0 ]; then \
+			echo "ERROR: Container image $$image does not meet criteria for command: $$cmd" ; \
+			fail=1; \
+			continue; \
+		fi; \
+		if [ $$cmd == "python3" ]; then \
+			IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2` ; \
+			if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
+				echo "WARNING: Container image $$image requires Python 3.8 or greater for latest generic component dependency installation" ; \
+				echo "=> Checking notebook execution..." ; \
+				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra-py37.txt && \
+							   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
+							   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
+				if [ $$? -ne 0 ]; then \
+					echo "ERROR: Container image $$image does not meet Python requirements criteria in requirements-elyra-py37.txt" ; \
+					fail=1; \
+				fi; \
+			elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
+				echo "=> Checking notebook execution..." ; \
+				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
+							   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
+							   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
+				if [ $$? -ne 0 ]; then \
+					echo "ERROR: Image $$image does not meet Python requirements criteria in requirements-elyra.txt" ; \
+					fail=1; \
+				fi; \
+			else \
+				echo "ERROR: Container image $$image: unable to parse Python version" ; \
+				fail=1; \
+			fi; \
+		fi; \
+	done ; \
+	if [ $(REMOVE_RUNTIME_IMAGE) -eq 1 ]; then \
+		echo Removing container image $$image... ; \
+		docker rmi $$image > /dev/null ; \
+	fi; \
+	echo "-----------------------------------------------------------" ; \
+	if [ $$fail -eq 1 ]; then \
+		echo "=> ERROR: Container image $$image is not a suitable Elyra runtime image" ; \
+		exit 1 ; \
+	else \
+		echo "=> Container image $$image is a suitable Elyra runtime image" ; \
+	fi; \

@@ -55,8 +55,8 @@ class LocalPipelineProcessor(PipelineProcessor):
     _type = RuntimeProcessorType.LOCAL
     _name = "local"
 
-    def __init__(self, root_dir, **kwargs):
-        super().__init__(root_dir, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         notebook_op_processor = NotebookOperationProcessor(self.root_dir)
         python_op_processor = PythonScriptOperationProcessor(self.root_dir)
         r_op_processor = RScriptOperationProcessor(self.root_dir)
@@ -119,9 +119,6 @@ class LocalPipelineProcessorResponse(PipelineProcessorResponse):
 
     _type = RuntimeProcessorType.LOCAL
     _name = "local"
-
-    def __init__(self):
-        super().__init__("", "", "")
 
 
 class OperationProcessor(ABC):
