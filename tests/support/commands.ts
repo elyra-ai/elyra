@@ -93,7 +93,9 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
   cy.findByRole('button', { name: /save/i }).click();
 
   // reset runtimes widget
-  cy.findByRole('tab', { name: /runtimes/i }).click();
+  if (type !== 'invalid') {
+    cy.findByRole('tab', { name: /runtimes/i }).click();
+  }
 });
 
 Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
