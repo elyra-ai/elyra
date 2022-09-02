@@ -39,6 +39,7 @@ from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline import VolumeMount
+from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -472,7 +473,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
     async def _validate_custom_component_node_properties(
         self, node: Node, response: ValidationResponse, pipeline_definition: PipelineDefinition, pipeline_runtime: str
-    ):  # sourcery skip: merge-else-if-into-elif, swap-if-else-branches
+    ):
         """
         Validates the properties of the custom component node
         :param node: the node to be validated
@@ -499,9 +500,6 @@ class PipelineValidationManager(SingletonConfigurable):
         for prop in props_to_remove:
             current_parameters.pop(prop, None)
 
-        # List of just the current parameters for the component
-        current_parameter_defaults_list = list(current_parameters.keys())
-
         volumes = node.get_component_parameter(MOUNTED_VOLUMES)
         if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
             self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
@@ -514,7 +512,13 @@ class PipelineValidationManager(SingletonConfigurable):
         if annotations and KUBERNETES_POD_ANNOTATIONS not in node.elyra_properties_to_skip:
             self._validate_kubernetes_pod_annotations(node.id, node.label, annotations, response=response)
 
-        for default_parameter in current_parameter_defaults_list:
+        # List of just the parameters parsed from the component definition
+        parsed_parameters = [
+            p
+            for p in current_parameters.keys()
+            if p not in ELYRA_COMPONENT_PROPERTIES or p in node.elyra_properties_to_skip
+        ]
+        for default_parameter in parsed_parameters:
             node_param = node.get_component_parameter(default_parameter)
             if not node_param or node_param.get("value") is None:
                 if self._is_required_property(component_property_dict, default_parameter):
