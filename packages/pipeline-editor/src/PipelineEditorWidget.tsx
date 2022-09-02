@@ -416,53 +416,45 @@ const PipelineWrapper: React.FC<IProps> = ({
       contextRef.current.path,
       args.filename ?? ''
     );
-
-    switch (args.propertyID) {
-      case 'elyra_dependencies':
+    if (args.propertyID.includes('dependencies')) {
+      const res = await showBrowseFileDialog(
+        browserFactory.defaultBrowser.model.manager,
         {
-          const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
-            {
-              multiselect: true,
-              includeDir: true,
-              rootPath: PathExt.dirname(filename),
-              filter: (model: any): boolean => {
-                return model.path !== filename;
-              }
-            }
-          );
-
-          if (res.button.accept && res.value.length) {
-            return res.value.map((v: any) => v.path);
+          multiselect: true,
+          includeDir: true,
+          rootPath: PathExt.dirname(filename),
+          filter: (model: any): boolean => {
+            return model.path !== filename;
           }
         }
-        break;
-      default:
+      );
+
+      if (res.button.accept && res.value.length) {
+        return res.value.map((v: any) => v.path);
+      }
+    } else {
+      const res = await showBrowseFileDialog(
+        browserFactory.defaultBrowser.model.manager,
         {
-          const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
-            {
-              startPath: PathExt.dirname(filename),
-              filter: (model: any): boolean => {
-                if (args.filters?.File === undefined) {
-                  return true;
-                }
-
-                const ext = PathExt.extname(model.path);
-                return args.filters.File.includes(ext);
-              }
+          startPath: PathExt.dirname(filename),
+          filter: (model: any): boolean => {
+            if (args.filters?.File === undefined) {
+              return true;
             }
-          );
 
-          if (res.button.accept && res.value.length) {
-            const file = PipelineService.getPipelineRelativeNodePath(
-              contextRef.current.path,
-              res.value[0].path
-            );
-            return [file];
+            const ext = PathExt.extname(model.path);
+            return args.filters.File.includes(ext);
           }
         }
-        break;
+      );
+
+      if (res.button.accept && res.value.length) {
+        const file = PipelineService.getPipelineRelativeNodePath(
+          contextRef.current.path,
+          res.value[0].path
+        );
+        return [file];
+      }
     }
 
     return undefined;
