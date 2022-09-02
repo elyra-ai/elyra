@@ -605,7 +605,6 @@ describe('Pipeline Editor tests', () => {
   //error dialog tests
   it('saving airflow runtime config should error if required fields are missing', () => {
     cy.savePipeline();
-
     cy.createRuntimeConfig({ type: 'invalid' });
     cy.get('.jp-Dialog-header').contains('Error making request');
 
@@ -613,27 +612,11 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /ok/i }).click();
   });
 
-  it('exporting airflow pipeline with invalid runtime should give error', () => {
-    cy.createPipeline({ type: 'airflow' });
+  it('exporting generic pipeline with invalid runtime config should produce request error', () => {
+    cy.createPipeline();
     cy.savePipeline();
 
-    cy.installRuntimeConfig({ type: 'airflow' });
-
-    cy.findByRole('button', { name: /export pipeline/i }).click();
-
-    cy.contains('OK').click();
-
-    cy.get('.jp-Dialog-header').contains('Error making request');
-
-    // Dismiss dialog
-    cy.findByRole('button', { name: /ok/i }).click();
-  });
-
-  it('exporting kubeflow pipeline with invalid runtime should give error', () => {
-    cy.createPipeline({ type: 'kfp' });
-    cy.savePipeline();
-
-    cy.installRuntimeConfig({ type: 'kfp' });
+    cy.installRuntimeConfig();
 
     cy.findByRole('button', { name: /export pipeline/i }).click();
 
