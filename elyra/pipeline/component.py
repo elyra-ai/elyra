@@ -177,7 +177,7 @@ class ComponentParameter(object):
                     {
                         "type": "object",
                         "properties": {"widget": {"type": "string", "default": input_type}, "value": {"oneOf": []}},
-                        "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: "true"}},
+                        "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: True}},
                     }
                 )
             elif input_type == "file":
@@ -186,8 +186,8 @@ class ComponentParameter(object):
             else:
                 json_dict["type"] = param.value_entry_type
 
-                # Render default value if it is not None or empty string
-                if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
+                # Render default value if it is not None
+                if param.value is not None:
                     json_dict["default"] = param.value
         else:
             # Parameter accepts multiple types of inputs; render a oneOf block
@@ -205,8 +205,8 @@ class ComponentParameter(object):
                     if param.value_entry_type == "boolean":
                         obj["properties"]["value"]["title"] = " "
 
-                    # Render default value if it is not None or empty string
-                    if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
+                    # Render default value if it is not None
+                    if param.value is not None:
                         obj["properties"]["value"]["default"] = param.value
                 else:  # inputpath or file types
                     obj["title"] = InputTypeDescriptionMap[widget_type].value

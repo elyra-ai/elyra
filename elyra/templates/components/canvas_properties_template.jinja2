@@ -48,12 +48,13 @@
         {% if "mounted_volumes" not in elyra_property_collisions_list %}
         ,
         "mounted_volumes": {
+          "title": "Data Volumes",
+          "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
           "type": "array",
           "items": {
             "type": "string"
           },
-          "title": "Data Volumes",
-          "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
+          "default": [],
           "uihints": {
             "items": {
               "ui:placeholder": "/mount/path=pvc-name"
@@ -65,12 +66,13 @@
         {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
         ,
         "kubernetes_pod_annotations": {
+          "title": "Kubernetes Pod Annotations",
+          "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
           "type": "array",
           "items": {
             "type": "string"
           },
-          "title": "Kubernetes Pod Annotations",
-          "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
+          "default": [],
           "uihints": {
             "items": {
               "ui:placeholder": "annotation_key=annotation_value"
@@ -82,12 +84,13 @@
         {% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
         ,
         "kubernetes_tolerations": {
+          "title": "Kubernetes Tolerations",
+          "description": "Kubernetes tolerations to attach to the pod where the node is executed.",
           "type": "array",
           "items": {
             "type": "string"
           },
-          "title": "Kubernetes Tolerations",
-          "description": "Kubernetes tolerations to attach to the pod where the node is executed.",
+          "default": [],
           "uihints": {
             "items": {
               "ui:placeholder": "TOL_ID=key:operator:value:effect"
