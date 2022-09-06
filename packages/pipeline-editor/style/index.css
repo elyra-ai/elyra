@@ -458,7 +458,7 @@ span.bx--list-box__label {
   left: -10px;
 }
 
-.elyra-PipelineEditor .elyra-formEditor .label-header.category-header {
+.elyra-PipelineEditor .elyra-formEditor .label-header.category-header label {
   font-size: var(--jp-content-font-size2);
 }
 
@@ -496,7 +496,8 @@ span.bx--list-box__label {
   #root
   > .form-group.field
   > fieldset
-  > .form-group.field.field-null {
+  > .form-group.field.field-null,
+.elyra-PipelineEditor #root > .form-group.field.field-null {
   padding-left: 0;
 }
 
