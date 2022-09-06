@@ -80,7 +80,9 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
     );
   }
 
-  cy.findByLabelText(/object storage endpoint/i).type('http://0.0.0.0:9000');
+  cy.findByLabelText('Cloud Object Storage Endpoint*').type(
+    'http://0.0.0.0:9000'
+  );
 
   if (type !== 'invalid') {
     cy.findByLabelText(/object storage username/i).type('minioadmin');
