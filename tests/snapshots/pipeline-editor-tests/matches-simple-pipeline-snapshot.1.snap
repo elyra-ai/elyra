@@ -19,12 +19,20 @@ Object {
         Object {
           "app_data": Object {
             "component_parameters": Object {
+              "dependencies": Array [],
               "env_vars": Array [
                 "TEST_ENV_1=",
                 "TEST_ENV_2=",
               ],
               "filename": "helloworld.ipynb",
+              "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
+              "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
+              "mounted_volumes": Array [],
+              "outputs": Array [],
             },
+            "label": "",
             "ui_data": Object {
               "decorations": Array [
                 Object {

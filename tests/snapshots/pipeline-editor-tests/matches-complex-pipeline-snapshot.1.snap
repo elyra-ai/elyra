@@ -19,16 +19,23 @@ Object {
         Object {
           "app_data": Object {
             "component_parameters": Object {
+              "dependencies": Array [],
               "env_vars": Array [
                 "NB_USER=",
               ],
               "filename": "producer.ipynb",
+              "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
+              "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
+              "mounted_volumes": Array [],
               "outputs": Array [
                 "output-1.csv",
                 "output-2.csv",
               ],
               "runtime_image": "continuumio/anaconda3:2021.11",
             },
+            "label": "",
             "ui_data": Object {
               "description": "Run notebook file",
               "image": "/static/elyra/notebook.svg",
@@ -72,10 +79,18 @@ Object {
         Object {
           "app_data": Object {
             "component_parameters": Object {
+              "dependencies": Array [],
               "env_vars": Array [],
               "filename": "consumer.ipynb",
+              "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
+              "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
+              "mounted_volumes": Array [],
+              "outputs": Array [],
               "runtime_image": "continuumio/anaconda3:2021.11",
             },
+            "label": "",
             "ui_data": Object {
               "description": "Run notebook file",
               "image": "/static/elyra/notebook.svg",
@@ -124,8 +139,15 @@ Object {
               ],
               "env_vars": Array [],
               "filename": "../scripts/setup.py",
+              "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
+              "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
+              "mounted_volumes": Array [],
+              "outputs": Array [],
               "runtime_image": "continuumio/anaconda3:2021.11",
             },
+            "label": "",
             "ui_data": Object {
               "description": "Run Python script",
               "image": "/static/elyra/py-logo.svg",
@@ -169,14 +191,21 @@ Object {
         Object {
           "app_data": Object {
             "component_parameters": Object {
+              "dependencies": Array [],
               "env_vars": Array [],
               "filename": "create-source-files.py",
+              "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
+              "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
+              "mounted_volumes": Array [],
               "outputs": Array [
                 "input-1.csv",
                 "input-2.csv",
               ],
               "runtime_image": "continuumio/anaconda3:2021.11",
             },
+            "label": "",
             "ui_data": Object {
               "description": "Run Python script",
               "image": "/static/elyra/py-logo.svg",
@@ -220,14 +249,21 @@ Object {
         Object {
           "app_data": Object {
             "component_parameters": Object {
+              "dependencies": Array [],
               "env_vars": Array [],
               "filename": "producer-script.py",
+              "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
+              "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
+              "mounted_volumes": Array [],
               "outputs": Array [
                 "output-3.csv",
                 "output-4.csv",
               ],
               "runtime_image": "continuumio/anaconda3:2021.11",
             },
+            "label": "",
             "ui_data": Object {
               "description": "Run Python script",
               "image": "/static/elyra/py-logo.svg",
