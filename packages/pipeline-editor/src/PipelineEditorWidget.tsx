@@ -304,6 +304,28 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [runtimeDisplayName]);
 
   const onChange = useCallback((pipelineJson: any): void => {
+    // Remove all null values from the pipeline
+    for (const node of pipelineJson?.pipelines?.[0]?.nodes ?? []) {
+      const component_parameters = node.app_data?.component_parameters ?? {};
+      for (const key in component_parameters) {
+        if (component_parameters[key] === null) {
+          delete component_parameters[key];
+        }
+      }
+      for (const key in node.app_data) {
+        if (node.app_data[key] === null) {
+          delete node.app_data[key];
+        }
+      }
+    }
+    const pipeline_defaults =
+      pipelineJson?.pipelines?.[0]?.app_data?.properties?.pipeline_defaults ??
+      {};
+    for (const key in pipeline_defaults) {
+      if (pipeline_defaults[key] === null) {
+        delete pipeline_defaults[key];
+      }
+    }
     if (contextRef.current.isReady) {
       contextRef.current.model.fromString(
         JSON.stringify(pipelineJson, null, 2)
