@@ -150,7 +150,7 @@ Object {
             "label": "",
             "ui_data": Object {
               "description": "Run Python script",
-              "image": "/static/elyra/py-logo.svg",
+              "image": "/static/elyra/python.svg",
               "label": "setup.py",
               "x_pos": 125,
               "y_pos": 135,
@@ -208,7 +208,7 @@ Object {
             "label": "",
             "ui_data": Object {
               "description": "Run Python script",
-              "image": "/static/elyra/py-logo.svg",
+              "image": "/static/elyra/python.svg",
               "label": "create-source-files.py",
               "x_pos": 145,
               "y_pos": 155,
@@ -266,7 +266,7 @@ Object {
             "label": "",
             "ui_data": Object {
               "description": "Run Python script",
-              "image": "/static/elyra/py-logo.svg",
+              "image": "/static/elyra/python.svg",
               "label": "producer-script.py",
               "x_pos": 165,
               "y_pos": 175,
