@@ -176,7 +176,10 @@ class ComponentParameter(object):
                 json_dict.update(
                     {
                         "type": "object",
-                        "properties": {"widget": {"type": "string", "default": input_type}, "value": {"oneOf": []}},
+                        "properties": {
+                            "widget": {"type": "string", "default": input_type},
+                            "value": {"type": "string", "enum": []},
+                        },
                         "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: True}},
                     }
                 )
@@ -216,7 +219,8 @@ class ComponentParameter(object):
                         obj["properties"]["value"]["type"] = "string"
                     elif widget_type == "inputpath":
                         obj["uihints"]["value"] = {widget_type: True}
-                        obj["properties"]["value"]["oneOf"] = []
+                        obj["properties"]["value"]["type"] = "string"
+                        obj["properties"]["value"]["enum"] = []
                         if param.allow_no_options:
                             obj["uihints"]["allownooptions"] = param.allow_no_options
                     else:
