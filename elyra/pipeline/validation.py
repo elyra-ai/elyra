@@ -572,7 +572,7 @@ class PipelineValidationManager(SingletonConfigurable):
                                     data={"nodeID": node.id, "nodeName": node.label, "parentNodeID": upstream_node_id},
                                 )
                 elif node_param.get("widget") == "file":
-                    filename = node_param.get("value")
+                    filename = node_param.get("value", "")
                     self._validate_filepath(
                         node_id=node.id,
                         node_label=node.label,
@@ -873,7 +873,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidFilePath",
-                    message="Property(wildcard) has an invalid path to a file/dir" " or the file/dir does not exist.",
+                    message="Property(wildcard) has an invalid path to a file/dir or the file/dir does not exist.",
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
@@ -881,7 +881,7 @@ class PipelineValidationManager(SingletonConfigurable):
                         "value": normalized_path,
                     },
                 )
-        elif not os.path.exists(normalized_path):
+        elif not os.path.exists(normalized_path) or not os.path.isfile(normalized_path):
             response.add_message(
                 severity=ValidationSeverity.Error,
                 message_type="invalidFilePath",
