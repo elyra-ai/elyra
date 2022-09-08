@@ -382,19 +382,20 @@ be fully qualified (i.e., prefixed with their package names).
                         )
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
-                    elif data_entry_type == "file":
-                        # Parameters of this type read a value from a file
-                        absolute_path = get_absolute_path(self.root_dir, property_value)
-                        with open(absolute_path, "r") as f:
-                            operation.component_params[component_property.ref] = f.read()
-                    else:  # Parameter is of a raw data type
-                        # If the value is not found, assign it the default value assigned in parser
+                    else:  # Parameter is either of a raw data type or file contents
+                        if data_entry_type == "file":
+                            # Read a value from a file
+                            absolute_path = get_absolute_path(self.root_dir, property_value)
+                            with open(absolute_path, "r") as f:
+                                property_value = f.read() if os.path.getsize(absolute_path) else None
+
+                        # If a value is not found, assign it the default value assigned in parser
                         if property_value is None:
                             property_value = component_property.value
 
+                        # Adjust value based on data type for correct rendering in DAG template
                         if component_property.json_data_type == "string":
-                            # Add surrounding quotation marks to string value for correct rendering
-                            # in jinja DAG template
+                            # Add surrounding quotation marks to string value
                             operation.component_params[component_property.ref] = json.dumps(property_value)
                         elif component_property.json_data_type == "object":
                             processed_value = self._process_dictionary_value(property_value)

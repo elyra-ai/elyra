@@ -603,12 +603,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
                             output_node_parameter_key
                         ]
-                    elif data_entry_type == "file":
-                        # Parameters of this type read a value from a file
-                        absolute_path = get_absolute_path(self.root_dir, property_value)
-                        with open(absolute_path, "r") as f:
-                            operation.component_params[component_property.ref] = f.read()
-                    else:  # Parameter is of a raw data type
+                    else:  # Parameter is either of a raw data type or file contents
+                        if data_entry_type == "file":
+                            # Read a value from a file
+                            absolute_path = get_absolute_path(self.root_dir, property_value)
+                            with open(absolute_path, "r") as f:
+                                property_value = f.read() if os.path.getsize(absolute_path) else None
+
                         # If the value is not found, assign it the default value assigned in parser
                         if property_value is None:
                             property_value = component_property.value
