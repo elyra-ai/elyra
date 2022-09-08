@@ -178,7 +178,7 @@ For more details on the **pipeline json definition** see it's [json schema](http
 ## Pipeline Processor Customization
 Elyra implements an extensible **pipeline processor engine**, which enables the addition of new pipeline processors utilizing
 a service discovery mechanism.  The pipeline processor class hierarchy is depicted here:
-![Pipeline Processor Class Hierachy](../images/pipeline-processor-class-hierarchy.png)
+![Pipeline Processor Class Hierachy](../images/developer_guide/pipelines/pipeline-processor-class-hierarchy.png)
 This section outlines what is needed to introduce your own runtime for integration with Elyra.  In essence, two criteria must be fulfilled to introduce a new runtime: 
 1. A schema describing the necessary runtime metadata
 1. A pipeline processor implementation appropriately associated to the runtime

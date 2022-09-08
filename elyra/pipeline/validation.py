@@ -737,7 +737,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         :param pipeline: A dictionary describing the pipeline
         """
-        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraPropertyJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
 
         graph = nx.DiGraph()
 

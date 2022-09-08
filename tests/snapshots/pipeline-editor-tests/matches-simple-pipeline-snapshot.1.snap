@@ -19,200 +19,20 @@ Object {
         Object {
           "app_data": Object {
             "component_parameters": Object {
+              "dependencies": Array [],
               "env_vars": Array [
                 "TEST_ENV_1=",
                 "TEST_ENV_2=",
               ],
               "filename": "helloworld.ipynb",
+              "include_subdirectories": false,
+              "kubernetes_pod_annotations": Array [],
+              "kubernetes_secrets": Array [],
+              "kubernetes_tolerations": Array [],
+              "mounted_volumes": Array [],
+              "outputs": Array [],
             },
-            "extensions": Array [
-              ".ipynb",
-            ],
-            "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
-            "parameter_refs": Object {
-              "filehandler": "filename",
-            },
-            "properties": Object {
-              "properties": Object {
-                "component_parameters": Object {
-                  "properties": Object {
-                    "cpu": Object {
-                      "description": "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
-                      "minimum": 0,
-                      "title": "CPU",
-                      "type": "integer",
-                    },
-                    "dependencies": Object {
-                      "description": "Local file dependencies that need to be copied to remote execution environment.",
-                      "items": Object {
-                        "type": "string",
-                      },
-                      "title": "File Dependencies",
-                      "type": "array",
-                      "uihints": Object {
-                        "items": Object {
-                          "ui:placeholder": "*.py",
-                          "ui:widget": "file",
-                        },
-                      },
-                    },
-                    "env_vars": Object {
-                      "description": "Environment variables to be set on the execution environment.",
-                      "items": Object {
-                        "type": "string",
-                      },
-                      "title": "Environment Variables",
-                      "type": "array",
-                      "uihints": Object {
-                        "canRefresh": true,
-                        "keyValueEntries": true,
-                        "ui:placeholder": "env_var=VALUE",
-                      },
-                    },
-                    "filename": Object {
-                      "description": "The path to the Notebook.",
-                      "title": "Filename",
-                      "type": "string",
-                      "uihints": Object {
-                        "extensions": Array [
-                          ".ipynb",
-                        ],
-                        "ui:widget": "file",
-                      },
-                    },
-                    "gpu": Object {
-                      "description": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.",
-                      "minimum": 0,
-                      "title": "GPU",
-                      "type": "integer",
-                    },
-                    "include_subdirectories": Object {
-                      "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time).",
-                      "title": "Include Subdirectories",
-                      "type": "boolean",
-                    },
-                    "kubernetes_pod_annotations": Object {
-                      "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
-                      "items": Object {
-                        "type": "string",
-                      },
-                      "title": "Kubernetes Pod Annotations",
-                      "type": "array",
-                      "uihints": Object {
-                        "items": Object {
-                          "ui:placeholder": "annotation_key=annotation_value",
-                        },
-                        "keyValueEntries": true,
-                      },
-                    },
-                    "kubernetes_secrets": Object {
-                      "description": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the node is executed or this node will not run.",
-                      "items": Object {
-                        "type": "string",
-                      },
-                      "title": "Kubernetes Secrets",
-                      "type": "array",
-                      "uihints": Object {
-                        "items": Object {
-                          "ui:placeholder": "env_var=secret-name:secret-key",
-                        },
-                        "keyValueEntries": true,
-                      },
-                    },
-                    "kubernetes_tolerations": Object {
-                      "description": "Kubernetes tolerations to apply to the pod where the node is executed.",
-                      "items": Object {
-                        "type": "string",
-                      },
-                      "title": "Kubernetes Tolerations",
-                      "type": "array",
-                      "uihints": Object {
-                        "items": Object {
-                          "ui:placeholder": "TOL_ID=key:operator:value:effect",
-                        },
-                        "keyValueEntries": true,
-                      },
-                    },
-                    "memory": Object {
-                      "description": "The total amount of RAM specified.",
-                      "minimum": 0,
-                      "title": "RAM(GB)",
-                      "type": "integer",
-                    },
-                    "mounted_volumes": Object {
-                      "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
-                      "items": Object {
-                        "type": "string",
-                      },
-                      "title": "Data Volumes",
-                      "type": "array",
-                      "uihints": Object {
-                        "items": Object {
-                          "ui:placeholder": "/mount/path=pvc-name",
-                        },
-                        "keyValueEntries": true,
-                      },
-                    },
-                    "outputs": Object {
-                      "description": "Files generated during execution that will become available to all subsequent pipeline steps.",
-                      "items": Object {
-                        "type": "string",
-                      },
-                      "title": "Output Files",
-                      "type": "array",
-                      "uihints": Object {
-                        "items": Object {
-                          "ui:placeholder": "*.csv",
-                        },
-                      },
-                    },
-                    "runtime_image": Object {
-                      "description": "Container image used as execution environment.",
-                      "enum": Array [
-                        "continuumio/anaconda3:2021.11",
-                        "amancevice/pandas:1.4.1",
-                        "pytorch/pytorch:1.4-cuda10.1-cudnn7-devel",
-                        "pytorch/pytorch:1.4-cuda10.1-cudnn7-runtime",
-                        "jupyter/r-notebook:r-4.1.2",
-                        "tensorflow/tensorflow:2.8.0-gpu",
-                        "tensorflow/tensorflow:2.8.0",
-                        "elyra/tensorflow:1.15.2-py3",
-                      ],
-                      "enumNames": Array [
-                        "Anaconda (2021.11) with Python 3.x",
-                        "Pandas 1.4.1",
-                        "Pytorch 1.4 with CUDA-devel",
-                        "Pytorch 1.4 with CUDA-runtime",
-                        "R Script",
-                        "Tensorflow 2.8.0 with GPU",
-                        "Tensorflow 2.8.0",
-                        "Tensorflow 1.15.2",
-                      ],
-                      "required": true,
-                      "title": "Runtime Image",
-                      "type": "string",
-                      "uihints": Object {
-                        "items": Array [],
-                      },
-                    },
-                  },
-                  "required": Array [
-                    "filename",
-                    "runtime_image",
-                  ],
-                  "type": "object",
-                },
-                "label": Object {
-                  "description": "A custom label for the node.",
-                  "title": "Label",
-                  "type": "string",
-                },
-              },
-              "required": Array [
-                "component_parameters",
-              ],
-              "type": "object",
-            },
+            "label": "",
             "ui_data": Object {
               "decorations": Array [
                 Object {
@@ -225,7 +45,7 @@ Object {
                 },
               ],
               "description": "Run notebook file",
-              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "image": "/static/elyra/notebook.svg",
               "label": "helloworld.ipynb",
               "x_pos": 85,
               "y_pos": 95,

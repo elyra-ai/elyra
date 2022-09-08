@@ -162,7 +162,7 @@ describe('Pipeline Editor tests', () => {
       // producer props
       cy.findByText('producer.ipynb').rightclick();
       cy.findByRole('menuitem', { name: /properties/i }).click();
-      cy.get('[data-id="properties-elyra_filename"]').within(() => {
+      cy.get('#root_component_parameters_filename').within(() => {
         cy.findByRole('button', { name: /browse/i }).click();
       });
     });
@@ -172,34 +172,40 @@ describe('Pipeline Editor tests', () => {
     });
 
     cy.get('#jp-main-dock-panel').within(() => {
-      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
-        cy.findByRole('button', { name: /add item/i }).click();
-        cy.focused().type('output-1.csv');
-        cy.contains('OK').click();
+      cy.get('#root_component_parameters_outputs').within(() => {
+        cy.findByRole('button', { name: /add/i }).click();
+        cy.get('input[id="root_component_parameters_outputs_0"]').type(
+          'output-1.csv'
+        );
 
-        cy.findByRole('button', { name: /add item/i }).click();
-        cy.focused().type('output-2.csv');
-        cy.contains('OK').click();
+        cy.findByRole('button', { name: /add/i }).click();
+        cy.get('input[id="root_component_parameters_outputs_1"]').type(
+          'output-2.csv'
+        );
       });
-      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-        cy.findByRole('button').click();
-        cy.findByRole('option', { name: /anaconda/i }).click();
+      cy.get('#root_component_parameters_runtime_image').within(() => {
+        cy.get('select[id="root_component_parameters_runtime_image"]').select(
+          'continuumio/anaconda3:2021.11'
+        );
       });
 
       // consumer props
       cy.findByText('consumer.ipynb').click();
-      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-        cy.findByRole('button').click();
-        cy.findByRole('option', { name: /anaconda/i }).click();
+      cy.get('#root_component_parameters_runtime_image').within(() => {
+        cy.get('select[id="root_component_parameters_runtime_image"]').select(
+          'continuumio/anaconda3:2021.11'
+        );
       });
 
       // setup props
       cy.findByText('setup.py').click();
-      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-        cy.findByRole('button').click();
-        cy.findByRole('option', { name: /anaconda/i }).click();
+      cy.get('#root_component_parameters_runtime_image').within(() => {
+        cy.get('select[id="root_component_parameters_runtime_image"]').select(
+          'continuumio/anaconda3:2021.11'
+        );
       });
-      cy.get('[data-id="properties-elyra_dependencies"]').within(() => {
+      cy.get('#root_component_parameters_dependencies').within(() => {
+        cy.findByRole('button', { name: /add/i }).click();
         cy.findByRole('button', { name: /browse/i }).click();
       });
     });
@@ -213,34 +219,40 @@ describe('Pipeline Editor tests', () => {
     cy.get('#jp-main-dock-panel').within(() => {
       // create-source-files props
       cy.findByText('create-source-files.py').click();
-      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-        cy.findByRole('button').click();
-        cy.findByRole('option', { name: /anaconda/i }).click();
+      cy.get('#root_component_parameters_runtime_image').within(() => {
+        cy.get('select[id="root_component_parameters_runtime_image"]').select(
+          'continuumio/anaconda3:2021.11'
+        );
       });
-      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
-        cy.findByRole('button', { name: /add item/i }).click();
-        cy.focused().type('input-1.csv');
-        cy.contains('OK').click();
+      cy.get('#root_component_parameters_outputs').within(() => {
+        cy.findByRole('button', { name: /add/i }).click();
+        cy.get('input[id="root_component_parameters_outputs_0"]').type(
+          'input-1.csv'
+        );
 
-        cy.findByRole('button', { name: /add item/i }).click();
-        cy.focused().type('input-2.csv');
-        cy.contains('OK').click();
+        cy.findByRole('button', { name: /add/i }).click();
+        cy.get('input[id="root_component_parameters_outputs_1"]').type(
+          'input-2.csv'
+        );
       });
 
       // producer-script props
       cy.findByText('producer-script.py').click();
-      cy.get('[data-id="properties-elyra_runtime_image"]').within(() => {
-        cy.findByRole('button').click();
-        cy.findByRole('option', { name: /anaconda/i }).click();
+      cy.get('#root_component_parameters_runtime_image').within(() => {
+        cy.get('select[id="root_component_parameters_runtime_image"]').select(
+          'continuumio/anaconda3:2021.11'
+        );
       });
-      cy.get('[data-id="properties-elyra_outputs"]').within(() => {
-        cy.findByRole('button', { name: /add item/i }).click();
-        cy.focused().type('output-3.csv');
-        cy.contains('OK').click();
+      cy.get('#root_component_parameters_outputs').within(() => {
+        cy.findByRole('button', { name: /add/i }).click();
+        cy.get('input[id="root_component_parameters_outputs_0"]').type(
+          'output-3.csv'
+        );
 
-        cy.findByRole('button', { name: /add item/i }).click();
-        cy.focused().type('output-4.csv');
-        cy.contains('OK').click();
+        cy.findByRole('button', { name: /add/i }).click();
+        cy.get('input[id="root_component_parameters_outputs_1"]').type(
+          'output-4.csv'
+        );
       });
     });
 
@@ -529,28 +541,27 @@ describe('Pipeline Editor tests', () => {
 
       cy.findByRole('menuitem', { name: /properties/i }).click();
 
-      cy.findByText('TEST_ENV_1=1').should('exist');
+      cy.get('input[value="TEST_ENV_1=1"]').should('exist');
 
       cy.findByText('helloworld.py').click();
 
-      cy.get('[data-id="properties-elyra_env_vars"]').within(() => {
-        cy.findByRole('button', { name: /add item/i }).click();
-
-        cy.focused().type('BAD=two');
-
-        cy.contains('OK').click();
+      cy.get('#root_component_parameters_env_vars').within(() => {
+        cy.findByRole('button', { name: /add/i }).click();
+        cy.get('input[id="root_component_parameters_env_vars_0"]').type(
+          'BAD=two'
+        );
       });
 
-      cy.findByText('BAD=two').should('exist');
+      cy.get('input[value="BAD=two"]').should('exist');
 
       cy.findByText('helloworld.ipynb').click();
 
-      cy.findByText('TEST_ENV_1=1').should('exist');
-      cy.findByText('BAD=two').should('not.exist');
+      cy.get('input[value="TEST_ENV_1=1"]').should('exist');
+      cy.get('input[value="BAD=two"]').should('not.exist');
 
       cy.findByText('helloworld.py').click();
 
-      cy.findByText('BAD=two').should('exist');
+      cy.get('input[value="BAD=two"]').should('exist');
     });
   });
 

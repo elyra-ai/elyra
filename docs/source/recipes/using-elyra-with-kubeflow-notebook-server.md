@@ -34,21 +34,21 @@ In this example we will show how to launch Elyra using [Kubeflow's Notebook Serv
 ## Launching Elyra in the Kubeflow Notebook Server
 1. In the default Kubeflow welcome page, in the left side menu, click on `Notebook Servers`   
   
-   ![Elyra](../images/elyra-with-kf-notebook-splash-screen.png)  
+   ![Elyra](../images/recipes/using-elyra-with-kubeflow-notebook-server/elyra-with-kf-notebook-splash-screen.png)  
   
 1. Click on `NEW SERVER`   
   
-   ![Elyra](../images/elyra-with-kf-notebook-notebook-server.png)  
+   ![Elyra](../images/recipes/using-elyra-with-kubeflow-notebook-server/elyra-with-kf-notebook-notebook-server.png)  
   
 1. Choose a `name` for your notebook server, and under `Image` check the box labeled `Custom Image`.   
   
-   ![Elyra](../images/elyra-with-kf-notebook-config-1.png)  
+   ![Elyra](../images/recipes/using-elyra-with-kubeflow-notebook-server/elyra-with-kf-notebook-config-1.png)  
 
 1. In _Kubeflow version 1.3 (and later)_ choose `jupyterlab` as image type.
 
 1. As `Custom Image` enter `elyra/kf-notebook:<ELYRA_VERSION>`, replacing `<ELYRA_VERSION>` with the desired image tag, e.g. `2.1.0`.   
   
-   ![Elyra](../images/elyra-with-kf-notebook-image-config.png)
+   ![Elyra](../images/recipes/using-elyra-with-kubeflow-notebook-server/elyra-with-kf-notebook-image-config.png)
 
    > To pull an image from quay.io prefix the image name with `quay.io`, e.g. `quay.io/kf-notebook:2.1.0`.  
   
@@ -56,7 +56,7 @@ In this example we will show how to launch Elyra using [Kubeflow's Notebook Serv
      
 1. Your notebook server with Elyra should begin the provisioning process now. When complete, you'll notice a green light and arrow to the left of your notebook. Click on `Connect` to launch Elyra.   
   
-   ![Elyra](../images/elyra-with-kf-notebook-start-notebook.png)  
+   ![Elyra](../images/recipes/using-elyra-with-kubeflow-notebook-server/elyra-with-kf-notebook-start-notebook.png)  
    
 ### Next step:
 [Creating a runtime metadata configuration](https://elyra.readthedocs.io/en/latest/user_guide/runtime-conf.html)

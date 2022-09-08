@@ -37,12 +37,13 @@
           "minimum": 0
         },
         "dependencies": {
+          "title": "File Dependencies",
+          "description": "Local file dependencies that need to be copied to remote execution environment.",
           "type": "array",
           "items": {
             "type": "string"
           },
-          "title": "File Dependencies",
-          "description": "Local file dependencies that need to be copied to remote execution environment.",
+          "default": [],
           "uihints": {
             "items": {
               "ui:placeholder": "*.py",
@@ -53,15 +54,17 @@
         "include_subdirectories": {
           "type": "boolean",
           "title": "Include Subdirectories",
-          "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time)."
+          "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time).",
+          "default": false
         },
         "outputs": {
+          "title": "Output Files",
+          "description": "Files generated during execution that will become available to all subsequent pipeline steps.",
           "type": "array",
           "items": {
             "type": "string"
           },
-          "title": "Output Files",
-          "description": "Files generated during execution that will become available to all subsequent pipeline steps.",
+          "default": [],
           "uihints": {
             "items": {
               "ui:placeholder": "*.csv"

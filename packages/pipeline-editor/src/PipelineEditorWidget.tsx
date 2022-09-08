@@ -304,6 +304,28 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [runtimeDisplayName]);
 
   const onChange = useCallback((pipelineJson: any): void => {
+    // Remove all null values from the pipeline
+    for (const node of pipelineJson?.pipelines?.[0]?.nodes ?? []) {
+      const component_parameters = node.app_data?.component_parameters ?? {};
+      for (const key in component_parameters) {
+        if (component_parameters[key] === null) {
+          delete component_parameters[key];
+        }
+      }
+      for (const key in node.app_data) {
+        if (node.app_data[key] === null) {
+          delete node.app_data[key];
+        }
+      }
+    }
+    const pipeline_defaults =
+      pipelineJson?.pipelines?.[0]?.app_data?.properties?.pipeline_defaults ??
+      {};
+    for (const key in pipeline_defaults) {
+      if (pipeline_defaults[key] === null) {
+        delete pipeline_defaults[key];
+      }
+    }
     if (contextRef.current.isReady) {
       contextRef.current.model.fromString(
         JSON.stringify(pipelineJson, null, 2)
@@ -416,53 +438,45 @@ const PipelineWrapper: React.FC<IProps> = ({
       contextRef.current.path,
       args.filename ?? ''
     );
-
-    switch (args.propertyID) {
-      case 'elyra_dependencies':
+    if (args.propertyID.includes('dependencies')) {
+      const res = await showBrowseFileDialog(
+        browserFactory.defaultBrowser.model.manager,
         {
-          const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
-            {
-              multiselect: true,
-              includeDir: true,
-              rootPath: PathExt.dirname(filename),
-              filter: (model: any): boolean => {
-                return model.path !== filename;
-              }
-            }
-          );
-
-          if (res.button.accept && res.value.length) {
-            return res.value.map((v: any) => v.path);
+          multiselect: true,
+          includeDir: true,
+          rootPath: PathExt.dirname(filename),
+          filter: (model: any): boolean => {
+            return model.path !== filename;
           }
         }
-        break;
-      default:
+      );
+
+      if (res.button.accept && res.value.length) {
+        return res.value.map((v: any) => v.path);
+      }
+    } else {
+      const res = await showBrowseFileDialog(
+        browserFactory.defaultBrowser.model.manager,
         {
-          const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
-            {
-              startPath: PathExt.dirname(filename),
-              filter: (model: any): boolean => {
-                if (args.filters?.File === undefined) {
-                  return true;
-                }
-
-                const ext = PathExt.extname(model.path);
-                return args.filters.File.includes(ext);
-              }
+          startPath: PathExt.dirname(filename),
+          filter: (model: any): boolean => {
+            if (args.filters?.File === undefined) {
+              return true;
             }
-          );
 
-          if (res.button.accept && res.value.length) {
-            const file = PipelineService.getPipelineRelativeNodePath(
-              contextRef.current.path,
-              res.value[0].path
-            );
-            return [file];
+            const ext = PathExt.extname(model.path);
+            return args.filters.File.includes(ext);
           }
         }
-        break;
+      );
+
+      if (res.button.accept && res.value.length) {
+        const file = PipelineService.getPipelineRelativeNodePath(
+          contextRef.current.path,
+          res.value[0].path
+        );
+        return [file];
+      }
     }
 
     return undefined;
