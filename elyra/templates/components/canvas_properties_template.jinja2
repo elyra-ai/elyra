@@ -52,7 +52,8 @@
           "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "default": [],
           "uihints": {
@@ -70,7 +71,8 @@
           "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "default": [],
           "uihints": {
@@ -88,7 +90,8 @@
           "description": "Kubernetes tolerations to attach to the pod where the node is executed.",
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
           "default": [],
           "uihints": {
