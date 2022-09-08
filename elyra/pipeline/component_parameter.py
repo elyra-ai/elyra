@@ -53,10 +53,10 @@ class ElyraProperty:
     """
 
     property_id: str
+    generic: bool
+    custom: bool
     _display_name: str
     _json_data_type: str
-    _generic: bool
-    _custom: bool
     _required: bool = False
 
     _property_map: Dict[str, type] = {}
@@ -100,7 +100,7 @@ class ElyraProperty:
 
         all_subclasses = set()
         for subclass in runtime_subclass.all_subclasses():
-            if getattr(subclass, f"_{component_type}", False):
+            if getattr(subclass, component_type, False):
                 all_subclasses.add(subclass)
         return all_subclasses
 
@@ -148,10 +148,10 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
     image_name: str
 
     property_id = RUNTIME_IMAGE
+    generic = True
+    custom = False
     _display_name = "Runtime Image"
     _json_data_type = "string"
-    _generic = True
-    _custom = False
     _required = True
 
     __slots__ = ["image_name"]
@@ -202,10 +202,10 @@ class DisallowCachedOutput(KfpElyraProperty, AirflowElyraProperty):
     selection: Optional[bool]
 
     property_id = DISALLOW_CACHED_OUTPUT
+    generic = False
+    custom = True
     _display_name = "Disallow cached output"
     _json_data_type = "string"
-    _generic = False
-    _custom = True
 
     __slots__ = ["selection"]
 
@@ -247,6 +247,7 @@ class ElyraPropertyListItem(ElyraProperty):
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
+        schema["default"] = []
         schema["items"] = {"type": "string"}
         schema["uihints"] = {"items": {"ui:placeholder": cls._ui_placeholder}}
         return schema
@@ -285,10 +286,10 @@ class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraP
     value: str
 
     property_id = ENV_VARIABLES
+    generic = True
+    custom = False
     _display_name = "Environment Variables"
     _json_data_type = "array"
-    _generic = True
-    _custom = False
     _keys = ["env_var"]
     _ui_placeholder = "env_var=VALUE"
 
@@ -348,10 +349,10 @@ class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProp
     key: str
 
     property_id = KUBERNETES_SECRETS
+    generic = True
+    custom = False
     _display_name = "Kubernetes Secrets"
     _json_data_type = "array"
-    _generic = True
-    _custom = False
     _keys = ["env_var"]
     _ui_placeholder = "env_var=secret-name:secret-key"
 
@@ -422,10 +423,10 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
     pvc_name: str
 
     property_id = MOUNTED_VOLUMES
+    generic = True
+    custom = True
     _display_name = "Data Volumes"
     _json_data_type = "array"
-    _generic = True
-    _custom = True
     _keys = ["path"]
     _ui_placeholder = "/mount/path=pvc-name"
 
@@ -488,10 +489,10 @@ class KubernetesAnnotation(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
     value: str
 
     property_id = KUBERNETES_POD_ANNOTATIONS
+    generic = True
+    custom = True
     _display_name = "Kubernetes Pod Annotations"
     _json_data_type = "array"
-    _generic = True
-    _custom = True
     _keys = ["key"]
     _ui_placeholder = "annotation_key=annotation_value"
 
@@ -542,10 +543,10 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
     effect: str
 
     property_id = KUBERNETES_TOLERATIONS
+    generic = True
+    custom = True
     _display_name = "Kubernetes Tolerations"
     _json_data_type = "array"
-    _generic = True
-    _custom = True
     _keys = ["key", "operator", "value", "effect"]
     _ui_placeholder = "key:operator:value:effect"
 
