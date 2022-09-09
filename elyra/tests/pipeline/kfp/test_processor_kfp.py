@@ -25,7 +25,8 @@ import yaml
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
-from elyra.pipeline.component import Component, ComponentParameter
+from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
