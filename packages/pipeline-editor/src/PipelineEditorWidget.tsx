@@ -303,28 +303,28 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
   }, [runtimeDisplayName]);
 
-  const removeNullValues = (data: any) => {
-    for (const key in data) {
-      if (data[key] === null) {
-        delete data[key];
-      } else if (Array.isArray(data[key])) {
-        const newArray = [];
-        for (const i in data[key]) {
-          if (data[key][i] !== null && data[key][i] !== '') {
-            newArray.push(data[key][i]);
-          }
-        }
-        data[key] = newArray;
-      } else if (typeof data[key] === 'object') {
-        removeNullValues(data[key]);
-      }
-    }
-  };
-
   const onChange = useCallback((pipelineJson: any): void => {
+    const removeNullValues = (data: any): void => {
+      for (const key in data) {
+        if (data[key] === null) {
+          delete data[key];
+        } else if (Array.isArray(data[key])) {
+          const newArray = [];
+          for (const i in data[key]) {
+            if (data[key][i] !== null && data[key][i] !== '') {
+              newArray.push(data[key][i]);
+            }
+          }
+          data[key] = newArray;
+        } else if (typeof data[key] === 'object') {
+          removeNullValues(data[key]);
+        }
+      }
+    };
+
     // Remove all null values from the pipeline
     for (const node of pipelineJson?.pipelines?.[0]?.nodes ?? []) {
-      removeNullValues(node.app_data?.component_parameters ?? {});
+      removeNullValues(node.app_data ?? {});
     }
     removeNullValues(
       pipelineJson?.pipelines?.[0]?.app_data?.properties?.pipeline_defaults ??
