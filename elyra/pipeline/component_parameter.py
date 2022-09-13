@@ -59,7 +59,7 @@ class ElyraProperty:
     _json_data_type: str
     _required: bool = False
 
-    _property_map: Dict[str, type] = {}
+    _subclass_property_map: Dict[str, type] = {}
 
     @classmethod
     def all_subclasses(cls):
@@ -67,23 +67,27 @@ class ElyraProperty:
         return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in c.all_subclasses()])
 
     @classmethod
-    def create_instance_from_raw_value(
-        cls, prop_id: str, prop_value: Optional[Any]
-    ) -> ElyraProperty | ElyraPropertyList | None:
-        """Create an instance of a class with the given property id using the user-entered raw value."""
-        if not cls._property_map:
-            cls._property_map = {sc.property_id: sc for sc in cls.all_subclasses() if hasattr(sc, "property_id")}
+    def build_property_map(cls) -> None:
+        """Build the map of property subclasses."""
+        cls._subclass_property_map = {sc.property_id: sc for sc in cls.all_subclasses() if hasattr(sc, "property_id")}
 
-        subclass = cls._property_map.get(prop_id)
-        if not subclass:
+    @classmethod
+    def create_instance(cls, prop_id: str, value: Optional[Any]) -> ElyraProperty | ElyraPropertyList | None:
+        """Create an instance of a class with the given property id using the user-entered values."""
+        if not cls._subclass_property_map:
+            cls.build_property_map()
+
+        sc = cls._subclass_property_map.get(prop_id)
+        if not sc:
             return None
 
-        if issubclass(subclass, ElyraPropertyListItem):
-            if not prop_value:
+        if issubclass(sc, ElyraPropertyListItem):
+            if not isinstance(value, list) or not value:
                 return None
             # Create instance for each list element and convert to ElyraPropertyList
-            return ElyraPropertyList([subclass.create_instance_from_raw_value(prop_id, value) for value in prop_value])
-        return subclass.create_instance_from_raw_value(prop_id, prop_value)
+            return ElyraPropertyList([getattr(import_module(sc.__module__), sc.__name__)(**params) for params in value])
+
+        return getattr(import_module(sc.__module__), sc.__name__)(**value)
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = ""):
@@ -160,16 +164,10 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
         self.image_name = kwargs.get("image_name", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> RuntimeImage:
-        """Create an instance of a class with the given property id using the user-entered raw value."""
-        return getattr(import_module(cls.__module__), cls.__name__)(image_name=prop_value)
-
-    @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
-        schema["required"] = cls._required
-        schema["uihints"] = {"items": []}
+        schema.update({"required": cls._required, "uihints": {"items": []}})
         return schema
 
     def get_all_validation_errors(self) -> List[str]:
@@ -199,7 +197,7 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
 class DisallowCachedOutput(KfpElyraProperty, AirflowElyraProperty):
     """Disable caching to force node re-execution in the target runtime environment."""
 
-    selection: Optional[bool]
+    selection: str
 
     property_id = DISALLOW_CACHED_OUTPUT
     generic = False
@@ -213,17 +211,11 @@ class DisallowCachedOutput(KfpElyraProperty, AirflowElyraProperty):
         self.selection = kwargs.get("selection")
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> DisallowCachedOutput:
-        """Create an instance of a class with the given property id using the user-entered raw value."""
-        prop_value = bool(prop_value) if prop_value else prop_value  # convert to bool if applicable
-        return getattr(import_module(cls.__module__), cls.__name__)(selection=prop_value)
-
-    @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
-        # schema["enum"] = ["Use runtime environment default", "True", "False"]
-        schema["enum"] = ["True", "False"]
+        schema.update({"enum": ["Use runtime environment default", "True", "False"]})
+        # schema["enum"] = ["True", "False"]
         return schema
 
     def add_to_container_op(self, container_op: ContainerOp) -> None:
@@ -241,15 +233,40 @@ class ElyraPropertyListItem(ElyraProperty):
     """
 
     _keys: List[str]
-    _ui_placeholder: str
+    _ui_placeholder_map: dict = {}
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
         schema["default"] = []
-        schema["items"] = {"type": "string"}
-        schema["uihints"] = {"items": {"ui:placeholder": cls._ui_placeholder}}
+        schema["items"] = {"type": "object", "properties": {}, "required": []}
+        for attr in cls.__slots__:
+            attr_type = cls.__annotations__.get(attr)
+
+            if "Optional" not in attr_type:
+                schema["items"]["required"].append(attr)
+            else:
+                attr_type = attr_type.replace("Optional[", "").replace("]", "")
+
+            # TODO cover more types below?
+            if attr_type == "bool":
+                json_type = "boolean"
+                default = False
+            elif attr_type in ["int", "float"]:
+                json_type = "number"
+                default = 0
+            else:
+                json_type = "string"
+                default = ""
+
+            schema["items"]["properties"][attr] = {
+                "type": json_type,
+                "title": cls._ui_placeholder_map.get(attr) or attr,
+                "default": default,
+                # "ui:placeholder": cls._ui_placeholder_map.get(attr) or attr
+            }
+
         return schema
 
     def to_str(self) -> str:
@@ -291,7 +308,6 @@ class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraP
     _display_name = "Environment Variables"
     _json_data_type = "array"
     _keys = ["env_var"]
-    _ui_placeholder = "env_var=VALUE"
 
     __slots__ = ["env_var", "value"]
 
@@ -300,16 +316,10 @@ class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraP
         self.value = kwargs.get("value", "").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> EnvironmentVariable:
-        """Create an instance of a class with the given property id using the user-entered raw value."""
-        env_var, value = (prop_value.split("=", 1) + [""] * 2)[:2]
-        return getattr(import_module(cls.__module__), cls.__name__)(env_var=env_var, value=value)
-
-    @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
-        schema["uihints"]["canRefresh"] = True
+        schema["uihints"] = {"canRefresh": True}
         return schema
 
     def to_str(self) -> str:
@@ -354,7 +364,7 @@ class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProp
     _display_name = "Kubernetes Secrets"
     _json_data_type = "array"
     _keys = ["env_var"]
-    _ui_placeholder = "env_var=secret-name:secret-key"
+    _ui_placeholder_map = {"name": "secret-name", "key": "secret-key"}
 
     __slots__ = ["env_var", "name", "key"]
 
@@ -362,13 +372,6 @@ class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProp
         self.env_var: str = kwargs.pop("env_var", "").strip()
         self.name = kwargs.pop("name", "").strip()
         self.key = kwargs.pop("key", "").strip()
-
-    @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> KubernetesSecret:
-        """Create an instance of a class with the given property id using the user-entered raw value."""
-        env_var, value = prop_value.split("=", 1)
-        name, key = (value.split(":") + [""] * 2)[:2]
-        return getattr(import_module(cls.__module__), cls.__name__)(env_var=env_var, name=name, key=key)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -428,19 +431,13 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
     _display_name = "Data Volumes"
     _json_data_type = "array"
     _keys = ["path"]
-    _ui_placeholder = "/mount/path=pvc-name"
+    _ui_placeholder_map = {"path": "/mount/path"}
 
     __slots__ = ["path", "pvc_name"]
 
     def __init__(self, **kwargs):
         self.path = f"/{kwargs.pop('path', '').strip('/')}"
         self.pvc_name = kwargs.pop("pvc_name", "").strip()
-
-    @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> VolumeMount:
-        """Create an instance of a class with the given property id using the user-entered raw value."""
-        path, pvc_name = (prop_value.split("=", 1) + [""] * 2)[:2]
-        return getattr(import_module(cls.__module__), cls.__name__)(path=path, pvc_name=pvc_name)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -494,19 +491,13 @@ class KubernetesAnnotation(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
     _display_name = "Kubernetes Pod Annotations"
     _json_data_type = "array"
     _keys = ["key"]
-    _ui_placeholder = "annotation_key=annotation_value"
+    _ui_placeholder_map = {"key": "annotation_key", "value": "annotation_value"}
 
     __slots__ = ["key", "value"]
 
     def __init__(self, **kwargs):
         self.key = kwargs.pop("key", "").strip()
         self.value = kwargs.pop("value", "").strip()
-
-    @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> KubernetesAnnotation:
-        """Create an instance of a class with the given property id using the user-entered raw value."""
-        key, value = (prop_value.split("=", 1) + [""] * 2)[:2]
-        return getattr(import_module(cls.__module__), cls.__name__)(key=key, value=value)
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""
@@ -548,7 +539,6 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
     _display_name = "Kubernetes Tolerations"
     _json_data_type = "array"
     _keys = ["key", "operator", "value", "effect"]
-    _ui_placeholder = "key:operator:value:effect"
 
     __slots__ = ["key", "operator", "value", "effect"]
 
@@ -559,12 +549,11 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
         self.effect = kwargs.pop("effect", "Exists").strip()
 
     @classmethod
-    def create_instance_from_raw_value(cls, prop_id: str, prop_value: Optional[Any]) -> KubernetesToleration:
-        """Create an instance of a class with the given property id using the user-entered raw value."""
-        key, operator, value, effect = (prop_value.split(":") + [""] * 4)[:4]
-        return getattr(import_module(cls.__module__), cls.__name__)(
-            key=key, operator=operator, value=value, effect=effect
-        )
+    def get_schema(cls) -> Dict[str, Any]:
+        """TODO"""
+        schema = super().get_schema()
+        schema["items"]["properties"]["operator"]["enum"] = ["Exists", "Equal"]
+        return schema
 
     def to_str(self) -> str:
         """Convert instance to a string representation."""

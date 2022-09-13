@@ -242,7 +242,7 @@ class Pipeline(AppDataBase):
             if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
                 continue
 
-            converted_value = ElyraProperty.create_instance_from_raw_value(param_id, param_value)
+            converted_value = ElyraProperty.create_instance(param_id, param_value)
             if converted_value:
                 pipeline_defaults[param_id] = converted_value
 
@@ -400,7 +400,7 @@ class Node(AppDataBase):
             if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
                 continue
 
-            converted_value = ElyraProperty.create_instance_from_raw_value(param_id, param_value)
+            converted_value = ElyraProperty.create_instance(param_id, param_value)
             if converted_value:
                 self.set_component_parameter(param_id, converted_value)
 
