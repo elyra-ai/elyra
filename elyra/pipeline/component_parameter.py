@@ -85,9 +85,10 @@ class ElyraProperty:
             if not isinstance(value, list) or not value:
                 return None
             # Create instance for each list element and convert to ElyraPropertyList
-            return ElyraPropertyList([getattr(import_module(sc.__module__), sc.__name__)(**params) for params in value])
+            instances = ElyraPropertyList([getattr(import_module(sc.__module__), sc.__name__)(**p) for p in value])
+            return ElyraPropertyList.deduplicate(instances)
 
-        return getattr(import_module(sc.__module__), sc.__name__)(**value)
+        return getattr(import_module(sc.__module__), sc.__name__)(value=value)
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = ""):
@@ -161,7 +162,7 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
     __slots__ = ["image_name"]
 
     def __init__(self, **kwargs):
-        self.image_name = kwargs.get("image_name", "").strip()
+        self.image_name = kwargs.get("value", "").strip()
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -208,7 +209,7 @@ class DisallowCachedOutput(KfpElyraProperty, AirflowElyraProperty):
     __slots__ = ["selection"]
 
     def __init__(self, **kwargs):
-        self.selection = kwargs.get("selection")
+        self.selection = kwargs.get("value")
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -550,7 +551,7 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
-        """TODO"""
+        """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
         schema["items"]["properties"]["operator"]["enum"] = ["Exists", "Equal"]
         return schema
@@ -639,6 +640,12 @@ class ElyraPropertyList(list):
         return prop_dict
 
     @staticmethod
+    def deduplicate(instance_list: ElyraPropertyList) -> ElyraPropertyList:
+        """Remove duplicates from the given list"""
+        instance_dict = ElyraPropertyList.to_dict(instance_list, use_prop_as_value=True)
+        return ElyraPropertyList({**instance_dict}.values())
+
+    @staticmethod
     def merge(primary: ElyraPropertyList, secondary: ElyraPropertyList) -> ElyraPropertyList:
         """
         Merge two lists of Elyra-owned properties, preferring the values given in the
@@ -661,13 +668,12 @@ class ElyraPropertyList(list):
 
         :returns: the difference of the two lists
         """
-        subtract_dict = ElyraPropertyList.to_dict(minuend)
+        subtract_dict = ElyraPropertyList.to_dict(minuend, use_prop_as_value=True)
         for key in ElyraPropertyList.to_dict(subtrahend).keys():
             if key in subtract_dict:
                 subtract_dict.pop(key)
 
-        diff_list = list(subtract_dict.values())
-        return ElyraPropertyList(diff_list)
+        return ElyraPropertyList(subtract_dict.values())
 
 
 class ElyraPropertyJSONEncoder(json.JSONEncoder):

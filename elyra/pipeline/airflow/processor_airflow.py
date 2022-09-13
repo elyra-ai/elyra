@@ -585,9 +585,9 @@ be fully qualified (i.e., prefixed with their package names).
     @staticmethod
     def process_elyra_owned_properties(operation: Operation, cos_secret: str):
         """
-        TODO
+        Build the KubernetesExecutor object for the given operation for use in the DAG.
         """
-        component = ComponentCache.get_generic_component_from_op(operation.id)
+        component = ComponentCache.get_generic_component_from_op(operation.classifier)
         if not component:
             component = ComponentCache.instance().get_component(AirflowPipelineProcessor._type, operation.classifier)
 
@@ -598,7 +598,9 @@ be fully qualified (i.e., prefixed with their package names).
                 for value in prop_value:
                     value.add_to_executor_config(kubernetes_executor)
 
-        if cos_secret:
+        if cos_secret and operation.is_generic:
+            if "secrets" not in kubernetes_executor:
+                kubernetes_executor["secrets"] = []
             kubernetes_executor["secrets"].extend(
                 [
                     {

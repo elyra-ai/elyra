@@ -397,7 +397,7 @@ class Node(AppDataBase):
         for param_id in self.elyra_owned_properties:
             param_value = self.get_component_parameter(param_id)
             # If property has already been properly converted, skip conversion
-            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
+            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
                 continue
 
             converted_value = ElyraProperty.create_instance(param_id, param_value)
