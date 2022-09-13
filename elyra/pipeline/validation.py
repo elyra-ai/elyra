@@ -490,16 +490,6 @@ class PipelineValidationManager(SingletonConfigurable):
         component_property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
         current_parameters = component_property_dict["properties"]["component_parameters"]["properties"]
 
-        # Remove the non component_parameter jinja templated values we do not check against
-        props_to_remove = [
-            "inputs_header",  # TODO these headers can be removed pending an expected frontend change
-            "outputs_header",
-            "additional_properties_header",
-            "component_source_header",
-        ]
-        for prop in props_to_remove:
-            current_parameters.pop(prop, None)
-
         volumes = node.get_component_parameter(MOUNTED_VOLUMES)
         if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
             self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
