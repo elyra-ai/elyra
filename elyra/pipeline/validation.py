@@ -572,14 +572,22 @@ class PipelineValidationManager(SingletonConfigurable):
                                     data={"nodeID": node.id, "nodeName": node.label, "parentNodeID": upstream_node_id},
                                 )
                 elif node_param.get("widget") == "file":
-                    filename = node_param.get("value", "")
-                    self._validate_filepath(
-                        node_id=node.id,
-                        node_label=node.label,
-                        property_name=default_parameter,
-                        filename=filename,
-                        response=response,
-                    )
+                    filename = node_param.get("value")
+                    if filename:
+                        self._validate_filepath(
+                            node_id=node.id,
+                            node_label=node.label,
+                            property_name=default_parameter,
+                            filename=filename,
+                            response=response,
+                        )
+                    elif self._is_required_property(component_property_dict, default_parameter):
+                        response.add_message(
+                            severity=ValidationSeverity.Error,
+                            message_type="invalidNodeProperty",
+                            message="Node is missing a value for a required property.",
+                            data={"nodeID": node.id, "nodeName": node.label, "propertyName": default_parameter},
+                        )
 
     def _validate_container_image_name(
         self, node_id: str, node_label: str, image_name: str, response: ValidationResponse
