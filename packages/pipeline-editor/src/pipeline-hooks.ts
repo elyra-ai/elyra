@@ -234,9 +234,9 @@ const updateRuntimeImages = (
   properties: any,
   runtimeImages: IRuntimeImage[] | undefined
 ): void => {
-  const runtimeImageIndex = properties.uihints.parameter_info.findIndex(
-    (p: any) => p.parameter_ref === 'elyra_runtime_image'
-  );
+  const runtimeImageProperties =
+    properties?.properties?.component_parameters?.properties?.runtime_image ??
+    properties?.properties?.pipeline_defaults?.properties?.runtime_image;
 
   const imageNames = (runtimeImages ?? []).map(i => i.metadata.image_name);
 
@@ -246,13 +246,11 @@ const updateRuntimeImages = (
     displayNames[i.metadata.image_name] = i.display_name;
   });
 
-  if (runtimeImageIndex !== -1) {
-    properties.uihints.parameter_info[
-      runtimeImageIndex
-    ].data.labels = displayNames;
-    properties.uihints.parameter_info[
-      runtimeImageIndex
-    ].data.items = imageNames;
+  if (runtimeImageProperties) {
+    runtimeImageProperties.enumNames = (runtimeImages ?? []).map(
+      i => i.display_name
+    );
+    runtimeImageProperties.enum = imageNames;
   }
 };
 

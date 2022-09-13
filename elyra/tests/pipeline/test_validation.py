@@ -837,7 +837,7 @@ async def test_pipeline_aa_parent_node_missing_xcom_push(
 ):
 
     invalid_node_id = "b863d458-21b5-4a46-8420-5a814b7bd525"
-    invalid_operator = "TestOperator"
+    invalid_parent_id = "f16f95e0-192c-4b1c-b42d-310da7a6c0e9"
 
     pipeline, response = load_pipeline("aa_parent_node_missing_xcom.pipeline")
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
@@ -854,4 +854,4 @@ async def test_pipeline_aa_parent_node_missing_xcom_push(
     assert issues[0]["severity"] == 1
     assert issues[0]["type"] == "invalidNodeProperty"
     assert issues[0]["data"]["nodeID"] == invalid_node_id
-    assert issues[0]["data"]["parentNodeID"] == invalid_operator
+    assert issues[0]["data"]["parentNodeID"] == invalid_parent_id

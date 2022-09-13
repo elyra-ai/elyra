@@ -20,6 +20,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Set
+from typing import Union
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
@@ -105,12 +106,20 @@ class Pipeline(AppDataBase):
         super().__init__(node)
 
     @property
-    def version(self) -> int:
+    def version(self) -> Union[int, float]:
         """
         The pipeline version
         :return: The version
         """
-        return int(self._node["app_data"].get("version"))
+        version = self._node["app_data"].get("version")
+        if isinstance(version, (int, float)):
+            return version
+
+        try:
+            version = int(version)
+        except ValueError:  # version is not an int
+            version = float(version)
+        return version
 
     @property
     def runtime(self) -> str:
@@ -394,7 +403,8 @@ class Node(AppDataBase):
                 return
 
             # Convert plain list to KeyValueList
-            self.set_component_parameter(kv_property, KeyValueList(value))
+            if kv_property not in self.elyra_properties_to_skip:
+                self.set_component_parameter(kv_property, KeyValueList(value))
 
     def remove_env_vars_with_matching_secrets(self):
         """
@@ -650,7 +660,9 @@ class PipelineDefinition(object):
                 if not pipeline_default_value:
                     continue
 
-                if not Operation.is_generic_operation(node.op) and property_name not in ELYRA_COMPONENT_PROPERTIES:
+                if not Operation.is_generic_operation(node.op) and (
+                    property_name not in ELYRA_COMPONENT_PROPERTIES or property_name in node.elyra_properties_to_skip
+                ):
                     # Do not propagate default properties that do not apply to custom components, e.g. runtime image
                     continue
 
@@ -770,13 +782,10 @@ class PipelineDefinition(object):
         )
 
         kv_properties = set()
-        parameter_info = canvas_pipeline_properties.get("uihints", {}).get("parameter_info", [])
-        for parameter in parameter_info:
-            if parameter.get("data", {}).get("keyValueEntries", False):
-                parameter_ref = parameter.get("parameter_ref", "")
-                if parameter_ref.startswith("elyra_"):
-                    parameter_ref = parameter_ref.replace("elyra_", "")
-                kv_properties.add(parameter_ref)
+        properties = canvas_pipeline_properties["properties"]["pipeline_defaults"]["properties"]
+        for prop_id, prop in properties.items():
+            if prop.get("uihints", {}).get("keyValueEntries", False):
+                kv_properties.add(prop_id)
 
         return kv_properties
 

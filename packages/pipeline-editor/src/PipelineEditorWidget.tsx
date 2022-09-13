@@ -67,7 +67,6 @@ import {
 } from './EmptyPipelineContent';
 import { formDialogWidget } from './formDialogWidget';
 import {
-  componentFetcher,
   usePalette,
   useRuntimeImages,
   useRuntimesSchema
@@ -305,6 +304,32 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [runtimeDisplayName]);
 
   const onChange = useCallback((pipelineJson: any): void => {
+    const removeNullValues = (data: any): void => {
+      for (const key in data) {
+        if (data[key] === null) {
+          delete data[key];
+        } else if (Array.isArray(data[key])) {
+          const newArray = [];
+          for (const i in data[key]) {
+            if (data[key][i] !== null && data[key][i] !== '') {
+              newArray.push(data[key][i]);
+            }
+          }
+          data[key] = newArray;
+        } else if (typeof data[key] === 'object') {
+          removeNullValues(data[key]);
+        }
+      }
+    };
+
+    // Remove all null values from the pipeline
+    for (const node of pipelineJson?.pipelines?.[0]?.nodes ?? []) {
+      removeNullValues(node.app_data ?? {});
+    }
+    removeNullValues(
+      pipelineJson?.pipelines?.[0]?.app_data?.properties?.pipeline_defaults ??
+        {}
+    );
     if (contextRef.current.isReady) {
       contextRef.current.model.fromString(
         JSON.stringify(pipelineJson, null, 2)
@@ -343,28 +368,19 @@ const PipelineWrapper: React.FC<IProps> = ({
           if (result.button.accept) {
             // proceed with migration
             console.log('migrating pipeline');
-            let migrationPalette = palette;
             const pipelineJSON: any = contextRef.current.model.toJSON();
-            const oldRuntime = pipelineJSON?.pipelines[0].app_data.runtime;
-            if (oldRuntime === 'kfp' || oldRuntime === 'airflow') {
-              migrationPalette = await componentFetcher(oldRuntime);
-            }
             try {
-              const migratedPipeline = migrate(
-                pipelineJSON,
-                migrationPalette,
-                pipeline => {
-                  // function for updating to relative paths in v2
-                  // uses location of filename as expected in v1
-                  for (const node of pipeline.nodes) {
-                    node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                      contextRef.current.path,
-                      node.app_data.filename
-                    );
-                  }
-                  return pipeline;
+              const migratedPipeline = migrate(pipelineJSON, pipeline => {
+                // function for updating to relative paths in v2
+                // uses location of filename as expected in v1
+                for (const node of pipeline.nodes) {
+                  node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
+                    contextRef.current.path,
+                    node.app_data.filename
+                  );
                 }
-              );
+                return pipeline;
+              });
               contextRef.current.model.fromString(
                 JSON.stringify(migratedPipeline, null, 2)
               );
@@ -418,7 +434,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
     },
-    [palette, shell.currentWidget]
+    [shell.currentWidget]
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
@@ -426,53 +442,45 @@ const PipelineWrapper: React.FC<IProps> = ({
       contextRef.current.path,
       args.filename ?? ''
     );
-
-    switch (args.propertyID) {
-      case 'elyra_dependencies':
+    if (args.propertyID.includes('dependencies')) {
+      const res = await showBrowseFileDialog(
+        browserFactory.defaultBrowser.model.manager,
         {
-          const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
-            {
-              multiselect: true,
-              includeDir: true,
-              rootPath: PathExt.dirname(filename),
-              filter: (model: any): boolean => {
-                return model.path !== filename;
-              }
-            }
-          );
-
-          if (res.button.accept && res.value.length) {
-            return res.value.map((v: any) => v.path);
+          multiselect: true,
+          includeDir: true,
+          rootPath: PathExt.dirname(filename),
+          filter: (model: any): boolean => {
+            return model.path !== filename;
           }
         }
-        break;
-      default:
+      );
+
+      if (res.button.accept && res.value.length) {
+        return res.value.map((v: any) => v.path);
+      }
+    } else {
+      const res = await showBrowseFileDialog(
+        browserFactory.defaultBrowser.model.manager,
         {
-          const res = await showBrowseFileDialog(
-            browserFactory.defaultBrowser.model.manager,
-            {
-              startPath: PathExt.dirname(filename),
-              filter: (model: any): boolean => {
-                if (args.filters?.File === undefined) {
-                  return true;
-                }
-
-                const ext = PathExt.extname(model.path);
-                return args.filters.File.includes(ext);
-              }
+          startPath: PathExt.dirname(filename),
+          filter: (model: any): boolean => {
+            if (args.filters?.File === undefined) {
+              return true;
             }
-          );
 
-          if (res.button.accept && res.value.length) {
-            const file = PipelineService.getPipelineRelativeNodePath(
-              contextRef.current.path,
-              res.value[0].path
-            );
-            return [file];
+            const ext = PathExt.extname(model.path);
+            return args.filters.File.includes(ext);
           }
         }
-        break;
+      );
+
+      if (res.button.accept && res.value.length) {
+        const file = PipelineService.getPipelineRelativeNodePath(
+          contextRef.current.path,
+          res.value[0].path
+        );
+        return [file];
+      }
     }
 
     return undefined;
@@ -481,13 +489,13 @@ const PipelineWrapper: React.FC<IProps> = ({
   const onPropertiesUpdateRequested = async (args: any): Promise<any> => {
     const path = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
-      args.elyra_filename
+      args.component_parameters.filename
     );
     const new_env_vars = await ContentParser.getEnvVars(
       path
     ).then((response: any) => response.map((str: string) => str + '='));
 
-    const env_vars = args.elyra_env_vars ?? [];
+    const env_vars = args.component_parameters?.env_vars ?? [];
     const merged_env_vars = [
       ...env_vars,
       ...new_env_vars.filter(
@@ -497,7 +505,11 @@ const PipelineWrapper: React.FC<IProps> = ({
     ];
 
     return {
-      elyra_env_vars: merged_env_vars.filter(Boolean)
+      ...args,
+      component_parameters: {
+        ...args.component_parameters,
+        env_vars: merged_env_vars.filter(Boolean)
+      }
     };
   };
 
@@ -718,6 +730,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       PipelineService.setNodePathsRelativeToWorkspace(
         pipelineJson.pipelines[0],
+        getAllPaletteNodes(palette),
         contextRef.current.path
       );
 

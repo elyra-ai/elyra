@@ -1267,13 +1267,16 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@~1.9.0":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.9.0.tgz#da3ce85a6c4b1d1f9c509bbf19176322271f81f8"
-  integrity sha512-eT0ozcpDLEBCnkYijMF7QiO9L3E2E0ZWHi8XFUDnn/fQGl9tvEoa50jxAFk+F8wN8ObdpE/a5Y3YCl/Z4xUI+Q==
+"@elyra/pipeline-editor@1.10.0-rc.0":
+  version "1.10.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.10.0-rc.0.tgz#3fc84753d224cf277335983fcc629645c62962fd"
+  integrity sha512-+OHdWEpvjsjqY1LVktgcHuc77z1FXWoo879rzf6VWEifu/ROnTXqjEVjryKyaJC03TA5+/OmPfJLM++7r0/70w==
   dependencies:
     "@elyra/canvas" "^12.11.2"
-    "@elyra/pipeline-services" "^1.9.0"
+    "@elyra/pipeline-services" "^1.10.0-rc.0"
+    "@rjsf/core" "^4.2.3"
+    "@rjsf/utils" "^5.0.0-beta.2"
+    "@rjsf/validator-ajv6" "^5.0.0-beta.2"
     carbon-components "^10.43.0"
     carbon-components-react "^7.48.0"
     carbon-icons "7.0.7"
@@ -1291,10 +1294,10 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.60.tgz#60ed19a3175563dd6639a1983923926dc85581f2"
   integrity sha512-g+wxeie99eocdduoP++TEKZgD9JlBWxvO1ysRGts2ehko0mJryUCmkWADNKIjRaE0qOU/363X9/ScwNUGpJkpQ==
 
-"@elyra/pipeline-services@^1.9.0", "@elyra/pipeline-services@~1.9.0":
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.9.0.tgz#9de40dda50a3885a628357b53324cc27c41d1135"
-  integrity sha512-ULVbNCn2sJm/7eq95dH+ufSy9OV/eHMzvpKDHM2c86ZlxWJl1pF+Z2rqdqMxF9N2pwZFGtQ/YAql9eVY56WOUg==
+"@elyra/pipeline-services@1.10.0-rc.0", "@elyra/pipeline-services@^1.10.0-rc.0":
+  version "1.10.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.10.0-rc.0.tgz#da1e5267a4dafe2a2d32ed9c507302a3c6a029ff"
+  integrity sha512-32RWC/B3lwnnLrycEbahZUugH3KZiy/wRS2WJlP0BMi7WrFgHxz0wZ7T40Z6SDEfAWVvmuaKZTBmSI4iINdYXA==
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
@@ -3763,6 +3766,43 @@
     nanoid "^3.1.23"
     prop-types "^15.7.2"
     react-is "^16.9.0"
+
+"@rjsf/core@^4.2.3":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/@rjsf/core/-/core-4.2.3.tgz#7ff2fb593f0af20485dc267391a8971378eec655"
+  integrity sha512-dRXhd1Tac/9OcG0VDrYDF2boNTyKINEEITEtJ4L1Yce2iMVk66U52BhWKIFp/WXDM27vwnOfwQo4NwGiqeQeHw==
+  dependencies:
+    "@types/json-schema" "^7.0.7"
+    ajv "^6.7.0"
+    core-js-pure "^3.6.5"
+    json-schema-merge-allof "^0.6.0"
+    jsonpointer "^5.0.0"
+    lodash "^4.17.15"
+    lodash-es "^4.17.15"
+    nanoid "^3.1.23"
+    prop-types "^15.7.2"
+    react-is "16.9.0"
+
+"@rjsf/utils@^5.0.0-beta.2":
+  version "5.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@rjsf/utils/-/utils-5.0.0-beta.2.tgz#4a6e6e0d931dbd969fda77c3c052d33a2567425a"
+  integrity sha512-ulUJRuksazVJ0NzuKQ1DvTN0SI/yEQsuufacrWhsNi3VG8bP9hb+7Y6tVO3T2WIayssvar5qpHHLeYND6LXoIQ==
+  dependencies:
+    json-schema-merge-allof "^0.8.1"
+    jsonpointer "^5.0.1"
+    lodash "^4.17.15"
+    lodash-es "^4.17.15"
+    react-is "^18.2.0"
+
+"@rjsf/validator-ajv6@^5.0.0-beta.2":
+  version "5.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@rjsf/validator-ajv6/-/validator-ajv6-5.0.0-beta.2.tgz#7b0f5995ea336ac528d43b436bce8073728fa515"
+  integrity sha512-QgkgTS/C2Z4Nr6lol1noocLrNBMbzKOj35uJ2EaWntopNXOKLZ2xeU3vaVDc4I59lh2wM+hmzFdMf39bTnRmzg==
+  dependencies:
+    "@rjsf/utils" "^5.0.0-beta.2"
+    ajv "^6.7.0"
+    lodash "^4.17.15"
+    lodash-es "^4.17.15"
 
 "@rollup/plugin-node-resolve@^7.1.1":
   version "7.1.3"
@@ -6841,7 +6881,7 @@ compute-gcd@^1.2.1:
     validate.io-function "^1.0.2"
     validate.io-integer-array "^1.0.0"
 
-compute-lcm@^1.1.0:
+compute-lcm@^1.1.0, compute-lcm@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/compute-lcm/-/compute-lcm-1.1.2.tgz#9107c66b9dca28cefb22b4ab4545caac4034af23"
   integrity sha512-OFNPdQAXnQhDSKioX8/XYT6sdUlXwpeMjfd6ApxMJfyZ4GxmLR1xvMERctlYhlHwIiz6CSpBc2+qYKjHGZw4TQ==
@@ -12619,6 +12659,15 @@ json-schema-merge-allof@^0.6.0:
     json-schema-compare "^0.2.2"
     lodash "^4.17.4"
 
+json-schema-merge-allof@^0.8.1:
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/json-schema-merge-allof/-/json-schema-merge-allof-0.8.1.tgz#ed2828cdd958616ff74f932830a26291789eaaf2"
+  integrity sha512-CTUKmIlPJbsWfzRRnOXz+0MjIqvnleIXwFTzz+t9T86HnYX/Rozria6ZVGLktAU9e+NygNljveP+yxqtQp/Q4w==
+  dependencies:
+    compute-lcm "^1.1.2"
+    json-schema-compare "^0.2.2"
+    lodash "^4.17.20"
+
 json-schema-traverse@^0.4.1:
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz#69f6a87d9513ab8bb8fe63bdb0979c448e684660"
@@ -12672,9 +12721,9 @@ jsonc-parser@3.0.0:
   integrity sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==
 
 jsonc-parser@^3.0.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.1.0.tgz#73b8f0e5c940b83d03476bc2e51a20ef0932615d"
-  integrity sha512-DRf0QjnNeCUds3xTjKlQQ3DpJD51GvDjJfnxUVWg6PZTo2otSm+slzNAxU/35hF8/oJIKoG9slq30JYOsF2azg==
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.2.0.tgz#31ff3f4c2b9793f89c67212627c51c6394f88e76"
+  integrity sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w==
 
 jsonfile@^4.0.0:
   version "4.0.0"
@@ -12697,7 +12746,7 @@ jsonparse@^1.2.0, jsonparse@^1.3.1:
   resolved "https://registry.yarnpkg.com/jsonparse/-/jsonparse-1.3.1.tgz#3f4dae4a91fac315f71062f8521cc239f1366280"
   integrity sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==
 
-jsonpointer@^5.0.0:
+jsonpointer@^5.0.0, jsonpointer@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/jsonpointer/-/jsonpointer-5.0.1.tgz#2110e0af0900fd37467b5907ecd13a7884a1b559"
   integrity sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ==
@@ -13274,6 +13323,11 @@ lockfile@1.0.4:
   integrity sha512-cvbTwETRfsFh4nHsL1eGWapU1XFi5Ot9E85sWAwia7Y7EgB7vfqcZhTKZ+l7hCGxSPoushMv5GKhT5PdLv03WA==
   dependencies:
     signal-exit "^3.0.2"
+
+lodash-es@^4.17.15:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"
+  integrity sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==
 
 lodash._reinterpolate@^3.0.0:
   version "3.0.0"
@@ -16568,6 +16622,11 @@ react-intl@*, react-intl@^3.0.0, react-intl@^5.0.0, react-intl@^5.10.15:
     intl-messageformat-parser "^3.6.4"
     shallow-equal "^1.2.1"
 
+react-is@16.9.0:
+  version "16.9.0"
+  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.9.0.tgz#21ca9561399aad0ff1a7701c01683e8ca981edcb"
+  integrity sha512-tJBzzzIgnnRfEm046qRcURvwQnZVXmuCbscxUO5RWrGTXpon2d4c8mI0D8WE6ydVIm29JiLB6+RslkIvym9Rjw==
+
 react-is@^16.13.1, react-is@^16.7.0, react-is@^16.8.4, react-is@^16.9.0:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
@@ -16577,6 +16636,11 @@ react-is@^16.13.1, react-is@^16.7.0, react-is@^16.8.4, react-is@^16.9.0:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
+
+react-is@^18.2.0:
+  version "18.2.0"
+  resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.2.0.tgz#199431eeaaa2e09f86427efbb4f1473edb47609b"
+  integrity sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==
 
 react-json-tree@^0.11.2:
   version "0.11.2"

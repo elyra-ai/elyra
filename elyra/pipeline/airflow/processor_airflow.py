@@ -361,56 +361,50 @@ be fully qualified (i.e., prefixed with their package names).
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
+                    self.log.debug(
+                        f"Processing component parameter '{component_property.name}' "
+                        f"of type '{component_property.json_data_type}'"
+                    )
+
                     # Skip properties for which no value was given
                     if component_property.ref not in operation.component_params.keys():
                         continue
 
                     # Get corresponding property's value from parsed pipeline
                     property_value_dict = operation.component_params.get(component_property.ref)
+                    data_entry_type = property_value_dict.get("widget", None)  # one of: inputpath, file, raw data type
+                    property_value = property_value_dict.get("value", None)
 
-                    # The type and value of this property can vary depending on what the user chooses
-                    # in the pipeline editor. So we get the current active parameter (e.g. StringControl)
-                    # from the activeControl value
-                    active_property_name = property_value_dict["activeControl"]
-
-                    # One we have the value (e.g. StringControl) we use can retrieve the value
-                    # assigned to it
-                    property_value = property_value_dict.get(active_property_name, None)
-
-                    # If the value is not found, assign it the default value assigned in parser
-                    if property_value is None:
-                        property_value = component_property.value
-
-                    self.log.debug(f"Active property name : {active_property_name}, value : {property_value}")
-                    self.log.debug(
-                        f"Processing component parameter '{component_property.name}' "
-                        f"of type '{component_property.data_type}'"
-                    )
-
-                    if (
-                        property_value
-                        and str(property_value)[0] == "{"
-                        and str(property_value)[-1] == "}"
-                        and isinstance(json.loads(json.dumps(property_value)), dict)
-                        and set(json.loads(json.dumps(property_value)).keys()) == {"value", "option"}
-                    ):
+                    if data_entry_type == "inputpath":
+                        # Path-based parameters accept an input from a parent
                         parent_node_name = self._get_node_name(
                             target_ops, json.loads(json.dumps(property_value))["value"]
                         )
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "string":
-                        # Add surrounding quotation marks to string value for correct rendering
-                        # in jinja DAG template
-                        operation.component_params[component_property.ref] = json.dumps(property_value)
-                    elif component_property.data_type == "dictionary":
-                        processed_value = self._process_dictionary_value(property_value)
-                        operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "list":
-                        processed_value = self._process_list_value(property_value)
-                        operation.component_params[component_property.ref] = processed_value
-                    else:  # booleans and numbers can be rendered as-is
-                        operation.component_params[component_property.ref] = property_value
+                    else:  # Parameter is either of a raw data type or file contents
+                        if data_entry_type == "file" and property_value:
+                            # Read a value from a file
+                            absolute_path = get_absolute_path(self.root_dir, property_value)
+                            with open(absolute_path, "r") as f:
+                                property_value = f.read() if os.path.getsize(absolute_path) else None
+
+                        # If a value is not found, assign it the default value assigned in parser
+                        if property_value is None:
+                            property_value = component_property.value
+
+                        # Adjust value based on data type for correct rendering in DAG template
+                        if component_property.json_data_type == "string":
+                            # Add surrounding quotation marks to string value
+                            operation.component_params[component_property.ref] = json.dumps(property_value)
+                        elif component_property.json_data_type == "object":
+                            processed_value = self._process_dictionary_value(property_value)
+                            operation.component_params[component_property.ref] = processed_value
+                        elif component_property.json_data_type == "array":
+                            processed_value = self._process_list_value(property_value)
+                            operation.component_params[component_property.ref] = processed_value
+                        else:  # booleans and numbers can be rendered as-is
+                            operation.component_params[component_property.ref] = property_value
 
                 # Remove inputs and outputs from params dict until support for data exchange is provided
                 operation.component_params_as_dict.pop("inputs")
