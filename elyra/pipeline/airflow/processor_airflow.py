@@ -380,7 +380,7 @@ be fully qualified (i.e., prefixed with their package names).
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
                     else:  # Parameter is either of a raw data type or file contents
-                        if data_entry_type == "file":
+                        if data_entry_type == "file" and property_value:
                             # Read a value from a file
                             absolute_path = get_absolute_path(self.root_dir, property_value)
                             with open(absolute_path, "r") as f:

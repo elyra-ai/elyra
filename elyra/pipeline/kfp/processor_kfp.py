@@ -594,7 +594,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             output_node_parameter_key
                         ]
                     else:  # Parameter is either of a raw data type or file contents
-                        if data_entry_type == "file":
+                        if data_entry_type == "file" and property_value:
                             # Read a value from a file
                             absolute_path = get_absolute_path(self.root_dir, property_value)
                             with open(absolute_path, "r") as f:

@@ -535,13 +535,21 @@ class PipelineValidationManager(SingletonConfigurable):
                                 )
                 elif node_param.get("widget") == "file":
                     filename = node_param.get("value")
-                    self._validate_filepath(
-                        node_id=node.id,
-                        node_label=node.label,
-                        property_name=default_parameter,
-                        filename=filename,
-                        response=response,
-                    )
+                    if filename:
+                        self._validate_filepath(
+                            node_id=node.id,
+                            node_label=node.label,
+                            property_name=default_parameter,
+                            filename=filename,
+                            response=response,
+                        )
+                    elif self._is_required_property(component_property_dict, default_parameter):
+                        response.add_message(
+                            severity=ValidationSeverity.Error,
+                            message_type="invalidNodeProperty",
+                            message="Node is missing a value for a required property.",
+                            data={"nodeID": node.id, "nodeName": node.label, "propertyName": default_parameter},
+                        )
 
     def _validate_resource_value(
         self, node_id: str, node_label: str, resource_name: str, resource_value: str, response: ValidationResponse
@@ -659,7 +667,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidFilePath",
-                    message="Property(wildcard) has an invalid path to a file/dir" " or the file/dir does not exist.",
+                    message="Property(wildcard) has an invalid path to a file/dir or the file/dir does not exist.",
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
@@ -667,7 +675,7 @@ class PipelineValidationManager(SingletonConfigurable):
                         "value": normalized_path,
                     },
                 )
-        elif not os.path.exists(normalized_path):
+        elif not os.path.exists(normalized_path) or not os.path.isfile(normalized_path):
             response.add_message(
                 severity=ValidationSeverity.Error,
                 message_type="invalidFilePath",

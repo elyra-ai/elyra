@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 import os
 from pathlib import Path
 import re
@@ -39,7 +40,8 @@ PIPELINE_FILE_CUSTOM_COMPONENTS = "resources/sample_pipelines/pipeline_with_airf
 
 @pytest.fixture
 def processor(monkeypatch, setup_factory_data):
-    processor = AirflowPipelineProcessor(root_dir=os.getcwd())
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    processor = AirflowPipelineProcessor(root_dir=root_dir)
 
     # Add spoofed TestOperator to class import map
     class_import_map = {
@@ -327,15 +329,19 @@ def test_create_file_custom_components(
         # Test that parameter value processing proceeded as expected for each data type
         op_id = "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
         op_params = parsed_ordered_dict[op_id].get("component_params", {})
+        str_no_default = op_params.pop("str_no_default")
         expected_params = {
             "mounted_volumes": '"a component-defined property"',
-            "str_no_default": "\"echo 'test one'\"",
             "bool_no_default": True,
             "unusual_type_list": [1, 2],
             "unusual_type_dict": {},
             "int_default_non_zero": 2,
         }
         assert op_params == expected_params
+
+        filepath = os.path.join(processor.root_dir, "resources/sample_pipelines/pipeline_valid.json")
+        with open(filepath, "r") as f:
+            assert str_no_default == json.dumps(f.read())
 
 
 @pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)

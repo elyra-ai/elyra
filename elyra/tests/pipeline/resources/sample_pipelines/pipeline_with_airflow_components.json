@@ -20,8 +20,8 @@
                 "value": "a component-defined property"
               },
               "str_no_default": {
-                "widget": "string",
-                "value": "echo 'test one'"
+                "widget": "file",
+                "value": "resources/sample_pipelines/pipeline_valid.json"
               },
               "bool_no_default": {
                 "widget": "boolean",
