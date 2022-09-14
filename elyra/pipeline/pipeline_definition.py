@@ -111,7 +111,7 @@ class Pipeline(AppDataBase):
 
         try:
             version = int(version)
-        except ValueError:  # version is not an int
+        except ValueError:  # version is not an int; this will only ever be the case in dev versions
             version = float(version)
         return version
 

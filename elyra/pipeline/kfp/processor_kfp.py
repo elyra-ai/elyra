@@ -507,7 +507,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Create pipeline operation
             # If operation is one of the "generic" set of NBs or scripts, construct custom ExecuteFileOp
             if isinstance(operation, GenericOperation):
-                component = ComponentCache.get_generic_component_from_op(operation.id)
+                component = ComponentCache.get_generic_component_from_op(operation.classifier)
 
                 # Collect env variables
                 pipeline_envs = self._collect_envs(

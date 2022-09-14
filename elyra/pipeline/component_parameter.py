@@ -814,11 +814,10 @@ class ComponentParameter(object):
         return self._dataclass
 
     @staticmethod
-    def render_parameter_details(param: ComponentParameter) -> str:
+    def render_parameter_details(param: "ComponentParameter") -> str:
         """
         Render the parameter data type and UI hints needed for the specified param for
         use in the custom component properties DAG template
-
         :returns: a string literal containing the JSON object to be rendered in the DAG
         """
         json_dict = {"title": param.name, "description": param.description}
@@ -833,8 +832,11 @@ class ComponentParameter(object):
                 json_dict.update(
                     {
                         "type": "object",
-                        "properties": {"widget": {"type": "string", "default": input_type}, "value": {"oneOf": []}},
-                        "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: "true"}},
+                        "properties": {
+                            "widget": {"type": "string", "default": input_type},
+                            "value": {"type": "string", "enum": []},
+                        },
+                        "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: True}},
                     }
                 )
             elif input_type == "file":
@@ -843,8 +845,8 @@ class ComponentParameter(object):
             else:
                 json_dict["type"] = param.value_entry_type
 
-                # Render default value if it is not None or empty string
-                if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
+                # Render default value if it is not None
+                if param.value is not None:
                     json_dict["default"] = param.value
         else:
             # Parameter accepts multiple types of inputs; render a oneOf block
@@ -862,8 +864,8 @@ class ComponentParameter(object):
                     if param.value_entry_type == "boolean":
                         obj["properties"]["value"]["title"] = " "
 
-                    # Render default value if it is not None or empty string
-                    if param.value is not None and not (isinstance(param.value, str) and param.value == ""):
+                    # Render default value if it is not None
+                    if param.value is not None:
                         obj["properties"]["value"]["default"] = param.value
                 else:  # inputpath or file types
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
@@ -873,7 +875,8 @@ class ComponentParameter(object):
                         obj["properties"]["value"]["type"] = "string"
                     elif widget_type == "inputpath":
                         obj["uihints"]["value"] = {widget_type: True}
-                        obj["properties"]["value"]["oneOf"] = []
+                        obj["properties"]["value"]["type"] = "string"
+                        obj["properties"]["value"]["enum"] = []
                         if param.allow_no_options:
                             obj["uihints"]["allownooptions"] = param.allow_no_options
                     else:
