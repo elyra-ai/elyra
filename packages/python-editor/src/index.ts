@@ -15,7 +15,6 @@
  */
 
 import { ScriptEditorWidgetFactory, ScriptEditor } from '@elyra/script-editor';
-import { pyIcon } from '@elyra/ui-components';
 
 import {
   JupyterFrontEnd,
@@ -34,6 +33,7 @@ import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import { pythonIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
 
@@ -97,7 +97,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       extensions: ['.py'],
       pattern: '.*\\.py$',
       mimeTypes: ['text/x-python'],
-      icon: pyIcon
+      icon: pythonIcon
     });
 
     const { restored } = app;
@@ -239,7 +239,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       label: args =>
         args['isPalette'] ? 'New Python Editor' : 'Python Editor',
       caption: 'Create a new Python Editor',
-      icon: args => (args['isPalette'] ? undefined : pyIcon),
+      icon: args => (args['isPalette'] ? undefined : pythonIcon),
       execute: args => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string);

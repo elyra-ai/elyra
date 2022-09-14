@@ -80,18 +80,24 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
     );
   }
 
-  cy.findByLabelText(/^cloud object storage endpoint/i).type(
+  cy.findByLabelText('Cloud Object Storage Endpoint*').type(
     'http://0.0.0.0:9000'
   );
-  cy.findByLabelText(/object storage username/i).type('minioadmin');
-  cy.findByLabelText(/object storage password/i).type('minioadmin');
+
+  if (type !== 'invalid') {
+    cy.findByLabelText(/object storage username/i).type('minioadmin');
+    cy.findByLabelText(/object storage password/i).type('minioadmin');
+  }
+
   cy.findByLabelText(/object storage bucket/i).type('test-bucket');
 
   // save it
   cy.findByRole('button', { name: /save/i }).click();
 
   // reset runtimes widget
-  cy.findByRole('tab', { name: /runtimes/i }).click();
+  if (type !== 'invalid') {
+    cy.findByRole('tab', { name: /runtimes/i }).click();
+  }
 });
 
 Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {

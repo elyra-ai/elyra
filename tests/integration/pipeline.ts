@@ -613,6 +613,31 @@ describe('Pipeline Editor tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
   });
 
+  //error dialog tests
+  it('saving runtime config with missing required fields should error', () => {
+    cy.createRuntimeConfig({ type: 'invalid' });
+    cy.get('.jp-Dialog-header').contains('Error making request');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /ok/i }).click();
+  });
+
+  it('exporting generic pipeline with invalid runtime config should produce request error', () => {
+    cy.createPipeline();
+    cy.savePipeline();
+
+    cy.installRuntimeConfig();
+
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    cy.contains('OK').click();
+
+    cy.get('.jp-Dialog-header').contains('Error making request');
+
+    // Dismiss dialog
+    cy.findByRole('button', { name: /ok/i }).click();
+  });
+
   it('generic pipeline should display expected export options', () => {
     cy.createPipeline();
     cy.savePipeline();

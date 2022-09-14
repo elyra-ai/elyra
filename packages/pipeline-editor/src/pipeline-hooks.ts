@@ -147,7 +147,7 @@ export const sortPalette = (palette: {
 // TODO: This should be enabled through `extensions`
 const NodeIcons: Map<string, string> = new Map([
   ['execute-notebook-node', 'static/elyra/notebook.svg'],
-  ['execute-python-node', 'static/elyra/py-logo.svg'],
+  ['execute-python-node', 'static/elyra/python.svg'],
   ['execute-r-node', 'static/elyra/r-logo.svg']
 ]);
 

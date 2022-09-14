@@ -42,6 +42,7 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.url import FileTransportAdapter
+from elyra.util.url import get_verify_parm
 
 
 class EntryData(object):
@@ -664,6 +665,7 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
                 timeout=UrlComponentCatalogConnector.REQUEST_TIMEOUT,
                 allow_redirects=True,
                 auth=auth,
+                verify=get_verify_parm(),
             )
         except Exception as e:
             self.log.error(

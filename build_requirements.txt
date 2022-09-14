@@ -1,2 +1,2 @@
-jupyterlab>=3.4.0
+jupyterlab>=3.4.6
 jupyter-packaging>=0.10

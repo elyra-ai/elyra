@@ -19,7 +19,9 @@ declare namespace Cypress {
     installRuntimeConfig(options?: {
       type?: 'kfp' | 'airflow';
     }): Chainable<void>;
-    createRuntimeConfig(options?: { type: 'kfp' | 'airflow' }): Chainable<void>;
+    createRuntimeConfig(options?: {
+      type: 'kfp' | 'airflow' | 'invalid';
+    }): Chainable<void>;
     createExampleComponentCatalog(options?: {
       type: 'kfp' | 'airflow';
     }): Chainable<void>;
