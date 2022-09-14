@@ -116,7 +116,7 @@ class Operation(object):
 
         # If disabled, this operation is requested to be re-executed in the
         # target runtime environment, even if it was executed before.
-        self._disallow_cached_output = self.get_elyra_owned_property(KUBERNETES_POD_ANNOTATIONS)
+        self._disallow_cached_output = self.get_elyra_owned_property(DISALLOW_CACHED_OUTPUT)
 
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
@@ -181,8 +181,9 @@ class Operation(object):
         Returns True if cached output may be used (instead of executing the op to produce it)
         Returns False if cached output must not be used (instead of executing the op to produce it)
         """
-        disallow_cache = self._component_params.get(DISALLOW_CACHED_OUTPUT)
-        return disallow_cache.selection if isinstance(disallow_cache, DisallowCachedOutput) else disallow_cache
+        if isinstance(self._disallow_cached_output, DisallowCachedOutput):
+            return self._disallow_cached_output.selection
+        return self._disallow_cached_output
 
     @property
     def inputs(self) -> Optional[List[str]]:

@@ -195,10 +195,10 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
         pass
 
 
-class DisallowCachedOutput(KfpElyraProperty, AirflowElyraProperty):
+class DisallowCachedOutput(KfpElyraProperty):
     """Disable caching to force node re-execution in the target runtime environment."""
 
-    selection: str
+    selection: bool
 
     property_id = DISALLOW_CACHED_OUTPUT
     generic = False
@@ -209,14 +209,13 @@ class DisallowCachedOutput(KfpElyraProperty, AirflowElyraProperty):
     __slots__ = ["selection"]
 
     def __init__(self, **kwargs):
-        self.selection = kwargs.get("value")
+        self.selection = kwargs.get("value") == "True"
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
-        schema.update({"enum": ["Use runtime environment default", "True", "False"]})
-        # schema["enum"] = ["True", "False"]
+        schema.update({"enum": ["True", "False"]})
         return schema
 
     def add_to_container_op(self, container_op: ContainerOp) -> None:
@@ -283,7 +282,7 @@ class ElyraPropertyListItem(ElyraProperty):
         for key_attr in self._keys:
             key_part = getattr(self, key_attr)
             if key_part:
-                prop_key += f"{key_part}:"
+                prop_key += f"{key_part}:" if key_attr != self._keys[-1] else key_part
         return prop_key
 
     def get_value_for_dict_entry(self) -> str:

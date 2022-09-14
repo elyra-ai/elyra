@@ -35,6 +35,7 @@
             "ui:placeholder": "project/subproject"
           }
         },
+        {% if elyra_owned_parameters %}
         "node_defaults_header": {
           "type": "null",
           "title": "Node Defaults",
@@ -44,9 +45,15 @@
             "ui:field": "header"
           }
         },
+        {% endif %}
         {% for property in elyra_owned_parameters %}
-        "{{property.property_id}}": {{ property.get_schema()|tojson }},
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
         {% endfor %}
+        {% if elyra_owned_generic_parameters %}
+        ,
         "generic_node_defaults_header": {
           "type": "null",
           "title": "Generic Node Defaults",
@@ -56,9 +63,15 @@
             "ui:field": "header"
           }
         },
+        {% endif %}
         {% for property in elyra_owned_generic_parameters %}
-        "{{property.property_id}}": {{ property.get_schema()|tojson }},
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
         {% endfor %}
+        {% if elyra_owned_custom_parameters %}
+        ,
         "custom_node_defaults_header": {
           "type": "null",
           "title": "Custom Node Defaults",
@@ -68,6 +81,7 @@
             "ui:field": "header"
           }
         },
+        {% endif %}
         {% for property in elyra_owned_custom_parameters %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}
           {% if loop.index != loop|length %}
