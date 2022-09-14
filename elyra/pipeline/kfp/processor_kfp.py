@@ -42,6 +42,7 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import KfpElyraProperty
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
@@ -651,12 +652,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     self.log.error(f"Error constructing component {operation.name}: {str(e)}")
                     raise RuntimeError(f"Error constructing component {operation.name}.")
 
-                # Force re-execution of the operation by setting staleness to zero days
-                # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
-                if operation.disallow_cached_output:
-                    container_op.set_caching_options(enable_caching=False)
-                    container_op.execution_options.caching_strategy.max_cache_staleness = "P0D"
-
             # Attach node comment
             if operation.doc:
                 container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
@@ -667,6 +662,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 if prop_value and isinstance(prop_value, ElyraPropertyList):
                     for value in prop_value:
                         value.add_to_container_op(container_op)
+                elif prop_value and isinstance(prop_value, KfpElyraProperty):
+                    prop_value.add_to_container_op(container_op)
 
             # Add ContainerOp to target_ops dict
             target_ops[operation.id] = container_op

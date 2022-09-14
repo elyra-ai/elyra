@@ -20,10 +20,12 @@ from importlib import import_module
 import json
 import re
 from textwrap import dedent
-from typing import Any, Type
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
+from typing import Type
 
 from kfp.dsl import ContainerOp
 from kubernetes.client import (
@@ -85,28 +87,27 @@ class ElyraProperty:
             if not isinstance(value, list) or not value:
                 return None
             # Create instance for each list element and convert to ElyraPropertyList
-            instances = ElyraPropertyList([getattr(import_module(sc.__module__), sc.__name__)(**p) for p in value])
-            return ElyraPropertyList.deduplicate(instances)
+            instances = [getattr(import_module(sc.__module__), sc.__name__)(**params) for params in value]
+            return ElyraPropertyList.deduplicate(ElyraPropertyList(instances))
 
-        return getattr(import_module(sc.__module__), sc.__name__)(value=value)
+        return getattr(import_module(sc.__module__), sc.__name__)(value)
 
     @classmethod
-    def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = ""):
+    def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
         """
         Retrieve property subclasses that apply to the given component type
         (e.g., custom or generic) and to the given runtime type.
         """
         runtime_subclass = cls
+        # Determine subclass (KfpElyraProperty, AirflowElyraProperty) that represents given runtime_type
         for subclass in runtime_subclass.__subclasses__():
             subclass_runtime_type = getattr(subclass, "_runtime_type", None)
             if subclass_runtime_type and subclass_runtime_type.name == runtime_type:
                 runtime_subclass = subclass
                 break
 
-        all_subclasses = set()
-        for subclass in runtime_subclass.all_subclasses():
-            if getattr(subclass, component_type, False):
-                all_subclasses.add(subclass)
+        # Retrieve all sub-subclasses of the runtime subclass that apply to given component_type
+        all_subclasses = {sc for sc in runtime_subclass.all_subclasses() if getattr(sc, component_type, False)}
         return all_subclasses
 
     @classmethod
@@ -121,7 +122,7 @@ class ElyraProperty:
         return []
 
 
-class KfpElyraProperty(ElyraProperty):  # ABC
+class KfpElyraProperty(ElyraProperty):
     """
     A component property that is defined and processed by Elyra
     and applies to the KFP runtime.
@@ -131,10 +132,10 @@ class KfpElyraProperty(ElyraProperty):  # ABC
 
     def add_to_container_op(self, container_op: ContainerOp) -> None:
         """Add relevant property info to a given KFP ContainerOp"""
-        raise NotImplementedError("method 'add_to_container_op()' must be overridden")
+        pass
 
 
-class AirflowElyraProperty(ElyraProperty):  # ABC
+class AirflowElyraProperty(ElyraProperty):
     """
     A component property that is defined and processed by Elyra
     and applies to the Airflow runtime.
@@ -144,7 +145,7 @@ class AirflowElyraProperty(ElyraProperty):  # ABC
 
     def add_to_executor_config(self, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        raise NotImplementedError("method 'add_to_executor_config()' must be overridden")
+        pass
 
 
 class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
@@ -161,8 +162,8 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
 
     __slots__ = ["image_name"]
 
-    def __init__(self, **kwargs):
-        self.image_name = kwargs.get("value", "").strip()
+    def __init__(self, image_name, **kwargs):
+        self.image_name = image_name.strip()
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -186,14 +187,6 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
                 )
         return validation_errors
 
-    def add_to_container_op(self, container_op: ContainerOp) -> None:
-        """Add relevant property info to a given KFP ContainerOp"""
-        pass
-
-    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
-        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        pass
-
 
 class DisallowCachedOutput(KfpElyraProperty):
     """Disable caching to force node re-execution in the target runtime environment."""
@@ -208,8 +201,8 @@ class DisallowCachedOutput(KfpElyraProperty):
 
     __slots__ = ["selection"]
 
-    def __init__(self, **kwargs):
-        self.selection = kwargs.get("value") == "True"
+    def __init__(self, selection, **kwargs):
+        self.selection = selection == "True"
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -220,11 +213,11 @@ class DisallowCachedOutput(KfpElyraProperty):
 
     def add_to_container_op(self, container_op: ContainerOp) -> None:
         """Add relevant property info to a given KFP ContainerOp"""
-        pass
-
-    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
-        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        pass
+        # Force re-execution of the operation by setting staleness to zero days
+        # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
+        if self.selection:
+            container_op.set_caching_options(enable_caching=False)
+            container_op.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
 
 class ElyraPropertyListItem(ElyraProperty):
@@ -243,28 +236,26 @@ class ElyraPropertyListItem(ElyraProperty):
         schema["items"] = {"type": "object", "properties": {}, "required": []}
         for attr in cls.__slots__:
             attr_type = cls.__annotations__.get(attr)
-
             if "Optional" not in attr_type:
                 schema["items"]["required"].append(attr)
             else:
                 attr_type = attr_type.replace("Optional[", "").replace("]", "")
 
-            # TODO cover more types below?
             if attr_type == "bool":
-                json_type = "boolean"
-                default = False
+                json_type, default = "boolean", False
             elif attr_type in ["int", "float"]:
-                json_type = "number"
-                default = 0
+                json_type, default = "number", 0
+            elif attr_type in ["list", "List"]:
+                json_type, default = "array", "[]"
+            elif attr_type in ["dict", "Dict"]:
+                json_type, default = "object", "{}"
             else:
-                json_type = "string"
-                default = ""
+                json_type, default = "string", ""
 
             schema["items"]["properties"][attr] = {
                 "type": json_type,
-                "title": cls._ui_placeholder_map.get(attr) or attr,
+                "title": cls._ui_placeholder_map.get(attr) or attr,  # TODO change to a placeholder once supported
                 "default": default,
-                # "ui:placeholder": cls._ui_placeholder_map.get(attr) or attr
             }
 
         return schema
@@ -288,10 +279,6 @@ class ElyraPropertyListItem(ElyraProperty):
     def get_value_for_dict_entry(self) -> str:
         """Returns the value to be used when constructing a dict from a list of classes."""
         return self.to_str()
-
-    def get_all_validation_errors(self) -> List[str]:
-        """Perform custom validation on an instance."""
-        return []
 
 
 class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty):
@@ -337,14 +324,6 @@ class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraP
             validation_errors.append("Property has an improperly formatted env variable key value pair.")
 
         return validation_errors
-
-    def add_to_container_op(self, container_op: ContainerOp) -> None:
-        """Add relevant property info to a given KFP ContainerOp"""
-        pass
-
-    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
-        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        pass
 
 
 class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty):
@@ -460,7 +439,7 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
         )
         if volume not in container_op.volumes:
             container_op.add_volume(volume)
-        container_op.add_volume_mount(V1VolumeMount(mount_path=self.path, name=self.pvc_name))
+        container_op.container.add_volume_mount(V1VolumeMount(mount_path=self.path, name=self.pvc_name))
 
     def add_to_executor_config(self, kubernetes_executor: dict) -> None:
         """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""

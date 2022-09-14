@@ -22,7 +22,6 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.component_parameter import DisallowCachedOutput
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
@@ -181,8 +180,6 @@ class Operation(object):
         Returns True if cached output may be used (instead of executing the op to produce it)
         Returns False if cached output must not be used (instead of executing the op to produce it)
         """
-        if isinstance(self._disallow_cached_output, DisallowCachedOutput):
-            return self._disallow_cached_output.selection
         return self._disallow_cached_output
 
     @property
