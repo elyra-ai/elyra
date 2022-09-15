@@ -511,6 +511,26 @@ span.bx--list-box__label {
   margin-right: 3px;
 }
 
+.field-array-of-object .array-item:hover {
+  background-color: var(--jp-border-color3);
+}
+
+.field-array-of-object .array-item {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--jp-border-color2);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.field-array-of-object button.jp-mod-styled.jp-mod-warn {
+  width: fit-content;
+}
+
+.field-array-of-object label.control-label {
+  margin-top: 5px;
+}
+
 .elyra-actionItem:hover {
   background-color: var(--jp-border-color1);
 }
