@@ -426,12 +426,10 @@ class PipelineValidationManager(SingletonConfigurable):
                     )
 
             for param in node.elyra_owned_properties:
-                if param == ENV_VARIABLES:
-                    # Environment variables will be evaluated in the next step, regardless of runtime type
-                    continue
                 self._validate_elyra_owned_property(node.id, node.label, node, param, response=response)
-
-        self._validate_elyra_owned_property(node.id, node.label, node, ENV_VARIABLES, response=response)
+        else:
+            # Only env vars need to be validated for local runtime
+            self._validate_elyra_owned_property(node.id, node.label, node, ENV_VARIABLES, response=response)
 
         self._validate_label(node_id=node.id, node_label=node_label, response=response)
         if dependencies:
@@ -464,16 +462,6 @@ class PipelineValidationManager(SingletonConfigurable):
         # Full dict of properties for the operation e.g. current params, optionals etc
         component_property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
         current_parameters = component_property_dict["properties"]["component_parameters"]["properties"]
-
-        # Remove the non component_parameter jinja templated values we do not check against
-        props_to_remove = [
-            "inputs_header",  # TODO these headers can be removed pending an expected frontend change
-            "outputs_header",
-            "additional_properties_header",
-            "component_source_header",
-        ]
-        for prop in props_to_remove:
-            current_parameters.pop(prop, None)
 
         for param in node.elyra_owned_properties:
             self._validate_elyra_owned_property(node.id, node.label, node, param, response=response)
@@ -604,13 +592,13 @@ class PipelineValidationManager(SingletonConfigurable):
             for msg in elyra_property.get_all_validation_errors():
                 response.add_message(
                     severity=ValidationSeverity.Error,
-                    message_type="invalidVolumeMount",
+                    message_type=f"invalid{elyra_property.__class__.__name__}",
                     message=msg,
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
                         "propertyName": param_name,
-                        "value": elyra_property.to_str(),
+                        "value": elyra_property.get_value_for_display(),
                     },
                 )
 
