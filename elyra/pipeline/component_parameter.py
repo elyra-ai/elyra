@@ -117,6 +117,20 @@ class ElyraProperty:
         schema = {"title": cls._display_name, "description": class_description, "type": cls._json_data_type}
         return schema
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert instance to a dict with relevant class attributes."""
+        dict_repr = {attr: getattr(self, attr, None) for attr in self.__slots__}
+        return dict_repr
+
+    def get_value_for_display(self) -> Dict[str, Any]:
+        """Get a representation of the instance to display in UI error messages."""
+        display_dict = self.to_dict()
+        required_props = self.get_schema()["items"]["required"]
+        for prop, value in self.to_dict().items():
+            if prop in required_props and not value:
+                display_dict[prop] = "<missing required value>"
+        return display_dict
+
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         return []
@@ -260,10 +274,6 @@ class ElyraPropertyListItem(ElyraProperty):
 
         return schema
 
-    def to_str(self) -> str:
-        """Convert instance to a string representation."""
-        pass
-
     def get_key_for_dict_entry(self) -> str:
         """
         Given the attribute names in the 'key' property, construct a key
@@ -278,7 +288,7 @@ class ElyraPropertyListItem(ElyraProperty):
 
     def get_value_for_dict_entry(self) -> str:
         """Returns the value to be used when constructing a dict from a list of classes."""
-        return self.to_str()
+        return self.to_dict()
 
 
 class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty):
@@ -308,10 +318,6 @@ class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraP
         schema = super().get_schema()
         schema["uihints"] = {"canRefresh": True}
         return schema
-
-    def to_str(self) -> str:
-        """Convert instance to a string representation."""
-        return f"{self.env_var}={self.value}"
 
     def get_value_for_dict_entry(self) -> str:
         """Returns the value to be used when constructing a dict from a list of classes."""
@@ -351,10 +357,6 @@ class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProp
         self.env_var: str = kwargs.pop("env_var", "").strip()
         self.name = kwargs.pop("name", "").strip()
         self.key = kwargs.pop("key", "").strip()
-
-    def to_str(self) -> str:
-        """Convert instance to a string representation."""
-        return f"{self.env_var}={self.name}:{self.key}"
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -418,10 +420,6 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
         self.path = f"/{kwargs.pop('path', '').strip('/')}"
         self.pvc_name = kwargs.pop("pvc_name", "").strip()
 
-    def to_str(self) -> str:
-        """Convert instance to a string representation."""
-        return f"{self.path}={self.pvc_name}"
-
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
@@ -478,10 +476,6 @@ class KubernetesAnnotation(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
         self.key = kwargs.pop("key", "").strip()
         self.value = kwargs.pop("value", "").strip()
 
-    def to_str(self) -> str:
-        """Convert instance to a string representation."""
-        return f"{self.key}={self.value}"
-
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
@@ -533,10 +527,6 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
         schema = super().get_schema()
         schema["items"]["properties"]["operator"]["enum"] = ["Exists", "Equal"]
         return schema
-
-    def to_str(self) -> str:
-        """Convert instance to a string representation."""
-        return f"{self.key}:{self.operator}:{self.value}:{self.effect}"
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
