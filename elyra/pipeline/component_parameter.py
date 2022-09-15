@@ -248,6 +248,7 @@ class ElyraPropertyListItem(ElyraProperty):
         schema = super().get_schema()
         schema["default"] = []
         schema["items"] = {"type": "object", "properties": {}, "required": []}
+        schema["uihints"] = {"items": {}}
         for attr in cls.__slots__:
             attr_type = cls.__annotations__.get(attr)
             if "Optional" not in attr_type:
@@ -266,12 +267,8 @@ class ElyraPropertyListItem(ElyraProperty):
             else:
                 json_type, default = "string", ""
 
-            schema["items"]["properties"][attr] = {
-                "type": json_type,
-                "title": cls._ui_placeholder_map.get(attr) or attr,  # TODO change to a placeholder once supported
-                "default": default,
-            }
-
+            schema["items"]["properties"][attr] = {"type": json_type, "title": attr, "default": default}
+            schema["uihints"]["items"][attr] = {"ui:placeholder": cls._ui_placeholder_map.get(attr) or attr.upper()}
         return schema
 
     def get_key_for_dict_entry(self) -> str:
@@ -412,7 +409,7 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
     _display_name = "Data Volumes"
     _json_data_type = "array"
     _keys = ["path"]
-    _ui_placeholder_map = {"path": "/mount/path"}
+    _ui_placeholder_map = {"path": "/mount/path", "pvc_name": "pvc-name"}
 
     __slots__ = ["path", "pvc_name"]
 
@@ -512,6 +509,7 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
     _display_name = "Kubernetes Tolerations"
     _json_data_type = "array"
     _keys = ["key", "operator", "value", "effect"]
+    _ui_placeholder_map = {"key": "key", "operator": "operator", "value": "value"}
 
     __slots__ = ["key", "operator", "value", "effect"]
 
