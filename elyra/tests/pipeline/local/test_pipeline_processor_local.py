@@ -18,6 +18,7 @@ import os
 import nbformat
 import pytest
 
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.local.processor_local import LocalPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
@@ -74,7 +75,7 @@ def test_pipeline_get_envs():
 
     for op in pipeline.operations.values():
         assert isinstance(op, GenericOperation)
-        op_envs = op.env_vars.to_dict()
+        op_envs = ElyraPropertyList.to_dict(op.env_vars)
         assert op_envs["OP_NAME"] == op.name
 
 

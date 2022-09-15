@@ -17,6 +17,8 @@ import sys
 
 import pytest
 
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -334,34 +336,21 @@ def test_fail_pipelines_are_equal(good_pipeline):
 
 
 def test_env_list_to_dict_function():
+    env_variables_dict = {"KEY": "val", "KEY2": "value2", "TWO_EQUALS": "KEY=value", "EMPTY_VALUE": "", "NO_VALUE": ""}
     env_variables = [
-        "KEY=value",
-        None,
-        "",
-        "  =empty_key",
-        "=no_key",
-        "EMPTY_VALUE=  ",
-        "NO_VALUE=",
-        "KEY2=value2",
-        "TWO_EQUALS=KEY=value",
-        "==",
+        {"env_var": "KEY", "value": "val"},
+        {"env_var": "", "value": ""},
+        {"env_var": "  ", "value": "empty_key"},
+        {"env_var": "", "value": "no_key"},
+        {"env_var": "EMPTY_VALUE", "value": "  "},
+        {"env_var": "NO_VALUE"},
+        {"env_var": "KEY2", "value": "value2"},
+        {"env_var": "TWO_EQUALS", "value": "KEY=value"},
+        {"env_var": "", "value": "="},
     ]
-    env_variables_dict = {"KEY": "value", "KEY2": "value2", "TWO_EQUALS": "KEY=value"}
 
-    component_parameters = {
-        "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
-        "env_vars": env_variables,
-        "runtime_image": "tensorflow/tensorflow:latest",
-    }
-    test_operation = GenericOperation(
-        id="test-id",
-        type="execution-node",
-        classifier="execute-notebook-node",
-        name="test",
-        component_params=component_parameters,
-    )
-
-    assert test_operation.env_vars.to_dict() == env_variables_dict
+    converted_list = ElyraProperty.create_instance("env_vars", env_variables)
+    assert ElyraPropertyList.to_dict(converted_list) == env_variables_dict
 
 
 def test_validate_resource_values():

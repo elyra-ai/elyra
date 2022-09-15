@@ -21,6 +21,7 @@ from typing import List
 from typing import Optional
 import uuid
 
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Pipeline
 
@@ -77,24 +78,26 @@ class NodeBase(object):
 
     def get_operation(self) -> GenericOperation:
 
-        self.env_vars = []
+        env_vars = []
         if self.fail:  # NODE_FILENAME is required, so skip if triggering failure
             if "NODE_FILENAME" in os.environ:  # remove entry if present
                 os.environ.pop("NODE_FILENAME")
         else:
-            self.env_vars.append(f"NODE_FILENAME={self.filename}")
+            env_vars.append({"env_var": "NODE_FILENAME", "value": self.filename})
 
         if self.inputs:
-            self.env_vars.append(f"INPUT_FILENAMES={';'.join(self.inputs)}")
+            env_vars.append({"env_var": "INPUT_FILENAMES", "value": ";".join(self.inputs)})
         if self.outputs:
-            self.env_vars.append(f"OUTPUT_FILENAMES={';'.join(self.outputs)}")
+            env_vars.append({"env_var": "OUTPUT_FILENAMES", "value": ";".join(self.outputs)})
 
         # Convey the pipeline name
         assert self.pipeline_name is not None, "Pipeline name has not been set during construction!"
-        self.env_vars.append(f"PIPELINE_NAME={self.pipeline_name}")
+        env_vars.append({"env_var": "PIPELINE_NAME", "value": self.pipeline_name})
 
         # Add system-owned here with bogus or no value...
-        self.env_vars.append("ELYRA_RUNTIME_ENV=bogus_runtime")
+        env_vars.append({"env_var": "ELYRA_RUNTIME_ENV", "value": "bogus_runtime"})
+
+        self.env_vars = ElyraProperty.create_instance("env_vars", env_vars)
 
         component_parameters = {
             "filename": self.filename,
