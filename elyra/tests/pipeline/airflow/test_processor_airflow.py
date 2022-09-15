@@ -22,14 +22,13 @@ import tempfile
 from types import SimpleNamespace
 from unittest import mock
 
-from elyra.pipeline.component_parameter import ElyraProperty
-
 from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 import github
 import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.runtime_type import RuntimeProcessorType
@@ -451,14 +450,14 @@ def test_collect_envs(processor):
     # add system-owned envs with bogus values to ensure they get set to system-derived values,
     # and include some user-provided edge cases
     operation_envs = [
-        {'env_var': 'ELYRA_RUNTIME_ENV', 'value': '"bogus_runtime"'},
-        {'env_var': 'ELYRA_ENABLE_PIPELINE_INFO', 'value': '"bogus_pipeline"'},
-        {'env_var': 'ELYRA_WRITABLE_CONTAINER_DIR', 'value': ''},  # simulate operation reference in pipeline
-        {'env_var': 'AWS_ACCESS_KEY_ID', 'value': '"bogus_key"'},
-        {'env_var': 'AWS_SECRET_ACCESS_KEY', 'value': '"bogus_secret"'},
-        {'env_var': 'USER_EMPTY_VALUE', 'value': '  '},
-        {'env_var': 'USER_TWO_EQUALS', 'value': 'KEY=value'},
-        {'env_var': 'USER_NO_VALUE', 'value': ''}
+        {"env_var": "ELYRA_RUNTIME_ENV", "value": '"bogus_runtime"'},
+        {"env_var": "ELYRA_ENABLE_PIPELINE_INFO", "value": '"bogus_pipeline"'},
+        {"env_var": "ELYRA_WRITABLE_CONTAINER_DIR", "value": ""},  # simulate operation reference in pipeline
+        {"env_var": "AWS_ACCESS_KEY_ID", "value": '"bogus_key"'},
+        {"env_var": "AWS_SECRET_ACCESS_KEY", "value": '"bogus_secret"'},
+        {"env_var": "USER_EMPTY_VALUE", "value": "  "},
+        {"env_var": "USER_TWO_EQUALS", "value": "KEY=value"},
+        {"env_var": "USER_NO_VALUE", "value": ""},
     ]
     converted_envs = ElyraProperty.create_instance("env_vars", operation_envs)
     valid_envs = [env for env in converted_envs if not env.get_all_validation_errors()]
