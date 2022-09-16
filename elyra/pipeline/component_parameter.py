@@ -25,18 +25,6 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Set
-from typing import Type
-
-from kfp.dsl import ContainerOp
-from kubernetes.client import (
-    V1EnvVar,
-    V1EnvVarSource,
-    V1PersistentVolumeClaimVolumeSource,
-    V1SecretKeySelector,
-    V1Toleration,
-    V1Volume,
-    V1VolumeMount,
-)
 
 from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
@@ -45,8 +33,9 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
-from elyra.pipeline.runtime_type import RuntimeProcessorType
-from elyra.util.kubernetes import is_valid_annotation_key, is_valid_kubernetes_key, is_valid_kubernetes_resource_name
+from elyra.util.kubernetes import is_valid_annotation_key
+from elyra.util.kubernetes import is_valid_kubernetes_key
+from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 
 
 class ElyraProperty:
@@ -98,16 +87,16 @@ class ElyraProperty:
         Retrieve property subclasses that apply to the given component type
         (e.g., custom or generic) and to the given runtime type.
         """
-        runtime_subclass = cls
-        # Determine subclass (KfpElyraProperty, AirflowElyraProperty) that represents given runtime_type
-        for subclass in runtime_subclass.__subclasses__():
-            subclass_runtime_type = getattr(subclass, "_runtime_type", None)
-            if subclass_runtime_type and subclass_runtime_type.name == runtime_type:
-                runtime_subclass = subclass
-                break
+        from elyra.pipeline.processor import PipelineProcessorManager
+        all_subclasses = set()
+        processor = PipelineProcessorManager.instance().get_processor_for_runtime_type(runtime_type)
+        for sc in cls.all_subclasses():
+            if not hasattr(sc, "property_id"):
+                continue
+            func_name = f"add_{sc.property_id[:-1]}" if sc.property_id.endswith("s") else f"add_{sc.property_id}"
+            if func_name in processor.__class__.__dict__ and getattr(sc, component_type, False):
+                all_subclasses.add(sc)
 
-        # Retrieve all sub-subclasses of the runtime subclass that apply to given component_type
-        all_subclasses = {sc for sc in runtime_subclass.all_subclasses() if getattr(sc, component_type, False)}
         return all_subclasses
 
     @classmethod
@@ -116,6 +105,10 @@ class ElyraProperty:
         class_description = dedent(cls.__doc__).replace("\n", " ")
         schema = {"title": cls._display_name, "description": class_description, "type": cls._json_data_type}
         return schema
+
+    def add_to_execution_object(self, runtime_processor: "RuntimePipelineProcessor", execution_object: Any) -> None:
+        """TODO"""
+        pass
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert instance to a dict with relevant class attributes."""
@@ -136,33 +129,7 @@ class ElyraProperty:
         return []
 
 
-class KfpElyraProperty(ElyraProperty):
-    """
-    A component property that is defined and processed by Elyra
-    and applies to the KFP runtime.
-    """
-
-    _runtime_type = RuntimeProcessorType.KUBEFLOW_PIPELINES
-
-    def add_to_container_op(self, container_op: ContainerOp) -> None:
-        """Add relevant property info to a given KFP ContainerOp"""
-        pass
-
-
-class AirflowElyraProperty(ElyraProperty):
-    """
-    A component property that is defined and processed by Elyra
-    and applies to the Airflow runtime.
-    """
-
-    _runtime_type = RuntimeProcessorType.APACHE_AIRFLOW
-
-    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
-        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        pass
-
-
-class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
+class RuntimeImage(ElyraProperty):
     """Container image used as execution environment."""
 
     image_name: str
@@ -202,7 +169,7 @@ class RuntimeImage(KfpElyraProperty, AirflowElyraProperty):
         return validation_errors
 
 
-class DisallowCachedOutput(KfpElyraProperty):
+class DisallowCachedOutput(ElyraProperty):
     """Disable caching to force node re-execution in the target runtime environment."""
 
     selection: bool
@@ -225,13 +192,9 @@ class DisallowCachedOutput(KfpElyraProperty):
         schema.update({"enum": ["True", "False"]})
         return schema
 
-    def add_to_container_op(self, container_op: ContainerOp) -> None:
-        """Add relevant property info to a given KFP ContainerOp"""
-        # Force re-execution of the operation by setting staleness to zero days
-        # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
-        if self.selection:
-            container_op.set_caching_options(enable_caching=False)
-            container_op.execution_options.caching_strategy.max_cache_staleness = "P0D"
+    def add_to_execution_object(self, runtime_processor: "RuntimePipelineProcessor", execution_object: Any) -> None:
+        """TODO"""
+        runtime_processor.add_disallow_cached_output(instance=self, execution_object=execution_object)
 
 
 class ElyraPropertyListItem(ElyraProperty):
@@ -288,7 +251,7 @@ class ElyraPropertyListItem(ElyraProperty):
         return self.to_dict()
 
 
-class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty):
+class EnvironmentVariable(ElyraPropertyListItem):
     """
     Environment variables to be set on the execution environment.
     """
@@ -329,7 +292,7 @@ class EnvironmentVariable(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraP
         return validation_errors
 
 
-class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty):
+class KubernetesSecret(ElyraPropertyListItem):
     """
     Kubernetes secrets to make available as environment variables to this node.
     The secret name and key given must be present in the Kubernetes namespace
@@ -376,25 +339,12 @@ class KubernetesSecret(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProp
 
         return validation_errors
 
-    def add_to_container_op(self, container_op: ContainerOp) -> None:
-        """Add relevant property items to a given KFP ContainerOp"""
-        container_op.container.add_env_variable(
-            V1EnvVar(
-                name=self.env_var,
-                value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=self.name, key=self.key)),
-            )
-        )
-
-    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
-        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        if "secrets" not in kubernetes_executor:
-            kubernetes_executor["secrets"] = []
-        kubernetes_executor["secrets"].append(
-            {"deploy_type": "env", "deploy_target": self.env_var, "secret": self.name, "key": self.key}
-        )
+    def add_to_execution_object(self, runtime_processor: "RuntimePipelineProcessor", execution_object: Any) -> None:
+        """TODO"""
+        runtime_processor.add_kubernetes_secret(instance=self, execution_object=execution_object)
 
 
-class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty):
+class VolumeMount(ElyraPropertyListItem):
     """
     Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the
     Kubernetes namespace where the node is executed or this node will not run.
@@ -426,31 +376,12 @@ class VolumeMount(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty)
 
         return validation_errors
 
-    def add_to_container_op(self, container_op: ContainerOp) -> None:
-        """Add relevant property items to a given KFP ContainerOp"""
-        volume = V1Volume(
-            name=self.pvc_name,
-            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=self.pvc_name),
-        )
-        if volume not in container_op.volumes:
-            container_op.add_volume(volume)
-        container_op.container.add_volume_mount(V1VolumeMount(mount_path=self.path, name=self.pvc_name))
-
-    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
-        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        if "volumes" not in kubernetes_executor:
-            kubernetes_executor["volumes"] = []
-            kubernetes_executor["volume_mounts"] = []
-        kubernetes_executor["volumes"].append(
-            {
-                "name": self.pvc_name,
-                "persistentVolumeClaim": {"claimName": self.pvc_name},
-            }
-        )
-        kubernetes_executor["volume_mounts"].append({"mountPath": self.path, "name": self.pvc_name, "read_only": False})
+    def add_to_execution_object(self, runtime_processor: "RuntimePipelineProcessor", execution_object: Any) -> None:
+        """TODO"""
+        runtime_processor.add_mounted_volume(instance=self, execution_object=execution_object)
 
 
-class KubernetesAnnotation(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty):
+class KubernetesAnnotation(ElyraPropertyListItem):
     """
     Metadata to be added to this node. The metadata is exposed as annotation
     in the Kubernetes pod that executes this node.
@@ -481,19 +412,12 @@ class KubernetesAnnotation(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
 
         return validation_errors
 
-    def add_to_container_op(self, container_op: ContainerOp) -> None:
-        """Add relevant property items to a given KFP ContainerOp"""
-        if self.key not in container_op.pod_annotations:
-            container_op.add_pod_annotation(self.key, self.value)
-
-    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
-        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        if "annotations" not in kubernetes_executor:
-            kubernetes_executor["annotations"] = {}
-        kubernetes_executor["annotations"][self.key] = self.value
+    def add_to_execution_object(self, runtime_processor: "RuntimePipelineProcessor", execution_object: Any) -> None:
+        """TODO"""
+        runtime_processor.add_kubernetes_annotation(instance=self, execution_object=execution_object)
 
 
-class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyraProperty):
+class KubernetesToleration(ElyraPropertyListItem):
     """
     Kubernetes tolerations to apply to the pod where the node is executed.
     """
@@ -552,29 +476,9 @@ class KubernetesToleration(ElyraPropertyListItem, KfpElyraProperty, AirflowElyra
             )
         return validation_errors
 
-    def add_to_container_op(self, container_op: ContainerOp) -> None:
-        """Add relevant property items to a given KFP ContainerOp"""
-        toleration = V1Toleration(
-            effect=self.effect,
-            key=self.key,
-            operator=self.operator,
-            value=self.value,
-        )
-        if toleration not in container_op.tolerations:
-            container_op.add_toleration(toleration)
-
-    def add_to_executor_config(self, kubernetes_executor: dict) -> None:
-        """Add relevant property info to a given Airflow ExecutorConfig dict for an operation"""
-        if "tolerations" not in kubernetes_executor:
-            kubernetes_executor["tolerations"] = []
-        kubernetes_executor["tolerations"].append(
-            {
-                "key": self.key,
-                "operator": self.operator,
-                "value": self.value,
-                "effect": self.effect,
-            }
-        )
+    def add_to_execution_object(self, runtime_processor: "RuntimePipelineProcessor", execution_object: Any) -> None:
+        """TODO"""
+        runtime_processor.add_kubernetes_toleration(instance=self, execution_object=execution_object)
 
 
 class ElyraPropertyList(list):
@@ -641,6 +545,11 @@ class ElyraPropertyList(list):
 
         return ElyraPropertyList(subtract_dict.values())
 
+    def add_to_execution_object(self, runtime_processor: "RuntimePipelineProcessor", execution_object: Any) -> None:
+        """TODO"""
+        for instance in self:
+            instance.add_to_execution_object(runtime_processor=runtime_processor, execution_object=execution_object)
+
 
 class ElyraPropertyJSONEncoder(json.JSONEncoder):
     """
@@ -670,7 +579,6 @@ class ComponentParameter(object):
         required: Optional[bool] = False,
         allow_no_options: Optional[bool] = False,
         items: Optional[List[str]] = None,
-        dataclass: Optional[Type[ElyraProperty]] = None,
     ):
         """
         :param id: Unique identifier for a property
@@ -683,7 +591,6 @@ class ComponentParameter(object):
         :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
             define output properties to be selected as input to this node parameter
         :param items: For properties with a control of 'EnumControl', the items making up the enum
-        :param dataclass: A dataclass object that represents this (Elyra-owned) parameter
         """
 
         if not id:
@@ -733,7 +640,6 @@ class ComponentParameter(object):
 
         self._required = required
         self._allow_no_options = allow_no_options
-        self._dataclass = dataclass
 
     @property
     def ref(self) -> str:
@@ -775,12 +681,8 @@ class ComponentParameter(object):
     def allow_no_options(self) -> bool:
         return self._allow_no_options
 
-    @property
-    def dataclass(self) -> Optional[ElyraProperty]:
-        return self._dataclass
-
     @staticmethod
-    def render_parameter_details(param: "ComponentParameter") -> str:
+    def render_parameter_details(param: ComponentParameter) -> str:
         """
         Render the parameter data type and UI hints needed for the specified param for
         use in the custom component properties DAG template

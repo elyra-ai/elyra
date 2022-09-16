@@ -18,7 +18,7 @@ import os
 import re
 import tempfile
 import time
-from typing import Dict
+from typing import Dict, Any
 from urllib.parse import urlsplit
 
 from kfp import Client as ArgoClient
@@ -27,6 +27,8 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
+from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector, V1Volume, \
+    V1PersistentVolumeClaimVolumeSource, V1VolumeMount, V1Toleration
 
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
@@ -659,11 +661,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Process Elyra-owned properties as required for each type
             for prop_name in [param.property_id for param in component.get_elyra_parameters()]:
                 prop_value = getattr(operation, prop_name, None)
+                prop_value.add_to_execution_object(container_op)
+                '''
                 if prop_value and isinstance(prop_value, ElyraPropertyList):
                     for value in prop_value:
-                        value.add_to_container_op(container_op)
+                        value.add_to_execution_object(container_op)
                 elif prop_value and isinstance(prop_value, KfpElyraProperty):
-                    prop_value.add_to_container_op(container_op)
+                    prop_value.add_to_execution_object(container_op)
+                '''
 
             # Add ContainerOp to target_ops dict
             target_ops[operation.id] = container_op
@@ -752,6 +757,57 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             normalized_name = "n" + normalized_name
 
         return normalized_name.replace(" ", "_")
+
+    def add_runtime_image(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_disallow_cached_output(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        # Force re-execution of the operation by setting staleness to zero days
+        # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
+        if instance.selection:
+            execution_object.set_caching_options(enable_caching=False)
+            execution_object.execution_options.caching_strategy.max_cache_staleness = "P0D"
+
+    def add_env_var(self, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        execution_object.container.add_env_variable(
+            V1EnvVar(
+                name=instance.env_var,
+                value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=instance.name, key=instance.key)),
+            )
+        )
+
+    def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        volume = V1Volume(
+            name=instance.pvc_name,
+            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=instance.pvc_name),
+        )
+        if volume not in execution_object.volumes:
+            execution_object.add_volume(volume)
+        execution_object.container.add_volume_mount(V1VolumeMount(mount_path=instance.path, name=instance.pvc_name))
+
+    def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        if instance.key not in execution_object.pod_annotations:
+            execution_object.add_pod_annotation(instance.key, instance.value)
+
+    def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        toleration = V1Toleration(
+            effect=instance.effect,
+            key=instance.key,
+            operator=instance.operator,
+            value=instance.value,
+        )
+        if toleration not in execution_object.tolerations:
+            execution_object.add_toleration(toleration)
 
 
 class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):

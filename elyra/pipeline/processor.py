@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
+
 from abc import abstractmethod
 import ast
 import asyncio
@@ -20,6 +22,7 @@ import functools
 import os
 from pathlib import Path
 import time
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -51,7 +54,7 @@ elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
 
 class PipelineProcessorRegistry(SingletonConfigurable):
-    _processors: Dict[str, "PipelineProcessor"] = {}
+    _processors: Dict[str, PipelineProcessor] = {}
 
     def __init__(self, **kwargs):
         root_dir: Optional[str] = kwargs.pop("root_dir", None)
@@ -82,6 +85,9 @@ class PipelineProcessorRegistry(SingletonConfigurable):
             return self._processors[processor_name]
         else:
             raise RuntimeError(f"Could not find pipeline processor '{processor_name}'")
+
+    def get_all_processors(self) -> List[PipelineProcessor]:
+        return list(self._processors.values())
 
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
@@ -119,6 +125,13 @@ class PipelineProcessorManager(SingletonConfigurable):
     def get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)
         return processor
+
+    def get_processor_for_runtime_type(self, runtime_type_name: str) -> Optional[PipelineProcessor]:
+        """TODO"""
+        for processor in self._registry.get_all_processors():
+            if processor.type.name == runtime_type_name:
+                return processor
+        return None
 
     def is_supported_runtime(self, runtime_name: str) -> bool:
         return self._registry.is_valid_processor(runtime_name)
@@ -582,3 +595,27 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return value
 
         return converted_list
+
+    def add_disallow_cached_output(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_env_var(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass

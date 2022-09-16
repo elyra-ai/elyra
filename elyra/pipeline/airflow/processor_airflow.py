@@ -21,7 +21,7 @@ import re
 import string
 import tempfile
 import time
-from typing import Dict
+from typing import Dict, Any
 from typing import List
 from typing import Optional
 from typing import Union
@@ -620,6 +620,54 @@ be fully qualified (i.e., prefixed with their package names).
 
         executor_config = {"KubernetesExecutor": kubernetes_executor}
         return executor_config
+
+    def add_runtime_image(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_env_var(self, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        pass
+
+    def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        if "secrets" not in execution_object:
+            execution_object["secrets"] = []
+        execution_object["secrets"].append(
+            {"deploy_type": "env", "deploy_target": instance.env_var, "secret": instance.name, "key": instance.key}
+        )
+
+    def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        if "volumes" not in execution_object:
+            execution_object["volumes"] = []
+            execution_object["volume_mounts"] = []
+        execution_object["volumes"].append(
+            {
+                "name": instance.pvc_name,
+                "persistentVolumeClaim": {"claimName": instance.pvc_name},
+            }
+        )
+        execution_object["volume_mounts"].append({"mountPath": instance.path, "name": instance.pvc_name, "read_only": False})
+
+    def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        if "annotations" not in execution_object:
+            execution_object["annotations"] = {}
+        execution_object["annotations"][instance.key] = instance.value
+
+    def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
+        """TODO"""
+        if "tolerations" not in execution_object:
+            execution_object["tolerations"] = []
+        execution_object["tolerations"].append(
+            {
+                "key": instance.key,
+                "operator": instance.operator,
+                "value": instance.value,
+                "effect": instance.effect,
+            }
+        )
 
 
 class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):
