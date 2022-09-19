@@ -194,7 +194,7 @@ class DisallowCachedOutput(ElyraProperty):
     property_id = DISALLOW_CACHED_OUTPUT
     generic = False
     custom = True
-    _display_name = "Disallow cached output"
+    _display_name = "Disable node caching"
     _json_data_type = "string"
 
     __slots__ = ["selection"]
@@ -206,7 +206,8 @@ class DisallowCachedOutput(ElyraProperty):
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
-        schema.update({"enum": ["True", "False"]})
+        schema["enum"] = ["Use runtime environment default", "True", "False"]
+        schema["default"] = schema["enum"][0]
         return schema
 
     def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
@@ -220,7 +221,7 @@ class ElyraPropertyListItem(ElyraProperty):
     """
 
     _keys: List[str]
-    _ui_placeholder_map: dict = {}
+    _ui_details_map: dict = {}
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -247,8 +248,10 @@ class ElyraPropertyListItem(ElyraProperty):
             else:
                 json_type, default = "string", ""
 
-            schema["items"]["properties"][attr] = {"type": json_type, "title": attr, "default": default}
-            schema["uihints"]["items"][attr] = {"ui:placeholder": cls._ui_placeholder_map.get(attr) or attr.upper()}
+            attr_title = cls._ui_details_map[attr].get("display_name", attr)
+            schema["items"]["properties"][attr] = {"type": json_type, "title": attr_title, "default": default}
+            if cls._ui_details_map[attr].get("placeholder"):
+                schema["uihints"]["items"][attr] = {"ui:placeholder": cls._ui_details_map[attr].get("placeholder")}
         return schema
 
     def get_key_for_dict_entry(self) -> str:
@@ -282,6 +285,10 @@ class EnvironmentVariable(ElyraPropertyListItem):
     _display_name = "Environment Variables"
     _json_data_type = "array"
     _keys = ["env_var"]
+    _ui_details_map = {
+        "env_var": {"display_name": "Environment Variable", "placeholder": "ENV_VAR"},
+        "value": {"display_name": "Value", "placeholder": "value"},
+    }
 
     __slots__ = ["env_var", "value"]
 
@@ -330,7 +337,11 @@ class KubernetesSecret(ElyraPropertyListItem):
     _display_name = "Kubernetes Secrets"
     _json_data_type = "array"
     _keys = ["env_var"]
-    _ui_placeholder_map = {"name": "secret-name", "key": "secret-key"}
+    _ui_details_map = {
+        "env_var": {"display_name": "Environment Variable", "placeholder": "ENV_VAR"},
+        "name": {"display_name": "Secret Name", "placeholder": "secret-name"},
+        "key": {"display_name": "Secret Key", "placeholder": "secret-key"},
+    }
 
     __slots__ = ["env_var", "name", "key"]
 
@@ -380,7 +391,10 @@ class VolumeMount(ElyraPropertyListItem):
     _display_name = "Data Volumes"
     _json_data_type = "array"
     _keys = ["path"]
-    _ui_placeholder_map = {"path": "/mount/path", "pvc_name": "pvc-name"}
+    _ui_details_map = {
+        "path": {"display_name": "Mount Path", "placeholder": "/mount/path"},
+        "pvc_name": {"display_name": "Volume Claim Name", "placeholder": "pvc-name"},
+    }
 
     __slots__ = ["path", "pvc_name"]
 
@@ -417,7 +431,10 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     _display_name = "Kubernetes Pod Annotations"
     _json_data_type = "array"
     _keys = ["key"]
-    _ui_placeholder_map = {"key": "annotation_key", "value": "annotation_value"}
+    _ui_details_map = {
+        "key": {"display_name": "Key", "placeholder": "annotation_key"},
+        "value": {"display_name": "Value", "placeholder": "annotation_value"},
+    }
 
     __slots__ = ["key", "value"]
 
@@ -454,7 +471,12 @@ class KubernetesToleration(ElyraPropertyListItem):
     _display_name = "Kubernetes Tolerations"
     _json_data_type = "array"
     _keys = ["key", "operator", "value", "effect"]
-    _ui_placeholder_map = {"key": "key", "operator": "operator", "value": "value"}
+    _ui_details_map = {
+        "key": {"display_name": "Key", "placeholder": "key"},
+        "operator": {"display_name": "Operator"},
+        "value": {"display_name": "Value", "placeholder": "value"},
+        "effect": {"display_name": "Effect", "placeholder": "NoSchedule"},
+    }
 
     __slots__ = ["key", "operator", "value", "effect"]
 

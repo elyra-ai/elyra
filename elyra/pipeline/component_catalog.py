@@ -632,6 +632,7 @@ class ComponentCache(SingletonConfigurable):
         """
         loader = PackageLoader("elyra", "templates/components")
         template_env = Environment(loader=loader)
+        template_env.policies["json.dumps_kwargs"] = {"sort_keys": False}  # prevent automatic key sort on 'tojson'
 
         return template_env.get_template(template_name)
 
