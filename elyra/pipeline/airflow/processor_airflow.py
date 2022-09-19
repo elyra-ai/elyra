@@ -21,7 +21,8 @@ import re
 import string
 import tempfile
 import time
-from typing import Dict, Any
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
@@ -36,12 +37,13 @@ from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
@@ -178,7 +180,9 @@ be fully qualified (i.e., prefixed with their package names).
 
             if pipeline.contains_generic_operations():
                 object_storage_url = f"{cos_endpoint}"
-                os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+                os_path = join_paths(
+                    pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+                )
                 object_storage_path = f"/{cos_bucket}/{os_path}"
             else:
                 object_storage_url = None
@@ -241,7 +245,9 @@ be fully qualified (i.e., prefixed with their package names).
         cos_bucket = runtime_configuration.metadata.get("cos_bucket")
 
         pipeline_instance_id = pipeline_instance_id or pipeline_name
-        artifact_object_prefix = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+        artifact_object_prefix = join_paths(
+            pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+        )
 
         self.log_pipeline_info(
             pipeline_name,
@@ -488,12 +494,6 @@ be fully qualified (i.e., prefixed with their package names).
             template_env.filters["regex_replace"] = lambda x: AirflowPipelineProcessor.scrub_invalid_characters(x)
             template = template_env.get_template("airflow_template.jinja2")
 
-            # Pass functions used to render data volumes and secrets to the template env
-            rendering_functions = {
-                "render_elyra_owned_properties": AirflowPipelineProcessor.process_elyra_owned_properties,
-            }
-            template.globals.update(rendering_functions)
-
             ordered_ops = self._cc_pipeline(pipeline, pipeline_name, pipeline_instance_id)
             runtime_configuration = self._get_metadata_configuration(
                 schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
@@ -514,6 +514,7 @@ be fully qualified (i.e., prefixed with their package names).
                 is_paused_upon_creation="False",
                 in_cluster="True",
                 pipeline_description=pipeline_description,
+                processor=self,
             )
 
             # Write to python file and fix formatting
@@ -582,8 +583,7 @@ be fully qualified (i.e., prefixed with their package names).
                 return operation["notebook"]
         return None
 
-    @staticmethod
-    def process_elyra_owned_properties(operation: Operation, cos_secret: str):
+    def render_elyra_owned_properties(self: RuntimePipelineProcessor, operation: Operation, cos_secret: str):
         """
         Build the KubernetesExecutor object for the given operation for use in the DAG.
         """
@@ -594,9 +594,8 @@ be fully qualified (i.e., prefixed with their package names).
         kubernetes_executor = {}
         for prop_name in [param.property_id for param in component.get_elyra_parameters()]:
             prop_value = getattr(operation, prop_name, None)
-            if prop_value and isinstance(prop_value, ElyraPropertyList):
-                for value in prop_value:
-                    value.add_to_executor_config(kubernetes_executor)
+            if isinstance(prop_value, (ElyraProperty, ElyraPropertyList)):
+                prop_value.add_to_execution_object(runtime_processor=self, execution_object=kubernetes_executor)
 
         if cos_secret and operation.is_generic:
             if "secrets" not in kubernetes_executor:
@@ -621,16 +620,8 @@ be fully qualified (i.e., prefixed with their package names).
         executor_config = {"KubernetesExecutor": kubernetes_executor}
         return executor_config
 
-    def add_runtime_image(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
-    def add_env_var(self, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
     def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
         if "secrets" not in execution_object:
             execution_object["secrets"] = []
         execution_object["secrets"].append(
@@ -638,9 +629,10 @@ be fully qualified (i.e., prefixed with their package names).
         )
 
     def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add VolumeMount instance to the execution object for the given runtime processor"""
         if "volumes" not in execution_object:
             execution_object["volumes"] = []
+        if "volume_mounts" not in execution_object:
             execution_object["volume_mounts"] = []
         execution_object["volumes"].append(
             {
@@ -648,16 +640,18 @@ be fully qualified (i.e., prefixed with their package names).
                 "persistentVolumeClaim": {"claimName": instance.pvc_name},
             }
         )
-        execution_object["volume_mounts"].append({"mountPath": instance.path, "name": instance.pvc_name, "read_only": False})
+        execution_object["volume_mounts"].append(
+            {"mountPath": instance.path, "name": instance.pvc_name, "read_only": False}
+        )
 
     def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         if "annotations" not in execution_object:
             execution_object["annotations"] = {}
         execution_object["annotations"][instance.key] = instance.value
 
     def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         if "tolerations" not in execution_object:
             execution_object["tolerations"] = []
         execution_object["tolerations"].append(
@@ -668,6 +662,18 @@ be fully qualified (i.e., prefixed with their package names).
                 "effect": instance.effect,
             }
         )
+
+    @property
+    def supported_properties(self) -> List[str]:
+        """A list of Elyra-owned properties supported by this runtime processor."""
+        return [
+            pipeline_constants.RUNTIME_IMAGE,
+            pipeline_constants.ENV_VARIABLES,
+            pipeline_constants.KUBERNETES_SECRETS,
+            pipeline_constants.MOUNTED_VOLUMES,
+            pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_TOLERATIONS,
+        ]
 
 
 class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):

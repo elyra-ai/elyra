@@ -38,6 +38,7 @@ from traitlets.config import Unicode
 from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ElyraPropertyList
@@ -365,15 +366,56 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                     )
             ordered_operations.append(operation)
 
+    def add_runtime_image(self, instance, execution_object: Any, **kwargs) -> None:
+        """Add RuntimeImage info to the execution object for the given runtime processor"""
+        pass
+
+    def add_disallow_cached_output(self, instance, execution_object: Any, **kwargs) -> None:
+        """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
+        pass
+
+    def add_env_var(self, instance, execution_object: Any, **kwargs) -> None:
+        """Add EnvironmentVariable instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
+        """Add VolumeMount instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
+        pass
+
+    @property
+    def supported_properties(self) -> List[str]:
+        """A list of Elyra-owned properties supported by this runtime processor."""
+        return [
+            pipeline_constants.RUNTIME_IMAGE,
+            pipeline_constants.ENV_VARIABLES,
+            pipeline_constants.KUBERNETES_SECRETS,
+            pipeline_constants.MOUNTED_VOLUMES,
+            pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_TOLERATIONS,
+            pipeline_constants.DISALLOW_CACHED_OUTPUT,
+        ]
+
 
 class RuntimePipelineProcessor(PipelineProcessor):
-    def _get_dependency_archive_name(self, operation: Operation) -> str:
+    def _get_dependency_archive_name(self, operation: GenericOperation) -> str:
         return f"{Path(operation.filename).stem}-{operation.id}.tar.gz"
 
-    def _get_dependency_source_dir(self, operation: Operation) -> str:
+    def _get_dependency_source_dir(self, operation: GenericOperation) -> str:
         return str(Path(self.root_dir) / Path(operation.filename).parent)
 
-    def _generate_dependency_archive(self, operation: Operation) -> Optional[str]:
+    def _generate_dependency_archive(self, operation: GenericOperation) -> Optional[str]:
         archive_artifact_name = self._get_dependency_archive_name(operation)
         archive_source_dir = self._get_dependency_source_dir(operation)
 
@@ -391,7 +433,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         return archive_artifact
 
     def _upload_dependencies_to_object_store(
-        self, runtime_configuration: str, pipeline_name: str, operation: Operation, prefix: str = ""
+        self, runtime_configuration: str, pipeline_name: str, operation: GenericOperation, prefix: str = ""
     ) -> None:
         """
         Create dependency archive for the generic operation identified by operation
@@ -595,27 +637,3 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return value
 
         return converted_list
-
-    def add_disallow_cached_output(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
-    def add_env_var(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
-    def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
-    def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
-    def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
-    def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass

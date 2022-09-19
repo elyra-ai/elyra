@@ -22,7 +22,6 @@ from subprocess import PIPE
 from subprocess import run
 import sys
 import time
-from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -115,14 +114,6 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError("Local pipelines does not support export functionality")
-
-    def add_env_var(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
-    def add_runtime_image(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
 
 
 class LocalPipelineProcessorResponse(PipelineProcessorResponse):

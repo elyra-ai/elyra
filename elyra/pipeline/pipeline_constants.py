@@ -25,9 +25,3 @@ DISALLOW_CACHED_OUTPUT = "disallow_cached_output"
 PIPELINE_META_PROPERTIES = ["name", "description", "runtime"]
 # optional static prefix to be used when generating an object name for object storage
 COS_OBJECT_PREFIX = "cos_object_prefix"
-ELYRA_COMPONENT_PROPERTIES = [
-    MOUNTED_VOLUMES,
-    KUBERNETES_TOLERATIONS,
-    KUBERNETES_POD_ANNOTATIONS,
-    DISALLOW_CACHED_OUTPUT,
-]

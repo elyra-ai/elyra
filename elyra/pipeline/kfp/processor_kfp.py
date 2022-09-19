@@ -18,7 +18,9 @@ import os
 import re
 import tempfile
 import time
-from typing import Dict, Any
+from typing import Any
+from typing import Dict
+from typing import List
 from urllib.parse import urlsplit
 
 from kfp import Client as ArgoClient
@@ -27,8 +29,13 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
-from kubernetes.client import V1EnvVar, V1EnvVarSource, V1SecretKeySelector, V1Volume, \
-    V1PersistentVolumeClaimVolumeSource, V1VolumeMount, V1Toleration
+from kubernetes.client import V1EnvVar
+from kubernetes.client import V1EnvVarSource
+from kubernetes.client import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client import V1SecretKeySelector
+from kubernetes.client import V1Toleration
+from kubernetes.client import V1Volume
+from kubernetes.client import V1VolumeMount
 
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
@@ -42,15 +49,15 @@ from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import KfpElyraProperty
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
@@ -364,7 +371,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         if pipeline.contains_generic_operations():
             object_storage_url = f"{cos_public_endpoint}"
-            os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+            os_path = join_paths(
+                pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+            )
             object_storage_path = f"/{cos_bucket}/{os_path}"
         else:
             object_storage_url = None
@@ -468,7 +477,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         pipeline_instance_id = pipeline_instance_id or pipeline_name
 
-        artifact_object_prefix = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+        artifact_object_prefix = join_paths(
+            pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+        )
 
         self.log_pipeline_info(
             pipeline_name,
@@ -661,14 +672,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Process Elyra-owned properties as required for each type
             for prop_name in [param.property_id for param in component.get_elyra_parameters()]:
                 prop_value = getattr(operation, prop_name, None)
-                prop_value.add_to_execution_object(container_op)
-                '''
-                if prop_value and isinstance(prop_value, ElyraPropertyList):
-                    for value in prop_value:
-                        value.add_to_execution_object(container_op)
-                elif prop_value and isinstance(prop_value, KfpElyraProperty):
-                    prop_value.add_to_execution_object(container_op)
-                '''
+                if isinstance(prop_value, (ElyraProperty, ElyraPropertyList)):
+                    prop_value.add_to_execution_object(runtime_processor=self, execution_object=container_op)
 
             # Add ContainerOp to target_ops dict
             target_ops[operation.id] = container_op
@@ -758,24 +763,16 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         return normalized_name.replace(" ", "_")
 
-    def add_runtime_image(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
     def add_disallow_cached_output(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
         # Force re-execution of the operation by setting staleness to zero days
         # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
         if instance.selection:
             execution_object.set_caching_options(enable_caching=False)
             execution_object.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
-    def add_env_var(self, execution_object: Any, **kwargs) -> None:
-        """TODO"""
-        pass
-
     def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
         execution_object.container.add_env_variable(
             V1EnvVar(
                 name=instance.env_var,
@@ -784,7 +781,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         )
 
     def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add VolumeMount instance to the execution object for the given runtime processor"""
         volume = V1Volume(
             name=instance.pvc_name,
             persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=instance.pvc_name),
@@ -794,12 +791,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         execution_object.container.add_volume_mount(V1VolumeMount(mount_path=instance.path, name=instance.pvc_name))
 
     def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         if instance.key not in execution_object.pod_annotations:
             execution_object.add_pod_annotation(instance.key, instance.value)
 
     def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
-        """TODO"""
+        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         toleration = V1Toleration(
             effect=instance.effect,
             key=instance.key,
@@ -808,6 +805,19 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         )
         if toleration not in execution_object.tolerations:
             execution_object.add_toleration(toleration)
+
+    @property
+    def supported_properties(self) -> List[str]:
+        """A list of Elyra-owned properties supported by this runtime processor."""
+        return [
+            pipeline_constants.RUNTIME_IMAGE,
+            pipeline_constants.ENV_VARIABLES,
+            pipeline_constants.KUBERNETES_SECRETS,
+            pipeline_constants.MOUNTED_VOLUMES,
+            pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_TOLERATIONS,
+            pipeline_constants.DISALLOW_CACHED_OUTPUT,
+        ]
 
 
 class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):

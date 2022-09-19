@@ -58,7 +58,7 @@ class Component(object):
         runtime_type: Optional[str] = None,
         op: Optional[str] = None,
         categories: Optional[List[str]] = None,
-        properties: Optional[List["ComponentParameter"]] = None,
+        properties: Optional[List[ComponentParameter]] = None,
         extensions: Optional[List[str]] = None,
         parameter_refs: Optional[dict] = None,
         package_name: Optional[str] = None,
@@ -161,7 +161,7 @@ class Component(object):
         return self._categories
 
     @property
-    def properties(self) -> Optional[List["ComponentParameter"]]:
+    def properties(self) -> Optional[List[ComponentParameter]]:
         return self._properties
 
     @property
@@ -177,15 +177,15 @@ class Component(object):
         return f"from {self._package_name} import {self._name}" if self._package_name else None
 
     @property
-    def input_properties(self) -> List["ComponentParameter"]:
+    def input_properties(self) -> List[ComponentParameter]:
         return [prop for prop in self._properties if None not in prop.allowed_input_types]
 
     @property
-    def output_properties(self) -> List["ComponentParameter"]:
+    def output_properties(self) -> List[ComponentParameter]:
         return [prop for prop in self._properties if None in prop.allowed_input_types]
 
     @property
-    def required_properties(self) -> List["ComponentParameter"]:
+    def required_properties(self) -> List[ComponentParameter]:
         return [prop for prop in self.input_properties if prop.required]
 
     @property
@@ -203,7 +203,7 @@ class Component(object):
         else:
             print(f"WARNING: {msg}")
 
-    def get_elyra_parameters(self) -> List["ComponentParameter"]:
+    def get_elyra_parameters(self) -> List[ComponentParameter]:
         """
         Retrieve the list of Elyra-owned ComponentParameters that apply to this
         component, removing any whose id collides with a property parsed from
