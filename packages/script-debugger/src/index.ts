@@ -62,11 +62,6 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       }
 
       const kernelSelection = (widget as ScriptEditor).kernelSelection;
-      const debuggerAvailable = await widget.debuggerAvailable(kernelSelection);
-
-      if (!debuggerAvailable) {
-        return;
-      }
 
       const sessions = app.serviceManager.sessions;
       try {
@@ -165,9 +160,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       try {
         sessionConnection = await sessionManager.startNew(options);
         sessionConnection.setPath(path);
-        console.log(
-          `Kernel session started for ${path} with selected ${kernelSelection} kernel.`
-        );
+        console.log(`Kernel session started for ${kernelSelection} kernel`);
       } catch (error) {
         console.warn('Exception: start session = ' + JSON.stringify(error));
         sessionConnection = null;
@@ -181,8 +174,10 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     ): Promise<void> => {
       try {
         const prev = sessionConnection.kernel?.name;
-        await sessionConnection.changeKernel({ name: kernelSelection });
-        console.log(`Kernel change from ${prev} to ${kernelSelection}`);
+        if (kernelSelection) {
+          await sessionConnection.changeKernel({ name: kernelSelection });
+          console.log(`Kernel change from ${prev} to ${kernelSelection}`);
+        }
       } catch (error) {
         console.warn('Exception: change kernel = ' + JSON.stringify(error));
       }
