@@ -361,12 +361,26 @@ class AirflowComponentParser(ComponentParser):
                         and isinstance(arg.annotation.slice.value.value, ast.Name)
                     ):
                         # arg is of the form `<arg>: Optional[<multi-valued_type>]`
-                        # e.g. `env = Optional[Dict[str, str]]` or `env = Optional[List[int]]`
+                        # [<multi-valued_type> or `env = Optional[List[int]]`
                         # In Python 3.7 and lower
                         data_type = arg.annotation.slice.value.value.id
 
                     if isinstance(arg.annotation.value, ast.Name) and arg.annotation.value.id == "Optional":
                         # arg typehint includes the phrase 'Optional'
+                        required = False
+
+                elif isinstance(arg.annotation, ast.BinOp):
+                    if (
+                        isinstance(arg.annotation.left, ast.Subscript)
+                        and isinstance(arg.annotation.left.value, ast.Name)
+                        and isinstance(arg.annotation.left.value.id, str)
+                    ):
+                        # arg is of the form `<arg>: [<type>] | [<other_type>]`
+                        # e.g. `env = dict[str, str] | None`
+                        data_type = arg.annotation.left.value.id
+
+                    if isinstance(arg.annotation.right, ast.Constant) and arg.annotation.right.value is None:
+                        # arg typehint includes None, making it optional
                         required = False
 
             # Insert AST-parsed (or default) values into dictionary
