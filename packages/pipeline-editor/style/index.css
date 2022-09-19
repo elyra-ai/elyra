@@ -421,6 +421,90 @@ span.bx--list-box__label {
   margin-right: 4px;
 }
 
+.elyra-PipelineEditor .elyra-formEditor .field-object > fieldset > legend,
+.elyra-PipelineEditor
+  .form-group.field.field-oneOf
+  .form-group.field-object
+  .label-header {
+  display: none;
+}
+
+.elyra-PipelineEditor .form-group.field.field-integer {
+  width: 30%;
+}
+
+.elyra-PipelineEditor .array-pipelineDefaults.form-control {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--jp-border-color3);
+}
+
+.elyra-PipelineEditor .nodeDescription {
+  display: block;
+  margin: 10px 47px;
+  font-size: var(--jp-content-font-size1);
+  color: var(--jp-content-font-color0);
+  white-space: normal;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+
+.elyra-PipelineEditor .array-item .errorIndicator {
+  left: -10px;
+}
+
+.elyra-PipelineEditor .elyra-formEditor .label-header.category-header label {
+  font-size: var(--jp-content-font-size2);
+}
+
+.elyra-PipelineEditor .errorIndicator {
+  width: 2px;
+  background: var(--jp-error-color0);
+  height: 92%;
+  position: absolute;
+  left: -2px;
+  bottom: 0px;
+  top: 0px;
+}
+
+.elyra-PipelineEditor .form-group.field {
+  min-width: auto;
+  width: 100%;
+}
+
+.elyra-PipelineEditor .elyra-formEditor select.form-control {
+  padding-right: 1.5em;
+}
+
+.elyra-PipelineEditor #root > .form-group.field:not(.field-object) {
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-top: 12px;
+  padding-bottom: 18px;
+}
+
+.elyra-PipelineEditor #root > .form-group.field > fieldset > .form-group.field {
+  padding-left: 14px;
+}
+
+.elyra-PipelineEditor
+  #root
+  > .form-group.field
+  > fieldset
+  > .form-group.field.field-null,
+.elyra-PipelineEditor #root > .form-group.field.field-null {
+  padding-left: 0;
+}
+
+.elyra-PipelineEditor .elyra-formEditor {
+  padding: 10px 47px;
+}
+
 .elyra-stringArrayControl-listRow:hover .elyra-stringArrayControl-listActions {
   height: 100%;
   align-items: center;

@@ -615,6 +615,9 @@ def describe(json_option, pipeline_path):
             describe_dict["custom_node_count"]["value"] = describe_dict["custom_node_count"]["value"] + 1
             # component dependencies
             describe_dict["component_dependencies"]["value"].add(node.component_source)
+            for value in node.get_all_component_parameters().values():
+                if isinstance(value, dict) and value.get("widget", "") == "file":
+                    describe_dict["file_dependencies"]["value"].add(value.get("value"))
 
     #
     # produce output in the requested human-readable or machine-readable format

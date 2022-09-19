@@ -168,24 +168,6 @@ describe('Python Editor tests', () => {
   //   // Dismiss save your work dialog by discarding changes
   //   cy.get('button.jp-mod-warn').click();
   // });
-
-  it('check icons', () => {
-    // Check file menu editor contents
-    cy.findByRole('menuitem', { name: /file/i }).click();
-    cy.findByText(/^new$/i).click();
-    cy.get(
-      '[data-command="script-editor:create-new-python-editor"] svg[data-icon="elyra:pyIcon"]'
-    );
-
-    // Check python icons from launcher & file explorer
-    cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python Editor"] svg[data-icon="elyra:pyIcon"]'
-    ).click();
-    cy.get(
-      '#filebrowser [title*="Name: untitled1.py"] svg[data-icon="elyra:pyIcon"]'
-    );
-    cy.closeTab(-1);
-  });
 });
 
 // ------------------------------

@@ -1,352 +1,168 @@
 {
-    "current_parameters": {
-      "label": "",
-      "elyra_filename": "",
-      "elyra_runtime_image": null,
-      "elyra_cpu": null,
-      "elyra_gpu": null,
-      "elyra_memory": null,
-      "elyra_outputs": [],
-      "elyra_env_vars": [],
-      "elyra_kubernetes_secrets": [],
-      "elyra_kubernetes_tolerations": [],
-      "elyra_kubernetes_pod_annotations": [],
-      "elyra_dependencies": [],
-      "elyra_include_subdirectories": false,
-      "elyra_mounted_volumes": []
+  "type": "object",
+  "properties": {
+    "label": {
+      "title": "Label",
+      "description": "A custom label for the node.",
+      "type": "string"
     },
-    "parameters": [
-      {
-        "id": "label"
-      },
-      {
-        "id": "elyra_filename"
-      },
-      {
-        "id": "elyra_runtime_image"
-      },
-      {
-        "id": "elyra_cpu"
-      },
-      {
-        "id": "elyra_gpu"
-      },
-      {
-        "id": "elyra_memory"
-      },
-      {
-        "id": "elyra_dependencies"
-      },
-      {
-        "id": "elyra_include_subdirectories"
-      },
-      {
-        "id": "elyra_env_vars"
-      },
-      {
-        "id": "elyra_kubernetes_secrets"
-      },
-      {
-        "id": "elyra_kubernetes_tolerations"
-      },
-      {
-        "id": "elyra_kubernetes_pod_annotations"
-      },
-      {
-        "id": "elyra_outputs"
-      },
-      {
-        "id": "elyra_mounted_volumes"
-      }
-    ],
-    "uihints": {
-      "id": "nodeProperties",
-      "parameter_info": [
-        {
-          "parameter_ref": "label",
-          "control": "custom",
-          "custom_control_id": "StringControl",
-          "label": {
-            "default": "Label"
-          },
-          "description": {
-            "default": "A custom label for the node.",
-            "placement": "on_panel"
-          },
-          "data": {}
-        },
-        {
-          "parameter_ref": "elyra_filename",
-          "control": "custom",
-          "custom_control_id": "StringControl",
-          "label": {
-            "default": "Filename"
-          },
-          "description": {
-            "default": "The path to the {{ component.name }}.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "format": "file",
-            "required": true,
+    "component_parameters": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "title": "Filename",
+          "description": "The path to the {{ component.name }}.",
+          "uihints": {
+            "ui:widget": "file",
             "extensions": {{ component.extensions|tojson }}
           }
         },
-        {
-          "parameter_ref": "elyra_runtime_image",
-          "control": "custom",
-          "custom_control_id": "EnumControl",
-          "label": {
-            "default": "Runtime Image"
-          },
-          "description": {
-            "default": "Container image used as execution environment.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "items": [],
-            "required": true
+        "runtime_image": {
+          "type": "string",
+          "title": "Runtime Image",
+          "required": true,
+          "description": "Container image used as execution environment.",
+          "uihints": {
+            "items": []
           }
         },
-        {
-          "parameter_ref": "elyra_cpu",
-          "control": "custom",
-          "custom_control_id": "NumberControl",
-          "label": {
-            "default": "CPU"
+        "cpu": {
+          "type": "integer",
+          "title": "CPU",
+          "description": "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
+          "minimum": 0
+        },
+        "gpu": {
+          "type": "integer",
+          "title": "GPU",
+          "description": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.",
+          "minimum": 0
+        },
+        "memory": {
+          "type": "integer",
+          "title": "RAM(GB)",
+          "description": "The total amount of RAM specified.",
+          "minimum": 0
+        },
+        "dependencies": {
+          "title": "File Dependencies",
+          "description": "Local file dependencies that need to be copied to remote execution environment.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
           },
-          "description": {
-            "default": "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
-            "placement": "on_panel"
-          },
-          "data": {
-            "minimum": 0,
-            "maximum": 99
+          "default": [],
+          "uihints": {
+            "items": {
+              "ui:placeholder": "*.py",
+              "ui:widget": "file"
+            }
           }
         },
-        {
-          "parameter_ref": "elyra_gpu",
-          "control": "custom",
-          "custom_control_id": "NumberControl",
-          "label": {
-            "default": "GPU"
-          },
-          "description": {
-            "default": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "minimum": 0
-          }
+        "include_subdirectories": {
+          "type": "boolean",
+          "title": "Include Subdirectories",
+          "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time).",
+          "default": false
         },
-        {
-          "parameter_ref": "elyra_memory",
-          "control": "custom",
-          "custom_control_id": "NumberControl",
-          "label": {
-            "default": "RAM(GB)"
+        "env_vars": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
           },
-          "description": {
-            "default": "The total amount of RAM specified.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "minimum": 0
-          }
-        },
-        {
-          "parameter_ref": "elyra_dependencies",
-          "control": "custom",
-          "custom_control_id": "StringArrayControl",
-          "label": {
-            "default": "File Dependencies"
-          },
-          "description": {
-            "default": "Local file dependencies that need to be copied to remote execution environment.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "placeholder": "*.py",
-            "format": "file"
-          }
-        },
-        {
-          "parameter_ref": "elyra_include_subdirectories",
-          "control": "custom",
-          "custom_control_id": "BooleanControl",
-          "label": {
-            "default": "Include Subdirectories",
-            "placement": "on_panel"
-          },
-          "data": {
-            "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time)."
-          }
-        },
-        {
-          "parameter_ref": "elyra_env_vars",
-          "control": "custom",
-          "custom_control_id": "StringArrayControl",
-          "label": {
-            "default": "Environment Variables"
-          },
-          "description": {
-            "default": "Environment variables to be set on the execution environment.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "placeholder": "env_var=VALUE",
+          "title": "Environment Variables",
+          "description": "Environment variables to be set on the execution environment.",
+          "uihints": {
+            "ui:placeholder": "env_var=VALUE",
             "canRefresh": true,
             "keyValueEntries": true
           }
         },
-        {
-          "parameter_ref": "elyra_kubernetes_secrets",
-          "control": "custom",
-          "custom_control_id": "StringArrayControl",
-          "label": {
-            "default": "Kubernetes Secrets"
+        "kubernetes_secrets": {
+          "title": "Kubernetes Secrets",
+          "description": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the node is executed or this node will not run.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
           },
-          "description": {
-            "default": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the node is executed or this node will not run.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "placeholder": "env_var=secret-name:secret-key",
+          "default": [],
+          "uihints": {
+            "items": {
+              "ui:placeholder": "env_var=secret-name:secret-key"
+            },
             "keyValueEntries": true
           }
         },
-        {
-          "parameter_ref": "elyra_outputs",
-          "control": "custom",
-          "custom_control_id": "StringArrayControl",
-          "label": {
-            "default": "Output Files"
+        "kubernetes_pod_annotations": {
+          "title": "Kubernetes Pod Annotations",
+          "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
           },
-          "description": {
-            "default": "Files generated during execution that will become available to all subsequent pipeline steps.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "placeholder": "*.csv"
-          }
-        },
-        {
-          "parameter_ref": "elyra_mounted_volumes",
-          "control": "custom",
-          "custom_control_id": "StringArrayControl",
-          "label": {
-            "default": "Data Volumes"
-          },
-          "description": {
-           "default": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
-           "placement": "on_panel"
-          },
-          "data": {
-            "placeholder": "/mount/path=pvc-name",
+          "default": [],
+          "uihints": {
+            "items": {
+              "ui:placeholder": "annotation_key=annotation_value"
+            },
             "keyValueEntries": true
           }
         },
-        {
-          "parameter_ref": "elyra_kubernetes_tolerations",
-          "control": "custom",
-          "custom_control_id": "StringArrayControl",
-          "label": {
-            "default": "Kubernetes Tolerations"
+        "outputs": {
+          "title": "Output Files",
+          "description": "Files generated during execution that will become available to all subsequent pipeline steps.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
           },
-          "description": {
-            "default": "Kubernetes tolerations to apply to the pod where the node is executed.",
-            "placement": "on_panel"
-          },
-          "data": {
-            "placeholder": "TOL_ID=key:operator:value:effect",
-            "keyValueEntries": true
-          }
-        },
-        {
-          "parameter_ref": "elyra_kubernetes_pod_annotations",
-          "control": "custom",
-          "custom_control_id": "StringArrayControl",
-          "label": {
-            "default": "Kubernetes Pod Annotations"
-          },
-          "description": {
-           "default": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
-           "placement": "on_panel"
-          },
-          "data": {
-            "placeholder": "annotation_key=annotation_value",
-            "keyValueEntries": true
-          }
-        }
-      ],
-      "group_info": [
-        {
-          "id": "nodeGroupInfo",
-          "type": "panels",
-          "group_info": [
-            {
-              "id": "label",
-              "type": "controls",
-              "parameter_refs": ["label"]
-            },
-            {
-              "id": "elyra_filename",
-              "type": "controls",
-              "parameter_refs": ["elyra_filename"]
-            },
-            {
-              "id": "elyra_runtime_image",
-              "type": "controls",
-              "parameter_refs": ["elyra_runtime_image"]
-            },
-            {
-              "id": "elyra_resources",
-              "type": "controls",
-              "parameter_refs": ["elyra_cpu", "elyra_gpu", "elyra_memory"]
-            },
-            {
-              "id": "elyra_dependencies",
-              "type": "controls",
-              "parameter_refs": ["elyra_dependencies"]
-            },
-            {
-              "id": "elyra_include_subdirectories",
-              "type": "controls",
-              "parameter_refs": ["elyra_include_subdirectories"]
-            },
-            {
-              "id": "elyra_env_vars",
-              "type": "controls",
-              "parameter_refs": ["elyra_env_vars"]
-            },
-            {
-              "id": "elyra_kubernetes_secrets",
-              "type": "controls",
-              "parameter_refs": ["elyra_kubernetes_secrets"]
-            },
-            {
-              "id": "elyra_outputs",
-              "type": "controls",
-              "parameter_refs": ["elyra_outputs"]
-            },
-            {
-              "id": "elyra_mounted_volumes",
-              "type": "controls",
-              "parameter_refs": ["elyra_mounted_volumes"]
-            },
-            {
-              "id": "elyra_kubernetes_tolerations",
-              "type": "controls",
-              "parameter_refs": ["elyra_kubernetes_tolerations"]
-            },
-            {
-              "id": "elyra_kubernetes_pod_annotations",
-              "type": "controls",
-              "parameter_refs": ["elyra_kubernetes_pod_annotations"]
+          "default": [],
+          "uihints": {
+            "items": {
+              "ui:placeholder": "*.csv"
             }
-          ]
+          }
+        },
+        "mounted_volumes": {
+          "title": "Data Volumes",
+          "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          },
+          "default": [],
+          "uihints": {
+            "items": {
+              "ui:placeholder": "/mount/path=pvc-name"
+            },
+            "keyValueEntries": true
+          }
+        },
+        "kubernetes_tolerations": {
+          "title": "Kubernetes Tolerations",
+          "description": "Kubernetes tolerations to apply to the pod where the node is executed.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "default": ""
+          },
+          "default": [],
+          "uihints": {
+            "items": {
+              "ui:placeholder": "TOL_ID=key:operator:value:effect"
+            },
+            "keyValueEntries": true
+          }
         }
-      ]
-    },
-    "resources": {}
-  }
+      },
+      "required": ["filename", "runtime_image"]
+    }
+  },
+  "required": ["component_parameters"]
+}

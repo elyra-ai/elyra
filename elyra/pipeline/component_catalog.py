@@ -41,6 +41,7 @@ from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
 from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
@@ -668,21 +669,28 @@ class ComponentCache(SingletonConfigurable):
         If component_id is one of the generic set, generic template is rendered,
         otherwise, the  runtime-specific property template is rendered
         """
-        kwargs = {}
+        template_vars = {}
         if ComponentCache.get_generic_component(component.id) is not None:
             template = ComponentCache.load_jinja_template("generic_properties_template.jinja2")
         else:
             # Determine which component properties parsed from the definition
             # collide with Elyra-defined properties (in the case of a collision,
             # only the parsed property will be displayed)
-            kwargs = {"elyra_property_collisions_list": []}
+            property_collisions_list = []
             for param in component.properties:
                 if param.ref in ELYRA_COMPONENT_PROPERTIES:
-                    kwargs["elyra_property_collisions_list"].append(param.ref)
+                    property_collisions_list.append(param.ref)
 
+            template_vars["elyra_property_collisions_list"] = property_collisions_list
+
+            if len(property_collisions_list) != len(ELYRA_COMPONENT_PROPERTIES):
+                template_vars["additional_properties_apply"] = True
+
+            template_vars["render_parameter_details"] = ComponentParameter.render_parameter_details
             template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
 
-        canvas_properties = template.render(component=component, **kwargs)
+        template.globals.update(template_vars)
+        canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)
 
 

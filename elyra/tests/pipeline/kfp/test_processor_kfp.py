@@ -26,6 +26,7 @@ from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
+from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
@@ -39,7 +40,8 @@ ARCHIVE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resource
 
 @pytest.fixture
 def processor(setup_factory_data):
-    processor = KfpPipelineProcessor(root_dir=os.getcwd())
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    processor = KfpPipelineProcessor(root_dir=root_dir)
     return processor
 
 
@@ -291,6 +293,25 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, compo
     entry_data = reader.get_entry_data({"url": url}, {})
     component_definition = entry_data.definition
 
+    properties = [
+        ComponentParameter(
+            id="text",
+            name="Text",
+            json_data_type="string",
+            value="default",
+            description="Text to filter",
+            allowed_input_types=["file", "inputpath", "inputvalue"],
+        ),
+        ComponentParameter(
+            id="pattern",
+            name="Pattern",
+            json_data_type="string",
+            value=".*",
+            description="Pattern to filter on",
+            allowed_input_types=["file", "inputpath", "inputvalue"],
+        ),
+    ]
+
     # Instantiate a url-based component
     component_id = "test_component"
     component = Component(
@@ -302,7 +323,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, compo
         component_reference={"url": url},
         definition=component_definition,
         categories=[],
-        properties=[],
+        properties=properties,
     )
 
     # Fabricate the component cache to include single filename-based component for testing
@@ -312,7 +333,10 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, compo
 
     # Construct hypothetical operation for component
     operation_name = "Filter text test"
-    operation_params = {"text": "path/to/text.txt", "pattern": "hello"}
+    operation_params = {
+        "text": {"widget": "string", "value": "path/to/text.txt"},
+        "pattern": {"widget": "string", "value": "hello"},
+    }
     operation = Operation(
         id="filter-text-id",
         type="execution_node",
@@ -350,6 +374,7 @@ def test_processing_url_runtime_specific_component(monkeypatch, processor, compo
     pipeline_template = pipeline_yaml["spec"]["templates"][0]
     assert pipeline_template["metadata"]["annotations"]["pipelines.kubeflow.org/task_display_name"] == operation_name
     assert pipeline_template["inputs"]["artifacts"][0]["raw"]["data"] == operation_params["text"]
+    assert pipeline_template["container"]["command"][4] == operation_params["pattern"]
 
 
 def test_processing_filename_runtime_specific_component(
@@ -369,6 +394,25 @@ def test_processing_filename_runtime_specific_component(
     entry_data = reader.get_entry_data({"path": absolute_path}, {})
     component_definition = entry_data.definition
 
+    properties = [
+        ComponentParameter(
+            id="url",
+            name="Url",
+            json_data_type="string",
+            value="",
+            description="",
+            allowed_input_types=["file", "inputpath", "inputvalue"],
+        ),
+        ComponentParameter(
+            id="curl_options",
+            name="Curl Options",
+            json_data_type="string",
+            value="--location",
+            description="Additional options given to the curl program",
+            allowed_input_types=["file", "inputpath", "inputvalue"],
+        ),
+    ]
+
     # Instantiate a file-based component
     component_id = "test-component"
     component = Component(
@@ -379,7 +423,7 @@ def test_processing_filename_runtime_specific_component(
         catalog_type="elyra-kfp-examples-catalog",
         component_reference={"path": absolute_path},
         definition=component_definition,
-        properties=[],
+        properties=properties,
         categories=[],
     )
 
@@ -391,8 +435,8 @@ def test_processing_filename_runtime_specific_component(
     # Construct hypothetical operation for component
     operation_name = "Download data test"
     operation_params = {
-        "url": "https://raw.githubusercontent.com/elyra-ai/elyra/main/tests/assets/helloworld.ipynb",
-        "curl_options": "--location",
+        "url": {"widget": "file", "value": "resources/sample_pipelines/pipeline_valid.json"},
+        "curl_options": {"widget": "string", "value": "--location"},
     }
     operation = Operation(
         id="download-data-id",
@@ -431,6 +475,7 @@ def test_processing_filename_runtime_specific_component(
     pipeline_template = pipeline_yaml["spec"]["templates"][0]
     assert pipeline_template["metadata"]["annotations"]["pipelines.kubeflow.org/task_display_name"] == operation_name
     assert pipeline_template["container"]["command"][3] == operation_params["url"]
+    assert '"doc_type": "pipeline"' in pipeline_template["container"]["command"][3]
 
 
 def test_cc_pipeline_component_no_input(monkeypatch, processor, component_cache, sample_metadata, tmpdir):

@@ -147,7 +147,7 @@ export const sortPalette = (palette: {
 // TODO: This should be enabled through `extensions`
 const NodeIcons: Map<string, string> = new Map([
   ['execute-notebook-node', 'static/elyra/notebook.svg'],
-  ['execute-python-node', 'static/elyra/py-logo.svg'],
+  ['execute-python-node', 'static/elyra/python.svg'],
   ['execute-r-node', 'static/elyra/r-logo.svg']
 ]);
 
@@ -234,9 +234,9 @@ const updateRuntimeImages = (
   properties: any,
   runtimeImages: IRuntimeImage[] | undefined
 ): void => {
-  const runtimeImageIndex = properties.uihints.parameter_info.findIndex(
-    (p: any) => p.parameter_ref === 'elyra_runtime_image'
-  );
+  const runtimeImageProperties =
+    properties?.properties?.component_parameters?.properties?.runtime_image ??
+    properties?.properties?.pipeline_defaults?.properties?.runtime_image;
 
   const imageNames = (runtimeImages ?? []).map(i => i.metadata.image_name);
 
@@ -246,13 +246,11 @@ const updateRuntimeImages = (
     displayNames[i.metadata.image_name] = i.display_name;
   });
 
-  if (runtimeImageIndex !== -1) {
-    properties.uihints.parameter_info[
-      runtimeImageIndex
-    ].data.labels = displayNames;
-    properties.uihints.parameter_info[
-      runtimeImageIndex
-    ].data.items = imageNames;
+  if (runtimeImageProperties) {
+    runtimeImageProperties.enumNames = (runtimeImages ?? []).map(
+      i => i.display_name
+    );
+    runtimeImageProperties.enum = imageNames;
   }
 };
 

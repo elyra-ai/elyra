@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 from pathlib import Path
 
+import pytest
 from requests import session
 
 from elyra.util.url import FileTransportAdapter
+from elyra.util.url import get_verify_parm
 
 
 def test_valid_file_url():
@@ -78,3 +81,51 @@ def test_invalid_file_url():
         res = unsupported_method(url)
         assert res.status_code == 405, url
         assert res.reason == "Method not allowed"
+
+
+@pytest.fixture
+def setup_env_vars():
+    # runs before test (save the value of environment variable
+    # TRUSTED_CA_BUNDLE_PATH to avoid any contamination by tests
+    # that modify it)
+    current_TRUSTED_CA_BUNDLE_PATH_value = os.environ.get("TRUSTED_CA_BUNDLE_PATH")
+    yield
+    # runs after test (restore the value of environment variable
+    # TRUSTED_CA_BUNDLE_PATH, if it was defined)
+    if current_TRUSTED_CA_BUNDLE_PATH_value is not None:
+        os.environ["TRUSTED_CA_BUNDLE_PATH"] = current_TRUSTED_CA_BUNDLE_PATH_value
+
+
+@pytest.mark.usefixtures("setup_env_vars")
+def test_valid_get_verify_parm():
+    """
+    Verify that method get_verify_parm works as expected:
+     - env variable TRUSTED_CA_BUNDLE_PATH is defined
+     - env variable TRUSTED_CA_BUNDLE_PATH is not defined, but a default is specified
+     - env variable TRUSTED_CA_BUNDLE_PATH is not defined and no default is specified
+    """
+    test_TRUSTED_CA_BUNDLE_PATH_value = "/path/to/cert/bundle"
+    os.environ["TRUSTED_CA_BUNDLE_PATH"] = test_TRUSTED_CA_BUNDLE_PATH_value
+    assert get_verify_parm() == test_TRUSTED_CA_BUNDLE_PATH_value
+    del os.environ["TRUSTED_CA_BUNDLE_PATH"]
+    # set explicit default
+    assert get_verify_parm(False) is False
+    # set explicit default
+    assert get_verify_parm(True) is True
+    # use implicit default
+    assert get_verify_parm() is True
+
+
+@pytest.mark.usefixtures("setup_env_vars")
+def test_invalid_get_verify_parm():
+    """
+    Verify that method get_verify_parm works as if environment variable
+    TRUSTED_CA_BUNDLE_PATH contains an invalid value
+    """
+    test_TRUSTED_CA_BUNDLE_PATH_value = ""
+    os.environ["TRUSTED_CA_BUNDLE_PATH"] = test_TRUSTED_CA_BUNDLE_PATH_value
+    assert get_verify_parm() is True
+
+    test_TRUSTED_CA_BUNDLE_PATH_value = "   "
+    os.environ["TRUSTED_CA_BUNDLE_PATH"] = test_TRUSTED_CA_BUNDLE_PATH_value
+    assert get_verify_parm() is True

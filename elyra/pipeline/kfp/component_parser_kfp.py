@@ -27,7 +27,6 @@ from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component import ControllerMap
 from elyra.pipeline.kfp.kfp_component_utils import component_yaml_schema
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
@@ -73,7 +72,7 @@ class KfpComponentParser(ComponentParser):
         input_params = component_yaml.get("inputs", [])
         output_params = component_yaml.get("outputs", [])
 
-        all_params = {"inputs": input_params, "outputs": output_params}
+        all_params = {"input": input_params, "output": output_params}
 
         # Loop through inputs and outputs and create custom properties
         for param_type, params in all_params.items():
@@ -87,10 +86,10 @@ class KfpComponentParser(ComponentParser):
                 # Assign parsed data type (default to string)
                 data_type_parsed = param.get("type", "string")
 
-                # # define adjusted type as either inputPath or outputPath
-                data_type_adjusted = data_type_parsed
+                # Define adjusted type as either inputPath or outputPath
+                data_type_adjusted = data_type_parsed  # can be str, bool, int, etc. or inputPath or outputPath
                 if self._is_path_based_parameter(param.get("name"), component_yaml):
-                    data_type_adjusted = f"{param_type[:-1]}Path"
+                    data_type_adjusted = f"{param_type}Path"
 
                 data_type_info = self.determine_type_information(data_type_adjusted)
 
@@ -103,71 +102,35 @@ class KfpComponentParser(ComponentParser):
                 if not data_type_info.required:
                     required = data_type_info.required
 
-                # Get value if provided
-                raw_value = param.get("default", "")
-
-                # Adjust any double quoted default values to use single quotes to avoid json parsing errors
-                value = raw_value.replace('"', "'")
+                # Get value if provided, adjust any double quoted default values
+                # to use single quotes to avoid json parsing errors
+                value = param.get("default", "").replace('"', "'")
 
                 # Set parameter ref (id) and display name
                 ref_name = param.get("name").lower().replace(" ", "_")
                 display_name = param.get("name")
 
-                description = param.get("description", "")
+                description = param.get("description") or ""
 
-                if data_type_info.data_type != "inputpath":
-                    # Add parsed data type hint to description in parenthesis
+                if data_type_info.allowed_input_types != [None]:
+                    # This is not an output; add parsed data type hint to description in parentheses
                     description = self._format_description(description=description, data_type=data_type_parsed)
-
-                if data_type_info.data_type == "outputpath":
+                else:
                     ref_name = f"output_{ref_name}"
-
-                one_of_control_types = data_type_info.one_of_control_types
-                default_control_type = data_type_info.control_id
-                if data_type_info.data_type == "inputvalue":
-                    data_type_info.control_id = "OneOfControl"
-                    one_of_control_types = [
-                        (
-                            default_control_type,
-                            data_type_info.default_data_type,
-                            ControllerMap[default_control_type].value,
-                        ),
-                        ("NestedEnumControl", "inputpath", ControllerMap["NestedEnumControl"].value),
-                    ]
 
                 component_params = ComponentParameter(
                     id=ref_name,
                     name=display_name,
-                    data_type=data_type_info.data_type,
-                    default_data_type=data_type_info.default_data_type,
+                    json_data_type=data_type_info.json_data_type,
+                    allowed_input_types=data_type_info.allowed_input_types,
                     value=(value or data_type_info.default_value),
                     description=description,
-                    control=data_type_info.control,
-                    control_id=data_type_info.control_id,
-                    one_of_control_types=one_of_control_types,
-                    default_control_type=default_control_type,
                     required=required,
                 )
 
                 properties.append(component_params)
 
         return properties
-
-    def get_runtime_specific_properties(self) -> List[ComponentParameter]:
-        """
-        Define properties that are common to the KFP runtime.
-        """
-        return [
-            ComponentParameter(
-                id="runtime_image",
-                name="Runtime Image",
-                data_type="string",
-                value="",
-                description="Container image used as execution environment.",
-                control="readonly",
-                required=True,
-            )
-        ]
 
     def _read_component_yaml(self, catalog_entry: CatalogEntry) -> Optional[Dict[str, Any]]:
         """
@@ -239,23 +202,16 @@ class KfpComponentParser(ComponentParser):
         """
         data_type_info = super().determine_type_information(parsed_type)
 
-        # By default, original data type(determined by parent) is stored as the `default_data_type`
-        # and then overridden with Kubeflow Pipeline's meta-type, in this case, all values are
-        # considered as `inputValues` unless the parent method is unable to determine the
-        # type e.g. kfp path-based types
-        data_type_info.default_data_type = data_type_info.data_type
-        data_type_info.data_type = "inputvalue"
-
+        data_type_info.allowed_input_types = []
+        # By default, original input type (determined by parent) is stored as the `json_data_type`
+        # and then overridden with Kubeflow Pipeline's meta-type
         if data_type_info.undetermined:
             if "inputpath" in data_type_info.parsed_data:
-                data_type_info.data_type = "inputpath"
-                data_type_info.control_id = "NestedEnumControl"
+                data_type_info.allowed_input_types = ["inputpath"]  # only allows path-based inputs
                 data_type_info.undetermined = False
                 data_type_info.default_value = None
             elif "outputpath" in data_type_info.parsed_data:
-                data_type_info.data_type = "outputpath"
-                data_type_info.required = False
-                data_type_info.control = "readonly"
+                data_type_info.allowed_input_types = [None]  # output parameters do not accept inputs
                 data_type_info.undetermined = False
 
         return data_type_info
