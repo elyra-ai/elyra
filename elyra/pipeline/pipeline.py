@@ -161,15 +161,15 @@ class Operation(object):
         return self._component_params or {}
 
     @property
-    def mounted_volumes(self) -> List[VolumeMount]:
+    def mounted_volumes(self) -> ElyraPropertyList[VolumeMount]:
         return self._mounted_volumes
 
     @property
-    def kubernetes_tolerations(self) -> List[KubernetesToleration]:
+    def kubernetes_tolerations(self) -> ElyraPropertyList[KubernetesToleration]:
         return self._kubernetes_tolerations
 
     @property
-    def kubernetes_pod_annotations(self) -> List[KubernetesAnnotation]:
+    def kubernetes_pod_annotations(self) -> ElyraPropertyList[KubernetesAnnotation]:
         return self._kubernetes_pod_annotations
 
     @property
@@ -350,7 +350,7 @@ class GenericOperation(Operation):
         return self._component_params.get("include_subdirectories")
 
     @property
-    def env_vars(self) -> List[EnvironmentVariable]:
+    def env_vars(self) -> ElyraPropertyList[EnvironmentVariable]:
         return self._component_params.get(ENV_VARIABLES)
 
     @property
@@ -366,7 +366,7 @@ class GenericOperation(Operation):
         return self._component_params.get("gpu")
 
     @property
-    def kubernetes_secrets(self) -> List[KubernetesSecret]:
+    def kubernetes_secrets(self) -> ElyraPropertyList[KubernetesSecret]:
         return self._component_params.get(KUBERNETES_SECRETS)
 
     def __eq__(self, other: GenericOperation) -> bool:

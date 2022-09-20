@@ -251,6 +251,8 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             KUBERNETES_POD_ANNOTATIONS,
             DISALLOW_CACHED_OUTPUT,
         ]
+        if runtime == "airflow":
+            default_properties.remove(DISALLOW_CACHED_OUTPUT)
         assert all(prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties)
 
 

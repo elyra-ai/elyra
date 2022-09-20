@@ -56,7 +56,7 @@ def test_valid_pipeline(valid_operation):
 
     pipeline_op_envs = pipeline.operations["{{uuid}}"].component_params.pop(ENV_VARIABLES)
     valid_op_envs = valid_operation.component_params.pop(ENV_VARIABLES)
-    assert ElyraPropertyList.to_dict(pipeline_op_envs) == ElyraPropertyList.to_dict(valid_op_envs)
+    assert pipeline_op_envs.to_dict() == valid_op_envs.to_dict()
 
     assert pipeline.operations["{{uuid}}"] == valid_operation
 
@@ -73,7 +73,7 @@ def test_pipeline_with_dirty_list_values(valid_operation):
 
     pipeline_op_envs = pipeline.operations["{{uuid}}"].component_params.pop(ENV_VARIABLES)
     valid_op_envs = valid_operation.component_params.pop(ENV_VARIABLES)
-    assert ElyraPropertyList.to_dict(pipeline_op_envs) == ElyraPropertyList.to_dict(valid_op_envs)
+    assert pipeline_op_envs.to_dict() == valid_op_envs.to_dict()
 
     assert pipeline.operations["{{uuid}}"] == valid_operation
 

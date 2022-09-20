@@ -170,11 +170,10 @@ def test_collect_envs(processor):
         {"env_var": "USER_NO_VALUE", "value": ""},
     ]
     converted_envs = ElyraProperty.create_instance("env_vars", operation_envs)
-    valid_envs = [env for env in converted_envs if not env.get_all_validation_errors()]
 
     component_parameters = {
         "filename": pipelines_test_file,
-        "env_vars": valid_envs,
+        "env_vars": converted_envs,
         "runtime_image": "tensorflow/tensorflow:latest",
     }
     test_operation = GenericOperation(

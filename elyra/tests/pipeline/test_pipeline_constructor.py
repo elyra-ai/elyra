@@ -18,7 +18,6 @@ import sys
 import pytest
 
 from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -336,21 +335,22 @@ def test_fail_pipelines_are_equal(good_pipeline):
 
 
 def test_env_list_to_dict_function():
-    env_variables_dict = {"KEY": "val", "KEY2": "value2", "TWO_EQUALS": "KEY=value", "EMPTY_VALUE": "", "NO_VALUE": ""}
+    env_variables_dict = {"KEY": "val", "KEY2": "value2", "TWO_EQUALS": "KEY=value"}
     env_variables = [
-        {"env_var": "KEY", "value": "val"},
-        {"env_var": "", "value": ""},
-        {"env_var": "  ", "value": "empty_key"},
-        {"env_var": "", "value": "no_key"},
-        {"env_var": "EMPTY_VALUE", "value": "  "},
-        {"env_var": "NO_VALUE"},
-        {"env_var": "KEY2", "value": "value2"},
-        {"env_var": "TWO_EQUALS", "value": "KEY=value"},
-        {"env_var": "", "value": "="},
+        {"env_var": "KEY", "value": "val"},  # valid
+        {"env_var": "", "value": ""},  # empty key and value
+        {"env_var": "  ", "value": "empty_key"},  # empty key
+        {"env_var": "", "value": "no_key"},  # empty key with value
+        {"env_var": "EMPTY_VALUE", "value": "  "},  # empty value
+        {"env_var": "NO_VALUE"},  # no value
+        {"env_var": "KEY2", "value": "value2"},  # valid
+        {"env_var": "TWO_EQUALS", "value": "KEY=value"},  # valid
+        {},  # no values
+        None,  # None value
     ]
 
     converted_list = ElyraProperty.create_instance("env_vars", env_variables)
-    assert ElyraPropertyList.to_dict(converted_list) == env_variables_dict
+    assert converted_list.to_dict() == env_variables_dict
 
 
 def test_validate_resource_values():

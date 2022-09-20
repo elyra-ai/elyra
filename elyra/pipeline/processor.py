@@ -41,7 +41,6 @@ from elyra.metadata.manager import MetadataManager
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -551,7 +550,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         :return: dictionary containing environment name/value pairs
         """
 
-        envs: Dict = ElyraPropertyList.to_dict(operation.env_vars)
+        envs: Dict = operation.env_vars.to_dict()
         envs["ELYRA_RUNTIME_ENV"] = self.name
 
         # set environment variables for Minio/S3 access, in the following order of precedence:

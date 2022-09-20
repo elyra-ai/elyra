@@ -533,15 +533,14 @@ class ElyraPropertyList(list):
     of the class ElyraOwnedPropertyListItem.
     """
 
-    @staticmethod
-    def to_dict(property_list: List[ElyraPropertyListItem], use_prop_as_value: bool = False) -> Dict[str, str]:
+    def to_dict(self: List[ElyraPropertyListItem], use_prop_as_value: bool = False) -> Dict[str, str]:
         """
         Each Elyra-owned property consists of a set of attributes, some subset of which represents
         a unique key. Lists of these properties, however, often need converted to dictionary
         form for processing - so we must convert.
         """
         prop_dict = {}
-        for prop in property_list:
+        for prop in self:
             if prop is None:
                 continue  # invalid entry; skip inclusion and continue
             prop_key = prop.get_key_for_dict_entry()
@@ -557,7 +556,7 @@ class ElyraPropertyList(list):
 
     def deduplicate(self: ElyraPropertyList) -> ElyraPropertyList:
         """Remove duplicates from the given list"""
-        instance_dict = ElyraPropertyList.to_dict(self, use_prop_as_value=True)
+        instance_dict = self.to_dict(use_prop_as_value=True)
         return ElyraPropertyList({**instance_dict}.values())
 
     @staticmethod
@@ -566,8 +565,8 @@ class ElyraPropertyList(list):
         Merge two lists of Elyra-owned properties, preferring the values given in the
         primary parameter in the case of a matching key between the two lists.
         """
-        primary_dict = ElyraPropertyList.to_dict(primary, use_prop_as_value=True)
-        secondary_dict = ElyraPropertyList.to_dict(secondary, use_prop_as_value=True)
+        primary_dict = primary.to_dict(use_prop_as_value=True)
+        secondary_dict = secondary.to_dict(use_prop_as_value=True)
 
         merged_list = list({**secondary_dict, **primary_dict}.values())
         return ElyraPropertyList(merged_list)
@@ -583,8 +582,8 @@ class ElyraPropertyList(list):
 
         :returns: the difference of the two lists
         """
-        subtract_dict = ElyraPropertyList.to_dict(minuend, use_prop_as_value=True)
-        for key in ElyraPropertyList.to_dict(subtrahend).keys():
+        subtract_dict = minuend.to_dict(use_prop_as_value=True)
+        for key in subtrahend.to_dict().keys():
             if key in subtract_dict:
                 subtract_dict.pop(key)
 

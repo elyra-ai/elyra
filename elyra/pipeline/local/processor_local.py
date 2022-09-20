@@ -31,7 +31,6 @@ import papermill
 from traitlets import log
 
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorResponse
@@ -140,7 +139,7 @@ class OperationProcessor(ABC):
     @staticmethod
     def _collect_envs(operation: GenericOperation, elyra_run_name: str) -> Dict:
         envs = os.environ.copy()  # Make sure this process's env is "available" in the kernel subprocess
-        envs.update(ElyraPropertyList.to_dict(operation.env_vars))
+        envs.update(operation.env_vars.to_dict())
         envs["ELYRA_RUNTIME_ENV"] = "local"  # Special case
         envs["ELYRA_RUN_NAME"] = elyra_run_name
         return envs

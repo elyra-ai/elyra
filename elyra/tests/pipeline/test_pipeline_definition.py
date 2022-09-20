@@ -19,9 +19,9 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 import pytest
 
 from elyra.pipeline import pipeline_constants
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
@@ -109,47 +109,27 @@ def test_updates_to_nodes_updates_pipeline_definition():
 
 
 def test_envs_to_dict():
-    test_list = ["TEST= one", "TEST_TWO=two ", "TEST_THREE =", " TEST_FOUR=1", "TEST_FIVE = fi=ve "]
-    test_dict_correct = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1", "TEST_FIVE": "fi=ve"}
-    assert KeyValueList(test_list).to_dict() == test_dict_correct
+    env_variables = [
+        {"env_var": "TEST", "value": " one"},
+        {"env_var": "TEST_TWO", "value": "two"},
+        {"env_var": "TEST_THREE", "value": ""},
+        {"env_var": "TEST_FOUR", "value": "1"},
+        {"env_var": "TEST_TWO"},
+    ]
+    converted_list = ElyraProperty.create_instance("env_vars", env_variables)
+    test_dict_correct = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1"}
+    assert converted_list.to_dict() == test_dict_correct
 
 
-def test_env_dict_to_list():
-    test_dict = {"TEST": "one", "TEST_TWO": "two", "TEST_FOUR": "1"}
-    test_list_correct = ["TEST=one", "TEST_TWO=two", "TEST_FOUR=1"]
-    assert KeyValueList.from_dict(test_dict) == test_list_correct
-
-
-def test_convert_kv_properties(monkeypatch):
-    kv_test_property_name = "kv_test_property"
-    pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
-
-    # Mock get_kv_properties() to ensure the "kv_test_property" variable is included in the list
-    mock_kv_property_list = [pipeline_constants.ENV_VARIABLES, kv_test_property_name]
-    monkeypatch.setattr(PipelineDefinition, "get_kv_properties", mock.Mock(return_value=mock_kv_property_list))
-
-    # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
-    monkeypatch.setattr(Node, "set_elyra_properties_to_skip", mock.Mock(return_value=None))
-
-    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
-
-    node = None
-    for node in pipeline_definition.pipeline_nodes:
-        if node.op == "execute-notebook-node":  # assign the generic node to the node variable
-            break
-    pipeline_defaults = pipeline_definition.primary_pipeline.get_property(pipeline_constants.PIPELINE_DEFAULTS)
-
-    for kv_property in mock_kv_property_list:
-        assert isinstance(node.get_component_parameter(kv_property), KeyValueList)
-        assert isinstance(pipeline_defaults[kv_property], KeyValueList)
-
-    # Ensure a non-list property is not converted to a KeyValueList
-    assert not isinstance(
-        pipeline_definition.primary_pipeline.get_property(pipeline_constants.RUNTIME_IMAGE), KeyValueList
-    )
-
-    # Ensure plain list property is not converted to a KeyValueList
-    assert not isinstance(node.get_component_parameter("outputs"), KeyValueList)
+def test_elyra_property_list_difference():
+    env_variables = [
+        {"env_var": "TEST", "value": "one"},
+        {"env_var": "TEST_TWO", "value": "two"},
+        {"env_var": "TEST_FOUR", "value": "1"},
+    ]
+    converted_list = ElyraProperty.create_instance("env_vars", env_variables)
+    empty_list = ElyraPropertyList.difference(converted_list, converted_list)
+    assert empty_list == []
 
 
 def test_propagate_pipeline_default_properties(monkeypatch, component_cache):
@@ -173,7 +153,8 @@ def test_propagate_pipeline_default_properties(monkeypatch, component_cache):
             custom_node_test = node
 
     # Ensure that default properties have been propagated
-    assert ElyraPropertyList.to_dict(generic_node.get_component_parameter(pipeline_constants.ENV_VARIABLES)) == kv_dict
+    generic_envs = generic_node.get_component_parameter(pipeline_constants.ENV_VARIABLES)
+    assert generic_envs.to_dict() == kv_dict
 
     # Ensure that runtime image and env vars are not propagated to custom components
     assert custom_node_test.get_component_parameter(RUNTIME_IMAGE) is None
@@ -204,13 +185,13 @@ def test_property_id_collision_with_system_property(monkeypatch, catalog_instanc
 
     # Property value should be a combination of the lists given on the
     # pipeline node and in the pipeline default properties
-    assert ElyraPropertyList.to_dict(custom_node_derive1.get_component_parameter(MOUNTED_VOLUMES)) == {
+    derive1_vols = custom_node_derive1.get_component_parameter(MOUNTED_VOLUMES)
+    assert derive1_vols.to_dict() == {
         "/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2"},
         "/mnt/vol1": {"path": "/mnt/vol1", "pvc_name": "pvc-claim-1"},
     }
-    assert ElyraPropertyList.to_dict(custom_node_derive2.get_component_parameter(MOUNTED_VOLUMES)) == {
-        "/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2"}
-    }
+    derive2_vols = custom_node_derive2.get_component_parameter(MOUNTED_VOLUMES)
+    assert derive2_vols.to_dict() == {"/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2"}}
 
     # TestOperator defines its own "mounted_volumes" property
     # and should skip the Elyra system property of the same name
@@ -222,6 +203,11 @@ def test_property_id_collision_with_system_property(monkeypatch, catalog_instanc
 
 def test_remove_env_vars_with_matching_secrets(monkeypatch):
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
+
+    # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
+    monkeypatch.setattr(Node, "set_elyra_owned_properties", mock.Mock(return_value=None))
+    monkeypatch.setattr(Node, "elyra_owned_properties", {KUBERNETES_SECRETS, ENV_VARIABLES})
+
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
     node = None
     for node in pipeline_definition.pipeline_nodes:
@@ -237,7 +223,6 @@ def test_remove_env_vars_with_matching_secrets(monkeypatch):
         ]
     )
     node.set_component_parameter(KUBERNETES_SECRETS, kubernetes_secrets)
-
     node.remove_env_vars_with_matching_secrets()
     assert node.get_component_parameter(ENV_VARIABLES) == []
 

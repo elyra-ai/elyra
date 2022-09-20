@@ -330,6 +330,10 @@ class Node(AppDataBase):
         """
         return self._elyra_owned_properties
 
+    @elyra_owned_properties.setter
+    def elyra_owned_properties(self, value: Set) -> None:
+        self._elyra_owned_properties = value
+
     def set_elyra_owned_properties(self, runtime_type_name: Optional[str]) -> None:
         """
         Determine which Elyra-defined node-level properties apply on the basis that their
@@ -344,9 +348,9 @@ class Node(AppDataBase):
         if component:
             # Properties that have the same ref (id) as Elyra-owned node properties
             # should be skipped during property propagation and conversion
-            self._elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
+            self.elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
             if self.is_generic:
-                self._elyra_owned_properties.add(RUNTIME_IMAGE)
+                self.elyra_owned_properties.add(RUNTIME_IMAGE)
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
