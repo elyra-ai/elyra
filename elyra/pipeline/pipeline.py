@@ -318,7 +318,7 @@ class GenericOperation(Operation):
         self._component_params["runtime_image"] = component_params.get("runtime_image")
         self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
-        self._component_params["env_vars"] = component_params.get(ENV_VARIABLES, [])
+        self._component_params["env_vars"] = ElyraPropertyList(component_params.get(ENV_VARIABLES, []))
         self._component_params["cpu"] = component_params.get("cpu")
         self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")

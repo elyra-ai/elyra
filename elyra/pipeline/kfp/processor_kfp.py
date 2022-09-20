@@ -51,8 +51,13 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import DisallowCachedOutput
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesSecret
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
@@ -763,7 +768,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         return normalized_name.replace(" ", "_")
 
-    def add_disallow_cached_output(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_disallow_cached_output(self, instance: DisallowCachedOutput, execution_object: Any, **kwargs) -> None:
         """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
         # Force re-execution of the operation by setting staleness to zero days
         # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
@@ -771,7 +776,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             execution_object.set_caching_options(enable_caching=False)
             execution_object.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
-    def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
         """Add KubernetesSecret instance to the execution object for the given runtime processor"""
         execution_object.container.add_env_variable(
             V1EnvVar(
@@ -780,7 +785,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             )
         )
 
-    def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_mounted_volume(self, instance: VolumeMount, execution_object: Any, **kwargs) -> None:
         """Add VolumeMount instance to the execution object for the given runtime processor"""
         volume = V1Volume(
             name=instance.pvc_name,
@@ -790,12 +795,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             execution_object.add_volume(volume)
         execution_object.container.add_volume_mount(V1VolumeMount(mount_path=instance.path, name=instance.pvc_name))
 
-    def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         if instance.key not in execution_object.pod_annotations:
             execution_object.add_pod_annotation(instance.key, instance.value)
 
-    def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         toleration = V1Toleration(
             effect=instance.effect,

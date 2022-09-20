@@ -30,6 +30,7 @@ from jupyter_server.gateway.managers import GatewayClient
 import papermill
 from traitlets import log
 
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.processor import PipelineProcessor
@@ -113,6 +114,18 @@ class LocalPipelineProcessor(PipelineProcessor):
 
     def export(self, pipeline, pipeline_export_format, pipeline_export_path, overwrite):
         raise NotImplementedError("Local pipelines does not support export functionality")
+
+    @property
+    def supported_properties(self) -> List[str]:
+        """A list of Elyra-owned properties supported by this runtime processor."""
+        return [
+            pipeline_constants.ENV_VARIABLES,
+            pipeline_constants.KUBERNETES_SECRETS,
+            pipeline_constants.MOUNTED_VOLUMES,
+            pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_TOLERATIONS,
+            pipeline_constants.DISALLOW_CACHED_OUTPUT,
+        ]
 
 
 class LocalPipelineProcessorResponse(PipelineProcessorResponse):

@@ -26,9 +26,9 @@ from typing import Optional
 from typing import Set
 from typing import TYPE_CHECKING
 
-# Prevent a circular reference by importing PipelineProcessor only during type-checking
+# Prevent a circular reference by importing RuntimePipelineProcessor only during type-checking
 if TYPE_CHECKING:
-    from elyra.pipeline.processor import PipelineProcessor
+    from elyra.pipeline.processor import RuntimePipelineProcessor
 
 from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
@@ -127,7 +127,7 @@ class ElyraProperty:
             value = value_dict.get(var_name)
             yield ElyraProperty.strip_if_string(value) if value is not None else None
 
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """
         Add a property instance to the execution object for the given runtime processor.
         Calls the runtime processor's implementation of add_{property_type}, e.g.
@@ -172,7 +172,7 @@ class DisallowCachedOutput(ElyraProperty):
         schema["enum"] = ["True", "False"]
         return schema
 
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
         runtime_processor.add_disallow_cached_output(instance=self, execution_object=execution_object, **kwargs)
 
@@ -287,7 +287,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
 
         return validation_errors
 
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add EnvironmentVariable instance to the execution object for the given runtime processor"""
         runtime_processor.add_env_var(instance=self, execution_object=execution_object, **kwargs)
 
@@ -350,7 +350,7 @@ class KubernetesSecret(ElyraPropertyListItem):
 
         return validation_errors
 
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add KubernetesSecret instance to the execution object for the given runtime processor"""
         runtime_processor.add_kubernetes_secret(instance=self, execution_object=execution_object, **kwargs)
 
@@ -398,7 +398,7 @@ class VolumeMount(ElyraPropertyListItem):
 
         return validation_errors
 
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add VolumeMount instance to the execution object for the given runtime processor"""
         runtime_processor.add_mounted_volume(instance=self, execution_object=execution_object, **kwargs)
 
@@ -444,7 +444,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
 
         return validation_errors
 
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         runtime_processor.add_kubernetes_pod_annotation(instance=self, execution_object=execution_object, **kwargs)
 
@@ -521,7 +521,7 @@ class KubernetesToleration(ElyraPropertyListItem):
             )
         return validation_errors
 
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         runtime_processor.add_kubernetes_toleration(instance=self, execution_object=execution_object, **kwargs)
 
@@ -588,7 +588,7 @@ class ElyraPropertyList(list):
 
         return ElyraPropertyList(subtract_dict.values())
 
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any) -> None:
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any):
         """
         Add a property instance to the execution object for the given runtime processor
         for each list item.

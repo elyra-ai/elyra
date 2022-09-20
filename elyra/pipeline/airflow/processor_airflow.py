@@ -41,6 +41,10 @@ from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesSecret
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -620,7 +624,7 @@ be fully qualified (i.e., prefixed with their package names).
         executor_config = {"KubernetesExecutor": kubernetes_executor}
         return executor_config
 
-    def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
         """Add KubernetesSecret instance to the execution object for the given runtime processor"""
         if "secrets" not in execution_object:
             execution_object["secrets"] = []
@@ -628,7 +632,7 @@ be fully qualified (i.e., prefixed with their package names).
             {"deploy_type": "env", "deploy_target": instance.env_var, "secret": instance.name, "key": instance.key}
         )
 
-    def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_mounted_volume(self, instance: VolumeMount, execution_object: Any, **kwargs) -> None:
         """Add VolumeMount instance to the execution object for the given runtime processor"""
         if "volumes" not in execution_object:
             execution_object["volumes"] = []
@@ -644,13 +648,13 @@ be fully qualified (i.e., prefixed with their package names).
             {"mountPath": instance.path, "name": instance.pvc_name, "read_only": False}
         )
 
-    def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         if "annotations" not in execution_object:
             execution_object["annotations"] = {}
         execution_object["annotations"][instance.key] = instance.value
 
-    def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
+    def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         if "tolerations" not in execution_object:
             execution_object["tolerations"] = []

@@ -38,9 +38,14 @@ from traitlets.config import Unicode
 from urllib3.exceptions import MaxRetryError
 
 from elyra.metadata.manager import MetadataManager
-from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import DisallowCachedOutput
+from elyra.pipeline.component_parameter import EnvironmentVariable
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesSecret
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -365,42 +370,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                     )
             ordered_operations.append(operation)
 
-    def add_disallow_cached_output(self, instance, execution_object: Any, **kwargs) -> None:
-        """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
-        pass
-
-    def add_env_var(self, instance, execution_object: Any, **kwargs) -> None:
-        """Add EnvironmentVariable instance to the execution object for the given runtime processor"""
-        pass
-
-    def add_kubernetes_secret(self, instance, execution_object: Any, **kwargs) -> None:
-        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
-        pass
-
-    def add_mounted_volume(self, instance, execution_object: Any, **kwargs) -> None:
-        """Add VolumeMount instance to the execution object for the given runtime processor"""
-        pass
-
-    def add_kubernetes_pod_annotation(self, instance, execution_object: Any, **kwargs) -> None:
-        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
-        pass
-
-    def add_kubernetes_toleration(self, instance, execution_object: Any, **kwargs) -> None:
-        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
-        pass
-
-    @property
-    def supported_properties(self) -> List[str]:
-        """A list of Elyra-owned properties supported by this runtime processor."""
-        return [
-            pipeline_constants.ENV_VARIABLES,
-            pipeline_constants.KUBERNETES_SECRETS,
-            pipeline_constants.MOUNTED_VOLUMES,
-            pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
-            pipeline_constants.KUBERNETES_TOLERATIONS,
-            pipeline_constants.DISALLOW_CACHED_OUTPUT,
-        ]
-
 
 class RuntimePipelineProcessor(PipelineProcessor):
     def _get_dependency_archive_name(self, operation: GenericOperation) -> str:
@@ -631,3 +600,27 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return value
 
         return converted_list
+
+    def add_disallow_cached_output(self, instance: DisallowCachedOutput, execution_object: Any, **kwargs) -> None:
+        """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
+        pass
+
+    def add_env_var(self, instance: EnvironmentVariable, execution_object: Any, **kwargs) -> None:
+        """Add EnvironmentVariable instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_mounted_volume(self, instance: VolumeMount, execution_object: Any, **kwargs) -> None:
+        """Add VolumeMount instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
+        pass
