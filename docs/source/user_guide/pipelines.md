@@ -373,3 +373,12 @@ The pipeline dependencies output includes:
  - Kubernetes secrets that generic nodes are exposing as environment variables to notebooks or scripts
 
 Specify the `--json` option to format the output as JSON.
+
+
+### Migrating pipelines
+
+The Visual Pipeline Editor stores information about the pipeline, nodes, node configuration, and node dependencies in a `.pipeline` file. How this information is persisted may change between major or minor Elyra releases. You might therefore have to migrate existing pipelines if you switch from one version of Elyra to another. The Visual Pipeline Editor and the [`elyra-pipeline` CLI](command-line-interface.html#working-with-pipelines) raise an error if an attempt is made to process a pipeline file version that is incompatible with the installed Elyra version.
+
+If the pipeline was last modified using a version of Elyra that is older than the installed version, you must migrate the pipeline using the Visual Pipeline Editor before you can use it. If the pipeline was last modified using a version of Elyra that is newer than the installed version, you must upgrade your Elyra installation to a more current release. 
+
+To migrate a pipeline open it in the Visual Pipeline Editor and follow the prompts.
