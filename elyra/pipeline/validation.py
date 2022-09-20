@@ -29,7 +29,8 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ElyraPropertyJSONEncoder, ElyraProperty
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyJSONEncoder
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA

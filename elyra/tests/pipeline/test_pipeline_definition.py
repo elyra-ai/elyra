@@ -20,6 +20,7 @@ import pytest
 
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.pipeline import KeyValueList
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -221,10 +222,6 @@ def test_property_id_collision_with_system_property(monkeypatch, catalog_instanc
 
 def test_remove_env_vars_with_matching_secrets(monkeypatch):
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
-
-    # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
-    monkeypatch.setattr(Node, "set_elyra_properties_to_skip", mock.Mock(return_value=None))
-
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
     node = None
     for node in pipeline_definition.pipeline_nodes:
@@ -232,7 +229,13 @@ def test_remove_env_vars_with_matching_secrets(monkeypatch):
             break
 
     # Set kubernetes_secret property to have all the same keys as those in the env_vars property
-    kubernetes_secrets = KeyValueList(["var1=name1:key1", "var2=name2:key2", "var3=name3:key3"])
+    kubernetes_secrets = ElyraPropertyList(
+        [
+            KubernetesSecret(env_var="var1", name="name1", key="key1"),
+            KubernetesSecret(env_var="var2", name="name2", key="key2"),
+            KubernetesSecret(env_var="var3", name="name3", key="key3"),
+        ]
+    )
     node.set_component_parameter(KUBERNETES_SECRETS, kubernetes_secrets)
 
     node.remove_env_vars_with_matching_secrets()

@@ -18,7 +18,6 @@ from __future__ import annotations
 from enum import Enum
 from importlib import import_module
 import json
-import re
 from textwrap import dedent
 from typing import Any
 from typing import Dict
@@ -37,7 +36,6 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
-from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_kubernetes_key
@@ -121,8 +119,10 @@ class ElyraProperty:
         return var.strip() if isinstance(var, str) else var
 
     @staticmethod
-    def unpack(value_dict, *variables):
+    def unpack(value_dict: dict, *variables):
         """Get the values corresponding to the given keys in the provided dict."""
+        if not isinstance(value_dict, dict):
+            value_dict = {}
         for var_name in variables:
             value = value_dict.get(var_name)
             yield ElyraProperty.strip_if_string(value) if value is not None else None
@@ -545,8 +545,8 @@ class ElyraPropertyList(list):
             if prop is None:
                 continue  # invalid entry; skip inclusion and continue
             prop_key = prop.get_key_for_dict_entry()
-            if prop_key is None:  # TODO test
-                continue  # invalid entry; skip inclusion and continue  TODO
+            if prop_key is None:
+                continue  # invalid entry; skip inclusion and continue
 
             prop_value = prop.get_value_for_dict_entry()
             if use_prop_as_value:

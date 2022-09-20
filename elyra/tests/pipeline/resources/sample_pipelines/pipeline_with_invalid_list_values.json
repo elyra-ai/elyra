@@ -20,7 +20,9 @@
               "env_vars": [
                 { "env_var": "var1", "value": "var1" },
                 { "env_var": "var2", "value": "var2" },
-                { "env_var": "" }
+                { "env_var": "" },
+                {},
+                null
               ],
               "dependencies": ["a.txt", "b.txt", "", null, "c.txt"],
               "outputs": ["d.txt", null, "", "e.txt", "f.txt"]
