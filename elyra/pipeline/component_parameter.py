@@ -261,7 +261,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
     @classmethod
     def create_instance(cls, prop_id: str, value: Optional[Any]) -> EnvironmentVariable | None:
         env_var, env_value = cls.unpack(value, "env_var", "value")
-        if not env_var or env_value is None or env_value == "":
+        if env_value is None or env_value == "":
             return None  # skip inclusion and continue
 
         return EnvironmentVariable(env_var=env_var, value=env_value)
@@ -280,8 +280,8 @@ class EnvironmentVariable(ElyraPropertyListItem):
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
-        if not self.env_var or not self.value:
-            validation_errors.append("Property has an improperly formatted env variable key value pair.")
+        if not self.env_var:
+            validation_errors.append("Required environment variable was not specified.")
         if " " in self.env_var:
             validation_errors.append(f"Environment variable '{self.env_var}' includes invalid space character(s).")
 
@@ -325,14 +325,13 @@ class KubernetesSecret(ElyraPropertyListItem):
     @classmethod
     def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesSecret | None:
         env_var, name, key = cls.unpack(value, "env_var", "name", "key")
-        if not env_var or (not name and not key):
-            return None  # skip inclusion and continue
-
         return KubernetesSecret(env_var=env_var, name=name, key=key)
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
+        if not self.env_var:
+            validation_errors.append("Required environment variable was not specified.")
         if not self.name or not self.key:
             validation_errors.append(
                 f"Environment variable '{self.env_var}' has an improperly formatted "
@@ -458,7 +457,7 @@ class KubernetesToleration(ElyraPropertyListItem):
     key: Optional[str]
     operator: str
     value: Optional[str]
-    effect: str
+    effect: Optional[str]
 
     property_id = KUBERNETES_TOLERATIONS
     generic = True
@@ -493,7 +492,7 @@ class KubernetesToleration(ElyraPropertyListItem):
         op_enum = ["Equal", "Exists"]
         schema["items"]["properties"]["operator"]["enum"] = op_enum
         schema["items"]["properties"]["operator"]["default"] = op_enum[0]
-        schema["items"]["properties"]["effect"]["enum"] = ["NoExecute", "NoSchedule", "PreferNoSchedule"]
+        schema["items"]["properties"]["effect"]["enum"] = ["", "NoExecute", "NoSchedule", "PreferNoSchedule"]
         return schema
 
     def get_all_validation_errors(self) -> List[str]:

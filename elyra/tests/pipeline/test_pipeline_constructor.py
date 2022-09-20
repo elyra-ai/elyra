@@ -335,7 +335,7 @@ def test_fail_pipelines_are_equal(good_pipeline):
 
 
 def test_env_list_to_dict_function():
-    env_variables_dict = {"KEY": "val", "KEY2": "value2", "TWO_EQUALS": "KEY=value"}
+    env_variables_dict = {"KEY": "val", "KEY2": "value2", "TWO_EQUALS": "KEY=value", "": "no_key"}
     env_variables = [
         {"env_var": "KEY", "value": "val"},  # valid
         {"env_var": "", "value": ""},  # empty key and value

@@ -414,7 +414,12 @@ def test_invalid_node_property_env_var(validation_manager):
     response = ValidationResponse()
     node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
 
-    invalid_env_vars = ElyraPropertyList([EnvironmentVariable(env_var='TEST_ENV_ONE"test_one"', value="")])
+    invalid_env_vars = ElyraPropertyList(
+        [
+            EnvironmentVariable(env_var="TEST_ENV SPACE", value="value"),
+            EnvironmentVariable(env_var="", value="no key"),
+        ]
+    )
     node_dict["app_data"]["component_parameters"][ENV_VARIABLES] = invalid_env_vars
 
     node = Node(node_dict)
@@ -426,6 +431,13 @@ def test_invalid_node_property_env_var(validation_manager):
     assert issues[0]["type"] == "invalidEnvironmentVariable"
     assert issues[0]["data"]["propertyName"] == "env_vars"
     assert issues[0]["data"]["nodeID"] == "test-id"
+    assert issues[0]["message"] == "Environment variable 'TEST_ENV SPACE' includes invalid space character(s)."
+
+    assert issues[0]["severity"] == 1
+    assert issues[1]["type"] == "invalidEnvironmentVariable"
+    assert issues[1]["data"]["propertyName"] == "env_vars"
+    assert issues[1]["data"]["nodeID"] == "test-id"
+    assert issues[1]["message"] == "Required environment variable was not specified."
 
 
 def test_invalid_node_property_volumes(validation_manager):
