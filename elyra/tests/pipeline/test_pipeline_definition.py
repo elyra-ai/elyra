@@ -19,8 +19,8 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 import pytest
 
 from elyra.pipeline import pipeline_constants
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import KeyValueList
-from elyra.pipeline.pipeline import VolumeMount
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
@@ -151,17 +151,9 @@ def test_convert_kv_properties(monkeypatch):
     assert not isinstance(node.get_component_parameter("outputs"), KeyValueList)
 
 
-def test_propagate_pipeline_default_properties(monkeypatch):
-    kv_list_correct = ["var1=var1", "var2=var2", "var3=var_three"]
-    kv_test_property_name = "kv_test_property"
+def test_propagate_pipeline_default_properties(monkeypatch, component_cache):
+    kv_dict = {"var1": "var1", "var2": "var2", "var3": "var_three"}
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
-
-    # Mock get_kv_properties() to ensure the "kv_test_property" variable is included in the list
-    mock_kv_property_list = [pipeline_constants.ENV_VARIABLES, kv_test_property_name]
-    monkeypatch.setattr(PipelineDefinition, "get_kv_properties", mock.Mock(return_value=mock_kv_property_list))
-
-    # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
-    monkeypatch.setattr(Node, "set_elyra_properties_to_skip", mock.Mock(return_value=None))
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 
@@ -180,8 +172,7 @@ def test_propagate_pipeline_default_properties(monkeypatch):
             custom_node_test = node
 
     # Ensure that default properties have been propagated
-    assert generic_node.get_component_parameter(pipeline_constants.ENV_VARIABLES) == kv_list_correct
-    assert generic_node.get_component_parameter(kv_test_property_name) == kv_list_correct
+    assert ElyraPropertyList.to_dict(generic_node.get_component_parameter(pipeline_constants.ENV_VARIABLES)) == kv_dict
 
     # Ensure that runtime image and env vars are not propagated to custom components
     assert custom_node_test.get_component_parameter(RUNTIME_IMAGE) is None
@@ -207,22 +198,22 @@ def test_property_id_collision_with_system_property(monkeypatch, catalog_instanc
 
     # DeriveFromTestOperator does not define its own 'mounted_volumes'
     # property and should not skip the Elyra 'mounted_volumes' property
-    assert MOUNTED_VOLUMES not in custom_node_derive1.elyra_properties_to_skip
-    assert MOUNTED_VOLUMES not in custom_node_derive2.elyra_properties_to_skip
+    assert MOUNTED_VOLUMES in custom_node_derive1.elyra_owned_properties
+    assert MOUNTED_VOLUMES in custom_node_derive2.elyra_owned_properties
 
     # Property value should be a combination of the lists given on the
     # pipeline node and in the pipeline default properties
-    assert custom_node_derive1.get_component_parameter(MOUNTED_VOLUMES) == [
-        VolumeMount(path="/mnt/vol2", pvc_name="pvc-claim-2"),
-        VolumeMount(path="/mnt/vol1", pvc_name="pvc-claim-1"),
-    ]
-    assert custom_node_derive2.get_component_parameter(MOUNTED_VOLUMES) == [
-        VolumeMount(path="/mnt/vol2", pvc_name="pvc-claim-2")
-    ]
+    assert ElyraPropertyList.to_dict(custom_node_derive1.get_component_parameter(MOUNTED_VOLUMES)) == {
+        "/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2"},
+        "/mnt/vol1": {"path": "/mnt/vol1", "pvc_name": "pvc-claim-1"},
+    }
+    assert ElyraPropertyList.to_dict(custom_node_derive2.get_component_parameter(MOUNTED_VOLUMES)) == {
+        "/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2"}
+    }
 
-    # TestOperator defines its own 'mounted_volumes' property
+    # TestOperator defines its own "mounted_volumes" property
     # and should skip the Elyra system property of the same name
-    assert MOUNTED_VOLUMES in custom_node_test.elyra_properties_to_skip
+    assert MOUNTED_VOLUMES not in custom_node_test.elyra_owned_properties
 
     # Property value should be as-assigned in pipeline file
     assert custom_node_test.get_component_parameter(MOUNTED_VOLUMES) == "a component-parsed property"

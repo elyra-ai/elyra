@@ -31,6 +31,7 @@ from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.github import GithubClient
@@ -219,7 +220,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                             assert component_parameters["runtime_image"] == read_key_pair(line)["value"]
                         elif "env_vars=" in line:
                             for env in component_parameters["env_vars"]:
-                                var, value = env.split("=")
+                                var, value = env.get("env_var"), env.get("value")
                                 # Gets sub-list slice starting where the env vars starts
                                 start_env = i + sub_list_line_counter + 2
                                 for env_line in file_as_lines[start_env:]:
@@ -271,6 +272,8 @@ def test_create_file_custom_components(
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y, z: parsed_ordered_dict)
+
+    print(parsed_ordered_dict)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         export_pipeline_output_path = os.path.join(temp_dir, f"{export_pipeline_name}.py")
@@ -325,7 +328,13 @@ def test_create_file_custom_components(
                         # Find 'parameter=' clause in file_as_lines list
                         r = re.compile(rf"\s*{parameter}=.*")
                         parameter_clause = i + 1
-                        assert len(list(filter(r.match, file_as_lines[parameter_clause:]))) > 0
+                        parameter_in_args = len(list(filter(r.match, file_as_lines[parameter_clause:]))) > 0
+                        if parameter == MOUNTED_VOLUMES and "DeriveFromTestOperator" in node["op"]:
+                            # Asserts that "DeriveFromTestOperator", which does not define its own `mounted_volumes`
+                            # property, does not include the property in the Operator constructor args
+                            assert not parameter_in_args
+                        else:
+                            assert parameter_in_args
 
         # Test that parameter value processing proceeded as expected for each data type
         op_id = "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
@@ -428,7 +437,7 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                         assert ordered_dict[key]["image_pull_policy"] == image.metadata["pull_policy"]
                 print(ordered_dict[key])
                 for env in component_parameters["env_vars"]:
-                    var, value = env.split("=")
+                    var, value = env.get("env_var"), env.get("value")
                     assert ordered_dict[key]["pipeline_envs"][var] == value
                 assert (
                     ordered_dict[key]["pipeline_envs"]["AWS_ACCESS_KEY_ID"]

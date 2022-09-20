@@ -166,6 +166,10 @@ class RuntimeImage(ElyraProperty):
         schema.update({"required": cls._required, "uihints": {"items": []}})
         return schema
 
+    def get_value_for_display(self) -> Dict[str, Any]:
+        """Get a representation of the instance to display in UI error messages."""
+        return self.image_name
+
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
@@ -355,7 +359,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         validation_errors = []
         if not self.name or not self.key:
             validation_errors.append(
-                f"Environment variable '{self.env_var}' has an improperly formatted"
+                f"Environment variable '{self.env_var}' has an improperly formatted "
                 f"representation of secret name and key."
             )
         # Ensure the secret name is syntactically a valid Kubernetes resource name
