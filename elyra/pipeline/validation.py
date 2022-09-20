@@ -28,7 +28,6 @@ from traitlets.config import SingletonConfigurable
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
-from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ElyraPropertyJSONEncoder, ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
@@ -384,7 +383,7 @@ class PipelineValidationManager(SingletonConfigurable):
             for node in pipeline.nodes:
                 if node.type == "execution_node":
                     if Operation.is_generic_operation(node.op):
-                        self._validate_generic_node_properties(
+                        await self._validate_generic_node_properties(
                             node=node, response=response, pipeline_runtime=pipeline_runtime
                         )
                     # Validate runtime components against specific node properties in component registry
@@ -396,7 +395,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             pipeline_definition=pipeline_definition,
                         )
 
-    def _validate_generic_node_properties(self, node: Node, response: ValidationResponse, pipeline_runtime: str):
+    async def _validate_generic_node_properties(self, node: Node, response: ValidationResponse, pipeline_runtime: str):
         """
         Validate properties of a generic node
         :param node: the generic node to check
@@ -407,6 +406,7 @@ class PipelineValidationManager(SingletonConfigurable):
         node_label = node.label
         filename = node.get_component_parameter("filename")
         dependencies = node.get_component_parameter("dependencies")
+        component_props = await self._get_component_properties(node.op)
 
         self._validate_filepath(
             node_id=node.id, node_label=node_label, property_name="filename", filename=filename, response=response
@@ -426,10 +426,11 @@ class PipelineValidationManager(SingletonConfigurable):
                     )
 
             for param in node.elyra_owned_properties:
-                self._validate_elyra_owned_property(node.id, node.label, node, param, response=response)
+                required = self._is_required_property(component_props, param)
+                self._validate_elyra_owned_property(node.id, node.label, node, param, response, required)
         else:
             # Only env vars need to be validated for local runtime
-            self._validate_elyra_owned_property(node.id, node.label, node, ENV_VARIABLES, response=response)
+            self._validate_elyra_owned_property(node.id, node.label, node, ENV_VARIABLES, response)
 
         self._validate_label(node_id=node.id, node_label=node_label, response=response)
         if dependencies:
@@ -455,16 +456,13 @@ class PipelineValidationManager(SingletonConfigurable):
         :param pipeline_runtime: the pipeline runtime selected
         :return:
         """
-
-        component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-        components = ComponentCache.to_canvas_palette(component_list)
-
         # Full dict of properties for the operation e.g. current params, optionals etc
-        component_property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
+        component_property_dict = await self._get_component_properties(node.op, pipeline_runtime)
         current_parameters = component_property_dict["properties"]["component_parameters"]["properties"]
 
         for param in node.elyra_owned_properties:
-            self._validate_elyra_owned_property(node.id, node.label, node, param, response=response)
+            param_required = self._is_required_property(component_property_dict, param)
+            self._validate_elyra_owned_property(node.id, node.label, node, param, response, param_required)
 
         # List of just the current parameters for the component
         parsed_parameters = [p for p in current_parameters.keys() if p not in node.elyra_owned_properties]
@@ -577,7 +575,13 @@ class PipelineValidationManager(SingletonConfigurable):
             )
 
     def _validate_elyra_owned_property(
-        self, node_id: str, node_label: str, node: Node, param_name: str, response: ValidationResponse
+        self,
+        node_id: str,
+        node_label: str,
+        node: Node,
+        param_name: str,
+        response: ValidationResponse,
+        required: bool = False,
     ) -> None:
         """
         Checks the format of mounted volumes to ensure they're in the correct form
@@ -609,6 +613,13 @@ class PipelineValidationManager(SingletonConfigurable):
                     validate_elyra_owned_property(prop)
             else:
                 validate_elyra_owned_property(param_value)
+        elif required:
+            response.add_message(
+                severity=ValidationSeverity.Error,
+                message_type="invalidNodeProperty",
+                message="Required property value is missing.",
+                data={"nodeID": node.id, "nodeName": node_label, "propertyName": param_name},
+            )
 
     def _validate_filepath(
         self,
@@ -792,26 +803,25 @@ class PipelineValidationManager(SingletonConfigurable):
                     return single_pipeline["id"]
         return None
 
-    async def _get_component_properties(self, pipeline_runtime: str, components: dict, node_op: str) -> Dict:
+    async def _get_component_properties(self, node_op: str, pipeline_runtime: Optional[str] = None) -> Dict:
         """
         Retrieve the full dict of properties associated with the node_op
-        :param components: list of components associated with the pipeline runtime being used e.g. kfp, airflow
         :param node_op: the node operation e.g. execute-notebook-node
         :return: a list of property names associated with the node op
         """
+        if not pipeline_runtime:
+            pipeline_runtime = RuntimeProcessorType.LOCAL.name.lower()
 
-        if node_op == "execute-notebook-node":
-            node_op = "notebooks"
-        elif node_op == "execute-r-node":
-            node_op = "r-script"
-        elif node_op == "execute-python-node":
-            node_op = "python-script"
+        # list of components associated with the pipeline runtime being used
+        component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
+        components = ComponentCache.to_canvas_palette(component_list)
+
         for category in components["categories"]:
             for node_type in category["node_types"]:
                 if node_op == node_type["op"]:
-                    component: Component = await PipelineProcessorManager.instance().get_component(
-                        pipeline_runtime, node_op
-                    )
+                    component = await PipelineProcessorManager.instance().get_component(pipeline_runtime, node_op)
+                    if not component:  # component is generic; retrieve using static method
+                        component = ComponentCache.get_generic_component_from_op(node_op)
                     component_properties = ComponentCache.to_canvas_properties(component)
                     return component_properties
 
@@ -895,8 +905,12 @@ class PipelineValidationManager(SingletonConfigurable):
         :param node_property: the component property to check
         :return:
         """
-        required_parameters = property_dict["properties"]["component_parameters"]["required"]
-        return node_property in required_parameters
+        required_parameters = property_dict["properties"]["component_parameters"].get("required")
+        if required_parameters:
+            return node_property in required_parameters
+
+        param = property_dict["properties"]["component_parameters"]["properties"].get(node_property, {})
+        return param.get("required", False)
 
     def _get_parent_id_list(
         self, pipeline_definition: PipelineDefinition, node_id_list: list, parent_list: list
