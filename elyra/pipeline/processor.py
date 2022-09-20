@@ -366,10 +366,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
                     )
             ordered_operations.append(operation)
 
-    def add_runtime_image(self, instance, execution_object: Any, **kwargs) -> None:
-        """Add RuntimeImage info to the execution object for the given runtime processor"""
-        pass
-
     def add_disallow_cached_output(self, instance, execution_object: Any, **kwargs) -> None:
         """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
         pass
@@ -398,7 +394,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
     def supported_properties(self) -> List[str]:
         """A list of Elyra-owned properties supported by this runtime processor."""
         return [
-            pipeline_constants.RUNTIME_IMAGE,
             pipeline_constants.ENV_VARIABLES,
             pipeline_constants.KUBERNETES_SECRETS,
             pipeline_constants.MOUNTED_VOLUMES,

@@ -149,54 +149,6 @@ class ElyraProperty:
         return []
 
 
-class RuntimeImage(ElyraProperty):
-    """Container image used as execution environment."""
-
-    image_name: str
-
-    property_id = RUNTIME_IMAGE
-    generic = True
-    custom = False
-    _display_name = "Runtime Image"
-    _json_data_type = "string"
-    _required = True
-
-    __slots__ = ["image_name"]
-
-    def __init__(self, image_name, **kwargs):
-        self.image_name = image_name.strip()
-
-    @classmethod
-    def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        schema = super().get_schema()
-        schema.update({"required": cls._required, "uihints": {"items": []}})
-        return schema
-
-    def get_value_for_display(self) -> Dict[str, Any]:
-        """Get a representation of the instance to display in UI error messages."""
-        return self.image_name
-
-    def get_all_validation_errors(self) -> List[str]:
-        """Perform custom validation on an instance."""
-        validation_errors = []
-        if not self.image_name:
-            validation_errors.append("Required property value is missing.")
-        else:
-            image_regex = re.compile(r"[^/ ]+/[^/ ]+$")
-            matched = image_regex.search(self.image_name)
-            if not matched:
-                validation_errors.append(
-                    "Node contains an invalid runtime image. Runtime image "
-                    "must conform to the format [registry/]owner/image:tag"
-                )
-        return validation_errors
-
-    def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
-        """Add RuntimeImage info to the execution object for the given runtime processor"""
-        runtime_processor.add_runtime_image(instance=self, execution_object=execution_object, **kwargs)
-
-
 class DisallowCachedOutput(ElyraProperty):
     """Disable caching to force node re-execution in the target runtime environment."""
 

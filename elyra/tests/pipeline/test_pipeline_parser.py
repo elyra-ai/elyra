@@ -18,7 +18,6 @@ import pytest
 
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
-from elyra.pipeline.component_parameter import RuntimeImage
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
@@ -30,7 +29,7 @@ def valid_operation():
     env_vars = [EnvironmentVariable(env_var="var1", value="var1"), EnvironmentVariable(env_var="var2", value="var2")]
     component_parameters = {
         "filename": "{{filename}}",
-        "runtime_image": RuntimeImage(image_name="{{runtime_image}}"),
+        "runtime_image": "{{runtime_image}}",
         "env_vars": ElyraPropertyList(env_vars),
         "dependencies": ["a.txt", "b.txt", "c.txt"],
         "outputs": ["d.txt", "e.txt", "f.txt"],

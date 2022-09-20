@@ -607,7 +607,7 @@ def describe(json_option, pipeline_path):
             # container image, if one was configured
             if node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE):
                 describe_dict["container_image_dependencies"]["value"].add(
-                    node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE).image_name
+                    node.get_component_parameter(pipeline_constants.RUNTIME_IMAGE)
                 )
 
             # Kubernetes secrets

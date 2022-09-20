@@ -31,7 +31,7 @@ from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
-from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES, RUNTIME_IMAGE
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
@@ -344,7 +344,9 @@ class Node(AppDataBase):
         if component:
             # Properties that have the same ref (id) as Elyra-owned node properties
             # should be skipped during property propagation and conversion
-            self._elyra_owned_properties = [param.property_id for param in component.get_elyra_parameters()]
+            self._elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
+            if self.is_generic:
+                self._elyra_owned_properties.add(RUNTIME_IMAGE)
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """

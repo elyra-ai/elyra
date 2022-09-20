@@ -29,11 +29,13 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ElyraPropertyJSONEncoder, ElyraPropertyList
+from elyra.pipeline.component_parameter import ElyraPropertyJSONEncoder, ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
@@ -98,7 +100,8 @@ class ValidationResponse(object):
                 "message": message,
                 "data": data,
             }
-            self._response["issues"].append(diagnostic)
+            if diagnostic not in self._response["issues"]:
+                self._response["issues"].append(diagnostic)
 
         if severity is ValidationSeverity.Error:
             self._has_fatal = True
@@ -404,6 +407,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :return:
         """
         node_label = node.label
+        image_name = node.get_component_parameter(RUNTIME_IMAGE)
         filename = node.get_component_parameter("filename")
         dependencies = node.get_component_parameter("dependencies")
         component_props = await self._get_component_properties(node.op)
@@ -414,6 +418,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
         # If not running locally, we check resource and image name
         if pipeline_runtime != "local":
+            self._validate_container_image_name(node.id, node_label, image_name, response=response)
             for resource_name in ["cpu", "gpu", "memory"]:
                 resource_value = node.get_component_parameter(resource_name)
                 if resource_value:
@@ -537,6 +542,40 @@ class PipelineValidationManager(SingletonConfigurable):
                             data={"nodeID": node.id, "nodeName": node.label, "propertyName": default_parameter},
                         )
 
+    def _validate_container_image_name(
+        self, node_id: str, node_label: str, image_name: str, response: ValidationResponse
+    ) -> None:
+        """
+        Validates the image name exists and is proper in syntax
+        :param node_id: the unique ID of the node
+        :param node_label: the given node name or user customized name/label of the node
+        :param image_name: container image name to be evaluated
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        if not image_name:
+            response.add_message(
+                severity=ValidationSeverity.Error,
+                message_type="invalidNodeProperty",
+                message="Required property value is missing.",
+                data={"nodeID": node_id, "nodeName": node_label, "propertyName": "runtime_image"},
+            )
+        else:
+            image_regex = re.compile(r"[^/ ]+/[^/ ]+$")
+            matched = image_regex.search(image_name)
+            if not matched:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidNodeProperty",
+                    message="Node contains an invalid runtime image. Runtime image "
+                    "must conform to the format [registry/]owner/image:tag",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": "runtime_image",
+                        "imageName": image_name,
+                    },
+                )
+
     def _validate_resource_value(
         self, node_id: str, node_label: str, resource_name: str, resource_value: str, response: ValidationResponse
     ) -> None:
@@ -611,7 +650,7 @@ class PipelineValidationManager(SingletonConfigurable):
             if isinstance(param_value, ElyraPropertyList):
                 for prop in param_value:
                     validate_elyra_owned_property(prop)
-            else:
+            elif isinstance(param_value, ElyraProperty):
                 validate_elyra_owned_property(param_value)
         elif required:
             response.add_message(

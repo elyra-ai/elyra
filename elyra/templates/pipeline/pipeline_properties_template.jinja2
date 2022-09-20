@@ -47,13 +47,8 @@
         },
         {% endif %}
         {% for property in elyra_owned_parameters %}
-        "{{property.property_id}}": {{ property.get_schema()|tojson }}
-          {% if loop.index != loop|length %}
-          ,
-          {% endif %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }},
         {% endfor %}
-        {% if elyra_owned_generic_parameters %}
-        ,
         "generic_node_defaults_header": {
           "type": "null",
           "title": "Generic Node Defaults",
@@ -63,6 +58,13 @@
             "ui:field": "header"
           }
         },
+        "runtime_image": {
+          "title": "Runtime image",
+          "description": "Container image used as execution environment.",
+          "type": "string"
+        }
+        {% if elyra_owned_generic_parameters %}
+        ,
         {% endif %}
         {% for property in elyra_owned_generic_parameters %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}

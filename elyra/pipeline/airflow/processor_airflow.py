@@ -667,7 +667,6 @@ be fully qualified (i.e., prefixed with their package names).
     def supported_properties(self) -> List[str]:
         """A list of Elyra-owned properties supported by this runtime processor."""
         return [
-            pipeline_constants.RUNTIME_IMAGE,
             pipeline_constants.ENV_VARIABLES,
             pipeline_constants.KUBERNETES_SECRETS,
             pipeline_constants.MOUNTED_VOLUMES,

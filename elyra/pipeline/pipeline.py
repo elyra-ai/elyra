@@ -28,7 +28,6 @@ from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.component_parameter import KubernetesAnnotation
 from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import RuntimeImage
 from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
@@ -340,8 +339,7 @@ class GenericOperation(Operation):
 
     @property
     def runtime_image(self) -> str:
-        runtime_image = self._component_params.get(RUNTIME_IMAGE)
-        return runtime_image.image_name if isinstance(runtime_image, RuntimeImage) else runtime_image
+        return self._component_params.get(RUNTIME_IMAGE)
 
     @property
     def dependencies(self) -> Optional[List[str]]:

@@ -22,7 +22,6 @@ import pytest
 
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
-from elyra.pipeline.component_parameter import RuntimeImage
 from elyra.pipeline.pipeline import KubernetesAnnotation
 from elyra.pipeline.pipeline import KubernetesSecret
 from elyra.pipeline.pipeline import KubernetesToleration
@@ -272,31 +271,25 @@ def test_invalid_node_property_image_name(validation_manager, load_pipeline):
     pipeline, response = load_pipeline("generic_invalid_node_property_image_name.pipeline")
     node_ids = ["88ab83dc-d5f0-443a-8837-788ed16851b7", "7ae74ba6-d49f-48ea-9e4f-e44d13594b2f"]
     node_property = "runtime_image"
-    node_dict = {"app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
 
     for i, node_id in enumerate(node_ids):
         node = pipeline["pipelines"][0]["nodes"][i]
+        node_label = node["app_data"].get("label")
         image_name = node["app_data"]["component_parameters"].get("runtime_image")
-
-        node_dict["id"] = node_id
-        node_dict["app_data"]["component_parameters"][RUNTIME_IMAGE] = RuntimeImage(image_name=image_name)
-        node_obj = Node(node_dict)
-        validation_manager._validate_elyra_owned_property(
-            node_id=node_obj.id, node_label=node_obj.label, node=node_obj, param_name=RUNTIME_IMAGE, response=response
-        )
+        validation_manager._validate_container_image_name(node["id"], node_label, image_name, response)
 
     issues = response.to_json().get("issues")
     assert len(issues) == 2
     # Test missing runtime image in node 0
     assert issues[0]["severity"] == 1
-    assert issues[0]["type"] == "invalidRuntimeImage"
+    assert issues[0]["type"] == "invalidNodeProperty"
     assert issues[0]["data"]["propertyName"] == node_property
     assert issues[0]["data"]["nodeID"] == node_ids[0]
     assert issues[0]["message"] == "Required property value is missing."
 
     # Test invalid format for runtime image in node 1
     assert issues[1]["severity"] == 1
-    assert issues[1]["type"] == "invalidRuntimeImage"
+    assert issues[1]["type"] == "invalidNodeProperty"
     assert issues[1]["data"]["propertyName"] == node_property
     assert issues[1]["data"]["nodeID"] == node_ids[1]
     assert (
@@ -307,19 +300,16 @@ def test_invalid_node_property_image_name(validation_manager, load_pipeline):
 
 def test_invalid_node_property_image_name_list(validation_manager):
     response = ValidationResponse()
-    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+    node_label = "test_label"
+    node_id = "test-id"
     failing_image_names = [
-        RuntimeImage(image_name="12345566:one-two-three"),
-        RuntimeImage(image_name="someregistry.io/some_org/some_tag/something/"),
-        RuntimeImage(image_name="docker.io//missing_org_name:test"),
+        "12345566:one-two-three",
+        "someregistry.io/some_org/some_tag/something/",
+        "docker.io//missing_org_name:test",
     ]
 
     for image_name in failing_image_names:
-        node_dict["app_data"]["component_parameters"][RUNTIME_IMAGE] = image_name
-        node = Node(node_dict)
-        validation_manager._validate_elyra_owned_property(
-            node_id=node.id, node_label=node.label, node=node, param_name=RUNTIME_IMAGE, response=response
-        )
+        validation_manager._validate_container_image_name(node_id, node_label, image_name, response)
 
     issues = response.to_json().get("issues")
     assert len(issues) == len(failing_image_names)
@@ -501,7 +491,6 @@ def test_valid_node_property_kubernetes_pod_annotation(validation_manager):
     node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
     annotations = ElyraPropertyList(
         [
-            KubernetesAnnotation(key="k", value=""),
             KubernetesAnnotation(key="key", value="value"),
             KubernetesAnnotation(key="n-a-m-e", value="value"),
             KubernetesAnnotation(key="n.a.m.e", value="value"),
@@ -598,28 +587,30 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
     invalid_annotations = ElyraPropertyList(
         [
             # test length violations (key name and prefix)
-            KubernetesAnnotation(key="a" * TOO_SHORT_LENGTH, value=""),  # empty key (min 1)
-            KubernetesAnnotation(key="a" * TOO_LONG_LENGTH, value=""),  # key too long
-            KubernetesAnnotation(key=f"{'a' * (MAX_PREFIX_LENGTH + 1)}/b", value=""),  # key prefix too long
-            KubernetesAnnotation(key=f"{'a' * (MAX_NAME_LENGTH + 1)}", value=""),  # key name too long
-            KubernetesAnnotation(key=f"prefix/{'a' * (MAX_NAME_LENGTH + 1)}", value=""),  # key name too long
-            KubernetesAnnotation(key=f"{'a' * (MAX_PREFIX_LENGTH + 1)}/name", value=""),  # key prefix too long
+            KubernetesAnnotation(key="a", value=""),  # empty value (min 1)
+            KubernetesAnnotation(key="a" * TOO_SHORT_LENGTH, value="val"),  # empty key (min 1)
+            KubernetesAnnotation(key="a" * TOO_LONG_LENGTH, value="val"),  # key too long
+            KubernetesAnnotation(key=f"{'a' * (MAX_PREFIX_LENGTH + 1)}/b", value="val"),  # key prefix too long
+            KubernetesAnnotation(key=f"{'a' * (MAX_NAME_LENGTH + 1)}", value="val"),  # key name too long
+            KubernetesAnnotation(key=f"prefix/{'a' * (MAX_NAME_LENGTH + 1)}", value="val"),  # key name too long
+            KubernetesAnnotation(key=f"{'a' * (MAX_PREFIX_LENGTH + 1)}/name", value="val"),  # key prefix too long
             # test character violations (key name)
-            KubernetesAnnotation(key="-", value=""),  # name must start and end with alphanum
-            KubernetesAnnotation(key="-a", value=""),  # name must start with alphanum
-            KubernetesAnnotation(key="a-", value=""),  # name must start with alphanum
-            KubernetesAnnotation(key="prefix/-b", value=""),  # name start with alphanum
-            KubernetesAnnotation(key="prefix/b-", value=""),  # name must end with alphanum
+            KubernetesAnnotation(key="-", value="val"),  # name must start and end with alphanum
+            KubernetesAnnotation(key="-a", value="val"),  # name must start with alphanum
+            KubernetesAnnotation(key="a-", value="val"),  # name must start with alphanum
+            KubernetesAnnotation(key="prefix/-b", value="val"),  # name start with alphanum
+            KubernetesAnnotation(key="prefix/b-", value="val"),  # name must end with alphanum
             # test character violations (key prefix)
-            KubernetesAnnotation(key="PREFIX/name", value=""),  # prefix must be lowercase
-            KubernetesAnnotation(key="pref!x/name", value=""),  # prefix must contain alnum, '-' or '.'
-            KubernetesAnnotation(key="pre.fx./name", value=""),  # prefix must contain alnum, '-' or '.'
-            KubernetesAnnotation(key="-pre.fx.com/name", value=""),  # prefix must contain alnum, '-' or '.'
-            KubernetesAnnotation(key="pre.fx-./name", value=""),  # prefix must contain alnum, '-' or '.'
-            KubernetesAnnotation(key="a/b/c", value=""),  # only one separator char
+            KubernetesAnnotation(key="PREFIX/name", value="val"),  # prefix must be lowercase
+            KubernetesAnnotation(key="pref!x/name", value="val"),  # prefix must contain alnum, '-' or '.'
+            KubernetesAnnotation(key="pre.fx./name", value="val"),  # prefix must contain alnum, '-' or '.'
+            KubernetesAnnotation(key="-pre.fx.com/name", value="val"),  # prefix must contain alnum, '-' or '.'
+            KubernetesAnnotation(key="pre.fx-./name", value="val"),  # prefix must contain alnum, '-' or '.'
+            KubernetesAnnotation(key="a/b/c", value="val"),  # only one separator char
         ]
     )
     expected_error_messages = [
+        "Kubernetes annotation must include a value.",
         "'' is not a valid Kubernetes annotation key.",
         f"'{'a' * TOO_LONG_LENGTH}' is not a valid Kubernetes annotation key.",
         f"'{'a' * (MAX_PREFIX_LENGTH + 1)}/b' is not a valid Kubernetes annotation key.",

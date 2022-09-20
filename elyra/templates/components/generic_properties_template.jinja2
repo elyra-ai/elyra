@@ -18,6 +18,15 @@
             "extensions": {{ component.extensions|tojson }}
           }
         },
+        "runtime_image": {
+          "type": "string",
+          "title": "Runtime Image",
+          "required": true,
+          "description": "Container image used as execution environment.",
+          "uihints": {
+            "items": []
+          }
+        },
         "cpu": {
           "type": "integer",
           "title": "CPU",

@@ -29,6 +29,7 @@ from traitlets.config import LoggingConfigurable
 
 from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.pipeline import ElyraProperty
+from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 # Rather than importing only the CatalogEntry class needed in the Component parse
@@ -215,7 +216,6 @@ class Component(object):
             # Remove certain Elyra-owned parameters if a parameter of the same id is already present
             parsed_property_ids = [param.ref for param in self.properties]
             elyra_params = [param for param in elyra_params if param.property_id not in parsed_property_ids]
-
         return elyra_params
 
 
