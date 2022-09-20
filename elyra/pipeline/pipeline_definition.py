@@ -703,6 +703,7 @@ class PipelineDefinition(object):
             "render_parameter_details": ComponentParameter.render_parameter_details,
         }
         template_env = Environment(loader=loader, undefined=SilentUndefined)
+        template_env.policies["json.dumps_kwargs"] = {"sort_keys": False}  # prevent automatic key sort on 'tojson'
         template = template_env.get_template(template_name)
         template.globals.update(template_vars)
 

@@ -82,8 +82,8 @@ class ElyraProperty:
             if not isinstance(value, list) or not value:
                 return None
             # Create instance for each list element and convert to ElyraPropertyList
-            instances = [getattr(import_module(sc.__module__), sc.__name__)(**params) for params in value]
-            return ElyraPropertyList.deduplicate(ElyraPropertyList(instances))
+            instances = ElyraPropertyList([sc.create_instance(prop_id, item) for item in value])
+            return instances.deduplicate()
 
         return getattr(import_module(sc.__module__), sc.__name__)(value)
 
@@ -115,6 +115,18 @@ class ElyraProperty:
         schema = {"title": cls._display_name, "description": class_description, "type": cls._json_data_type}
         return schema
 
+    @staticmethod
+    def strip_if_string(var: Any) -> Any:
+        """Strip surrounding whitespace from variable if it is a string"""
+        return var.strip() if isinstance(var, str) else var
+
+    @staticmethod
+    def unpack(value_dict, *variables):
+        """Get the values corresponding to the given keys in the provided dict."""
+        for var_name in variables:
+            value = value_dict.get(var_name)
+            yield ElyraProperty.strip_if_string(value) if value is not None else None
+
     def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
         """
         Add a property instance to the execution object for the given runtime processor.
@@ -130,12 +142,7 @@ class ElyraProperty:
 
     def get_value_for_display(self) -> Dict[str, Any]:
         """Get a representation of the instance to display in UI error messages."""
-        display_dict = self.to_dict()
-        required_props = self.get_schema()["items"]["required"]
-        for prop, value in self.to_dict().items():
-            if prop in required_props and not value:
-                display_dict[prop] = "<missing required value>"
-        return display_dict
+        return self.to_dict()
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -210,8 +217,7 @@ class DisallowCachedOutput(ElyraProperty):
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
-        schema["enum"] = ["Use runtime environment default", "True", "False"]
-        schema["default"] = schema["enum"][0]
+        schema["enum"] = ["True", "False"]
         return schema
 
     def add_to_execution_object(self, runtime_processor: PipelineProcessor, execution_object: Any, **kwargs) -> None:
@@ -281,7 +287,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
     """
 
     env_var: str
-    value: str
+    value: Optional[str]
 
     property_id = ENV_VARIABLES
     generic = True
@@ -290,15 +296,23 @@ class EnvironmentVariable(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["env_var"]
     _ui_details_map = {
-        "env_var": {"display_name": "Environment Variable", "placeholder": "ENV_VAR"},
-        "value": {"display_name": "Value", "placeholder": "value"},
+        "env_var": {"display_name": "Environment Variable", "placeholder": "ENV_VAR", "json_type": "string"},
+        "value": {"display_name": "Value", "placeholder": "value", "json_type": "string", "required": False},
     }
 
     __slots__ = ["env_var", "value"]
 
-    def __init__(self, **kwargs):
-        self.env_var = kwargs.get("env_var", "").strip()
-        self.value = kwargs.get("value", "").strip()
+    def __init__(self, env_var, value, **kwargs):
+        self.env_var = env_var
+        self.value = value
+
+    @classmethod
+    def create_instance(cls, prop_id: str, value: Optional[Any]) -> EnvironmentVariable | None:
+        env_var, env_value = cls.unpack(value, "env_var", "value")
+        if not env_var or env_value is None or env_value == "":
+            return None  # skip inclusion and continue
+
+        return EnvironmentVariable(env_var=env_var, value=env_value)
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -316,6 +330,8 @@ class EnvironmentVariable(ElyraPropertyListItem):
         validation_errors = []
         if not self.env_var or not self.value:
             validation_errors.append("Property has an improperly formatted env variable key value pair.")
+        if " " in self.env_var:
+            validation_errors.append(f"Environment variable '{self.env_var}' includes invalid space character(s).")
 
         return validation_errors
 
@@ -342,17 +358,25 @@ class KubernetesSecret(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["env_var"]
     _ui_details_map = {
-        "env_var": {"display_name": "Environment Variable", "placeholder": "ENV_VAR"},
-        "name": {"display_name": "Secret Name", "placeholder": "secret-name"},
-        "key": {"display_name": "Secret Key", "placeholder": "secret-key"},
+        "env_var": {"display_name": "Environment Variable", "placeholder": "ENV_VAR", "json_type": "string"},
+        "name": {"display_name": "Secret Name", "placeholder": "secret-name", "json_type": "string"},
+        "key": {"display_name": "Secret Key", "placeholder": "secret-key", "json_type": "string"},
     }
 
     __slots__ = ["env_var", "name", "key"]
 
-    def __init__(self, **kwargs):
-        self.env_var: str = kwargs.pop("env_var", "").strip()
-        self.name = kwargs.pop("name", "").strip()
-        self.key = kwargs.pop("key", "").strip()
+    def __init__(self, env_var, name, key, **kwargs):
+        self.env_var = env_var
+        self.name = name
+        self.key = key
+
+    @classmethod
+    def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesSecret | None:
+        env_var, name, key = cls.unpack(value, "env_var", "name", "key")
+        if not env_var or (not name and not key):
+            return None  # skip inclusion and continue
+
+        return KubernetesSecret(env_var=env_var, name=name, key=key)
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -396,19 +420,27 @@ class VolumeMount(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["path"]
     _ui_details_map = {
-        "path": {"display_name": "Mount Path", "placeholder": "/mount/path"},
-        "pvc_name": {"display_name": "Volume Claim Name", "placeholder": "pvc-name"},
+        "path": {"display_name": "Mount Path", "placeholder": "/mount/path", "json_type": "string"},
+        "pvc_name": {"display_name": "Persistent Volume Claim Name", "placeholder": "pvc-name", "json_type": "string"},
     }
 
     __slots__ = ["path", "pvc_name"]
 
-    def __init__(self, **kwargs):
-        self.path = f"/{kwargs.pop('path', '').strip('/')}"
-        self.pvc_name = kwargs.pop("pvc_name", "").strip()
+    def __init__(self, path, pvc_name, **kwargs):
+        self.path = path
+        self.pvc_name = pvc_name
+
+    @classmethod
+    def create_instance(cls, prop_id: str, value: Optional[Any]) -> VolumeMount | None:
+        path, pvc_name = cls.unpack(value, "path", "pvc_name")
+        path = f"/{path.strip('/')}"
+        return VolumeMount(path=path, pvc_name=pvc_name)
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
+        if not self.path or self.path == "/":
+            validation_errors.append("Volume mount does not include a path.")
         # Ensure the PVC name is syntactically a valid Kubernetes resource name
         if not is_valid_kubernetes_resource_name(self.pvc_name):
             validation_errors.append(f"PVC name '{self.pvc_name}' is not a valid Kubernetes resource name.")
@@ -436,21 +468,28 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["key"]
     _ui_details_map = {
-        "key": {"display_name": "Key", "placeholder": "annotation_key"},
-        "value": {"display_name": "Value", "placeholder": "annotation_value"},
+        "key": {"display_name": "Key", "placeholder": "annotation_key", "json_type": "string"},
+        "value": {"display_name": "Value", "placeholder": "annotation_value", "json_type": "string"},
     }
 
     __slots__ = ["key", "value"]
 
-    def __init__(self, **kwargs):
-        self.key = kwargs.pop("key", "").strip()
-        self.value = kwargs.pop("value", "").strip()
+    def __init__(self, key, value, **kwargs):
+        self.key = key
+        self.value = value
+
+    @classmethod
+    def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesAnnotation | None:
+        key, value = cls.unpack(value, "key", "value")
+        return KubernetesAnnotation(key=key, value=value)
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
         if not is_valid_annotation_key(self.key):
             validation_errors.append(f"'{self.key}' is not a valid Kubernetes annotation key.")
+        if not self.value:
+            validation_errors.append("Kubernetes annotation must include a value.")
 
         return validation_errors
 
@@ -464,7 +503,7 @@ class KubernetesToleration(ElyraPropertyListItem):
     Kubernetes tolerations to apply to the pod where the node is executed.
     """
 
-    key: str
+    key: Optional[str]
     operator: str
     value: Optional[str]
     effect: str
@@ -476,25 +515,33 @@ class KubernetesToleration(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["key", "operator", "value", "effect"]
     _ui_details_map = {
-        "key": {"display_name": "Key", "placeholder": "key"},
-        "operator": {"display_name": "Operator"},
-        "value": {"display_name": "Value", "placeholder": "value"},
-        "effect": {"display_name": "Effect", "placeholder": "NoSchedule"},
+        "key": {"display_name": "Key", "placeholder": "key", "json_type": "string", "required": False},
+        "operator": {"display_name": "Operator", "json_type": "string"},
+        "value": {"display_name": "Value", "placeholder": "value", "json_type": "string", "required": False},
+        "effect": {"display_name": "Effect", "placeholder": "NoSchedule", "json_type": "string"},
     }
 
     __slots__ = ["key", "operator", "value", "effect"]
 
-    def __init__(self, **kwargs):
-        self.key = kwargs.pop("key", "").strip()
-        self.operator = kwargs.pop("operator", "").strip()
-        self.value = kwargs.pop("value", "").strip()
-        self.effect = kwargs.pop("effect", "Exists").strip()
+    def __init__(self, key, operator, value, effect, **kwargs):
+        self.key = key
+        self.operator = operator
+        self.value = value
+        self.effect = effect
+
+    @classmethod
+    def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesToleration | None:
+        key, operator, value, effect = cls.unpack(value, "key", "operator", "value", "effect")
+        return KubernetesToleration(key=key, operator=operator, value=value, effect=effect)
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
-        schema["items"]["properties"]["operator"]["enum"] = ["Exists", "Equal"]
+        op_enum = ["Equal", "Exists"]
+        schema["items"]["properties"]["operator"]["enum"] = op_enum
+        schema["items"]["properties"]["operator"]["default"] = op_enum[0]
+        schema["items"]["properties"]["effect"]["enum"] = ["NoExecute", "NoSchedule", "PreferNoSchedule"]
         return schema
 
     def get_all_validation_errors(self) -> List[str]:
@@ -543,23 +590,22 @@ class ElyraPropertyList(list):
         """
         prop_dict = {}
         for prop in property_list:
+            if prop is None:
+                continue  # invalid entry; skip inclusion and continue
             prop_key = prop.get_key_for_dict_entry()
-            if not prop_key:
-                # Invalid entry; skip inclusion and continue
-                continue
+            if prop_key is None:  # TODO test
+                continue  # invalid entry; skip inclusion and continue  TODO
 
             prop_value = prop.get_value_for_dict_entry()
             if use_prop_as_value:
-                # Force use of the property object itself as the value
-                prop_value = prop
+                prop_value = prop  # use of the property object itself as the value
             prop_dict[prop_key] = prop_value
 
         return prop_dict
 
-    @staticmethod
-    def deduplicate(instance_list: ElyraPropertyList) -> ElyraPropertyList:
+    def deduplicate(self: ElyraPropertyList) -> ElyraPropertyList:
         """Remove duplicates from the given list"""
-        instance_dict = ElyraPropertyList.to_dict(instance_list, use_prop_as_value=True)
+        instance_dict = ElyraPropertyList.to_dict(self, use_prop_as_value=True)
         return ElyraPropertyList({**instance_dict}.values())
 
     @staticmethod
