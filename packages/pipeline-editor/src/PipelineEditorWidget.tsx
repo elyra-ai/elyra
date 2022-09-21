@@ -306,7 +306,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   const onChange = useCallback((pipelineJson: any): void => {
     const removeNullValues = (data: any): void => {
       for (const key in data) {
-        if (data[key] === null || data[key] === '' || data[key] === undefined) {
+        if (data[key] === null || data[key] === undefined) {
           delete data[key];
         } else if (Array.isArray(data[key])) {
           const newArray = [];
