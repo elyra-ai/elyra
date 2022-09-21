@@ -306,12 +306,17 @@ const PipelineWrapper: React.FC<IProps> = ({
   const onChange = useCallback((pipelineJson: any): void => {
     const removeNullValues = (data: any): void => {
       for (const key in data) {
-        if (data[key] === null) {
+        if (data[key] === null || data[key] === '' || data[key] === undefined) {
           delete data[key];
         } else if (Array.isArray(data[key])) {
           const newArray = [];
           for (const i in data[key]) {
-            if (data[key][i] !== null && data[key][i] !== '') {
+            if (typeof data[key][i] === 'object') {
+              removeNullValues(data[key][i]);
+              if (Object.keys(data[key][i]).length > 0) {
+                newArray.push(data[key][i]);
+              }
+            } else if (data[key][i] !== null && data[key][i] !== '') {
               newArray.push(data[key][i]);
             }
           }
@@ -506,9 +511,9 @@ const PipelineWrapper: React.FC<IProps> = ({
       ...env_vars,
       ...new_env_vars.filter(
         (new_var: any) =>
-          !env_vars.some((old_var: any) =>
-            old_var.env_var.startsWith(new_var.env_var)
-          )
+          !env_vars.some((old_var: any) => {
+            return old_var.env_var === new_var.env_var;
+          })
       )
     ];
 
