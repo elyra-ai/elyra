@@ -487,20 +487,28 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   const onPropertiesUpdateRequested = async (args: any): Promise<any> => {
+    if (!contextRef.current.path) {
+      return args;
+    }
     const path = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
       args.component_parameters.filename
     );
-    const new_env_vars = await ContentParser.getEnvVars(
-      path
-    ).then((response: any) => response.map((str: string) => str + '='));
+    const new_env_vars = await ContentParser.getEnvVars(path).then(
+      (response: any) =>
+        response.map((str: string) => {
+          return { env_var: str };
+        })
+    );
 
     const env_vars = args.component_parameters?.env_vars ?? [];
     const merged_env_vars = [
       ...env_vars,
       ...new_env_vars.filter(
-        (new_var: string) =>
-          !env_vars.some((old_var: string) => old_var.startsWith(new_var))
+        (new_var: any) =>
+          !env_vars.some((old_var: any) =>
+            old_var.env_var.startsWith(new_var.env_var)
+          )
       )
     ];
 
