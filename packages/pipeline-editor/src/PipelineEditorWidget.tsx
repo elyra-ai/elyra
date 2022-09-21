@@ -304,15 +304,19 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [runtimeDisplayName]);
 
   const onChange = useCallback((pipelineJson: any): void => {
-    const removeNullValues = (data: any): void => {
+    const removeNullValues = (data: any, removeEmptyString?: boolean): void => {
       for (const key in data) {
-        if (data[key] === null || data[key] === undefined) {
+        if (
+          data[key] === null ||
+          data[key] === undefined ||
+          (removeEmptyString && data[key] === '')
+        ) {
           delete data[key];
         } else if (Array.isArray(data[key])) {
           const newArray = [];
           for (const i in data[key]) {
             if (typeof data[key][i] === 'object') {
-              removeNullValues(data[key][i]);
+              removeNullValues(data[key][i], true);
               if (Object.keys(data[key][i]).length > 0) {
                 newArray.push(data[key][i]);
               }
