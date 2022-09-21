@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from elyra.pipeline.processor import RuntimePipelineProcessor
 
-from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
+from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -149,12 +149,12 @@ class ElyraProperty:
         return []
 
 
-class DisallowCachedOutput(ElyraProperty):
+class DisableNodeCaching(ElyraProperty):
     """Disable caching to force node re-execution in the target runtime environment."""
 
     selection: bool
 
-    property_id = DISALLOW_CACHED_OUTPUT
+    property_id = DISABLE_NODE_CACHING
     generic = False
     custom = True
     _display_name = "Disable node caching"
@@ -173,8 +173,8 @@ class DisallowCachedOutput(ElyraProperty):
         return schema
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
-        """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
-        runtime_processor.add_disallow_cached_output(instance=self, execution_object=execution_object, **kwargs)
+        """Add DisableNodeCaching info to the execution object for the given runtime processor"""
+        runtime_processor.add_disable_node_caching(instance=self, execution_object=execution_object, **kwargs)
 
 
 class ElyraPropertyListItem(ElyraProperty):

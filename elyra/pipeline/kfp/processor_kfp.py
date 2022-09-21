@@ -51,7 +51,7 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import DisallowCachedOutput
+from elyra.pipeline.component_parameter import DisableNodeCaching
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesAnnotation
@@ -768,12 +768,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         return normalized_name.replace(" ", "_")
 
-    def add_disallow_cached_output(self, instance: DisallowCachedOutput, execution_object: Any, **kwargs) -> None:
-        """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
+    def add_disable_node_caching(self, instance: DisableNodeCaching, execution_object: Any, **kwargs) -> None:
+        """Add DisableNodeCaching info to the execution object for the given runtime processor"""
         # Force re-execution of the operation by setting staleness to zero days
         # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
         if instance.selection:
-            execution_object.set_caching_options(enable_caching=False)
             execution_object.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
     def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
@@ -820,7 +819,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             pipeline_constants.MOUNTED_VOLUMES,
             pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
-            pipeline_constants.DISALLOW_CACHED_OUTPUT,
+            pipeline_constants.DISABLE_NODE_CACHING,
         ]
 
 

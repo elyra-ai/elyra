@@ -29,7 +29,7 @@ from elyra.pipeline.component_parameter import KubernetesAnnotation
 from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import VolumeMount
-from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
+from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -114,7 +114,7 @@ class Operation(object):
 
         # If disabled, this operation is requested to be re-executed in the
         # target runtime environment, even if it was executed before.
-        self._disallow_cached_output = self.get_elyra_owned_property(DISALLOW_CACHED_OUTPUT)
+        self._disable_node_caching = self.get_elyra_owned_property(DISABLE_NODE_CACHING)
 
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
@@ -173,13 +173,13 @@ class Operation(object):
         return self._kubernetes_pod_annotations
 
     @property
-    def disallow_cached_output(self) -> Optional[bool]:
+    def disable_node_caching(self) -> Optional[bool]:
         """
         Returns None if caching behavior is delegated to the runtime
         Returns True if cached output may be used (instead of executing the op to produce it)
         Returns False if cached output must not be used (instead of executing the op to produce it)
         """
-        return self._disallow_cached_output
+        return self._disable_node_caching
 
     @property
     def inputs(self) -> Optional[List[str]]:

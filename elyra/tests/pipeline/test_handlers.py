@@ -28,7 +28,7 @@ from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_constants import (
     COS_OBJECT_PREFIX,
-    DISALLOW_CACHED_OUTPUT,
+    DISABLE_NODE_CACHING,
     ENV_VARIABLES,
     KUBERNETES_POD_ANNOTATIONS,
     KUBERNETES_SECRETS,
@@ -249,10 +249,10 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             KUBERNETES_TOLERATIONS,
             MOUNTED_VOLUMES,
             KUBERNETES_POD_ANNOTATIONS,
-            DISALLOW_CACHED_OUTPUT,
+            DISABLE_NODE_CACHING,
         ]
         if runtime == "airflow":
-            default_properties.remove(DISALLOW_CACHED_OUTPUT)
+            default_properties.remove(DISABLE_NODE_CACHING)
         assert all(prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties)
 
 

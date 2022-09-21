@@ -40,7 +40,7 @@ from urllib3.exceptions import MaxRetryError
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import DisallowCachedOutput
+from elyra.pipeline.component_parameter import DisableNodeCaching
 from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.component_parameter import KubernetesAnnotation
 from elyra.pipeline.component_parameter import KubernetesSecret
@@ -601,8 +601,8 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
         return converted_list
 
-    def add_disallow_cached_output(self, instance: DisallowCachedOutput, execution_object: Any, **kwargs) -> None:
-        """Add DisallowCachedOutput info to the execution object for the given runtime processor"""
+    def add_disable_node_caching(self, instance: DisableNodeCaching, execution_object: Any, **kwargs) -> None:
+        """Add DisableNodeCaching info to the execution object for the given runtime processor"""
         pass
 
     def add_env_var(self, instance: EnvironmentVariable, execution_object: Any, **kwargs) -> None:

@@ -124,7 +124,7 @@ class LocalPipelineProcessor(PipelineProcessor):
             pipeline_constants.MOUNTED_VOLUMES,
             pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
-            pipeline_constants.DISALLOW_CACHED_OUTPUT,
+            pipeline_constants.DISABLE_NODE_CACHING,
         ]
 
 

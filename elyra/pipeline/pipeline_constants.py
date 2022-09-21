@@ -21,7 +21,7 @@ MOUNTED_VOLUMES = "mounted_volumes"
 KUBERNETES_SECRETS = "kubernetes_secrets"
 KUBERNETES_TOLERATIONS = "kubernetes_tolerations"
 KUBERNETES_POD_ANNOTATIONS = "kubernetes_pod_annotations"
-DISALLOW_CACHED_OUTPUT = "disallow_cached_output"
+DISABLE_NODE_CACHING = "disable_node_caching"
 PIPELINE_META_PROPERTIES = ["name", "description", "runtime"]
 # optional static prefix to be used when generating an object name for object storage
 COS_OBJECT_PREFIX = "cos_object_prefix"
