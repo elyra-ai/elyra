@@ -21,7 +21,9 @@ Object {
             "component_parameters": Object {
               "dependencies": Array [],
               "env_vars": Array [
-                "NB_USER=",
+                {
+                  "env_var": "NB_USER"
+                }
               ],
               "filename": "producer.ipynb",
               "include_subdirectories": false,
