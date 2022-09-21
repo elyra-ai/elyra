@@ -18,8 +18,14 @@
               "filename": "helloworld.ipynb",
               "runtime_image": "continuumio/anaconda3:2020.07",
               "env_vars": [
-                "TEST_ENV_1=1",
-                "TEST_ENV_2=2"
+                {
+                  "env_var": "TEST_ENV_1",
+                  "value": "1"
+                },
+                {
+                  "env_var": "TEST_ENV_2",
+                  "value": "2"
+                }
               ],
               "include_subdirectories": false,
               "outputs": [],
