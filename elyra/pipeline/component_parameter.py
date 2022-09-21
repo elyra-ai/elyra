@@ -332,11 +332,6 @@ class KubernetesSecret(ElyraPropertyListItem):
         validation_errors = []
         if not self.env_var:
             validation_errors.append("Required environment variable was not specified.")
-        if not self.name or not self.key:
-            validation_errors.append(
-                f"Environment variable '{self.env_var}' has an improperly formatted "
-                f"representation of secret name and key."
-            )
         # Ensure the secret name is syntactically a valid Kubernetes resource name
         if not is_valid_kubernetes_resource_name(self.name):
             validation_errors.append(
