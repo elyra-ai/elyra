@@ -381,7 +381,6 @@ class VolumeMount(ElyraPropertyListItem):
     @classmethod
     def create_instance(cls, prop_id: str, value: Optional[Any]) -> VolumeMount | None:
         path, pvc_name = cls.unpack(value, "path", "pvc_name")
-        path = f"/{path.strip('/')}"
         return VolumeMount(path=path, pvc_name=pvc_name)
 
     def get_all_validation_errors(self) -> List[str]:
@@ -389,8 +388,6 @@ class VolumeMount(ElyraPropertyListItem):
         validation_errors = []
         if not self.path:
             validation_errors.append("Required mount path was not specified.")
-        elif self.path == "/":
-            validation_errors.append("Volume mount does not include a path.")
         if not self.pvc_name:
             validation_errors.append("Required persistent volume claim name was not specified.")
         elif not is_valid_kubernetes_resource_name(self.pvc_name):
@@ -400,6 +397,7 @@ class VolumeMount(ElyraPropertyListItem):
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add VolumeMount instance to the execution object for the given runtime processor"""
+        self.path = f"/{self.path.strip('/')}"  # normalize path
         runtime_processor.add_mounted_volume(instance=self, execution_object=execution_object, **kwargs)
 
 
@@ -550,7 +548,7 @@ class ElyraPropertyList(list):
         """
         prop_dict = {}
         for prop in self:
-            if prop is None:
+            if prop is None or not isinstance(prop, ElyraPropertyListItem):
                 continue  # invalid entry; skip inclusion and continue
             prop_key = prop.get_key_for_dict_entry()
             if prop_key is None:
