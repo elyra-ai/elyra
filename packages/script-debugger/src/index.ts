@@ -156,14 +156,15 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         type: 'file',
         name: path
       };
-      let sessionConnection;
+      let sessionConnection = null;
       try {
-        sessionConnection = await sessionManager.startNew(options);
-        sessionConnection.setPath(path);
-        console.log(`Kernel session started for ${kernelSelection} kernel`);
+        if (kernelSelection) {
+          sessionConnection = await sessionManager.startNew(options);
+          sessionConnection.setPath(path);
+          console.log(`Kernel session started for ${kernelSelection} kernel`);
+        }
       } catch (error) {
         console.warn('Exception: start session = ' + JSON.stringify(error));
-        sessionConnection = null;
       }
       return sessionConnection;
     };
