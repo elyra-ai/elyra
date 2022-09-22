@@ -39,7 +39,7 @@ from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
-PIPELINE_CURRENT_VERSION = 7.5  # TODO: Update to 8 with update to pipeline-editor v1.10
+PIPELINE_CURRENT_VERSION = 8
 PIPELINE_CURRENT_SCHEMA = 3.0
 
 

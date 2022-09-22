@@ -157,7 +157,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7.5,
+        "version": 8,
         "runtime_type": "APACHE_AIRFLOW",
         "properties": {
           "name": "aa_parent_node_missing_xcom",

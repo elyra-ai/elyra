@@ -128,7 +128,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7.5,
+        "version": 8,
         "properties": {
           "name": "helloworld",
           "runtime": "Generic"
