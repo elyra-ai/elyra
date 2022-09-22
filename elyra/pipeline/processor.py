@@ -131,12 +131,8 @@ class PipelineProcessorManager(SingletonConfigurable):
         processor = self._registry.get_processor(runtime_name)
         return processor
 
-    def get_processor_for_runtime_type(self, runtime_type_name: str) -> Optional[PipelineProcessor]:
-        """TODO"""
-        for processor in self._registry.get_all_processors():
-            if processor.type.name == runtime_type_name:
-                return processor
-        return None
+    def get_all_processors(self) -> List[PipelineProcessor]:
+        return self._registry.get_all_processors()
 
     def is_supported_runtime(self, runtime_name: str) -> bool:
         return self._registry.is_valid_processor(runtime_name)

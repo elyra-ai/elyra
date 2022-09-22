@@ -36,7 +36,6 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
-from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_kubernetes_key
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
@@ -93,10 +92,13 @@ class ElyraProperty:
         """
         from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
 
-        processor = PipelineProcessorManager.instance().get_processor_for_runtime_type(
-            runtime_type or RuntimeProcessorType.LOCAL.name  # default to local
-        )
-        processor_props = getattr(processor, "supported_properties", [])
+        processor_props = set()
+        for processor in PipelineProcessorManager.instance().get_all_processors():
+            props = getattr(processor, "supported_properties", set())
+            if processor.type.name == runtime_type and props:
+                processor_props = props  # correct processor is found, and it explicitly specifies its properties
+                break
+            processor_props.update(props)
 
         all_subclasses = set()
         for sc in cls.all_subclasses():
@@ -127,6 +129,13 @@ class ElyraProperty:
             value = value_dict.get(var_name)
             yield ElyraProperty.strip_if_string(value) if value is not None else None
 
+    def get_value_for_display(self) -> Dict[str, Any]:
+        """
+        Get a representation of the instance to display in UI error messages.
+        Should be implemented in any subclass that has validation criteria.
+        """
+        pass
+
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """
         Add a property instance to the execution object for the given runtime processor.
@@ -134,15 +143,6 @@ class ElyraProperty:
         runtime_processor.add_kubernetes_secret(self, execution_object, **kwargs).
         """
         pass
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert instance to a dict with relevant class attributes."""
-        dict_repr = {attr: getattr(self, attr, None) for attr in self.__slots__}
-        return dict_repr
-
-    def get_value_for_display(self) -> Dict[str, Any]:
-        """Get a representation of the instance to display in UI error messages."""
-        return self.to_dict()
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -152,15 +152,11 @@ class ElyraProperty:
 class DisableNodeCaching(ElyraProperty):
     """Disable caching to force node re-execution in the target runtime environment."""
 
-    selection: bool
-
     property_id = DISABLE_NODE_CACHING
     generic = False
     custom = True
     _display_name = "Disable node caching"
     _json_data_type = "string"
-
-    __slots__ = ["selection"]
 
     def __init__(self, selection, **kwargs):
         self.selection = selection == "True"
@@ -183,7 +179,9 @@ class ElyraPropertyListItem(ElyraProperty):
     """
 
     _keys: List[str]
-    _ui_details_map: dict = {}
+    _ui_details_map: Dict[str, Dict] = {}
+
+    _json_type_to_default: Dict[str, Any] = {"boolean": False, "number": 0, "array": "[]", "object": "{}", "string": ""}
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -192,29 +190,26 @@ class ElyraPropertyListItem(ElyraProperty):
         schema["default"] = []
         schema["items"] = {"type": "object", "properties": {}, "required": []}
         schema["uihints"] = {"items": {}}
-        for attr in cls.__slots__:
-            attr_type = cls.__annotations__.get(attr)
-            if "Optional" not in attr_type:
-                schema["items"]["required"].append(attr)
-            else:
-                attr_type = attr_type.replace("Optional[", "").replace("]", "")
-
-            if attr_type == "bool":
-                json_type, default = "boolean", False
-            elif attr_type in ["int", "float"]:
-                json_type, default = "number", 0
-            elif attr_type in ["list", "List"]:
-                json_type, default = "array", "[]"
-            elif attr_type in ["dict", "Dict"]:
-                json_type, default = "object", "{}"
-            else:
-                json_type, default = "string", ""
-
+        for attr, ui_info in cls._ui_details_map.items():
+            attr_type = ui_info.get("json_type", "string")
+            attr_default = cls._json_type_to_default.get(attr_type, "")
             attr_title = cls._ui_details_map[attr].get("display_name", attr)
-            schema["items"]["properties"][attr] = {"type": json_type, "title": attr_title, "default": default}
+            schema["items"]["properties"][attr] = {"type": attr_type, "title": attr_title, "default": attr_default}
             if cls._ui_details_map[attr].get("placeholder"):
                 schema["uihints"]["items"][attr] = {"ui:placeholder": cls._ui_details_map[attr].get("placeholder")}
+
+            if ui_info.get("required"):
+                schema["items"]["required"].append(attr)
         return schema
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert instance to a dict with relevant class attributes."""
+        dict_repr = {attr: getattr(self, attr, None) for attr in self._ui_details_map}
+        return dict_repr
+
+    def get_value_for_display(self) -> Dict[str, Any]:
+        """Get a representation of the instance to display in UI error messages."""
+        return self.to_dict()
 
     def get_key_for_dict_entry(self) -> str:
         """
@@ -238,9 +233,6 @@ class EnvironmentVariable(ElyraPropertyListItem):
     Environment variables to be set on the execution environment.
     """
 
-    env_var: str
-    value: Optional[str]
-
     property_id = ENV_VARIABLES
     generic = True
     custom = False
@@ -248,11 +240,14 @@ class EnvironmentVariable(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["env_var"]
     _ui_details_map = {
-        "env_var": {"display_name": "Environment Variable", "placeholder": "ENV_VAR", "json_type": "string"},
+        "env_var": {
+            "display_name": "Environment Variable",
+            "placeholder": "ENV_VAR",
+            "json_type": "string",
+            "required": True,
+        },
         "value": {"display_name": "Value", "placeholder": "value", "json_type": "string", "required": False},
     }
-
-    __slots__ = ["env_var", "value"]
 
     def __init__(self, env_var, value, **kwargs):
         self.env_var = env_var
@@ -299,10 +294,6 @@ class KubernetesSecret(ElyraPropertyListItem):
     where the node is executed or this node will not run.
     """
 
-    env_var: str
-    name: str
-    key: str
-
     property_id = KUBERNETES_SECRETS
     generic = True
     custom = False
@@ -310,12 +301,15 @@ class KubernetesSecret(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["env_var"]
     _ui_details_map = {
-        "env_var": {"display_name": "Environment Variable", "placeholder": "ENV_VAR", "json_type": "string"},
-        "name": {"display_name": "Secret Name", "placeholder": "secret-name", "json_type": "string"},
-        "key": {"display_name": "Secret Key", "placeholder": "secret-key", "json_type": "string"},
+        "env_var": {
+            "display_name": "Environment Variable",
+            "placeholder": "ENV_VAR",
+            "json_type": "string",
+            "required": True,
+        },
+        "name": {"display_name": "Secret Name", "placeholder": "secret-name", "json_type": "string", "required": True},
+        "key": {"display_name": "Secret Key", "placeholder": "secret-key", "json_type": "string", "required": True},
     }
-
-    __slots__ = ["env_var", "name", "key"]
 
     def __init__(self, env_var, name, key, **kwargs):
         self.env_var = env_var
@@ -358,9 +352,6 @@ class VolumeMount(ElyraPropertyListItem):
     Kubernetes namespace where the node is executed or this node will not run.
     """
 
-    path: str
-    pvc_name: str
-
     property_id = MOUNTED_VOLUMES
     generic = True
     custom = True
@@ -368,11 +359,14 @@ class VolumeMount(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["path"]
     _ui_details_map = {
-        "path": {"display_name": "Mount Path", "placeholder": "/mount/path", "json_type": "string"},
-        "pvc_name": {"display_name": "Persistent Volume Claim Name", "placeholder": "pvc-name", "json_type": "string"},
+        "path": {"display_name": "Mount Path", "placeholder": "/mount/path", "json_type": "string", "required": True},
+        "pvc_name": {
+            "display_name": "Persistent Volume Claim Name",
+            "placeholder": "pvc-name",
+            "json_type": "string",
+            "required": True,
+        },
     }
-
-    __slots__ = ["path", "pvc_name"]
 
     def __init__(self, path, pvc_name, **kwargs):
         self.path = path
@@ -407,9 +401,6 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     in the Kubernetes pod that executes this node.
     """
 
-    key: str
-    value: str
-
     property_id = KUBERNETES_POD_ANNOTATIONS
     generic = True
     custom = True
@@ -417,11 +408,9 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     _json_data_type = "array"
     _keys = ["key"]
     _ui_details_map = {
-        "key": {"display_name": "Key", "placeholder": "annotation_key", "json_type": "string"},
-        "value": {"display_name": "Value", "placeholder": "annotation_value", "json_type": "string"},
+        "key": {"display_name": "Key", "placeholder": "annotation_key", "json_type": "string", "required": True},
+        "value": {"display_name": "Value", "placeholder": "annotation_value", "json_type": "string", "required": True},
     }
-
-    __slots__ = ["key", "value"]
 
     def __init__(self, key, value, **kwargs):
         self.key = key
@@ -454,11 +443,6 @@ class KubernetesToleration(ElyraPropertyListItem):
     Kubernetes tolerations to apply to the pod where the node is executed.
     """
 
-    key: Optional[str]
-    operator: str
-    value: Optional[str]
-    effect: Optional[str]
-
     property_id = KUBERNETES_TOLERATIONS
     generic = True
     custom = True
@@ -467,12 +451,10 @@ class KubernetesToleration(ElyraPropertyListItem):
     _keys = ["key", "operator", "value", "effect"]
     _ui_details_map = {
         "key": {"display_name": "Key", "placeholder": "key", "json_type": "string", "required": False},
-        "operator": {"display_name": "Operator", "json_type": "string"},
+        "operator": {"display_name": "Operator", "json_type": "string", "required": True},
         "value": {"display_name": "Value", "placeholder": "value", "json_type": "string", "required": False},
-        "effect": {"display_name": "Effect", "placeholder": "NoSchedule", "json_type": "string"},
+        "effect": {"display_name": "Effect", "placeholder": "NoSchedule", "json_type": "string", "required": False},
     }
-
-    __slots__ = ["key", "operator", "value", "effect"]
 
     def __init__(self, key, operator, value, effect, **kwargs):
         self.key = key

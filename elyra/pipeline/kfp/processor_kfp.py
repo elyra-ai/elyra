@@ -20,7 +20,7 @@ import tempfile
 import time
 from typing import Any
 from typing import Dict
-from typing import List
+from typing import Set
 from urllib.parse import urlsplit
 
 from kfp import Client as ArgoClient
@@ -811,7 +811,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             execution_object.add_toleration(toleration)
 
     @property
-    def supported_properties(self) -> List[str]:
+    def supported_properties(self) -> Set[str]:
         """A list of Elyra-owned properties supported by this runtime processor."""
         return [
             pipeline_constants.ENV_VARIABLES,

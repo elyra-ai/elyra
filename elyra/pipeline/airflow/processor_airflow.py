@@ -25,6 +25,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
 from typing import Union
 
 import autopep8
@@ -668,7 +669,7 @@ be fully qualified (i.e., prefixed with their package names).
         )
 
     @property
-    def supported_properties(self) -> List[str]:
+    def supported_properties(self) -> Set[str]:
         """A list of Elyra-owned properties supported by this runtime processor."""
         return [
             pipeline_constants.ENV_VARIABLES,
