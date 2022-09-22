@@ -672,6 +672,7 @@ def test_invalid_node_property_secrets(validation_manager):
             KubernetesSecret(env_var="ENV_VAR3", name="test-secret", key=""),  # invalid format of secret name/key
             KubernetesSecret(env_var="ENV_VAR5", name="test%secret", key="test-key"),  # invalid k8s resource name
             KubernetesSecret(env_var="ENV_VAR6", name="test-secret", key="test$key2"),  # invalid k8s secret key
+            KubernetesSecret(env_var="", name="", key=""),  # invalid - all required information is missing
         ]
     )
     node_dict["app_data"]["component_parameters"][KUBERNETES_SECRETS] = secrets
@@ -681,13 +682,21 @@ def test_invalid_node_property_secrets(validation_manager):
         node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SECRETS, response=response
     )
     issues = response.to_json().get("issues")
+    assert len(issues) == 6, issues
     assert issues[0]["severity"] == 1
     assert issues[0]["type"] == "invalidKubernetesSecret"
     assert issues[0]["data"]["propertyName"] == KUBERNETES_SECRETS
     assert issues[0]["data"]["nodeID"] == "test-id"
-    assert "improperly formatted representation of secret name and key" in issues[0]["message"]
-    assert "not a valid Kubernetes resource name" in issues[2]["message"]
-    assert "not a valid Kubernetes secret key" in issues[3]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR3", name="test-secret", key="")
+    assert "Key '' is not a valid Kubernetes secret key." in issues[0]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR5", name="test%secret", key="test-key")
+    assert "Secret name 'test%secret' is not a valid Kubernetes resource name." in issues[1]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR6", name="test-secret", key="test$key2")
+    assert "Key 'test$key2' is not a valid Kubernetes secret key." in issues[2]["message"]
+    # triggered by KubernetesSecret(env_var="", name="", key="")
+    assert "Required environment variable was not specified." in issues[3]["message"]
+    assert "Secret name '' is not a valid Kubernetes resource name." in issues[4]["message"]
+    assert "' is not a valid Kubernetes secret key." in issues[5]["message"]
 
 
 def test_valid_node_property_label(validation_manager):
