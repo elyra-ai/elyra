@@ -490,7 +490,7 @@ class KubernetesToleration(ElyraPropertyListItem):
                 f"'{self.operator}' is not a valid operator: the value must be one of 'Exists' or 'Equal'."
             )
 
-        if self.operator == "Equal" and (self.key is None or len(self.key) == 0):
+        if self.operator == "Equal" and not self.key:
             validation_errors.append(
                 f"'{self.operator}' is not a valid operator: operator must be 'Exists' if no key is specified."
             )
@@ -505,7 +505,7 @@ class KubernetesToleration(ElyraPropertyListItem):
                 f"of 'NoExecute', 'NoSchedule', or 'PreferNoSchedule'."
             )
 
-        if self.operator == "Exists" and self.value is not None and len(self.value) > 0:
+        if self.operator == "Exists" and self.value:
             validation_errors.append(
                 f"'{self.value}' is not a valid value: value should be empty if operator is 'Exists'."
             )
