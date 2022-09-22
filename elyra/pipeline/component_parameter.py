@@ -332,13 +332,15 @@ class KubernetesSecret(ElyraPropertyListItem):
         validation_errors = []
         if not self.env_var:
             validation_errors.append("Required environment variable was not specified.")
-        # Ensure the secret name is syntactically a valid Kubernetes resource name
-        if not is_valid_kubernetes_resource_name(self.name):
+        if not self.name:
+            validation_errors.append("Required secret name was not specified.")
+        elif not is_valid_kubernetes_resource_name(self.name):
             validation_errors.append(
                 f"Secret name '{self.name}' is not a valid Kubernetes resource name.",
             )
-        # Ensure the secret key is a syntactically valid Kubernetes key
-        if not is_valid_kubernetes_key(self.key):
+        if not self.key:
+            validation_errors.append("Required secret key was not specified.")
+        elif not is_valid_kubernetes_key(self.key):
             validation_errors.append(
                 f"Key '{self.key}' is not a valid Kubernetes secret key.",
             )
@@ -383,12 +385,15 @@ class VolumeMount(ElyraPropertyListItem):
         return VolumeMount(path=path, pvc_name=pvc_name)
 
     def get_all_validation_errors(self) -> List[str]:
-        """Perform custom validation on an instance."""
+        """Identify configuration issues for this instance"""
         validation_errors = []
-        if not self.path or self.path == "/":
+        if not self.path:
+            validation_errors.append("Required mount path was not specified.")
+        elif self.path == "/":
             validation_errors.append("Volume mount does not include a path.")
-        # Ensure the PVC name is syntactically a valid Kubernetes resource name
-        if not is_valid_kubernetes_resource_name(self.pvc_name):
+        if not self.pvc_name:
+            validation_errors.append("Required persistent volume claim name was not specified.")
+        elif not is_valid_kubernetes_resource_name(self.pvc_name):
             validation_errors.append(f"PVC name '{self.pvc_name}' is not a valid Kubernetes resource name.")
 
         return validation_errors
@@ -432,10 +437,12 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
-        if not is_valid_annotation_key(self.key):
+        if not self.key:
+            validation_errors.append("Required annotation key was not specified.")
+        elif not is_valid_annotation_key(self.key):
             validation_errors.append(f"'{self.key}' is not a valid Kubernetes annotation key.")
         if not self.value:
-            validation_errors.append("Kubernetes annotation must include a value.")
+            validation_errors.append("Required annotation value was not specified.")
 
         return validation_errors
 

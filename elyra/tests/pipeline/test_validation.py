@@ -440,7 +440,7 @@ def test_invalid_node_property_env_var(validation_manager):
     assert issues[1]["message"] == "Required environment variable was not specified."
 
 
-def test_invalid_node_property_volumes(validation_manager):
+def test_valid_node_property_volumes(validation_manager):
     response = ValidationResponse()
     node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
 
@@ -448,6 +448,30 @@ def test_invalid_node_property_volumes(validation_manager):
         [
             VolumeMount(path="/mount/test", pvc_name="rwx-test-claim"),  # valid
             VolumeMount(path="/mount/test_two", pvc_name="second-claim"),  # valid
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=MOUNTED_VOLUMES, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == 0
+
+
+def test_invalid_node_property_volumes(validation_manager):
+    response = ValidationResponse()
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+
+    volumes = ElyraPropertyList(
+        [
+            VolumeMount(path="", pvc_name=""),  # missing mount path and pvc name
+            VolumeMount(path=None, pvc_name=None),  # missing mount path and pvc name
+            VolumeMount(path="", pvc_name="pvc"),  # missing mount path
+            VolumeMount(path=None, pvc_name="pvc"),  # missing mount path
+            VolumeMount(path="/path", pvc_name=""),  # missing pvc name
+            VolumeMount(path="/path/", pvc_name=None),  # missing pvc name
             VolumeMount(path="/mount/test_four", pvc_name="second#claim"),  # invalid pvc name
         ]
     )
@@ -458,11 +482,20 @@ def test_invalid_node_property_volumes(validation_manager):
         node_id=node.id, node_label=node.label, node=node, param_name=MOUNTED_VOLUMES, response=response
     )
     issues = response.to_json().get("issues")
+    assert len(issues) == 9, issues
     assert issues[0]["severity"] == 1
     assert issues[0]["type"] == "invalidVolumeMount"
     assert issues[0]["data"]["propertyName"] == MOUNTED_VOLUMES
     assert issues[0]["data"]["nodeID"] == "test-id"
-    assert "not a valid Kubernetes resource name" in issues[0]["message"]
+    assert "Required mount path was not specified." in issues[0]["message"]
+    assert "Required persistent volume claim name was not specified." in issues[1]["message"]
+    assert "Required mount path was not specified." in issues[2]["message"]
+    assert "Required persistent volume claim name was not specified." in issues[3]["message"]
+    assert "Required mount path was not specified." in issues[4]["message"]
+    assert "Required mount path was not specified." in issues[5]["message"]
+    assert "Required persistent volume claim name was not specified." in issues[6]["message"]
+    assert "Required persistent volume claim name was not specified." in issues[7]["message"]
+    assert "PVC name 'second#claim' is not a valid Kubernetes resource name." in issues[8]["message"]
 
 
 def test_valid_node_property_kubernetes_toleration(validation_manager):
@@ -583,7 +616,7 @@ def test_invalid_node_property_kubernetes_toleration(validation_manager):
 
 def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
     """
-    Validate that valid kubernetes pod annotation definitions are not flagged as invalid.
+    Validate that invalid kubernetes pod annotation definitions are flagged as invalid.
     Constraints are documented in
     https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
     """
@@ -599,7 +632,9 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
         [
             # test length violations (key name and prefix)
             KubernetesAnnotation(key="a", value=""),  # empty value (min 1)
+            KubernetesAnnotation(key="a", value=None),  # empty value (min 1)
             KubernetesAnnotation(key="a" * TOO_SHORT_LENGTH, value="val"),  # empty key (min 1)
+            KubernetesAnnotation(key=None, value="val"),  # empty key (min 1)
             KubernetesAnnotation(key="a" * TOO_LONG_LENGTH, value="val"),  # key too long
             KubernetesAnnotation(key=f"{'a' * (MAX_PREFIX_LENGTH + 1)}/b", value="val"),  # key prefix too long
             KubernetesAnnotation(key=f"{'a' * (MAX_NAME_LENGTH + 1)}", value="val"),  # key name too long
@@ -621,8 +656,10 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
         ]
     )
     expected_error_messages = [
-        "Kubernetes annotation must include a value.",
-        "'' is not a valid Kubernetes annotation key.",
+        "Required annotation value was not specified.",
+        "Required annotation value was not specified.",
+        "Required annotation key was not specified.",
+        "Required annotation key was not specified.",
         f"'{'a' * TOO_LONG_LENGTH}' is not a valid Kubernetes annotation key.",
         f"'{'a' * (MAX_PREFIX_LENGTH + 1)}/b' is not a valid Kubernetes annotation key.",
         f"'{'a' * (MAX_NAME_LENGTH + 1)}' is not a valid Kubernetes annotation key.",
@@ -662,17 +699,13 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
         index = index + 1
 
 
-def test_invalid_node_property_secrets(validation_manager):
+def test_valid_node_property_secrets(validation_manager):
     response = ValidationResponse()
     node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
     secrets = ElyraPropertyList(
         [
             KubernetesSecret(env_var="ENV_VAR1", name="test-secret", key="test-key1"),  # valid
             KubernetesSecret(env_var="ENV_VAR2", name="test-secret", key="test-key2"),  # valid
-            KubernetesSecret(env_var="ENV_VAR3", name="test-secret", key=""),  # invalid format of secret name/key
-            KubernetesSecret(env_var="ENV_VAR5", name="test%secret", key="test-key"),  # invalid k8s resource name
-            KubernetesSecret(env_var="ENV_VAR6", name="test-secret", key="test$key2"),  # invalid k8s secret key
-            KubernetesSecret(env_var="", name="", key=""),  # invalid - all required information is missing
         ]
     )
     node_dict["app_data"]["component_parameters"][KUBERNETES_SECRETS] = secrets
@@ -682,21 +715,62 @@ def test_invalid_node_property_secrets(validation_manager):
         node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SECRETS, response=response
     )
     issues = response.to_json().get("issues")
-    assert len(issues) == 6, issues
+    assert len(issues) == 0, issues
+
+
+def test_invalid_node_property_secrets(validation_manager):
+    response = ValidationResponse()
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+    secrets = ElyraPropertyList(
+        [
+            KubernetesSecret(env_var="", name="test-secret", key="test-key1"),  # missing env var name
+            KubernetesSecret(env_var=None, name="test-secret", key="test-key1"),  # missing env var name
+            KubernetesSecret(env_var="ENV_VAR1", name="", key="key"),  # missing secret name
+            KubernetesSecret(env_var="ENV_VAR2", name=None, key="key"),  # missing secret name
+            KubernetesSecret(env_var="ENV_VAR3", name="test-secret", key=""),  # missing secret key
+            KubernetesSecret(env_var="ENV_VAR4", name="test-secret", key=None),  # missing secret key
+            KubernetesSecret(env_var="ENV_VAR5", name="test%secret", key="test-key"),  # invalid k8s resource name
+            KubernetesSecret(env_var="ENV_VAR6", name="test-secret", key="test$key2"),  # invalid k8s secret key
+            KubernetesSecret(env_var="", name="", key=""),  # invalid - all required information is missing
+            KubernetesSecret(env_var=None, name=None, key=None),  # invalid - all required information is missing
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][KUBERNETES_SECRETS] = secrets
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SECRETS, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == 14, issues
     assert issues[0]["severity"] == 1
     assert issues[0]["type"] == "invalidKubernetesSecret"
     assert issues[0]["data"]["propertyName"] == KUBERNETES_SECRETS
     assert issues[0]["data"]["nodeID"] == "test-id"
+
+    # triggered by KubernetesSecret(env_var="", name="test-secret", key="test-key1")
+    assert "Required environment variable was not specified." in issues[0]["message"]
+    # triggered by KubernetesSecret(env_var=None, name="test-secret", key="test-key1")
+    assert "Required environment variable was not specified." in issues[1]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR1", name="", key="key")
+    assert "Required secret name was not specified." in issues[2]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR2", name=None, key="key")
+    assert "Required secret name was not specified." in issues[3]["message"]
     # triggered by KubernetesSecret(env_var="ENV_VAR3", name="test-secret", key="")
-    assert "Key '' is not a valid Kubernetes secret key." in issues[0]["message"]
+    assert "Required secret key was not specified." in issues[4]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR4", name="test-secret", key=None)
+    assert "Required secret key was not specified." in issues[5]["message"]
     # triggered by KubernetesSecret(env_var="ENV_VAR5", name="test%secret", key="test-key")
-    assert "Secret name 'test%secret' is not a valid Kubernetes resource name." in issues[1]["message"]
+    assert "Secret name 'test%secret' is not a valid Kubernetes resource name." in issues[6]["message"]
     # triggered by KubernetesSecret(env_var="ENV_VAR6", name="test-secret", key="test$key2")
-    assert "Key 'test$key2' is not a valid Kubernetes secret key." in issues[2]["message"]
+    assert "Key 'test$key2' is not a valid Kubernetes secret key." in issues[7]["message"]
     # triggered by KubernetesSecret(env_var="", name="", key="")
-    assert "Required environment variable was not specified." in issues[3]["message"]
-    assert "Secret name '' is not a valid Kubernetes resource name." in issues[4]["message"]
-    assert "' is not a valid Kubernetes secret key." in issues[5]["message"]
+    assert "Required environment variable was not specified." in issues[8]["message"]
+    assert "Required secret name was not specified." in issues[9]["message"]
+    assert "Required secret key was not specified." in issues[10]["message"]
+    assert "Required environment variable was not specified." in issues[11]["message"]
+    assert "Required secret name was not specified." in issues[12]["message"]
+    assert "Required secret key was not specified." in issues[13]["message"]
 
 
 def test_valid_node_property_label(validation_manager):
