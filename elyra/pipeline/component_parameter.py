@@ -491,26 +491,34 @@ class KubernetesToleration(ElyraPropertyListItem):
         return schema
 
     def get_all_validation_errors(self) -> List[str]:
-        """Perform custom validation on an instance."""
+        """
+        Perform custom validation on an instance using the constraints documented in
+        https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+        """
         validation_errors = []
-        # Ensure the PVC name is syntactically a valid Kubernetes resource name
+
+        # Ensure the operator is valid
         if self.operator not in ["Exists", "Equal"]:
             validation_errors.append(
                 f"'{self.operator}' is not a valid operator: the value must be one of 'Exists' or 'Equal'."
             )
 
-        if len(self.key) == 0 and self.operator == "Equal":
+        if self.operator == "Equal" and (self.key is None or len(self.key) == 0):
             validation_errors.append(
                 f"'{self.operator}' is not a valid operator: operator must be 'Exists' if no key is specified."
             )
 
-        if len(self.effect) > 0 and self.effect not in ["NoExecute", "NoSchedule", "PreferNoSchedule"]:
+        if (
+            self.effect is not None
+            and len(self.effect) > 0
+            and self.effect not in ["NoExecute", "NoSchedule", "PreferNoSchedule"]
+        ):
             validation_errors.append(
                 f"'{self.effect}' is not a valid effect: effect must be one "
                 f"of 'NoExecute', 'NoSchedule', or 'PreferNoSchedule'."
             )
 
-        if self.operator == "Exists" and len(self.value) > 0:
+        if self.operator == "Exists" and self.value is not None and len(self.value) > 0:
             validation_errors.append(
                 f"'{self.value}' is not a valid value: value should be empty if operator is 'Exists'."
             )
