@@ -203,7 +203,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7.5,
+        "version": 8,
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "pipeline_defaults": {},

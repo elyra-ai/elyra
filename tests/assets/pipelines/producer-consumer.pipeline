@@ -18,7 +18,10 @@
               "filename": "producer.ipynb",
               "runtime_image": "elyra/elyra-example-anaconda-py3:latest",
               "env_vars": [
-                "NB_USER="
+                {
+                  "env_var": "NB_USER",
+                  "value": ""
+                }
               ],
               "include_subdirectories": false,
               "outputs": [
@@ -314,7 +317,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7.5,
+        "version": 8,
         "properties": {
           "name": "producer-consumer",
           "runtime": "Generic"
