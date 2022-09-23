@@ -583,8 +583,9 @@ class ElyraPropertyList(list):
         Add a property instance to the execution object for the given runtime processor
         for each list item.
         """
-        for instance in self:
-            instance.add_to_execution_object(runtime_processor=runtime_processor, execution_object=execution_object)
+        for item in self:
+            if isinstance(item, ElyraPropertyListItem):
+                item.add_to_execution_object(runtime_processor=runtime_processor, execution_object=execution_object)
 
 
 class ElyraPropertyJSONEncoder(json.JSONEncoder):
