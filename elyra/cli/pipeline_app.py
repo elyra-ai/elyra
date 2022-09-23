@@ -586,6 +586,8 @@ def describe(json_option, pipeline_path):
         # volumes
         for vm in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
             # The below is a workaround until https://github.com/elyra-ai/elyra/issues/2919 is fixed
+            if not isinstance(vm, (VolumeMount, dict)):
+                continue
             pvc_name = vm.pvc_name if isinstance(vm, VolumeMount) else vm.get("pvc_name")
             describe_dict["volume_dependencies"]["value"].add(pvc_name)
 
