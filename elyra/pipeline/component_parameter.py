@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from importlib import import_module
 import json
 from textwrap import dedent
 from typing import Any
@@ -52,8 +51,10 @@ class ElyraProperty:
     _display_name: str
     _json_data_type: str
     _required: bool = False
+    _ui_details_map: Dict[str, Dict] = {}
 
     _subclass_property_map: Dict[str, type] = {}
+    _json_type_to_default: Dict[str, Any] = {"boolean": False, "number": 0, "array": "[]", "object": "{}", "string": ""}
 
     @classmethod
     def all_subclasses(cls):
@@ -82,7 +83,7 @@ class ElyraProperty:
             instances = ElyraPropertyList([sc.create_instance(prop_id, item) for item in value])
             return instances.deduplicate()
 
-        return getattr(import_module(sc.__module__), sc.__name__)(value)
+        return sc.create_instance(prop_id, value)
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
@@ -113,6 +114,27 @@ class ElyraProperty:
         """Build the JSON schema for an Elyra-owned component property"""
         class_description = dedent(cls.__doc__).replace("\n", " ")
         schema = {"title": cls._display_name, "description": class_description, "type": cls._json_data_type}
+        if cls._json_data_type not in ["array", "object"]:  # property is a scalar value
+            return schema
+
+        properties, uihints, required_list = {}, {}, []
+        for attr, ui_info in cls._ui_details_map.items():
+            attr_type = ui_info.get("json_type", "string")
+            attr_default = cls._json_type_to_default.get(attr_type, "")
+            attr_title = cls._ui_details_map[attr].get("display_name", attr)
+            properties[attr] = {"type": attr_type, "title": attr_title, "default": attr_default}
+            if cls._ui_details_map[attr].get("placeholder"):
+                uihints[attr] = {"ui:placeholder": cls._ui_details_map[attr].get("placeholder")}
+
+            if ui_info.get("required"):
+                required_list.append(attr)
+        if cls._json_data_type == "array":
+            schema.update(
+                {"items": {"type": "object", "properties": properties, "required": required_list}, "uihints": {"items": uihints}}
+            )
+        elif cls._json_data_type == "object":
+            schema.update({"properties": properties, "required": required_list, "uihints": uihints})
+
         return schema
 
     @staticmethod
@@ -162,6 +184,10 @@ class DisableNodeCaching(ElyraProperty):
         self.selection = selection == "True"
 
     @classmethod
+    def create_instance(cls, prop_id: str, value: Optional[Any]) -> DisableNodeCaching:
+        return DisableNodeCaching(selection=value)
+
+    @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
@@ -179,27 +205,12 @@ class ElyraPropertyListItem(ElyraProperty):
     """
 
     _keys: List[str]
-    _ui_details_map: Dict[str, Dict] = {}
-
-    _json_type_to_default: Dict[str, Any] = {"boolean": False, "number": 0, "array": "[]", "object": "{}", "string": ""}
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
         schema["default"] = []
-        schema["items"] = {"type": "object", "properties": {}, "required": []}
-        schema["uihints"] = {"items": {}}
-        for attr, ui_info in cls._ui_details_map.items():
-            attr_type = ui_info.get("json_type", "string")
-            attr_default = cls._json_type_to_default.get(attr_type, "")
-            attr_title = cls._ui_details_map[attr].get("display_name", attr)
-            schema["items"]["properties"][attr] = {"type": attr_type, "title": attr_title, "default": attr_default}
-            if cls._ui_details_map[attr].get("placeholder"):
-                schema["uihints"]["items"][attr] = {"ui:placeholder": cls._ui_details_map[attr].get("placeholder")}
-
-            if ui_info.get("required"):
-                schema["items"]["required"].append(attr)
         return schema
 
     def to_dict(self) -> Dict[str, Any]:
