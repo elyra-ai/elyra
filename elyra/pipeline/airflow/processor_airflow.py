@@ -367,6 +367,9 @@ be fully qualified (i.e., prefixed with their package names).
                 # Retrieve component from cache
                 component = ComponentCache.instance().get_component(self._type, operation.classifier)
 
+                for elyra_property in component.get_elyra_parameters():
+                    operation.component_params.pop(elyra_property, None)
+
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
                     self.log.debug(
