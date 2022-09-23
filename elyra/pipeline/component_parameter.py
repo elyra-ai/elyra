@@ -129,9 +129,8 @@ class ElyraProperty:
             if ui_info.get("required"):
                 required_list.append(attr)
         if cls._json_data_type == "array":
-            schema.update(
-                {"items": {"type": "object", "properties": properties, "required": required_list}, "uihints": {"items": uihints}}
-            )
+            schema["items"] = {"type": "object", "properties": properties, "required": required_list}
+            schema["uihints"] = {"items": uihints}
         elif cls._json_data_type == "object":
             schema.update({"properties": properties, "required": required_list, "uihints": uihints})
 
