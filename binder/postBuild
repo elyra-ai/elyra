@@ -28,12 +28,12 @@ export PATH=$(pwd)/.npm-global/bin/:$PATH
 # Download and install Yarn Package Manager using npm
 npm install -g yarn
 
-# Build Elyra Distribution
-make release
-
 # Updage dependencies and install Elyra wheel
 pip install --upgrade pip
-pip install --upgrade tornado jupyter-core jupyter-server jupyterlab dist/*.whl
+pip install --upgrade tornado jupyter-core jupyter-server jupyter-packaging jupyterlab dist/*.whl
+
+# Build Elyra Distribution
+make release
 
 mkdir -p binder-demo
 
