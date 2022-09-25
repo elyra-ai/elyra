@@ -30,10 +30,11 @@ npm install -g yarn
 
 # Updage dependencies and install Elyra wheel
 pip install --upgrade pip
-pip install --upgrade tornado jupyter-core jupyter-server jupyter-packaging jupyterlab dist/*.whl
+pip install --upgrade tornado jupyter-core jupyter-server jupyter-packaging jupyterlab
 
 # Build Elyra Distribution
 make release
+pip install dist/*.whl
 
 mkdir -p binder-demo
 
