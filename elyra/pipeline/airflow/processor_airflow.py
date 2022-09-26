@@ -20,6 +20,7 @@ import os
 import re
 import string
 import tempfile
+from textwrap import dedent
 import time
 from typing import Any
 from typing import Dict
@@ -43,7 +44,6 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
@@ -368,7 +368,7 @@ be fully qualified (i.e., prefixed with their package names).
                 component = ComponentCache.instance().get_component(self._type, operation.classifier)
 
                 for elyra_property in component.get_elyra_parameters():
-                    operation.component_params.pop(elyra_property, None)
+                    operation.component_params.pop(elyra_property.property_id, None)
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
@@ -502,6 +502,13 @@ be fully qualified (i.e., prefixed with their package names).
             template_env.filters["regex_replace"] = lambda x: AirflowPipelineProcessor.scrub_invalid_characters(x)
             template = template_env.get_template("airflow_template.jinja2")
 
+            # Pass functions used to render data volumes and secrets to the template env
+            rendering_functions = {
+                "render_secrets_for_generic_op": AirflowPipelineProcessor.render_secrets_for_generic_op,
+                "render_secrets_for_cos": AirflowPipelineProcessor.render_secrets_for_cos,
+            }
+            template.globals.update(rendering_functions)
+
             ordered_ops = self._cc_pipeline(pipeline, pipeline_name, pipeline_instance_id)
             runtime_configuration = self._get_metadata_configuration(
                 schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
@@ -517,7 +524,7 @@ be fully qualified (i.e., prefixed with their package names).
                 operations_list=ordered_ops,
                 pipeline_name=pipeline_instance_id,
                 user_namespace=user_namespace,
-                cos_secret=cos_secret,
+                cos_secret=cos_secret if any(op.get("is_generic_operator") for op in ordered_ops.values()) else None,
                 kube_config_path=None,
                 is_paused_upon_creation="False",
                 in_cluster="True",
@@ -591,6 +598,67 @@ be fully qualified (i.e., prefixed with their package names).
                 return operation["notebook"]
         return None
 
+    @staticmethod
+    def render_secrets_for_cos(cos_secret: str):
+        """
+        Render the Kubernetes secrets required for COS
+
+        :returns: a string literal of the python code to be rendered in the DAG
+        """
+        if not cos_secret:
+            return ""
+
+        return dedent(
+            f"""
+            from airflow.kubernetes.secret import Secret
+            ## Ensure the secret '{cos_secret}' is defined in the Kubernetes namespace where the pipeline is run
+            env_var_secret_id = Secret(
+                deploy_type="env",
+                deploy_target="AWS_ACCESS_KEY_ID",
+                secret="{cos_secret}",
+                key="AWS_ACCESS_KEY_ID",
+            )
+            env_var_secret_key = Secret(
+                deploy_type="env",
+                deploy_target="AWS_SECRET_ACCESS_KEY",
+                secret="{cos_secret}",
+                key="AWS_SECRET_ACCESS_KEY",
+            )
+            """
+        )
+
+    @staticmethod
+    def render_secrets_for_generic_op(op: Dict) -> str:
+        """
+        Render any Kubernetes secrets defined for the specified op for use in
+        the Airflow DAG template
+
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        if not op.get("secrets"):
+            return ""
+        op["secret_vars"] = []  # store variable names in op's dict for template to access
+
+        # Include import statement and comment
+        str_to_render = f"""
+            from airflow.kubernetes.secret import Secret
+            # Secrets for operation '{op['id']}'"""
+        for idx, secret in enumerate(op.get("secrets", [])):
+            var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"secret_{op['id']}_{idx}")
+
+            # Define Secret object
+            str_to_render += f"""
+                    {var_name} = Secret(
+                        deploy_type='env',
+                        deploy_target="{secret.env_var}",
+                        secret="{secret.name}",
+                        key="{secret.key}",
+                    )
+                """
+
+            op["secret_vars"].append(var_name)
+        return dedent(str_to_render)
+
     def render_elyra_owned_properties(self: RuntimePipelineProcessor, operation: Operation, cos_secret: str):
         """
         Build the KubernetesExecutor object for the given operation for use in the DAG.
@@ -605,36 +673,8 @@ be fully qualified (i.e., prefixed with their package names).
             if isinstance(prop_value, (ElyraProperty, ElyraPropertyList)):
                 prop_value.add_to_execution_object(runtime_processor=self, execution_object=kubernetes_executor)
 
-        if cos_secret and operation.is_generic:
-            if "secrets" not in kubernetes_executor:
-                kubernetes_executor["secrets"] = []
-            kubernetes_executor["secrets"].extend(
-                [
-                    {
-                        "deploy_type": "env",
-                        "deploy_target": "AWS_ACCESS_KEY_ID",
-                        "secret": cos_secret,
-                        "key": "AWS_ACCESS_KEY_ID",
-                    },
-                    {
-                        "deploy_type": "env",
-                        "deploy_target": "AWS_SECRET_ACCESS_KEY",
-                        "secret": cos_secret,
-                        "key": "AWS_SECRET_ACCESS_KEY",
-                    },
-                ]
-            )
-
         executor_config = {"KubernetesExecutor": kubernetes_executor}
         return executor_config
-
-    def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
-        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
-        if "secrets" not in execution_object:
-            execution_object["secrets"] = []
-        execution_object["secrets"].append(
-            {"deploy_type": "env", "deploy_target": instance.env_var, "secret": instance.name, "key": instance.key}
-        )
 
     def add_mounted_volume(self, instance: VolumeMount, execution_object: Any, **kwargs) -> None:
         """Add VolumeMount instance to the execution object for the given runtime processor"""
