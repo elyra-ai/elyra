@@ -102,7 +102,6 @@ def test_create_operation_with_environmental_variables():
 
     component_parameters = {
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
-        "env_vars": env_variables,
         "runtime_image": "tensorflow/tensorflow:latest",
     }
     test_operation = GenericOperation(
@@ -111,6 +110,7 @@ def test_create_operation_with_environmental_variables():
         classifier="execute-notebook-node",
         name="test",
         component_params=component_parameters,
+        elyra_params={"env_vars": env_variables},
     )
 
     assert test_operation.env_vars == env_variables

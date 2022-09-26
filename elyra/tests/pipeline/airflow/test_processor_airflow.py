@@ -470,17 +470,13 @@ def test_collect_envs(processor):
     ]
     converted_envs = ElyraProperty.create_instance("env_vars", operation_envs)
 
-    component_parameters = {
-        "filename": pipelines_test_file,
-        "env_vars": converted_envs,
-        "runtime_image": "tensorflow/tensorflow:latest",
-    }
     test_operation = GenericOperation(
         id="this-is-a-test-id",
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_params={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
+        elyra_params={"env_vars": converted_envs},
     )
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")

@@ -234,16 +234,16 @@ class Pipeline(AppDataBase):
         object type. No validation is performed.
         """
         pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
-        for param_id, param_value in pipeline_defaults.items():
-            if not param_value:
-                continue
-
-            # If property has already been properly converted, skip conversion
-            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
-                continue
+        for param_id, param_value in list(pipeline_defaults.items()):
+            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
+                continue  # property has already been properly converted or cannot be converted
 
             converted_value = ElyraProperty.create_instance(param_id, param_value)
-            if converted_value:
+            if converted_value is None:
+                continue
+            if isinstance(converted_value, ElyraProperty) and converted_value.is_empty_instance():
+                del pipeline_defaults[param_id]
+            else:
                 pipeline_defaults[param_id] = converted_value
 
 
@@ -352,6 +352,11 @@ class Node(AppDataBase):
             if self.is_generic:
                 self.elyra_owned_properties.add(RUNTIME_IMAGE)
 
+    def unset_elyra_owned_properties(self) -> None:
+        """Remove properties that should be propagated but not persisted as an Elyra-owned property."""
+        if self.is_generic:
+            self.elyra_owned_properties.remove(RUNTIME_IMAGE)
+
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
         Retrieve component parameter values.
@@ -378,6 +383,16 @@ class Node(AppDataBase):
 
         self._node["app_data"]["component_parameters"][key] = value
 
+    def pop_component_parameter(self, key: str, default: Optional[Any] = None) -> Any:
+        """
+        Pop component parameter values for a given key
+        :param key: The parameter key to be retrieved
+        :param default: the value to be set if not found
+        """
+        if not key:
+            raise ValueError("Key is required")
+        return self._node["app_data"]["component_parameters"].pop(key, default)
+
     def get_all_component_parameters(self) -> Dict[str, Any]:
         """
         Retrieve all component parameter key-value pairs.
@@ -402,12 +417,15 @@ class Node(AppDataBase):
         """
         for param_id in self.elyra_owned_properties:
             param_value = self.get_component_parameter(param_id)
-            # If property has already been properly converted, skip conversion
             if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
-                continue
+                continue  # property has already been properly converted or cannot be converted
 
             converted_value = ElyraProperty.create_instance(param_id, param_value)
-            if converted_value:
+            if converted_value is None:
+                continue
+            if isinstance(converted_value, ElyraProperty) and converted_value.is_empty_instance():
+                self._node["app_data"]["component_parameters"].pop(param_id, None)
+            else:
                 self.set_component_parameter(param_id, converted_value)
 
 
@@ -596,8 +614,7 @@ class PipelineDefinition(object):
                     continue
 
                 if property_name not in node.elyra_owned_properties:
-                    # Only Elyra-owned properties should be propagated
-                    continue
+                    continue  # only Elyra-owned properties should be propagated
 
                 node_value = node.get_component_parameter(property_name)
                 if not node_value:
@@ -610,6 +627,7 @@ class PipelineDefinition(object):
 
             if self.primary_pipeline.runtime_config != "local":
                 node.remove_env_vars_with_matching_secrets()
+            node.unset_elyra_owned_properties()
 
     def is_valid(self) -> bool:
         """

@@ -343,15 +343,10 @@ be fully qualified (i.e., prefixed with their package names).
                     "mem_request": operation.memory,
                     "gpu_limit": operation.gpu,
                     "operator_source": operation.filename,
-                    "is_generic_operator": operation.is_generic,
-                    "doc": operation.doc,
-                    "operation_object": operation,
                 }
 
                 if runtime_image_pull_secret is not None:
                     target_op["runtime_image_pull_secret"] = runtime_image_pull_secret
-
-                target_ops.append(target_op)
 
                 self.log_pipeline_info(
                     pipeline_name,
@@ -366,9 +361,6 @@ be fully qualified (i.e., prefixed with their package names).
             else:
                 # Retrieve component from cache
                 component = ComponentCache.instance().get_component(self._type, operation.classifier)
-
-                for elyra_property in component.get_elyra_parameters():
-                    operation.component_params.pop(elyra_property.property_id, None)
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
@@ -453,12 +445,16 @@ be fully qualified (i.e., prefixed with their package names).
                     "parent_operation_ids": operation.parent_operation_ids,
                     "component_params": operation.component_params_as_dict,
                     "operator_source": component.component_source,
-                    "is_generic_operator": operation.is_generic,
-                    "doc": operation.doc,
-                    "operation_object": operation,
                 }
 
-                target_ops.append(target_op)
+            target_op.update(
+                {
+                    "is_generic_operator": operation.is_generic,
+                    "doc": operation.doc,
+                    "elyra_params": operation.elyra_params,
+                }
+            )
+            target_ops.append(target_op)
 
         ordered_target_ops = OrderedDict()
 
@@ -591,7 +587,7 @@ be fully qualified (i.e., prefixed with their package names).
                 return operation["notebook"]
         return None
 
-    def render_secrets(self, operation: GenericOperation, cos_secret: Optional[str]) -> str:
+    def render_secrets(self, elyra_parameters: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
         """
         Render any Kubernetes secrets defined for the specified op for use in
         the Airflow DAG template
@@ -603,24 +599,19 @@ be fully qualified (i.e., prefixed with their package names).
             str_to_render += f"""
                 Secret("env", "AWS_ACCESS_KEY_ID", "{cos_secret}", "AWS_ACCESS_KEY_ID"),
                 Secret("env", "AWS_SECRET_ACCESS_KEY", "{cos_secret}", "AWS_SECRET_ACCESS_KEY"),"""
-        for secret in operation.component_params.get(pipeline_constants.KUBERNETES_SECRETS, []):
+        for secret in elyra_parameters.get(pipeline_constants.KUBERNETES_SECRETS, []):
             str_to_render += f"""
                 Secret("env", "{secret.env_var}", "{secret.name}", "{secret.key}"),"""
         return dedent(str_to_render)
 
-    def render_elyra_owned_properties(self, operation: Operation):
+    def render_elyra_owned_properties(self, elyra_parameters: Dict[str, ElyraProperty]):
         """
         Build the KubernetesExecutor object for the given operation for use in the DAG.
         """
-        component = ComponentCache.get_generic_component_from_op(operation.classifier)
-        if not component:
-            component = ComponentCache.instance().get_component(AirflowPipelineProcessor._type, operation.classifier)
-
         kubernetes_executor = {}
-        for prop_name in [param.property_id for param in component.get_elyra_parameters()]:
-            prop_value = getattr(operation, prop_name, None)
-            if isinstance(prop_value, (ElyraProperty, ElyraPropertyList)):
-                prop_value.add_to_execution_object(runtime_processor=self, execution_object=kubernetes_executor)
+        for value in elyra_parameters.values():
+            if isinstance(value, (ElyraProperty, ElyraPropertyList)):
+                value.add_to_execution_object(runtime_processor=self, execution_object=kubernetes_executor)
 
         return {"KubernetesExecutor": kubernetes_executor} if kubernetes_executor else {}
 

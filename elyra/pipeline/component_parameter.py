@@ -77,7 +77,7 @@ class ElyraProperty:
             return None
 
         if issubclass(sc, ElyraPropertyListItem):
-            if not isinstance(value, list) or not value:
+            if not isinstance(value, list):
                 return None
             # Create instance for each list element and convert to ElyraPropertyList
             instances = ElyraPropertyList([sc.create_instance(prop_id, item) for item in value])
@@ -168,6 +168,10 @@ class ElyraProperty:
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         return []
+
+    def is_empty_instance(self) -> bool:
+        """Returns a boolean indicating whether this instance is considered a no-op."""
+        return False
 
 
 class DisableNodeCaching(ElyraProperty):

@@ -103,7 +103,6 @@ class NodeBase(object):
             "filename": self.filename,
             "runtime_image": self.image_name or "NA",
             "dependencies": self.dependencies,
-            "env_vars": self.env_vars,
             "inputs": self.inputs,
             "outputs": self.outputs,
         }
@@ -114,6 +113,7 @@ class NodeBase(object):
             self.classifier,
             parent_operation_ids=self.parent_operations,
             component_params=component_parameters,
+            elyra_params={"env_vars": self.env_vars},
         )
 
 

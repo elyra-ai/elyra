@@ -22,19 +22,9 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
-from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import VolumeMount
-from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
-from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 
 # TODO: Make pipeline version available more widely
@@ -59,16 +49,13 @@ class Operation(object):
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
         component_params: Optional[Dict[str, Any]] = None,
+        elyra_params: Optional[Dict[str, Any]] = None,
     ) -> Operation:
         """Class method that creates the appropriate instance of Operation based on inputs."""
 
         if Operation.is_generic_operation(classifier):
-            return GenericOperation(
-                id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-            )
-        return Operation(
-            id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-        )
+            return GenericOperation(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
+        return Operation(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
 
     def __init__(
         self,
@@ -78,16 +65,17 @@ class Operation(object):
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
         component_params: Optional[Dict[str, Any]] = None,
+        elyra_params: Optional[Dict[str, Any]] = None,
     ):
         """
-        :param id: Generated UUID, 128 bit number used as a unique identifier
-                   e.g. 123e4567-e89b-12d3-a456-426614174000
+        :param id: Generated UUID, 128 bit number used as a unique identifier, e.g. 123e4567-e89b-12d3-a456-426614174000
         :param type: The type of node e.g. execution_node
         :param classifier: indicates the operation's class
         :param name: The name of the operation
         :param parent_operation_ids: List of parent operation 'ids' required to execute prior to this operation
         :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
-                                 a non-standard operation instance
+            non-Generic operation instance
+        :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
         """
 
         # Validate that the operation has all required properties
@@ -106,15 +94,8 @@ class Operation(object):
         self._name = name
         self._parent_operation_ids = parent_operation_ids or []
         self._component_params = component_params or {}
+        self._elyra_params = elyra_params or {}
         self._doc = None
-
-        self._mounted_volumes = self.get_elyra_owned_property(MOUNTED_VOLUMES) or []
-        self._kubernetes_tolerations = self.get_elyra_owned_property(KUBERNETES_TOLERATIONS) or []
-        self._kubernetes_pod_annotations = self.get_elyra_owned_property(KUBERNETES_POD_ANNOTATIONS) or []
-
-        # If disabled, this operation is requested to be re-executed in the
-        # target runtime environment, even if it was executed before.
-        self._disable_node_caching = self.get_elyra_owned_property(DISABLE_NODE_CACHING)
 
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
@@ -161,25 +142,8 @@ class Operation(object):
         return self._component_params or {}
 
     @property
-    def mounted_volumes(self) -> ElyraPropertyList[VolumeMount]:
-        return self._mounted_volumes
-
-    @property
-    def kubernetes_tolerations(self) -> ElyraPropertyList[KubernetesToleration]:
-        return self._kubernetes_tolerations
-
-    @property
-    def kubernetes_pod_annotations(self) -> ElyraPropertyList[KubernetesAnnotation]:
-        return self._kubernetes_pod_annotations
-
-    @property
-    def disable_node_caching(self) -> Optional[bool]:
-        """
-        Returns None if caching behavior is delegated to the runtime
-        Returns True if cached output may be used (instead of executing the op to produce it)
-        Returns False if cached output must not be used (instead of executing the op to produce it)
-        """
-        return self._disable_node_caching
+    def elyra_params(self) -> Optional[Dict[str, Any]]:
+        return self._elyra_params or {}
 
     @property
     def inputs(self) -> Optional[List[str]]:
@@ -225,20 +189,6 @@ class Operation(object):
             f"component_parameters: {{\n{params}}} \n"
         )
 
-    def get_elyra_owned_property(self, property_id: str) -> Optional[List[ElyraPropertyList] | ElyraProperty]:
-        """
-        Determine whether a given property is an Elyra-owned property, and if so,
-        return the list popped off the component_params dictionary.
-        """
-        param_value = self._component_params.get(property_id)
-        if param_value is not None:
-            # The property in question is an Elyra system property (ie, not defined in
-            # the component spec) and must be removed from the component_params dict
-            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)):
-                return self._component_params.pop(property_id)
-
-        return None
-
     @staticmethod
     def _scrub_list(dirty: Optional[List[Optional[str]]]) -> List[str]:
         """
@@ -268,6 +218,7 @@ class GenericOperation(Operation):
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
         component_params: Optional[Dict[str, Any]] = None,
+        elyra_params: Optional[Dict[str, Any]] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -296,11 +247,11 @@ class GenericOperation(Operation):
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
         Entries for other (non-built-in) component types are a function of the respective component.
+
+        :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
         """
 
-        super().__init__(
-            id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-        )
+        super().__init__(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
 
         if not component_params.get("filename"):
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
@@ -318,10 +269,13 @@ class GenericOperation(Operation):
         self._component_params["runtime_image"] = component_params.get("runtime_image")
         self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
-        self._component_params["env_vars"] = ElyraPropertyList(component_params.get(ENV_VARIABLES, []))
         self._component_params["cpu"] = component_params.get("cpu")
         self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")
+
+        if not elyra_params:
+            elyra_params = {}
+        self._elyra_params["env_vars"] = ElyraPropertyList(elyra_params.get(ENV_VARIABLES, []))
 
     @property
     def name(self) -> str:
@@ -351,7 +305,7 @@ class GenericOperation(Operation):
 
     @property
     def env_vars(self) -> ElyraPropertyList[EnvironmentVariable]:
-        return self._component_params.get(ENV_VARIABLES)
+        return self._elyra_params.get(ENV_VARIABLES)
 
     @property
     def cpu(self) -> Optional[str]:
@@ -364,10 +318,6 @@ class GenericOperation(Operation):
     @property
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
-
-    @property
-    def kubernetes_secrets(self) -> ElyraPropertyList[KubernetesSecret]:
-        return self._component_params.get(KUBERNETES_SECRETS)
 
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):
