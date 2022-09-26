@@ -23,11 +23,11 @@ You can use one of these approaches to determine which Elyra version you are run
 
 - Open the JupyterLab launcher and locate the "What's new" tile under the "Elyra" category.
 
-  ![Lookup Elyra version in JupyterLab launcher](../images/getting_started/troubleshooting/lookup-version-in-launcher.png)
+  ![Look up Elyra version in JupyterLab launcher](../images/getting_started/troubleshooting/lookup-version-in-launcher.png)
 
 - Open the JupyterLab launcher and click on the "Documentation" tile under the "Elyra" category. 
 
-  ![Lookup Elyra version in the documentation](../images/getting_started/troubleshooting/lookuop-version-in-documentation.png)
+  ![Look up Elyra version in the documentation](../images/getting_started/troubleshooting/lookup-version-in-documentation.png)
 
 - Open the JupyterLab launcher, click on the "Terminal" tile and run
 
