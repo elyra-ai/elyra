@@ -140,12 +140,13 @@ async def test_get_component_properties_config(jp_fetch):
         """,
         {% for property in elyra_owned_parameters %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}{% if loop.index != loop|length %},{% endif %}
-        {% endfor %}""", ""
+        {% endfor %}""",
+        "",
     )  # remove Elyra-owned property rendering loop
     properties = json.loads(template)
 
     # Fetch Elyra-owned properties
-    elyra_properties = json.loads( pkg_resources.read_text(resources, "additional_generic_properties.json"))
+    elyra_properties = json.loads(pkg_resources.read_text(resources, "additional_generic_properties.json"))
     properties["properties"]["component_parameters"]["properties"].update(elyra_properties)  # update property dict
     assert payload == properties
 
