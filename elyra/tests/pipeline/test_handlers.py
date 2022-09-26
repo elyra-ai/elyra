@@ -136,11 +136,13 @@ async def test_get_component_properties_config(jp_fetch):
     template = pkg_resources.read_text(resources, "generic_properties_template.jinja2")
     template = template.replace("{{ component.name }}", "Notebook")
     template = template.replace("{{ component.extensions|tojson }}", '[".ipynb"]')
+    template = template.replace("{% if elyra_owned_parameters %}", "")
     template = template.replace(
         """,
-        {% for property in elyra_owned_parameters %}
+        {% for property in elyra_owned_parameters|sort(attribute="property_id") %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}{% if loop.index != loop|length %},{% endif %}
-        {% endfor %}""",
+        {% endfor %}
+        {% endif %}""",
         "",
     )  # remove Elyra-owned property rendering loop
     properties = json.loads(template)
