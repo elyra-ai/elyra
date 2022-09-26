@@ -604,9 +604,8 @@ be fully qualified (i.e., prefixed with their package names).
                 Secret("env", "AWS_ACCESS_KEY_ID", "{cos_secret}", "AWS_ACCESS_KEY_ID"),
                 Secret("env", "AWS_SECRET_ACCESS_KEY", "{cos_secret}", "AWS_SECRET_ACCESS_KEY"),"""
         for secret in operation.component_params.get(pipeline_constants.KUBERNETES_SECRETS, []):
-            # Define Secret object
             str_to_render += f"""
-                Secret("env, "{secret.env_var}", "{secret.name}", "{secret.key}"),"""
+                Secret("env", "{secret.env_var}", "{secret.name}", "{secret.key}"),"""
         return dedent(str_to_render)
 
     def render_elyra_owned_properties(self, operation: Operation):
