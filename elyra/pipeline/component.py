@@ -28,7 +28,7 @@ from typing import Optional
 from traitlets.config import LoggingConfigurable
 
 from elyra.pipeline.component_parameter import ComponentParameter
-from elyra.pipeline.pipeline import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 # Rather than importing only the CatalogEntry class needed in the Component parse
