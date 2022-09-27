@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
+
 from abc import abstractmethod
 import ast
 import asyncio
@@ -20,6 +22,7 @@ import functools
 import os
 from pathlib import Path
 import time
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -37,6 +40,12 @@ from urllib3.exceptions import MaxRetryError
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import DisableNodeCaching
+from elyra.pipeline.component_parameter import EnvironmentVariable
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesSecret
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -50,7 +59,7 @@ elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
 
 class PipelineProcessorRegistry(SingletonConfigurable):
-    _processors: Dict[str, "PipelineProcessor"] = {}
+    _processors: Dict[str, PipelineProcessor] = {}
 
     def __init__(self, **kwargs):
         root_dir: Optional[str] = kwargs.pop("root_dir", None)
@@ -81,6 +90,9 @@ class PipelineProcessorRegistry(SingletonConfigurable):
             return self._processors[processor_name]
         else:
             raise RuntimeError(f"Could not find pipeline processor '{processor_name}'")
+
+    def get_all_processors(self) -> List[PipelineProcessor]:
+        return list(self._processors.values())
 
     def is_valid_processor(self, processor_name: str) -> bool:
         return processor_name in self._processors.keys()
@@ -118,6 +130,9 @@ class PipelineProcessorManager(SingletonConfigurable):
     def get_processor_for_runtime(self, runtime_name: str):
         processor = self._registry.get_processor(runtime_name)
         return processor
+
+    def get_all_processors(self) -> List[PipelineProcessor]:
+        return self._registry.get_all_processors()
 
     def is_supported_runtime(self, runtime_name: str) -> bool:
         return self._registry.is_valid_processor(runtime_name)
@@ -353,13 +368,13 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
 
 class RuntimePipelineProcessor(PipelineProcessor):
-    def _get_dependency_archive_name(self, operation: Operation) -> str:
+    def _get_dependency_archive_name(self, operation: GenericOperation) -> str:
         return f"{Path(operation.filename).stem}-{operation.id}.tar.gz"
 
-    def _get_dependency_source_dir(self, operation: Operation) -> str:
+    def _get_dependency_source_dir(self, operation: GenericOperation) -> str:
         return str(Path(self.root_dir) / Path(operation.filename).parent)
 
-    def _generate_dependency_archive(self, operation: Operation) -> Optional[str]:
+    def _generate_dependency_archive(self, operation: GenericOperation) -> Optional[str]:
         archive_artifact_name = self._get_dependency_archive_name(operation)
         archive_source_dir = self._get_dependency_source_dir(operation)
 
@@ -377,7 +392,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
         return archive_artifact
 
     def _upload_dependencies_to_object_store(
-        self, runtime_configuration: str, pipeline_name: str, operation: Operation, prefix: str = ""
+        self, runtime_configuration: str, pipeline_name: str, operation: GenericOperation, prefix: str = ""
     ) -> None:
         """
         Create dependency archive for the generic operation identified by operation
@@ -581,3 +596,27 @@ class RuntimePipelineProcessor(PipelineProcessor):
             return value
 
         return converted_list
+
+    def add_disable_node_caching(self, instance: DisableNodeCaching, execution_object: Any, **kwargs) -> None:
+        """Add DisableNodeCaching info to the execution object for the given runtime processor"""
+        pass
+
+    def add_env_var(self, instance: EnvironmentVariable, execution_object: Any, **kwargs) -> None:
+        """Add EnvironmentVariable instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_mounted_volume(self, instance: VolumeMount, execution_object: Any, **kwargs) -> None:
+        """Add VolumeMount instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
+        pass

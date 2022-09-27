@@ -211,7 +211,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7.5,
+        "version": 8,
         "runtime": "airflow",
         "runtime_type": "APACHE_AIRFLOW",
         "runtime_config": "aa-yukked1",

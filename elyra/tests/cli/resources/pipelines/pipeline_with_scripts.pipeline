@@ -21,7 +21,10 @@
               "dependencies": [],
               "include_subdirectories": false,
               "mounted_volumes": [
-                "/mnt/vol2=pvc-claim-2"
+                {
+                  "path": "/mnt/vol2",
+                  "pvc_name": "pvc-claim-2"
+                }
               ],
               "runtime_image": "tensorflow/tensorflow:2.8.0"
             },
@@ -129,7 +132,10 @@
               "dependencies": [],
               "include_subdirectories": false,
               "mounted_volumes": [
-                "mnt/vol3=pvc-claim-3"
+                {
+                  "path": "mnt/vol3",
+                  "pvc_name": "pvc-claim-3"
+                }
               ],
               "runtime_image": "tensorflow/tensorflow:2.8.0"
             },
@@ -192,7 +198,11 @@
         "properties": {
           "pipeline_defaults": {
             "kubernetes_secrets": [
-              "API_KEY=secret-2:myapikey"
+              {
+                "env_var": "API_KEY",
+                "name": "secret-2",
+                "key": "myapikey"
+              }
             ]
           },
           "name": "pipeline_with_scripts",

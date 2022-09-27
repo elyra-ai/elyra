@@ -19,11 +19,17 @@
               "filename": "scripts/dummy_script_1.py",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
               "env_vars": [
-                "OP_NAME=a"
+                {
+                  "env_var": "OP_NAME",
+                  "value": "a"
+                }
               ],
               "include_subdirectories": false,
               "mounted_volumes": [
-                "/mount/test=rwx-test-claim"
+                {
+                  "path": "/mount/test",
+                  "pvc_name": "rwx-test-claim"
+                }
               ],
               "dependencies": [
                 "d.txt",
@@ -82,10 +88,16 @@
             "component_parameters": {
               "filename": "scripts/dummy_script_2.py",
               "mounted_volumes": [
-                "/mount/test=rwx-test-claim-1"
+                {
+                  "path": "/mount/test",
+                  "pvc_name": "rwx-test-claim-1"
+                }
               ],
               "env_vars": [
-                "OP_NAME=c"
+                {
+                  "env_var": "OP_NAME",
+                  "value": "c"
+                }
               ],
               "include_subdirectories": false
             },

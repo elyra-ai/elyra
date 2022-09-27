@@ -541,27 +541,35 @@ describe('Pipeline Editor tests', () => {
 
       cy.findByRole('menuitem', { name: /properties/i }).click();
 
-      cy.get('input[value="TEST_ENV_1=1"]').should('exist');
+      cy.get('input[value="TEST_ENV_1"]').should('exist');
+      cy.get('input[value="1"]').should('exist');
 
       cy.findByText('helloworld.py').click();
 
       cy.get('#root_component_parameters_env_vars').within(() => {
         cy.findByRole('button', { name: /add/i }).click();
-        cy.get('input[id="root_component_parameters_env_vars_0"]').type(
-          'BAD=two'
+        cy.get('input[id="root_component_parameters_env_vars_0_env_var"]').type(
+          'BAD'
+        );
+        cy.get('input[id="root_component_parameters_env_vars_0_value"]').type(
+          'two'
         );
       });
 
-      cy.get('input[value="BAD=two"]').should('exist');
+      cy.get('input[value="BAD"]').should('exist');
+      cy.get('input[value="two"]').should('exist');
 
       cy.findByText('helloworld.ipynb').click();
 
-      cy.get('input[value="TEST_ENV_1=1"]').should('exist');
-      cy.get('input[value="BAD=two"]').should('not.exist');
+      cy.get('input[value="TEST_ENV_1"]').should('exist');
+      cy.get('input[value="1"]').should('exist');
+      cy.get('input[value="BAD"]').should('not.exist');
+      cy.get('input[value="two"]').should('not.exist');
 
       cy.findByText('helloworld.py').click();
 
-      cy.get('input[value="BAD=two"]').should('exist');
+      cy.get('input[value="BAD"]').should('exist');
+      cy.get('input[value="two"]').should('exist');
     });
   });
 

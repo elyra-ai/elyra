@@ -25,8 +25,8 @@ import yaml
 
 from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component import ComponentParser
+from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.kfp.kfp_component_utils import component_yaml_schema
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 

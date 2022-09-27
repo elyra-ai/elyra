@@ -204,7 +204,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7.5,
+        "version": 8,
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "name": "kf_invalid_inputpath_parameter",

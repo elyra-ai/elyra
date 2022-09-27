@@ -27,6 +27,7 @@ from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
@@ -159,27 +160,24 @@ def test_collect_envs(processor):
     # add system-owned envs with bogus values to ensure they get set to system-derived values,
     # and include some user-provided edge cases
     operation_envs = [
-        'ELYRA_RUNTIME_ENV="bogus_runtime"',
-        'ELYRA_ENABLE_PIPELINE_INFO="bogus_pipeline"',
-        "ELYRA_WRITABLE_CONTAINER_DIR=",  # simulate operation reference in pipeline
-        'AWS_ACCESS_KEY_ID="bogus_key"',
-        'AWS_SECRET_ACCESS_KEY="bogus_secret"',
-        "USER_EMPTY_VALUE=  ",
-        "USER_TWO_EQUALS=KEY=value",
-        "USER_NO_VALUE=",
+        {"env_var": "ELYRA_RUNTIME_ENV", "value": '"bogus_runtime"'},
+        {"env_var": "ELYRA_ENABLE_PIPELINE_INFO", "value": '"bogus_pipeline"'},
+        {"env_var": "ELYRA_WRITABLE_CONTAINER_DIR", "value": ""},  # simulate operation reference in pipeline
+        {"env_var": "AWS_ACCESS_KEY_ID", "value": '"bogus_key"'},
+        {"env_var": "AWS_SECRET_ACCESS_KEY", "value": '"bogus_secret"'},
+        {"env_var": "USER_EMPTY_VALUE", "value": "  "},
+        {"env_var": "USER_TWO_EQUALS", "value": "KEY=value"},
+        {"env_var": "USER_NO_VALUE", "value": ""},
     ]
+    converted_envs = ElyraProperty.create_instance("env_vars", operation_envs)
 
-    component_parameters = {
-        "filename": pipelines_test_file,
-        "env_vars": operation_envs,
-        "runtime_image": "tensorflow/tensorflow:latest",
-    }
     test_operation = GenericOperation(
         id="this-is-a-test-id",
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_params={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
+        elyra_params={"env_vars": converted_envs},
     )
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")

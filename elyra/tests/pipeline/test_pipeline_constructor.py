@@ -17,6 +17,7 @@ import sys
 
 import pytest
 
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -101,7 +102,6 @@ def test_create_operation_with_environmental_variables():
 
     component_parameters = {
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
-        "env_vars": env_variables,
         "runtime_image": "tensorflow/tensorflow:latest",
     }
     test_operation = GenericOperation(
@@ -110,6 +110,7 @@ def test_create_operation_with_environmental_variables():
         classifier="execute-notebook-node",
         name="test",
         component_params=component_parameters,
+        elyra_params={"env_vars": env_variables},
     )
 
     assert test_operation.env_vars == env_variables
@@ -334,34 +335,22 @@ def test_fail_pipelines_are_equal(good_pipeline):
 
 
 def test_env_list_to_dict_function():
+    env_variables_dict = {"KEY": "val", "KEY2": "value2", "TWO_EQUALS": "KEY=value", "": "no_key"}
     env_variables = [
-        "KEY=value",
-        None,
-        "",
-        "  =empty_key",
-        "=no_key",
-        "EMPTY_VALUE=  ",
-        "NO_VALUE=",
-        "KEY2=value2",
-        "TWO_EQUALS=KEY=value",
-        "==",
+        {"env_var": "KEY", "value": "val"},  # valid
+        {"env_var": "", "value": ""},  # empty key and value
+        {"env_var": "  ", "value": "empty_key"},  # empty key
+        {"env_var": "", "value": "no_key"},  # empty key with value
+        {"env_var": "EMPTY_VALUE", "value": "  "},  # empty value
+        {"env_var": "NO_VALUE"},  # no value
+        {"env_var": "KEY2", "value": "value2"},  # valid
+        {"env_var": "TWO_EQUALS", "value": "KEY=value"},  # valid
+        {},  # no values
+        None,  # None value
     ]
-    env_variables_dict = {"KEY": "value", "KEY2": "value2", "TWO_EQUALS": "KEY=value"}
 
-    component_parameters = {
-        "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
-        "env_vars": env_variables,
-        "runtime_image": "tensorflow/tensorflow:latest",
-    }
-    test_operation = GenericOperation(
-        id="test-id",
-        type="execution-node",
-        classifier="execute-notebook-node",
-        name="test",
-        component_params=component_parameters,
-    )
-
-    assert test_operation.env_vars.to_dict() == env_variables_dict
+    converted_list = ElyraProperty.create_instance("env_vars", env_variables)
+    assert converted_list.to_dict() == env_variables_dict
 
 
 def test_validate_resource_values():

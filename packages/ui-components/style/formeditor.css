@@ -318,7 +318,8 @@ button.elyra-editor-tag.unapplied-tag {
   padding-right: 10px;
 }
 
-.elyra-formEditor .array-item .form-group.field input {
+.elyra-formEditor .array-item .form-group.field input,
+.elyra-formEditor .array-item .form-group.field select {
   margin-top: 0;
 }
 

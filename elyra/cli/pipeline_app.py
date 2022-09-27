@@ -35,6 +35,7 @@ from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.parser import PipelineParser
@@ -584,7 +585,11 @@ def describe(json_option, pipeline_path):
         # (... there are none today)
         # volumes
         for vm in node.get_component_parameter(pipeline_constants.MOUNTED_VOLUMES, []):
-            describe_dict["volume_dependencies"]["value"].add(vm.pvc_name)
+            # The below is a workaround until https://github.com/elyra-ai/elyra/issues/2919 is fixed
+            if not isinstance(vm, (VolumeMount, dict)):
+                continue
+            pvc_name = vm.pvc_name if isinstance(vm, VolumeMount) else vm.get("pvc_name")
+            describe_dict["volume_dependencies"]["value"].add(pvc_name)
 
         if Operation.is_generic_operation(node.op):
             # update stats that are specific to generic components

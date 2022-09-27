@@ -35,7 +35,7 @@
         "{{ property.ref }}": {{ render_parameter_details(property) }},
         {% endfor %}
         {% endif %}
-        {% if additional_properties_apply %}
+        {% if elyra_owned_parameters %}
         "additional_properties_header": {
           "type": "null",
           "title": "Additional Properties",
@@ -43,72 +43,13 @@
           "uihints": {
             "ui:field": "header"
           }
-        }
-        {% endif %}
-        {% if "mounted_volumes" not in elyra_property_collisions_list %}
-        ,
-        "mounted_volumes": {
-          "title": "Data Volumes",
-          "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "default": ""
-          },
-          "default": [],
-          "uihints": {
-            "items": {
-              "ui:placeholder": "/mount/path=pvc-name"
-            },
-          "keyValueEntries": true
-          }
-        }
-        {% endif %}
-        {% if "kubernetes_pod_annotations" not in elyra_property_collisions_list %}
-        ,
-        "kubernetes_pod_annotations": {
-          "title": "Kubernetes Pod Annotations",
-          "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "default": ""
-          },
-          "default": [],
-          "uihints": {
-            "items": {
-              "ui:placeholder": "annotation_key=annotation_value"
-            },
-          "keyValueEntries": true
-          }
-        }
-        {% endif %}
-        {% if "kubernetes_tolerations" not in elyra_property_collisions_list %}
-        ,
-        "kubernetes_tolerations": {
-          "title": "Kubernetes Tolerations",
-          "description": "Kubernetes tolerations to attach to the pod where the node is executed.",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "default": ""
-          },
-          "default": [],
-          "uihints": {
-            "items": {
-              "ui:placeholder": "TOL_ID=key:operator:value:effect"
-            },
-          "keyValueEntries": true
-          }
-        }
-        {% endif %}
-        {% if "disallow_cached_output" not in elyra_property_collisions_list %}
-        ,
-        "disallow_cached_output" : {
-          "type": "boolean",
-          "title": "Disallow cached output",
-          "description": "Disable caching to force node re-execution in the target runtime environment."
-        }
+        },
+        {% for property in elyra_owned_parameters|sort(attribute="property_id") %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
+        {% endfor %}
         {% endif %}
       },
       "required": [

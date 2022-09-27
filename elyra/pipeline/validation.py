@@ -28,31 +28,19 @@ from traitlets.config import SingletonConfigurable
 from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
-from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.pipeline import DataClassJSONEncoder
-from elyra.pipeline.pipeline import KeyValueList
-from elyra.pipeline.pipeline import KubernetesAnnotation
-from elyra.pipeline.pipeline import KubernetesSecret
-from elyra.pipeline.pipeline import KubernetesToleration
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyJSONEncoder
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
-from elyra.pipeline.pipeline import VolumeMount
-from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
-from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
-from elyra.util.kubernetes import is_valid_annotation_key
-from elyra.util.kubernetes import is_valid_kubernetes_key
-from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.path import get_expanded_path
 
 
@@ -113,7 +101,8 @@ class ValidationResponse(object):
                 "message": message,
                 "data": data,
             }
-            self._response["issues"].append(diagnostic)
+            if diagnostic not in self._response["issues"]:
+                self._response["issues"].append(diagnostic)
 
         if severity is ValidationSeverity.Error:
             self._has_fatal = True
@@ -398,7 +387,7 @@ class PipelineValidationManager(SingletonConfigurable):
             for node in pipeline.nodes:
                 if node.type == "execution_node":
                     if Operation.is_generic_operation(node.op):
-                        self._validate_generic_node_properties(
+                        await self._validate_generic_node_properties(
                             node=node, response=response, pipeline_runtime=pipeline_runtime
                         )
                     # Validate runtime components against specific node properties in component registry
@@ -410,7 +399,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             pipeline_definition=pipeline_definition,
                         )
 
-    def _validate_generic_node_properties(self, node: Node, response: ValidationResponse, pipeline_runtime: str):
+    async def _validate_generic_node_properties(self, node: Node, response: ValidationResponse, pipeline_runtime: str):
         """
         Validate properties of a generic node
         :param node: the generic node to check
@@ -422,11 +411,7 @@ class PipelineValidationManager(SingletonConfigurable):
         image_name = node.get_component_parameter(RUNTIME_IMAGE)
         filename = node.get_component_parameter("filename")
         dependencies = node.get_component_parameter("dependencies")
-        env_vars = node.get_component_parameter(ENV_VARIABLES)
-        volumes = node.get_component_parameter(MOUNTED_VOLUMES)
-        secrets = node.get_component_parameter(KUBERNETES_SECRETS)
-        tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
-        annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
+        component_props = await self._get_component_properties(node.op)
 
         self._validate_filepath(
             node_id=node.id, node_label=node_label, property_name="filename", filename=filename, response=response
@@ -446,14 +431,12 @@ class PipelineValidationManager(SingletonConfigurable):
                         response=response,
                     )
 
-            if volumes:
-                self._validate_mounted_volumes(node.id, node_label, volumes, response=response)
-            if secrets:
-                self._validate_kubernetes_secrets(node.id, node_label, secrets, response=response)
-            if tolerations:
-                self._validate_kubernetes_tolerations(node.id, node_label, tolerations, response=response)
-            if annotations:
-                self._validate_kubernetes_pod_annotations(node.id, node_label, annotations, response=response)
+            for param in node.elyra_owned_properties:
+                required = self._is_required_property(component_props, param)
+                self._validate_elyra_owned_property(node.id, node.label, node, param, response, required)
+        else:
+            # Only env vars need to be validated for local runtime
+            self._validate_elyra_owned_property(node.id, node.label, node, ENV_VARIABLES, response)
 
         self._validate_label(node_id=node.id, node_label=node_label, response=response)
         if dependencies:
@@ -467,9 +450,6 @@ class PipelineValidationManager(SingletonConfigurable):
                     filename=dependency,
                     response=response,
                 )
-        if env_vars:
-            for env_var in env_vars:
-                self._validate_environmental_variables(node.id, node_label, env_var=env_var, response=response)
 
     async def _validate_custom_component_node_properties(
         self, node: Node, response: ValidationResponse, pipeline_definition: PipelineDefinition, pipeline_runtime: str
@@ -482,32 +462,16 @@ class PipelineValidationManager(SingletonConfigurable):
         :param pipeline_runtime: the pipeline runtime selected
         :return:
         """
-
-        component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-        components = ComponentCache.to_canvas_palette(component_list)
-
         # Full dict of properties for the operation e.g. current params, optionals etc
-        component_property_dict = await self._get_component_properties(pipeline_runtime, components, node.op)
+        component_property_dict = await self._get_component_properties(node.op, pipeline_runtime)
         current_parameters = component_property_dict["properties"]["component_parameters"]["properties"]
 
-        volumes = node.get_component_parameter(MOUNTED_VOLUMES)
-        if volumes and MOUNTED_VOLUMES not in node.elyra_properties_to_skip:
-            self._validate_mounted_volumes(node.id, node.label, volumes, response=response)
+        for param in node.elyra_owned_properties:
+            param_required = self._is_required_property(component_property_dict, param)
+            self._validate_elyra_owned_property(node.id, node.label, node, param, response, param_required)
 
-        tolerations = node.get_component_parameter(KUBERNETES_TOLERATIONS)
-        if tolerations and KUBERNETES_TOLERATIONS not in node.elyra_properties_to_skip:
-            self._validate_kubernetes_tolerations(node.id, node.label, tolerations, response=response)
-
-        annotations = node.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
-        if annotations and KUBERNETES_POD_ANNOTATIONS not in node.elyra_properties_to_skip:
-            self._validate_kubernetes_pod_annotations(node.id, node.label, annotations, response=response)
-
-        # List of just the parameters parsed from the component definition
-        parsed_parameters = [
-            p
-            for p in current_parameters.keys()
-            if p not in ELYRA_COMPONENT_PROPERTIES or p in node.elyra_properties_to_skip
-        ]
+        # List of just the current parameters for the component
+        parsed_parameters = [p for p in current_parameters.keys() if p not in node.elyra_owned_properties]
         for default_parameter in parsed_parameters:
             node_param = node.get_component_parameter(default_parameter)
             if not node_param or node_param.get("value") is None:
@@ -650,181 +614,52 @@ class PipelineValidationManager(SingletonConfigurable):
                 },
             )
 
-    def _validate_mounted_volumes(
-        self, node_id: str, node_label: str, volumes: List[VolumeMount], response: ValidationResponse
+    def _validate_elyra_owned_property(
+        self,
+        node_id: str,
+        node_label: str,
+        node: Node,
+        param_name: str,
+        response: ValidationResponse,
+        required: bool = False,
     ) -> None:
         """
         Checks the format of mounted volumes to ensure they're in the correct form
         e.g. foo/path=pvc_name
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
-        :param volumes: a KeyValueList of volumes to check
+        :param param_name: the name of the parameter to check
         :param response: ValidationResponse containing the issue list to be updated
         """
-        for volume in volumes:
-            # Ensure the PVC name is syntactically a valid Kubernetes resource name
-            if not is_valid_kubernetes_resource_name(volume.pvc_name):
+
+        def validate_elyra_owned_property(elyra_property):
+            for msg in elyra_property.get_all_validation_errors():
                 response.add_message(
                     severity=ValidationSeverity.Error,
-                    message_type="invalidVolumeMount",
-                    message=f"PVC name '{volume.pvc_name}' is not a valid Kubernetes resource name.",
+                    message_type=f"invalid{elyra_property.__class__.__name__}",
+                    message=msg,
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
-                        "propertyName": MOUNTED_VOLUMES,
-                        "value": KeyValueList.to_str(volume.path, volume.pvc_name),
+                        "propertyName": param_name,
+                        "value": elyra_property.get_value_for_display(),
                     },
                 )
 
-    def _validate_kubernetes_secrets(
-        self, node_id: str, node_label: str, secrets: List[KubernetesSecret], response: ValidationResponse
-    ) -> None:
-        """
-        Checks the format of Kubernetes secrets to ensure they're in the correct form
-        e.g. FOO=SECRET_NAME:KEY
-        :param node_id: the unique ID of the node
-        :param node_label: the given node name or user customized name/label of the node
-        :param secrets: a KeyValueList of secrets to check
-        :param response: ValidationResponse containing the issue list to be updated
-        """
-        for secret in secrets:
-            if not secret.name or not secret.key:
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidKubernetesSecret",
-                    message=f"Environment variable '{secret.env_var}' has an improperly formatted representation of "
-                    f"secret name and key.",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": KUBERNETES_SECRETS,
-                        "value": KeyValueList.to_str(secret.env_var, f"{(secret.name or '')}:{(secret.key or '')}"),
-                    },
-                )
-                continue
-
-            # Ensure the secret name is syntactically a valid Kubernetes resource name
-            if not is_valid_kubernetes_resource_name(secret.name):
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidKubernetesSecret",
-                    message=f"Secret name '{secret.name}' is not a valid Kubernetes resource name.",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": KUBERNETES_SECRETS,
-                        "value": KeyValueList.to_str(secret.env_var, f"{secret.name}:{secret.key}"),
-                    },
-                )
-            # Ensure the secret key is a syntactically valid Kubernetes key
-            if not is_valid_kubernetes_key(secret.key):
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidKubernetesSecret",
-                    message=f"Key '{secret.key}' is not a valid Kubernetes secret key.",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": KUBERNETES_SECRETS,
-                        "value": KeyValueList.to_str(secret.env_var, f"{secret.name}:{secret.key}"),
-                    },
-                )
-
-    def _validate_kubernetes_tolerations(
-        self, node_id: str, node_label: str, tolerations: List[KubernetesToleration], response: ValidationResponse
-    ) -> None:
-        """
-        Checks the format of kubernetes tolerations to ensure they're in the correct form
-        e.g. key:operator:value:effect
-        :param node_id: the unique ID of the node
-        :param node_label: the given node name or user customized name/label of the node
-        :param tolerations: a KeyValueList of tolerations to check
-        :param response: ValidationResponse containing the issue list to be updated
-        """
-        for toleration in tolerations:
-            # Verify key, operator, value, and effect according to the constraints defined in
-            # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
-            if toleration.operator not in ["Exists", "Equal"]:
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidKubernetesToleration",
-                    message=f"'{toleration.operator}' is not a valid operator. "
-                    "The value must be one of 'Exists' or 'Equal'.",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": KUBERNETES_TOLERATIONS,
-                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
-                    },
-                )
-            if len(toleration.key.strip()) == 0 and toleration.operator == "Equal":
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidKubernetesToleration",
-                    message=f"'{toleration.operator}' is not a valid operator. "
-                    "Operator must be 'Exists' if no key is specified.",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": KUBERNETES_TOLERATIONS,
-                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
-                    },
-                )
-            if len(toleration.effect.strip()) > 0 and toleration.effect not in [
-                "NoExecute",
-                "NoSchedule",
-                "PreferNoSchedule",
-            ]:
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidKubernetesToleration",
-                    message=f"'{toleration.effect}' is not a valid effect. Effect must be one of "
-                    "'NoExecute', 'NoSchedule', or 'PreferNoSchedule'.",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": KUBERNETES_TOLERATIONS,
-                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
-                    },
-                )
-            if toleration.operator == "Exists" and len(toleration.value.strip()) > 0:
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidKubernetesToleration",
-                    message=f"'{toleration.value}' is not a valid value. It should be empty if operator is 'Exists'.",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": KUBERNETES_TOLERATIONS,
-                        "value": f"{toleration.key}:{toleration.operator}:{toleration.value}:{toleration.effect}",
-                    },
-                )
-
-    def _validate_kubernetes_pod_annotations(
-        self, node_id: str, node_label: str, annotations: List[KubernetesAnnotation], response: ValidationResponse
-    ) -> None:
-        """
-        Checks the format of the user-provided annotations to ensure they're in the correct form
-        e.g. annotation_key=annotation_value
-        :param node_id: the unique ID of the node
-        :param node_label: the given node name or user customized name/label of the node
-        :param annotations: a KeyValueList of annotations to check
-        :param response: ValidationResponse containing the issue list to be updated
-        """
-        for annotation in annotations:
-            # Ensure the annotation key is valid
-            if not is_valid_annotation_key(annotation.key):
-                response.add_message(
-                    severity=ValidationSeverity.Error,
-                    message_type="invalidKubernetesAnnotation",
-                    message=f"'{annotation.key}' is not a valid Kubernetes annotation key.",
-                    data={
-                        "nodeID": node_id,
-                        "nodeName": node_label,
-                        "propertyName": KUBERNETES_POD_ANNOTATIONS,
-                        "value": KeyValueList.to_str(annotation.key, annotation.value),
-                    },
-                )
+        param_value = node.get_component_parameter(param_name)
+        if param_value:
+            if isinstance(param_value, ElyraPropertyList):
+                for prop in param_value:
+                    validate_elyra_owned_property(prop)
+            elif isinstance(param_value, ElyraProperty):
+                validate_elyra_owned_property(param_value)
+        elif required:
+            response.add_message(
+                severity=ValidationSeverity.Error,
+                message_type="invalidNodeProperty",
+                message="Required property value is missing.",
+                data={"nodeID": node.id, "nodeName": node_label, "propertyName": param_name},
+            )
 
     def _validate_filepath(
         self,
@@ -892,26 +727,6 @@ class PipelineValidationManager(SingletonConfigurable):
                 },
             )
 
-    def _validate_environmental_variables(
-        self, node_id: str, node_label: str, env_var: str, response: ValidationResponse
-    ) -> None:
-        """
-        Checks the format of the env var to ensure its in the correct form
-        e.g. FOO = 'BAR'
-        :param node_id: the unique ID of the node
-        :param node_label: the given node name or user customized name/label of the node
-        :param env_var: the env_var key value pair to check
-        :param response: ValidationResponse containing the issue list to be updated
-        """
-        result = [x.strip(" '\"") for x in env_var.split("=", 1)]
-        if len(result) != 2:
-            response.add_message(
-                severity=ValidationSeverity.Error,
-                message_type="invalidEnvPair",
-                message="Property has an improperly formatted env variable key value pair.",
-                data={"nodeID": node_id, "nodeName": node_label, "propertyName": ENV_VARIABLES, "value": env_var},
-            )
-
     def _validate_label(self, node_id: str, node_label: str, response: ValidationResponse) -> None:
         """
         KFP specific check for the label name when constructing the node operation using dsl
@@ -969,7 +784,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param response: ValidationResponse containing the issue list to be updated
         :param pipeline: A dictionary describing the pipeline
         """
-        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraPropertyJSONEncoder))
 
         graph = nx.DiGraph()
 
@@ -1020,7 +835,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param node_id: the node ID of the node
         :return: the pipeline ID of where the node is located
         """
-        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraPropertyJSONEncoder))
         for single_pipeline in pipeline_json["pipelines"]:
             node_list = single_pipeline["nodes"]
             for node in node_list:
@@ -1028,26 +843,25 @@ class PipelineValidationManager(SingletonConfigurable):
                     return single_pipeline["id"]
         return None
 
-    async def _get_component_properties(self, pipeline_runtime: str, components: dict, node_op: str) -> Dict:
+    async def _get_component_properties(self, node_op: str, pipeline_runtime: Optional[str] = None) -> Dict:
         """
         Retrieve the full dict of properties associated with the node_op
-        :param components: list of components associated with the pipeline runtime being used e.g. kfp, airflow
         :param node_op: the node operation e.g. execute-notebook-node
         :return: a list of property names associated with the node op
         """
+        if not pipeline_runtime:
+            pipeline_runtime = RuntimeProcessorType.LOCAL.name.lower()
 
-        if node_op == "execute-notebook-node":
-            node_op = "notebooks"
-        elif node_op == "execute-r-node":
-            node_op = "r-script"
-        elif node_op == "execute-python-node":
-            node_op = "python-script"
+        # list of components associated with the pipeline runtime being used
+        component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
+        components = ComponentCache.to_canvas_palette(component_list)
+
         for category in components["categories"]:
             for node_type in category["node_types"]:
                 if node_op == node_type["op"]:
-                    component: Component = await PipelineProcessorManager.instance().get_component(
-                        pipeline_runtime, node_op
-                    )
+                    component = await PipelineProcessorManager.instance().get_component(pipeline_runtime, node_op)
+                    if not component:  # component is generic; retrieve using static method
+                        component = ComponentCache.get_generic_component_from_op(node_op)
                     component_properties = ComponentCache.to_canvas_properties(component)
                     return component_properties
 
@@ -1061,7 +875,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :return: a string representing the name of the node
         """
         node_name_list = []
-        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraPropertyJSONEncoder))
         for node_id in node_id_list:
             found = False
             for single_pipeline in pipeline_json["pipelines"]:
@@ -1087,7 +901,7 @@ class PipelineValidationManager(SingletonConfigurable):
         if link_ids is None:
             return None
 
-        pipeline_json = json.loads(json.dumps(pipeline, cls=DataClassJSONEncoder))
+        pipeline_json = json.loads(json.dumps(pipeline, cls=ElyraPropertyJSONEncoder))
         node_labels = []
         for link_id in link_ids:
             for single_pipeline in pipeline_json["pipelines"]:
@@ -1131,8 +945,12 @@ class PipelineValidationManager(SingletonConfigurable):
         :param node_property: the component property to check
         :return:
         """
-        required_parameters = property_dict["properties"]["component_parameters"]["required"]
-        return node_property in required_parameters
+        required_parameters = property_dict["properties"]["component_parameters"].get("required")
+        if required_parameters:
+            return node_property in required_parameters
+
+        param = property_dict["properties"]["component_parameters"]["properties"].get(node_property, {})
+        return param.get("required", False)
 
     def _get_parent_id_list(
         self, pipeline_definition: PipelineDefinition, node_id_list: list, parent_list: list

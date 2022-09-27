@@ -163,7 +163,7 @@
           },
           "comments": []
         },
-        "version": 7.5,
+        "version": 8,
         "properties": {
           "name": "kf_invalid_node_property_in_component",
           "runtime": "Kubeflow Pipelines"

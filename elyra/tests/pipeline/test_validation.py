@@ -20,15 +20,19 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
-from elyra.pipeline.pipeline import KubernetesAnnotation
-from elyra.pipeline.pipeline import KubernetesSecret
-from elyra.pipeline.pipeline import KubernetesToleration
+from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import EnvironmentVariable
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesSecret
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
-from elyra.pipeline.pipeline import VolumeMount
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationResponse
@@ -408,35 +412,90 @@ def test_invalid_node_property_resource_value(validation_manager, load_pipeline)
 
 def test_invalid_node_property_env_var(validation_manager):
     response = ValidationResponse()
-    node = {"id": "test-id", "app_data": {"label": "test"}}
-    invalid_env_var = 'TEST_ENV_ONE"test_one"'
-    validation_manager._validate_environmental_variables(
-        node_id=node["id"], node_label=node["app_data"]["label"], env_var=invalid_env_var, response=response
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+
+    invalid_env_vars = ElyraPropertyList(
+        [
+            EnvironmentVariable(env_var="TEST_ENV SPACE", value="value"),
+            EnvironmentVariable(env_var="", value="no key"),
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][ENV_VARIABLES] = invalid_env_vars
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=ENV_VARIABLES, response=response
     )
     issues = response.to_json().get("issues")
     assert issues[0]["severity"] == 1
-    assert issues[0]["type"] == "invalidEnvPair"
+    assert issues[0]["type"] == "invalidEnvironmentVariable"
     assert issues[0]["data"]["propertyName"] == "env_vars"
     assert issues[0]["data"]["nodeID"] == "test-id"
+    assert issues[0]["message"] == "Environment variable 'TEST_ENV SPACE' includes invalid space character(s)."
+
+    assert issues[0]["severity"] == 1
+    assert issues[1]["type"] == "invalidEnvironmentVariable"
+    assert issues[1]["data"]["propertyName"] == "env_vars"
+    assert issues[1]["data"]["nodeID"] == "test-id"
+    assert issues[1]["message"] == "Required environment variable was not specified."
+
+
+def test_valid_node_property_volumes(validation_manager):
+    response = ValidationResponse()
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+
+    volumes = ElyraPropertyList(
+        [
+            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim"),  # valid
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim"),  # valid
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=MOUNTED_VOLUMES, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == 0
 
 
 def test_invalid_node_property_volumes(validation_manager):
     response = ValidationResponse()
-    node = {"id": "test-id", "app_data": {"label": "test"}}
-    volumes = [
-        VolumeMount("/mount/test", "rwx-test-claim"),  # valid
-        VolumeMount("/mount/test_two", "second-claim"),  # valid
-        VolumeMount("/mount/test_four", "second#claim"),  # invalid pvc name
-    ]
-    validation_manager._validate_mounted_volumes(
-        node_id=node["id"], node_label=node["app_data"]["label"], volumes=volumes, response=response
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+
+    volumes = ElyraPropertyList(
+        [
+            VolumeMount(path="", pvc_name=""),  # missing mount path and pvc name
+            VolumeMount(path=None, pvc_name=None),  # missing mount path and pvc name
+            VolumeMount(path="", pvc_name="pvc"),  # missing mount path
+            VolumeMount(path=None, pvc_name="pvc"),  # missing mount path
+            VolumeMount(path="/path", pvc_name=""),  # missing pvc name
+            VolumeMount(path="/path/", pvc_name=None),  # missing pvc name
+            VolumeMount(path="/mount/test_four", pvc_name="second#claim"),  # invalid pvc name
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=MOUNTED_VOLUMES, response=response
     )
     issues = response.to_json().get("issues")
+    assert len(issues) == 9, issues
     assert issues[0]["severity"] == 1
     assert issues[0]["type"] == "invalidVolumeMount"
     assert issues[0]["data"]["propertyName"] == MOUNTED_VOLUMES
     assert issues[0]["data"]["nodeID"] == "test-id"
-    assert "not a valid Kubernetes resource name" in issues[0]["message"]
+    assert "Required mount path was not specified." in issues[0]["message"]
+    assert "Required persistent volume claim name was not specified." in issues[1]["message"]
+    assert "Required mount path was not specified." in issues[2]["message"]
+    assert "Required persistent volume claim name was not specified." in issues[3]["message"]
+    assert "Required mount path was not specified." in issues[4]["message"]
+    assert "Required mount path was not specified." in issues[5]["message"]
+    assert "Required persistent volume claim name was not specified." in issues[6]["message"]
+    assert "Required persistent volume claim name was not specified." in issues[7]["message"]
+    assert "PVC name 'second#claim' is not a valid Kubernetes resource name." in issues[8]["message"]
 
 
 def test_valid_node_property_kubernetes_toleration(validation_manager):
@@ -446,18 +505,21 @@ def test_valid_node_property_kubernetes_toleration(validation_manager):
     https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
     """
     response = ValidationResponse()
-    node = {"id": "test-id", "app_data": {"label": "test"}}
-    # The following tolerations are valid
-    tolerations = [
-        # parameters are key, operator, value, effect
-        KubernetesToleration("", "Exists", "", "NoExecute"),
-        KubernetesToleration("key0", "Exists", "", ""),
-        KubernetesToleration("key1", "Exists", "", "NoSchedule"),
-        KubernetesToleration("key2", "Equal", "value2", "NoExecute"),
-        KubernetesToleration("key3", "Equal", "value3", "PreferNoSchedule"),
-    ]
-    validation_manager._validate_kubernetes_tolerations(
-        node_id=node["id"], node_label=node["app_data"]["label"], tolerations=tolerations, response=response
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+    tolerations = ElyraPropertyList(
+        [
+            KubernetesToleration(key="", operator="Exists", value="", effect="NoExecute"),
+            KubernetesToleration(key="key0", operator="Exists", value="", effect=""),
+            KubernetesToleration(key="key1", operator="Exists", value="", effect="NoSchedule"),
+            KubernetesToleration(key="key2", operator="Equal", value="value2", effect="NoExecute"),
+            KubernetesToleration(key="key3", operator="Equal", value="value3", effect="PreferNoSchedule"),
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][KUBERNETES_TOLERATIONS] = tolerations
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_TOLERATIONS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 0, response.to_json()
@@ -470,25 +532,27 @@ def test_valid_node_property_kubernetes_pod_annotation(validation_manager):
     https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
     """
     response = ValidationResponse()
-    node = {"id": "test-id", "app_data": {"label": "test"}}
-    # The following annotations are valid
-    annotations = [
-        # parameters are key and value
-        KubernetesAnnotation("k", ""),
-        KubernetesAnnotation("key", "value"),
-        KubernetesAnnotation("n-a-m-e", "value"),
-        KubernetesAnnotation("n.a.m.e", "value"),
-        KubernetesAnnotation("n_a_m_e", "value"),
-        KubernetesAnnotation("n-a.m_e", "value"),
-        KubernetesAnnotation("prefix/name", "value"),
-        KubernetesAnnotation("abc.def/name", "value"),
-        KubernetesAnnotation("abc.def.ghi/n-a-m-e", "value"),
-        KubernetesAnnotation("abc.def.ghi.jkl/n.a.m.e", "value"),
-        KubernetesAnnotation("abc.def.ghi.jkl.mno/n_a_m_e", "value"),
-        KubernetesAnnotation("abc.def.ghijklmno.pqr/n-a.m_e", "value"),
-    ]
-    validation_manager._validate_kubernetes_pod_annotations(
-        node_id=node["id"], node_label=node["app_data"]["label"], annotations=annotations, response=response
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+    annotations = ElyraPropertyList(
+        [
+            KubernetesAnnotation(key="key", value="value"),
+            KubernetesAnnotation(key="n-a-m-e", value="value"),
+            KubernetesAnnotation(key="n.a.m.e", value="value"),
+            KubernetesAnnotation(key="n_a_m_e", value="value"),
+            KubernetesAnnotation(key="n-a.m_e", value="value"),
+            KubernetesAnnotation(key="prefix/name", value="value"),
+            KubernetesAnnotation(key="abc.def/name", value="value"),
+            KubernetesAnnotation(key="abc.def.ghi/n-a-m-e", value="value"),
+            KubernetesAnnotation(key="abc.def.ghi.jkl/n.a.m.e", value="value"),
+            KubernetesAnnotation(key="abc.def.ghi.jkl.mno/n_a_m_e", value="value"),
+            KubernetesAnnotation(key="abc.def.ghijklmno.pqr/n-a.m_e", value="value"),
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][KUBERNETES_POD_ANNOTATIONS] = annotations
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_POD_ANNOTATIONS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 0, response.to_json()
@@ -501,39 +565,43 @@ def test_invalid_node_property_kubernetes_toleration(validation_manager):
     https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core
     """
     response = ValidationResponse()
-    node = {"id": "test-id", "app_data": {"label": "test"}}
-    # The following tolerations are invalid
-    invalid_tolerations = [
-        # parameters are key, operator, value, effect
-        KubernetesToleration("", "", "", ""),  # cannot be all empty
-        # invalid values for 'operator'
-        KubernetesToleration("", "Equal", "value", ""),  # empty key requires 'Exists'
-        KubernetesToleration("key0", "exists", "", ""),  # wrong case
-        KubernetesToleration("key1", "Exist", "", ""),  # wrong keyword
-        KubernetesToleration("key2", "", "", ""),  # wrong keyword (technically valid but enforced)
-        # invalid values for 'value'
-        KubernetesToleration("key3", "Exists", "value3", ""),  # 'Exists' -> no value
-        # invalid values for 'effect'
-        KubernetesToleration("key4", "Exists", "", "noschedule"),  # wrong case
-        KubernetesToleration("key5", "Exists", "", "no-such-effect"),  # wrong keyword
-    ]
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+    invalid_tolerations = ElyraPropertyList(
+        [
+            KubernetesToleration(key="", operator="", value="", effect=""),  # cannot be all empty
+            # invalid values for 'operator'
+            KubernetesToleration(key="", operator="Equal", value="value", effect=""),  # empty key requires 'Exists'
+            KubernetesToleration(key="key0", operator="exists", value="", effect=""),  # wrong case
+            KubernetesToleration(key="key1", operator="Exist", value="", effect=""),  # wrong keyword
+            KubernetesToleration(
+                key="key2", operator="", value="", effect=""
+            ),  # wrong keyword (technically valid but enforced)  # noqa
+            # invalid values for 'value'
+            KubernetesToleration(key="key3", operator="Exists", value="value3", effect=""),  # 'Exists' -> no value
+            # invalid values for 'effect'
+            KubernetesToleration(key="key4", operator="Exists", value="", effect="noschedule"),  # wrong case
+            KubernetesToleration(key="key5", operator="Exists", value="", effect="no-such-effect"),  # wrong keyword
+        ]
+    )
     expected_error_messages = [
-        "'' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
-        "'Equal' is not a valid operator. Operator must be 'Exists' if no key is specified.",
-        "'exists' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
-        "'Exist' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
-        "'' is not a valid operator. The value must be one of 'Exists' or 'Equal'.",
-        "'value3' is not a valid value. It should be empty if operator is 'Exists'.",
-        "'noschedule' is not a valid effect. Effect must be one of 'NoExecute', 'NoSchedule', or 'PreferNoSchedule'.",
-        "'no-such-effect' is not a valid effect. Effect must be one of 'NoExecute', "
+        "'' is not a valid operator: the value must be one of 'Exists' or 'Equal'.",
+        "'Equal' is not a valid operator: operator must be 'Exists' if no key is specified.",
+        "'exists' is not a valid operator: the value must be one of 'Exists' or 'Equal'.",
+        "'Exist' is not a valid operator: the value must be one of 'Exists' or 'Equal'.",
+        "'' is not a valid operator: the value must be one of 'Exists' or 'Equal'.",
+        "'value3' is not a valid value: value should be empty if operator is 'Exists'.",
+        "'noschedule' is not a valid effect: effect must be one of 'NoExecute', 'NoSchedule', or 'PreferNoSchedule'.",
+        "'no-such-effect' is not a valid effect: effect must be one of 'NoExecute', "
         "'NoSchedule', or 'PreferNoSchedule'.",
     ]
 
     # verify that the number of tolerations in this test matches the number of error messages
     assert len(invalid_tolerations) == len(expected_error_messages), "Test setup error. "
+    node_dict["app_data"]["component_parameters"][KUBERNETES_TOLERATIONS] = invalid_tolerations
 
-    validation_manager._validate_kubernetes_tolerations(
-        node_id=node["id"], node_label=node["app_data"]["label"], tolerations=invalid_tolerations, response=response
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_TOLERATIONS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == len(invalid_tolerations), response.to_json()
@@ -548,44 +616,51 @@ def test_invalid_node_property_kubernetes_toleration(validation_manager):
 
 def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
     """
-    Validate that valid kubernetes pod annotation definitions are not flagged as invalid.
+    Validate that invalid kubernetes pod annotation definitions are flagged as invalid.
     Constraints are documented in
     https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
     """
     response = ValidationResponse()
-    node = {"id": "test-id", "app_data": {"label": "test"}}
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
     TOO_SHORT_LENGTH = 0
     MAX_PREFIX_LENGTH = 253
     MAX_NAME_LENGTH = 63
     TOO_LONG_LENGTH = MAX_PREFIX_LENGTH + 1 + MAX_NAME_LENGTH + 1  # prefix + '/' + name
 
     # The following annotations are invalid
-    invalid_annotations = [
-        # parameters are key and value
-        # test length violations (key name and prefix)
-        KubernetesAnnotation("a" * (TOO_SHORT_LENGTH), ""),  # empty key (min 1)
-        KubernetesAnnotation("a" * (TOO_LONG_LENGTH), ""),  # key too long
-        KubernetesAnnotation(f"{'a' * (MAX_PREFIX_LENGTH + 1)}/b", ""),  # key prefix too long
-        KubernetesAnnotation(f"{'a' * (MAX_NAME_LENGTH + 1)}", ""),  # key name too long
-        KubernetesAnnotation(f"prefix/{'a' * (MAX_NAME_LENGTH + 1)}", ""),  # key name too long
-        KubernetesAnnotation(f"{'a' * (MAX_PREFIX_LENGTH + 1)}/name", ""),  # key prefix too long
-        # test character violations (key name)
-        KubernetesAnnotation("-", ""),  # name must start and end with alphanum
-        KubernetesAnnotation("-a", ""),  # name must start with alphanum
-        KubernetesAnnotation("a-", ""),  # name must start with alphanum
-        KubernetesAnnotation("prefix/-b", ""),  # name start with alphanum
-        KubernetesAnnotation("prefix/b-", ""),  # name must end with alphanum
-        # test character violations (key prefix)
-        KubernetesAnnotation("PREFIX/name", ""),  # prefix must be lowercase
-        KubernetesAnnotation("pref!x/name", ""),  # prefix must contain alnum, '-' or '.'
-        KubernetesAnnotation("pre.fx./name", ""),  # prefix must contain alnum, '-' or '.'
-        KubernetesAnnotation("-pre.fx.com/name", ""),  # prefix must contain alnum, '-' or '.'
-        KubernetesAnnotation("pre.fx-./name", ""),  # prefix must contain alnum, '-' or '.'
-        KubernetesAnnotation("a/b/c", ""),  # only one separator char
-    ]
+    invalid_annotations = ElyraPropertyList(
+        [
+            # test length violations (key name and prefix)
+            KubernetesAnnotation(key="a", value=""),  # empty value (min 1)
+            KubernetesAnnotation(key="a", value=None),  # empty value (min 1)
+            KubernetesAnnotation(key="a" * TOO_SHORT_LENGTH, value="val"),  # empty key (min 1)
+            KubernetesAnnotation(key=None, value="val"),  # empty key (min 1)
+            KubernetesAnnotation(key="a" * TOO_LONG_LENGTH, value="val"),  # key too long
+            KubernetesAnnotation(key=f"{'a' * (MAX_PREFIX_LENGTH + 1)}/b", value="val"),  # key prefix too long
+            KubernetesAnnotation(key=f"{'a' * (MAX_NAME_LENGTH + 1)}", value="val"),  # key name too long
+            KubernetesAnnotation(key=f"prefix/{'a' * (MAX_NAME_LENGTH + 1)}", value="val"),  # key name too long
+            KubernetesAnnotation(key=f"{'a' * (MAX_PREFIX_LENGTH + 1)}/name", value="val"),  # key prefix too long
+            # test character violations (key name)
+            KubernetesAnnotation(key="-", value="val"),  # name must start and end with alphanum
+            KubernetesAnnotation(key="-a", value="val"),  # name must start with alphanum
+            KubernetesAnnotation(key="a-", value="val"),  # name must start with alphanum
+            KubernetesAnnotation(key="prefix/-b", value="val"),  # name start with alphanum
+            KubernetesAnnotation(key="prefix/b-", value="val"),  # name must end with alphanum
+            # test character violations (key prefix)
+            KubernetesAnnotation(key="PREFIX/name", value="val"),  # prefix must be lowercase
+            KubernetesAnnotation(key="pref!x/name", value="val"),  # prefix must contain alnum, '-' or '.'
+            KubernetesAnnotation(key="pre.fx./name", value="val"),  # prefix must contain alnum, '-' or '.'
+            KubernetesAnnotation(key="-pre.fx.com/name", value="val"),  # prefix must contain alnum, '-' or '.'
+            KubernetesAnnotation(key="pre.fx-./name", value="val"),  # prefix must contain alnum, '-' or '.'
+            KubernetesAnnotation(key="a/b/c", value="val"),  # only one separator char
+        ]
+    )
     expected_error_messages = [
-        "'' is not a valid Kubernetes annotation key.",
-        f"'{'a' * (TOO_LONG_LENGTH)}' is not a valid Kubernetes annotation key.",
+        "Required annotation value was not specified.",
+        "Required annotation value was not specified.",
+        "Required annotation key was not specified.",
+        "Required annotation key was not specified.",
+        f"'{'a' * TOO_LONG_LENGTH}' is not a valid Kubernetes annotation key.",
         f"'{'a' * (MAX_PREFIX_LENGTH + 1)}/b' is not a valid Kubernetes annotation key.",
         f"'{'a' * (MAX_NAME_LENGTH + 1)}' is not a valid Kubernetes annotation key.",
         f"'prefix/{'a' * (MAX_NAME_LENGTH + 1)}' is not a valid Kubernetes annotation key.",
@@ -605,9 +680,11 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
 
     # verify that the number of annotations in this test matches the number of error messages
     assert len(invalid_annotations) == len(expected_error_messages), "Test implementation error. "
+    node_dict["app_data"]["component_parameters"][KUBERNETES_POD_ANNOTATIONS] = invalid_annotations
 
-    validation_manager._validate_kubernetes_pod_annotations(
-        node_id=node["id"], node_label=node["app_data"]["label"], annotations=invalid_annotations, response=response
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_POD_ANNOTATIONS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == len(
@@ -622,27 +699,78 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
         index = index + 1
 
 
-def test_invalid_node_property_secrets(validation_manager):
+def test_valid_node_property_secrets(validation_manager):
     response = ValidationResponse()
-    node = {"id": "test-id", "app_data": {"label": "test"}}
-    secrets = [
-        KubernetesSecret("ENV_VAR1", "test-secret", "test-key1"),  # valid
-        KubernetesSecret("ENV_VAR2", "test-secret", "test-key2"),  # valid
-        KubernetesSecret("ENV_VAR3", "test-secret", ""),  # invalid: improper format of secret name/key
-        KubernetesSecret("ENV_VAR5", "test%secret", "test-key"),  # invalid: not a valid Kubernetes resource name
-        KubernetesSecret("ENV_VAR6", "test-secret", "test$key2"),  # invalid: not a valid Kubernetes secret key
-    ]
-    validation_manager._validate_kubernetes_secrets(
-        node_id=node["id"], node_label=node["app_data"]["label"], secrets=secrets, response=response
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+    secrets = ElyraPropertyList(
+        [
+            KubernetesSecret(env_var="ENV_VAR1", name="test-secret", key="test-key1"),  # valid
+            KubernetesSecret(env_var="ENV_VAR2", name="test-secret", key="test-key2"),  # valid
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][KUBERNETES_SECRETS] = secrets
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SECRETS, response=response
     )
     issues = response.to_json().get("issues")
+    assert len(issues) == 0, issues
+
+
+def test_invalid_node_property_secrets(validation_manager):
+    response = ValidationResponse()
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+    secrets = ElyraPropertyList(
+        [
+            KubernetesSecret(env_var="", name="test-secret", key="test-key1"),  # missing env var name
+            KubernetesSecret(env_var=None, name="test-secret", key="test-key1"),  # missing env var name
+            KubernetesSecret(env_var="ENV_VAR1", name="", key="key"),  # missing secret name
+            KubernetesSecret(env_var="ENV_VAR2", name=None, key="key"),  # missing secret name
+            KubernetesSecret(env_var="ENV_VAR3", name="test-secret", key=""),  # missing secret key
+            KubernetesSecret(env_var="ENV_VAR4", name="test-secret", key=None),  # missing secret key
+            KubernetesSecret(env_var="ENV_VAR5", name="test%secret", key="test-key"),  # invalid k8s resource name
+            KubernetesSecret(env_var="ENV_VAR6", name="test-secret", key="test$key2"),  # invalid k8s secret key
+            KubernetesSecret(env_var="", name="", key=""),  # invalid - all required information is missing
+            KubernetesSecret(env_var=None, name=None, key=None),  # invalid - all required information is missing
+        ]
+    )
+    node_dict["app_data"]["component_parameters"][KUBERNETES_SECRETS] = secrets
+
+    node = Node(node_dict)
+    validation_manager._validate_elyra_owned_property(
+        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SECRETS, response=response
+    )
+    issues = response.to_json().get("issues")
+    assert len(issues) == 14, issues
     assert issues[0]["severity"] == 1
     assert issues[0]["type"] == "invalidKubernetesSecret"
     assert issues[0]["data"]["propertyName"] == KUBERNETES_SECRETS
     assert issues[0]["data"]["nodeID"] == "test-id"
-    assert "improperly formatted representation of secret name and key" in issues[0]["message"]
-    assert "not a valid Kubernetes resource name" in issues[1]["message"]
-    assert "not a valid Kubernetes secret key" in issues[2]["message"]
+
+    # triggered by KubernetesSecret(env_var="", name="test-secret", key="test-key1")
+    assert "Required environment variable was not specified." in issues[0]["message"]
+    # triggered by KubernetesSecret(env_var=None, name="test-secret", key="test-key1")
+    assert "Required environment variable was not specified." in issues[1]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR1", name="", key="key")
+    assert "Required secret name was not specified." in issues[2]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR2", name=None, key="key")
+    assert "Required secret name was not specified." in issues[3]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR3", name="test-secret", key="")
+    assert "Required secret key was not specified." in issues[4]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR4", name="test-secret", key=None)
+    assert "Required secret key was not specified." in issues[5]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR5", name="test%secret", key="test-key")
+    assert "Secret name 'test%secret' is not a valid Kubernetes resource name." in issues[6]["message"]
+    # triggered by KubernetesSecret(env_var="ENV_VAR6", name="test-secret", key="test$key2")
+    assert "Key 'test$key2' is not a valid Kubernetes secret key." in issues[7]["message"]
+    # triggered by KubernetesSecret(env_var="", name="", key="")
+    assert "Required environment variable was not specified." in issues[8]["message"]
+    assert "Required secret name was not specified." in issues[9]["message"]
+    assert "Required secret key was not specified." in issues[10]["message"]
+    assert "Required environment variable was not specified." in issues[11]["message"]
+    assert "Required secret name was not specified." in issues[12]["message"]
+    assert "Required secret key was not specified." in issues[13]["message"]
 
 
 def test_valid_node_property_label(validation_manager):

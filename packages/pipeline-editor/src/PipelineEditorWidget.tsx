@@ -304,14 +304,23 @@ const PipelineWrapper: React.FC<IProps> = ({
   }, [runtimeDisplayName]);
 
   const onChange = useCallback((pipelineJson: any): void => {
-    const removeNullValues = (data: any): void => {
+    const removeNullValues = (data: any, removeEmptyString?: boolean): void => {
       for (const key in data) {
-        if (data[key] === null) {
+        if (
+          data[key] === null ||
+          data[key] === undefined ||
+          (removeEmptyString && data[key] === '')
+        ) {
           delete data[key];
         } else if (Array.isArray(data[key])) {
           const newArray = [];
           for (const i in data[key]) {
-            if (data[key][i] !== null && data[key][i] !== '') {
+            if (typeof data[key][i] === 'object') {
+              removeNullValues(data[key][i], true);
+              if (Object.keys(data[key][i]).length > 0) {
+                newArray.push(data[key][i]);
+              }
+            } else if (data[key][i] !== null && data[key][i] !== '') {
               newArray.push(data[key][i]);
             }
           }
@@ -487,20 +496,28 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   const onPropertiesUpdateRequested = async (args: any): Promise<any> => {
+    if (!contextRef.current.path) {
+      return args;
+    }
     const path = PipelineService.getWorkspaceRelativeNodePath(
       contextRef.current.path,
       args.component_parameters.filename
     );
-    const new_env_vars = await ContentParser.getEnvVars(
-      path
-    ).then((response: any) => response.map((str: string) => str + '='));
+    const new_env_vars = await ContentParser.getEnvVars(path).then(
+      (response: any) =>
+        response.map((str: string) => {
+          return { env_var: str };
+        })
+    );
 
     const env_vars = args.component_parameters?.env_vars ?? [];
     const merged_env_vars = [
       ...env_vars,
       ...new_env_vars.filter(
-        (new_var: string) =>
-          !env_vars.some((old_var: string) => old_var.startsWith(new_var))
+        (new_var: any) =>
+          !env_vars.some((old_var: any) => {
+            return old_var.env_var === new_var.env_var;
+          })
       )
     ];
 

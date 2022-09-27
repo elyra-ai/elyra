@@ -13,10 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from dataclasses import asdict as dataclass_asdict
-from dataclasses import dataclass
-from dataclasses import is_dataclass
-import json
+from __future__ import annotations
+
 import os
 import sys
 from typing import Any
@@ -24,16 +22,14 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.pipeline_constants import DISALLOW_CACHED_OUTPUT
+from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
-from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
-PIPELINE_CURRENT_VERSION = 7.5  # TODO: Update to 8 with update to pipeline-editor v1.10
+PIPELINE_CURRENT_VERSION = 8
 PIPELINE_CURRENT_SCHEMA = 3.0
 
 
@@ -53,16 +49,13 @@ class Operation(object):
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
         component_params: Optional[Dict[str, Any]] = None,
-    ) -> "Operation":
+        elyra_params: Optional[Dict[str, Any]] = None,
+    ) -> Operation:
         """Class method that creates the appropriate instance of Operation based on inputs."""
 
         if Operation.is_generic_operation(classifier):
-            return GenericOperation(
-                id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-            )
-        return Operation(
-            id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-        )
+            return GenericOperation(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
+        return Operation(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
 
     def __init__(
         self,
@@ -72,16 +65,17 @@ class Operation(object):
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
         component_params: Optional[Dict[str, Any]] = None,
+        elyra_params: Optional[Dict[str, Any]] = None,
     ):
         """
-        :param id: Generated UUID, 128 bit number used as a unique identifier
-                   e.g. 123e4567-e89b-12d3-a456-426614174000
+        :param id: Generated UUID, 128 bit number used as a unique identifier, e.g. 123e4567-e89b-12d3-a456-426614174000
         :param type: The type of node e.g. execution_node
         :param classifier: indicates the operation's class
         :param name: The name of the operation
         :param parent_operation_ids: List of parent operation 'ids' required to execute prior to this operation
         :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
-                                 a non-standard operation instance
+            non-Generic operation instance
+        :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
         """
 
         # Validate that the operation has all required properties
@@ -100,45 +94,8 @@ class Operation(object):
         self._name = name
         self._parent_operation_ids = parent_operation_ids or []
         self._component_params = component_params or {}
+        self._elyra_params = elyra_params or {}
         self._doc = None
-
-        self._mounted_volumes = []
-        param_volumes = component_params.get(MOUNTED_VOLUMES)
-        if (
-            param_volumes is not None
-            and isinstance(param_volumes, list)
-            and (len(param_volumes) == 0 or isinstance(param_volumes[0], VolumeMount))
-        ):
-            # The mounted_volumes property is an Elyra system property (ie, not defined in the component
-            # spec) and must be removed from the component_params dict
-            self._mounted_volumes = self._component_params.pop(MOUNTED_VOLUMES, [])
-
-        self._kubernetes_tolerations = []
-        param_tolerations = component_params.get(KUBERNETES_TOLERATIONS)
-        if (
-            param_tolerations is not None
-            and isinstance(param_tolerations, list)
-            and (len(param_tolerations) == 0 or isinstance(param_tolerations[0], KubernetesToleration))
-        ):
-            # The kubernetes_tolerations property is the Elyra system property (ie, not defined in the component
-            # spec) and must be removed from the component_params dict
-            self._kubernetes_tolerations = self._component_params.pop(KUBERNETES_TOLERATIONS, [])
-
-        self._kubernetes_pod_annotations = []
-        param_annotations = component_params.get(KUBERNETES_POD_ANNOTATIONS)
-        if (
-            param_annotations is not None
-            and isinstance(param_annotations, list)
-            and (len(param_annotations) == 0 or isinstance(param_annotations[0], KubernetesAnnotation))
-        ):
-            # The kubernetes_pod_annotations property is an Elyra system property (ie, not defined in the component
-            # spec) and must be removed from the component_params dict
-            self._kubernetes_pod_annotations = self._component_params.pop(KUBERNETES_POD_ANNOTATIONS, [])
-
-        # If disabled, this operation is requested to be re-executed in the
-        # target runtime environment, even if it was executed before.
-        param_disallow_cached_output = component_params.get(DISALLOW_CACHED_OUTPUT)
-        self._disallow_cached_output = param_disallow_cached_output
 
         # Scrub the inputs and outputs lists
         self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
@@ -185,25 +142,8 @@ class Operation(object):
         return self._component_params or {}
 
     @property
-    def mounted_volumes(self) -> List["VolumeMount"]:
-        return self._mounted_volumes
-
-    @property
-    def kubernetes_tolerations(self) -> List["KubernetesToleration"]:
-        return self._kubernetes_tolerations
-
-    @property
-    def kubernetes_pod_annotations(self) -> List["KubernetesAnnotation"]:
-        return self._kubernetes_pod_annotations
-
-    @property
-    def disallow_cached_output(self) -> Optional[bool]:
-        """
-        Returns None if caching behavior is delegated to the runtime
-        Returns True if cached output may be used (instead of executing the op to produce it)
-        Returns False if cached output must not be used (instead of executing the op to produce it)
-        """
-        return self._disallow_cached_output
+    def elyra_params(self) -> Optional[Dict[str, Any]]:
+        return self._elyra_params or {}
 
     @property
     def inputs(self) -> Optional[List[str]]:
@@ -225,7 +165,7 @@ class Operation(object):
     def outputs(self, value: List[str]):
         self._component_params["outputs"] = value
 
-    def __eq__(self, other: "Operation") -> bool:
+    def __eq__(self, other: Operation) -> bool:
         if isinstance(self, other.__class__):
             return (
                 self.id == other.id
@@ -278,6 +218,7 @@ class GenericOperation(Operation):
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
         component_params: Optional[Dict[str, Any]] = None,
+        elyra_params: Optional[Dict[str, Any]] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -299,19 +240,18 @@ class GenericOperation(Operation):
                 dependencies: List of local files/directories needed for the operation to run
                              and packaged into each operation's dependency archive
                 include_subdirectories: Include or Exclude subdirectories when packaging our 'dependencies'
-                env_vars: List of Environmental variables to set in the container image
-                         e.g. FOO="BAR"
+                env_vars: List of Environmental variables to set in the container image, e.g. FOO="BAR"
                 inputs: List of files to be consumed by this operation, produced by parent operation(s)
                 outputs: List of files produced by this operation to be included in a child operation(s)
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
         Entries for other (non-built-in) component types are a function of the respective component.
+
+        :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
         """
 
-        super().__init__(
-            id, type, name, classifier, parent_operation_ids=parent_operation_ids, component_params=component_params
-        )
+        super().__init__(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
 
         if not component_params.get("filename"):
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
@@ -329,10 +269,13 @@ class GenericOperation(Operation):
         self._component_params["runtime_image"] = component_params.get("runtime_image")
         self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
-        self._component_params["env_vars"] = KeyValueList(Operation._scrub_list(component_params.get("env_vars", [])))
         self._component_params["cpu"] = component_params.get("cpu")
         self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")
+
+        if not elyra_params:
+            elyra_params = {}
+        self._elyra_params["env_vars"] = ElyraPropertyList(elyra_params.get(ENV_VARIABLES, []))
 
     @property
     def name(self) -> str:
@@ -350,7 +293,7 @@ class GenericOperation(Operation):
 
     @property
     def runtime_image(self) -> str:
-        return self._component_params.get("runtime_image")
+        return self._component_params.get(RUNTIME_IMAGE)
 
     @property
     def dependencies(self) -> Optional[List[str]]:
@@ -361,8 +304,8 @@ class GenericOperation(Operation):
         return self._component_params.get("include_subdirectories")
 
     @property
-    def env_vars(self) -> Optional["KeyValueList"]:
-        return self._component_params.get(ENV_VARIABLES)
+    def env_vars(self) -> ElyraPropertyList[EnvironmentVariable]:
+        return self._elyra_params.get(ENV_VARIABLES)
 
     @property
     def cpu(self) -> Optional[str]:
@@ -376,11 +319,7 @@ class GenericOperation(Operation):
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
 
-    @property
-    def kubernetes_secrets(self) -> List["KubernetesSecret"]:
-        return self._component_params.get(KUBERNETES_SECRETS)
-
-    def __eq__(self, other: "GenericOperation") -> bool:
+    def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):
             return super().__eq__(other)
         return False
@@ -539,86 +478,3 @@ class KeyValueList(list):
 
             kv_dict[key] = value
         return kv_dict
-
-    @classmethod
-    def to_str(cls, key: str, value: str) -> str:
-        return f"{key}{cls._key_value_separator}{value}"
-
-    @classmethod
-    def from_dict(cls, kv_dict: Dict) -> "KeyValueList":
-        """
-        Convert a set of key-value pairs stored in a dictionary to
-        a KeyValueList of strings with the defined separator.
-        """
-        str_list = [KeyValueList.to_str(key, value) for key, value in kv_dict.items()]
-        return KeyValueList(str_list)
-
-    @classmethod
-    def merge(cls, primary: "KeyValueList", secondary: "KeyValueList") -> "KeyValueList":
-        """
-        Merge two key-value pair lists, preferring the values given in the
-        primary parameter in the case of a matching key between the two lists.
-        """
-        primary_dict = primary.to_dict()
-        secondary_dict = secondary.to_dict()
-
-        return KeyValueList.from_dict({**secondary_dict, **primary_dict})
-
-    @classmethod
-    def difference(cls, minuend: "KeyValueList", subtrahend: "KeyValueList") -> "KeyValueList":
-        """
-        Given KeyValueLists, convert to dictionaries and remove any keys found in the
-        second (subtrahend) from the first (minuend), if present.
-
-        :param minuend: list to be subtracted from
-        :param subtrahend: list whose keys will be removed from the minuend
-
-        :returns: the difference of the two lists
-        """
-        subtract_dict = minuend.to_dict()
-        for key in subtrahend.to_dict().keys():
-            if key in subtract_dict:
-                subtract_dict.pop(key)
-
-        return KeyValueList.from_dict(subtract_dict)
-
-
-@dataclass
-class VolumeMount:
-    path: str
-    pvc_name: str
-
-
-@dataclass
-class KubernetesSecret:
-    env_var: str
-    name: str
-    key: str
-
-
-@dataclass
-class KubernetesToleration:
-    key: str
-    operator: str
-    value: str
-    effect: str
-
-
-@dataclass
-class KubernetesAnnotation:
-    key: str
-    value: str
-
-
-class DataClassJSONEncoder(json.JSONEncoder):
-    """
-    A JSON Encoder class to prevent errors during serialization of dataclasses.
-    """
-
-    def default(self, o):
-        """
-        Render dataclass content as dict
-        """
-        if is_dataclass(o):
-            return dataclass_asdict(o)
-        return super().default(o)

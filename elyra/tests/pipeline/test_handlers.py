@@ -28,7 +28,7 @@ from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_constants import (
     COS_OBJECT_PREFIX,
-    DISALLOW_CACHED_OUTPUT,
+    DISABLE_NODE_CACHING,
     ENV_VARIABLES,
     KUBERNETES_POD_ANNOTATIONS,
     KUBERNETES_SECRETS,
@@ -134,9 +134,22 @@ async def test_get_component_properties_config(jp_fetch):
     payload = json.loads(response.body.decode())
 
     template = pkg_resources.read_text(resources, "generic_properties_template.jinja2")
-    properties = json.loads(
-        template.replace("{{ component.name }}", "Notebook").replace("{{ component.extensions|tojson }}", '[".ipynb"]')
-    )
+    template = template.replace("{{ component.name }}", "Notebook")
+    template = template.replace("{{ component.extensions|tojson }}", '[".ipynb"]')
+    template = template.replace("{% if elyra_owned_parameters %}", "")
+    template = template.replace(
+        """,
+        {% for property in elyra_owned_parameters|sort(attribute="property_id") %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}{% if loop.index != loop|length %},{% endif %}
+        {% endfor %}
+        {% endif %}""",
+        "",
+    )  # remove Elyra-owned property rendering loop
+    properties = json.loads(template)
+
+    # Fetch Elyra-owned properties
+    elyra_properties = json.loads(pkg_resources.read_text(resources, "additional_generic_properties.json"))
+    properties["properties"]["component_parameters"]["properties"].update(elyra_properties)  # update property dict
     assert payload == properties
 
 
@@ -249,8 +262,10 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             KUBERNETES_TOLERATIONS,
             MOUNTED_VOLUMES,
             KUBERNETES_POD_ANNOTATIONS,
-            DISALLOW_CACHED_OUTPUT,
+            DISABLE_NODE_CACHING,
         ]
+        if runtime == "airflow":
+            default_properties.remove(DISABLE_NODE_CACHING)
         assert all(prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties)
 
 
