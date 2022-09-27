@@ -291,7 +291,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
         validation_errors = []
         if not self.env_var:
             validation_errors.append("Required environment variable was not specified.")
-        if " " in self.env_var:
+        elif " " in self.env_var:
             validation_errors.append(f"Environment variable '{self.env_var}' includes invalid space character(s).")
 
         return validation_errors
@@ -446,6 +446,10 @@ class KubernetesAnnotation(ElyraPropertyListItem):
             validation_errors.append("Required annotation value was not specified.")
 
         return validation_errors
+
+    def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
+        return self.value
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
