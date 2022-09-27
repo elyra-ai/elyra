@@ -587,11 +587,31 @@ be fully qualified (i.e., prefixed with their package names).
                 return operation["notebook"]
         return None
 
+    def render_volumes(self, elyra_parameters: Dict[str, ElyraProperty]) -> str:
+        """
+        Render volumes defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        str_to_render = ""
+        for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
+            str_to_render += f"""
+                Volume(name="{v.pvc_name}", configs={{"persistentVolumeClaim": {{"claimName": "{v.pvc_name}"}}}}),"""
+        return dedent(str_to_render)
+
+    def render_mounts(self, elyra_parameters: Dict[str, ElyraProperty]) -> str:
+        """
+        Render volume mounts defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        str_to_render = ""
+        for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
+            str_to_render += f"""
+                 VolumeMount(name="{v.pvc_name}", mount_path="{v.path}", sub_path=None, read_only=False),"""
+        return dedent(str_to_render)
+
     def render_secrets(self, elyra_parameters: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
         """
-        Render any Kubernetes secrets defined for the specified op for use in
-        the Airflow DAG template
-
+        Render Kubernetes secrets defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         str_to_render = ""
@@ -599,9 +619,28 @@ be fully qualified (i.e., prefixed with their package names).
             str_to_render += f"""
                 Secret("env", "AWS_ACCESS_KEY_ID", "{cos_secret}", "AWS_ACCESS_KEY_ID"),
                 Secret("env", "AWS_SECRET_ACCESS_KEY", "{cos_secret}", "AWS_SECRET_ACCESS_KEY"),"""
-        for secret in elyra_parameters.get(pipeline_constants.KUBERNETES_SECRETS, []):
+        for s in elyra_parameters.get(pipeline_constants.KUBERNETES_SECRETS, []):
             str_to_render += f"""
-                Secret("env", "{secret.env_var}", "{secret.name}", "{secret.key}"),"""
+                Secret("env", "{s.env_var}", "{s.name}", "{s.key}"),"""
+        return dedent(str_to_render)
+
+    def render_annotations(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
+        """
+        Render Kubernetes annotations defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        annotations = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_ANNOTATIONS, ElyraPropertyList([]))
+        return annotations.to_dict()
+
+    def render_tolerations(self, elyra_parameters: Dict[str, ElyraProperty]):
+        """
+        Render any Kubernetes tolerations defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        str_to_render = ""
+        for t in elyra_parameters.get(pipeline_constants.KUBERNETES_TOLERATIONS, []):
+            str_to_render += f"""
+                {{"key": "{t.key}", "operator": "{t.operator}", "value": "{t.value}", "effect": "{t.effect}"}},"""
         return dedent(str_to_render)
 
     def render_elyra_owned_properties(self, elyra_parameters: Dict[str, ElyraProperty]):

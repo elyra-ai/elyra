@@ -205,14 +205,14 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                     sub_list_line_counter = 0
                     # Gets sub-list slice starting where the Notebook Op starts
                     init_line = i + 1
-                    for line in file_as_lines[init_line:]:
+                    for idx, line in enumerate(file_as_lines[init_line:], start=init_line):
                         if "namespace=" in line:
                             assert sample_metadata["metadata"]["user_namespace"] == read_key_pair(line)["value"]
                         elif "cos_endpoint=" in line:
                             assert sample_metadata["metadata"]["cos_endpoint"] == read_key_pair(line)["value"]
                         elif "cos_bucket=" in line:
                             assert sample_metadata["metadata"]["cos_bucket"] == read_key_pair(line)["value"]
-                        elif "name=" in line:
+                        elif "name=" in line and "Volume" not in file_as_lines[idx - 1]:
                             assert node["app_data"]["ui_data"]["label"] == read_key_pair(line)["value"]
                         elif "notebook=" in line:
                             assert component_parameters["filename"] == read_key_pair(line)["value"]

@@ -23,6 +23,8 @@ dag = DAG(
 {% endfor %}
 {% else %}
 from airflow.kubernetes.secret import Secret
+from airflow.contrib.kubernetes.volume import Volume
+from airflow.contrib.kubernetes.volume_mount import VolumeMount
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 {% endif %}
 
@@ -33,6 +35,7 @@ op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
         {% for param, value in operation.component_params.items() %}
                                                            {{ param }}={{ value }},
         {% endfor %}
+                                                           executor_config={{ processor.render_elyra_owned_properties(operation.elyra_params) }},
 {% else %}
 op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.notebook|regex_replace }}',
                                                             namespace='{{ user_namespace }}',
@@ -57,11 +60,14 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
             {% endif %}
                                                             },
         {% endif %}
+                                                            volumes=[{{ processor.render_volumes(operation.elyra_params) }}],
+                                                            volume_mounts=[{{ processor.render_mounts(operation.elyra_params) }}],
                                                             secrets=[{{ processor.render_secrets(operation.elyra_params, cos_secret) }}],
+                                                            annotations={{ processor.render_annotations(operation.elyra_params) }},
+                                                            tolerations=[{{ processor.render_tolerations(operation.elyra_params) }}],
                                                             in_cluster={{ in_cluster }},
                                                             config_file="{{ kube_config_path }}",
 {% endif %}
-                                                            executor_config={{ processor.render_elyra_owned_properties(operation.elyra_params) }},
                                                             dag=dag)
     {% if operation.image_pull_policy %}
         op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
