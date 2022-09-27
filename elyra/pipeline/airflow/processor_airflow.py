@@ -636,10 +636,15 @@ be fully qualified (i.e., prefixed with their package names).
         """
         Render any Kubernetes tolerations defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
-
-        TODO implement this function once we've determined how to pass to KubernetesPodOperator
         """
-        pass
+        str_to_render = ""
+        for t in elyra_parameters.get(pipeline_constants.KUBERNETES_TOLERATIONS, []):
+            key = f'"{t.key}"' if t.key is not None else t.key
+            value = f'"{t.value}"' if t.value is not None else t.value
+            effect = f'"{t.effect}"' if t.value is not None else t.effect
+            str_to_render += f"""
+                {{"key": {key}, "operator": "{t.operator}", "value": {value}, "effect": {effect}}},"""
+        return dedent(str_to_render)
 
     def render_elyra_owned_properties(self, elyra_parameters: Dict[str, ElyraProperty]):
         """
