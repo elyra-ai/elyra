@@ -2,6 +2,27 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.12.0rc0 - 09/27/2022
+
+- Make multi-valued input fields more user-friendly - [#2927](https://github.com/elyra-ai/elyra/pull/2927)
+- Fix typo in troubleshooting documentation - [#2940](https://github.com/elyra-ai/elyra/pull/2940)
+- Update parse-url dependency due to CVE-2022-2900 - [#2935](https://github.com/elyra-ai/elyra/pull/2935)
+- Document how to identify installed Elyra version - [#2930](https://github.com/elyra-ai/elyra/pull/2930)
+- Add migration section to the pipeline documentation topic - [#2928](https://github.com/elyra-ai/elyra/pull/2928)
+- Add initial support for rjsf in pipeline properties - [#2780](https://github.com/elyra-ai/elyra/pull/2780)
+- Update Python icon to match JupyterLab - [#2917](https://github.com/elyra-ai/elyra/pull/2917)
+- Support not publicly trusted certificates in built-in component catalog connectors - [#2912](https://github.com/elyra-ai/elyra/pull/2912)
+- Error Dialog Integration Tests - [#2870](https://github.com/elyra-ai/elyra/pull/2870)
+- Enable debugger on kernel change - [#2903](https://github.com/elyra-ai/elyra/pull/2903)
+- Account for how canvas handle icon size - [#2914](https://github.com/elyra-ai/elyra/pull/2914)
+- Move CLI component cache build to occur before pre-processing - [#2913](https://github.com/elyra-ai/elyra/pull/2913)
+- Update generic nodes to use static icon api - [#2908](https://github.com/elyra-ai/elyra/pull/2908)
+- Improve content of the pipelines documentation topic - [#2909](https://github.com/elyra-ai/elyra/pull/2909)
+- Organize doc images by source doc - [#2910](https://github.com/elyra-ai/elyra/pull/2910)
+- Support disabling node output caching for custom KFP components - [#2905](https://github.com/elyra-ai/elyra/pull/2905)
+- Bump nbconvert from 6.5.0 to 6.5.1 in /etc/generic - [#2901](https://github.com/elyra-ai/elyra/pull/2901)
+- Simplify pipeline handlers test - [#2900](https://github.com/elyra-ai/elyra/pull/2900)
+
 ## Release 3.11.0 - 08/23/2022
 
 - Node package security updates - [#2896](https://github.com/elyra-ai/elyra/pull/2896)
