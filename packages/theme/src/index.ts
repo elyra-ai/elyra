@@ -156,17 +156,17 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       label: 'Documentation',
       icon: helpIcon,
       execute: (args: any) => {
-        window.open('https://elyra.readthedocs.io/en/latest/', '_blank');
+        window.open('https://elyra.readthedocs.io/en/v3.12.0rc0/', '_blank');
       }
     });
 
     commands.addCommand(CommandIDs.releases, {
-      label: "What's new in latest",
+      label: "What's new in v3.12.0rc0",
       caption: "What's new in this release",
       icon: whatsNewIcon,
       execute: (args: any) => {
         window.open(
-          'https://github.com/elyra-ai/elyra/releases/latest/',
+          'https://github.com/elyra-ai/elyra/releases/v3.12.0rc0/',
           '_blank'
         );
       }
