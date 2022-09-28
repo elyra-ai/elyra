@@ -439,7 +439,7 @@ def test_parse_airflow_component_file_no_inputs():
     properties_json = ComponentCache.to_canvas_properties(no_input_op)
 
     # Properties JSON should only include the four parameters common to every
-    # component: ('mounted_volumes', 'kubernetes_pod_annotations', 'kubernetes_pod_labels', 
+    # component: ('mounted_volumes', 'kubernetes_pod_annotations', 'kubernetes_pod_labels',
     # and 'kubernetes_tolerations')
     num_common_params = 4
     properties_from_json = [
