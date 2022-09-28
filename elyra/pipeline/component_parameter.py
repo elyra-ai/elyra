@@ -55,7 +55,7 @@ class ElyraProperty:
     _ui_details_map: Dict[str, Dict] = {}
 
     _subclass_property_map: Dict[str, type] = {}
-    _json_type_to_default: Dict[str, Any] = {"boolean": False, "number": 0, "array": "[]", "object": "{}", "string": ""}
+    _json_type_to_default: Dict[str, Any] = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
 
     @classmethod
     def all_subclasses(cls):
@@ -121,9 +121,11 @@ class ElyraProperty:
         properties, uihints, required_list = {}, {}, []
         for attr, ui_info in cls._ui_details_map.items():
             attr_type = ui_info.get("json_type", "string")
-            attr_default = cls._json_type_to_default.get(attr_type, "")
+            attr_default = cls._json_type_to_default.get(attr_type, None)
             attr_title = cls._ui_details_map[attr].get("display_name", attr)
-            properties[attr] = {"type": attr_type, "title": attr_title, "default": attr_default}
+            properties[attr] = {"type": attr_type, "title": attr_title}
+            if attr_default is not None:
+                properties[attr]["default"] = attr_default
             if cls._ui_details_map[attr].get("placeholder"):
                 uihints[attr] = {"ui:placeholder": cls._ui_details_map[attr].get("placeholder")}
 
@@ -245,7 +247,7 @@ class CustomSharedMemorySize(ElyraProperty):
         schema = super().get_schema()
         schema["properties"]["size"]["minimum"] = CustomSharedMemorySize.default_size
         # default value indicates no custom value
-        schema["properties"]["size"]["default"] = CustomSharedMemorySize.default_size
+        schema["uihints"] = {"size": {"ui:placeholder": CustomSharedMemorySize.default_size}}
         schema["properties"]["units"]["enum"] = CustomSharedMemorySize.supported_units
         schema["properties"]["units"]["default"] = CustomSharedMemorySize.default_units
         return schema
@@ -281,7 +283,7 @@ class CustomSharedMemorySize(ElyraProperty):
 
     def is_empty_instance(self) -> bool:
         """Returns a boolean indicating whether this instance is considered a no-op."""
-        return self.size == CustomSharedMemorySize.default_size and self.units == CustomSharedMemorySize.default_units
+        return self.size is None and self.units == CustomSharedMemorySize.default_units
 
 
 class ElyraPropertyListItem(ElyraProperty):

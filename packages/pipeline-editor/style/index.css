@@ -511,11 +511,23 @@ span.bx--list-box__label {
   margin-right: 3px;
 }
 
-.field-array-of-object .array-item:hover {
+.field-array-of-object .array-item:hover,
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset:hover {
   background-color: var(--jp-border-color3);
 }
 
-.field-array-of-object .array-item {
+.field-array-of-object .array-item,
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--jp-border-color2);
