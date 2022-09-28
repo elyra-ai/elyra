@@ -217,7 +217,7 @@ class CustomSharedMemorySize(ElyraProperty):
     _display_name = "Shared Memory Size"
     _json_data_type = "object"
     _ui_details_map = {
-        "size": {"display_name": "Memory Size", "json_type": "number", "placeholder": 0, "required": True},
+        "size": {"display_name": "Memory Size", "json_type": "number", "placeholder": 0, "required": False},
         "units": {"display_name": "Units", "json_type": "string", "required": True},
     }
 

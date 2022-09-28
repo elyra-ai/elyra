@@ -145,7 +145,7 @@
         "enum": ["G", "Gi", "M", "Mi"]
       }
     },
-    "required": ["size", "units"],
+    "required": ["units"],
     "uihints": {
       "size": {
         "ui:placeholder": 0
