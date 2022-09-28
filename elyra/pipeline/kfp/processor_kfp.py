@@ -29,6 +29,7 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
+from kubernetes.client import V1EmptyDirVolumeSource
 from kubernetes.client import V1EnvVar
 from kubernetes.client import V1EnvVarSource
 from kubernetes.client import V1PersistentVolumeClaimVolumeSource
@@ -51,6 +52,7 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import CustomSharedMemorySize
 from elyra.pipeline.component_parameter import DisableNodeCaching
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
@@ -774,6 +776,21 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         if instance.selection:
             execution_object.execution_options.caching_strategy.max_cache_staleness = "P0D"
 
+    def add_custom_shared_memory_size(self, instance: CustomSharedMemorySize, execution_object: Any, **kwargs) -> None:
+        """Add CustomSharedMemorySize info to the execution object for the given runtime processor"""
+
+        if not instance.size:
+            return
+
+        volume = V1Volume(
+            name="shm",
+            empty_dir=V1EmptyDirVolumeSource(medium="Memory", size_limit=f"{instance.size}{instance.units}"),
+        )
+        if volume not in execution_object.volumes:
+            execution_object.add_volume(volume)
+
+        execution_object.container.add_volume_mount(V1VolumeMount(mount_path="/dev/shm", name="shm"))
+
     def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
         """Add KubernetesSecret instance to the execution object for the given runtime processor"""
         execution_object.container.add_env_variable(
@@ -819,6 +836,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
             pipeline_constants.DISABLE_NODE_CACHING,
+            pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
         ]
 
 

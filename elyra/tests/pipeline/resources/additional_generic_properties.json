@@ -128,6 +128,27 @@
     },
     "default": []
   },
+  "kubernetes_shared_mem_size": {
+    "title": "Shared Memory Size",
+    "description": " Configure a custom shared memory size for the pod that executes a node. A custom value is assigned if the size property value is a number greater than zero. ",
+    "type": "object",
+    "properties": {
+      "size": {
+        "type": "number",
+        "title": "Memory Size",
+        "default": 0,
+        "minimum": 0
+      },
+      "units": {
+        "type": "string",
+        "title": "Units",
+        "default": "Mi",
+        "enum": ["G", "Gi", "M", "Mi"]
+      }
+    },
+    "required": ["size", "units"],
+    "uihints": {}
+  },
   "kubernetes_tolerations": {
     "title": "Kubernetes Tolerations",
     "description": " Kubernetes tolerations to apply to the pod where the node is executed. ",

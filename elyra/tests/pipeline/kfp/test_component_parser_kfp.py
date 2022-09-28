@@ -379,7 +379,7 @@ def test_parse_kfp_component_file_no_inputs():
     # Properties JSON should only include the five parameters common to every
     # component ('mounted_volumes', 'kubernetes_pod_annotations', 'kubernetes_tolerations',
     # and 'disable_node_caching), and the output parameter for this component
-    num_common_params = 5
+    num_common_params = 6
     properties_from_json = [
         prop
         for prop in properties_json["properties"]["component_parameters"]["properties"].keys()
