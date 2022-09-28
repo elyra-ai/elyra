@@ -535,6 +535,15 @@ span.bx--list-box__label {
   border-radius: 5px;
 }
 
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset {
+  margin: 5px 0;
+}
+
 .elyra-PipelineEditor
   .field-object
   > fieldset
