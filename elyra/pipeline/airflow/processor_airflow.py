@@ -44,6 +44,7 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesLabel
 from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
@@ -632,6 +633,14 @@ be fully qualified (i.e., prefixed with their package names).
         annotations = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_ANNOTATIONS, ElyraPropertyList([]))
         return annotations.to_dict()
 
+    def render_labels(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
+        """
+        Render Kubernetes labels defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        labels = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_LABELS, ElyraPropertyList([]))
+        return labels.to_dict()
+
     def render_tolerations(self, elyra_parameters: Dict[str, ElyraProperty]):
         """
         Render any Kubernetes tolerations defined for an operation for use in the Airflow DAG template
@@ -679,6 +688,12 @@ be fully qualified (i.e., prefixed with their package names).
             execution_object["annotations"] = {}
         execution_object["annotations"][instance.key] = instance.value
 
+    def add_kubernetes_pod_label(self, instance: KubernetesLabel, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesLabel instance to the execution object for the given runtime processor"""
+        if "labels" not in execution_object:
+            execution_object["labels"] = {}
+        execution_object["labels"][instance.key] = instance.value
+
     def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         if "tolerations" not in execution_object:
@@ -700,6 +715,7 @@ be fully qualified (i.e., prefixed with their package names).
             pipeline_constants.KUBERNETES_SECRETS,
             pipeline_constants.MOUNTED_VOLUMES,
             pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_POD_LABELS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
         ]
 

@@ -95,3 +95,15 @@ def is_valid_annotation_key(key: str) -> bool:
         return False
 
     return re.match(r"^[\w\-_.]+$", name) is not None
+
+
+def is_valid_label_key(key: str) -> bool:
+    """
+    Returns a truthy value indicating whether name meets the kubernetes
+    naming constraints for label keys, as outlined in the link below.
+
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+    """
+
+    # rules are identical to those applied to annotation keys; re-use existing code
+    return is_valid_annotation_key(key)

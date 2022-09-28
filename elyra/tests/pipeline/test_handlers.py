@@ -31,6 +31,7 @@ from elyra.pipeline.pipeline_constants import (
     DISABLE_NODE_CACHING,
     ENV_VARIABLES,
     KUBERNETES_POD_ANNOTATIONS,
+    KUBERNETES_POD_LABELS,
     KUBERNETES_SECRETS,
     KUBERNETES_TOLERATIONS,
     MOUNTED_VOLUMES,
@@ -262,6 +263,7 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             KUBERNETES_TOLERATIONS,
             MOUNTED_VOLUMES,
             KUBERNETES_POD_ANNOTATIONS,
+            KUBERNETES_POD_LABELS,
             DISABLE_NODE_CACHING,
         ]
         if runtime == "airflow":
