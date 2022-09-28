@@ -32,6 +32,10 @@ Object {
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_shared_mem_size": Object {
+                  "size": 0,
+                  "units": "Mi",
+              },
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
