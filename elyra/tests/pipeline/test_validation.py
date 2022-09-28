@@ -20,6 +20,7 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
+from elyra.pipeline.component_parameter import CustomSharedMemorySize
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.component_parameter import KubernetesAnnotation
@@ -30,6 +31,7 @@ from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import Node
@@ -771,6 +773,75 @@ def test_invalid_node_property_secrets(validation_manager):
     assert "Required environment variable was not specified." in issues[11]["message"]
     assert "Required secret name was not specified." in issues[12]["message"]
     assert "Required secret key was not specified." in issues[13]["message"]
+
+
+def test_valid_node_property_shared_mem_size(validation_manager):
+    """
+    Verify that valid shared memory definitions pass validation
+    """
+    response = ValidationResponse()
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+
+    # test size
+    for size in [None, 0, 64]:
+        shared_mem_size = CustomSharedMemorySize(size=size, units="Mi")
+        node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
+
+        node = Node(node_dict)
+        validation_manager._validate_elyra_owned_property(
+            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+        )
+        issues = response.to_json().get("issues")
+        assert len(issues) == 0, issues
+
+    # test units
+    for unit in ["M", "Mi", "G", "Gi"]:
+        shared_mem_size = CustomSharedMemorySize(size=0, units=unit)
+        node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
+
+        node = Node(node_dict)
+        validation_manager._validate_elyra_owned_property(
+            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+        )
+        issues = response.to_json().get("issues")
+        assert len(issues) == 0, issues
+
+
+def test_invalid_node_property_shared_mem_size(validation_manager):
+    """
+    Verify that invalid shared memory definitions are flagged by validation
+    """
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+
+    # test invalid size; note that 0 and None are considered valid
+    for size in [-1, "not-a-number"]:
+        shared_mem_size = CustomSharedMemorySize(size=size, units="Mi")
+        node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
+        node = Node(node_dict)
+        response = ValidationResponse()
+        validation_manager._validate_elyra_owned_property(
+            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+        )
+        issues = response.to_json().get("issues")
+        assert len(issues) == 1, issues
+        assert issues[0]["message"] == "Custom shared memory size must be a positive number."
+        assert issues[0]["data"]["value"]["size"] == size
+        assert issues[0]["data"]["value"]["units"] == "Mi"
+
+    # test invalid units
+    for unit in [None, "", "K", "Ki", "m", "mi", "g", "gi"]:
+        shared_mem_size = CustomSharedMemorySize(size=0, units=unit)
+        node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
+        node = Node(node_dict)
+        response = ValidationResponse()
+        validation_manager._validate_elyra_owned_property(
+            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+        )
+        issues = response.to_json().get("issues")
+        assert len(issues) == 1, issues
+        assert issues[0]["message"] == "Units must be one of ['G', 'Gi', 'M', 'Mi']"
+        assert issues[0]["data"]["value"]["size"] == 0
+        assert issues[0]["data"]["value"]["units"] == unit
 
 
 def test_valid_node_property_label(validation_manager):
