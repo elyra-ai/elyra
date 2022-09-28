@@ -535,6 +535,16 @@ span.bx--list-box__label {
   border-radius: 5px;
 }
 
+.elyra-PipelineEditor
+  .field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object
+  .errorIndicator {
+  left: -5px;
+}
+
 .field-array-of-object button.jp-mod-styled.jp-mod-warn {
   width: fit-content;
 }
