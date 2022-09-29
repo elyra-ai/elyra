@@ -618,7 +618,7 @@ be fully qualified (i.e., prefixed with their package names).
         shm = elyra_parameters.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
         if shm is not None and shm.size:
             str_to_render += """
-                 VolumeMount(name="shm", mount_path="/dev/shm"),"""
+                 VolumeMount(name="shm", mount_path="/dev/shm", sub_path=None, read_only=False),"""
 
         return dedent(str_to_render)
 
@@ -722,7 +722,7 @@ be fully qualified (i.e., prefixed with their package names).
             }
         )
         execution_object["volume_mounts"].append(
-            {"mountPath": "/dev/shm", "name": "shm"},
+            {"mountPath": "/dev/shm", "name": "shm", "sub_path": None, "read_only": False},
         )
 
     @property
