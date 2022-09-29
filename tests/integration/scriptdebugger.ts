@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-describe('Script tests', () => {
+describe('Script debugger tests', () => {
   before(() => {
     cy.resetJupyterLab();
-    cy.bootstrapFile('helloworld.py'); // load python file used to check existing contents
   });
 
   afterEach(() => {
@@ -27,6 +26,7 @@ describe('Script tests', () => {
   after(() => {
     // delete files created for testing
     cy.deleteFile('untitled*.py');
+    cy.deleteFile('untitled*.r');
   });
 
   it('checks for debugger button enabled for default ipython kernel', () => {
