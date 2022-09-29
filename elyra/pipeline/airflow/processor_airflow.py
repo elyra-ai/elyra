@@ -41,6 +41,7 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import CustomSharedMemorySize
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesAnnotation
@@ -596,6 +597,12 @@ be fully qualified (i.e., prefixed with their package names).
         for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
                 Volume(name="{v.pvc_name}", configs={{"persistentVolumeClaim": {{"claimName": "{v.pvc_name}"}}}}),"""
+        # set custom shared memory size
+        shm = elyra_parameters.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
+        if shm is not None and shm.size:
+            config = f"""configs={{"emptyDir": {{"medium": "Memory", "sizeLimit": "{shm.size}{shm.units}"}}}}"""
+            str_to_render += f"""
+                Volume(name="shm", {config}),"""
         return dedent(str_to_render)
 
     def render_mounts(self, elyra_parameters: Dict[str, ElyraProperty]) -> str:
@@ -607,6 +614,12 @@ be fully qualified (i.e., prefixed with their package names).
         for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
                  VolumeMount(name="{v.pvc_name}", mount_path="{v.path}", sub_path=None, read_only=False),"""
+        # set custom shared memory size
+        shm = elyra_parameters.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
+        if shm is not None and shm.size:
+            str_to_render += """
+                 VolumeMount(name="shm", mount_path="/dev/shm"),"""
+
         return dedent(str_to_render)
 
     def render_secrets(self, elyra_parameters: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
@@ -692,6 +705,26 @@ be fully qualified (i.e., prefixed with their package names).
             }
         )
 
+    def add_custom_shared_memory_size(self, instance: CustomSharedMemorySize, execution_object: Any, **kwargs) -> None:
+        """Add CustomSharedMemorySize instance to the execution object for the given runtime processor"""
+
+        if not instance.size:
+            return
+
+        if "volumes" not in execution_object:
+            execution_object["volumes"] = []
+        if "volume_mounts" not in execution_object:
+            execution_object["volume_mounts"] = []
+        execution_object["volumes"].append(
+            {
+                "name": "shm",
+                "emptyDir": {"medium": "Memory", "sizeLimit": f"{instance.size}{instance.units}"},
+            }
+        )
+        execution_object["volume_mounts"].append(
+            {"mountPath": "/dev/shm", "name": "shm"},
+        )
+
     @property
     def supported_properties(self) -> Set[str]:
         """A list of Elyra-owned properties supported by this runtime processor."""
@@ -701,6 +734,7 @@ be fully qualified (i.e., prefixed with their package names).
             pipeline_constants.MOUNTED_VOLUMES,
             pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
+            pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
         ]
 
 
