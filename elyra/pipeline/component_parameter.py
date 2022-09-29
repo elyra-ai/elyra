@@ -283,7 +283,7 @@ class CustomSharedMemorySize(ElyraProperty):
 
     def is_empty_instance(self) -> bool:
         """Returns a boolean indicating whether this instance is considered a no-op."""
-        return self.size is None and self.units == CustomSharedMemorySize.default_units
+        return not self.size
 
 
 class ElyraPropertyListItem(ElyraProperty):
