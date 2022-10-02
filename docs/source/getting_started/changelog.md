@@ -2,6 +2,10 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.12.0rc1 - 10/01/2022
+
+- Pipeline editor: Allow for configuration of labels - [#2943](https://github.com/elyra-ai/elyra/pull/2943)
+
 ## Release 3.12.0rc0 - 09/27/2022
 
 - Make multi-valued input fields more user-friendly - [#2927](https://github.com/elyra-ai/elyra/pull/2927)
