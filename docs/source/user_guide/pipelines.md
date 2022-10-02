@@ -94,6 +94,7 @@ Each pipeline node is configured using properties. Default node properties are a
  - [Data volumes](#data-volumes)
  - [Kubernetes tolerations](#kubernetes-tolerations)
  - [Kubernetes pod annotations](#kubernetes-pod-annotations)
+ - [Kubernetes pod labels](#kubernetes-pod-labels)
 
 **Default properties that apply only to generic nodes**
 
@@ -155,6 +156,7 @@ Nodes that are implemented using [generic components](pipeline-components.html#g
    - [Data volumes](#data-volumes)
    - [Kubernetes tolerations](#kubernetes-tolerations)
    - [Kubernetes pod annotations](#kubernetes-pod-annotations)
+   - [Kubernetes pod labels](#kubernetes-pod-labels)
 
 ##### Configuring custom nodes
 
@@ -163,6 +165,7 @@ Nodes that are implemented using [custom components](pipeline-components.html#cu
    - [Data volumes](#data-volumes)
    - [Kubernetes tolerations](#kubernetes-tolerations)
    - [Kubernetes pod annotations](#kubernetes-pod-annotations)
+   - [Kubernetes pod labels](#kubernetes-pod-labels)
    - [Disable node caching](#disable-node-caching)
 
 #### Defining dependencies between nodes
@@ -241,6 +244,13 @@ The following alphabetically sorted list identifies the node properties that are
      - _Key_: a [valid Kubernetes annotation key](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). Example: `project`
      - _Value_: value to be assigned to said annotation key. Example: `abandoned basket analysis`
    - Annotations are ignored when the pipeline is executed locally.
+
+##### Kubernetes Pod Labels
+   - A list of [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels) to be attached to the pod that executes the node.
+   - Format:
+     - _Key_: a [valid Kubernetes label key](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set). Example: `project`
+     - _Value_: value to be assigned to said label key. Example: `abandoned basket analysis`
+   - Labels are ignored when the pipeline is executed locally.
 
 ##### Kubernetes Secrets
    - A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution.

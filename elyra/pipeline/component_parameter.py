@@ -32,12 +32,14 @@ if TYPE_CHECKING:
 from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
+from elyra.pipeline.pipeline_constants import KUBERNETES_POD_LABELS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_kubernetes_key
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
+from elyra.util.kubernetes import is_valid_label_key
 
 
 class ElyraProperty:
@@ -454,6 +456,53 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         runtime_processor.add_kubernetes_pod_annotation(instance=self, execution_object=execution_object, **kwargs)
+
+
+class KubernetesLabel(ElyraPropertyListItem):
+    """
+    Metadata to be added to this node. The metadata is exposed as label
+    in the Kubernetes pod that executes this node.
+    """
+
+    property_id = KUBERNETES_POD_LABELS
+    generic = True
+    custom = True
+    _display_name = "Kubernetes Pod Labels"
+    _json_data_type = "array"
+    _keys = ["key"]
+    _ui_details_map = {
+        "key": {"display_name": "Key", "placeholder": "label_key", "json_type": "string", "required": True},
+        "value": {"display_name": "Value", "placeholder": "label_value", "json_type": "string", "required": True},
+    }
+
+    def __init__(self, key, value, **kwargs):
+        self.key = key
+        self.value = value
+
+    @classmethod
+    def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesLabel | None:
+        key, value = cls.unpack(value, "key", "value")
+        return KubernetesLabel(key=key, value=value)
+
+    def get_all_validation_errors(self) -> List[str]:
+        """Perform custom validation on an instance."""
+        validation_errors = []
+        if not self.key:
+            validation_errors.append("Required label key was not specified.")
+        elif not is_valid_label_key(self.key):
+            validation_errors.append(f"'{self.key}' is not a valid Kubernetes label key.")
+        if not self.value:
+            validation_errors.append("Required label value was not specified.")
+
+        return validation_errors
+
+    def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
+        return self.value
+
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add KubernetesLabel instance to the execution object for the given runtime processor"""
+        runtime_processor.add_kubernetes_pod_label(instance=self, execution_object=execution_object, **kwargs)
 
 
 class KubernetesToleration(ElyraPropertyListItem):
