@@ -631,7 +631,7 @@ be fully qualified (i.e., prefixed with their package names).
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         annotations = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_ANNOTATIONS, ElyraPropertyList([]))
-        return annotations.to_dict()
+        return {key: value or "" for key, value in annotations.to_dict().items()}
 
     def render_labels(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
         """
@@ -639,7 +639,7 @@ be fully qualified (i.e., prefixed with their package names).
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         labels = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_LABELS, ElyraPropertyList([]))
-        return labels.to_dict()
+        return {key: value or "" for key, value in labels.to_dict().items()}
 
     def render_tolerations(self, elyra_parameters: Dict[str, ElyraProperty]):
         """
