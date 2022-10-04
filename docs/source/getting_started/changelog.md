@@ -2,6 +2,13 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.12.0 - 10/04/2022
+
+- Update pipeline editor node package to 1.10 - [#2950](https://github.com/elyra-ai/elyra/pull/2950)
+- Explicitly specify units of gigabytes for RAM in Airflow DAG template - [#2949](https://github.com/elyra-ai/elyra/pull/2949)
+- Fix annotations and label processing - [#2947](https://github.com/elyra-ai/elyra/pull/2947)
+- Fix rendering of toleration effect in generic components - [#2946](https://github.com/elyra-ai/elyra/pull/2946)
+
 ## Release 3.12.0rc1 - 10/01/2022
 
 - Pipeline editor: Allow for configuration of labels - [#2943](https://github.com/elyra-ai/elyra/pull/2943)
