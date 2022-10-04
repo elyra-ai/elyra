@@ -797,12 +797,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         if instance.key not in execution_object.pod_annotations:
-            execution_object.add_pod_annotation(instance.key, instance.value)
+            execution_object.add_pod_annotation(instance.key, instance.value or "")
 
     def add_kubernetes_pod_label(self, instance: KubernetesLabel, execution_object: Any, **kwargs) -> None:
         """Add KubernetesLabel instance to the execution object for the given runtime processor"""
         if instance.key not in execution_object.pod_labels:
-            execution_object.add_pod_label(instance.key, instance.value)
+            execution_object.add_pod_label(instance.key, instance.value or "")
 
     def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""

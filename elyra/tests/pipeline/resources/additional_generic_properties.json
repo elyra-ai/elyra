@@ -17,7 +17,7 @@
           "default": ""
         }
       },
-      "required": ["key", "value"]
+      "required": ["key"]
     },
     "uihints": {
       "items": {
@@ -81,7 +81,7 @@
           "default": ""
         }
       },
-      "required": ["key", "value"]
+      "required": ["key"]
     },
     "uihints": {
       "items": {

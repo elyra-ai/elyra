@@ -87,14 +87,32 @@ def is_valid_annotation_key(key: str) -> bool:
         return False
 
     # validate optional prefix
+    if "/" in key and len(prefix) == 0:
+        return False
+
     if len(prefix) > 0 and not is_valid_dns_subdomain_name(prefix):
         return False
 
     # validate name
-    if len(name) > 63 or not name[0].isalnum() or not name[-1].isalnum():
+    if len(name) == 0 or len(name) > 63:
+        return False
+    if not name[0].isalnum() or not name[-1].isalnum():
         return False
 
     return re.match(r"^[\w\-_.]+$", name) is not None
+
+
+def is_valid_annotation_value(value: str) -> bool:
+    """
+    Returns a truthy value indicating whether name meets the kubernetes
+    naming constraints for annotation values, as outlined in the link below.
+
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+    """
+    if value is None or (isinstance(value, str) and (len(value) == 0)):
+        return True
+
+    return isinstance(value, str)
 
 
 def is_valid_label_key(key: str) -> bool:
@@ -107,3 +125,23 @@ def is_valid_label_key(key: str) -> bool:
 
     # rules are identical to those applied to annotation keys; re-use existing code
     return is_valid_annotation_key(key)
+
+
+def is_valid_label_value(value: str) -> bool:
+    """
+    Returns a truthy value indicating whether name meets the kubernetes
+    naming constraints for label values, as outlined in the link below.
+
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+    - must be 63 characters or less (can be empty),
+    - unless empty, must begin and end with an alphanumeric character ([a-z0-9A-Z]),
+    - could contain dashes (-), underscores (_), dots (.), and alphanumerics between.
+    """
+
+    if value is None or (isinstance(value, str) and (len(value) == 0)):
+        return True
+
+    if len(value) > 63 or not value[0].isalnum() or not value[-1].isalnum():
+        return False
+
+    return re.match(r"^[a-zA-Z0-9]([-_\.A-Za-z0-9]*[a-zA-Z0-9])*$", value) is not None

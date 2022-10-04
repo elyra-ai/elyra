@@ -631,7 +631,7 @@ be fully qualified (i.e., prefixed with their package names).
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         annotations = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_ANNOTATIONS, ElyraPropertyList([]))
-        return annotations.to_dict()
+        return {key: value or "" for key, value in annotations.to_dict().items()}
 
     def render_labels(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
         """
@@ -639,7 +639,7 @@ be fully qualified (i.e., prefixed with their package names).
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         labels = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_LABELS, ElyraPropertyList([]))
-        return labels.to_dict()
+        return {key: value or "" for key, value in labels.to_dict().items()}
 
     def render_tolerations(self, elyra_parameters: Dict[str, ElyraProperty]):
         """
@@ -686,13 +686,13 @@ be fully qualified (i.e., prefixed with their package names).
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         if "annotations" not in execution_object:
             execution_object["annotations"] = {}
-        execution_object["annotations"][instance.key] = instance.value
+        execution_object["annotations"][instance.key] = instance.value or ""
 
     def add_kubernetes_pod_label(self, instance: KubernetesLabel, execution_object: Any, **kwargs) -> None:
         """Add KubernetesLabel instance to the execution object for the given runtime processor"""
         if "labels" not in execution_object:
             execution_object["labels"] = {}
-        execution_object["labels"][instance.key] = instance.value
+        execution_object["labels"][instance.key] = instance.value or ""
 
     def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""

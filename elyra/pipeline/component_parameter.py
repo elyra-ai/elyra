@@ -37,9 +37,11 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.util.kubernetes import is_valid_annotation_key
+from elyra.util.kubernetes import is_valid_annotation_value
 from elyra.util.kubernetes import is_valid_kubernetes_key
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.kubernetes import is_valid_label_key
+from elyra.util.kubernetes import is_valid_label_value
 
 
 class ElyraProperty:
@@ -425,7 +427,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     _keys = ["key"]
     _ui_details_map = {
         "key": {"display_name": "Key", "placeholder": "annotation_key", "json_type": "string", "required": True},
-        "value": {"display_name": "Value", "placeholder": "annotation_value", "json_type": "string", "required": True},
+        "value": {"display_name": "Value", "placeholder": "annotation_value", "json_type": "string", "required": False},
     }
 
     def __init__(self, key, value, **kwargs):
@@ -440,12 +442,14 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
+        # verify annotation key
         if not self.key:
             validation_errors.append("Required annotation key was not specified.")
         elif not is_valid_annotation_key(self.key):
             validation_errors.append(f"'{self.key}' is not a valid Kubernetes annotation key.")
-        if not self.value:
-            validation_errors.append("Required annotation value was not specified.")
+        # verify annotation value
+        if not is_valid_annotation_value(self.value):
+            validation_errors.append(f"'{self.value}' is not a valid Kubernetes annotation value.")
 
         return validation_errors
 
@@ -472,7 +476,7 @@ class KubernetesLabel(ElyraPropertyListItem):
     _keys = ["key"]
     _ui_details_map = {
         "key": {"display_name": "Key", "placeholder": "label_key", "json_type": "string", "required": True},
-        "value": {"display_name": "Value", "placeholder": "label_value", "json_type": "string", "required": True},
+        "value": {"display_name": "Value", "placeholder": "label_value", "json_type": "string", "required": False},
     }
 
     def __init__(self, key, value, **kwargs):
@@ -487,13 +491,14 @@ class KubernetesLabel(ElyraPropertyListItem):
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
+        # verify label key
         if not self.key:
             validation_errors.append("Required label key was not specified.")
         elif not is_valid_label_key(self.key):
             validation_errors.append(f"'{self.key}' is not a valid Kubernetes label key.")
-        if not self.value:
-            validation_errors.append("Required label value was not specified.")
-
+        # verify label value
+        if not is_valid_label_value(self.value):
+            validation_errors.append(f"'{self.value}' is not a valid Kubernetes label value.")
         return validation_errors
 
     def get_value_for_dict_entry(self) -> str:
