@@ -279,7 +279,7 @@ The following alphabetically sorted list identifies the node properties that are
    - Example: `data/*.csv`
 
 ##### Resources: CPU, GPU, and RAM
-   - Resources that the notebook or script requires.
+   - Resources that the notebook or script requires. RAM takes units of gigabytes (G or GB).
    - The values are ignored when the pipeline is executed locally. 
 
 ##### Runtime image
