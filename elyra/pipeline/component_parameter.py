@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from importlib import import_module
 import json
 from textwrap import dedent
 from typing import Any
@@ -52,13 +53,13 @@ class ElyraProperty:
     property_id: str
     generic: bool
     custom: bool
-    _display_name: str
-    _json_data_type: str
+    display_name: str
+    attribute_details: Dict[str, Dict] = {}
+    _json_data_type: str = None
     _required: bool = False
-    _ui_details_map: Dict[str, Dict] = {}
 
     _subclass_property_map: Dict[str, type] = {}
-    _json_type_to_default: Dict[str, Any] = {"boolean": False, "number": 0, "array": "[]", "object": "{}", "string": ""}
+    _json_type_to_default: Dict[str, Any] = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
 
     @classmethod
     def all_subclasses(cls):
@@ -69,6 +70,22 @@ class ElyraProperty:
     def build_property_map(cls) -> None:
         """Build the map of property subclasses."""
         cls._subclass_property_map = {sc.property_id: sc for sc in cls.all_subclasses() if hasattr(sc, "property_id")}
+
+    @classmethod
+    def get_single_instance(cls, value: Optional[Dict[str, Any]] = None) -> ElyraProperty | None:
+        """Unpack values from dictionary object and instantiate a class instance."""
+        if not isinstance(value, dict):
+            value = {}
+
+        params = {}
+        for attr in cls.attribute_details:
+            attr_value = ElyraProperty.strip_if_string(value.get(attr, None))
+            if cls.skip_instance_on_falsy_attribute(attr, attr_value):
+                return None
+            params[attr] = attr_value
+
+        instance = getattr(import_module(cls.__module__), cls.__name__)(**params)
+        return instance
 
     @classmethod
     def create_instance(cls, prop_id: str, value: Optional[Any]) -> ElyraProperty | ElyraPropertyList | None:
@@ -83,11 +100,10 @@ class ElyraProperty:
         if issubclass(sc, ElyraPropertyListItem):
             if not isinstance(value, list):
                 return None
-            # Create instance for each list element and convert to ElyraPropertyList
-            instances = ElyraPropertyList([sc.create_instance(prop_id, item) for item in value])
-            return instances.deduplicate()
+            instances = [sc.get_single_instance(obj) for obj in value]  # create instance for each object
+            return ElyraPropertyList(instances).deduplicate()  # convert to ElyraPropertyList and de-dupe
 
-        return sc.create_instance(prop_id, value)
+        return sc.get_single_instance()
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
@@ -117,42 +133,59 @@ class ElyraProperty:
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         class_description = dedent(cls.__doc__).replace("\n", " ")
-        schema = {"title": cls._display_name, "description": class_description, "type": cls._json_data_type}
-        if cls._json_data_type not in ["array", "object"]:  # property is a scalar value
+        schema = {"title": cls.display_name, "description": class_description, "type": cls._json_data_type}
+        if cls._json_data_type is not None:  # property is a scalar value  TODO deprecate when able
             return schema
 
         properties, uihints, required_list = {}, {}, []
-        for attr, ui_info in cls._ui_details_map.items():
+        for attr, details in cls.attribute_details.items():
+            ui_info = details.get("schema_details")
+            if not cls.surface_attribute_in_ui(attr):
+                continue
+
             attr_type = ui_info.get("json_type", "string")
-            attr_default = cls._json_type_to_default.get(attr_type, "")
-            attr_title = cls._ui_details_map[attr].get("display_name", attr)
-            properties[attr] = {"type": attr_type, "title": attr_title, "default": attr_default}
-            if cls._ui_details_map[attr].get("placeholder"):
-                uihints[attr] = {"ui:placeholder": cls._ui_details_map[attr].get("placeholder")}
+            properties[attr] = {"type": attr_type, "title": ui_info.get("display_name", attr)}
+
+            attr_default = cls._json_type_to_default.get(attr_type, None)
+            if attr_default is not None:
+                properties[attr]["default"] = attr_default
+
+            if ui_info.get("placeholder"):
+                uihints[attr] = {"ui:placeholder": ui_info.get("placeholder")}
 
             if ui_info.get("required"):
                 required_list.append(attr)
-        if cls._json_data_type == "array":
+
+        if issubclass(cls, ElyraPropertyListItem):
+            schema["type"] = "array"
             schema["items"] = {"type": "object", "properties": properties, "required": required_list}
             schema["uihints"] = {"items": uihints}
-        elif cls._json_data_type == "object":
+        else:
+            schema["type"] = "object"
             schema.update({"properties": properties, "required": required_list, "uihints": uihints})
 
         return schema
+
+    @classmethod
+    def surface_attribute_in_ui(cls, attribute: str) -> bool:
+        """Returns a boolean indicating whether the given attribute should be surfaced in the UI properties panel."""
+        attr_details = cls.attribute_details.get(attribute, {})
+        return attr_details.get("schema_details", {}).get("surface_in_ui", True)
+
+    @classmethod
+    def skip_instance_on_falsy_attribute(cls, attribute: str, value: Any) -> bool:
+        """
+        Returns a boolean indicating whether an instance should be created on
+        the basis of the given attribute having a falsy value.
+        """
+        value_is_falsy = not value
+        skip_instance_if_falsy = cls.attribute_details[attribute].get("skip_instance_creation_if_falsy", False)
+        return value_is_falsy and skip_instance_if_falsy
 
     @staticmethod
     def strip_if_string(var: Any) -> Any:
         """Strip surrounding whitespace from variable if it is a string"""
         return var.strip() if isinstance(var, str) else var
-
-    @staticmethod
-    def unpack(value_dict: dict, *variables):
-        """Get the values corresponding to the given keys in the provided dict."""
-        if not isinstance(value_dict, dict):
-            value_dict = {}
-        for var_name in variables:
-            value = value_dict.get(var_name)
-            yield ElyraProperty.strip_if_string(value) if value is not None else None
 
     def get_value_for_display(self) -> Dict[str, Any]:
         """
@@ -184,14 +217,14 @@ class DisableNodeCaching(ElyraProperty):
     property_id = DISABLE_NODE_CACHING
     generic = False
     custom = True
-    _display_name = "Disable node caching"
+    display_name = "Disable node caching"
     _json_data_type = "string"
 
     def __init__(self, selection, **kwargs):
         self.selection = selection == "True"
 
     @classmethod
-    def create_instance(cls, prop_id: str, value: Optional[Any]) -> DisableNodeCaching:
+    def get_single_instance(cls, value: Optional[Any] = None) -> ElyraProperty:
         return DisableNodeCaching(selection=value)
 
     @classmethod
@@ -211,8 +244,6 @@ class ElyraPropertyListItem(ElyraProperty):
     An Elyra-owned property that is meant to be a member of an ElyraOwnedPropertyList.
     """
 
-    _keys: List[str]
-
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
@@ -220,14 +251,26 @@ class ElyraPropertyListItem(ElyraProperty):
         schema["default"] = []
         return schema
 
+    @classmethod
+    def use_attribute_in_key(cls, attribute: str) -> bool:
+        """
+        Returns a boolean indicating whether the given attribute should be used
+        in calculating a unique key for an ElyraPropertyListItem instance.
+        """
+        return cls.attribute_details[attribute].get("use_in_key", False)
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert instance to a dict with relevant class attributes."""
-        dict_repr = {attr: getattr(self, attr, None) for attr in self._ui_details_map}
+        dict_repr = {attr: getattr(self, attr, None) for attr in self.attribute_details}
         return dict_repr
 
     def get_value_for_display(self) -> Dict[str, Any]:
         """Get a representation of the instance to display in UI error messages."""
-        return self.to_dict()
+        dict_repr = self.to_dict()
+        for attr in self.attribute_details:
+            if not self.surface_attribute_in_ui(attr):
+                dict_repr.pop(attr)
+        return dict_repr
 
     def get_key_for_dict_entry(self) -> str:
         """
@@ -235,10 +278,11 @@ class ElyraPropertyListItem(ElyraProperty):
         based on the attribute values of the instance.
         """
         prop_key = ""
-        for key_attr in self._keys:
+        keys = [attr for attr in self.attribute_details if self.use_attribute_in_key(attr)]
+        for key_attr in keys:
             key_part = getattr(self, key_attr)
             if key_part:
-                prop_key += f"{key_part}:" if key_attr != self._keys[-1] else key_part
+                prop_key += f"{key_part}:" if key_attr != keys[-1] else key_part
         return prop_key
 
     def get_value_for_dict_entry(self) -> str:
@@ -254,30 +298,34 @@ class EnvironmentVariable(ElyraPropertyListItem):
     property_id = ENV_VARIABLES
     generic = True
     custom = False
-    _display_name = "Environment Variables"
-    _json_data_type = "array"
-    _keys = ["env_var"]
-    _ui_details_map = {
+    display_name = "Environment Variables"
+    attribute_details = {
         "env_var": {
-            "display_name": "Environment Variable",
-            "placeholder": "ENV_VAR",
-            "json_type": "string",
-            "required": True,
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Environment Variable",
+                "placeholder": "ENV_VAR",
+                "json_type": "string",
+                "required": True,
+            },
         },
-        "value": {"display_name": "Value", "placeholder": "value", "json_type": "string", "required": False},
+        "value": {
+            "use_in_key": False,
+            "skip_instance_creation_if_falsy": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Value",
+                "placeholder": "value",
+                "json_type": "string",
+                "required": False,
+            },
+        },
     }
 
     def __init__(self, env_var, value, **kwargs):
         self.env_var = env_var
         self.value = value
-
-    @classmethod
-    def create_instance(cls, prop_id: str, value: Optional[Any]) -> EnvironmentVariable | None:
-        env_var, env_value = cls.unpack(value, "env_var", "value")
-        if env_value is None or env_value == "":
-            return None  # skip inclusion and continue
-
-        return EnvironmentVariable(env_var=env_var, value=env_value)
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -315,29 +363,44 @@ class KubernetesSecret(ElyraPropertyListItem):
     property_id = KUBERNETES_SECRETS
     generic = True
     custom = False
-    _display_name = "Kubernetes Secrets"
-    _json_data_type = "array"
-    _keys = ["env_var"]
-    _ui_details_map = {
+    display_name = "Kubernetes Secrets"
+    attribute_details = {
         "env_var": {
-            "display_name": "Environment Variable",
-            "placeholder": "ENV_VAR",
-            "json_type": "string",
-            "required": True,
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Environment Variable",
+                "placeholder": "ENV_VAR",
+                "json_type": "string",
+                "required": True,
+            },
         },
-        "name": {"display_name": "Secret Name", "placeholder": "secret-name", "json_type": "string", "required": True},
-        "key": {"display_name": "Secret Key", "placeholder": "secret-key", "json_type": "string", "required": True},
+        "name": {
+            "use_in_key": False,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Secret Name",
+                "placeholder": "secret-name",
+                "json_type": "string",
+                "required": True,
+            },
+        },
+        "key": {
+            "use_in_key": False,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Secret Key",
+                "placeholder": "secret-key",
+                "json_type": "string",
+                "required": True,
+            },
+        },
     }
 
     def __init__(self, env_var, name, key, **kwargs):
         self.env_var = env_var
         self.name = name
         self.key = key
-
-    @classmethod
-    def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesSecret | None:
-        env_var, name, key = cls.unpack(value, "env_var", "name", "key")
-        return KubernetesSecret(env_var=env_var, name=name, key=key)
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -373,27 +436,33 @@ class VolumeMount(ElyraPropertyListItem):
     property_id = MOUNTED_VOLUMES
     generic = True
     custom = True
-    _display_name = "Data Volumes"
-    _json_data_type = "array"
-    _keys = ["path"]
-    _ui_details_map = {
-        "path": {"display_name": "Mount Path", "placeholder": "/mount/path", "json_type": "string", "required": True},
+    display_name = "Data Volumes"
+    attribute_details = {
+        "path": {
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Mount Path",
+                "placeholder": "/mount/path",
+                "json_type": "string",
+                "required": True,
+            },
+        },
         "pvc_name": {
-            "display_name": "Persistent Volume Claim Name",
-            "placeholder": "pvc-name",
-            "json_type": "string",
-            "required": True,
+            "use_in_key": False,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Persistent Volume Claim Name",
+                "placeholder": "pvc-name",
+                "json_type": "string",
+                "required": True,
+            },
         },
     }
 
     def __init__(self, path, pvc_name, **kwargs):
         self.path = path
         self.pvc_name = pvc_name
-
-    @classmethod
-    def create_instance(cls, prop_id: str, value: Optional[Any]) -> VolumeMount | None:
-        path, pvc_name = cls.unpack(value, "path", "pvc_name")
-        return VolumeMount(path=path, pvc_name=pvc_name)
 
     def get_all_validation_errors(self) -> List[str]:
         """Identify configuration issues for this instance"""
@@ -422,22 +491,33 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     property_id = KUBERNETES_POD_ANNOTATIONS
     generic = True
     custom = True
-    _display_name = "Kubernetes Pod Annotations"
-    _json_data_type = "array"
-    _keys = ["key"]
-    _ui_details_map = {
-        "key": {"display_name": "Key", "placeholder": "annotation_key", "json_type": "string", "required": True},
-        "value": {"display_name": "Value", "placeholder": "annotation_value", "json_type": "string", "required": False},
+    display_name = "Kubernetes Pod Annotations"
+    attribute_details = {
+        "key": {
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Key",
+                "placeholder": "annotation_key",
+                "json_type": "string",
+                "required": True,
+            },
+        },
+        "value": {
+            "use_in_key": False,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Value",
+                "placeholder": "annotation_value",
+                "json_type": "string",
+                "required": False,
+            },
+        },
     }
 
     def __init__(self, key, value, **kwargs):
         self.key = key
         self.value = value
-
-    @classmethod
-    def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesAnnotation | None:
-        key, value = cls.unpack(value, "key", "value")
-        return KubernetesAnnotation(key=key, value=value)
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -471,22 +551,33 @@ class KubernetesLabel(ElyraPropertyListItem):
     property_id = KUBERNETES_POD_LABELS
     generic = True
     custom = True
-    _display_name = "Kubernetes Pod Labels"
-    _json_data_type = "array"
-    _keys = ["key"]
-    _ui_details_map = {
-        "key": {"display_name": "Key", "placeholder": "label_key", "json_type": "string", "required": True},
-        "value": {"display_name": "Value", "placeholder": "label_value", "json_type": "string", "required": False},
+    display_name = "Kubernetes Pod Labels"
+    attribute_details = {
+        "key": {
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Key",
+                "placeholder": "label_key",
+                "json_type": "string",
+                "required": True,
+            },
+        },
+        "value": {
+            "use_in_key": False,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Value",
+                "placeholder": "label_value",
+                "json_type": "string",
+                "required": False,
+            },
+        },
     }
 
     def __init__(self, key, value, **kwargs):
         self.key = key
         self.value = value
-
-    @classmethod
-    def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesLabel | None:
-        key, value = cls.unpack(value, "key", "value")
-        return KubernetesLabel(key=key, value=value)
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -518,14 +609,47 @@ class KubernetesToleration(ElyraPropertyListItem):
     property_id = KUBERNETES_TOLERATIONS
     generic = True
     custom = True
-    _display_name = "Kubernetes Tolerations"
-    _json_data_type = "array"
-    _keys = ["key", "operator", "value", "effect"]
-    _ui_details_map = {
-        "key": {"display_name": "Key", "placeholder": "key", "json_type": "string", "required": False},
-        "operator": {"display_name": "Operator", "json_type": "string", "required": True},
-        "value": {"display_name": "Value", "placeholder": "value", "json_type": "string", "required": False},
-        "effect": {"display_name": "Effect", "placeholder": "NoSchedule", "json_type": "string", "required": False},
+    display_name = "Kubernetes Tolerations"
+    attribute_details = {
+        "key": {
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Key",
+                "placeholder": "key",
+                "json_type": "string",
+                "required": False,
+            },
+        },
+        "operator": {
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Operator",
+                "json_type": "string",
+                "required": True,
+            },
+        },
+        "value": {
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Value",
+                "placeholder": "value",
+                "json_type": "string",
+                "required": False,
+            },
+        },
+        "effect": {
+            "use_in_key": True,
+            "schema_details": {
+                "surface_in_ui": True,
+                "display_name": "Effect",
+                "placeholder": "NoSchedule",
+                "json_type": "string",
+                "required": False,
+            },
+        },
     }
 
     def __init__(self, key, operator, value, effect, **kwargs):
@@ -533,11 +657,6 @@ class KubernetesToleration(ElyraPropertyListItem):
         self.operator = operator
         self.value = value
         self.effect = effect
-
-    @classmethod
-    def create_instance(cls, prop_id: str, value: Optional[Any]) -> KubernetesToleration | None:
-        key, operator, value, effect = cls.unpack(value, "key", "operator", "value", "effect")
-        return KubernetesToleration(key=key, operator=operator, value=value, effect=effect)
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
