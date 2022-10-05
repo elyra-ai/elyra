@@ -17,7 +17,6 @@
 import { IDictionary, MetadataService } from '@elyra/services';
 import {
   ExpandableComponent,
-  ThemeProvider,
   JSONComponent,
   RequestErrors,
   trashIcon
@@ -26,7 +25,6 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import {
   Dialog,
-  IThemeManager,
   ReactWidget,
   showDialog,
   UseSignal
@@ -337,7 +335,6 @@ export class MetadataDisplay<
  */
 export interface IMetadataWidgetProps {
   app: JupyterFrontEnd;
-  themeManager?: IThemeManager;
   display_name: string;
   schemaspace: string;
   icon: LabIcon;
@@ -467,33 +464,31 @@ export class MetadataWidget extends ReactWidget {
 
   render(): React.ReactElement {
     return (
-      <ThemeProvider themeManager={this.props.themeManager}>
-        <div className={METADATA_CLASS}>
-          <header className={METADATA_HEADER_CLASS}>
-            <div style={{ display: 'flex' }}>
-              <this.props.icon.react
-                tag="span"
-                width="auto"
-                height="24px"
-                verticalAlign="middle"
-                marginRight="5px"
-              />
-              <p> {this.props.display_name} </p>
-            </div>
-            <MetadataHeaderButtons
-              schemas={this.schemas}
-              addMetadata={this.addMetadata}
-              titleContext={this.titleContext}
-              appendToTitle={this.props.appendToTitle}
-              refreshMetadata={this.refreshMetadata}
-              refreshButtonTooltip={this.refreshButtonTooltip}
+      <div className={METADATA_CLASS}>
+        <header className={METADATA_HEADER_CLASS}>
+          <div style={{ display: 'flex' }}>
+            <this.props.icon.react
+              tag="span"
+              width="auto"
+              height="24px"
+              verticalAlign="middle"
+              marginRight="5px"
             />
-          </header>
-          <UseSignal signal={this.renderSignal} initialArgs={[]}>
-            {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
-          </UseSignal>
-        </div>
-      </ThemeProvider>
+            <p> {this.props.display_name} </p>
+          </div>
+          <MetadataHeaderButtons
+            schemas={this.schemas}
+            addMetadata={this.addMetadata}
+            titleContext={this.titleContext}
+            appendToTitle={this.props.appendToTitle}
+            refreshMetadata={this.refreshMetadata}
+            refreshButtonTooltip={this.refreshButtonTooltip}
+          />
+        </header>
+        <UseSignal signal={this.renderSignal} initialArgs={[]}>
+          {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
+        </UseSignal>
+      </div>
     );
   }
 }
