@@ -75,7 +75,6 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             activeSessions[sessionModel.id] = sessionConnection;
           }
         }
-
         if (sessionModel) {
           let sessionConnection: Session.ISessionConnection | null =
             activeSessions[sessionModel.id];
@@ -87,20 +86,9 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             sessionConnection = sessions.connectTo({ model: sessionModel });
             activeSessions[sessionModel.id] = sessionConnection;
           }
-          if (sessionModel.kernel?.name !== kernelSelection) {
-            // New kernel selection detected, update session connection
-            await changeKernel(sessionConnection, kernelSelection);
-            sessionModel = await sessions.findByPath(path);
-            if (sessionConnection && sessionModel) {
-              activeSessions[sessionModel.id] = sessionConnection;
-            }
-          }
-
-          // Temporary solution to give enough time for the handler to update the UI on page reload.
-          setTimeout(async () => {
-            await handler.update(widget, sessionConnection);
-            app.commands.notifyCommandChanged();
-          }, 1000);
+          await updateKernel(sessionConnection, kernelSelection);
+          await handler.update(widget, sessionConnection);
+          app.commands.notifyCommandChanged();
         }
       } catch (error) {
         console.warn(
@@ -140,7 +128,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     if (editorTracker) {
       // Listen to script editor's current instance changes.
       editorTracker.currentChanged.connect((_, widget) => {
-        return update(widget);
+        update(widget);
       });
     }
 
@@ -169,7 +157,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       return sessionConnection;
     };
 
-    const changeKernel = async (
+    const updateKernel = async (
       sessionConnection: Session.ISessionConnection,
       kernelSelection: string
     ): Promise<void> => {
