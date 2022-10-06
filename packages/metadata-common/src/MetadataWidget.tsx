@@ -383,7 +383,7 @@ export class MetadataWidget extends ReactWidget {
       if (sortedSchema.length > 1) {
         for (const schema of sortedSchema) {
           this.props.app.contextMenu.addItem({
-            selector: `#${this.props.schemaspace} .elyra-metadataHeader-button`,
+            selector: `#${this.props.schemaspace} .elyra-metadataHeader-addButton`,
             command: 'elyra-metadata-editor:open',
             args: {
               onSave: this.updateMetadata,
@@ -517,7 +517,7 @@ export class MetadataWidget extends ReactWidget {
             </button>
             <div className="elyra-metadataHeader-buttonDivider" />
             <button
-              className={METADATA_HEADER_BUTTON_CLASS}
+              className={`${METADATA_HEADER_BUTTON_CLASS} elyra-metadataHeader-addButton`}
               onClick={
                 singleSchema
                   ? (): void => this.addMetadata(this.schemas?.[0].name)
