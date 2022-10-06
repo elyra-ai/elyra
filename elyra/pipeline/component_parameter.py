@@ -103,7 +103,7 @@ class ElyraProperty:
             instances = [sc.get_single_instance(obj) for obj in value]  # create instance for each object
             return ElyraPropertyList(instances).deduplicate()  # convert to ElyraPropertyList and de-dupe
 
-        return sc.get_single_instance()
+        return sc.get_single_instance(value)
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
