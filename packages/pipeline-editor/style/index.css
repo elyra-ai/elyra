@@ -335,6 +335,10 @@ span.bx--list-box__label {
   fill: var(--jp-inverse-layout-color1);
 }
 
+.elyra-PipelineEditor span.palette-flyout-category-text {
+  color: var(--jp-content-font-color0);
+}
+
 .tip-palette-item,
 .tip-palette-category,
 .tip-palette-label,
