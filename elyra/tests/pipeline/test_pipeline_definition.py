@@ -207,7 +207,6 @@ def test_remove_env_vars_with_matching_secrets(monkeypatch):
     # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
     monkeypatch.setattr(Node, "set_elyra_owned_properties", mock.Mock(return_value=None))
     monkeypatch.setattr(Node, "elyra_owned_properties", {KUBERNETES_SECRETS, ENV_VARIABLES})
-    monkeypatch.setattr(Node, "unset_elyra_owned_properties", mock.Mock(return_value=None))
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
     node = None

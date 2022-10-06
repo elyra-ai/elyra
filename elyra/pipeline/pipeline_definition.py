@@ -235,12 +235,16 @@ class Pipeline(AppDataBase):
         """
         pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
         for param_id, param_value in list(pipeline_defaults.items()):
+            if param_id == RUNTIME_IMAGE:
+                continue  # runtime image is the only pipeline default that does not need to be converted
             if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
                 continue  # property has already been properly converted or cannot be converted
 
             converted_value = ElyraProperty.create_instance(param_id, param_value)
             if converted_value is not None:
                 pipeline_defaults[param_id] = converted_value
+            else:
+                del pipeline_defaults[param_id]
 
 
 class Node(AppDataBase):
@@ -345,13 +349,6 @@ class Node(AppDataBase):
             # Properties that have the same ref (id) as Elyra-owned node properties
             # should be skipped during property propagation and conversion
             self.elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
-            if self.is_generic:
-                self.elyra_owned_properties.add(RUNTIME_IMAGE)
-
-    def unset_elyra_owned_properties(self) -> None:
-        """Remove properties that should be propagated but not persisted as an Elyra-owned property."""
-        if self.is_generic:
-            self.elyra_owned_properties.remove(RUNTIME_IMAGE)
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
@@ -419,6 +416,8 @@ class Node(AppDataBase):
             converted_value = ElyraProperty.create_instance(param_id, param_value)
             if converted_value is not None:
                 self.set_component_parameter(param_id, converted_value)
+            else:
+                self.pop_component_parameter(param_id)
 
 
 class PipelineDefinition(object):
@@ -617,9 +616,14 @@ class PipelineDefinition(object):
                     merged_list = ElyraPropertyList.merge(node_value, pipeline_value)
                     node.set_component_parameter(property_name, merged_list)
 
+            # Runtime image is a special case that must be handled separately
+            default_runtime = pipeline_default_properties.get(RUNTIME_IMAGE)
+            if node.is_generic and default_runtime and not node.get_component_parameter(RUNTIME_IMAGE):
+                node.set_component_parameter(RUNTIME_IMAGE, default_runtime)
+                continue
+
             if self.primary_pipeline.runtime_config != "local":
                 node.remove_env_vars_with_matching_secrets()
-            node.unset_elyra_owned_properties()
 
     def is_valid(self) -> bool:
         """

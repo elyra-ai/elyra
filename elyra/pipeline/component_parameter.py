@@ -46,26 +46,35 @@ from elyra.util.kubernetes import is_valid_label_value
 
 
 class PropertyAttribute:
-    """TODO"""
+    """
+    An attribute of an ElyraProperty instance that provides the means to construct the
+    schema for a property and contains information for processing property instances.
+    """
 
     def __init__(
         self,
         attribute_id: str,
         display_name: Optional[str] = None,
-        placeholder: Optional[str] = None,
-        input_type: Optional[str] = None,  # TODO make default string?
+        placeholder: Optional[Any] = None,
+        input_type: Optional[str] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
         use_in_key: Optional[bool] = True,
     ):
         """
-        TODO describe params
+        :param attribute_id: a shorthand id for this attribute, e.g. "env_var"
+        :param display_name: the display name for this attribute
+        :param placeholder: a placeholder value to be shown in the input field for this attribute
+        :param input_type: the JSON data type of this attribute ("string", "boolean", "number", "array", or "object")
+        :param hidden: whether this attribute should be hidden in the UI, preventing users from entering a value
+        :param required: whether a value for this attribute is required
+        :param use_in_key: for ElyraPropertyListItem subclasses only; whether this attribute should be used
+            when constructing a key for an instance that will be used to de-duplicate list items
         """
         self.id = attribute_id
         self.title = display_name
         self.placeholder = placeholder
         self.input_type = input_type
-
         self.hidden = hidden
         self.required = required
         self.use_in_key = use_in_key
@@ -78,9 +87,7 @@ class PropertyAttribute:
 
 
 class ElyraProperty:
-    """
-    A component property that is defined and processed by Elyra.
-    """
+    """A component property that is defined and processed by Elyra"""
 
     property_id: str
     applies_to_generic: bool  # True if the property applies to generic components
