@@ -29,7 +29,13 @@ import {
   showDialog,
   UseSignal
 } from '@jupyterlab/apputils';
-import { copyIcon, editIcon, LabIcon } from '@jupyterlab/ui-components';
+import {
+  addIcon,
+  copyIcon,
+  editIcon,
+  LabIcon,
+  refreshIcon
+} from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 
@@ -37,7 +43,6 @@ import React from 'react';
 
 import { FilterTools } from './FilterTools';
 import { MetadataCommonService } from './MetadataCommonService';
-import { MetadataHeaderButtons } from './MetadataHeaderButtons';
 
 /**
  * The CSS class added to metadata widgets.
@@ -45,6 +50,7 @@ import { MetadataHeaderButtons } from './MetadataHeaderButtons';
 export const METADATA_CLASS = 'elyra-metadata';
 export const METADATA_HEADER_CLASS = 'elyra-metadataHeader';
 export const METADATA_ITEM = 'elyra-metadata-item';
+const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
 const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
 
 const commands = {
@@ -372,6 +378,22 @@ export class MetadataWidget extends ReactWidget {
   async getSchemas(): Promise<void> {
     try {
       this.schemas = await MetadataService.getSchema(this.props.schemaspace);
+      const sortedSchema =
+        this.schemas?.sort((a, b) => a.title.localeCompare(b.title)) ?? [];
+      if (sortedSchema.length > 1) {
+        for (const schema of sortedSchema) {
+          this.props.app.contextMenu.addItem({
+            selector: `#${this.props.schemaspace} .elyra-metadataHeader-button`,
+            command: 'elyra-metadata-editor:open',
+            args: {
+              onSave: this.updateMetadata,
+              schemaspace: this.props.schemaspace,
+              schema: schema.name,
+              titleContext: schema.title
+            } as any
+          });
+        }
+      }
       this.update();
     } catch (error) {
       RequestErrors.serverError(error);
@@ -463,8 +485,9 @@ export class MetadataWidget extends ReactWidget {
   }
 
   render(): React.ReactElement {
+    const singleSchema = this.schemas?.length === 0;
     return (
-      <div className={METADATA_CLASS}>
+      <div id={this.props.schemaspace} className={METADATA_CLASS}>
         <header className={METADATA_HEADER_CLASS}>
           <div style={{ display: 'flex' }}>
             <this.props.icon.react
@@ -476,14 +499,34 @@ export class MetadataWidget extends ReactWidget {
             />
             <p> {this.props.display_name} </p>
           </div>
-          <MetadataHeaderButtons
-            schemas={this.schemas}
-            addMetadata={this.addMetadata}
-            titleContext={this.titleContext}
-            appendToTitle={this.props.appendToTitle}
-            refreshMetadata={this.refreshMetadata}
-            refreshButtonTooltip={this.refreshButtonTooltip}
-          />
+          <div className="elyra-metadataHeader">
+            <button
+              className={METADATA_HEADER_BUTTON_CLASS}
+              onClick={(): void => {
+                this.refreshMetadata();
+              }}
+              title={this.refreshButtonTooltip ?? 'Refresh list'}
+            >
+              <refreshIcon.react
+                tag="span"
+                elementPosition="center"
+                width="16px"
+              />
+            </button>
+            <button
+              className={METADATA_HEADER_BUTTON_CLASS}
+              onClick={
+                singleSchema
+                  ? (): void => this.addMetadata(this.schemas?.[0].name)
+                  : (event: any): void => {
+                      this.props.app.contextMenu.open(event);
+                    }
+              }
+              title={`Create new ${this.titleContext}`}
+            >
+              <addIcon.react tag="span" elementPosition="center" width="16px" />
+            </button>
+          </div>
         </header>
         <UseSignal signal={this.renderSignal} initialArgs={[]}>
           {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}

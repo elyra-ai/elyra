@@ -18,6 +18,5 @@ import '../style/index.css';
 
 export * from './MetadataEditor';
 export * from './MetadataWidget';
-export * from './MetadataHeaderButtons';
 export * from './MetadataCommonService';
 export * from './MetadataEditorWidget';

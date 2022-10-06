@@ -122,6 +122,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
+      label: (args: any) => {
+        return `New ${args.titleContext}` ?? `New ${args.schema}`;
+      },
       execute: (args: any) => {
         openMetadataEditor(args);
       }
