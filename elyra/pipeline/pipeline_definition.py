@@ -239,11 +239,7 @@ class Pipeline(AppDataBase):
                 continue  # property has already been properly converted or cannot be converted
 
             converted_value = ElyraProperty.create_instance(param_id, param_value)
-            if converted_value is None:
-                continue
-            if isinstance(converted_value, ElyraProperty) and converted_value.is_empty_instance():
-                del pipeline_defaults[param_id]
-            else:
+            if converted_value is not None:
                 pipeline_defaults[param_id] = converted_value
 
 
@@ -421,11 +417,7 @@ class Node(AppDataBase):
                 continue  # property has already been properly converted or cannot be converted
 
             converted_value = ElyraProperty.create_instance(param_id, param_value)
-            if converted_value is None:
-                continue
-            if isinstance(converted_value, ElyraProperty) and converted_value.is_empty_instance():
-                self._node["app_data"]["component_parameters"].pop(param_id, None)
-            else:
+            if converted_value is not None:
                 self.set_component_parameter(param_id, converted_value)
 
 

@@ -18,7 +18,7 @@ from __future__ import annotations
 from enum import Enum
 from importlib import import_module
 import json
-from textwrap import dedent
+import re
 from typing import Any
 from typing import Dict
 from typing import List
@@ -45,21 +45,53 @@ from elyra.util.kubernetes import is_valid_label_key
 from elyra.util.kubernetes import is_valid_label_value
 
 
+class PropertyAttribute:
+    """TODO"""
+
+    def __init__(
+        self,
+        attribute_id: str,
+        display_name: Optional[str] = None,
+        placeholder: Optional[str] = None,
+        input_type: Optional[str] = None,  # TODO make default string?
+        hidden: Optional[bool] = False,
+        required: Optional[bool] = False,
+        use_in_key: Optional[bool] = True,
+    ):
+        """
+        TODO describe params
+        """
+        self.id = attribute_id
+        self.title = display_name
+        self.placeholder = placeholder
+        self.input_type = input_type
+
+        self.hidden = hidden
+        self.required = required
+        self.use_in_key = use_in_key
+
+    @property
+    def default_value(self) -> Optional[str]:
+        """Determine the default value for the input type of the attribute."""
+        input_type_to_default = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
+        return input_type_to_default.get(self.input_type)
+
+
 class ElyraProperty:
     """
     A component property that is defined and processed by Elyra.
     """
 
     property_id: str
-    generic: bool
-    custom: bool
-    display_name: str
-    attribute_details: Dict[str, Dict] = {}
+    applies_to_generic: bool  # True if the property applies to generic components
+    applies_to_custom: bool  # True if the property applies to custom components
+    property_display_name: str
+    property_description: str
+    property_attributes: List[PropertyAttribute] = []
     _json_data_type: str = None
     _required: bool = False
 
     _subclass_property_map: Dict[str, type] = {}
-    _json_type_to_default: Dict[str, Any] = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
 
     @classmethod
     def all_subclasses(cls):
@@ -77,15 +109,9 @@ class ElyraProperty:
         if not isinstance(value, dict):
             value = {}
 
-        params = {}
-        for attr in cls.attribute_details:
-            attr_value = ElyraProperty.strip_if_string(value.get(attr, None))
-            if cls.skip_instance_on_falsy_attribute(attr, attr_value):
-                return None
-            params[attr] = attr_value
-
+        params = {attr.id: cls.strip_if_string(value.get(attr.id)) for attr in cls.property_attributes}
         instance = getattr(import_module(cls.__module__), cls.__name__)(**params)
-        return instance
+        return None if instance.should_discard() else instance
 
     @classmethod
     def create_instance(cls, prop_id: str, value: Optional[Any]) -> ElyraProperty | ElyraPropertyList | None:
@@ -104,6 +130,13 @@ class ElyraProperty:
             return ElyraPropertyList(instances).deduplicate()  # convert to ElyraPropertyList and de-dupe
 
         return sc.get_single_instance(value)
+
+    def should_discard(self) -> bool:
+        """
+        Returns a boolean indicating whether an instance should be discarded on
+        the basis of its attribute values.
+        """
+        pass
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
@@ -124,37 +157,38 @@ class ElyraProperty:
         all_subclasses = set()
         for sc in cls.all_subclasses():
             sc_id = getattr(sc, "property_id", "")
-            if sc_id in processor_props and getattr(sc, component_type, False):
+            if sc_id in processor_props and getattr(sc, f"applies_to_{component_type}", False):
                 all_subclasses.add(sc)
 
         return all_subclasses
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        class_description = dedent(cls.__doc__).replace("\n", " ")
-        schema = {"title": cls.display_name, "description": class_description, "type": cls._json_data_type}
+        """
+        Build the JSON schema for an Elyra-owned component property using the attributes
+        defined in the human-readable list of PropertyAttribute object for each class.
+        """
+        class_description = re.sub(" +", " ", cls.property_description.replace("\n", " ")).strip()
+        schema = {"title": cls.property_display_name, "description": class_description, "type": cls._json_data_type}
         if cls._json_data_type is not None:  # property is a scalar value  TODO deprecate when able
             return schema
 
         properties, uihints, required_list = {}, {}, []
-        for attr, details in cls.attribute_details.items():
-            ui_info = details.get("schema_details")
-            if not cls.surface_attribute_in_ui(attr):
+        for attr in cls.property_attributes:
+            if attr.hidden:
                 continue
 
-            attr_type = ui_info.get("json_type", "string")
-            properties[attr] = {"type": attr_type, "title": ui_info.get("display_name", attr)}
+            properties[attr.id] = {"type": attr.input_type, "title": attr.title or attr.id}
 
-            attr_default = cls._json_type_to_default.get(attr_type, None)
+            attr_default = attr.default_value
             if attr_default is not None:
-                properties[attr]["default"] = attr_default
+                properties[attr.id]["default"] = attr_default
 
-            if ui_info.get("placeholder"):
-                uihints[attr] = {"ui:placeholder": ui_info.get("placeholder")}
+            if attr.placeholder:
+                uihints[attr.id] = {"ui:placeholder": attr.placeholder}
 
-            if ui_info.get("required"):
-                required_list.append(attr)
+            if attr.required:
+                required_list.append(attr.id)
 
         if issubclass(cls, ElyraPropertyListItem):
             schema["type"] = "array"
@@ -165,22 +199,6 @@ class ElyraProperty:
             schema.update({"properties": properties, "required": required_list, "uihints": uihints})
 
         return schema
-
-    @classmethod
-    def surface_attribute_in_ui(cls, attribute: str) -> bool:
-        """Returns a boolean indicating whether the given attribute should be surfaced in the UI properties panel."""
-        attr_details = cls.attribute_details.get(attribute, {})
-        return attr_details.get("schema_details", {}).get("surface_in_ui", True)
-
-    @classmethod
-    def skip_instance_on_falsy_attribute(cls, attribute: str, value: Any) -> bool:
-        """
-        Returns a boolean indicating whether an instance should be created on
-        the basis of the given attribute having a falsy value.
-        """
-        value_is_falsy = not value
-        skip_instance_if_falsy = cls.attribute_details[attribute].get("skip_instance_creation_if_falsy", False)
-        return value_is_falsy and skip_instance_if_falsy
 
     @staticmethod
     def strip_if_string(var: Any) -> Any:
@@ -206,18 +224,15 @@ class ElyraProperty:
         """Perform custom validation on an instance."""
         return []
 
-    def is_empty_instance(self) -> bool:
-        """Returns a boolean indicating whether this instance is considered a no-op."""
-        return False
-
 
 class DisableNodeCaching(ElyraProperty):
-    """Disable caching to force node re-execution in the target runtime environment."""
+    """An ElyraProperty representing node cache preference"""
 
     property_id = DISABLE_NODE_CACHING
-    generic = False
-    custom = True
-    display_name = "Disable node caching"
+    applies_to_generic = False
+    applies_to_custom = True
+    property_display_name = "Disable node caching"
+    property_description = "Disable caching to force node re-execution in the target runtime environment."
     _json_data_type = "string"
 
     def __init__(self, selection, **kwargs):
@@ -251,25 +266,17 @@ class ElyraPropertyListItem(ElyraProperty):
         schema["default"] = []
         return schema
 
-    @classmethod
-    def use_attribute_in_key(cls, attribute: str) -> bool:
-        """
-        Returns a boolean indicating whether the given attribute should be used
-        in calculating a unique key for an ElyraPropertyListItem instance.
-        """
-        return cls.attribute_details[attribute].get("use_in_key", False)
-
     def to_dict(self) -> Dict[str, Any]:
         """Convert instance to a dict with relevant class attributes."""
-        dict_repr = {attr: getattr(self, attr, None) for attr in self.attribute_details}
+        dict_repr = {attr.id: getattr(self, attr.id, None) for attr in self.property_attributes}
         return dict_repr
 
     def get_value_for_display(self) -> Dict[str, Any]:
         """Get a representation of the instance to display in UI error messages."""
         dict_repr = self.to_dict()
-        for attr in self.attribute_details:
-            if not self.surface_attribute_in_ui(attr):
-                dict_repr.pop(attr)
+        for attr in self.property_attributes:
+            if attr.hidden:
+                dict_repr.pop(attr.id)
         return dict_repr
 
     def get_key_for_dict_entry(self) -> str:
@@ -278,7 +285,7 @@ class ElyraPropertyListItem(ElyraProperty):
         based on the attribute values of the instance.
         """
         prop_key = ""
-        keys = [attr for attr in self.attribute_details if self.use_attribute_in_key(attr)]
+        keys = [attr.id for attr in self.property_attributes if attr.use_in_key]
         for key_attr in keys:
             key_part = getattr(self, key_attr)
             if key_part:
@@ -291,37 +298,33 @@ class ElyraPropertyListItem(ElyraProperty):
 
 
 class EnvironmentVariable(ElyraPropertyListItem):
-    """
-    Environment variables to be set on the execution environment.
-    """
+    """An ElyraProperty representing a single Environment Variable"""
 
     property_id = ENV_VARIABLES
-    generic = True
-    custom = False
-    display_name = "Environment Variables"
-    attribute_details = {
-        "env_var": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Environment Variable",
-                "placeholder": "ENV_VAR",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-        "value": {
-            "use_in_key": False,
-            "skip_instance_creation_if_falsy": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Value",
-                "placeholder": "value",
-                "json_type": "string",
-                "required": False,
-            },
-        },
-    }
+    applies_to_generic = True
+    applies_to_custom = False
+    property_display_name = "Environment Variables"
+    property_description = "Environment variables to be set on the execution environment."
+    property_attributes = [
+        PropertyAttribute(
+            attribute_id="env_var",
+            display_name="Environment Variable",
+            placeholder="ENV_VAR",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=True,
+        ),
+        PropertyAttribute(
+            attribute_id="value",
+            display_name="Value",
+            placeholder="value",
+            input_type="string",
+            hidden=False,
+            required=False,
+            use_in_key=False,
+        ),
+    ]
 
     def __init__(self, env_var, value, **kwargs):
         self.env_var = env_var
@@ -331,8 +334,15 @@ class EnvironmentVariable(ElyraPropertyListItem):
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
-        schema["uihints"] = {"canRefresh": True}
+        schema["uihints"].update({"canRefresh": True})
         return schema
+
+    def should_discard(self) -> bool:
+        """
+        Returns a boolean indicating whether an instance should be discarded on
+        the basis of its attribute values.
+        """
+        return not self.value
 
     def get_value_for_dict_entry(self) -> str:
         """Returns the value to be used when constructing a dict from a list of classes."""
@@ -354,48 +364,44 @@ class EnvironmentVariable(ElyraPropertyListItem):
 
 
 class KubernetesSecret(ElyraPropertyListItem):
-    """
-    Kubernetes secrets to make available as environment variables to this node.
-    The secret name and key given must be present in the Kubernetes namespace
-    where the node is executed or this node will not run.
-    """
+    """An ElyraProperty representing a single Kubernetes secret"""
 
     property_id = KUBERNETES_SECRETS
-    generic = True
-    custom = False
-    display_name = "Kubernetes Secrets"
-    attribute_details = {
-        "env_var": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Environment Variable",
-                "placeholder": "ENV_VAR",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-        "name": {
-            "use_in_key": False,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Secret Name",
-                "placeholder": "secret-name",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-        "key": {
-            "use_in_key": False,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Secret Key",
-                "placeholder": "secret-key",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-    }
+    applies_to_generic = True
+    applies_to_custom = False
+    property_display_name = "Kubernetes Secrets"
+    property_description = """Kubernetes secrets to make available as environment
+    variables to this node. The secret name and key given must be present in the
+    Kubernetes namespace where the node is executed or this node will not run."""
+    property_attributes = [
+        PropertyAttribute(
+            attribute_id="env_var",
+            display_name="Environment Variable",
+            placeholder="ENV_VAR",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=True,
+        ),
+        PropertyAttribute(
+            attribute_id="name",
+            display_name="Secret Name",
+            placeholder="secret-name",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=False,
+        ),
+        PropertyAttribute(
+            attribute_id="key",
+            display_name="Secret Key",
+            placeholder="secret-key",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=False,
+        ),
+    ]
 
     def __init__(self, env_var, name, key, **kwargs):
         self.env_var = env_var
@@ -428,37 +434,34 @@ class KubernetesSecret(ElyraPropertyListItem):
 
 
 class VolumeMount(ElyraPropertyListItem):
-    """
-    Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the
-    Kubernetes namespace where the node is executed or this node will not run.
-    """
+    """An ElyraProperty representing a single PVC"""
 
     property_id = MOUNTED_VOLUMES
-    generic = True
-    custom = True
-    display_name = "Data Volumes"
-    attribute_details = {
-        "path": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Mount Path",
-                "placeholder": "/mount/path",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-        "pvc_name": {
-            "use_in_key": False,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Persistent Volume Claim Name",
-                "placeholder": "pvc-name",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-    }
+    applies_to_generic = True
+    applies_to_custom = True
+    property_display_name = "Data Volumes"
+    property_description = """Volumes to be mounted in this node. The specified Persistent Volume Claims
+    must exist in the Kubernetes namespace where the node is executed or this node will not run."""
+    property_attributes = [
+        PropertyAttribute(
+            attribute_id="path",
+            display_name="Mount Path",
+            placeholder="/mount/path",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=True,
+        ),
+        PropertyAttribute(
+            attribute_id="pvc_name",
+            display_name="Persistent Volume Claim Name",
+            placeholder="pvc-name",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=False,
+        ),
+    ]
 
     def __init__(self, path, pvc_name, **kwargs):
         self.path = path
@@ -483,37 +486,34 @@ class VolumeMount(ElyraPropertyListItem):
 
 
 class KubernetesAnnotation(ElyraPropertyListItem):
-    """
-    Metadata to be added to this node. The metadata is exposed as annotation
-    in the Kubernetes pod that executes this node.
-    """
+    """An ElyraProperty representing a single Kubernetes annotation"""
 
     property_id = KUBERNETES_POD_ANNOTATIONS
-    generic = True
-    custom = True
-    display_name = "Kubernetes Pod Annotations"
-    attribute_details = {
-        "key": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Key",
-                "placeholder": "annotation_key",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-        "value": {
-            "use_in_key": False,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Value",
-                "placeholder": "annotation_value",
-                "json_type": "string",
-                "required": False,
-            },
-        },
-    }
+    applies_to_generic = True
+    applies_to_custom = True
+    property_display_name = "Kubernetes Pod Annotations"
+    property_description = """Metadata to be added to this node. The metadata is exposed
+    as annotation in the Kubernetes pod that executes this node."""
+    property_attributes = [
+        PropertyAttribute(
+            attribute_id="key",
+            display_name="Key",
+            placeholder="annotation_key",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=True,
+        ),
+        PropertyAttribute(
+            attribute_id="value",
+            display_name="Value",
+            placeholder="annotation_value",
+            input_type="string",
+            hidden=False,
+            required=False,
+            use_in_key=False,
+        ),
+    ]
 
     def __init__(self, key, value, **kwargs):
         self.key = key
@@ -543,37 +543,34 @@ class KubernetesAnnotation(ElyraPropertyListItem):
 
 
 class KubernetesLabel(ElyraPropertyListItem):
-    """
-    Metadata to be added to this node. The metadata is exposed as label
-    in the Kubernetes pod that executes this node.
-    """
+    """An ElyraProperty representing a single Kubernetes pod label"""
 
     property_id = KUBERNETES_POD_LABELS
-    generic = True
-    custom = True
-    display_name = "Kubernetes Pod Labels"
-    attribute_details = {
-        "key": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Key",
-                "placeholder": "label_key",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-        "value": {
-            "use_in_key": False,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Value",
-                "placeholder": "label_value",
-                "json_type": "string",
-                "required": False,
-            },
-        },
-    }
+    applies_to_generic = True
+    applies_to_custom = True
+    property_display_name = "Kubernetes Pod Labels"
+    property_description = """Metadata to be added to this node. The metadata is
+    exposed as label in the Kubernetes pod that executes this node."""
+    property_attributes = [
+        PropertyAttribute(
+            attribute_id="key",
+            display_name="Key",
+            placeholder="label_key",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=True,
+        ),
+        PropertyAttribute(
+            attribute_id="value",
+            display_name="Value",
+            placeholder="label_value",
+            input_type="string",
+            hidden=False,
+            required=False,
+            use_in_key=False,
+        ),
+    ]
 
     def __init__(self, key, value, **kwargs):
         self.key = key
@@ -602,55 +599,50 @@ class KubernetesLabel(ElyraPropertyListItem):
 
 
 class KubernetesToleration(ElyraPropertyListItem):
-    """
-    Kubernetes tolerations to apply to the pod where the node is executed.
-    """
+    """An ElyraProperty representing a single Kubernetes toleration"""
 
     property_id = KUBERNETES_TOLERATIONS
-    generic = True
-    custom = True
-    display_name = "Kubernetes Tolerations"
-    attribute_details = {
-        "key": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Key",
-                "placeholder": "key",
-                "json_type": "string",
-                "required": False,
-            },
-        },
-        "operator": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Operator",
-                "json_type": "string",
-                "required": True,
-            },
-        },
-        "value": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Value",
-                "placeholder": "value",
-                "json_type": "string",
-                "required": False,
-            },
-        },
-        "effect": {
-            "use_in_key": True,
-            "schema_details": {
-                "surface_in_ui": True,
-                "display_name": "Effect",
-                "placeholder": "NoSchedule",
-                "json_type": "string",
-                "required": False,
-            },
-        },
-    }
+    applies_to_generic = True
+    applies_to_custom = True
+    property_display_name = "Kubernetes Tolerations"
+    property_description = "Kubernetes tolerations to apply to the pod where the node is executed."
+    property_attributes = [
+        PropertyAttribute(
+            attribute_id="key",
+            display_name="Key",
+            placeholder="key",
+            input_type="string",
+            hidden=False,
+            required=False,
+            use_in_key=True,
+        ),
+        PropertyAttribute(
+            attribute_id="operator",
+            display_name="Operator",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=True,
+        ),
+        PropertyAttribute(
+            attribute_id="value",
+            display_name="Value",
+            placeholder="value",
+            input_type="string",
+            hidden=False,
+            required=False,
+            use_in_key=True,
+        ),
+        PropertyAttribute(
+            attribute_id="effect",
+            display_name="Effect",
+            placeholder="NoSchedule",
+            input_type="string",
+            hidden=False,
+            required=False,
+            use_in_key=True,
+        ),
+    ]
 
     def __init__(self, key, operator, value, effect, **kwargs):
         self.key = key
