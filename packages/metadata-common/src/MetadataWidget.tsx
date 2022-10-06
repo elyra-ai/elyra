@@ -389,7 +389,9 @@ export class MetadataWidget extends ReactWidget {
               onSave: this.updateMetadata,
               schemaspace: this.props.schemaspace,
               schema: schema.name,
-              titleContext: schema.title
+              title: schema.title,
+              titleContext: this.props.titleContext,
+              appendToTitle: this.props.appendToTitle
             } as any
           });
         }
@@ -485,7 +487,7 @@ export class MetadataWidget extends ReactWidget {
   }
 
   render(): React.ReactElement {
-    const singleSchema = this.schemas?.length === 0;
+    const singleSchema = this.schemas?.length === 1;
     return (
       <div id={this.props.schemaspace} className={METADATA_CLASS}>
         <header className={METADATA_HEADER_CLASS}>
@@ -499,7 +501,7 @@ export class MetadataWidget extends ReactWidget {
             />
             <p> {this.props.display_name} </p>
           </div>
-          <div className="elyra-metadataHeader">
+          <div className="elyra-metadataHeader-buttons">
             <button
               className={METADATA_HEADER_BUTTON_CLASS}
               onClick={(): void => {
@@ -513,6 +515,7 @@ export class MetadataWidget extends ReactWidget {
                 width="16px"
               />
             </button>
+            <div className="elyra-metadataHeader-buttonDivider" />
             <button
               className={METADATA_HEADER_BUTTON_CLASS}
               onClick={

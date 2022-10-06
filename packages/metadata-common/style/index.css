@@ -27,7 +27,7 @@
 
 .elyra-metadataHeader {
   font-weight: bold;
-  padding: 5px 6px 5px 17px;
+  padding: 2px 6px 2px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -39,9 +39,21 @@
 
 button.elyra-metadataHeader-button {
   border: none;
-  margin: 5px;
+  margin: 5px 0;
   padding: 5px;
-  border-radius: 100%;
+  background: none;
+}
+
+.elyra-metadataHeader-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.elyra-metadataHeader-buttonDivider {
+  width: 0.05em;
+  height: 1.5em;
+  position: relative;
+  background-color: var(--jp-border-color1);
 }
 
 .elyra-metadataHeader-popper button {
