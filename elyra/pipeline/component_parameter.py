@@ -59,7 +59,6 @@ class PropertyAttribute:
         input_type: Optional[str] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
-        use_in_key: Optional[bool] = True,
     ):
         """
         :param attribute_id: a shorthand id for this attribute, e.g. "env_var"
@@ -68,8 +67,6 @@ class PropertyAttribute:
         :param input_type: the JSON data type of this attribute ("string", "boolean", "number", "array", or "object")
         :param hidden: whether this attribute should be hidden in the UI, preventing users from entering a value
         :param required: whether a value for this attribute is required
-        :param use_in_key: for ElyraPropertyListItem subclasses only; whether this attribute should be used
-            when constructing a key for an instance that will be used to de-duplicate list items
         """
         self.id = attribute_id
         self.title = display_name
@@ -77,13 +74,36 @@ class PropertyAttribute:
         self.input_type = input_type
         self.hidden = hidden
         self.required = required
-        self.use_in_key = use_in_key
 
     @property
     def default_value(self) -> Optional[str]:
         """Determine the default value for the input type of the attribute."""
         input_type_to_default = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
         return input_type_to_default.get(self.input_type)
+
+
+class ListItemPropertyAttribute(PropertyAttribute):
+    """
+    An attribute of an ElyraPropertyListItem instance that provides the means to construct the
+    schema for a property and contains information for processing property instances.
+    """
+
+    def __init__(
+        self,
+        attribute_id: str,
+        display_name: Optional[str] = None,
+        placeholder: Optional[Any] = None,
+        input_type: Optional[str] = None,
+        hidden: Optional[bool] = False,
+        required: Optional[bool] = False,
+        use_in_key: Optional[bool] = True,
+    ):
+        """
+        :param use_in_key: whether this attribute should be used when constructing a
+            key for an instance that will be used to de-duplicate list items
+        """
+        super().__init__(attribute_id, display_name, placeholder, input_type, hidden, required)
+        self.use_in_key = use_in_key
 
 
 class ElyraProperty:
@@ -140,10 +160,14 @@ class ElyraProperty:
 
     def should_discard(self) -> bool:
         """
-        Returns a boolean indicating whether an instance should be discarded on
-        the basis of its attribute values.
+        Returns a boolean indicating whether an instance should be silently discarded on
+        the basis of its attribute values. A discarded instance will not be validated or
+        processed.
+
+        Override this method if there are any constraints that dictate that this instance
+        should not be processed.
         """
-        pass
+        return False
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
@@ -266,6 +290,8 @@ class ElyraPropertyListItem(ElyraProperty):
     An Elyra-owned property that is meant to be a member of an ElyraOwnedPropertyList.
     """
 
+    property_attributes: List[ListItemPropertyAttribute] = []
+
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
         """Build the JSON schema for an Elyra-owned component property"""
@@ -313,7 +339,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
     property_display_name = "Environment Variables"
     property_description = "Environment variables to be set on the execution environment."
     property_attributes = [
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="env_var",
             display_name="Environment Variable",
             placeholder="ENV_VAR",
@@ -322,7 +348,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
             required=True,
             use_in_key=True,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
             placeholder="value",
@@ -346,8 +372,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
 
     def should_discard(self) -> bool:
         """
-        Returns a boolean indicating whether an instance should be discarded on
-        the basis of its attribute values.
+        If a value is not specified, this EnvironmentVariable instance should be silently ignored.
         """
         return not self.value
 
@@ -381,7 +406,7 @@ class KubernetesSecret(ElyraPropertyListItem):
     variables to this node. The secret name and key given must be present in the
     Kubernetes namespace where the node is executed or this node will not run."""
     property_attributes = [
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="env_var",
             display_name="Environment Variable",
             placeholder="ENV_VAR",
@@ -390,7 +415,7 @@ class KubernetesSecret(ElyraPropertyListItem):
             required=True,
             use_in_key=True,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="name",
             display_name="Secret Name",
             placeholder="secret-name",
@@ -399,7 +424,7 @@ class KubernetesSecret(ElyraPropertyListItem):
             required=True,
             use_in_key=False,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Secret Key",
             placeholder="secret-key",
@@ -450,7 +475,7 @@ class VolumeMount(ElyraPropertyListItem):
     property_description = """Volumes to be mounted in this node. The specified Persistent Volume Claims
     must exist in the Kubernetes namespace where the node is executed or this node will not run."""
     property_attributes = [
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="path",
             display_name="Mount Path",
             placeholder="/mount/path",
@@ -459,7 +484,7 @@ class VolumeMount(ElyraPropertyListItem):
             required=True,
             use_in_key=True,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="pvc_name",
             display_name="Persistent Volume Claim Name",
             placeholder="pvc-name",
@@ -502,7 +527,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
     property_description = """Metadata to be added to this node. The metadata is exposed
     as annotation in the Kubernetes pod that executes this node."""
     property_attributes = [
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
             placeholder="annotation_key",
@@ -511,7 +536,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
             required=True,
             use_in_key=True,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
             placeholder="annotation_value",
@@ -559,7 +584,7 @@ class KubernetesLabel(ElyraPropertyListItem):
     property_description = """Metadata to be added to this node. The metadata is
     exposed as label in the Kubernetes pod that executes this node."""
     property_attributes = [
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
             placeholder="label_key",
@@ -568,7 +593,7 @@ class KubernetesLabel(ElyraPropertyListItem):
             required=True,
             use_in_key=True,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
             placeholder="label_value",
@@ -614,7 +639,7 @@ class KubernetesToleration(ElyraPropertyListItem):
     property_display_name = "Kubernetes Tolerations"
     property_description = "Kubernetes tolerations to apply to the pod where the node is executed."
     property_attributes = [
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
             placeholder="key",
@@ -623,7 +648,7 @@ class KubernetesToleration(ElyraPropertyListItem):
             required=False,
             use_in_key=True,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="operator",
             display_name="Operator",
             input_type="string",
@@ -631,7 +656,7 @@ class KubernetesToleration(ElyraPropertyListItem):
             required=True,
             use_in_key=True,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
             placeholder="value",
@@ -640,7 +665,7 @@ class KubernetesToleration(ElyraPropertyListItem):
             required=False,
             use_in_key=True,
         ),
-        PropertyAttribute(
+        ListItemPropertyAttribute(
             attribute_id="effect",
             display_name="Effect",
             placeholder="NoSchedule",
