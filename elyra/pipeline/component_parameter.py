@@ -50,6 +50,7 @@ class PropertyAttribute:
     An attribute of an ElyraProperty instance that provides the means to construct the
     schema for a property and contains information for processing property instances.
     """
+
     _input_type_to_default_value = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
 
     def __init__(
@@ -57,8 +58,8 @@ class PropertyAttribute:
         attribute_id: str,
         display_name: Optional[str] = None,
         placeholder: Optional[Any] = None,
-        input_type: Optional[str] = None,
         default_value: Optional[Any] = None,
+        input_type: Optional[str] = None,
         enum: Optional[List[Any]] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
@@ -67,8 +68,8 @@ class PropertyAttribute:
         :param attribute_id: a shorthand id for this attribute, e.g. "env_var"
         :param display_name: the display name for this attribute
         :param placeholder: a placeholder value to be shown in the input field for this attribute
-        :param input_type: the JSON data type of this attribute ("string", "boolean", "number", "array", or "object")
         :param default_value: the default value to assign the attribute
+        :param input_type: the JSON data type of this attribute ("string", "boolean", "number", "array", or "object")
         :param enum: a list of possible values that this attribute can take (will appear in a dropdown menu)
         :param hidden: whether this attribute should be hidden in the UI, preventing users from entering a value
         :param required: whether a value for this attribute is required
@@ -76,8 +77,8 @@ class PropertyAttribute:
         self.id = attribute_id
         self.title = display_name
         self.placeholder = placeholder
+        self.default_value = default_value or self._input_type_to_default_value.get(input_type)
         self.input_type = input_type
-        self.default_value = default_value or self._input_type_to_default_value.get(self.input_type)
         self.enum = enum
         self.hidden = hidden
         self.required = required
@@ -94,8 +95,8 @@ class ListItemPropertyAttribute(PropertyAttribute):
         attribute_id: str,
         display_name: Optional[str] = None,
         placeholder: Optional[Any] = None,
-        input_type: Optional[str] = None,
         default_value: Optional[Any] = None,
+        input_type: Optional[str] = None,
         enum: Optional[List[Any]] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
@@ -105,16 +106,17 @@ class ListItemPropertyAttribute(PropertyAttribute):
         :param use_in_key: whether this attribute should be used when constructing a
             key for an instance that will be used to de-duplicate list items
         """
-        super().__init__(attribute_id, display_name, placeholder, input_type, default_value, enum, hidden, required)
+        super().__init__(attribute_id, display_name, placeholder, default_value, input_type, enum, hidden, required)
         self.use_in_key = use_in_key
 
 
 class ElyraProperty:
     """A component property that is defined and processed by Elyra"""
 
-    property_id: str
     applies_to_generic: bool  # True if the property applies to generic components
     applies_to_custom: bool  # True if the property applies to custom components
+
+    property_id: str
     property_display_name: str
     property_description: str
     property_attributes: List[PropertyAttribute] = []
@@ -258,9 +260,10 @@ class ElyraProperty:
 class DisableNodeCaching(ElyraProperty):
     """An ElyraProperty representing node cache preference"""
 
-    property_id = DISABLE_NODE_CACHING
     applies_to_generic = False
     applies_to_custom = True
+
+    property_id = DISABLE_NODE_CACHING
     property_display_name = "Disable node caching"
     property_description = "Disable caching to force node re-execution in the target runtime environment."
     _json_data_type = "string"
@@ -325,9 +328,10 @@ class ElyraPropertyListItem(ElyraProperty):
 class EnvironmentVariable(ElyraPropertyListItem):
     """An ElyraProperty representing a single Environment Variable"""
 
-    property_id = ENV_VARIABLES
     applies_to_generic = True
     applies_to_custom = False
+
+    property_id = ENV_VARIABLES
     property_display_name = "Environment Variables"
     property_description = "Environment variables to be set on the execution environment."
     property_attributes = [
@@ -390,9 +394,10 @@ class EnvironmentVariable(ElyraPropertyListItem):
 class KubernetesSecret(ElyraPropertyListItem):
     """An ElyraProperty representing a single Kubernetes secret"""
 
-    property_id = KUBERNETES_SECRETS
     applies_to_generic = True
     applies_to_custom = False
+
+    property_id = KUBERNETES_SECRETS
     property_display_name = "Kubernetes Secrets"
     property_description = """Kubernetes secrets to make available as environment
     variables to this node. The secret name and key given must be present in the
@@ -460,9 +465,10 @@ class KubernetesSecret(ElyraPropertyListItem):
 class VolumeMount(ElyraPropertyListItem):
     """An ElyraProperty representing a single PVC"""
 
-    property_id = MOUNTED_VOLUMES
     applies_to_generic = True
     applies_to_custom = True
+
+    property_id = MOUNTED_VOLUMES
     property_display_name = "Data Volumes"
     property_description = """Volumes to be mounted in this node. The specified Persistent Volume Claims
     must exist in the Kubernetes namespace where the node is executed or this node will not run."""
@@ -512,9 +518,10 @@ class VolumeMount(ElyraPropertyListItem):
 class KubernetesAnnotation(ElyraPropertyListItem):
     """An ElyraProperty representing a single Kubernetes annotation"""
 
-    property_id = KUBERNETES_POD_ANNOTATIONS
     applies_to_generic = True
     applies_to_custom = True
+
+    property_id = KUBERNETES_POD_ANNOTATIONS
     property_display_name = "Kubernetes Pod Annotations"
     property_description = """Metadata to be added to this node. The metadata is exposed
     as annotation in the Kubernetes pod that executes this node."""
@@ -569,9 +576,10 @@ class KubernetesAnnotation(ElyraPropertyListItem):
 class KubernetesLabel(ElyraPropertyListItem):
     """An ElyraProperty representing a single Kubernetes pod label"""
 
-    property_id = KUBERNETES_POD_LABELS
     applies_to_generic = True
     applies_to_custom = True
+
+    property_id = KUBERNETES_POD_LABELS
     property_display_name = "Kubernetes Pod Labels"
     property_description = """Metadata to be added to this node. The metadata is
     exposed as label in the Kubernetes pod that executes this node."""
@@ -625,9 +633,10 @@ class KubernetesLabel(ElyraPropertyListItem):
 class KubernetesToleration(ElyraPropertyListItem):
     """An ElyraProperty representing a single Kubernetes toleration"""
 
-    property_id = KUBERNETES_TOLERATIONS
     applies_to_generic = True
     applies_to_custom = True
+
+    property_id = KUBERNETES_TOLERATIONS
     property_display_name = "Kubernetes Tolerations"
     property_description = "Kubernetes tolerations to apply to the pod where the node is executed."
     property_attributes = [
