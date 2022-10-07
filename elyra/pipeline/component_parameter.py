@@ -15,6 +15,7 @@
 #
 from __future__ import annotations
 
+from abc import abstractmethod, ABC, ABCMeta
 from enum import Enum
 from importlib import import_module
 import json
@@ -110,7 +111,7 @@ class ListItemPropertyAttribute(PropertyAttribute):
         self.use_in_key = use_in_key
 
 
-class ElyraProperty:
+class ElyraProperty(ABC):
     """A component property that is defined and processed by Elyra"""
 
     applies_to_generic: bool  # True if the property applies to generic components
@@ -162,17 +163,6 @@ class ElyraProperty:
             return ElyraPropertyList(instances).deduplicate()  # convert to ElyraPropertyList and de-dupe
 
         return sc.get_single_instance(value)
-
-    def should_discard(self) -> bool:
-        """
-        Returns a boolean indicating whether an instance should be silently discarded on
-        the basis of its attribute values. A discarded instance will not be validated or
-        processed.
-
-        Override this method if there are any constraints that dictate that this instance
-        should not be processed.
-        """
-        return False
 
     @classmethod
     def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
@@ -237,6 +227,7 @@ class ElyraProperty:
         """Strip surrounding whitespace from variable if it is a string"""
         return var.strip() if isinstance(var, str) else var
 
+    @abstractmethod
     def get_value_for_display(self) -> Dict[str, Any]:
         """
         Get a representation of the instance to display in UI error messages.
@@ -244,6 +235,24 @@ class ElyraProperty:
         """
         pass
 
+    @abstractmethod
+    def should_discard(self) -> bool:
+        """
+        Returns a boolean indicating whether an instance should be silently discarded on
+        the basis of its attribute values. A discarded instance will not be validated or
+        processed.
+
+        Override this method if there are any constraints that dictate that this instance
+        should not be processed.
+        """
+        return False
+
+    @abstractmethod
+    def get_all_validation_errors(self) -> List[str]:
+        """Perform custom validation on an instance."""
+        pass
+
+    @abstractmethod
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """
         Add a property instance to the execution object for the given runtime processor.
@@ -251,10 +260,6 @@ class ElyraProperty:
         runtime_processor.add_kubernetes_secret(self, execution_object, **kwargs).
         """
         pass
-
-    def get_all_validation_errors(self) -> List[str]:
-        """Perform custom validation on an instance."""
-        return []
 
 
 class DisableNodeCaching(ElyraProperty):
@@ -282,12 +287,21 @@ class DisableNodeCaching(ElyraProperty):
         schema["enum"] = ["True", "False"]
         return schema
 
+    def get_value_for_display(self) -> Dict[str, Any]:
+        return self.selection
+
+    def should_discard(self) -> bool:
+        return False
+
+    def get_all_validation_errors(self) -> List[str]:
+        return []
+
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add DisableNodeCaching info to the execution object for the given runtime processor"""
         runtime_processor.add_disable_node_caching(instance=self, execution_object=execution_object, **kwargs)
 
 
-class ElyraPropertyListItem(ElyraProperty):
+class ElyraPropertyListItem(ElyraProperty, ABC):
     """
     An Elyra-owned property that is meant to be a member of an ElyraOwnedPropertyList.
     """
@@ -297,14 +311,6 @@ class ElyraPropertyListItem(ElyraProperty):
     def to_dict(self) -> Dict[str, Any]:
         """Convert instance to a dict with relevant class attributes."""
         dict_repr = {attr.id: getattr(self, attr.id, None) for attr in self.property_attributes}
-        return dict_repr
-
-    def get_value_for_display(self) -> Dict[str, Any]:
-        """Get a representation of the instance to display in UI error messages."""
-        dict_repr = self.to_dict()
-        for attr in self.property_attributes:
-            if attr.hidden:
-                dict_repr.pop(attr.id)
         return dict_repr
 
     def get_key_for_dict_entry(self) -> str:
@@ -323,6 +329,14 @@ class ElyraPropertyListItem(ElyraProperty):
     def get_value_for_dict_entry(self) -> str:
         """Returns the value to be used when constructing a dict from a list of classes."""
         return self.to_dict()
+
+    def get_value_for_display(self) -> Dict[str, Any]:
+        """Get a representation of the instance to display in UI error messages."""
+        dict_repr = self.to_dict()
+        for attr in self.property_attributes:
+            if attr.hidden:
+                dict_repr.pop(attr.id)
+        return dict_repr
 
 
 class EnvironmentVariable(ElyraPropertyListItem):
@@ -366,15 +380,15 @@ class EnvironmentVariable(ElyraPropertyListItem):
         schema["uihints"].update({"canRefresh": True})
         return schema
 
+    def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
+        return self.value
+
     def should_discard(self) -> bool:
         """
         If a value is not specified, this EnvironmentVariable instance should be silently ignored.
         """
         return not self.value
-
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
-        return self.value
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -437,6 +451,9 @@ class KubernetesSecret(ElyraPropertyListItem):
         self.name = name
         self.key = key
 
+    def should_discard(self) -> bool:
+        return False
+
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
@@ -497,6 +514,9 @@ class VolumeMount(ElyraPropertyListItem):
         self.path = path
         self.pvc_name = pvc_name
 
+    def should_discard(self) -> bool:
+        return False
+
     def get_all_validation_errors(self) -> List[str]:
         """Identify configuration issues for this instance"""
         validation_errors = []
@@ -550,6 +570,13 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         self.key = key
         self.value = value
 
+    def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
+        return self.value
+
+    def should_discard(self) -> bool:
+        return False
+
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
@@ -563,10 +590,6 @@ class KubernetesAnnotation(ElyraPropertyListItem):
             validation_errors.append(f"'{self.value}' is not a valid Kubernetes annotation value.")
 
         return validation_errors
-
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
-        return self.value
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
@@ -608,6 +631,13 @@ class KubernetesLabel(ElyraPropertyListItem):
         self.key = key
         self.value = value
 
+    def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
+        return self.value
+
+    def should_discard(self) -> bool:
+        return False
+
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
         validation_errors = []
@@ -621,9 +651,6 @@ class KubernetesLabel(ElyraPropertyListItem):
             validation_errors.append(f"'{self.value}' is not a valid Kubernetes label value.")
         return validation_errors
 
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
-        return self.value
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add KubernetesLabel instance to the execution object for the given runtime processor"""
@@ -685,6 +712,9 @@ class KubernetesToleration(ElyraPropertyListItem):
         self.operator = operator
         self.value = value
         self.effect = effect
+
+    def should_discard(self) -> bool:
+        return False
 
     def get_all_validation_errors(self) -> List[str]:
         """
