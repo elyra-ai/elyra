@@ -50,6 +50,7 @@ class PropertyAttribute:
     An attribute of an ElyraProperty instance that provides the means to construct the
     schema for a property and contains information for processing property instances.
     """
+    _input_type_to_default_value = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
 
     def __init__(
         self,
@@ -57,6 +58,8 @@ class PropertyAttribute:
         display_name: Optional[str] = None,
         placeholder: Optional[Any] = None,
         input_type: Optional[str] = None,
+        default_value: Optional[Any] = None,
+        enum: Optional[List[Any]] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
     ):
@@ -65,6 +68,8 @@ class PropertyAttribute:
         :param display_name: the display name for this attribute
         :param placeholder: a placeholder value to be shown in the input field for this attribute
         :param input_type: the JSON data type of this attribute ("string", "boolean", "number", "array", or "object")
+        :param default_value: the default value to assign the attribute
+        :param enum: a list of possible values that this attribute can take (will appear in a dropdown menu)
         :param hidden: whether this attribute should be hidden in the UI, preventing users from entering a value
         :param required: whether a value for this attribute is required
         """
@@ -72,14 +77,10 @@ class PropertyAttribute:
         self.title = display_name
         self.placeholder = placeholder
         self.input_type = input_type
+        self.default_value = default_value or self._input_type_to_default_value.get(self.input_type)
+        self.enum = enum
         self.hidden = hidden
         self.required = required
-
-    @property
-    def default_value(self) -> Optional[str]:
-        """Determine the default value for the input type of the attribute."""
-        input_type_to_default = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
-        return input_type_to_default.get(self.input_type)
 
 
 class ListItemPropertyAttribute(PropertyAttribute):
@@ -94,6 +95,8 @@ class ListItemPropertyAttribute(PropertyAttribute):
         display_name: Optional[str] = None,
         placeholder: Optional[Any] = None,
         input_type: Optional[str] = None,
+        default_value: Optional[Any] = None,
+        enum: Optional[List[Any]] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
         use_in_key: Optional[bool] = True,
@@ -102,7 +105,7 @@ class ListItemPropertyAttribute(PropertyAttribute):
         :param use_in_key: whether this attribute should be used when constructing a
             key for an instance that will be used to de-duplicate list items
         """
-        super().__init__(attribute_id, display_name, placeholder, input_type, hidden, required)
+        super().__init__(attribute_id, display_name, placeholder, input_type, default_value, enum, hidden, required)
         self.use_in_key = use_in_key
 
 
@@ -210,24 +213,20 @@ class ElyraProperty:
                 continue
 
             properties[attr.id] = {"type": attr.input_type, "title": attr.title or attr.id}
-
-            attr_default = attr.default_value
-            if attr_default is not None:
-                properties[attr.id]["default"] = attr_default
-
+            if attr.default_value is not None:
+                properties[attr.id]["default"] = attr.default_value
+            if attr.enum:
+                properties[attr.id]["enum"] = attr.enum
             if attr.placeholder:
                 uihints[attr.id] = {"ui:placeholder": attr.placeholder}
-
             if attr.required:
                 required_list.append(attr.id)
 
         if issubclass(cls, ElyraPropertyListItem):
-            schema["type"] = "array"
-            schema["items"] = {"type": "object", "properties": properties, "required": required_list}
-            schema["uihints"] = {"items": uihints}
+            items = {"type": "object", "properties": properties, "required": required_list}
+            schema.update({"type": "array", "default": [], "items": items, "uihints": {"items": uihints}})
         else:
-            schema["type"] = "object"
-            schema.update({"properties": properties, "required": required_list, "uihints": uihints})
+            schema.update({"type": "object", "properties": properties, "required": required_list, "uihints": uihints})
 
         return schema
 
@@ -291,13 +290,6 @@ class ElyraPropertyListItem(ElyraProperty):
     """
 
     property_attributes: List[ListItemPropertyAttribute] = []
-
-    @classmethod
-    def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        schema = super().get_schema()
-        schema["default"] = []
-        return schema
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert instance to a dict with relevant class attributes."""
@@ -652,6 +644,8 @@ class KubernetesToleration(ElyraPropertyListItem):
             attribute_id="operator",
             display_name="Operator",
             input_type="string",
+            default_value="Equal",
+            enum=["Equal", "Exists"],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -670,6 +664,7 @@ class KubernetesToleration(ElyraPropertyListItem):
             display_name="Effect",
             placeholder="NoSchedule",
             input_type="string",
+            enum=["", "NoExecute", "NoSchedule", "PreferNoSchedule"],
             hidden=False,
             required=False,
             use_in_key=True,
@@ -681,16 +676,6 @@ class KubernetesToleration(ElyraPropertyListItem):
         self.operator = operator
         self.value = value
         self.effect = effect
-
-    @classmethod
-    def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
-        schema = super().get_schema()
-        op_enum = ["Equal", "Exists"]
-        schema["items"]["properties"]["operator"]["enum"] = op_enum
-        schema["items"]["properties"]["operator"]["default"] = op_enum[0]
-        schema["items"]["properties"]["effect"]["enum"] = ["", "NoExecute", "NoSchedule", "PreferNoSchedule"]
-        return schema
 
     def get_all_validation_errors(self) -> List[str]:
         """
