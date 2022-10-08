@@ -209,6 +209,8 @@ The following alphabetically sorted list identifies the node properties that are
    - Format: 
      - _Mount path_: the path where the PVC shall be mounted in the container. Example: `/mnt/datavol/`
      - _Persistent volume claim name_: a valid [Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) identifying a PVC that exists in the Kubernetes namespace where the pipeline nodes are executed. Example: `my-data-pvc`
+     - _Sub path_: relative path within the volume from which the container's volume should be mounted. Defaults to the volume's root. Example: `existing/path/in/volume`
+     - _Mount volume read-only_: whether to mount the volume in read-only mode
    - Data volumes are not mounted when the pipeline is executed locally.
 
 ##### Disable node caching

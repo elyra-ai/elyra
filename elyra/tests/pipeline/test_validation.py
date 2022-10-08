@@ -446,8 +446,8 @@ def test_valid_node_property_volumes(validation_manager):
 
     volumes = ElyraPropertyList(
         [
-            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim"),  # valid
-            VolumeMount(path="/mount/test_two", pvc_name="second-claim"),  # valid
+            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim", sub_path=None, read_only=False),  # valid
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path=None, read_only=True),  # valid
         ]
     )
     node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes
@@ -466,13 +466,15 @@ def test_invalid_node_property_volumes(validation_manager):
 
     volumes = ElyraPropertyList(
         [
-            VolumeMount(path="", pvc_name=""),  # missing mount path and pvc name
-            VolumeMount(path=None, pvc_name=None),  # missing mount path and pvc name
-            VolumeMount(path="", pvc_name="pvc"),  # missing mount path
-            VolumeMount(path=None, pvc_name="pvc"),  # missing mount path
-            VolumeMount(path="/path", pvc_name=""),  # missing pvc name
-            VolumeMount(path="/path/", pvc_name=None),  # missing pvc name
-            VolumeMount(path="/mount/test_four", pvc_name="second#claim"),  # invalid pvc name
+            VolumeMount(path="", pvc_name="", sub_path="", read_only=True),  # missing mount path and pvc name
+            VolumeMount(path=None, pvc_name=None, sub_path=None, read_only=True),  # missing mount path and pvc name
+            VolumeMount(path="", pvc_name="pvc", sub_path="", read_only=True),  # missing mount path
+            VolumeMount(path=None, pvc_name="pvc", sub_path=None, read_only=True),  # missing mount path
+            VolumeMount(path="/path", pvc_name="", sub_path="", read_only=True),  # missing pvc name
+            VolumeMount(path="/path/", pvc_name=None, sub_path=None, read_only=False),  # missing pvc name
+            VolumeMount(
+                path="/mount/test_four", pvc_name="second#claim", sub_path=None, read_only=False
+            ),  # invalid pvc name
         ]
     )
     node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes

@@ -491,11 +491,32 @@ class VolumeMount(ElyraPropertyListItem):
             required=True,
             use_in_key=False,
         ),
+        ListItemPropertyAttribute(
+            attribute_id="sub_path",
+            display_name="Sub Path",
+            placeholder="relative/path/within/volume",
+            input_type="string",
+            hidden=False,
+            required=False,
+            use_in_key=False,
+        ),
+        ListItemPropertyAttribute(
+            attribute_id="read_only",
+            display_name="Mount volume read-only",
+            placeholder=None,
+            default_value=False,
+            input_type="boolean",
+            hidden=False,
+            required=False,
+            use_in_key=False,
+        ),
     ]
 
-    def __init__(self, path, pvc_name, **kwargs):
+    def __init__(self, path: str, pvc_name: str, sub_path: str, read_only: bool, **kwargs):
         self.path = path
         self.pvc_name = pvc_name
+        self.sub_path = sub_path
+        self.read_only = read_only
 
     def get_all_validation_errors(self) -> List[str]:
         """Identify configuration issues for this instance"""
@@ -506,13 +527,28 @@ class VolumeMount(ElyraPropertyListItem):
             validation_errors.append("Required persistent volume claim name was not specified.")
         elif not is_valid_kubernetes_resource_name(self.pvc_name):
             validation_errors.append(f"PVC name '{self.pvc_name}' is not a valid Kubernetes resource name.")
+        if self.sub_path and self.sub_path.startswith("/"):
+            validation_errors.append(f"Sub-path {self.sub_path} must be a relative path.")
 
         return validation_errors
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add VolumeMount instance to the execution object for the given runtime processor"""
         self.path = f"/{self.path.strip('/')}"  # normalize path
+        if self.read_only is None:
+            self.read_only = False
         runtime_processor.add_mounted_volume(instance=self, execution_object=execution_object, **kwargs)
+
+    def should_discard(self) -> bool:
+        """
+        Returns a boolean indicating whether an instance should be silently discarded on
+        the basis of its attribute values. A discarded instance will not be validated or
+        processed.
+
+        Override this method if there are any constraints that dictate that this instance
+        should not be processed.
+        """
+        return not (self.path or self.pvc_name)
 
 
 class KubernetesAnnotation(ElyraPropertyListItem):

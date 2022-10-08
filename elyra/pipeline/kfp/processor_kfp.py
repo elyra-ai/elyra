@@ -792,7 +792,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         )
         if volume not in execution_object.volumes:
             execution_object.add_volume(volume)
-        execution_object.container.add_volume_mount(V1VolumeMount(mount_path=instance.path, name=instance.pvc_name))
+        execution_object.container.add_volume_mount(
+            V1VolumeMount(
+                mount_path=instance.path,
+                name=instance.pvc_name,
+                sub_path=instance.sub_path,
+                read_only=instance.read_only,
+            )
+        )
 
     def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
