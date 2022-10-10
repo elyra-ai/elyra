@@ -86,6 +86,7 @@ setup_args = dict(
         "nbdime~=3.1",  # Cap from jupyterlab-git
         "nbformat>=5.1.2",
         "networkx>=2.5.1",
+        "overrides",
         "papermill>=2.3.4",
         "python-lsp-server[all]>=1.1.0",
         "pyyaml>=5.3.1,<6.0",  # Cap from kfp

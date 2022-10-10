@@ -155,6 +155,7 @@ def test_propagate_pipeline_default_properties(monkeypatch, component_cache):
     # Ensure that default properties have been propagated
     generic_envs = generic_node.get_component_parameter(pipeline_constants.ENV_VARIABLES)
     assert generic_envs.to_dict() == kv_dict
+    assert generic_node.get_component_parameter(RUNTIME_IMAGE) == "{{ default_image }}"
 
     # Ensure that runtime image and env vars are not propagated to custom components
     assert custom_node_test.get_component_parameter(RUNTIME_IMAGE) is None
