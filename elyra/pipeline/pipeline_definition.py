@@ -350,6 +350,19 @@ class Node(AppDataBase):
             # should be skipped during property propagation and conversion
             self.elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
 
+    @property
+    def propagated_properties(self) -> Set[str]:
+        """
+        The set of properties for which a pipeline default value should be propagated to this node
+        in the applicable scenario. This may not be the same as the set of Elyra-owned properties
+        (ie, properties with a corresponding ElyraProperty class) in all cases. That distinction
+        is made here as needed.
+        """
+        propagated_props = {*self.elyra_owned_properties}  # all Elyra-owned props should be propagated
+        if self.is_generic:
+            propagated_props.add(RUNTIME_IMAGE)  # generic nodes should also have runtime_image propagated
+        return propagated_props
+
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
         Retrieve component parameter values.
@@ -601,11 +614,8 @@ class PipelineDefinition(object):
             node.convert_elyra_owned_properties()
 
             for property_name, pipeline_value in pipeline_default_properties.items():
-                if not pipeline_value:
+                if not pipeline_value or property_name not in node.propagated_properties:
                     continue
-
-                if property_name not in node.elyra_owned_properties:
-                    continue  # only Elyra-owned properties should be propagated
 
                 node_value = node.get_component_parameter(property_name)
                 if not node_value:
@@ -615,12 +625,6 @@ class PipelineDefinition(object):
                 if all(isinstance(value, ElyraPropertyList) for value in [pipeline_value, node_value]):
                     merged_list = ElyraPropertyList.merge(node_value, pipeline_value)
                     node.set_component_parameter(property_name, merged_list)
-
-            # Runtime image is a special case that must be handled separately
-            default_runtime = pipeline_default_properties.get(RUNTIME_IMAGE)
-            if node.is_generic and default_runtime and not node.get_component_parameter(RUNTIME_IMAGE):
-                node.set_component_parameter(RUNTIME_IMAGE, default_runtime)
-                continue
 
             if self.primary_pipeline.runtime_config != "local":
                 node.remove_env_vars_with_matching_secrets()
