@@ -345,6 +345,11 @@ class CustomSharedMemorySize(ElyraProperty):
                     raise ValueError()
         except ValueError:
             validation_errors.append("Custom shared memory size must be a positive number.")
+
+        # verify units
+        if self.units not in ["G"]:
+            validation_errors.append("Shared memory size units must be 'G'.")
+
         return validation_errors
 
     def get_value_for_display(self) -> Dict[str, Any]:

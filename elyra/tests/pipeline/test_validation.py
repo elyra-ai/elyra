@@ -782,7 +782,7 @@ def test_valid_node_property_shared_mem_size(validation_manager):
 
     # test size
     for size in [None, 0, 64]:
-        shared_mem_size = CustomSharedMemorySize(size=size, units="Mi")
+        shared_mem_size = CustomSharedMemorySize(size=size, units="G")
         node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
 
         node = Node(node_dict)
@@ -793,7 +793,7 @@ def test_valid_node_property_shared_mem_size(validation_manager):
         assert len(issues) == 0, issues
 
     # test units
-    for unit in ["M", "Mi", "G", "Gi"]:
+    for unit in ["G", None, ""]:
         shared_mem_size = CustomSharedMemorySize(size=0, units=unit)
         node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
 
@@ -813,7 +813,7 @@ def test_invalid_node_property_shared_mem_size(validation_manager):
 
     # test invalid size; note that 0 and None are considered valid
     for size in [-1, "not-a-number"]:
-        shared_mem_size = CustomSharedMemorySize(size=size, units="Mi")
+        shared_mem_size = CustomSharedMemorySize(size=size, units="G")
         node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
         node = Node(node_dict)
         response = ValidationResponse()
@@ -824,11 +824,11 @@ def test_invalid_node_property_shared_mem_size(validation_manager):
         assert len(issues) == 1, issues
         assert issues[0]["message"] == "Custom shared memory size must be a positive number."
         assert issues[0]["data"]["value"]["size"] == size
-        assert issues[0]["data"]["value"]["units"] == "Mi"
+        assert issues[0]["data"]["value"]["units"] == "G"
 
     # test invalid units
-    for unit in [None, "", "K", "Ki", "m", "mi", "g", "gi"]:
-        shared_mem_size = CustomSharedMemorySize(size=0, units=unit)
+    for unit in ["K", "Ki", "m", "mi", "g", "gi"]:
+        shared_mem_size = CustomSharedMemorySize(size=1, units=unit)
         node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
         node = Node(node_dict)
         response = ValidationResponse()
@@ -837,8 +837,8 @@ def test_invalid_node_property_shared_mem_size(validation_manager):
         )
         issues = response.to_json().get("issues")
         assert len(issues) == 1, issues
-        assert issues[0]["message"] == "Units must be one of ['G', 'Gi', 'M', 'Mi']"
-        assert issues[0]["data"]["value"]["size"] == 0
+        assert issues[0]["message"] == "Shared memory size units must be 'G'."
+        assert issues[0]["data"]["value"]["size"] == 1
         assert issues[0]["data"]["value"]["units"] == unit
 
 
