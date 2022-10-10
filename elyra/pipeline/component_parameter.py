@@ -296,7 +296,8 @@ class CustomSharedMemorySize(ElyraProperty):
 
     property_id = KUBERNETES_SHARED_MEM_SIZE
     property_display_name = "Shared Memory Size"
-    property_description = """Configure a custom shared memory size in gigabytes (10<sup>9</sup> bytes) for the pod that executes a node. A custom
+    property_description = """Configure a custom shared memory size in
+    gigabytes (10<sup>9</sup> bytes) for the pod that executes a node. A custom
     value is assigned if the size property value is a number greater than zero."""
     property_attributes = [
         PropertyAttribute(
