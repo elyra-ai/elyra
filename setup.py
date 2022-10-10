@@ -77,7 +77,7 @@ setup_args = dict(
         "jupyter_server>=1.7.0",
         "jupyterlab>=3.4.6",  # comment out to use local jupyterlab
         "jupyterlab-lsp>=3.8.0",  # comment out to use local jupyterlab
-        "jupyterlab-git~=0.32",  # Avoid breaking 1.x changes
+        "jupyterlab-git~=0.32",  # Avoid baking 1.x changes
         "jupyter-resource-usage>=0.5.1",
         "MarkupSafe>=2.1",
         "minio>=7.0.0",
@@ -86,6 +86,7 @@ setup_args = dict(
         "nbdime~=3.1",  # Cap from jupyterlab-git
         "nbformat>=5.1.2",
         "networkx>=2.5.1",
+        "overrides",
         "papermill>=2.3.4",
         "python-lsp-server[all]>=1.1.0",
         "pyyaml>=5.3.1,<6.0",  # Cap from kfp
