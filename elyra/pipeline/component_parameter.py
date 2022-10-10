@@ -279,7 +279,7 @@ class DisableNodeCaching(ElyraProperty):
 
     @classmethod
     @overrides
-    def get_single_instance(cls, value: Optional[Any] = None) -> ElyraProperty:
+    def get_single_instance(cls, value: Optional[Any] = None) -> ElyraProperty | None:
         return DisableNodeCaching(selection=value)
 
     @classmethod
