@@ -28,8 +28,6 @@ from typing import Optional
 from typing import Set
 from typing import TYPE_CHECKING
 
-from overrides import overrides
-
 # Prevent a circular reference by importing RuntimePipelineProcessor only during type-checking
 if TYPE_CHECKING:
     from elyra.pipeline.processor import RuntimePipelineProcessor
@@ -278,13 +276,12 @@ class DisableNodeCaching(ElyraProperty):
         self.selection = selection == "True"
 
     @classmethod
-    @overrides
     def get_single_instance(cls, value: Optional[Any] = None) -> ElyraProperty | None:
         return DisableNodeCaching(selection=value)
 
     @classmethod
-    @overrides
     def get_schema(cls) -> Dict[str, Any]:
+        """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
         schema["enum"] = ["True", "False"]
         return schema
@@ -296,6 +293,7 @@ class DisableNodeCaching(ElyraProperty):
         return []
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add DisableNodeCaching info to the execution object for the given runtime processor"""
         runtime_processor.add_disable_node_caching(instance=self, execution_object=execution_object, **kwargs)
 
 
@@ -372,22 +370,22 @@ class EnvironmentVariable(ElyraPropertyListItem):
         self.value = value
 
     @classmethod
-    @overrides
     def get_schema(cls) -> Dict[str, Any]:
+        """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
         schema["uihints"].update({"canRefresh": True})
         return schema
 
-    @overrides
     def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
         return self.value
 
-    @overrides
     def should_discard(self) -> bool:
         """If a value is not specified, this EnvironmentVariable instance should be silently ignored."""
         return not self.value
 
     def get_all_validation_errors(self) -> List[str]:
+        """Perform custom validation on an instance."""
         validation_errors = []
         if not self.env_var:
             validation_errors.append("Required environment variable was not specified.")
@@ -397,6 +395,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
         return validation_errors
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add EnvironmentVariable instance to the execution object for the given runtime processor"""
         runtime_processor.add_env_var(instance=self, execution_object=execution_object, **kwargs)
 
 
@@ -447,6 +446,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         self.key = key
 
     def get_all_validation_errors(self) -> List[str]:
+        """Perform custom validation on an instance."""
         validation_errors = []
         if not self.env_var:
             validation_errors.append("Required environment variable was not specified.")
@@ -466,6 +466,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         return validation_errors
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
         runtime_processor.add_kubernetes_secret(instance=self, execution_object=execution_object, **kwargs)
 
 
@@ -505,6 +506,7 @@ class VolumeMount(ElyraPropertyListItem):
         self.pvc_name = pvc_name
 
     def get_all_validation_errors(self) -> List[str]:
+        """Identify configuration issues for this instance"""
         validation_errors = []
         if not self.path:
             validation_errors.append("Required mount path was not specified.")
@@ -516,6 +518,7 @@ class VolumeMount(ElyraPropertyListItem):
         return validation_errors
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add VolumeMount instance to the execution object for the given runtime processor"""
         self.path = f"/{self.path.strip('/')}"  # normalize path
         runtime_processor.add_mounted_volume(instance=self, execution_object=execution_object, **kwargs)
 
@@ -555,11 +558,12 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         self.key = key
         self.value = value
 
-    @overrides
     def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
         return self.value
 
     def get_all_validation_errors(self) -> List[str]:
+        """Perform custom validation on an instance."""
         validation_errors = []
         # verify annotation key
         if not self.key:
@@ -573,6 +577,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         return validation_errors
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         runtime_processor.add_kubernetes_pod_annotation(instance=self, execution_object=execution_object, **kwargs)
 
 
@@ -611,11 +616,12 @@ class KubernetesLabel(ElyraPropertyListItem):
         self.key = key
         self.value = value
 
-    @overrides
     def get_value_for_dict_entry(self) -> str:
+        """Returns the value to be used when constructing a dict from a list of classes."""
         return self.value
 
     def get_all_validation_errors(self) -> List[str]:
+        """Perform custom validation on an instance."""
         validation_errors = []
         # verify label key
         if not self.key:
@@ -628,6 +634,7 @@ class KubernetesLabel(ElyraPropertyListItem):
         return validation_errors
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add KubernetesLabel instance to the execution object for the given runtime processor"""
         runtime_processor.add_kubernetes_pod_label(instance=self, execution_object=execution_object, **kwargs)
 
 
@@ -722,6 +729,7 @@ class KubernetesToleration(ElyraPropertyListItem):
         return validation_errors
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
         runtime_processor.add_kubernetes_toleration(instance=self, execution_object=execution_object, **kwargs)
 
 
