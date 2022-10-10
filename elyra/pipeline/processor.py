@@ -44,6 +44,7 @@ from elyra.pipeline.component_parameter import CustomSharedMemorySize
 from elyra.pipeline.component_parameter import DisableNodeCaching
 from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesLabel
 from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import VolumeMount
@@ -620,6 +621,10 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
     def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
+        pass
+
+    def add_kubernetes_pod_label(self, instance: KubernetesLabel, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesLabel instance to the execution object for the given runtime processor"""
         pass
 
     def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:

@@ -57,6 +57,7 @@ from elyra.pipeline.component_parameter import DisableNodeCaching
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesLabel
 from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import VolumeMount
@@ -813,7 +814,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         if instance.key not in execution_object.pod_annotations:
-            execution_object.add_pod_annotation(instance.key, instance.value)
+            execution_object.add_pod_annotation(instance.key, instance.value or "")
+
+    def add_kubernetes_pod_label(self, instance: KubernetesLabel, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesLabel instance to the execution object for the given runtime processor"""
+        if instance.key not in execution_object.pod_labels:
+            execution_object.add_pod_label(instance.key, instance.value or "")
 
     def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""
@@ -834,6 +840,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             pipeline_constants.KUBERNETES_SECRETS,
             pipeline_constants.MOUNTED_VOLUMES,
             pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_POD_LABELS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
             pipeline_constants.DISABLE_NODE_CACHING,
             pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,

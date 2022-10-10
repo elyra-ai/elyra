@@ -53,7 +53,7 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                                        'request_cpu': '{{ operation.cpu_request }}',
             {% endif %}
             {% if operation.mem_request %}
-                                                                       'request_memory': '{{ operation.mem_request }}',
+                                                                       'request_memory': '{{ operation.mem_request }}G',
             {% endif %}
             {% if operation.gpu_limit %}
                                                                        'limit_gpu': '{{ operation.gpu_limit }}',
@@ -64,6 +64,7 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                             volume_mounts=[{{ processor.render_mounts(operation.elyra_params) }}],
                                                             secrets=[{{ processor.render_secrets(operation.elyra_params, cos_secret) }}],
                                                             annotations={{ processor.render_annotations(operation.elyra_params) }},
+                                                            labels={{ processor.render_labels(operation.elyra_params) }},
                                                             tolerations=[{{ processor.render_tolerations(operation.elyra_params) }}],
                                                             in_cluster={{ in_cluster }},
                                                             config_file="{{ kube_config_path }}",

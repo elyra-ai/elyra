@@ -45,6 +45,7 @@ from elyra.pipeline.component_parameter import CustomSharedMemorySize
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesLabel
 from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
@@ -643,7 +644,15 @@ be fully qualified (i.e., prefixed with their package names).
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         annotations = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_ANNOTATIONS, ElyraPropertyList([]))
-        return annotations.to_dict()
+        return {key: value or "" for key, value in annotations.to_dict().items()}
+
+    def render_labels(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
+        """
+        Render Kubernetes labels defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        labels = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_LABELS, ElyraPropertyList([]))
+        return {key: value or "" for key, value in labels.to_dict().items()}
 
     def render_tolerations(self, elyra_parameters: Dict[str, ElyraProperty]):
         """
@@ -654,7 +663,7 @@ be fully qualified (i.e., prefixed with their package names).
         for t in elyra_parameters.get(pipeline_constants.KUBERNETES_TOLERATIONS, []):
             key = f'"{t.key}"' if t.key is not None else t.key
             value = f'"{t.value}"' if t.value is not None else t.value
-            effect = f'"{t.effect}"' if t.value is not None else t.effect
+            effect = f'"{t.effect}"' if t.effect is not None else t.effect
             str_to_render += f"""
                 {{"key": {key}, "operator": "{t.operator}", "value": {value}, "effect": {effect}}},"""
         return dedent(str_to_render)
@@ -690,7 +699,13 @@ be fully qualified (i.e., prefixed with their package names).
         """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
         if "annotations" not in execution_object:
             execution_object["annotations"] = {}
-        execution_object["annotations"][instance.key] = instance.value
+        execution_object["annotations"][instance.key] = instance.value or ""
+
+    def add_kubernetes_pod_label(self, instance: KubernetesLabel, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesLabel instance to the execution object for the given runtime processor"""
+        if "labels" not in execution_object:
+            execution_object["labels"] = {}
+        execution_object["labels"][instance.key] = instance.value or ""
 
     def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
         """Add KubernetesToleration instance to the execution object for the given runtime processor"""
@@ -733,6 +748,7 @@ be fully qualified (i.e., prefixed with their package names).
             pipeline_constants.KUBERNETES_SECRETS,
             pipeline_constants.MOUNTED_VOLUMES,
             pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_POD_LABELS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
             pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
         ]

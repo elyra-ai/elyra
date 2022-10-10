@@ -21,6 +21,7 @@ MOUNTED_VOLUMES = "mounted_volumes"
 KUBERNETES_SECRETS = "kubernetes_secrets"
 KUBERNETES_TOLERATIONS = "kubernetes_tolerations"
 KUBERNETES_POD_ANNOTATIONS = "kubernetes_pod_annotations"
+KUBERNETES_POD_LABELS = "kubernetes_pod_labels"
 DISABLE_NODE_CACHING = "disable_node_caching"
 KUBERNETES_SHARED_MEM_SIZE = "kubernetes_shared_mem_size"
 PIPELINE_META_PROPERTIES = ["name", "description", "runtime"]

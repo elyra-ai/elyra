@@ -537,6 +537,8 @@ def test_valid_node_property_kubernetes_pod_annotation(validation_manager):
     node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
     annotations = ElyraPropertyList(
         [
+            KubernetesAnnotation(key="key", value=""),
+            KubernetesAnnotation(key="key", value=None),
             KubernetesAnnotation(key="key", value="value"),
             KubernetesAnnotation(key="n-a-m-e", value="value"),
             KubernetesAnnotation(key="n.a.m.e", value="value"),
@@ -633,8 +635,6 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
     invalid_annotations = ElyraPropertyList(
         [
             # test length violations (key name and prefix)
-            KubernetesAnnotation(key="a", value=""),  # empty value (min 1)
-            KubernetesAnnotation(key="a", value=None),  # empty value (min 1)
             KubernetesAnnotation(key="a" * TOO_SHORT_LENGTH, value="val"),  # empty key (min 1)
             KubernetesAnnotation(key=None, value="val"),  # empty key (min 1)
             KubernetesAnnotation(key="a" * TOO_LONG_LENGTH, value="val"),  # key too long
@@ -658,8 +658,6 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
         ]
     )
     expected_error_messages = [
-        "Required annotation value was not specified.",
-        "Required annotation value was not specified.",
         "Required annotation key was not specified.",
         "Required annotation key was not specified.",
         f"'{'a' * TOO_LONG_LENGTH}' is not a valid Kubernetes annotation key.",

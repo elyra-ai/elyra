@@ -17,7 +17,7 @@
           "default": ""
         }
       },
-      "required": ["key", "value"]
+      "required": ["key"]
     },
     "uihints": {
       "items": {
@@ -58,6 +58,38 @@
         },
         "pvc_name": {
           "ui:placeholder": "pvc-name"
+        }
+      }
+    },
+    "default": []
+  },
+  "kubernetes_pod_labels": {
+    "title": "Kubernetes Pod Labels",
+    "description": " Metadata to be added to this node. The metadata is exposed as label in the Kubernetes pod that executes this node. ",
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "title": "Key",
+          "default": ""
+        },
+        "value": {
+          "type": "string",
+          "title": "Value",
+          "default": ""
+        }
+      },
+      "required": ["key"]
+    },
+    "uihints": {
+      "items": {
+        "key": {
+          "ui:placeholder": "label_key"
+        },
+        "value": {
+          "ui:placeholder": "label_value"
         }
       }
     },
