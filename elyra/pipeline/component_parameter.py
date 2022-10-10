@@ -528,7 +528,7 @@ class VolumeMount(ElyraPropertyListItem):
         elif not is_valid_kubernetes_resource_name(self.pvc_name):
             validation_errors.append(f"PVC name '{self.pvc_name}' is not a valid Kubernetes resource name.")
         if self.sub_path and self.sub_path.startswith("/"):
-            validation_errors.append(f"Sub-path {self.sub_path} must be a relative path.")
+            validation_errors.append(f"Sub-path '{self.sub_path}' must be a relative path.")
 
         return validation_errors
 
