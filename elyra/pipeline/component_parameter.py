@@ -299,7 +299,7 @@ class DisableNodeCaching(ElyraProperty):
         runtime_processor.add_disable_node_caching(instance=self, execution_object=execution_object, **kwargs)
 
 
-class ElyraPropertyListItem(ElyraProperty, ABC):
+class ElyraPropertyListItem(ElyraProperty):
     """
     An Elyra-owned property that is meant to be a member of an ElyraOwnedPropertyList.
     """
