@@ -15,7 +15,7 @@
  */
 
 import { MetadataService } from '@elyra/services';
-import { ThemeProvider, RequestErrors, FormEditor } from '@elyra/ui-components';
+import { RequestErrors, FormEditor } from '@elyra/ui-components';
 
 import * as React from 'react';
 
@@ -70,7 +70,6 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   initialMetadata,
   translator,
   name,
-  themeManager,
   setDirty,
   close,
   allTags,
@@ -156,54 +155,52 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   };
 
   return (
-    <ThemeProvider themeManager={themeManager}>
-      <div onKeyPress={onKeyPress} className={ELYRA_METADATA_EDITOR_CLASS}>
-        <h3> {headerText} </h3>
-        <p style={{ width: '100%', marginBottom: '10px' }}>
-          {translator.__('All fields marked with an asterisk are required.')}
-          &nbsp;
-          {referenceURL ? (
-            <a href={referenceURL} target="_blank" rel="noreferrer noopener">
-              {translator.__('[Learn more ...]')}
-            </a>
-          ) : null}
-        </p>
-        <FormEditor
-          schema={schema}
-          onChange={(formData: any, invalid: boolean): void => {
-            setMetadata(formData);
-            setInvalidForm(invalid);
-            setDirty(true);
+    <div onKeyPress={onKeyPress} className={ELYRA_METADATA_EDITOR_CLASS}>
+      <h3> {headerText} </h3>
+      <p style={{ width: '100%', marginBottom: '10px' }}>
+        {translator.__('All fields marked with an asterisk are required.')}
+        &nbsp;
+        {referenceURL ? (
+          <a href={referenceURL} target="_blank" rel="noreferrer noopener">
+            {translator.__('[Learn more ...]')}
+          </a>
+        ) : null}
+      </p>
+      <FormEditor
+        schema={schema}
+        onChange={(formData: any, invalid: boolean): void => {
+          setMetadata(formData);
+          setInvalidForm(invalid);
+          setDirty(true);
+        }}
+        componentRegistry={componentRegistry}
+        translator={translator}
+        editorServices={editorServices}
+        originalData={metadata}
+        allTags={allTags}
+        languageOptions={getDefaultChoices('language')}
+      />
+      <div
+        className={`elyra-metadataEditor-formInput elyra-metadataEditor-saveButton ${
+          invalidForm ? 'errorForm' : ''
+        }`}
+        key={'SaveButton'}
+      >
+        {invalidForm ? (
+          <p className="formError">
+            {translator.__('Cannot save invalid form.')}
+          </p>
+        ) : (
+          <div />
+        )}
+        <button
+          onClick={(): void => {
+            saveMetadata();
           }}
-          componentRegistry={componentRegistry}
-          translator={translator}
-          editorServices={editorServices}
-          originalData={metadata}
-          allTags={allTags}
-          languageOptions={getDefaultChoices('language')}
-        />
-        <div
-          className={`elyra-metadataEditor-formInput elyra-metadataEditor-saveButton ${
-            invalidForm ? 'errorForm' : ''
-          }`}
-          key={'SaveButton'}
         >
-          {invalidForm ? (
-            <p className="formError">
-              {translator.__('Cannot save invalid form.')}
-            </p>
-          ) : (
-            <div />
-          )}
-          <button
-            onClick={(): void => {
-              saveMetadata();
-            }}
-          >
-            {translator.__('Save & Close')}
-          </button>
-        </div>
+          {translator.__('Save & Close')}
+        </button>
       </div>
-    </ThemeProvider>
+    </div>
   );
 };

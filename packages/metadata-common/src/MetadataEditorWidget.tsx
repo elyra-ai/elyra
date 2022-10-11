@@ -18,12 +18,7 @@ import { MetadataService } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
-import {
-  ReactWidget,
-  showDialog,
-  Dialog,
-  IThemeManager
-} from '@jupyterlab/apputils';
+import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormComponentRegistry } from '@jupyterlab/ui-components';
@@ -80,11 +75,6 @@ export interface IMetadataEditorProps {
    * Component registry to use custom field renderers.
    */
   componentRegistry?: IFormComponentRegistry;
-
-  /**
-   * Theme manager for custom themes.
-   */
-  themeManager?: IThemeManager;
 
   /**
    * String used to make the title of the editor more readable
