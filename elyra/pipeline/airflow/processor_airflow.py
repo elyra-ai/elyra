@@ -608,7 +608,7 @@ be fully qualified (i.e., prefixed with their package names).
         for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
                  VolumeMount(name="{v.pvc_name}", mount_path="{v.path}",
-                 sub_path={v.sub_path}, read_only={v.read_only}),"""
+                 sub_path="{v.sub_path}", read_only={v.read_only}),"""
         return dedent(str_to_render)
 
     def render_secrets(self, elyra_parameters: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
