@@ -546,14 +546,12 @@ class VolumeMount(ElyraPropertyListItem):
 
     def should_discard(self) -> bool:
         """
-        Returns a boolean indicating whether an instance should be silently discarded on
-        the basis of its attribute values. A discarded instance will not be validated or
-        processed.
-
-        Override this method if there are any constraints that dictate that this instance
-        should not be processed.
+        Returns a boolean indicating whether this VolumeMount instance should be silently discarded on
+        the basis of its mount path, PVC name, and sub-path attribute values. If these attributes
+        don't contain values this instance will not be validated or processed.
         """
-        return not (self.path or self.pvc_name)
+        # ignore the read_only attribute because it always contains a value
+        return not (self.path or self.pvc_name or self.sub_path)
 
 
 class KubernetesAnnotation(ElyraPropertyListItem):
