@@ -177,15 +177,9 @@
         "type": "number",
         "title": "Memory Size (GB)",
         "minimum": 0
-      },
-      "units": {
-        "type": "string",
-        "title": "Units",
-        "default": "G",
-        "enum": ["G"]
       }
     },
-    "required": ["size", "units"],
+    "required": ["size"],
     "uihints": {
       "size": {
         "ui:placeholder": 0

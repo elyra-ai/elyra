@@ -210,7 +210,7 @@ class ElyraProperty(ABC):
                 properties[attr.id]["default"] = attr.default_value
             if attr.enum:
                 properties[attr.id]["enum"] = attr.enum
-            if attr.placeholder:
+            if attr.placeholder is not None:
                 uihints[attr.id] = {"ui:placeholder": attr.placeholder}
             if attr.required:
                 required_list.append(attr.id)
