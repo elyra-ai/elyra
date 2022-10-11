@@ -335,6 +335,16 @@ span.bx--list-box__label {
   fill: var(--jp-inverse-layout-color1);
 }
 
+.elyra-PipelineEditor span.palette-flyout-category-text {
+  color: var(--jp-content-font-color0);
+}
+
+.elyra-PipelineEditor .bx--accordion__item svg.bx--accordion__arrow,
+.arrangeHorizontally-action .toolbar-icon svg,
+.arrangeVertically-action .toolbar-icon svg {
+  fill: var(--jp-inverse-layout-color1);
+}
+
 .tip-palette-item,
 .tip-palette-category,
 .tip-palette-label,
@@ -925,8 +935,13 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   font-size: var(--jp-content-font-size2);
 }
 
-.elyra-PipelineEditor-Alert {
+.Toastify .elyra-PipelineEditor-toast {
   white-space: pre-line;
+  width: auto;
+}
+
+.elyra-PipelineEditor-toast .Toastify__toast {
+  cursor: auto;
 }
 
 /* fix font ligatures */

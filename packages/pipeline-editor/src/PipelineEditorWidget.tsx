@@ -56,10 +56,10 @@ import 'carbon-components/css/carbon-components.min.css';
 import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 import { Signal } from '@lumino/signaling';
-import { Snackbar } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import {
   EmptyGenericPipeline,
@@ -199,7 +199,6 @@ const PipelineWrapper: React.FC<IProps> = ({
   const [loading, setLoading] = useState(true);
   const [pipeline, setPipeline] = useState<any>(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
-  const [alert, setAlert] = React.useState('');
 
   const type: string | undefined =
     pipeline?.pipelines?.[0]?.app_data?.runtime_type;
@@ -621,7 +620,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         for (const error of errorMessages) {
           errorMessage += (errorMessage ? '\n' : '') + error.message;
         }
-        setAlert(`Failed ${actionType}: ${errorMessage}`);
+        toast.error(`Failed ${actionType}: ${errorMessage}`);
         return;
       }
 
@@ -1050,10 +1049,6 @@ const PipelineWrapper: React.FC<IProps> = ({
     };
   }, [addFileToPipelineSignal, handleAddFileToPipeline]);
 
-  const handleClose = (event?: React.SyntheticEvent, reason?: string): void => {
-    setAlert('');
-  };
-
   if (loading || palette === undefined) {
     return <div className="elyra-loader"></div>;
   }
@@ -1068,19 +1063,15 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   return (
     <ThemeProvider theme={theme}>
-      <Snackbar
-        open={alert !== ''}
-        autoHideDuration={30000}
-        onClose={handleClose}
-      >
-        <Alert
-          severity={'error'}
-          onClose={handleClose}
-          className={'elyra-PipelineEditor-Alert'}
-        >
-          {alert}
-        </Alert>
-      </Snackbar>
+      <ToastContainer
+        position="bottom-center"
+        autoClose={30000}
+        hideProgressBar
+        closeOnClick={false}
+        className="elyra-PipelineEditor-toast"
+        draggable={false}
+        theme="colored"
+      />
       <Dropzone onDrop={handleDrop}>
         <PipelineEditor
           ref={ref}
