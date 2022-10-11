@@ -781,7 +781,7 @@ def test_valid_node_property_shared_mem_size(validation_manager):
     node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
 
     # test size
-    for size in [None, 0, 64]:
+    for size in [None, 0, 3.1415, 64]:
         shared_mem_size = CustomSharedMemorySize(size=size, units="G")
         node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
 
@@ -822,7 +822,7 @@ def test_invalid_node_property_shared_mem_size(validation_manager):
         )
         issues = response.to_json().get("issues")
         assert len(issues) == 1, issues
-        assert issues[0]["message"] == "Custom shared memory size must be a positive number."
+        assert issues[0]["message"] == f"Shared memory size '{size}' must be a positive number."
         assert issues[0]["data"]["value"]["size"] == size
         assert issues[0]["data"]["value"]["units"] == "G"
 
@@ -837,7 +837,7 @@ def test_invalid_node_property_shared_mem_size(validation_manager):
         )
         issues = response.to_json().get("issues")
         assert len(issues) == 1, issues
-        assert issues[0]["message"] == "Shared memory size units must be 'G'."
+        assert issues[0]["message"] == f"Shared memory size units '{unit}' must be 'G'."
         assert issues[0]["data"]["value"]["size"] == 1
         assert issues[0]["data"]["value"]["units"] == unit
 

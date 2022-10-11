@@ -329,7 +329,7 @@ class CustomSharedMemorySize(ElyraProperty):
 
     default_units = "G"
 
-    def __init__(self, size, units, **kwargs):
+    def __init__(self, size: str, units: str, **kwargs):
         self.size = size
         self.units = units or CustomSharedMemorySize.default_units
 
@@ -364,11 +364,28 @@ class CustomSharedMemorySize(ElyraProperty):
 
     def get_value_for_display(self) -> Dict[str, Any]:
         """Get a representation of the instance to display in UI error messages."""
-        dict_repr = self.to_dict()
-        for attr in self.property_attributes:
-            if attr.hidden:
-                dict_repr.pop(attr.id)
-        return dict_repr
+        return self.to_dict()
+
+    def get_all_validation_errors(self) -> List[str]:
+        """Validate this instance. If the size attribute is set and not zero it
+        must be a positive floating point number. The units attribute must be 'G'."""
+        validation_errors = []
+        # verify custom size
+        try:
+            if self.size:
+                size = float(self.size)
+                if size < 0:
+                    raise ValueError()
+        except ValueError:
+            validation_errors.append(f"Shared memory size '{self.size}' must be a positive number.")
+        # verify units
+        if self.units not in ["G"]:
+            validation_errors.append(f"Shared memory size units '{self.units}' must be 'G'.")
+        return validation_errors
+
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add CustomSharedMemorySize instance to the execution object for the given runtime processor"""
+        runtime_processor.add_custom_shared_memory_size(instance=self, execution_object=execution_object, **kwargs)
 
 
 class ElyraPropertyListItem(ElyraProperty):
