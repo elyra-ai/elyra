@@ -235,16 +235,16 @@ class Pipeline(AppDataBase):
         """
         pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
         for param_id, param_value in list(pipeline_defaults.items()):
+            if param_id == RUNTIME_IMAGE:
+                continue  # runtime image is the only pipeline default that does not need to be converted
             if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
                 continue  # property has already been properly converted or cannot be converted
 
             converted_value = ElyraProperty.create_instance(param_id, param_value)
-            if converted_value is None:
-                continue
-            if isinstance(converted_value, ElyraProperty) and converted_value.is_empty_instance():
-                del pipeline_defaults[param_id]
-            else:
+            if converted_value is not None:
                 pipeline_defaults[param_id] = converted_value
+            else:
+                del pipeline_defaults[param_id]
 
 
 class Node(AppDataBase):
@@ -349,13 +349,19 @@ class Node(AppDataBase):
             # Properties that have the same ref (id) as Elyra-owned node properties
             # should be skipped during property propagation and conversion
             self.elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
-            if self.is_generic:
-                self.elyra_owned_properties.add(RUNTIME_IMAGE)
 
-    def unset_elyra_owned_properties(self) -> None:
-        """Remove properties that should be propagated but not persisted as an Elyra-owned property."""
+    @property
+    def propagated_properties(self) -> Set[str]:
+        """
+        The set of properties for which a pipeline default value should be propagated to this node
+        in the applicable scenario. This may not be the same as the set of Elyra-owned properties
+        (ie, properties with a corresponding ElyraProperty class) in all cases. That distinction
+        is made here as needed.
+        """
+        propagated_props = {*self.elyra_owned_properties}  # all Elyra-owned props should be propagated
         if self.is_generic:
-            self.elyra_owned_properties.remove(RUNTIME_IMAGE)
+            propagated_props.add(RUNTIME_IMAGE)  # generic nodes should also have runtime_image propagated
+        return propagated_props
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
@@ -421,12 +427,10 @@ class Node(AppDataBase):
                 continue  # property has already been properly converted or cannot be converted
 
             converted_value = ElyraProperty.create_instance(param_id, param_value)
-            if converted_value is None:
-                continue
-            if isinstance(converted_value, ElyraProperty) and converted_value.is_empty_instance():
-                self._node["app_data"]["component_parameters"].pop(param_id, None)
-            else:
+            if converted_value is not None:
                 self.set_component_parameter(param_id, converted_value)
+            else:
+                self.pop_component_parameter(param_id)
 
 
 class PipelineDefinition(object):
@@ -610,11 +614,8 @@ class PipelineDefinition(object):
             node.convert_elyra_owned_properties()
 
             for property_name, pipeline_value in pipeline_default_properties.items():
-                if not pipeline_value:
+                if not pipeline_value or property_name not in node.propagated_properties:
                     continue
-
-                if property_name not in node.elyra_owned_properties:
-                    continue  # only Elyra-owned properties should be propagated
 
                 node_value = node.get_component_parameter(property_name)
                 if not node_value:
@@ -627,7 +628,6 @@ class PipelineDefinition(object):
 
             if self.primary_pipeline.runtime_config != "local":
                 node.remove_env_vars_with_matching_secrets()
-            node.unset_elyra_owned_properties()
 
     def is_valid(self) -> bool:
         """

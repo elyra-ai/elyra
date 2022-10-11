@@ -155,6 +155,7 @@ def test_propagate_pipeline_default_properties(monkeypatch, component_cache):
     # Ensure that default properties have been propagated
     generic_envs = generic_node.get_component_parameter(pipeline_constants.ENV_VARIABLES)
     assert generic_envs.to_dict() == kv_dict
+    assert generic_node.get_component_parameter(RUNTIME_IMAGE) == "{{ default_image }}"
 
     # Ensure that runtime image and env vars are not propagated to custom components
     assert custom_node_test.get_component_parameter(RUNTIME_IMAGE) is None
@@ -207,7 +208,6 @@ def test_remove_env_vars_with_matching_secrets(monkeypatch):
     # Mock set_elyra_properties_to_skip() so that a ComponentCache instance is not created unnecessarily
     monkeypatch.setattr(Node, "set_elyra_owned_properties", mock.Mock(return_value=None))
     monkeypatch.setattr(Node, "elyra_owned_properties", {KUBERNETES_SECRETS, ENV_VARIABLES})
-    monkeypatch.setattr(Node, "unset_elyra_owned_properties", mock.Mock(return_value=None))
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
     node = None
