@@ -243,6 +243,8 @@ class Pipeline(AppDataBase):
             converted_value = ElyraProperty.create_instance(param_id, param_value)
             if converted_value is not None:
                 pipeline_defaults[param_id] = converted_value
+            else:
+                del pipeline_defaults[param_id]
 
 
 class Node(AppDataBase):

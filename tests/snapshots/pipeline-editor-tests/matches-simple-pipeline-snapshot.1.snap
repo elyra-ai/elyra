@@ -34,7 +34,7 @@ Object {
               "kubernetes_pod_labels": Array [],
               "kubernetes_secrets": Array [],
               "kubernetes_shared_mem_size": Object {
-                "units": "Mi",
+                "units": "G",
               },
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],

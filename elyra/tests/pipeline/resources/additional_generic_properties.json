@@ -181,11 +181,11 @@
       "units": {
         "type": "string",
         "title": "Units",
-        "default": "Mi",
-        "enum": ["G", "Gi", "M", "Mi"]
+        "default": "G",
+        "enum": ["G"]
       }
     },
-    "required": ["units"],
+    "required": ["size", "units"],
     "uihints": {
       "size": {
         "ui:placeholder": 0
