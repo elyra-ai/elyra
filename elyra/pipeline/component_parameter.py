@@ -282,9 +282,10 @@ class DisableNodeCaching(ElyraProperty):
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
+        """Build the JSON schema for this property"""
         schema = super().get_schema()
         schema["enum"] = ["True", "False"]
+        schema["uihints"] = {"ui:placeholder": "Use runtime default"}
         return schema
 
     def get_value_for_display(self) -> Dict[str, Any]:
@@ -316,14 +317,14 @@ class CustomSharedMemorySize(ElyraProperty):
             placeholder=0,
             input_type="number",
             hidden=False,
-            required=True,
+            required=False,
         ),
         PropertyAttribute(
             attribute_id="units",
             display_name="Units",
             input_type="string",
             hidden=True,
-            required=True,
+            required=False,
         ),
     ]
 
@@ -386,6 +387,10 @@ class CustomSharedMemorySize(ElyraProperty):
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add CustomSharedMemorySize instance to the execution object for the given runtime processor"""
         runtime_processor.add_custom_shared_memory_size(instance=self, execution_object=execution_object, **kwargs)
+
+    def should_discard(self) -> bool:
+        """Ignore this CustomSharedMemorySize instance if no custom size is specified."""
+        return not self.size
 
 
 class ElyraPropertyListItem(ElyraProperty):

@@ -179,7 +179,7 @@
         "minimum": 0
       }
     },
-    "required": ["size"],
+    "required": [],
     "uihints": {
       "size": {
         "ui:placeholder": 0
