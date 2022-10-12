@@ -142,19 +142,17 @@ class PipelineValidationManager(SingletonConfigurable):
             return response
 
         # Validation can be driven from runtime_config since both runtime and pipeline_type can
-        # be derived from that and we should not use the 'runtime' and 'runtime_type' fields in
+        # be derived from that, and we should not use the 'runtime' and 'runtime_type' fields in
         # the pipeline.
         # Note: validation updates the pipeline definition with the correct values
         # of 'runtime' and 'runtime_type' obtained from 'runtime_config'.  We may want to move this
         # into PipelineDefinition, but then parsing tests have issues because parsing (tests) assume
         # no validation has been applied to the pipeline.
         runtime_config = primary_pipeline.runtime_config
-        if runtime_config is None:
-            runtime_config = "local"
 
         pipeline_runtime = PipelineValidationManager._determine_runtime(runtime_config)
         if PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime):
-            # Set the runtime since its derived from runtime_config and valid
+            # Set the runtime since it's derived from runtime_config and valid
             primary_pipeline.set("runtime", pipeline_runtime)
         else:
             response.add_message(
@@ -179,7 +177,7 @@ class PipelineValidationManager(SingletonConfigurable):
         if response.has_fatal:
             return response
 
-        # Set runtime_type since its derived from runtime_config, in case its needed
+        # Set runtime_type since it's derived from runtime_config, in case it's needed
         primary_pipeline.set("runtime_type", pipeline_type)
 
         await self._validate_node_properties(
@@ -192,21 +190,21 @@ class PipelineValidationManager(SingletonConfigurable):
         return response
 
     @staticmethod
-    def _determine_runtime(runtime_config: str) -> str:
+    def _determine_runtime(runtime_config: Optional[str]) -> str:
         """Derives the runtime (processor) from the runtime_config."""
-        # If not present or 'local', treat as special case.
-        if not runtime_config or runtime_config.upper() == RuntimeProcessorType.LOCAL.name:
+        # If runtime_config is not specified, treat as LOCAL.
+        if not runtime_config:
             return RuntimeProcessorType.LOCAL.name.lower()
 
         runtime_metadata = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID).get(runtime_config)
         return runtime_metadata.schema_name
 
     @staticmethod
-    def _determine_runtime_type(runtime_config: str) -> str:
+    def _determine_runtime_type(runtime_config: Optional[str]) -> str:
         """Derives the runtime type (platform) from the runtime_config."""
-        # Pull the runtime_type (platform) from the runtime_config
-        # Need to special case 'local' runtime_config instances
-        if runtime_config.lower() == "local":
+        # Pull the runtime_type (platform) from the runtime_config.
+        # If not set, use LOCAL
+        if not runtime_config:
             runtime_type = RuntimeProcessorType.LOCAL
         else:
             runtime_metadata = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID).get(runtime_config)
