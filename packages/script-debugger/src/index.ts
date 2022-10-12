@@ -86,9 +86,15 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             sessionConnection = sessions.connectTo({ model: sessionModel });
             activeSessions[sessionModel.id] = sessionConnection;
           }
-          await updateKernel(sessionConnection, kernelSelection);
-          await handler.update(widget, sessionConnection);
-          app.commands.notifyCommandChanged();
+
+          sessionConnection &&
+            (await updateKernel(sessionConnection, kernelSelection));
+
+          // Temporary solution to give enough time for the handler to update the UI on page reload.
+          setTimeout(async () => {
+            await handler.update(widget, sessionConnection);
+            app.commands.notifyCommandChanged();
+          }, 500);
         }
       } catch (error) {
         console.warn(
@@ -128,7 +134,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     if (editorTracker) {
       // Listen to script editor's current instance changes.
       editorTracker.currentChanged.connect((_, widget) => {
-        update(widget);
+        return update(widget);
       });
     }
 
@@ -163,7 +169,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     ): Promise<void> => {
       try {
         const prev = sessionConnection.kernel?.name;
-        if (kernelSelection) {
+        if (kernelSelection && prev !== kernelSelection) {
           await sessionConnection.changeKernel({ name: kernelSelection });
           console.log(`Kernel change from ${prev} to ${kernelSelection}`);
         }
