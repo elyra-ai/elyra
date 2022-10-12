@@ -284,6 +284,7 @@ class DisableNodeCaching(ElyraProperty):
         """Build the JSON schema for an Elyra-owned component property"""
         schema = super().get_schema()
         schema["enum"] = ["True", "False"]
+        schema["uihints"] = {"ui:placeholder": "Use runtime default"}
         return schema
 
     def get_value_for_display(self) -> Dict[str, Any]:
