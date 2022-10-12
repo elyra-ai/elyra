@@ -170,7 +170,7 @@
   },
   "kubernetes_shared_mem_size": {
     "title": "Shared Memory Size",
-    "description": "Configure a custom shared memory size in gigabytes (10<sup>9</sup> bytes) for the pod that executes a node. A custom value is assigned if the size property value is a number greater than zero.",
+    "description": "Configure a custom shared memory size in gigabytes (10^9 bytes) for the pod that executes a node. A custom value is assigned if the size property value is a number greater than zero.",
     "type": "object",
     "properties": {
       "size": {
