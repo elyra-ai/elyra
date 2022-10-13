@@ -188,11 +188,13 @@ def test_property_id_collision_with_system_property(monkeypatch, catalog_instanc
     # pipeline node and in the pipeline default properties
     derive1_vols = custom_node_derive1.get_component_parameter(MOUNTED_VOLUMES)
     assert derive1_vols.to_dict() == {
-        "/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2"},
-        "/mnt/vol1": {"path": "/mnt/vol1", "pvc_name": "pvc-claim-1"},
+        "/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2", "read_only": None, "sub_path": None},
+        "/mnt/vol1": {"path": "/mnt/vol1", "pvc_name": "pvc-claim-1", "read_only": None, "sub_path": None},
     }
     derive2_vols = custom_node_derive2.get_component_parameter(MOUNTED_VOLUMES)
-    assert derive2_vols.to_dict() == {"/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2"}}
+    assert derive2_vols.to_dict() == {
+        "/mnt/vol2": {"path": "/mnt/vol2", "pvc_name": "pvc-claim-2", "read_only": None, "sub_path": None}
+    }
 
     # TestOperator defines its own "mounted_volumes" property
     # and should skip the Elyra system property of the same name

@@ -47,6 +47,16 @@
           "type": "string",
           "title": "Persistent Volume Claim Name",
           "default": ""
+        },
+        "read_only": {
+          "default": false,
+          "title": "Mount volume read-only",
+          "type": "boolean"
+        },
+        "sub_path": {
+          "default": "",
+          "title": "Sub Path",
+          "type": "string"
         }
       },
       "required": ["path", "pvc_name"]
@@ -58,6 +68,9 @@
         },
         "pvc_name": {
           "ui:placeholder": "pvc-name"
+        },
+        "sub_path": {
+          "ui:placeholder": "relative/path/within/volume"
         }
       }
     },

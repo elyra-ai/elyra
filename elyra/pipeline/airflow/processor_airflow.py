@@ -614,13 +614,8 @@ be fully qualified (i.e., prefixed with their package names).
         str_to_render = ""
         for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
-                 VolumeMount(name="{v.pvc_name}", mount_path="{v.path}", sub_path=None, read_only=False),"""
-        # set custom shared memory size
-        shm = elyra_parameters.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
-        if shm is not None and shm.size:
-            str_to_render += """
-                 VolumeMount(name="shm", mount_path="/dev/shm", sub_path=None, read_only=False),"""
-
+                 VolumeMount(name="{v.pvc_name}", mount_path="{v.path}",
+                 sub_path="{v.sub_path}", read_only={v.read_only}),"""
         return dedent(str_to_render)
 
     def render_secrets(self, elyra_parameters: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
@@ -692,7 +687,12 @@ be fully qualified (i.e., prefixed with their package names).
             }
         )
         execution_object["volume_mounts"].append(
-            {"mountPath": instance.path, "name": instance.pvc_name, "read_only": False}
+            {
+                "mountPath": instance.path,
+                "name": instance.pvc_name,
+                "sub_path": instance.sub_path,
+                "read_only": instance.read_only,
+            }
         )
 
     def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
