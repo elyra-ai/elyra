@@ -446,8 +446,13 @@ def test_valid_node_property_volumes(validation_manager):
 
     volumes = ElyraPropertyList(
         [
-            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim"),  # valid
-            VolumeMount(path="/mount/test_two", pvc_name="second-claim"),  # valid
+            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim", sub_path=None, read_only=False),
+            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim", sub_path="", read_only=False),
+            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim", sub_path="relative/path", read_only=False),
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path="", read_only=True),
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path="path", read_only=True),
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path="path/", read_only=True),
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path="path/in/volume", read_only=None),
         ]
     )
     node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes
@@ -466,13 +471,18 @@ def test_invalid_node_property_volumes(validation_manager):
 
     volumes = ElyraPropertyList(
         [
-            VolumeMount(path="", pvc_name=""),  # missing mount path and pvc name
-            VolumeMount(path=None, pvc_name=None),  # missing mount path and pvc name
-            VolumeMount(path="", pvc_name="pvc"),  # missing mount path
-            VolumeMount(path=None, pvc_name="pvc"),  # missing mount path
-            VolumeMount(path="/path", pvc_name=""),  # missing pvc name
-            VolumeMount(path="/path/", pvc_name=None),  # missing pvc name
-            VolumeMount(path="/mount/test_four", pvc_name="second#claim"),  # invalid pvc name
+            VolumeMount(path="", pvc_name="", sub_path="", read_only=True),  # missing mount path and pvc name
+            VolumeMount(path=None, pvc_name=None, sub_path=None, read_only=True),  # missing mount path and pvc name
+            VolumeMount(path="", pvc_name="pvc", sub_path="", read_only=True),  # missing mount path
+            VolumeMount(path=None, pvc_name="pvc", sub_path=None, read_only=True),  # missing mount path
+            VolumeMount(path="/path", pvc_name="", sub_path="", read_only=True),  # missing pvc name
+            VolumeMount(path="/path/", pvc_name=None, sub_path=None, read_only=False),  # missing pvc name
+            VolumeMount(
+                path="/mount/test_four", pvc_name="second#claim", sub_path=None, read_only=False
+            ),  # invalid pvc name
+            VolumeMount(
+                path="/path", pvc_name="pvc", sub_path="/absolute/path", read_only=False
+            ),  # sub_path must be relative
         ]
     )
     node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes
@@ -482,7 +492,7 @@ def test_invalid_node_property_volumes(validation_manager):
         node_id=node.id, node_label=node.label, node=node, param_name=MOUNTED_VOLUMES, response=response
     )
     issues = response.to_json().get("issues")
-    assert len(issues) == 9, issues
+    assert len(issues) == 10, issues
     assert issues[0]["severity"] == 1
     assert issues[0]["type"] == "invalidVolumeMount"
     assert issues[0]["data"]["propertyName"] == MOUNTED_VOLUMES
@@ -496,6 +506,7 @@ def test_invalid_node_property_volumes(validation_manager):
     assert "Required persistent volume claim name was not specified." in issues[6]["message"]
     assert "Required persistent volume claim name was not specified." in issues[7]["message"]
     assert "PVC name 'second#claim' is not a valid Kubernetes resource name." in issues[8]["message"]
+    assert "Sub-path '/absolute/path' must be a relative path." in issues[9]["message"]
 
 
 def test_valid_node_property_kubernetes_toleration(validation_manager):
