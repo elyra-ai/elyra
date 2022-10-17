@@ -31,7 +31,7 @@ from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES, COS_OBJECT_PREFIX
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.github import GithubClient
@@ -172,6 +172,10 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y, z: parsed_ordered_dict)
 
+    # Ensure the value of COS_OBJECT_PREFIX has been propagated to the Pipeline object appropriately
+    cos_prefix = pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"].get(COS_OBJECT_PREFIX)
+    assert cos_prefix == parsed_pipeline.pipeline_properties.get(COS_OBJECT_PREFIX)
+
     with tempfile.TemporaryDirectory() as temp_dir:
         export_pipeline_output_path = os.path.join(temp_dir, f"{export_pipeline_name}.py")
 
@@ -206,12 +210,15 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                     # Gets sub-list slice starting where the Notebook Op starts
                     init_line = i + 1
                     for idx, line in enumerate(file_as_lines[init_line:], start=init_line):
+                        if "--cos-endpoint" in line:
+                            assert f"--cos-endpoint {sample_metadata['metadata']['cos_endpoint']}" in line
+                        if "--cos-bucket" in line:
+                            assert f"--cos-bucket {sample_metadata['metadata']['cos_bucket']}" in line
+                        if "--cos-directory" in line:
+                            assert f"--cos-directory \'{cos_prefix}/some-instance-id\'" in line
+
                         if "namespace=" in line:
                             assert sample_metadata["metadata"]["user_namespace"] == read_key_pair(line)["value"]
-                        elif "cos_endpoint=" in line:
-                            assert sample_metadata["metadata"]["cos_endpoint"] == read_key_pair(line)["value"]
-                        elif "cos_bucket=" in line:
-                            assert sample_metadata["metadata"]["cos_bucket"] == read_key_pair(line)["value"]
                         elif "name=" in line and "Volume" not in file_as_lines[idx - 1]:
                             assert node["app_data"]["ui_data"]["label"] == read_key_pair(line)["value"]
                         elif "notebook=" in line:
