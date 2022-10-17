@@ -299,7 +299,7 @@ The following alphabetically sorted list identifies the node properties that are
 Shared memory to be allocated on the pod where the component is executed. 
    - Format: 
      - _Memory size_: Custom shared memory size in gigabytes (10<sup>9</sup> bytes). The Kubernetes default is used if set to zero.
-   - Shared memory size is ignored when the pipeline is executed locally.
+   - Shared memory size is ignored when the pipeline is executed with the `local` runtime option.
  
 ### Running pipelines
 
