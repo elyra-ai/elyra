@@ -27,6 +27,7 @@ from typing import List
 from typing import Optional
 from typing import Set
 from typing import TYPE_CHECKING
+from typing import Union
 
 # Prevent a circular reference by importing RuntimePipelineProcessor only during type-checking
 if TYPE_CHECKING:
@@ -346,23 +347,6 @@ class CustomSharedMemorySize(ElyraProperty):
         dict_repr = {attr.id: getattr(self, attr.id, None) for attr in self.property_attributes}
         return dict_repr
 
-    def get_key_for_dict_entry(self) -> str:
-        """
-        Given the attribute names in the 'key' property, construct a key
-        based on the attribute values of the instance.
-        """
-        prop_key = ""
-        keys = [attr.id for attr in self.property_attributes if attr.use_in_key]
-        for key_attr in keys:
-            key_part = getattr(self, key_attr)
-            if key_part:
-                prop_key += f"{key_part}:" if key_attr != keys[-1] else key_part
-        return prop_key
-
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
-        return self.to_dict()
-
     def get_value_for_display(self) -> Dict[str, Any]:
         """Get a representation of the instance to display in UI error messages."""
         return self.to_dict()
@@ -418,8 +402,8 @@ class ElyraPropertyListItem(ElyraProperty):
                 prop_key += f"{key_part}:" if key_attr != keys[-1] else key_part
         return prop_key
 
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
+        """Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem."""
         return self.to_dict()
 
     def get_value_for_display(self) -> Dict[str, Any]:
@@ -473,7 +457,10 @@ class EnvironmentVariable(ElyraPropertyListItem):
         return schema
 
     def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
+        """
+        Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
+        A EnvironmentVariable dict entry will be of the form {self.env_var: self.value}
+        """
         return self.value
 
     def should_discard(self) -> bool:
@@ -689,7 +676,10 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         self.value = value
 
     def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
+        """
+        Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
+        A KubernetesAnnotation dict entry will be of the form {self.key: self.value}
+        """
         return self.value
 
     def get_all_validation_errors(self) -> List[str]:
@@ -747,7 +737,10 @@ class KubernetesLabel(ElyraPropertyListItem):
         self.value = value
 
     def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
+        """
+        Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
+        A KubernetesLabel dict entry will be of the form {self.key: self.value}
+        """
         return self.value
 
     def get_all_validation_errors(self) -> List[str]:
@@ -885,7 +878,7 @@ class ElyraPropertyList(list):
 
             prop_value = prop.get_value_for_dict_entry()
             if use_prop_as_value:
-                prop_value = prop  # use of the property object itself as the value
+                prop_value = prop  # use the property object itself as the value
             prop_dict[prop_key] = prop_value
 
         return prop_dict
