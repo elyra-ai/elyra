@@ -36,7 +36,7 @@ describe('Script debugger tests', () => {
     checkDebuggerButtonEnabled(true);
   });
 
-  it('test for debugger button state persistance on page reload', () => {
+  it('test for debugger button state persistence on page reload', () => {
     cy.createNewScriptEditor('Python');
     cy.wait(1000);
     checkDefaultKernelSelection();
@@ -46,7 +46,7 @@ describe('Script debugger tests', () => {
     checkDebuggerButtonEnabled(true);
   });
 
-  it('test for debugger button state persistance on reopening editor tab', () => {
+  it('test for debugger button state persistence on reopening editor tab', () => {
     cy.createNewScriptEditor('Python');
     cy.wait(1000);
     checkDefaultKernelSelection();
