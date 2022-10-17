@@ -108,7 +108,7 @@ be fully qualified (i.e., prefixed with their package names).
                 self.class_import_map[parts[1]] = f"from {parts[0]} import {parts[1]}"
         self.log.debug(f"class_package_map = {self.class_import_map}")
 
-    def process(self, pipeline: Pipeline) -> 'AirflowPipelineProcessorResponse':
+    def process(self, pipeline: Pipeline) -> "AirflowPipelineProcessorResponse":
         """
         Submit the pipeline for execution on Apache Airflow.
         """
@@ -743,7 +743,7 @@ be fully qualified (i.e., prefixed with their package names).
     @property
     def supported_properties(self) -> Set[str]:
         """A list of Elyra-owned properties supported by this runtime processor."""
-        return [
+        return {
             pipeline_constants.ENV_VARIABLES,
             pipeline_constants.KUBERNETES_SECRETS,
             pipeline_constants.MOUNTED_VOLUMES,
@@ -751,7 +751,7 @@ be fully qualified (i.e., prefixed with their package names).
             pipeline_constants.KUBERNETES_POD_LABELS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
             pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
-        ]
+        }
 
 
 class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):

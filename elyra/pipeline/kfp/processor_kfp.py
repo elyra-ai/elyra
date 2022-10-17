@@ -842,7 +842,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     @property
     def supported_properties(self) -> Set[str]:
         """A list of Elyra-owned properties supported by this runtime processor."""
-        return [
+        return {
             pipeline_constants.ENV_VARIABLES,
             pipeline_constants.KUBERNETES_SECRETS,
             pipeline_constants.MOUNTED_VOLUMES,
@@ -851,7 +851,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             pipeline_constants.KUBERNETES_TOLERATIONS,
             pipeline_constants.DISABLE_NODE_CACHING,
             pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
-        ]
+        }
 
 
 class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):
