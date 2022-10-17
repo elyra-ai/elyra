@@ -46,6 +46,17 @@ describe('Script debugger tests', () => {
     checkDebuggerButtonEnabled(true);
   });
 
+  it('test for debugger button state persistance on reopening editor tab', () => {
+    cy.createNewScriptEditor('Python');
+    cy.wait(1000);
+    checkDefaultKernelSelection();
+    checkDebuggerButtonEnabled(true);
+    cy.closeTab(-1);
+    openFile('untitled.py');
+    cy.wait(1000);
+    checkDebuggerButtonEnabled(true);
+  });
+
   //  TODO: Open new bug report for the failing test below
   // it('test for debugger button disabled for default kernel without debug support', () => {
   //   cy.createNewScriptEditor('R');
@@ -75,4 +86,11 @@ const checkDebuggerButtonEnabled = (enabled: boolean): void => {
           'button.jp-DebuggerBugButton[title="Select a kernel that supports debugging to enable debugger"]'
         )
         .should('be.disabled');
+};
+
+const openFile = (fileName: string) => {
+  cy.findByRole('menuitem', { name: /file/i }).click();
+  cy.findByText(/^open from path$/i).click({ force: true });
+  cy.get('input#jp-dialog-input-id').type(`/${fileName}`);
+  cy.get('.p-Panel .jp-mod-accept').click();
 };
