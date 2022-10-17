@@ -108,7 +108,7 @@ be fully qualified (i.e., prefixed with their package names).
                 self.class_import_map[parts[1]] = f"from {parts[0]} import {parts[1]}"
         self.log.debug(f"class_package_map = {self.class_import_map}")
 
-    def process(self, pipeline: Pipeline) -> None:
+    def process(self, pipeline: Pipeline) -> 'AirflowPipelineProcessorResponse':
         """
         Submit the pipeline for execution on Apache Airflow.
         """
