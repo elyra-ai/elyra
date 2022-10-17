@@ -88,7 +88,7 @@ const checkDebuggerButtonEnabled = (enabled: boolean): void => {
         .should('be.disabled');
 };
 
-const openFile = (fileName: string) => {
+const openFile = (fileName: string): void => {
   cy.findByRole('menuitem', { name: /file/i }).click();
   cy.findByText(/^open from path$/i).click({ force: true });
   cy.get('input#jp-dialog-input-id').type(`/${fileName}`);
