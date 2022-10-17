@@ -31,7 +31,8 @@ from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES, COS_OBJECT_PREFIX
+from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.github import GithubClient
@@ -153,8 +154,11 @@ def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metada
 
     assert response.run_url == sample_metadata["metadata"]["api_endpoint"]
     assert response.object_storage_url == sample_metadata["metadata"]["cos_endpoint"]
-    # Verifies that only this substring is in the storage path since a timestamp is injected into the name
-    assert "/" + sample_metadata["metadata"]["cos_bucket"] + "/" + "untitled" in response.object_storage_path
+
+    # Verifies cos_object_prefix is added to storage path and that the correct substring is
+    # in the storage path since a timestamp is injected into the name
+    cos_prefix = parsed_pipeline.pipeline_properties.get(COS_OBJECT_PREFIX)
+    assert f"/{sample_metadata['metadata']['cos_bucket']}/{cos_prefix}/untitled" in response.object_storage_path
 
 
 @pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
@@ -215,7 +219,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                         if "--cos-bucket" in line:
                             assert f"--cos-bucket {sample_metadata['metadata']['cos_bucket']}" in line
                         if "--cos-directory" in line:
-                            assert f"--cos-directory \'{cos_prefix}/some-instance-id\'" in line
+                            assert f"--cos-directory '{cos_prefix}/some-instance-id'" in line
 
                         if "namespace=" in line:
                             assert sample_metadata["metadata"]["user_namespace"] == read_key_pair(line)["value"]

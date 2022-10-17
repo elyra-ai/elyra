@@ -191,7 +191,10 @@ class Pipeline(AppDataBase):
         # TODO remove the block below when a pipeline migration is appropriate (after 3.13)
         cos_prefix = self._node["app_data"].get("properties", {}).pop(COS_OBJECT_PREFIX, None)
         if cos_prefix:
-            self._node["app_data"]["properties"][PIPELINE_DEFAULTS] = cos_prefix
+            if PIPELINE_DEFAULTS in self._node["app_data"]["properties"]:
+                self._node["app_data"]["properties"][PIPELINE_DEFAULTS][COS_OBJECT_PREFIX] = cos_prefix
+            else:
+                self._node["app_data"]["properties"][PIPELINE_DEFAULTS] = {COS_OBJECT_PREFIX: cos_prefix}
 
         return pipeline_defaults
 
@@ -594,7 +597,7 @@ class PipelineDefinition(object):
         """
         self.primary_pipeline.convert_elyra_owned_properties()
 
-        pipeline_default_properties = self.primary_pipeline.get_property(PIPELINE_DEFAULTS, {})
+        pipeline_default_properties = self.primary_pipeline.get_pipeline_default_properties()
         for node in self.pipeline_nodes:
             # Determine which Elyra-owned properties will require dataclass conversion, then convert
             node.set_elyra_owned_properties(self.primary_pipeline.type)
