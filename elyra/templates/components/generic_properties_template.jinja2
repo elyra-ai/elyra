@@ -4,8 +4,11 @@
       "elyra_filename": "",
       "elyra_runtime_image": null,
       "elyra_cpu": null,
-      "elyra_gpu": null,
       "elyra_memory": null,
+      "elyra_gpu": null,
+      "elyra_gpu_vendor": null,
+      "elyra_gpu_memory": null,
+      "elyra_gpu_memory_vendor": null,
       "elyra_outputs": [],
       "elyra_env_vars": [],
       "elyra_kubernetes_secrets": [],
@@ -29,10 +32,19 @@
         "id": "elyra_cpu"
       },
       {
+        "id": "elyra_memory"
+      },
+      {
         "id": "elyra_gpu"
       },
       {
-        "id": "elyra_memory"
+        "id": "elyra_gpu_vendor"
+      },
+      {
+        "id": "elyra_gpu_memory"
+      },
+      {
+        "id": "elyra_gpu_memory_vendor"
       },
       {
         "id": "elyra_dependencies"
@@ -125,6 +137,21 @@
           }
         },
         {
+          "parameter_ref": "elyra_memory",
+          "control": "custom",
+          "custom_control_id": "NumberControl",
+          "label": {
+            "default": "RAM(GB)"
+          },
+          "description": {
+            "default": "The total amount of RAM specified.",
+            "placement": "on_panel"
+          },
+          "data": {
+            "minimum": 0
+          }
+        },
+        {
           "parameter_ref": "elyra_gpu",
           "control": "custom",
           "custom_control_id": "NumberControl",
@@ -140,19 +167,41 @@
           }
         },
         {
-          "parameter_ref": "elyra_memory",
+          "parameter_ref": "elyra_gpu_vendor",
+          "control": "custom",
+          "custom_control_id": "StringControl",
+          "label": {
+            "default": "GPU Vendor"
+          },
+          "description": {
+            "default": "GPU Vendor can be like nvidia.com/gpu, tencent.com/vcuda-core etc.",
+            "placement": "on_panel"
+          },
+          "data": {}
+        },
+        {
+          "parameter_ref": "elyra_gpu_memory",
           "control": "custom",
           "custom_control_id": "NumberControl",
           "label": {
-            "default": "RAM(GB)"
+            "default": "GPU Memory"
           },
           "description": {
-            "default": "The total amount of RAM specified.",
+            "default": "GPU memory limitations, only works if you have vGPU setups. 1 means 256Mi GPU Memory.",
             "placement": "on_panel"
           },
-          "data": {
-            "minimum": 0
-          }
+        {
+          "parameter_ref": "elyra_gpu_memory_vendor",
+          "control": "custom",
+          "custom_control_id": "StringControl",
+          "label": {
+            "default": "GPU Memory Vendor"
+          },
+          "description": {
+            "default": "GPU Memory Vendor should work together with GPU Vendor, e.g. tencent.com/vcuda-memory",
+            "placement": "on_panel"
+          },
+          "data": {}
         },
         {
           "parameter_ref": "elyra_dependencies",
@@ -302,7 +351,17 @@
             {
               "id": "elyra_resources",
               "type": "controls",
-              "parameter_refs": ["elyra_cpu", "elyra_gpu", "elyra_memory"]
+              "parameter_refs": ["elyra_cpu", "elyra_memory"]
+            },
+            {
+              "id": "elyra_resources_gpu",
+              "type": "controls",
+              "parameter_refs": ["elyra_gpu_vendor", "elyra_gpu"]
+            },
+            {
+              "id": "elyra_resources_gpu_memory",
+              "type": "controls",
+              "parameter_refs": ["elyra_gpu_memory_vendor", "elyra_gpu_memory"]
             },
             {
               "id": "elyra_dependencies",
