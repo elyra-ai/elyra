@@ -31,29 +31,29 @@ describe('Script debugger tests', () => {
 
   it('test for debugger button to be enabled for default Python kernel', () => {
     cy.createNewScriptEditor('Python');
-    cy.wait(1000);
+    cy.wait(5000);
     checkDefaultKernelSelection();
     checkDebuggerButtonEnabled(true);
   });
 
   it('test for debugger button state persistence on page reload', () => {
     cy.createNewScriptEditor('Python');
-    cy.wait(1000);
+    cy.wait(5000);
     checkDefaultKernelSelection();
     checkDebuggerButtonEnabled(true);
     cy.reload();
-    cy.wait(1000);
+    cy.wait(5000);
     checkDebuggerButtonEnabled(true);
   });
 
   it('test for debugger button state persistence on reopening editor tab', () => {
     cy.createNewScriptEditor('Python');
-    cy.wait(1000);
+    cy.wait(5000);
     checkDefaultKernelSelection();
     checkDebuggerButtonEnabled(true);
     cy.closeTab(-1);
     openFile('untitled.py');
-    cy.wait(1000);
+    cy.wait(5000);
     checkDebuggerButtonEnabled(true);
   });
 
