@@ -338,7 +338,7 @@ class Pipeline(object):
         id: str,
         name: str,
         runtime: str,
-        runtime_config: str,
+        runtime_config: Optional[str] = None,
         source: Optional[str] = None,
         description: Optional[str] = None,
         pipeline_parameters: Optional[Dict[str, Any]] = None,
@@ -358,8 +358,6 @@ class Pipeline(object):
             raise ValueError("Invalid pipeline: Missing pipeline name.")
         if not runtime:
             raise ValueError("Invalid pipeline: Missing runtime.")
-        if not runtime_config:
-            raise ValueError("Invalid pipeline: Missing runtime configuration.")
 
         self._id = id
         self._name = name
@@ -432,7 +430,6 @@ class Pipeline(object):
                 and self.source == other.source
                 and self.description == other.description
                 and self.runtime == other.runtime
-                and self.runtime_config == other.runtime_config
                 and self.operations == other.operations
             )
 
