@@ -434,7 +434,7 @@ class PipelineValidationManager(SingletonConfigurable):
         # If not running locally, we check resource and image name
         if pipeline_runtime != "local":
             self._validate_container_image_name(node.id, node_label, image_name, response=response)
-            for resource_name in ["cpu", "gpu", "memory"]:
+            for resource_name in ["cpu", "memory", "gpu", "gpu_memory"]:
                 resource_value = node.get_component_parameter(resource_name)
                 if resource_value:
                     self._validate_resource_value(

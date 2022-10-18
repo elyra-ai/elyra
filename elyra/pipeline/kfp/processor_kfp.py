@@ -540,6 +540,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     cpu_request=operation.cpu,
                     mem_request=operation.memory,
                     gpu_limit=operation.gpu,
+                    gpu_vendor=operation.gpu_vendor,
+                    gpu_memory=operation.gpu_memory,
+                    gpu_memory_vendor=operation.gpu_memory_vendor,
                     workflow_engine=engine,
                     image=operation.runtime_image,
                     file_outputs={

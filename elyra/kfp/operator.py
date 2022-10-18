@@ -91,6 +91,9 @@ class ExecuteFileOp(ContainerOp):
         cpu_request: Optional[str] = None,
         mem_request: Optional[str] = None,
         gpu_limit: Optional[str] = None,
+        gpu_vendor: Optional[str] = None,
+        gpu_memory_vendor: Optional[str] = None,
+        gpu_memory: Optional[str] = None,
         workflow_engine: Optional[str] = "argo",
         volume_mounts: Optional[List[VolumeMount]] = None,
         kubernetes_secrets: Optional[List[KubernetesSecret]] = None,
@@ -118,6 +121,9 @@ class ExecuteFileOp(ContainerOp):
           cpu_request: number of CPUs requested for the operation
           mem_request: memory requested for the operation (in Gi)
           gpu_limit: maximum number of GPUs allowed for the operation
+          gpu_vendor: gpu vendor like "nvidia.com"
+          gpu_memory: gpu memory resource
+          gpu_memory_vendor: gpu memory resource type, can be vGPU implementations
           workflow_engine: Kubeflow workflow engine, defaults to 'argo'
           volume_mounts: data volumes to be mounted
           kubernetes_secrets: secrets to be made available as environment variables
@@ -149,6 +155,9 @@ class ExecuteFileOp(ContainerOp):
         self.cpu_request = cpu_request
         self.mem_request = mem_request
         self.gpu_limit = gpu_limit
+        self.gpu_vendor = gpu_vendor
+        self.gpu_memory = gpu_memory
+        self.gpu_memory_vendor = gpu_memory_vendor
         self.volume_mounts = volume_mounts  # optional data volumes to be mounted to the pod
         self.kubernetes_secrets = kubernetes_secrets  # optional secrets to be made available as env vars
         self.kubernetes_tolerations = (
@@ -319,8 +328,15 @@ class ExecuteFileOp(ContainerOp):
             self.container.set_memory_request(memory=str(mem_request) + "G")
 
         if self.gpu_limit:
-            gpu_vendor = self.pipeline_envs.get("GPU_VENDOR", "nvidia")
-            self.container.set_gpu_limit(gpu=str(gpu_limit), vendor=gpu_vendor)
+            if not self.gpu_vendor:
+                gpu_vendor = self.pipeline_envs.get("GPU_VENDOR", "nvidia")
+                self.container.set_gpu_limit(gpu=str(gpu_limit), vendor=gpu_vendor)
+            else:
+                self.container.add_resource_limit(self.gpu_vendor, self.gpu_limit)
+        if self.gpu_memory:
+            if not self.gpu_memory_vendor:
+                raise ValueError("gpu_memory_vendor not seted while gpu_memory is specified > 0")
+            self.container.add_resource_limit(self.gpu_memory_vendor, self.gpu_memory)
 
         # Generate unique ELYRA_RUN_NAME value and expose it as an environment
         # variable in the container

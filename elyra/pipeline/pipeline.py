@@ -306,6 +306,9 @@ class GenericOperation(Operation):
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
+                gpu_vendor: gpu resource type, eg. nvidia.com/gpu, tencent.com/vcuda-core
+                gpu_memory: gpu memory limits for vGPU
+                gpu_memory_vendor: gpu memory limits if vGPU is enabled, e.g. tencent.com/vcuda-memory
         Entries for other (non-built-in) component types are a function of the respective component.
         """
 
@@ -319,10 +322,14 @@ class GenericOperation(Operation):
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
         if component_params.get("cpu") and not self._validate_range(component_params.get("cpu"), min_value=1):
             raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
-        if component_params.get("gpu") and not self._validate_range(component_params.get("gpu"), min_value=0):
-            raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
         if component_params.get("memory") and not self._validate_range(component_params.get("memory"), min_value=1):
             raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
+        if component_params.get("gpu") and not self._validate_range(component_params.get("gpu"), min_value=0):
+            raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
+        if component_params.get("gpu_memory") and not self._validate_range(
+            component_params.get("gpu_memory"), min_value=0
+        ):
+            raise ValueError("Invalid pipeline operation: GPU Memory must be a positive value or None")
 
         # Re-build object to include default values
         self._component_params["filename"] = component_params.get("filename")
@@ -331,8 +338,11 @@ class GenericOperation(Operation):
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
         self._component_params["env_vars"] = KeyValueList(Operation._scrub_list(component_params.get("env_vars", [])))
         self._component_params["cpu"] = component_params.get("cpu")
-        self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")
+        self._component_params["gpu_vendor"] = component_params.get("gpu_vendor")
+        self._component_params["gpu"] = component_params.get("gpu")
+        self._component_params["gpu_memory_vendor"] = component_params.get("gpu_memory_vendor")
+        self._component_params["gpu_memory"] = component_params.get("gpu_memory")
 
     @property
     def name(self) -> str:
@@ -375,6 +385,18 @@ class GenericOperation(Operation):
     @property
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
+
+    @property
+    def gpu_vendor(self) -> Optional[str]:
+        return self._component_params.get("gpu_vendor")
+
+    @property
+    def gpu_memory(self) -> Optional[str]:
+        return self._component_params.get("gpu_memory")
+
+    @property
+    def gpu_memory_vendor(self) -> Optional[str]:
+        return self._component_params.get("gpu_memory_vendor")
 
     @property
     def kubernetes_secrets(self) -> List["KubernetesSecret"]:
