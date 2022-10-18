@@ -456,7 +456,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
         schema["uihints"].update({"canRefresh": True})
         return schema
 
-    def get_value_for_dict_entry(self) -> str:
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """
         Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
         A EnvironmentVariable dict entry will be of the form {self.env_var: self.value}
@@ -675,7 +675,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         self.key = key
         self.value = value
 
-    def get_value_for_dict_entry(self) -> str:
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """
         Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
         A KubernetesAnnotation dict entry will be of the form {self.key: self.value}
@@ -736,7 +736,7 @@ class KubernetesLabel(ElyraPropertyListItem):
         self.key = key
         self.value = value
 
-    def get_value_for_dict_entry(self) -> str:
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """
         Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
         A KubernetesLabel dict entry will be of the form {self.key: self.value}
