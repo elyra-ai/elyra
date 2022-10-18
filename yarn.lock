@@ -1268,13 +1268,13 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@~1.10.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.10.0.tgz#d1b85c5273d62db46a7404de09f3008ad1955426"
-  integrity sha512-UpuCl/Hqc8S4qzNLdqVBpdfGeKOpmWaCG4QbT8U8gafy2NCNUI8A31Ox2/2i4vM7ixUp+EZWOA2FhzqXz7nSxw==
+"@elyra/pipeline-editor@1.11.0-rc.0":
+  version "1.11.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.11.0-rc.0.tgz#995965f9915c4a7ff6b8f566cce56f744c49b271"
+  integrity sha512-oqjlfMW5iUo2W0tYbWcAEW33rH2Ft9fjKkL9OTeR0FjhXERBygK6tsJdfZfhqka8Ea+5qnXPIpByu0aPirhaXA==
   dependencies:
     "@elyra/canvas" "^12.11.2"
-    "@elyra/pipeline-services" "^1.10.0"
+    "@elyra/pipeline-services" "^1.11.0-rc.0"
     "@rjsf/core" "^4.2.3"
     "@rjsf/utils" "^5.0.0-beta.2"
     "@rjsf/validator-ajv6" "^5.0.0-beta.2"
@@ -1295,10 +1295,10 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.63.tgz#c6a6f9c0bc2215793d78fb90dd5e0b3c46044c7c"
   integrity sha512-p2pNeDmMzRawqFYljv1JAg0HbYlQ57cgMMmO3Slc5IQnKNSa08al5/rtthI04iORWOGi2cF5TNeu2IdjTk0JiA==
 
-"@elyra/pipeline-services@^1.10.0", "@elyra/pipeline-services@~1.10.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.10.0.tgz#3c12c5d4b58bfd851ecb8288cb758b94be2f1e6c"
-  integrity sha512-Uyc65Y4jLJfXwaMKhNSDwcqHgm/QfNjkGZcNb22mBORfFhhQ7tSA3LxOJwvTlvNmN/7Kdxn5vs+2O7BbTM1Pcw==
+"@elyra/pipeline-services@1.11.0-rc.0", "@elyra/pipeline-services@^1.11.0-rc.0":
+  version "1.11.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.11.0-rc.0.tgz#5b9ca97d4df7bd588bb738d94abe8e56af72a7c3"
+  integrity sha512-5f/CPFGlvhuXi+LbiunKnY1hQlaIMk/teu7CIkdCNxlL2NACO54ZCcb0+cRLypOEP/pFAkort9tVTlqPssJRFw==
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"

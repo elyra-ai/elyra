@@ -95,6 +95,7 @@ Each pipeline node is configured using properties. Default node properties are a
  - [Kubernetes tolerations](#kubernetes-tolerations)
  - [Kubernetes pod annotations](#kubernetes-pod-annotations)
  - [Kubernetes pod labels](#kubernetes-pod-labels)
+ - [Shared memory size](#shared-memory-size)
 
 **Default properties that apply only to generic nodes**
 
@@ -157,6 +158,7 @@ Nodes that are implemented using [generic components](pipeline-components.html#g
    - [Kubernetes tolerations](#kubernetes-tolerations)
    - [Kubernetes pod annotations](#kubernetes-pod-annotations)
    - [Kubernetes pod labels](#kubernetes-pod-labels)
+   - [Shared memory size](#shared-memory-size)
 
 ##### Configuring custom nodes
 
@@ -167,6 +169,7 @@ Nodes that are implemented using [custom components](pipeline-components.html#cu
    - [Kubernetes pod annotations](#kubernetes-pod-annotations)
    - [Kubernetes pod labels](#kubernetes-pod-labels)
    - [Disable node caching](#disable-node-caching)
+   - [Shared memory size](#shared-memory-size)
 
 #### Defining dependencies between nodes
 
@@ -290,6 +293,13 @@ The following alphabetically sorted list identifies the node properties that are
    - The value is ignored when the pipeline is executed locally. 
    - A default runtime image can also be set in the pipeline properties tab. If a default image is set, the **Runtime Image** property in the node properties tab will indicate that a pipeline default is set. Individual nodes can override the pipeline default value. 
    - Example: `TensorFlow 2.0`
+
+##### Shared memory size
+
+Shared memory to be allocated on the pod where the component is executed. 
+   - Format: 
+     - _Memory size_: Custom shared memory size in gigabytes (10<sup>9</sup> bytes). The Kubernetes default is used if set to zero.
+   - Shared memory size is ignored when the pipeline is executed with the `local` runtime option.
  
 ### Running pipelines
 
