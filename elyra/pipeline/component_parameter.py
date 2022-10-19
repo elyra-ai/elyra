@@ -27,6 +27,7 @@ from typing import List
 from typing import Optional
 from typing import Set
 from typing import TYPE_CHECKING
+from typing import Union
 
 # Prevent a circular reference by importing RuntimePipelineProcessor only during type-checking
 if TYPE_CHECKING:
@@ -37,6 +38,7 @@ from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_LABELS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.util.kubernetes import is_valid_annotation_key
@@ -225,7 +227,7 @@ class ElyraProperty(ABC):
                 properties[attr.id]["default"] = attr.default_value
             if attr.enum:
                 properties[attr.id]["enum"] = attr.enum
-            if attr.placeholder:
+            if attr.placeholder is not None:
                 uihints[attr.id] = {"ui:placeholder": attr.placeholder}
             if attr.required:
                 required_list.append(attr.id)
@@ -297,7 +299,7 @@ class DisableNodeCaching(ElyraProperty):
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
-        """Build the JSON schema for an Elyra-owned component property"""
+        """Build the JSON schema for this property"""
         schema = super().get_schema()
         schema["enum"] = ["True", "False"]
         schema["uihints"] = {"ui:placeholder": "Use runtime default"}
@@ -312,6 +314,83 @@ class DisableNodeCaching(ElyraProperty):
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add DisableNodeCaching info to the execution object for the given runtime processor"""
         runtime_processor.add_disable_node_caching(instance=self, execution_object=execution_object, **kwargs)
+
+
+class CustomSharedMemorySize(ElyraProperty):
+    """An ElyraProperty representing shared memory size for a node."""
+
+    applies_to_generic = True  # custom shared mem size applies to generic components
+    applies_to_custom = True  # custom shared mem size applies to custom components
+
+    property_id = KUBERNETES_SHARED_MEM_SIZE
+    property_display_name = "Shared Memory Size"
+    property_description = """Configure a custom shared memory size in
+    gigabytes (10^9 bytes) for the pod that executes a node. A custom
+    value is assigned if the size property value is a number greater than zero."""
+    property_attributes = [
+        PropertyAttribute(
+            attribute_id="size",
+            display_name="Memory Size (GB)",
+            placeholder=0,
+            input_type="number",
+            hidden=False,
+            required=False,
+        ),
+        PropertyAttribute(
+            attribute_id="units",
+            display_name="Units",
+            input_type="string",
+            hidden=True,
+            required=False,
+        ),
+    ]
+
+    default_units = "G"
+
+    def __init__(self, size: str, units: str, **kwargs):
+        self.size = size
+        self.units = units or CustomSharedMemorySize.default_units
+
+    @classmethod
+    def get_schema(cls) -> Dict[str, Any]:
+        """Build the JSON schema for an Elyra-owned component property"""
+        schema = super().get_schema()
+        schema["properties"]["size"]["minimum"] = 0
+        return schema
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert instance to a dict with relevant class attributes."""
+        dict_repr = {attr.id: getattr(self, attr.id, None) for attr in self.property_attributes}
+        return dict_repr
+
+    def get_value_for_display(self) -> Dict[str, Any]:
+        """Get a representation of the instance to display in UI error messages."""
+        return self.to_dict()
+
+    def get_all_validation_errors(self) -> List[str]:
+        """Validate this instance. If the size attribute is set and not zero it
+        must be a positive floating point number. The units attribute must be 'G'."""
+        validation_errors = []
+        # verify custom size
+        try:
+            if self.size:
+                size = float(self.size)
+                if size < 0:
+                    raise ValueError()
+        except ValueError:
+            validation_errors.append(f"Shared memory size '{self.size}' must be a positive number.")
+        # verify units
+        if self.units not in ["G"]:
+            validation_errors.append(f"Shared memory size units '{self.units}' must be 'G'.")
+        return validation_errors
+
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        """Add CustomSharedMemorySize instance to the execution object for the given runtime processor"""
+        runtime_processor.add_custom_shared_memory_size(instance=self, execution_object=execution_object, **kwargs)
+
+    def should_discard(self) -> bool:
+        """Ignore this CustomSharedMemorySize instance if no custom size is specified."""
+        return not self.size
 
 
 class ElyraPropertyListItem(ElyraProperty):
@@ -339,8 +418,8 @@ class ElyraPropertyListItem(ElyraProperty):
                 prop_key += f"{key_part}:" if key_attr != keys[-1] else key_part
         return prop_key
 
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
+        """Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem."""
         return self.to_dict()
 
     def get_value_for_display(self) -> Dict[str, Any]:
@@ -393,8 +472,11 @@ class EnvironmentVariable(ElyraPropertyListItem):
         schema["uihints"].update({"canRefresh": True})
         return schema
 
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
+        """
+        Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
+        A EnvironmentVariable dict entry will be of the form {self.env_var: self.value}
+        """
         return self.value
 
     def should_discard(self) -> bool:
@@ -609,8 +691,11 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         self.key = key
         self.value = value
 
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
+        """
+        Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
+        A KubernetesAnnotation dict entry will be of the form {self.key: self.value}
+        """
         return self.value
 
     def get_all_validation_errors(self) -> List[str]:
@@ -667,8 +752,11 @@ class KubernetesLabel(ElyraPropertyListItem):
         self.key = key
         self.value = value
 
-    def get_value_for_dict_entry(self) -> str:
-        """Returns the value to be used when constructing a dict from a list of classes."""
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
+        """
+        Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
+        A KubernetesLabel dict entry will be of the form {self.key: self.value}
+        """
         return self.value
 
     def get_all_validation_errors(self) -> List[str]:
@@ -806,7 +894,7 @@ class ElyraPropertyList(list):
 
             prop_value = prop.get_value_for_dict_entry()
             if use_prop_as_value:
-                prop_value = prop  # use of the property object itself as the value
+                prop_value = prop  # use the property object itself as the value
             prop_dict[prop_key] = prop_value
 
         return prop_dict

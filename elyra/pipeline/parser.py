@@ -49,8 +49,6 @@ class PipelineParser(LoggingConfigurable):
         if not runtime:
             raise ValueError("Invalid pipeline: Missing runtime.")
         runtime_config = primary_pipeline.runtime_config
-        if not runtime_config:
-            raise ValueError("Invalid pipeline: Missing runtime configuration.")
 
         source = primary_pipeline.source
 
