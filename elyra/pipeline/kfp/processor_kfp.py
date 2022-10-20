@@ -380,7 +380,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         if pipeline.contains_generic_operations():
             object_storage_url = f"{cos_public_endpoint}"
             os_path = join_paths(
-                pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+                pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
             )
             object_storage_path = f"/{cos_bucket}/{os_path}"
         else:
@@ -486,7 +486,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         pipeline_instance_id = pipeline_instance_id or pipeline_name
 
         artifact_object_prefix = join_paths(
-            pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+            pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
         )
 
         self.log_pipeline_info(

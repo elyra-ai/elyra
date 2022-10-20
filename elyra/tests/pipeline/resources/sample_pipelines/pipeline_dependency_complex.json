@@ -632,6 +632,11 @@
         "ui_data": {
           "comments": []
         },
+        "properties": {
+          "pipeline_defaults": {
+            "cos_object_prefix": "test/prefix"
+          }
+        },
         "version": 5,
         "runtime": "kfp",
         "runtime_config": "kfp-yukked1",

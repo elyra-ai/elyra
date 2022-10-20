@@ -31,10 +31,11 @@ from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
-from elyra.pipeline.pipeline_constants import ENV_VARIABLES, RUNTIME_IMAGE
+from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
-from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
+from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -183,23 +184,19 @@ class Pipeline(AppDataBase):
         """
         return self._node["app_data"]["ui_data"].get("comments", [])
 
-    @property
-    def pipeline_parameters(self) -> Dict[str, Any]:
-        """
-        Retrieve pipeline parameters, which are defined as all
-        key/value pairs in the 'properties' stanza that are not
-        either pipeline meta-properties (e.g. name, description,
-        and runtime) or the pipeline defaults dictionary
-        """
-        all_properties = self._node["app_data"].get("properties", {})
-        excluded_properties = PIPELINE_META_PROPERTIES + [PIPELINE_DEFAULTS]
+    def get_pipeline_default_properties(self) -> Dict[str, Any]:
+        """Retrieve the dictionary of pipeline default properties"""
+        pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
 
-        pipeline_parameters = {}
-        for property_name, value in all_properties.items():
-            if property_name not in excluded_properties:
-                pipeline_parameters[property_name] = value
+        # TODO remove the block below when a pipeline migration is appropriate (after 3.13)
+        cos_prefix = self._node["app_data"].get("properties", {}).pop(COS_OBJECT_PREFIX, None)
+        if cos_prefix:
+            if PIPELINE_DEFAULTS in self._node["app_data"]["properties"]:
+                self._node["app_data"]["properties"][PIPELINE_DEFAULTS][COS_OBJECT_PREFIX] = cos_prefix
+            else:
+                self._node["app_data"]["properties"][PIPELINE_DEFAULTS] = {COS_OBJECT_PREFIX: cos_prefix}
 
-        return pipeline_parameters
+        return pipeline_defaults
 
     def get_property(self, key: str, default_value=None) -> Any:
         """
@@ -233,18 +230,16 @@ class Pipeline(AppDataBase):
         Convert select pipeline-level properties to their corresponding dataclass
         object type. No validation is performed.
         """
-        pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
-        for param_id, param_value in list(pipeline_defaults.items()):
-            if param_id == RUNTIME_IMAGE:
-                continue  # runtime image is the only pipeline default that does not need to be converted
-            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
-                continue  # property has already been properly converted or cannot be converted
+        pipeline_defaults = self.get_pipeline_default_properties()
+        for prop_id, value in list(pipeline_defaults.items()):
+            if not ElyraProperty.subclass_exists_for_property(prop_id):
+                continue
 
-            converted_value = ElyraProperty.create_instance(param_id, param_value)
-            if converted_value is not None:
-                pipeline_defaults[param_id] = converted_value
+            converted_value = ElyraProperty.create_instance(prop_id, value)
+            if converted_value is None:
+                pipeline_defaults.pop(prop_id)
             else:
-                del pipeline_defaults[param_id]
+                pipeline_defaults[prop_id] = converted_value
 
 
 class Node(AppDataBase):
@@ -314,9 +309,7 @@ class Node(AppDataBase):
 
     @property
     def is_generic(self) -> True:
-        """
-        A property that denotes whether this node is a generic component
-        """
+        """A property that denotes whether this node is a generic component"""
         if Operation.is_generic_operation(self.op):
             return True
         return False
@@ -400,9 +393,7 @@ class Node(AppDataBase):
         return self._node["app_data"]["component_parameters"].pop(key, default)
 
     def get_all_component_parameters(self) -> Dict[str, Any]:
-        """
-        Retrieve all component parameter key-value pairs.
-        """
+        """Retrieve all component parameter key-value pairs."""
         return self._node["app_data"]["component_parameters"]
 
     def remove_env_vars_with_matching_secrets(self):
@@ -421,16 +412,15 @@ class Node(AppDataBase):
         Convert select node-level list properties to their corresponding dataclass
         object type. No validation is performed.
         """
-        for param_id in self.elyra_owned_properties:
-            param_value = self.get_component_parameter(param_id)
-            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
-                continue  # property has already been properly converted or cannot be converted
+        for prop_id in self.elyra_owned_properties:
+            if not ElyraProperty.subclass_exists_for_property(prop_id):
+                continue
 
-            converted_value = ElyraProperty.create_instance(param_id, param_value)
-            if converted_value is not None:
-                self.set_component_parameter(param_id, converted_value)
+            converted_value = ElyraProperty.create_instance(prop_id, value=self.get_component_parameter(prop_id))
+            if converted_value is None:
+                self.pop_component_parameter(prop_id)
             else:
-                self.pop_component_parameter(param_id)
+                self.set_component_parameter(prop_id, converted_value)
 
 
 class PipelineDefinition(object):
@@ -607,7 +597,7 @@ class PipelineDefinition(object):
         """
         self.primary_pipeline.convert_elyra_owned_properties()
 
-        pipeline_default_properties = self.primary_pipeline.get_property(PIPELINE_DEFAULTS, {})
+        pipeline_default_properties = self.primary_pipeline.get_pipeline_default_properties()
         for node in self.pipeline_nodes:
             # Determine which Elyra-owned properties will require dataclass conversion, then convert
             node.set_elyra_owned_properties(self.primary_pipeline.type)

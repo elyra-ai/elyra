@@ -341,7 +341,7 @@ class Pipeline(object):
         runtime_config: Optional[str] = None,
         source: Optional[str] = None,
         description: Optional[str] = None,
-        pipeline_parameters: Optional[Dict[str, Any]] = None,
+        pipeline_properties: Optional[Dict[str, Any]] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -351,7 +351,7 @@ class Pipeline(object):
         :param runtime_config: Runtime configuration that should be used to submit the pipeline to execution
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
         :param description: Pipeline description
-        :param pipeline_parameters: Key/value pairs representing the parameters of this pipeline
+        :param pipeline_properties: Key/value pairs representing the properties of this pipeline
         """
 
         if not name:
@@ -365,7 +365,7 @@ class Pipeline(object):
         self._source = source
         self._runtime = runtime
         self._runtime_config = runtime_config
-        self._pipeline_parameters = pipeline_parameters or {}
+        self._pipeline_properties = pipeline_properties or {}
         self._operations = {}
 
     @property
@@ -395,11 +395,11 @@ class Pipeline(object):
         return self._runtime_config
 
     @property
-    def pipeline_parameters(self) -> Dict[str, Any]:
+    def pipeline_properties(self) -> Dict[str, Any]:
         """
-        The dictionary of global parameters associated with each node of the pipeline
+        The dictionary of global properties associated with this pipeline
         """
-        return self._pipeline_parameters
+        return self._pipeline_properties
 
     @property
     def operations(self) -> Dict[str, Operation]:
