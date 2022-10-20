@@ -22,9 +22,11 @@ import string
 import tempfile
 from textwrap import dedent
 import time
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
 from typing import Union
 
 import autopep8
@@ -37,11 +39,18 @@ from elyra._version import __version__
 from elyra.airflow.operator import BootscriptBuilder
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import CustomSharedMemorySize
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesLabel
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
@@ -99,7 +108,7 @@ be fully qualified (i.e., prefixed with their package names).
                 self.class_import_map[parts[1]] = f"from {parts[0]} import {parts[1]}"
         self.log.debug(f"class_package_map = {self.class_import_map}")
 
-    def process(self, pipeline: Pipeline) -> None:
+    def process(self, pipeline: Pipeline) -> "AirflowPipelineProcessorResponse":
         """
         Submit the pipeline for execution on Apache Airflow.
         """
@@ -178,7 +187,9 @@ be fully qualified (i.e., prefixed with their package names).
 
             if pipeline.contains_generic_operations():
                 object_storage_url = f"{cos_endpoint}"
-                os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+                os_path = join_paths(
+                    pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+                )
                 object_storage_path = f"/{cos_bucket}/{os_path}"
             else:
                 object_storage_url = None
@@ -241,7 +252,9 @@ be fully qualified (i.e., prefixed with their package names).
         cos_bucket = runtime_configuration.metadata.get("cos_bucket")
 
         pipeline_instance_id = pipeline_instance_id or pipeline_name
-        artifact_object_prefix = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+        artifact_object_prefix = join_paths(
+            pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+        )
 
         self.log_pipeline_info(
             pipeline_name,
@@ -332,18 +345,10 @@ be fully qualified (i.e., prefixed with their package names).
                     "mem_request": operation.memory,
                     "gpu_limit": operation.gpu,
                     "operator_source": operation.filename,
-                    "is_generic_operator": operation.is_generic,
-                    "doc": operation.doc,
-                    "volumes": operation.mounted_volumes,
-                    "secrets": operation.kubernetes_secrets,
-                    "kubernetes_tolerations": operation.kubernetes_tolerations,
-                    "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
                 }
 
                 if runtime_image_pull_secret is not None:
                     target_op["runtime_image_pull_secret"] = runtime_image_pull_secret
-
-                target_ops.append(target_op)
 
                 self.log_pipeline_info(
                     pipeline_name,
@@ -361,56 +366,50 @@ be fully qualified (i.e., prefixed with their package names).
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
+                    self.log.debug(
+                        f"Processing component parameter '{component_property.name}' "
+                        f"of type '{component_property.json_data_type}'"
+                    )
+
                     # Skip properties for which no value was given
                     if component_property.ref not in operation.component_params.keys():
                         continue
 
                     # Get corresponding property's value from parsed pipeline
                     property_value_dict = operation.component_params.get(component_property.ref)
+                    data_entry_type = property_value_dict.get("widget", None)  # one of: inputpath, file, raw data type
+                    property_value = property_value_dict.get("value", None)
 
-                    # The type and value of this property can vary depending on what the user chooses
-                    # in the pipeline editor. So we get the current active parameter (e.g. StringControl)
-                    # from the activeControl value
-                    active_property_name = property_value_dict["activeControl"]
-
-                    # One we have the value (e.g. StringControl) we use can retrieve the value
-                    # assigned to it
-                    property_value = property_value_dict.get(active_property_name, None)
-
-                    # If the value is not found, assign it the default value assigned in parser
-                    if property_value is None:
-                        property_value = component_property.value
-
-                    self.log.debug(f"Active property name : {active_property_name}, value : {property_value}")
-                    self.log.debug(
-                        f"Processing component parameter '{component_property.name}' "
-                        f"of type '{component_property.data_type}'"
-                    )
-
-                    if (
-                        property_value
-                        and str(property_value)[0] == "{"
-                        and str(property_value)[-1] == "}"
-                        and isinstance(json.loads(json.dumps(property_value)), dict)
-                        and set(json.loads(json.dumps(property_value)).keys()) == {"value", "option"}
-                    ):
+                    if data_entry_type == "inputpath":
+                        # Path-based parameters accept an input from a parent
                         parent_node_name = self._get_node_name(
                             target_ops, json.loads(json.dumps(property_value))["value"]
                         )
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
                         operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "string":
-                        # Add surrounding quotation marks to string value for correct rendering
-                        # in jinja DAG template
-                        operation.component_params[component_property.ref] = json.dumps(property_value)
-                    elif component_property.data_type == "dictionary":
-                        processed_value = self._process_dictionary_value(property_value)
-                        operation.component_params[component_property.ref] = processed_value
-                    elif component_property.data_type == "list":
-                        processed_value = self._process_list_value(property_value)
-                        operation.component_params[component_property.ref] = processed_value
-                    else:  # booleans and numbers can be rendered as-is
-                        operation.component_params[component_property.ref] = property_value
+                    else:  # Parameter is either of a raw data type or file contents
+                        if data_entry_type == "file" and property_value:
+                            # Read a value from a file
+                            absolute_path = get_absolute_path(self.root_dir, property_value)
+                            with open(absolute_path, "r") as f:
+                                property_value = f.read() if os.path.getsize(absolute_path) else None
+
+                        # If a value is not found, assign it the default value assigned in parser
+                        if property_value is None:
+                            property_value = component_property.value
+
+                        # Adjust value based on data type for correct rendering in DAG template
+                        if component_property.json_data_type == "string":
+                            # Add surrounding quotation marks to string value
+                            operation.component_params[component_property.ref] = json.dumps(property_value)
+                        elif component_property.json_data_type == "object":
+                            processed_value = self._process_dictionary_value(property_value)
+                            operation.component_params[component_property.ref] = processed_value
+                        elif component_property.json_data_type == "array":
+                            processed_value = self._process_list_value(property_value)
+                            operation.component_params[component_property.ref] = processed_value
+                        else:  # booleans and numbers can be rendered as-is
+                            operation.component_params[component_property.ref] = property_value
 
                 # Remove inputs and outputs from params dict until support for data exchange is provided
                 operation.component_params_as_dict.pop("inputs")
@@ -448,14 +447,16 @@ be fully qualified (i.e., prefixed with their package names).
                     "parent_operation_ids": operation.parent_operation_ids,
                     "component_params": operation.component_params_as_dict,
                     "operator_source": component.component_source,
-                    "is_generic_operator": operation.is_generic,
-                    "doc": operation.doc,
-                    "volumes": operation.mounted_volumes,
-                    "kubernetes_tolerations": operation.kubernetes_tolerations,
-                    "kubernetes_pod_annotations": operation.kubernetes_pod_annotations,
                 }
 
-                target_ops.append(target_op)
+            target_op.update(
+                {
+                    "is_generic_operator": operation.is_generic,
+                    "doc": operation.doc,
+                    "elyra_params": operation.elyra_params,
+                }
+            )
+            target_ops.append(target_op)
 
         ordered_target_ops = OrderedDict()
 
@@ -499,16 +500,6 @@ be fully qualified (i.e., prefixed with their package names).
             template_env.filters["regex_replace"] = lambda x: AirflowPipelineProcessor.scrub_invalid_characters(x)
             template = template_env.get_template("airflow_template.jinja2")
 
-            # Pass functions used to render data volumes and secrets to the template env
-            rendering_functions = {
-                "render_volumes_for_generic_op": AirflowPipelineProcessor.render_volumes_for_generic_op,
-                "render_executor_config_for_custom_op": AirflowPipelineProcessor.render_executor_config_for_custom_op,
-                "render_secrets_for_generic_op": AirflowPipelineProcessor.render_secrets_for_generic_op,
-                "render_secrets_for_cos": AirflowPipelineProcessor.render_secrets_for_cos,
-                "render_executor_config_for_generic_op": AirflowPipelineProcessor.render_executor_config_for_generic_op,
-            }
-            template.globals.update(rendering_functions)
-
             ordered_ops = self._cc_pipeline(pipeline, pipeline_name, pipeline_instance_id)
             runtime_configuration = self._get_metadata_configuration(
                 schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
@@ -524,11 +515,12 @@ be fully qualified (i.e., prefixed with their package names).
                 operations_list=ordered_ops,
                 pipeline_name=pipeline_instance_id,
                 user_namespace=user_namespace,
-                cos_secret=cos_secret,
+                cos_secret=cos_secret if any(op.get("is_generic_operator") for op in ordered_ops.values()) else None,
                 kube_config_path=None,
                 is_paused_upon_creation="False",
                 in_cluster="True",
                 pipeline_description=pipeline_description,
+                processor=self,
             )
 
             # Write to python file and fix formatting
@@ -597,186 +589,169 @@ be fully qualified (i.e., prefixed with their package names).
                 return operation["notebook"]
         return None
 
-    @staticmethod
-    def render_volumes_for_generic_op(op: Dict) -> str:
+    def render_volumes(self, elyra_parameters: Dict[str, ElyraProperty]) -> str:
         """
-        Render any data volumes defined for the specified generic op for use in
-        the Airflow DAG template
-
+        Render volumes defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
         """
-        if not op.get("volumes"):
-            return ""
-        op["volume_vars"] = []  # store variable names in op's dict for template to access
-
-        # Include import statements and comment
-        str_to_render = f"""
-            from airflow.contrib.kubernetes.volume import Volume
-            from airflow.contrib.kubernetes.volume_mount import VolumeMount
-            # Volumes and mounts for operation '{op['id']}'"""
-        for idx, volume in enumerate(op.get("volumes", [])):
-            var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"volume_{op['id']}_{idx}")
-
-            # Define VolumeMount and Volume objects
+        str_to_render = ""
+        for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
-                mount_{var_name} = VolumeMount(
-                    name='{volume.pvc_name}',
-                    mount_path='{volume.path}',
-                    sub_path=None,
-                    read_only=False
-                )
-                {var_name} = Volume(
-                    name='{volume.pvc_name}', configs={{"persistentVolumeClaim": {{"claimName": "{volume.pvc_name}"}}}}
-                )
-            """
-
-            op["volume_vars"].append(var_name)
-
-        op["volume_mount_vars"] = [f"mount_{volume_var}" for volume_var in op["volume_vars"]]
+                Volume(name="{v.pvc_name}", configs={{"persistentVolumeClaim": {{"claimName": "{v.pvc_name}"}}}}),"""
+        # set custom shared memory size
+        shm = elyra_parameters.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
+        if shm is not None and shm.size:
+            config = f"""configs={{"emptyDir": {{"medium": "Memory", "sizeLimit": "{shm.size}{shm.units}"}}}}"""
+            str_to_render += f"""
+                Volume(name="shm", {config}),"""
         return dedent(str_to_render)
 
-    @staticmethod
-    def render_executor_config_for_custom_op(op: Dict) -> Dict[str, Dict[str, List]]:
+    def render_mounts(self, elyra_parameters: Dict[str, ElyraProperty]) -> str:
         """
-        Render any data volumes or tolerations defined for the specified custom op
-        for use in the Airflow DAG template
-
-        :returns: a dict defining the volumes and mounts to be rendered in the DAG
+        Render volume mounts defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
         """
-        executor_config = {"KubernetesExecutor": {}}
+        str_to_render = ""
+        for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
+            str_to_render += f"""
+                 VolumeMount(name="{v.pvc_name}", mount_path="{v.path}",
+                 sub_path="{v.sub_path}", read_only={v.read_only}),"""
+        return dedent(str_to_render)
 
-        # Handle volume mounts
-        if op.get("volumes"):
-            executor_config["KubernetesExecutor"]["volumes"] = []
-            executor_config["KubernetesExecutor"]["volume_mounts"] = []
-            for volume in op.get("volumes", []):
-                # Add volume and volume mount entry
-                executor_config["KubernetesExecutor"]["volumes"].append(
-                    {
-                        "name": volume.pvc_name,
-                        "persistentVolumeClaim": {"claimName": volume.pvc_name},
-                    }
-                )
-                executor_config["KubernetesExecutor"]["volume_mounts"].append(
-                    {"mountPath": volume.path, "name": volume.pvc_name, "read_only": False}
-                )
-
-        # Handle tolerations
-        if op.get("kubernetes_tolerations"):
-            executor_config["KubernetesExecutor"]["tolerations"] = []
-            for toleration in op.get("kubernetes_tolerations", []):
-                # Add Kubernetes toleration entry
-                executor_config["KubernetesExecutor"]["tolerations"].append(
-                    {
-                        "key": toleration.key,
-                        "operator": toleration.operator,
-                        "value": toleration.value,
-                        "effect": toleration.effect,
-                    }
-                )
-
-        # Handle annotations
-        if op.get("kubernetes_pod_annotations"):
-            executor_config["KubernetesExecutor"]["annotations"] = {}
-            for annotation in op.get("kubernetes_pod_annotations", []):
-                # Add Kubernetes annotation entry
-                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
-
-        return executor_config
-
-    @staticmethod
-    def render_executor_config_for_generic_op(op: Dict) -> Dict[str, Dict[str, List]]:
+    def render_secrets(self, elyra_parameters: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
         """
-        Render tolerations and annotations defined for the specified generic op
-        for use in the Airflow DAG template
-
-        :returns: a dict defining the tolerations and annotations to be rendered in the DAG
+        Render Kubernetes secrets defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
         """
-        executor_config = {"KubernetesExecutor": {}}
+        str_to_render = ""
+        if cos_secret:
+            str_to_render += f"""
+                Secret("env", "AWS_ACCESS_KEY_ID", "{cos_secret}", "AWS_ACCESS_KEY_ID"),
+                Secret("env", "AWS_SECRET_ACCESS_KEY", "{cos_secret}", "AWS_SECRET_ACCESS_KEY"),"""
+        for s in elyra_parameters.get(pipeline_constants.KUBERNETES_SECRETS, []):
+            str_to_render += f"""
+                Secret("env", "{s.env_var}", "{s.name}", "{s.key}"),"""
+        return dedent(str_to_render)
 
-        # Handle tolerations
-        if op.get("kubernetes_tolerations"):
-            executor_config["KubernetesExecutor"]["tolerations"] = []
-            for toleration in op.get("kubernetes_tolerations", []):
-                # Add Kubernetes toleration entry
-                executor_config["KubernetesExecutor"]["tolerations"].append(
-                    {
-                        "key": toleration.key,
-                        "operator": toleration.operator,
-                        "value": toleration.value,
-                        "effect": toleration.effect,
-                    }
-                )
-
-        # Handle annotations
-        if op.get("kubernetes_pod_annotations"):
-            executor_config["KubernetesExecutor"]["annotations"] = {}
-            for annotation in op.get("kubernetes_pod_annotations", []):
-                # Add Kubernetes annotation entry
-                executor_config["KubernetesExecutor"]["annotations"][annotation.key] = annotation.value
-
-        return executor_config
-
-    @staticmethod
-    def render_secrets_for_cos(cos_secret: str):
+    def render_annotations(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
         """
-        Render the Kubernetes secrets required for COS
-
-        :returns: a string literal of the python code to be rendered in the DAG
+        Render Kubernetes annotations defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
         """
-        if not cos_secret:
-            return ""
+        annotations = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_ANNOTATIONS, ElyraPropertyList([]))
+        return {key: value or "" for key, value in annotations.to_dict().items()}
 
-        return dedent(
-            f"""
-            from airflow.kubernetes.secret import Secret
-            ## Ensure that the secret '{cos_secret}' is defined in the Kubernetes namespace where the pipeline is run
-            env_var_secret_id = Secret(
-                deploy_type="env",
-                deploy_target="AWS_ACCESS_KEY_ID",
-                secret="{cos_secret}",
-                key="AWS_ACCESS_KEY_ID",
-            )
-            env_var_secret_key = Secret(
-                deploy_type="env",
-                deploy_target="AWS_SECRET_ACCESS_KEY",
-                secret="{cos_secret}",
-                key="AWS_SECRET_ACCESS_KEY",
-            )
-            """
+    def render_labels(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
+        """
+        Render Kubernetes labels defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        labels = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_LABELS, ElyraPropertyList([]))
+        return {key: value or "" for key, value in labels.to_dict().items()}
+
+    def render_tolerations(self, elyra_parameters: Dict[str, ElyraProperty]):
+        """
+        Render any Kubernetes tolerations defined for an operation for use in the Airflow DAG template
+        :returns: a string literal containing the python code to be rendered in the DAG
+        """
+        str_to_render = ""
+        for t in elyra_parameters.get(pipeline_constants.KUBERNETES_TOLERATIONS, []):
+            key = f'"{t.key}"' if t.key is not None else t.key
+            value = f'"{t.value}"' if t.value is not None else t.value
+            effect = f'"{t.effect}"' if t.effect is not None else t.effect
+            str_to_render += f"""
+                {{"key": {key}, "operator": "{t.operator}", "value": {value}, "effect": {effect}}},"""
+        return dedent(str_to_render)
+
+    def render_elyra_owned_properties(self, elyra_parameters: Dict[str, ElyraProperty]):
+        """
+        Build the KubernetesExecutor object for the given operation for use in the DAG.
+        """
+        kubernetes_executor = {}
+        for value in elyra_parameters.values():
+            if isinstance(value, (ElyraProperty, ElyraPropertyList)):
+                value.add_to_execution_object(runtime_processor=self, execution_object=kubernetes_executor)
+
+        return {"KubernetesExecutor": kubernetes_executor} if kubernetes_executor else {}
+
+    def add_mounted_volume(self, instance: VolumeMount, execution_object: Any, **kwargs) -> None:
+        """Add VolumeMount instance to the execution object for the given runtime processor"""
+        if "volumes" not in execution_object:
+            execution_object["volumes"] = []
+        if "volume_mounts" not in execution_object:
+            execution_object["volume_mounts"] = []
+        execution_object["volumes"].append(
+            {
+                "name": instance.pvc_name,
+                "persistentVolumeClaim": {"claimName": instance.pvc_name},
+            }
+        )
+        execution_object["volume_mounts"].append(
+            {
+                "mountPath": instance.path,
+                "name": instance.pvc_name,
+                "sub_path": instance.sub_path,
+                "read_only": instance.read_only,
+            }
         )
 
-    @staticmethod
-    def render_secrets_for_generic_op(op: Dict) -> str:
-        """
-        Render any Kubernetes secrets defined for the specified op for use in
-        the Airflow DAG template
+    def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
+        if "annotations" not in execution_object:
+            execution_object["annotations"] = {}
+        execution_object["annotations"][instance.key] = instance.value or ""
 
-        :returns: a string literal containing the python code to be rendered in the DAG
-        """
-        if not op.get("secrets"):
-            return ""
-        op["secret_vars"] = []  # store variable names in op's dict for template to access
+    def add_kubernetes_pod_label(self, instance: KubernetesLabel, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesLabel instance to the execution object for the given runtime processor"""
+        if "labels" not in execution_object:
+            execution_object["labels"] = {}
+        execution_object["labels"][instance.key] = instance.value or ""
 
-        # Include import statement and comment
-        str_to_render = f"""
-        from airflow.kubernetes.secret import Secret
-        # Secrets for operation '{op['id']}'"""
-        for idx, secret in enumerate(op.get("secrets", [])):
-            var_name = AirflowPipelineProcessor.scrub_invalid_characters(f"secret_{op['id']}_{idx}")
+    def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
+        if "tolerations" not in execution_object:
+            execution_object["tolerations"] = []
+        execution_object["tolerations"].append(
+            {
+                "key": instance.key,
+                "operator": instance.operator,
+                "value": instance.value,
+                "effect": instance.effect,
+            }
+        )
 
-            # Define Secret object
-            str_to_render += f"""
-                {var_name} = Secret(
-                    deploy_type='env',
-                    deploy_target="{secret.env_var}",
-                    secret="{secret.name}",
-                    key="{secret.key}",
-                )
-            """
+    def add_custom_shared_memory_size(self, instance: CustomSharedMemorySize, execution_object: Any, **kwargs) -> None:
+        """Add CustomSharedMemorySize instance to the execution object for the given runtime processor"""
 
-            op["secret_vars"].append(var_name)
-        return dedent(str_to_render)
+        if not instance.size:
+            return
+
+        if "volumes" not in execution_object:
+            execution_object["volumes"] = []
+        if "volume_mounts" not in execution_object:
+            execution_object["volume_mounts"] = []
+        execution_object["volumes"].append(
+            {
+                "name": "shm",
+                "emptyDir": {"medium": "Memory", "sizeLimit": f"{instance.size}{instance.units}"},
+            }
+        )
+        execution_object["volume_mounts"].append(
+            {"mountPath": "/dev/shm", "name": "shm", "sub_path": None, "read_only": False},
+        )
+
+    @property
+    def supported_properties(self) -> Set[str]:
+        """A list of Elyra-owned properties supported by this runtime processor."""
+        return {
+            pipeline_constants.ENV_VARIABLES,
+            pipeline_constants.KUBERNETES_SECRETS,
+            pipeline_constants.MOUNTED_VOLUMES,
+            pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_POD_LABELS,
+            pipeline_constants.KUBERNETES_TOLERATIONS,
+            pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
+        }
 
 
 class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):

@@ -203,6 +203,7 @@ export class ScriptRunner {
         kernel &&
           (await KernelAPI.interruptKernel(kernel.id, kernel.serverSettings));
         console.log(kernel?.name + ' kernel interrupted.');
+        this.disableButton(false);
       } catch (e) {
         console.log('Exception: kernel interrupt = ' + JSON.stringify(e));
       }

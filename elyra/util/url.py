@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 from pathlib import Path
+from typing import Union
 from urllib.request import url2pathname
 
 from requests import Response
@@ -63,3 +65,16 @@ class FileTransportAdapter(BaseAdapter):
 
     def close(self):
         pass
+
+
+def get_verify_parm(default: bool = True) -> Union[bool, str]:
+    """
+    Returns a value for the 'verify' parameter of the requests.request
+    method (https://requests.readthedocs.io/en/latest/api/). The value
+    is determined as follows: if environment variable TRUSTED_CA_BUNDLE_PATH
+    is defined, use its value, otherwise return the default value.
+    """
+    if len(os.environ.get("TRUSTED_CA_BUNDLE_PATH", "").strip()) > 0:
+        return os.environ.get("TRUSTED_CA_BUNDLE_PATH")
+
+    return default

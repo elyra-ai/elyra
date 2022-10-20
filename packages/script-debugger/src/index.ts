@@ -93,10 +93,8 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             activeSessions[sessionModel.id] = sessionConnection;
           }
           if (sessionModel.kernel?.name !== kernelSelection) {
-            // New kernel selection detected, restart session connection for new kernel
-            await shutdownSession(sessionConnection);
-
-            sessionConnection = await startSession(kernelSelection, path);
+            // New kernel selection detected, update session connection
+            await changeKernel(sessionConnection, kernelSelection);
             sessionModel = await sessions.findByPath(path);
             if (sessionConnection && sessionModel) {
               activeSessions[sessionModel.id] = sessionConnection;
@@ -177,15 +175,16 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       return sessionConnection;
     };
 
-    const shutdownSession = async (
-      sessionConnection: Session.ISessionConnection
+    const changeKernel = async (
+      sessionConnection: Session.ISessionConnection,
+      kernelSelection: string
     ): Promise<void> => {
       try {
-        const kernelName = sessionConnection.kernel?.name;
-        await sessionConnection.shutdown();
-        console.log(`${kernelName} kernel shut down.`);
+        const prev = sessionConnection.kernel?.name;
+        await sessionConnection.changeKernel({ name: kernelSelection });
+        console.log(`Kernel change from ${prev} to ${kernelSelection}`);
       } catch (error) {
-        console.warn('Exception: shutdown = ' + JSON.stringify(error));
+        console.warn('Exception: change kernel = ' + JSON.stringify(error));
       }
     };
   }

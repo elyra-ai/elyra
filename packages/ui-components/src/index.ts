@@ -23,4 +23,3 @@ export * from './FormComponents';
 export * from './JSONComponent';
 export * from './Dropzone';
 export * from './RequestErrors';
-export * from './ThemeProvider';

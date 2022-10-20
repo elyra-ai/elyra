@@ -1,297 +1,96 @@
 {
-  "current_parameters": {
-    "name": "",
-    "runtime": "",
-    "description": "",
-    "cos_object_prefix": "",
-    "elyra_runtime_image": null,
-    "elyra_env_vars": [],
-    "elyra_kubernetes_secrets": [],
-    "elyra_kubernetes_tolerations": [],
-    "elyra_mounted_volumes": [],
-    "elyra_kubernetes_pod_annotations": [],
-    "elyra_disallow_cached_output": null
-  },
-  "parameters": [
-    {
-      "id": "name"
-    },
-    {
-      "id": "runtime"
-    },
-    {
-      "id": "description"
-    },
-    {
-      "id": "cos_object_prefix"
-    },
-    {
-      "id": "elyra_runtime_image"
-    },
-    {
-      "id": "elyra_env_vars"
-    },
-    {
-      "id": "elyra_kubernetes_secrets"
-    },
-    {
-      "id": "elyra_kubernetes_tolerations"
-    },    
-    {
-      "id": "elyra_mounted_volumes"
-    },
-    {
-      "id": "elyra_kubernetes_pod_annotations"
-    },
-     {
-      "id": "elyra_disallow_cached_output"
-    }       
-  ],
-  "uihints": {
-    "id": "nodeProperties",
-    "parameter_info": [
-      {
-        "control": "custom",
-        "custom_control_id": "DisplayControl",
-        "parameter_ref": "name",
-        "label": { "default": "Pipeline Name" }
-      },
-      {
-        "control": "custom",
-        "custom_control_id": "DisplayControl",
-        "parameter_ref": "runtime",
-        "label": { "default": "Pipeline Runtime" }
-      },
-      {
-        "control": "custom",
-        "custom_control_id": "StringControl",
-        "parameter_ref": "description",
-        "label": { "default": "Pipeline Description" },
-        "data": {
-          "placeholder": "Pipeline description",
-          "format": "multiline"
-        }
-      },
-      {
-        "control": "custom",
-        "custom_control_id": "StringControl",
-        "parameter_ref": "cos_object_prefix",
-        "label": { "default": "Object Storage path prefix" },
-        "description": {
-          "default": "For generic components, this path prefix is used when storing artifacts on Object Storage.",
-          "placement": "on_panel"
-        },
-        "data": {
-          "placeholder": "project/subproject"
-        }
-      },
-      {
-        "parameter_ref": "elyra_runtime_image",
-        "control": "custom",
-        "custom_control_id": "EnumControl",
-        "label": { "default": "Runtime Image" },
-        "description": {
-          "default": "Container image used as execution environment.",
-          "placement": "on_panel"
-        },
-        "data": {
-          "items": [],
-          "required": false
-        }
-      },
-      {
-        "parameter_ref": "elyra_env_vars",
-        "control": "custom",
-        "custom_control_id": "StringArrayControl",
-        "label": {
-          "default": "Environment Variables"
-        },
-        "description": {
-          "default": "Environment variables to be set on the execution environment.",
-          "placement": "on_panel"
-        },
-        "data": {
-          "placeholder": "env_var=VALUE",
-          "keyValueEntries": true
-        }
-      },
-      {
-        "parameter_ref": "elyra_kubernetes_secrets",
-        "control": "custom",
-        "custom_control_id": "StringArrayControl",
-        "label": {
-          "default": "Kubernetes Secrets"
-        },
-        "description": {
-          "default": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the nodes are executed or the pipeline will not run.",
-          "placement": "on_panel"
-        },
-        "data": {
-          "placeholder": "env_var=secret-name:secret-key",
-          "keyValueEntries": true
-        }
-      },
-      {
-        "parameter_ref": "elyra_kubernetes_tolerations",
-        "control": "custom",
-        "custom_control_id": "StringArrayControl",
-        "label": {
-          "default": "Kubernetes Tolerations"
-        },
-        "description": {
-          "default": "Kubernetes tolerations to attach to the pod where the node is executed.",
-          "placement": "on_panel"
-        },
-        "data": {
-          "placeholder": "TOL_ID=key:operator:value:effect",
-          "keyValueEntries": true
-        }
-      },
-      {
-        "parameter_ref": "elyra_mounted_volumes",
-        "control": "custom",
-        "custom_control_id": "StringArrayControl",
-        "label": {
-          "default": "Data Volumes"
-        },
-        "description": {
-          "default": "Volumes to be mounted in all nodes. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the nodes are executed or the pipeline will not run.",
-          "placement": "on_panel"
-        },
-        "data": {
-          "placeholder": "/mount/path=pvc-name",
-          "keyValueEntries": true
-        }
-      },
-      {
-        "parameter_ref": "elyra_kubernetes_pod_annotations",
-        "control": "custom",
-        "custom_control_id": "StringArrayControl",
-        "label": {
-          "default": "Kubernetes Pod Annotations"
-        },
-        "description": {
-          "default": "Metadata to be added to all nodes. The metadata is exposed as annotations in the Kubernetes pods that execute the nodes.",
-          "placement": "on_panel"
-        },
-        "data": {
-          "placeholder": "annotation_key=annotation_value",
-          "keyValueEntries": true
-        }
-      },
-      {
-        "parameter_ref": "elyra_disallow_cached_output",
-        "control": "custom",
-        "custom_control_id": "BooleanControl",
-        "label": {
-          "default": "Disallow cached output"
-        },
-        "description": {
-          "default": "Disable caching to force node re-execution in the target runtime environment.",
-          "placement": "on_panel"
-        },
-        "data": {
-        }
-      }      
-    ],
-    "group_info": [
-      {
-        "id": "nodeGroupInfo",
-        "type": "panels",
-        "group_info": [
-          {
-            "id": "name",
-            "type": "controls",
-            "parameter_refs": ["name"]
-          },
-          {
-            "id": "runtime",
-            "type": "controls",
-            "parameter_refs": ["runtime"]
-          },
-          {
-            "id": "description",
-            "type": "controls",
-            "parameter_refs": ["description"]
-          },
-          {
-            "id": "cos_object_prefix",
-            "type": "controls",
-            "parameter_refs": ["cos_object_prefix"]
-          },
-          {
-            "id": "elyra_nodesCategoryHeader",
-            "type": "textPanel",
-            "class_name": "elyra_categoryHeader",
-            "label": {
-              "default": "Node Defaults"
-            },
-            "description": {
-              "default": "Default values are applied to all nodes in this pipeline and can be customized in each node.",
-              "placement": "on_panel"
-            }
-          },
-          {
-            "id": "elyra_mounted_volumes",
-            "type": "controls",
-            "parameter_refs": ["elyra_mounted_volumes"]
-          },
-          {
-            "id": "elyra_kubernetes_tolerations",
-            "type": "controls",
-            "parameter_refs": ["elyra_kubernetes_tolerations"]
-          },
-          {
-            "id": "elyra_kubernetes_pod_annotations",
-            "type": "controls",
-            "parameter_refs": ["elyra_kubernetes_pod_annotations"]
-          },
-          {
-            "id": "elyra_generic_nodesCategoryHeader",
-            "type": "textPanel",
-            "class_name": "elyra_categoryHeader",
-            "label": {
-              "default": "Generic Node Defaults"
-            },
-            "description": {
-              "default": "Default values are applied to all generic nodes in this pipeline and can be customized in each node.",
-              "placement": "on_panel"
-            }
-          },
-          {
-            "id": "elyra_runtime_image",
-            "type": "controls",
-            "parameter_refs": ["elyra_runtime_image"]
-          },
-          {
-            "id": "elyra_env_vars",
-            "type": "controls",
-            "parameter_refs": ["elyra_env_vars"]
-          },
-          {
-            "id": "elyra_kubernetes_secrets",
-            "type": "controls",
-            "parameter_refs": ["elyra_kubernetes_secrets"]
-          },
-          {
-            "id": "elyra_custom_nodesCategoryHeader",
-            "type": "textPanel",
-            "class_name": "elyra_categoryHeader",
-            "label": {
-              "default": "Custom Node Defaults"
-            },
-            "description": {
-              "default": "Default values are applied to all custom nodes in this pipeline and can be customized in each node.",
-              "placement": "on_panel"
-            }
-          },
-          {
-            "id": "elyra_disallow_cached_output",
-            "type": "controls",
-            "parameter_refs": ["elyra_disallow_cached_output"]
-          }
-        ]
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Pipeline Name",
+      "type": "string",
+      "uihints": {
+        "ui:readonly": true
       }
-    ]
+    },
+    "runtime": {
+      "title": "Pipeline Runtime",
+      "type": "string",
+      "uihints": {
+        "ui:readonly": true
+      }
+    },
+    "description": {
+      "title": "Pipeline Description",
+      "type": "string",
+      "uihints": {
+        "ui:placeholder": "Pipeline Description",
+        "ui:widget": "textarea"
+      }
+    },
+    "pipeline_defaults": {
+      "type": "object",
+      "properties": {
+        "cos_object_prefix": {
+          "title": "Object Storage path prefix",
+          "type": "string",
+          "description":
+            "For generic components, this path prefix is used when storing artifacts on Object Storage.",
+          "uihints": {
+            "ui:placeholder": "project/subproject"
+          }
+        },
+        {% if elyra_owned_parameters %}
+        "node_defaults_header": {
+          "type": "null",
+          "title": "Node Defaults",
+          "description":
+            "Default values are applied to all nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% endif %}
+        {% for property in elyra_owned_parameters %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }},
+        {% endfor %}
+        "generic_node_defaults_header": {
+          "type": "null",
+          "title": "Generic Node Defaults",
+          "description":
+            "Default values are applied to all generic nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        "runtime_image": {
+          "title": "Runtime Image",
+          "description": "Container image used as execution environment.",
+          "type": "string"
+        }
+        {% if elyra_owned_generic_parameters %}
+        ,
+        {% endif %}
+        {% for property in elyra_owned_generic_parameters %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
+        {% endfor %}
+        {% if elyra_owned_custom_parameters %}
+        ,
+        "custom_node_defaults_header": {
+          "type": "null",
+          "title": "Custom Node Defaults",
+          "description":
+              "Default values are applied to all custom nodes in this pipeline and can be customized in each node.",
+          "uihints": {
+            "ui:field": "header"
+          }
+        },
+        {% endif %}
+        {% for property in elyra_owned_custom_parameters %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}
+          {% if loop.index != loop|length %}
+          ,
+          {% endif %}
+        {% endfor %}
+      }
+    }
   }
 }

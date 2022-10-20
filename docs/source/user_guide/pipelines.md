@@ -94,6 +94,8 @@ Each pipeline node is configured using properties. Default node properties are a
  - [Data volumes](#data-volumes)
  - [Kubernetes tolerations](#kubernetes-tolerations)
  - [Kubernetes pod annotations](#kubernetes-pod-annotations)
+ - [Kubernetes pod labels](#kubernetes-pod-labels)
+ - [Shared memory size](#shared-memory-size)
 
 **Default properties that apply only to generic nodes**
 
@@ -103,7 +105,7 @@ Each pipeline node is configured using properties. Default node properties are a
 
 **Default properties that apply only to custom nodes**
 
- - [Disallow cached output](#disallow-cached-output)
+ - [Disable node caching](#disable-node-caching)
 
 #### Adding nodes
 
@@ -155,6 +157,8 @@ Nodes that are implemented using [generic components](pipeline-components.html#g
    - [Data volumes](#data-volumes)
    - [Kubernetes tolerations](#kubernetes-tolerations)
    - [Kubernetes pod annotations](#kubernetes-pod-annotations)
+   - [Kubernetes pod labels](#kubernetes-pod-labels)
+   - [Shared memory size](#shared-memory-size)
 
 ##### Configuring custom nodes
 
@@ -163,7 +167,9 @@ Nodes that are implemented using [custom components](pipeline-components.html#cu
    - [Data volumes](#data-volumes)
    - [Kubernetes tolerations](#kubernetes-tolerations)
    - [Kubernetes pod annotations](#kubernetes-pod-annotations)
-   - [Disallow cached output](#disallow-cached-output)
+   - [Kubernetes pod labels](#kubernetes-pod-labels)
+   - [Disable node caching](#disable-node-caching)
+   - [Shared memory size](#shared-memory-size)
 
 #### Defining dependencies between nodes
 
@@ -203,19 +209,28 @@ The following alphabetically sorted list identifies the node properties that are
 
 ##### Data volumes
    - A list of [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) (PVC) to be mounted into the container that executes the component. 
-   - Format: `/mnt/path=existing-pvc-name`. Entries that are empty (`/mnt/path=`) or malformed are ignored. Entries with a PVC name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) will raise a validation error after pipeline submission or export.
-   - The referenced PVCs must exist in the Kubernetes namespace where the pipeline nodes are executed.
+   - Format: 
+     - _Mount path_: the path where the PVC shall be mounted in the container. Example: `/mnt/datavol/`
+     - _Persistent volume claim name_: a valid [Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) identifying a PVC that exists in the Kubernetes namespace where the pipeline nodes are executed. Example: `my-data-pvc`
+     - _Sub path_: relative path within the volume from which the container's volume should be mounted. Defaults to the volume's root. Example: `existing/path/in/volume`
+     - _Mount volume read-only_: whether to mount the volume in read-only mode
    - Data volumes are not mounted when the pipeline is executed locally.
 
-##### Disallow cached output
+##### Disable node caching
    - Pipeline nodes produce output, such as files. Some runtime environments support caching of these outputs, eliminating the need to re-execute nodes, which can improve performance and reduce resource usage. If a node does not produce output in a deterministic way - that is, when given the same inputs, the generated output is different - re-using the output from previous executions might lead to unexpected results.
+   - Format:
+     - `True` node output is not cached
+     - `False` node output is cached
+     - If no behavior is specified, the runtime environment's default caching behavior is applied.
    - Caching can only be disabled for pipelines that are executed on Kubeflow Pipelines.
 
 ##### Environment Variables
    - This property applies only to generic components.
-   - A list of environment variables to be set inside in the container.  Specify one variable/value pair per line, separated by `=`.
+   - A list of environment variables to be set inside in the container.
+   - Format:
+     - _Environment variable_: name of the variable to be set. Example: `optimize`
+     - _Value_: the value to be assigned to said variable. Example: `true`
    - A set of default environment variables can also be set in the pipeline properties tab. If any default environment variables are set, the **Environment Variables** property in the node properties tab will include these variables and their values with a note that each is a pipeline default. Pipeline default environment variables are not editable from the node properties tab. Individual nodes can override a pipeline default value for a given variable by re-defining the variable/value pair in its own node properties. 
-   - Example: `TOKEN=value`
 
 ##### File Dependencies
    - This property applies only to generic components.
@@ -230,20 +245,35 @@ The following alphabetically sorted list identifies the node properties that are
 
 ##### Kubernetes Pod Annotations
    - A list of [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#attaching-metadata-to-objects) to be attached to the pod that executes the node.
-   - Format: `annotation-key=annotation-value`. Entries that are empty (`annotation-key=`) are ignored. Entries with a key considered to be [invalid](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set) will raise a validation error after pipeline submission or export.
+   - Format:
+     - _Key_: a [valid Kubernetes annotation key](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). Example: `project`
+     - _Value_: value to be assigned to said annotation key. Example: `abandoned basket analysis`
    - Annotations are ignored when the pipeline is executed locally.
-   - Example: `project=abandoned basket analysis`  
+
+##### Kubernetes Pod Labels
+   - A list of [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels) to be attached to the pod that executes the node.
+   - Format:
+     - _Key_: a [valid Kubernetes label key](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set). Example: `project`
+     - _Value_: value to be assigned to said label key. Example: `abandoned basket analysis`
+   - Labels are ignored when the pipeline is executed locally.
 
 ##### Kubernetes Secrets
-   - A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution. Format: `ENV_VAR=secret-name:secret-key`. Entries that are empty (`ENV_VAR=`) or malformed are ignored. Entries with a secret name considered to be an [invalid Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) or with [an invalid secret key](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) will raise a validation error after pipeline submission or export. The referenced secrets must exist in the Kubernetes namespace where the generic pipeline nodes are executed.
+   - A list of [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) to be accessed as environment variables during Jupyter notebook or script execution.
+   - Format:
+     - _Environment variable_: name of the variable to be set. Example: `optimize`
+     - _Secret Name_: a valid [Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) identifying a [secret](https://kubernetes.io/docs/concepts/configuration/secret/#restriction-names-data) that exists in the Kubernetes namespace where the pipeline nodes are executed. Example: `database-credentials`
+     - _Secret Key_: key that is defined in said secret. Example: `uid`
    - Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
-   - Example: `ENV_VAR=secret-name:secret-key`
 
 ##### Kubernetes Tolerations
    - A list of [Kubernetes tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) to be applied to the pod where the component is executed.
-   - Format: `TOL_ID=key:operator:value:effect`. Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of the values for `key`, `operator`, `value`, and `effect`.
+   - Format: 
+     - _Key_: taint key the toleration applies to
+     - _Operator_: represents the key's relationship to the value. Must be `Equal` or `Exists`.
+     - _Value_: taint value the toleration matches to
+     - _Effect_: indicates the taint effect to match. If specified, must be `NoExecute`, `NoSchedule`, or `PreferNoSchedule`.
+   - Refer to [the toleration specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#toleration-v1-core) for a description of each property.
    - Tolerations are ignored when the pipeline is executed locally.
-   - Example: `TOL_1=my-key:Exists::NoExecute`
 
 ##### Label
    - Specify a label to replace the default node name. For generic components the default label is the file name. For custom components the default name is the component name.
@@ -254,7 +284,7 @@ The following alphabetically sorted list identifies the node properties that are
    - Example: `data/*.csv`
 
 ##### Resources: CPU, GPU, and RAM
-   - Resources that the notebook or script requires.
+   - Resources that the notebook or script requires. RAM takes units of gigabytes (10<sup>9</sup> bytes).
    - The values are ignored when the pipeline is executed locally. 
 
 ##### Runtime image
@@ -263,6 +293,13 @@ The following alphabetically sorted list identifies the node properties that are
    - The value is ignored when the pipeline is executed locally. 
    - A default runtime image can also be set in the pipeline properties tab. If a default image is set, the **Runtime Image** property in the node properties tab will indicate that a pipeline default is set. Individual nodes can override the pipeline default value. 
    - Example: `TensorFlow 2.0`
+
+##### Shared memory size
+
+Shared memory to be allocated on the pod where the component is executed. 
+   - Format: 
+     - _Memory size_: Custom shared memory size in gigabytes (10<sup>9</sup> bytes). The Kubernetes default is used if set to zero.
+   - Shared memory size is ignored when the pipeline is executed with the `local` runtime option.
  
 ### Running pipelines
 
@@ -373,3 +410,12 @@ The pipeline dependencies output includes:
  - Kubernetes secrets that generic nodes are exposing as environment variables to notebooks or scripts
 
 Specify the `--json` option to format the output as JSON.
+
+
+### Migrating pipelines
+
+The Visual Pipeline Editor stores information about the pipeline, nodes, node configuration, and node dependencies in a `.pipeline` file. How this information is persisted may change between major or minor Elyra releases. You might therefore have to migrate existing pipelines if you switch from one version of Elyra to another. The Visual Pipeline Editor and the [`elyra-pipeline` CLI](command-line-interface.html#working-with-pipelines) raise an error if an attempt is made to process a pipeline file version that is incompatible with the installed Elyra version.
+
+If the pipeline was last modified using a version of Elyra that is older than the installed version, you must migrate the pipeline using the Visual Pipeline Editor before you can use it. If the pipeline was last modified using a version of Elyra that is newer than the installed version, you must upgrade your Elyra installation to a more current release. 
+
+To migrate a pipeline open it in the Visual Pipeline Editor and follow the prompts.

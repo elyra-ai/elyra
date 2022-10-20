@@ -17,7 +17,32 @@ limitations under the License.
 -->
 # Troubleshooting
 
-This page identifies scenarios we've encountered when building/running Elyra.
+## How to identify the installed Elyra version
+
+You can use one of these approaches to determine which Elyra version you are running. Note that some of them might not be supported in the version you have installed.
+
+- Open the JupyterLab launcher and locate the "What's new" tile under the "Elyra" category.
+
+  ![Look up Elyra version in JupyterLab launcher](../images/getting_started/troubleshooting/lookup-version-in-launcher.png)
+
+- Open the JupyterLab launcher and click on the "Documentation" tile under the "Elyra" category. 
+
+  ![Look up Elyra version in the documentation](../images/getting_started/troubleshooting/lookup-version-in-documentation.png)
+
+- Open the JupyterLab launcher, click on the "Terminal" tile and run
+
+  ```
+  elyra-pipeline --version
+  ```
+
+- Open the JupyterLab launcher, click on the "Terminal" tile and run
+
+  ```
+  pip list | grep elyra
+  ```
+
+
+## Build or installation issues
 
 - **Elyra build fails with: error An unexpected error occurred: "ENOTDIR: not a directory, scandir..."**
 

@@ -18,7 +18,9 @@ import os
 import re
 import tempfile
 import time
+from typing import Any
 from typing import Dict
+from typing import Set
 from urllib.parse import urlsplit
 
 from kfp import Client as ArgoClient
@@ -27,7 +29,11 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
+from kubernetes.client import V1EmptyDirVolumeSource
+from kubernetes.client import V1EnvVar
+from kubernetes.client import V1EnvVarSource
 from kubernetes.client import V1PersistentVolumeClaimVolumeSource
+from kubernetes.client import V1SecretKeySelector
 from kubernetes.client import V1Toleration
 from kubernetes.client import V1Volume
 from kubernetes.client import V1VolumeMount
@@ -44,13 +50,22 @@ from elyra._version import __version__
 from elyra.kfp.operator import ExecuteFileOp
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
+from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import CustomSharedMemorySize
+from elyra.pipeline.component_parameter import DisableNodeCaching
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesLabel
+from elyra.pipeline.component_parameter import KubernetesSecret
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
@@ -364,7 +379,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         if pipeline.contains_generic_operations():
             object_storage_url = f"{cos_public_endpoint}"
-            os_path = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+            os_path = join_paths(
+                pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+            )
             object_storage_path = f"/{cos_bucket}/{os_path}"
         else:
             object_storage_url = None
@@ -468,7 +485,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         pipeline_instance_id = pipeline_instance_id or pipeline_name
 
-        artifact_object_prefix = join_paths(pipeline.pipeline_parameters.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+        artifact_object_prefix = join_paths(
+            pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+        )
 
         self.log_pipeline_info(
             pipeline_name,
@@ -510,6 +529,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Create pipeline operation
             # If operation is one of the "generic" set of NBs or scripts, construct custom ExecuteFileOp
             if isinstance(operation, GenericOperation):
+                component = ComponentCache.get_generic_component_from_op(operation.classifier)
 
                 # Collect env variables
                 pipeline_envs = self._collect_envs(
@@ -522,7 +542,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     f"Creating pipeline component archive '{operation_artifact_archive}' for operation '{operation}'"
                 )
 
-                target_ops[operation.id] = ExecuteFileOp(
+                container_op = ExecuteFileOp(
                     name=sanitized_operation_name,
                     pipeline_name=pipeline_name,
                     experiment_name=experiment_name,
@@ -549,25 +569,17 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
                         "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
                     },
-                    volume_mounts=operation.mounted_volumes,
-                    kubernetes_secrets=operation.kubernetes_secrets,
-                    kubernetes_tolerations=operation.kubernetes_tolerations,
-                    kubernetes_pod_annotations=operation.kubernetes_pod_annotations,
                 )
 
-                if operation.doc:
-                    target_ops[operation.id].add_pod_annotation("elyra/node-user-doc", operation.doc)
-
-                # TODO Can we move all of this to apply to non-standard components as well? Test when servers are up
                 if cos_secret and not export:
-                    target_ops[operation.id].apply(use_aws_secret(cos_secret))
+                    container_op.apply(use_aws_secret(cos_secret))
 
                 image_namespace = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
                 for image_instance in image_namespace:
                     if image_instance.metadata["image_name"] == operation.runtime_image and image_instance.metadata.get(
                         "pull_policy"
                     ):
-                        target_ops[operation.id].container.set_image_pull_policy(image_instance.metadata["pull_policy"])
+                        container_op.container.set_image_pull_policy(image_instance.metadata["pull_policy"])
 
                 self.log_pipeline_info(
                     pipeline_name,
@@ -586,45 +598,46 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
-                    # Get corresponding property's value from parsed pipeline
-                    property_value = operation.component_params.get(component_property.ref)
-
                     self.log.debug(
                         f"Processing component parameter '{component_property.name}' "
-                        f"of type '{component_property.data_type}'"
+                        f"of type '{component_property.json_data_type}'"
                     )
 
-                    if component_property.data_type == "inputpath":
-                        output_node_id = property_value["value"]
-                        output_node_parameter_key = property_value["option"].replace("elyra_output_", "")
+                    if component_property.allowed_input_types == [None]:
+                        # Outputs are skipped
+                        continue
+
+                    # Get corresponding property's value from parsed pipeline
+                    property_value_dict = operation.component_params.get(component_property.ref)
+                    data_entry_type = property_value_dict.get("widget", None)  # one of: inputpath, file, raw data type
+                    property_value = property_value_dict.get("value", None)
+                    if data_entry_type == "inputpath":
+                        # KFP path-based parameters accept an input from a parent
+                        output_node_id = property_value["value"]  # parent node id
+                        output_node_parameter_key = property_value["option"].replace("output_", "")  # parent param
                         operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
                             output_node_parameter_key
                         ]
-                    elif component_property.data_type == "inputvalue":
-                        active_property = property_value["activeControl"]
-                        active_property_value = property_value.get(active_property, None)
+                    else:  # Parameter is either of a raw data type or file contents
+                        if data_entry_type == "file" and property_value:
+                            # Read a value from a file
+                            absolute_path = get_absolute_path(self.root_dir, property_value)
+                            with open(absolute_path, "r") as f:
+                                property_value = f.read() if os.path.getsize(absolute_path) else None
 
                         # If the value is not found, assign it the default value assigned in parser
-                        if active_property_value is None:
-                            active_property_value = component_property.value
+                        if property_value is None:
+                            property_value = component_property.value
 
-                        if isinstance(active_property_value, dict) and set(active_property_value.keys()) == {
-                            "value",
-                            "option",
-                        }:
-                            output_node_id = active_property_value["value"]
-                            output_node_parameter_key = active_property_value["option"].replace("elyra_output_", "")
-                            operation.component_params[component_property.ref] = target_ops[output_node_id].outputs[
-                                output_node_parameter_key
-                            ]
-                        elif component_property.default_data_type == "dictionary":
-                            processed_value = self._process_dictionary_value(active_property_value)
+                        # Process the value according to its type, if necessary
+                        if component_property.json_data_type == "object":
+                            processed_value = self._process_dictionary_value(property_value)
                             operation.component_params[component_property.ref] = processed_value
-                        elif component_property.default_data_type == "list":
-                            processed_value = self._process_list_value(active_property_value)
+                        elif component_property.json_data_type == "array":
+                            processed_value = self._process_list_value(property_value)
                             operation.component_params[component_property.ref] = processed_value
                         else:
-                            operation.component_params[component_property.ref] = active_property_value
+                            operation.component_params[component_property.ref] = property_value
 
                 # Build component task factory
                 try:
@@ -658,63 +671,22 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     container_op = factory_function(**sanitized_component_params)
                     container_op.set_display_name(operation.name)
 
-                    # Attach node comment
-                    if operation.doc:
-                        container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
-
-                    # Add user-specified volume mounts: the referenced PVCs must exist
-                    # or this operation will fail
-                    if operation.mounted_volumes:
-                        unique_pvcs = []
-                        for volume_mount in operation.mounted_volumes:
-                            if volume_mount.pvc_name not in unique_pvcs:
-                                container_op.add_volume(
-                                    V1Volume(
-                                        name=volume_mount.pvc_name,
-                                        persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(
-                                            claim_name=volume_mount.pvc_name
-                                        ),
-                                    )
-                                )
-                                unique_pvcs.append(volume_mount.pvc_name)
-                            container_op.add_volume_mount(
-                                V1VolumeMount(mount_path=volume_mount.path, name=volume_mount.pvc_name)
-                            )
-
-                    # Add user-specified Kubernetes tolerations
-                    if operation.kubernetes_tolerations:
-                        unique_tolerations = []
-                        for toleration in operation.kubernetes_tolerations:
-                            if str(toleration) not in unique_tolerations:
-                                container_op.add_toleration(
-                                    V1Toleration(
-                                        effect=toleration.effect,
-                                        key=toleration.key,
-                                        operator=toleration.operator,
-                                        value=toleration.value,
-                                    )
-                                )
-                                unique_tolerations.append(str(toleration))
-
-                    # Add user-specified pod annotations
-                    if operation.kubernetes_pod_annotations:
-                        unique_annotations = []
-                        for annotation in operation.kubernetes_pod_annotations:
-                            if annotation.key not in unique_annotations:
-                                container_op.add_pod_annotation(annotation.key, annotation.value)
-                                unique_annotations.append(annotation.key)
-
-                    # Force re-execution of the operation by setting staleness to zero days
-                    # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
-                    if operation.disallow_cached_output:
-                        container_op.set_caching_options(enable_caching=False)
-                        container_op.execution_options.caching_strategy.max_cache_staleness = "P0D"
-
-                    target_ops[operation.id] = container_op
                 except Exception as e:
                     # TODO Fix error messaging and break exceptions down into categories
                     self.log.error(f"Error constructing component {operation.name}: {str(e)}")
                     raise RuntimeError(f"Error constructing component {operation.name}.")
+
+            # Attach node comment
+            if operation.doc:
+                container_op.add_pod_annotation("elyra/node-user-doc", operation.doc)
+
+            # Process Elyra-owned properties as required for each type
+            for value in operation.elyra_params.values():
+                if isinstance(value, (ElyraProperty, ElyraPropertyList)):
+                    value.add_to_execution_object(runtime_processor=self, execution_object=container_op)
+
+            # Add ContainerOp to target_ops dict
+            target_ops[operation.id] = container_op
 
         # Process dependencies after all the operations have been created
         for operation in pipeline.operations.values():
@@ -800,6 +772,89 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             normalized_name = "n" + normalized_name
 
         return normalized_name.replace(" ", "_")
+
+    def add_disable_node_caching(self, instance: DisableNodeCaching, execution_object: Any, **kwargs) -> None:
+        """Add DisableNodeCaching info to the execution object for the given runtime processor"""
+        # Force re-execution of the operation by setting staleness to zero days
+        # https://www.kubeflow.org/docs/components/pipelines/overview/caching/#managing-caching-staleness
+        if instance.selection:
+            execution_object.execution_options.caching_strategy.max_cache_staleness = "P0D"
+
+    def add_custom_shared_memory_size(self, instance: CustomSharedMemorySize, execution_object: Any, **kwargs) -> None:
+        """Add CustomSharedMemorySize info to the execution object for the given runtime processor"""
+
+        if not instance.size:
+            return
+
+        volume = V1Volume(
+            name="shm",
+            empty_dir=V1EmptyDirVolumeSource(medium="Memory", size_limit=f"{instance.size}{instance.units}"),
+        )
+        if volume not in execution_object.volumes:
+            execution_object.add_volume(volume)
+
+        execution_object.container.add_volume_mount(V1VolumeMount(mount_path="/dev/shm", name="shm"))
+
+    def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesSecret instance to the execution object for the given runtime processor"""
+        execution_object.container.add_env_variable(
+            V1EnvVar(
+                name=instance.env_var,
+                value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=instance.name, key=instance.key)),
+            )
+        )
+
+    def add_mounted_volume(self, instance: VolumeMount, execution_object: Any, **kwargs) -> None:
+        """Add VolumeMount instance to the execution object for the given runtime processor"""
+        volume = V1Volume(
+            name=instance.pvc_name,
+            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name=instance.pvc_name),
+        )
+        if volume not in execution_object.volumes:
+            execution_object.add_volume(volume)
+        execution_object.container.add_volume_mount(
+            V1VolumeMount(
+                mount_path=instance.path,
+                name=instance.pvc_name,
+                sub_path=instance.sub_path,
+                read_only=instance.read_only,
+            )
+        )
+
+    def add_kubernetes_pod_annotation(self, instance: KubernetesAnnotation, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesAnnotation instance to the execution object for the given runtime processor"""
+        if instance.key not in execution_object.pod_annotations:
+            execution_object.add_pod_annotation(instance.key, instance.value or "")
+
+    def add_kubernetes_pod_label(self, instance: KubernetesLabel, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesLabel instance to the execution object for the given runtime processor"""
+        if instance.key not in execution_object.pod_labels:
+            execution_object.add_pod_label(instance.key, instance.value or "")
+
+    def add_kubernetes_toleration(self, instance: KubernetesToleration, execution_object: Any, **kwargs) -> None:
+        """Add KubernetesToleration instance to the execution object for the given runtime processor"""
+        toleration = V1Toleration(
+            effect=instance.effect,
+            key=instance.key,
+            operator=instance.operator,
+            value=instance.value,
+        )
+        if toleration not in execution_object.tolerations:
+            execution_object.add_toleration(toleration)
+
+    @property
+    def supported_properties(self) -> Set[str]:
+        """A list of Elyra-owned properties supported by this runtime processor."""
+        return {
+            pipeline_constants.ENV_VARIABLES,
+            pipeline_constants.KUBERNETES_SECRETS,
+            pipeline_constants.MOUNTED_VOLUMES,
+            pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
+            pipeline_constants.KUBERNETES_POD_LABELS,
+            pipeline_constants.KUBERNETES_TOLERATIONS,
+            pipeline_constants.DISABLE_NODE_CACHING,
+            pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
+        }
 
 
 class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):

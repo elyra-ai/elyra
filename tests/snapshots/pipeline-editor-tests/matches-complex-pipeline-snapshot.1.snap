@@ -12,7 +12,7 @@ Object {
         "ui_data": Object {
           "comments": Array [],
         },
-        "version": 7,
+        "version": 8,
       },
       "id": "primary",
       "nodes": Array [
@@ -21,12 +21,16 @@ Object {
             "component_parameters": Object {
               "dependencies": Array [],
               "env_vars": Array [
-                "NB_USER=",
+                Object {
+                  "env_var": "NB_USER",
+                },
               ],
               "filename": "producer.ipynb",
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
+              "kubernetes_pod_labels": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_shared_mem_size": Object {},
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
@@ -84,7 +88,9 @@ Object {
               "filename": "consumer.ipynb",
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
+              "kubernetes_pod_labels": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_shared_mem_size": Object {},
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
@@ -141,7 +147,9 @@ Object {
               "filename": "../scripts/setup.py",
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
+              "kubernetes_pod_labels": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_shared_mem_size": Object {},
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
@@ -150,7 +158,7 @@ Object {
             "label": "",
             "ui_data": Object {
               "description": "Run Python script",
-              "image": "/static/elyra/py-logo.svg",
+              "image": "/static/elyra/python.svg",
               "label": "setup.py",
               "x_pos": 125,
               "y_pos": 135,
@@ -196,7 +204,9 @@ Object {
               "filename": "create-source-files.py",
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
+              "kubernetes_pod_labels": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_shared_mem_size": Object {},
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
@@ -208,7 +218,7 @@ Object {
             "label": "",
             "ui_data": Object {
               "description": "Run Python script",
-              "image": "/static/elyra/py-logo.svg",
+              "image": "/static/elyra/python.svg",
               "label": "create-source-files.py",
               "x_pos": 145,
               "y_pos": 155,
@@ -254,7 +264,9 @@ Object {
               "filename": "producer-script.py",
               "include_subdirectories": false,
               "kubernetes_pod_annotations": Array [],
+              "kubernetes_pod_labels": Array [],
               "kubernetes_secrets": Array [],
+              "kubernetes_shared_mem_size": Object {},
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [
@@ -266,7 +278,7 @@ Object {
             "label": "",
             "ui_data": Object {
               "description": "Run Python script",
-              "image": "/static/elyra/py-logo.svg",
+              "image": "/static/elyra/python.svg",
               "label": "producer-script.py",
               "x_pos": 165,
               "y_pos": 175,

@@ -27,7 +27,6 @@ import helpIconSvg from '../style/icons/help.svg';
 import importSvg from '../style/icons/import.svg';
 import pipelineComponentSvg from '../style/icons/pipeline-components.svg';
 import pipelineSvg from '../style/icons/pipeline-flow.svg';
-import pyIconSvg from '../style/icons/py-logo.svg';
 import rIconSvg from '../style/icons/r-logo.svg';
 import runtimesSvg from '../style/icons/runtimes.svg';
 import savePipelineSvg from '../style/icons/save-pipeline.svg';
@@ -98,10 +97,6 @@ export const tagIcon = new LabIcon({
 export const rIcon = new LabIcon({
   name: 'elyra:rIcon',
   svgstr: rIconSvg
-});
-export const pyIcon = new LabIcon({
-  name: 'elyra:pyIcon',
-  svgstr: pyIconSvg
 });
 export const scalaIcon = new LabIcon({
   name: 'elyra:scalaIcon',

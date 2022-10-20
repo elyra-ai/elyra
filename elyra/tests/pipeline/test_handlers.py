@@ -26,6 +26,19 @@ from tornado.httpclient import HTTPClientError
 from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline_constants import (
+    COS_OBJECT_PREFIX,
+    DISABLE_NODE_CACHING,
+    ENV_VARIABLES,
+    KUBERNETES_POD_ANNOTATIONS,
+    KUBERNETES_POD_LABELS,
+    KUBERNETES_SECRETS,
+    KUBERNETES_SHARED_MEM_SIZE,
+    KUBERNETES_TOLERATIONS,
+    MOUNTED_VOLUMES,
+    PIPELINE_DEFAULTS,
+    RUNTIME_IMAGE,
+)
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
@@ -123,9 +136,22 @@ async def test_get_component_properties_config(jp_fetch):
     payload = json.loads(response.body.decode())
 
     template = pkg_resources.read_text(resources, "generic_properties_template.jinja2")
-    properties = json.loads(
-        template.replace("{{ component.name }}", "Notebook").replace("{{ component.extensions|tojson }}", '[".ipynb"]')
-    )
+    template = template.replace("{{ component.name }}", "Notebook")
+    template = template.replace("{{ component.extensions|tojson }}", '[".ipynb"]')
+    template = template.replace("{% if elyra_owned_parameters %}", "")
+    template = template.replace(
+        """,
+        {% for property in elyra_owned_parameters|sort(attribute="property_id") %}
+        "{{property.property_id}}": {{ property.get_schema()|tojson }}{% if loop.index != loop|length %},{% endif %}
+        {% endfor %}
+        {% endif %}""",
+        "",
+    )  # remove Elyra-owned property rendering loop
+    properties = json.loads(template)
+
+    # Fetch Elyra-owned properties
+    elyra_properties = json.loads(pkg_resources.read_text(resources, "additional_generic_properties.json"))
+    properties["properties"]["component_parameters"]["properties"].update(elyra_properties)  # update property dict
     assert payload == properties
 
 
@@ -226,19 +252,29 @@ async def test_get_pipeline_properties_definition(jp_fetch):
         assert response.code == 200
         payload = json.loads(response.body.decode())
         # Spot check
-        assert payload["parameters"] == [
-            {"id": "name"},
-            {"id": "runtime"},
-            {"id": "description"},
-            {"id": "cos_object_prefix"},
-            {"id": "elyra_runtime_image"},
-            {"id": "elyra_env_vars"},
-            {"id": "elyra_kubernetes_secrets"},
-            {"id": "elyra_kubernetes_tolerations"},
-            {"id": "elyra_mounted_volumes"},
-            {"id": "elyra_kubernetes_pod_annotations"},
-            {"id": "elyra_disallow_cached_output"},
+
+        pipeline_properties = ["name", "runtime", "description", PIPELINE_DEFAULTS]
+        assert all(prop in payload["properties"] for prop in pipeline_properties)
+
+        default_properties = [
+            COS_OBJECT_PREFIX,
+            RUNTIME_IMAGE,
+            ENV_VARIABLES,
+            KUBERNETES_SECRETS,
+            KUBERNETES_TOLERATIONS,
+            MOUNTED_VOLUMES,
+            KUBERNETES_POD_ANNOTATIONS,
+            KUBERNETES_POD_LABELS,
+            DISABLE_NODE_CACHING,
+            KUBERNETES_SHARED_MEM_SIZE,
         ]
+        if runtime == "airflow":
+            # exclude properties that are not supported by this runtime
+            default_properties.remove(DISABLE_NODE_CACHING)
+            default_properties.remove(KUBERNETES_SHARED_MEM_SIZE)
+        assert all(
+            prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties
+        ), runtime
 
 
 async def test_pipeline_success(jp_fetch, monkeypatch):

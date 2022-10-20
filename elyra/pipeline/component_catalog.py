@@ -43,7 +43,7 @@ from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
-from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
+from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 BLOCKING_TIMEOUT = 0.5
@@ -614,6 +614,13 @@ class ComponentCache(SingletonConfigurable):
         return ComponentCache._generic_components.get(component_id)
 
     @staticmethod
+    def get_generic_component_from_op(component_op: str) -> Optional[Component]:
+        for component in ComponentCache.get_generic_components():
+            if component.op == component_op:
+                return component
+        return None
+
+    @staticmethod
     def get_generic_component_ops() -> List[str]:
         return [component.op for component in ComponentCache.get_generic_components()]
 
@@ -625,6 +632,7 @@ class ComponentCache(SingletonConfigurable):
         """
         loader = PackageLoader("elyra", "templates/components")
         template_env = Environment(loader=loader)
+        template_env.policies["json.dumps_kwargs"] = {"sort_keys": False}  # prevent automatic key sort on 'tojson'
 
         return template_env.get_template(template_name)
 
@@ -663,26 +671,22 @@ class ComponentCache(SingletonConfigurable):
     @staticmethod
     def to_canvas_properties(component: Component) -> Dict:
         """
-        Converts catalog components into appropriate canvas properties format
+        Converts catalog components into appropriate canvas properties format.
 
         If component_id is one of the generic set, generic template is rendered,
-        otherwise, the  runtime-specific property template is rendered
+        otherwise, the  runtime-specific property template is rendered.
         """
-        kwargs = {}
         if ComponentCache.get_generic_component(component.id) is not None:
             template = ComponentCache.load_jinja_template("generic_properties_template.jinja2")
         else:
-            # Determine which component properties parsed from the definition
-            # collide with Elyra-defined properties (in the case of a collision,
-            # only the parsed property will be displayed)
-            kwargs = {"elyra_property_collisions_list": []}
-            for param in component.properties:
-                if param.ref in ELYRA_COMPONENT_PROPERTIES:
-                    kwargs["elyra_property_collisions_list"].append(param.ref)
-
             template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
 
-        canvas_properties = template.render(component=component, **kwargs)
+        template_vars = {
+            "elyra_owned_parameters": component.get_elyra_parameters(),
+            "render_parameter_details": ComponentParameter.render_parameter_details,
+        }
+        template.globals.update(template_vars)
+        canvas_properties = template.render(component=component)
         return json.loads(canvas_properties)
 
 

@@ -208,7 +208,9 @@ class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
 
         # Get pipeline properties json
         pipeline_properties_json = PipelineDefinition.get_canvas_properties_from_template(
-            package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
+            package_name="templates/pipeline",
+            template_name="pipeline_properties_template.jinja2",
+            runtime_type=runtime_processor_type.name,
         )
 
         self.set_status(200)

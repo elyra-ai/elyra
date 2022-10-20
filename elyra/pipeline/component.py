@@ -13,19 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
+
 from abc import abstractmethod
-from enum import Enum
+from dataclasses import dataclass
 from importlib import import_module
 import json
 from logging import Logger
-from types import SimpleNamespace
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Tuple
 
 from traitlets.config import LoggingConfigurable
+
+from elyra.pipeline.component_parameter import ComponentParameter
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 # Rather than importing only the CatalogEntry class needed in the Component parse
 # type hint below, the catalog_connector module must be imported in its
@@ -35,144 +39,7 @@ try:
 except ImportError:
     import sys
 
-    catalog_connector = sys.modules[__package__ + ".catalog_connector"]
-from elyra.pipeline.runtime_type import RuntimeProcessorType
-
-
-class ComponentParameter(object):
-    """
-    Represents a single property for a pipeline component
-    """
-
-    def __init__(
-        self,
-        id: str,
-        name: str,
-        data_type: str,
-        value: str,
-        description: str,
-        required: bool = False,
-        control: str = "custom",
-        control_id: str = "StringControl",
-        one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
-        default_control_type: str = "StringControl",
-        default_data_type: str = "string",
-        allow_no_options: Optional[bool] = False,
-        items: Optional[List[str]] = None,
-    ):
-        """
-        :param id: Unique identifier for a property
-        :param name: The name of the property for display
-        :param data_type: The type that the property value takes on
-        :param value: The default value of the property
-        :param description: A description of the property for display
-        :param control: The control of the property on the display, e.g. custom or readonly
-        :param control_id: The control type of the property, if the control is 'custom', e.g. StringControl, EnumControl
-        :param one_of_control_types: A list of control types to be used when 'OneOfControl' type is the primary control
-        :param default_control_type: The default control type to use when 'OneOfControl type is the primary control
-        :param items: For properties with a control of 'EnumControl', the items making up the enum
-        :param required: Whether the property is required
-        """
-
-        if not id:
-            raise ValueError("Invalid component: Missing field 'id'.")
-        if not name:
-            raise ValueError("Invalid component: Missing field 'name'.")
-
-        self._ref = id
-        self._name = name
-        self._data_type = data_type
-        self._value = value
-
-        self._description = description
-        self._control = control
-        self._control_id = control_id
-        self._one_of_control_types = one_of_control_types
-        self._default_control_type = default_control_type
-        self._default_data_type = default_data_type
-        self._allow_no_options = allow_no_options
-        self._items = items or []
-
-        # Check description for information about 'required' parameter
-        if "not optional" in description.lower() or (
-            "required" in description.lower()
-            and "not required" not in description.lower()
-            and "n't required" not in description.lower()
-        ):
-            required = True
-
-        self._required = required
-
-    @property
-    def ref(self) -> str:
-        return self._ref
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def data_type(self) -> str:
-        return self._data_type
-
-    @property
-    def value(self) -> str:
-        return self._value
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @property
-    def control(self) -> str:
-        return self._control
-
-    @property
-    def control_id(self) -> str:
-        return self._control_id
-
-    @property
-    def one_of_control_types(self) -> List[Tuple[str, str, str]]:
-        """
-        The `OneOfControl` controller is an encapsulating control ID that allows users to select
-        between multiple input types when configuring the component. For instance, in Airflow, a
-        component parameter can take in, as input, both a value as well as an output from a parent
-        node.
-        When using the `OneOfControl` as the primary control ID for the component parameter,
-        `one_of_control_types` provides canvas a list of control IDs that will be used by the
-        `OneOfControl` controller. These control IDs are what allow the user to select different
-        types of inputs.
-        :return: A list of 3-tuples containing the default_control_type, data_type, label associated with controller
-        """
-        return self._one_of_control_types
-
-    @property
-    def default_control_type(self) -> str:
-        """
-        The `default_control_type` is the control type that will be displayed by default when
-        first opening the component's parameters in the pipeline editor.
-        """
-        return self._default_control_type
-
-    @property
-    def default_data_type(self) -> str:
-        """
-        The `default_data_type` is the first data type that is assigned to this specific parameter
-        after parsing the component specification.
-        """
-        return self._default_data_type
-
-    @property
-    def allow_no_options(self) -> bool:
-        return self._allow_no_options
-
-    @property
-    def items(self) -> List[str]:
-        return self._items
-
-    @property
-    def required(self) -> bool:
-        return bool(self._required)
+    catalog_connector = sys.modules[f"{__package__}.catalog_connector"]
 
 
 class Component(object):
@@ -287,10 +154,7 @@ class Component(object):
 
     @property
     def op(self) -> Optional[str]:
-        if self._op:
-            return self._op
-        else:
-            return self._id
+        return self._op or self._id
 
     @property
     def categories(self) -> List[str]:
@@ -310,17 +174,19 @@ class Component(object):
 
     @property
     def import_statement(self) -> Optional[str]:
-        if not self._package_name:
-            return None
-        return f"from {self._package_name} import {self._name}"
+        return f"from {self._package_name} import {self._name}" if self._package_name else None
 
     @property
     def input_properties(self) -> List[ComponentParameter]:
-        return [prop for prop in self._properties if prop.data_type != "outputpath"]
+        return [prop for prop in self._properties if None not in prop.allowed_input_types]
 
     @property
     def output_properties(self) -> List[ComponentParameter]:
-        return [prop for prop in self._properties if prop.data_type == "outputpath"]
+        return [prop for prop in self._properties if None in prop.allowed_input_types]
+
+    @property
+    def required_properties(self) -> List[ComponentParameter]:
+        return [prop for prop in self.input_properties if prop.required]
 
     @property
     def file_extension(self) -> Optional[str]:
@@ -337,6 +203,20 @@ class Component(object):
         else:
             print(f"WARNING: {msg}")
 
+    def get_elyra_parameters(self) -> List[ComponentParameter]:
+        """
+        Retrieve the list of Elyra-owned ComponentParameters that apply to this
+        component, removing any whose id collides with a property parsed from
+        the component definition.
+        """
+        op_type = "generic" if self.component_reference == "elyra" else "custom"
+        elyra_params = ElyraProperty.get_classes_for_component_type(op_type, self.runtime_type)
+        if self.properties:
+            # Remove certain Elyra-owned parameters if a parameter of the same id is already present
+            parsed_property_ids = [param.ref for param in self.properties]
+            elyra_params = [param for param in elyra_params if param.property_id not in parsed_property_ids]
+        return elyra_params
+
 
 class ComponentParser(LoggingConfigurable):  # ABC
     component_platform: RuntimeProcessorType = None
@@ -347,7 +227,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
     }
 
     @classmethod
-    def create_instance(cls, platform: RuntimeProcessorType) -> "ComponentParser":
+    def create_instance(cls, platform: RuntimeProcessorType) -> ComponentParser:
         """
         Class method that creates the appropriate instance of ComponentParser based on platform type name.
         """
@@ -363,7 +243,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         return self._file_types
 
     @abstractmethod
-    def parse(self, catalog_entry: "catalog_connector.CatalogEntry") -> Optional[List[Component]]:
+    def parse(self, catalog_entry: catalog_connector.CatalogEntry) -> Optional[List[Component]]:
         """
         Parse a component definition given in the catalog entry and return
         a list of fully-qualified Component objects
@@ -379,15 +259,12 @@ class ComponentParser(LoggingConfigurable):  # ABC
             return f"{description} (type: {data_type})"
         return f"(type: {data_type})"
 
-    def determine_type_information(self, parsed_type: str) -> SimpleNamespace:
+    def determine_type_information(self, parsed_type: str) -> "ParameterTypeInfo":
         """
         Takes the type information of a component parameter as parsed from the component
         specification and returns a new type that is one of several standard options.
-
         """
         parsed_type_lowered = parsed_type.lower()
-
-        data_type_info: SimpleNamespace
 
         # Determine if this is a "container type"
         # Prefer types that occur in a clause of the form "[type] of ..." (i.e., "container" types)
@@ -397,98 +274,61 @@ class ComponentParser(LoggingConfigurable):  # ABC
             if option in parsed_type_lowered:
                 data_type = option
                 if data_type in ["dict", "dictionary"]:
-                    data_type = "dictionary"
+                    data_type = "object"
                     default_value = {}
                 else:  # data_type is one of ['list', 'set', 'array', 'arr']
-                    data_type = "list"
+                    data_type = "array"
                     default_value = []
 
                 # Since we know the type, create our return value and bail
-                data_type_info = ComponentParser.create_data_type_info(
-                    parsed_data=parsed_type_lowered, data_type=data_type, default_value=default_value
+                data_type_info = ParameterTypeInfo(
+                    parsed_data=parsed_type_lowered, json_data_type=data_type, default_value=default_value
                 )
                 break
         else:  # None of the container types were found...
             # Standardize type names
             if any(word in parsed_type_lowered for word in ["str", "string"]):
-                data_type_info = ComponentParser.create_data_type_info(
-                    parsed_data=parsed_type_lowered, data_type="string"
+                data_type_info = ParameterTypeInfo(
+                    parsed_data=parsed_type_lowered,
+                    json_data_type="string",
                 )
             elif any(word in parsed_type_lowered for word in ["int", "integer", "number"]):
-                data_type_info = ComponentParser.create_data_type_info(
-                    parsed_data=parsed_type_lowered,
-                    data_type="number",
-                    control_id="NumberControl",
-                    default_control_type="NumberControl",
-                    default_value=0,
+                data_type_info = ParameterTypeInfo(
+                    parsed_data=parsed_type_lowered, json_data_type="number", default_value=0
                 )
             elif any(word in parsed_type_lowered for word in ["float"]):
-                data_type_info = ComponentParser.create_data_type_info(
-                    parsed_data=parsed_type_lowered,
-                    data_type="number",
-                    control_id="NumberControl",
-                    default_control_type="NumberControl",
-                    default_value=0.0,
+                data_type_info = ParameterTypeInfo(
+                    parsed_data=parsed_type_lowered, json_data_type="number", default_value=0.0
                 )
             elif any(word in parsed_type_lowered for word in ["bool", "boolean"]):
-                data_type_info = ComponentParser.create_data_type_info(
-                    parsed_data=parsed_type_lowered,
-                    data_type="boolean",
-                    control_id="BooleanControl",
-                    default_control_type="BooleanControl",
-                    default_value=False,
+                data_type_info = ParameterTypeInfo(
+                    parsed_data=parsed_type_lowered, json_data_type="boolean", default_value=False
                 )
-            else:  # Let this be undetermined.  Callers should check for this status and adjust
-                data_type_info = ComponentParser.create_data_type_info(
-                    parsed_data=parsed_type_lowered, data_type="string", undetermined=True
-                )
+            else:  # Let this be undetermined. Callers should check for this status and adjust
+                data_type_info = ParameterTypeInfo(parsed_data=parsed_type_lowered, undetermined=True)
 
         return data_type_info
 
-    @staticmethod
-    def create_data_type_info(
-        parsed_data: str,
-        data_type: str = "string",
-        default_data_type: str = "string",
-        data_label: str = None,
-        default_value: Any = "",
-        required: bool = True,
-        one_of_control_types: Optional[List[Tuple[str, str, str]]] = None,
-        control_id: str = "StringControl",
-        default_control_type: str = "StringControl",
-        allow_no_options: Optional[bool] = False,
-        control: str = "custom",
-        undetermined: bool = False,
-    ) -> SimpleNamespace:
-        """Returns a SimpleNamespace instance that contains the current state of data-type parsing.
 
-        This method is called by ComponentParser.determine_type_information() and used by subclass
-        implementations to determine the current state of parsing a data-type.
+@dataclass
+class ParameterTypeInfo:
+    """
+    This class is initialized by ComponentParser.determine_type_information() and used by subclass
+    implementations to determine the current state of parsing a data-type.
 
-        The instance will indicate that the base ComponentParser could not determine the actual data-type
-        via a `True` value in its `undetermined` attribute, in which case subclass implementations
-        are advised to attempt further parsing. In such cases, the rest of the attributes of the instance
-        will reflect a 'string' data type as that is the most flexible data_type and, hence, the default.
-        """
-        dti = SimpleNamespace(
-            parsed_data=parsed_data,
-            data_type=data_type,
-            default_data_type=default_data_type,
-            data_label=data_label or ControllerMap[control_id].value,
-            default_value=default_value,
-            required=required,
-            default_control_type=default_control_type,
-            one_of_control_types=one_of_control_types,
-            control_id=control_id,
-            allow_no_options=allow_no_options,
-            control=control,
-            undetermined=undetermined,
-        )
-        return dti
+    The instance will indicate whether the base ComponentParser could determine the actual data-type
+    via a `True` value in its `undetermined` attribute, in which case subclass implementations
+    are advised to attempt further parsing. In such cases, the rest of the attributes of the instance
+    will reflect a 'string' data type as that is the most flexible data_type and, hence, the default.
 
+    Allowed input types for the given parameter defaults to the set of all available input types,
+    unless the child method is able to determine that the allowed types must be adjusted,
+    e.g. kfp path-based types.
+    """
 
-class ControllerMap(Enum):
-    StringControl = "Please enter a string value :"
-    NumberControl = "Please enter a number value :"
-    BooleanControl = "Please select or deselect the checkbox :"
-    NestedEnumControl = "Please select an output from a parent :"
+    parsed_data: str
+    json_data_type: Optional[str] = "string"
+    allowed_input_types: Optional[List[str]] = None
+    default_value: Optional[Any] = ""
+    required: Optional[bool] = True
+    undetermined: Optional[bool] = False

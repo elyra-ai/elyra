@@ -26,7 +26,6 @@ import {
 import { IDictionary } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { IThemeManager } from '@jupyterlab/apputils';
 import { LabIcon, refreshIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
@@ -111,7 +110,6 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
  */
 export interface IComponentCatalogsWidgetProps extends IMetadataWidgetProps {
   app: JupyterFrontEnd;
-  themeManager?: IThemeManager;
   display_name: string;
   schemaspace: string;
   icon: LabIcon;

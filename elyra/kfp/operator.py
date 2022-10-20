@@ -26,17 +26,10 @@ from kubernetes.client.models import V1EmptyDirVolumeSource
 from kubernetes.client.models import V1EnvVar
 from kubernetes.client.models import V1EnvVarSource
 from kubernetes.client.models import V1ObjectFieldSelector
-from kubernetes.client.models import V1PersistentVolumeClaimVolumeSource
-from kubernetes.client.models import V1SecretKeySelector
-from kubernetes.client.models import V1Toleration
 from kubernetes.client.models import V1Volume
 from kubernetes.client.models import V1VolumeMount
 
 from elyra._version import __version__
-from elyra.pipeline.pipeline import KubernetesAnnotation
-from elyra.pipeline.pipeline import KubernetesSecret
-from elyra.pipeline.pipeline import KubernetesToleration
-from elyra.pipeline.pipeline import VolumeMount
 
 """
 The ExecuteFileOp uses a python script to bootstrap the user supplied image with the required dependencies.
@@ -95,10 +88,6 @@ class ExecuteFileOp(ContainerOp):
         gpu_memory_vendor: Optional[str] = None,
         gpu_memory: Optional[str] = None,
         workflow_engine: Optional[str] = "argo",
-        volume_mounts: Optional[List[VolumeMount]] = None,
-        kubernetes_secrets: Optional[List[KubernetesSecret]] = None,
-        kubernetes_tolerations: Optional[List[KubernetesToleration]] = None,
-        kubernetes_pod_annotations: Optional[List[KubernetesAnnotation]] = None,
         **kwargs,
     ):
         """Create a new instance of ContainerOp.
@@ -125,10 +114,6 @@ class ExecuteFileOp(ContainerOp):
           gpu_memory: gpu memory resource
           gpu_memory_vendor: gpu memory resource type, can be vGPU implementations
           workflow_engine: Kubeflow workflow engine, defaults to 'argo'
-          volume_mounts: data volumes to be mounted
-          kubernetes_secrets: secrets to be made available as environment variables
-          kubernetes_tolerations: Kubernetes tolerations to be added to the pod
-          kubernetes_pod_annotations: annotations to be applied to the pod
           kwargs: additional key value pairs to pass e.g. name, image, sidecars & is_exit_handler.
                   See Kubeflow pipelines ContainerOp definition for more parameters or how to use
                   https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.ContainerOp
@@ -158,13 +143,6 @@ class ExecuteFileOp(ContainerOp):
         self.gpu_vendor = gpu_vendor
         self.gpu_memory = gpu_memory
         self.gpu_memory_vendor = gpu_memory_vendor
-        self.volume_mounts = volume_mounts  # optional data volumes to be mounted to the pod
-        self.kubernetes_secrets = kubernetes_secrets  # optional secrets to be made available as env vars
-        self.kubernetes_tolerations = (
-            kubernetes_tolerations  # optional Kubernetes tolerations to be attached to the pod
-        )
-        self.kubernetes_pod_annotations = kubernetes_pod_annotations  # optional annotations
-
         argument_list = []
 
         """ CRI-o support for kfp pipelines
@@ -255,54 +233,11 @@ class ExecuteFileOp(ContainerOp):
 
         super().__init__(**kwargs)
 
-        # add user-specified volume mounts: the referenced PVCs must exist
-        # or this generic operation will fail
-        if self.volume_mounts:
-            unique_pvcs = []
-            for volume_mount in self.volume_mounts:
-                if volume_mount.pvc_name not in unique_pvcs:
-                    self.add_volume(
-                        V1Volume(
-                            name=volume_mount.pvc_name,
-                            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(
-                                claim_name=volume_mount.pvc_name
-                            ),
-                        )
-                    )
-                    unique_pvcs.append(volume_mount.pvc_name)
-                self.container.add_volume_mount(V1VolumeMount(mount_path=volume_mount.path, name=volume_mount.pvc_name))
-
         # We must deal with the envs after the superclass initialization since these amend the
         # container attribute that isn't available until now.
         if self.pipeline_envs:
             for key, value in self.pipeline_envs.items():  # Convert dict entries to format kfp needs
                 self.container.add_env_variable(V1EnvVar(name=key, value=value))
-
-        if self.kubernetes_secrets:
-            for secret in self.kubernetes_secrets:  # Convert tuple entries to format kfp needs
-                self.container.add_env_variable(
-                    V1EnvVar(
-                        name=secret.env_var,
-                        value_from=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name=secret.name, key=secret.key)),
-                    )
-                )
-
-        # add user-provided tolerations
-        if self.kubernetes_tolerations:
-            for toleration in self.kubernetes_tolerations:
-                self.add_toleration(
-                    V1Toleration(
-                        effect=toleration.effect,
-                        key=toleration.key,
-                        operator=toleration.operator,
-                        value=toleration.value,
-                    )
-                )
-
-        # add user-provided annotations to pod
-        if self.kubernetes_pod_annotations:
-            for annotation in self.kubernetes_pod_annotations:
-                self.add_pod_annotation(annotation.key, annotation.value)
 
         # If crio volume size is found then assume kubeflow pipelines environment is using CRI-o as
         # its container runtime

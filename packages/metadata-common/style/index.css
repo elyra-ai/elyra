@@ -27,17 +27,53 @@
 
 .elyra-metadataHeader {
   font-weight: bold;
-  padding: 8px 10px;
+  padding: 2px 6px 2px 12px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .elyra-metadataHeader p {
   font-weight: bold;
 }
 
+button.elyra-metadataHeader-button {
+  border: none;
+  margin: 5px 0;
+  padding: 5px;
+  background: none;
+}
+
+.elyra-metadataHeader-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.elyra-metadataHeader-buttonDivider {
+  width: 0.05em;
+  height: 1.5em;
+  position: relative;
+  background-color: var(--jp-border-color1);
+}
+
+.elyra-metadataHeader-popper button {
+  border: none;
+  width: max-content;
+  padding: 7px 9px;
+  background: none;
+  cursor: pointer;
+}
+
+.elyra-metadataHeader-popper button:hover {
+  background-color: var(--jp-border-color3);
+}
+
 .elyra-metadataHeader-popper {
   z-index: 100;
+  background-color: var(--jp-cell-editor-active-background);
+  border-radius: 10%;
+  border-radius: 8px;
+  border: 1px solid var(--jp-border-color2);
 }
 
 .elyra-metadataHeader-button:hover {
@@ -220,11 +256,4 @@ button.elyra-filter-tag svg {
 
 .elyra-no-metadata-msg {
   padding-left: 8px;
-}
-
-#split-button-menu {
-  color: var(--jp-ui-font-color1);
-  background-color: var(--jp-layout-color1);
-  border: var(--jp-border-width) solid var(--jp-border-color0);
-  border-radius: 5px;
 }

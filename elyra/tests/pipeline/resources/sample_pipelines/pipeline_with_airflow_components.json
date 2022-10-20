@@ -16,33 +16,33 @@
             "label": "b",
             "component_parameters": {
               "mounted_volumes": {
-                "activeControl": "StringControl",
-                "StringControl": "a component-defined property"
+                "widget": "string",
+                "value": "a component-defined property"
               },
               "str_no_default": {
-                "activeControl": "StringControl",
-                "StringControl": "echo 'test one'"
+                "widget": "file",
+                "value": "resources/sample_pipelines/pipeline_valid.json"
               },
               "bool_no_default": {
-                "activeControl": "BooleanControl",
-                "BooleanControl": true
+                "widget": "boolean",
+                "value": true
               },
               "unusual_type_dict": {
-                "activeControl": "StringControl",
-                "StringControl": "{}"
+                "widget": "string",
+                "value": "{}"
               },
               "unusual_type_list": {
-                "activeControl": "StringControl",
-                "StringControl": "[1, 2]"
+                "widget": "string",
+                "value": "[1, 2]"
               },
               "int_default_non_zero": {
-                "activeControl": "NumberControl",
-                "NumberControl": 2
+                "widget": "number",
+                "value": 2
               }
             },
             "ui_data": {
               "label": "b",
-              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "image": "/static/elyra/airflow.svg",
               "x_pos": 352,
               "y_pos": 137,
               "description": "BashOperator"
@@ -59,8 +59,7 @@
                   },
                   "label": "Input Port"
                 }
-              },
-              "links": []
+              }
             }
           ],
           "outputs": [
@@ -88,8 +87,8 @@
               "mounted_volumes": []
             },
             "ui_data": {
-              "label": "b",
-              "image": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20viewBox%3D%220%200%2022%2022%22%3E%0A%20%20%3Cg%20class%3D%22jp-icon-warn0%20jp-icon-selectable%22%20fill%3D%22%23EF6C00%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M18.7%203.3v15.4H3.3V3.3h15.4m1.5-1.5H1.8v18.3h18.3l.1-18.3z%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M16.5%2016.5l-5.4-4.3-5.6%204.3v-11h11z%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A",
+              "label": "a",
+              "image": "/static/elyra/airflow.svg",
               "x_pos": 242,
               "y_pos": 37,
               "description": "BashOperator"
@@ -106,8 +105,7 @@
                   },
                   "label": "Input Port"
                 }
-              },
-              "links": []
+              }
             }
           ],
           "outputs": [
@@ -130,12 +128,12 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7,
+        "version": 8,
         "runtime": "airflow",
         "runtime_config": "airflow-yukked1",
         "runtime_type": "APACHE_AIRFLOW",
         "properties": {
-          "name": "pipeline_with_custom_components",
+          "name": "pipeline_with_airflow_components",
           "runtime": "Apache Airflow",
           "description": "This is a pipeline description that\nincludes newline characters\n\n\"\"\"Note that it also includes a help string\"\"\""
         },

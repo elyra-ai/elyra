@@ -18,13 +18,24 @@
               "outputs": [],
               "env_vars": [],
               "kubernetes_secrets": [
-                "USER_NAME=secret-1:myuserid",
-                "USER_PASSWORD=secret-1:mypassword"
+                {
+                  "env_var": "USER_NAME",
+                  "name": "secret-1",
+                  "key": "myuserid"
+                },
+                {
+                  "env_var": "USER_PASSWORD",
+                  "name": "secret-1",
+                  "key": "mypassword"
+                }
               ],
               "dependencies": [],
               "include_subdirectories": false,
               "mounted_volumes": [
-                "/mnt/vol2=pvc-claim-2"
+                {
+                  "path": "/mnt/vol2",
+                  "pvc_name": "pvc-claim-2"
+                }
               ]
             },
             "label": "",
@@ -78,7 +89,10 @@
               "dependencies": [],
               "include_subdirectories": false,
               "mounted_volumes": [
-                "/mnt/vol2=pvc-claim-2"
+                {
+                  "path": "/mnt/vol2",
+                  "pvc_name": "pvc-claim-2"
+                }
               ]
             },
             "label": "",
@@ -136,7 +150,11 @@
               "outputs": [],
               "env_vars": [],
               "kubernetes_secrets": [
-                "API_KEY=secret-2:myapikey"
+                {
+                  "env_var": "API_KEY",
+                  "name": "secret-2",
+                  "key": "myapikey"
+                }
               ],
               "dependencies": [],
               "include_subdirectories": false,
@@ -198,7 +216,11 @@
               "outputs": [],
               "env_vars": [],
               "kubernetes_secrets": [
-                "API_KEY=secret-2:myapikey"
+                {
+                  "env_var": "API_KEY",
+                  "name": "secret-2",
+                  "key": "myapikey"
+                }
               ],
               "dependencies": [],
               "include_subdirectories": false,
@@ -253,12 +275,19 @@
               "outputs": [],
               "env_vars": [],
               "kubernetes_secrets": [
-                "TOKEN=secret-3:mytoken"
+                {
+                  "env_var": "TOKEN",
+                  "name": "secret-3",
+                  "key": "mytoken"
+                }
               ],
               "dependencies": [],
               "include_subdirectories": false,
               "mounted_volumes": [
-                "/mnt/vol3=pvc-claim-3"
+                {
+                  "path": "/mnt/vol3",
+                  "pvc_name": "pvc-claim-3"
+                }
               ],
               "runtime_image": "amancevice/pandas:1.4.1"
             },
@@ -323,7 +352,10 @@
           "pipeline_defaults": {
             "runtime_image": "tensorflow/tensorflow:2.8.0-gpu",
             "mounted_volumes": [
-              "/mnt/vol1=pvc-claim-1"
+              {
+                "path": "/mnt/vol1",
+                "pvc_name": "pvc-claim-1"
+              }
             ]
           },
           "name": "pipeline_with_notebooks_and_scripts",

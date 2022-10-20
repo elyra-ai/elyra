@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 import { ScriptEditor } from '@elyra/script-editor';
-import { pyIcon } from '@elyra/ui-components';
 
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
-import { LabIcon } from '@jupyterlab/ui-components';
+import { LabIcon, pythonIcon } from '@jupyterlab/ui-components';
 
 export class PythonEditor extends ScriptEditor {
   /**
@@ -34,6 +33,6 @@ export class PythonEditor extends ScriptEditor {
   }
 
   getIcon(): LabIcon {
-    return pyIcon;
+    return pythonIcon;
   }
 }

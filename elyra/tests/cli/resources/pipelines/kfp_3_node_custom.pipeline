@@ -15,12 +15,12 @@
           "app_data": {
             "component_parameters": {
               "url": {
-                "activeControl": "StringControl",
-                "StringControl": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/error.py"
+                "widget": "string",
+                "value": "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/metadata/error.py"
               },
               "curl_options": {
-                "activeControl": "StringControl",
-                "StringControl": "--location"
+                "widget": "string",
+                "value": "--location"
               },
               "output_data": "",
               "mounted_volumes": [],
@@ -71,15 +71,18 @@
           "app_data": {
             "component_parameters": {
               "pattern": {
-                "activeControl": "StringControl",
-                "StringControl": ".*Error"
+                "widget": "string",
+                "value": ".*Error"
               },
               "output_filtered_text": "",
               "mounted_volumes": [],
               "kubernetes_pod_annotations": [],
               "text": {
-                "value": "4bde6fbe-3935-4fd8-a338-5d15d39d0ddc",
-                "option": "elyra_output_data"
+                "widget": "inputpath",
+                "value": {
+                  "value": "4bde6fbe-3935-4fd8-a338-5d15d39d0ddc",
+                  "option": "output_data"
+                }
               }
             },
             "component_description": "Filter input text according to the given regex pattern using shell and grep.",
@@ -136,15 +139,18 @@
           "app_data": {
             "component_parameters": {
               "hash_algorithm": {
-                "activeControl": "StringControl",
-                "StringControl": "SHA256"
+                "widget": "string",
+                "value": "SHA256"
               },
               "output_hash": "",
               "mounted_volumes": [],
               "kubernetes_pod_annotations": [],
               "data": {
-                "value": "ce91f17a-f5d7-497d-810a-1950260bf60e",
-                "option": "elyra_output_filtered_text"
+                "widget": "inputpath",
+                "value": {
+                  "value": "ce91f17a-f5d7-497d-810a-1950260bf60e",
+                  "option": "output_filtered_text"
+                }
               }
             },
             "label": "",
@@ -197,7 +203,7 @@
         "ui_data": {
           "comments": []
         },
-        "version": 7,
+        "version": 8,
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "pipeline_defaults": {},

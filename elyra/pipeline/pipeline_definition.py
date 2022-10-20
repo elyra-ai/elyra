@@ -20,24 +20,19 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Set
+from typing import Union
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
 from jinja2 import Undefined
 
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.pipeline import KeyValueList
-from elyra.pipeline.pipeline import KubernetesAnnotation
-from elyra.pipeline.pipeline import KubernetesSecret
-from elyra.pipeline.pipeline import KubernetesToleration
+from elyra.pipeline.component_parameter import ComponentParameter
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
-from elyra.pipeline.pipeline import VolumeMount
-from elyra.pipeline.pipeline_constants import ELYRA_COMPONENT_PROPERTIES
-from elyra.pipeline.pipeline_constants import ENV_VARIABLES
-from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES, RUNTIME_IMAGE
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
-from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
-from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_META_PROPERTIES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
@@ -105,12 +100,20 @@ class Pipeline(AppDataBase):
         super().__init__(node)
 
     @property
-    def version(self) -> int:
+    def version(self) -> Union[int, float]:
         """
         The pipeline version
         :return: The version
         """
-        return int(self._node["app_data"].get("version"))
+        version = self._node["app_data"].get("version")
+        if isinstance(version, (int, float)):
+            return version
+
+        try:
+            version = int(version)
+        except ValueError:  # version is not an int; this will only ever be the case in dev versions
+            version = float(version)
+        return version
 
     @property
     def runtime(self) -> str:
@@ -225,27 +228,29 @@ class Pipeline(AppDataBase):
 
         self._node["app_data"]["properties"][key] = value
 
-    def convert_kv_properties(self, kv_properties: Set[str]):
+    def convert_elyra_owned_properties(self) -> None:
         """
-        Convert pipeline defaults-level list properties that have been identified
-        as sets of key-value pairs from a plain list type to the KeyValueList type.
+        Convert select pipeline-level properties to their corresponding dataclass
+        object type. No validation is performed.
         """
         pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
-        for property_name, value in pipeline_defaults.items():
-            if property_name not in kv_properties:
-                continue
+        for param_id, param_value in list(pipeline_defaults.items()):
+            if param_id == RUNTIME_IMAGE:
+                continue  # runtime image is the only pipeline default that does not need to be converted
+            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
+                continue  # property has already been properly converted or cannot be converted
 
-            # Replace plain list with KeyValueList
-            pipeline_defaults[property_name] = KeyValueList(value)
-
-        if pipeline_defaults:
-            self.set_property(PIPELINE_DEFAULTS, pipeline_defaults)
+            converted_value = ElyraProperty.create_instance(param_id, param_value)
+            if converted_value is not None:
+                pipeline_defaults[param_id] = converted_value
+            else:
+                del pipeline_defaults[param_id]
 
 
 class Node(AppDataBase):
     def __init__(self, node: Dict):
         super().__init__(node)
-        self._elyra_properties_to_skip = set()
+        self._elyra_owned_properties = set()
 
     @property
     def type(self) -> str:
@@ -308,37 +313,55 @@ class Node(AppDataBase):
         return None
 
     @property
-    def elyra_properties_to_skip(self) -> Set[str]:
+    def is_generic(self) -> True:
         """
-        Elyra-defined node properties whose processing should be skipped
-        on the basis that their id collides with a property defined in
-        the component definition for this Node.
-        """
-        return self._elyra_properties_to_skip
-
-    def set_elyra_properties_to_skip(self, runtime_type_name: Optional[str]) -> None:
-        """
-        Determine which Elyra-defined node-level properties to skip
-        on the basis that their id collides with a property defined in
-        the component definition for this Node. Then, set the node
-        property accordingly.
+        A property that denotes whether this node is a generic component
         """
         if Operation.is_generic_operation(self.op):
-            # Generic operations will never have any collisions as all their properties are Elyra-owned
-            return
+            return True
+        return False
 
-        if not runtime_type_name:
-            return
+    @property
+    def elyra_owned_properties(self) -> Set[str]:
+        """
+        Elyra-defined node properties. In the case of a collision of ids
+        between Elyra-defined properties and properties parsed from the
+        component definition, the Elyra-defined property will be excluded.
+        """
+        return self._elyra_owned_properties
 
-        runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_name)
-        component = ComponentCache.instance().get_component(runtime_type, self.op)
-        if not component:
-            return
+    @elyra_owned_properties.setter
+    def elyra_owned_properties(self, value: Set) -> None:
+        self._elyra_owned_properties = value
 
-        # Properties that have the same ref (id) as Elyra-owned node properties
-        # should be skipped during property propagation and conversion
-        properties_to_skip = [prop.ref for prop in component.properties if prop.ref in ELYRA_COMPONENT_PROPERTIES]
-        self._elyra_properties_to_skip = set(properties_to_skip)
+    def set_elyra_owned_properties(self, runtime_type_name: Optional[str]) -> None:
+        """
+        Determine which Elyra-defined node-level properties apply on the basis that their
+        id does not collide with a property defined in the component definition for this
+        Node. Then, set the Elyra-owned node properties accordingly.
+        """
+        component = ComponentCache.get_generic_component_from_op(self.op)
+        if runtime_type_name and component is None:
+            runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_name)
+            component = ComponentCache.instance().get_component(runtime_type, self.op)
+
+        if component:
+            # Properties that have the same ref (id) as Elyra-owned node properties
+            # should be skipped during property propagation and conversion
+            self.elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
+
+    @property
+    def propagated_properties(self) -> Set[str]:
+        """
+        The set of properties for which a pipeline default value should be propagated to this node
+        in the applicable scenario. This may not be the same as the set of Elyra-owned properties
+        (ie, properties with a corresponding ElyraProperty class) in all cases. That distinction
+        is made here as needed.
+        """
+        propagated_props = {*self.elyra_owned_properties}  # all Elyra-owned props should be propagated
+        if self.is_generic:
+            propagated_props.add(RUNTIME_IMAGE)  # generic nodes should also have runtime_image propagated
+        return propagated_props
 
     def get_component_parameter(self, key: str, default_value=None) -> Any:
         """
@@ -364,37 +387,23 @@ class Node(AppDataBase):
         if value is None:
             raise ValueError("Value is required")
 
-        if key not in self.elyra_properties_to_skip:
-            # This parameter has been parsed from a custom component definition and
-            # its value should not be manually set
-            self._node["app_data"]["component_parameters"][key] = value
+        self._node["app_data"]["component_parameters"][key] = value
+
+    def pop_component_parameter(self, key: str, default: Optional[Any] = None) -> Any:
+        """
+        Pop component parameter values for a given key
+        :param key: The parameter key to be retrieved
+        :param default: the value to be set if not found
+        """
+        if not key:
+            raise ValueError("Key is required")
+        return self._node["app_data"]["component_parameters"].pop(key, default)
 
     def get_all_component_parameters(self) -> Dict[str, Any]:
         """
         Retrieve all component parameter key-value pairs.
         """
         return self._node["app_data"]["component_parameters"]
-
-    def convert_kv_properties(self, kv_properties: Set[str]):
-        """
-        Convert node-level list properties that have been identified as sets of
-        key-value pairs from a plain list type to the KeyValueList type. If any
-        k-v property has already been converted to a KeyValueList, all k-v
-        properties are assumed to have already been converted.
-        """
-        for kv_property in kv_properties:
-            value = self.get_component_parameter(kv_property)
-            if not value or not isinstance(value, list):  # not list or KeyValueList
-                continue
-
-            if isinstance(value, KeyValueList) or not isinstance(value[0], str):
-                # A KeyValueList instance implies all relevant properties have already been converted
-                # Similarly, if KeyValueList items aren't strings, this implies they have already been
-                # converted to the appropriate data class objects
-                return
-
-            # Convert plain list to KeyValueList
-            self.set_component_parameter(kv_property, KeyValueList(value))
 
     def remove_env_vars_with_matching_secrets(self):
         """
@@ -403,63 +412,25 @@ class Node(AppDataBase):
         """
         env_vars = self.get_component_parameter(ENV_VARIABLES)
         secrets = self.get_component_parameter(KUBERNETES_SECRETS)
-        if isinstance(env_vars, KeyValueList) and isinstance(secrets, KeyValueList):
-            new_list = KeyValueList.difference(minuend=env_vars, subtrahend=secrets)
+        if isinstance(env_vars, ElyraPropertyList) and isinstance(secrets, ElyraPropertyList):
+            new_list = ElyraPropertyList.difference(minuend=env_vars, subtrahend=secrets)
             self.set_component_parameter(ENV_VARIABLES, new_list)
 
-    def convert_data_class_properties(self):
+    def convert_elyra_owned_properties(self) -> None:
         """
         Convert select node-level list properties to their corresponding dataclass
         object type. No validation is performed.
         """
-        volume_mounts = self.get_component_parameter(MOUNTED_VOLUMES)
-        if volume_mounts and isinstance(volume_mounts, KeyValueList):
-            volume_objects = []
-            for mount_path, pvc_name in volume_mounts.to_dict().items():
-                formatted_mount_path = f"/{mount_path.strip('/')}"
+        for param_id in self.elyra_owned_properties:
+            param_value = self.get_component_parameter(param_id)
+            if isinstance(param_value, (ElyraProperty, ElyraPropertyList)) or param_value is None:
+                continue  # property has already been properly converted or cannot be converted
 
-                # Create a VolumeMount class instance and add to list
-                volume_objects.append(VolumeMount(formatted_mount_path, pvc_name))
-
-            self.set_component_parameter(MOUNTED_VOLUMES, volume_objects)
-
-        secrets = self.get_component_parameter(KUBERNETES_SECRETS)
-        if secrets and isinstance(secrets, KeyValueList):
-            secret_objects = []
-            for env_var_name, secret in secrets.to_dict().items():
-                secret_name, *optional_key = secret.split(":", 1)
-
-                secret_key = ""
-                if optional_key:
-                    secret_key = optional_key[0].strip()
-
-                # Create a KubernetesSecret class instance and add to list
-                secret_objects.append(KubernetesSecret(env_var_name, secret_name.strip(), secret_key))
-
-            self.set_component_parameter(KUBERNETES_SECRETS, secret_objects)
-
-        kubernetes_tolerations = self.get_component_parameter(KUBERNETES_TOLERATIONS)
-        if kubernetes_tolerations and isinstance(kubernetes_tolerations, KeyValueList):
-            tolerations_objects = []
-            for toleration, toleration_definition in kubernetes_tolerations.to_dict().items():
-                # A definition comprises of "<key>:<operator>:<value>:<effect>"
-                parts = toleration_definition.split(":")
-                key, operator, value, effect = (parts + [""] * 4)[:4]
-                # Create a KubernetesToleration class instance and add to list
-                # Note that the instance might be invalid.
-                tolerations_objects.append(KubernetesToleration(key, operator, value, effect))
-
-            self.set_component_parameter(KUBERNETES_TOLERATIONS, tolerations_objects)
-
-        kubernetes_pod_annotations = self.get_component_parameter(KUBERNETES_POD_ANNOTATIONS)
-        if kubernetes_pod_annotations and isinstance(kubernetes_pod_annotations, KeyValueList):
-            annotations_objects = []
-            for annotation_key, annotation_value in kubernetes_pod_annotations.to_dict().items():
-                # Validation should have verified that the provided values are valid
-                # Create a KubernetesAnnotation class instance and add to list
-                annotations_objects.append(KubernetesAnnotation(annotation_key, annotation_value))
-
-            self.set_component_parameter(KUBERNETES_POD_ANNOTATIONS, annotations_objects)
+            converted_value = ElyraProperty.create_instance(param_id, param_value)
+            if converted_value is not None:
+                self.set_component_parameter(param_id, converted_value)
+            else:
+                self.pop_component_parameter(param_id)
 
 
 class PipelineDefinition(object):
@@ -634,39 +605,29 @@ class PipelineDefinition(object):
         For any default pipeline properties set (e.g. runtime image, volume), propagate
         the values to any nodes that do not set their own value for that property.
         """
-        # Convert any key-value list pipeline default properties to the KeyValueList type
-        kv_properties = PipelineDefinition.get_kv_properties()
-        self.primary_pipeline.convert_kv_properties(kv_properties)
+        self.primary_pipeline.convert_elyra_owned_properties()
 
         pipeline_default_properties = self.primary_pipeline.get_property(PIPELINE_DEFAULTS, {})
         for node in self.pipeline_nodes:
-            # Determine which Elyra-owned properties collide with parsed properties (and therefore must be skipped)
-            node.set_elyra_properties_to_skip(self.primary_pipeline.type)
+            # Determine which Elyra-owned properties will require dataclass conversion, then convert
+            node.set_elyra_owned_properties(self.primary_pipeline.type)
+            node.convert_elyra_owned_properties()
 
-            # Convert any key-value list node properties to the KeyValueList type if not done already
-            node.convert_kv_properties(kv_properties)
-
-            for property_name, pipeline_default_value in pipeline_default_properties.items():
-                if not pipeline_default_value:
-                    continue
-
-                if not Operation.is_generic_operation(node.op) and property_name not in ELYRA_COMPONENT_PROPERTIES:
-                    # Do not propagate default properties that do not apply to custom components, e.g. runtime image
+            for property_name, pipeline_value in pipeline_default_properties.items():
+                if not pipeline_value or property_name not in node.propagated_properties:
                     continue
 
                 node_value = node.get_component_parameter(property_name)
                 if not node_value:
-                    node.set_component_parameter(property_name, pipeline_default_value)
+                    node.set_component_parameter(property_name, pipeline_value)
                     continue
 
-                if isinstance(pipeline_default_value, KeyValueList) and isinstance(node_value, KeyValueList):
-                    merged_list = KeyValueList.merge(node_value, pipeline_default_value)
+                if all(isinstance(value, ElyraPropertyList) for value in [pipeline_value, node_value]):
+                    merged_list = ElyraPropertyList.merge(node_value, pipeline_value)
                     node.set_component_parameter(property_name, merged_list)
 
             if self.primary_pipeline.runtime_config != "local":
                 node.remove_env_vars_with_matching_secrets()
-
-            node.convert_data_class_properties()
 
     def is_valid(self) -> bool:
         """
@@ -744,7 +705,7 @@ class PipelineDefinition(object):
         return supernode_list
 
     @staticmethod
-    def get_canvas_properties_from_template(package_name: str, template_name: str) -> Dict[str, Any]:
+    def get_canvas_properties_from_template(package_name: str, template_name: str, runtime_type: str) -> Dict[str, Any]:
         """
         Retrieves the dict representation of the canvas-formatted properties
         associated with the given template and package names. Rendering does
@@ -752,33 +713,26 @@ class PipelineDefinition(object):
         SilentUndefined class.
         """
         loader = PackageLoader("elyra", package_name)
-        template_env = Environment(loader=loader, undefined=SilentUndefined)
 
+        params_custom = ElyraProperty.get_classes_for_component_type("custom", runtime_type)
+        params_generic = ElyraProperty.get_classes_for_component_type("generic", runtime_type)
+
+        # Get intersection of parameter sets
+        params_both = params_custom & params_generic
+
+        template_vars = {
+            "elyra_owned_custom_parameters": params_both ^ params_custom,
+            "elyra_owned_generic_parameters": params_generic ^ params_both,
+            "elyra_owned_parameters": params_both,
+            "render_parameter_details": ComponentParameter.render_parameter_details,
+        }
+        template_env = Environment(loader=loader, undefined=SilentUndefined)
+        template_env.policies["json.dumps_kwargs"] = {"sort_keys": False}  # prevent automatic key sort on 'tojson'
         template = template_env.get_template(template_name)
+        template.globals.update(template_vars)
+
         output = template.render()
         return json.loads(output)
-
-    @staticmethod
-    def get_kv_properties() -> Set[str]:
-        """
-        Get pipeline properties in its canvas form and loop through to
-        find those that should consist of key/value pairs, as given in
-        the 'keyValueEntries' key.
-        """
-        canvas_pipeline_properties = PipelineDefinition.get_canvas_properties_from_template(
-            package_name="templates/pipeline", template_name="pipeline_properties_template.jinja2"
-        )
-
-        kv_properties = set()
-        parameter_info = canvas_pipeline_properties.get("uihints", {}).get("parameter_info", [])
-        for parameter in parameter_info:
-            if parameter.get("data", {}).get("keyValueEntries", False):
-                parameter_ref = parameter.get("parameter_ref", "")
-                if parameter_ref.startswith("elyra_"):
-                    parameter_ref = parameter_ref.replace("elyra_", "")
-                kv_properties.add(parameter_ref)
-
-        return kv_properties
 
 
 class SilentUndefined(Undefined):

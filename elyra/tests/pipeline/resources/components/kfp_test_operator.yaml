@@ -12,7 +12,7 @@ inputs:
 - {name: test_int_non_zero, description: 'The test command description', type: Integer, default: '1'}
 - {name: test_float_default, description: 'The test command description', type: Float}
 - {name: test_float_zero, description: 'The test command description', type: Float, default: '0.0'}
-- {name: test_float_non_zero, description: 'The test command description', type: Float, default: '1.0'}
+- {name: test_float_non_zero, description: 'The test command description', type: Float, default: '1.1'}
 - {name: test_dict_default, description: 'The test command description', type: Dict}
 - {name: test_list_default, description: 'The test command description', type: List}
 - {name: test_required_property, description: 'The test command description', type: String, optional: false}

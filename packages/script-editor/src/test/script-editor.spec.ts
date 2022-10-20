@@ -18,6 +18,7 @@ import { JupyterServer } from '@jupyterlab/testutils';
 
 import { ScriptEditorController } from '../ScriptEditorController';
 import { ScriptRunner } from '../ScriptRunner';
+
 jest.setTimeout(3 * 60 * 1000);
 
 const server = new JupyterServer();
@@ -33,16 +34,28 @@ afterAll(async () => {
 
 describe('@elyra/script-editor', () => {
   describe('ScriptEditorController', () => {
-    describe('#getKernelSpecs', () => {
+    let controller: ScriptEditorController;
+
+    beforeEach(async () => {
+      controller = new ScriptEditorController();
+    });
+
+    describe('#kernelSpecs', () => {
       it('should get Python kernel specs', async () => {
-        const controller = new ScriptEditorController();
         const kernelSpecs = await controller.getKernelSpecsByLanguage(language);
-        for (const [key, value] of Object.entries(
-          kernelSpecs?.kernelspecs ?? []
-        )) {
-          expect(key).toContain(language);
-          expect(value?.language).toContain(language);
-        }
+        Object.entries(kernelSpecs?.kernelspecs ?? []).forEach(([, value]) =>
+          expect(value?.language).toContain(language)
+        );
+      });
+    });
+
+    describe('#debuggerAvailable', () => {
+      it('should return true for kernels that have support for debugging', async () => {
+        let available = await controller.debuggerAvailable('python3');
+        expect(available).toBe(true);
+
+        available = await controller.debuggerAvailable('test');
+        expect(available).toBe(false);
       });
     });
   });
@@ -56,9 +69,7 @@ describe('@elyra/script-editor', () => {
       beforeEach(async () => {
         runner = new ScriptRunner((x: boolean): void => console.log(x));
         const controller = new ScriptEditorController();
-        const kernelSpecs = await controller.getKernelSpecsByLanguage(language);
-        kernelName =
-          Object.values(kernelSpecs?.kernelspecs ?? [])[0]?.name || '';
+        kernelName = await controller.getDefaultKernel(language);
       });
 
       it('should start a kernel session', async () => {

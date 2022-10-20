@@ -213,52 +213,34 @@ def test_parse_airflow_component_file():
 
     # Helper method to retrieve the requested parameter value from the dictionary
     def get_parameter_value(param_name):
-        param_name = f"elyra_{param_name}"  # add elyra_prefix to param name
-        property_dict = properties_json["current_parameters"][param_name]
-        return property_dict[property_dict["activeControl"]]
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        return property_dict["oneOf"][0]["properties"]["value"].get("default", "")
 
     # Helper method to retrieve the requested parameter info from the dictionary
-    def get_parameter_format(param_name, control_id="StringControl"):
-        param_info = None
-        param_name = f"elyra_{param_name}"  # add elyra_prefix to param name
-        for prop_info in properties_json["uihints"]["parameter_info"]:
-            if prop_info.get("parameter_ref") == param_name:
-                param_info = prop_info["data"]["controls"][control_id]["format"]
-                break
-
-        return param_info
+    def get_parameter_format(param_name):
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        return property_dict["oneOf"][0]["properties"]["value"]["type"]
 
     # Helper method to retrieve the requested parameter description from the dictionary
     def get_parameter_description(param_name):
-        param_desc = None
-        param_name = f"elyra_{param_name}"  # add elyra_prefix to param name
-        for prop_info in properties_json["uihints"]["parameter_info"]:
-            if prop_info.get("parameter_ref") == param_name:
-                param_desc = prop_info["description"]["default"]
-                break
-
-        return param_desc
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        return property_dict["description"]
 
     # Helper method to retrieve whether the requested parameter is required
     def get_parameter_required(param_name):
-        param_info = None
-        param_name = f"elyra_{param_name}"  # add elyra_prefix to param name
-        for prop_info in properties_json["uihints"]["parameter_info"]:
-            if prop_info.get("parameter_ref") == param_name:
-                param_info = prop_info["data"]["required"]
-                break
-
-        return param_info
+        required_parameters = properties_json["properties"]["component_parameters"]["required"]
+        return param_name in required_parameters
 
     # Retrieve properties for TestOperator
     # Test Operator does not include type hints for the init function args
     properties_json = ComponentCache.to_canvas_properties(test_op)
+    props_as_dict = {param.ref: param for param in test_op.input_properties}
 
-    # Ensure system parameters are not prefixed and hold correct values
-    assert properties_json["current_parameters"]["label"] == ""
+    # Ensure system parameters are present
+    assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert properties_json["current_parameters"]["component_source"] == component_source
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
     # Ensure component parameters are prefixed with 'elyra_' and values are as expected
     assert get_parameter_value("str_no_default") == ""
@@ -281,8 +263,10 @@ def test_parse_airflow_component_file():
 
     # Ensure that type information is inferred correctly for properties that
     # define 'unusual' types, such as 'a dictionary of lists'
-    assert get_parameter_format("unusual_type_dict") == "dictionary"
-    assert get_parameter_format("unusual_type_list") == "list"
+    assert get_parameter_format("unusual_type_dict") == "string"
+    assert props_as_dict["unusual_type_dict"].json_data_type == "object"
+    assert get_parameter_format("unusual_type_list") == "string"
+    assert props_as_dict["unusual_type_list"].json_data_type == "array"
 
     # TestOperator has a property, 'mounted_volumes', whose id/ref collides with
     # the system-defined property of the same id. In these cases, the parsed property
@@ -325,6 +309,7 @@ def test_parse_airflow_component_file():
     # Retrieve properties for DeriveFromTestOperator
     # DeriveFromTestOperator includes type hints for all init arguments
     properties_json = ComponentCache.to_canvas_properties(derive_test_op)
+    props_as_dict = {param.ref: param for param in derive_test_op.input_properties}
 
     # Ensure default values are parsed correct in the case where type hints are present
     assert get_parameter_value("str_default") == "default"
@@ -339,15 +324,16 @@ def test_parse_airflow_component_file():
     assert get_parameter_format("str_optional_default") == "string"
     assert get_parameter_format("str_not_in_docstring") == "string"
 
-    assert get_parameter_format("bool_no_default", "BooleanControl") == "boolean"
-    assert get_parameter_format("bool_default", "BooleanControl") == "boolean"
-    assert get_parameter_format("bool_not_in_docstring", "BooleanControl") == "boolean"
+    assert get_parameter_format("bool_no_default") == "boolean"
+    assert get_parameter_format("bool_default") == "boolean"
+    assert get_parameter_format("bool_not_in_docstring") == "boolean"
 
-    assert get_parameter_format("int_no_default", "NumberControl") == "number"
-    assert get_parameter_format("int_default", "NumberControl") == "number"
-    assert get_parameter_format("int_not_in_docstring", "NumberControl") == "number"
+    assert get_parameter_format("int_no_default") == "number"
+    assert get_parameter_format("int_default") == "number"
+    assert get_parameter_format("int_not_in_docstring") == "number"
 
-    assert get_parameter_format("list_optional_default") == "list"
+    assert get_parameter_format("list_optional_default") == "string"
+    assert props_as_dict["list_optional_default"].json_data_type == "array"
 
     # Ensure component parameters are marked as required in the correct circumstances
     assert get_parameter_required("str_no_default") is True
@@ -359,18 +345,28 @@ def test_parse_airflow_component_file():
     # DeriveFromImportedOperator includes type hints for dictionary and
     # list values to test the more complex parsing required in this case
     properties_json = ComponentCache.to_canvas_properties(import_test_op)
+    props_as_dict = {param.ref: param for param in import_test_op.input_properties}
 
     # Ensure component parameters are prefixed with '' and types are as expected
-    assert get_parameter_format("dict_no_default") == "dictionary"
-    assert get_parameter_format("dict_optional_no_default") == "dictionary"
-    assert get_parameter_format("nested_dict_default") == "dictionary"
-    assert get_parameter_format("dict_not_in_docstring") == "dictionary"
+    assert get_parameter_format("dict_no_default") == "string"
+    assert props_as_dict["dict_no_default"].json_data_type == "object"
+    assert get_parameter_format("dict_optional_no_default") == "string"
+    assert props_as_dict["dict_optional_no_default"].json_data_type == "object"
+    assert get_parameter_format("nested_dict_default") == "string"
+    assert props_as_dict["nested_dict_default"].json_data_type == "object"
+    assert get_parameter_format("dict_not_in_docstring") == "string"
+    assert props_as_dict["dict_not_in_docstring"].json_data_type == "object"
 
-    assert get_parameter_format("list_no_default") == "list"
-    assert get_parameter_format("list_optional_no_default") == "list"
-    assert get_parameter_format("list_default") == "list"
-    assert get_parameter_format("list_optional_default") == "list"
-    assert get_parameter_format("list_not_in_docstring") == "list"
+    assert get_parameter_format("list_no_default") == "string"
+    assert props_as_dict["list_no_default"].json_data_type == "array"
+    assert get_parameter_format("list_optional_no_default") == "string"
+    assert props_as_dict["list_optional_no_default"].json_data_type == "array"
+    assert get_parameter_format("list_default") == "string"
+    assert props_as_dict["list_default"].json_data_type == "array"
+    assert get_parameter_format("list_optional_default") == "string"
+    assert props_as_dict["list_optional_default"].json_data_type == "array"
+    assert get_parameter_format("list_not_in_docstring") == "string"
+    assert props_as_dict["list_not_in_docstring"].json_data_type == "array"
 
     assert get_parameter_value("dict_no_default") == "{}"
     assert get_parameter_value("list_no_default") == "[]"
@@ -400,21 +396,22 @@ def test_parse_airflow_component_url():
     component = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(component)
 
-    # Ensure component parameters are prefixed, and system parameters are not, and hold correct values
-    assert properties_json["current_parameters"]["label"] == ""
-
-    # Helper method to retrieve the requested parameter value from the dictionary
-    def get_parameter(param_name):
-        property_dict = properties_json["current_parameters"][param_name]
-        return property_dict[property_dict["activeControl"]]
+    # Ensure system parameters are present
+    assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert properties_json["current_parameters"]["component_source"] == component_source
-    assert get_parameter("elyra_str_no_default") == ""
-    assert get_parameter("elyra_bool_default_true") is True
-    assert get_parameter("elyra_int_default_non_zero") == 2
-    assert get_parameter("elyra_unusual_type_dict") == "{}"  # {}
-    assert get_parameter("elyra_unusual_type_list") == "[]"
+    assert properties_json["properties"]["component_source"]["default"] == component_source
+
+    # Helper method to retrieve the requested parameter value from the dictionary
+    def get_parameter_value(param_name):
+        property_dict = properties_json["properties"]["component_parameters"]["properties"][param_name]
+        return property_dict["oneOf"][0]["properties"]["value"].get("default", "")
+
+    assert get_parameter_value("str_no_default") == ""
+    assert get_parameter_value("bool_default_true") is True
+    assert get_parameter_value("int_default_non_zero") == 2
+    assert get_parameter_value("unusual_type_dict") == "{}"  # {}
+    assert get_parameter_value("unusual_type_list") == "[]"
 
 
 def test_parse_airflow_component_file_no_inputs():
@@ -441,26 +438,22 @@ def test_parse_airflow_component_file_no_inputs():
     no_input_op = parser.parse(catalog_entry)[0]
     properties_json = ComponentCache.to_canvas_properties(no_input_op)
 
-    # Properties JSON should only include the six parameters common to every
-    # component: ('label', 'component_source', 'mounted_volumes',
-    # 'kubernetes_pod_annotations', 'kubernetes_tolerations', and 'elyra_disallow_cached_output')
-    num_common_params = 6
-    assert len(properties_json["current_parameters"].keys()) == num_common_params
-    assert len(properties_json["parameters"]) == num_common_params
-    assert len(properties_json["uihints"]["parameter_info"]) == num_common_params
+    # Properties JSON should only include the five parameters common to every
+    # component: ('mounted_volumes', 'kubernetes_pod_annotations', 'kubernetes_pod_labels',
+    # 'kubernetes_shared_mem_size', and 'kubernetes_tolerations')
+    num_common_params = 5
+    properties_from_json = [
+        prop
+        for prop in properties_json["properties"]["component_parameters"]["properties"].keys()
+        if "header" not in prop
+    ]
+    assert len(properties_from_json) == num_common_params
 
-    # Total number of groups includes one for each parameter,
-    # plus 1 for the component_source header,
-    # plus 1 for the 'other properties' header (that includes, e.g., mounted_volumes)
-    # (Airflow does not include an output header since there are no formally defined outputs)
-    num_groups = num_common_params + 2
-    assert len(properties_json["uihints"]["group_info"][0]["group_info"]) == num_groups
-
-    # Ensure that template still renders the two common parameters correctly
-    assert properties_json["current_parameters"]["label"] == ""
+    # Ensure system parameters are present
+    assert properties_json["properties"]["label"] is not None
 
     component_source = json.dumps({"catalog_type": catalog_type, "component_ref": catalog_entry.entry_reference})
-    assert properties_json["current_parameters"]["component_source"] == component_source
+    assert properties_json["properties"]["component_source"]["default"] == component_source
 
 
 @pytest.mark.parametrize(

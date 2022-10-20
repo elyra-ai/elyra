@@ -49,7 +49,7 @@ fieldset#root > div > fieldset {
 }
 
 label.control-label {
-  font-size: var(--jp-content-font-size2);
+  font-size: var(--jp-content-font-size1);
   font-weight: 500;
 }
 
@@ -157,7 +157,7 @@ input.elyra-inputTag {
   padding: 8px;
   border: 1px solid var(--jp-border-color1);
   border-radius: 4px;
-  font-size: var(--jp-content-font-size2);
+  font-size: var(--jp-content-font-size1);
   margin-top: 10px;
   width: 100%;
   background-color: var(--jp-input-active-background);
@@ -318,7 +318,8 @@ button.elyra-editor-tag.unapplied-tag {
   padding-right: 10px;
 }
 
-.elyra-formEditor .array-item .form-group.field input {
+.elyra-formEditor .array-item .form-group.field input,
+.elyra-formEditor .array-item .form-group.field select {
   margin-top: 0;
 }
 

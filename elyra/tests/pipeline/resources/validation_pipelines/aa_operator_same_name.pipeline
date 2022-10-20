@@ -9,95 +9,35 @@
       "id": "primary",
       "nodes": [
         {
-          "id": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
+          "id": "9a674fe4-5825-4841-8c4c-6e05879c4718",
           "type": "execution_node",
-          "op": "elyra-kfp-examples-catalog:a08014f9252f",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
           "app_data": {
             "component_parameters": {
-              "url": {
+              "str_no_default": {
                 "widget": "string",
-                "value": "https://raw.githubusercontent.com/kubeflow/pipelines/93fc34474bf989998cf19445149aca2847eee763/components/notebooks/samples/test_notebook.ipynb"
+                "value": "echo 'test one'"
               },
-              "curl_options": {
-                "widget": "string",
-                "value": "--location"
+              "bool_no_default": {
+                "widget": "boolean",
+                "value": true
               },
-              "output_data": ""
-            },
-            "label": "",
-            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
-            "ui_data": {
-              "label": "Download data",
-              "image": "/static/elyra/kubeflow.svg",
-              "x_pos": 16,
-              "y_pos": 78.5
-            }
-          },
-          "inputs": [
-            {
-              "id": "inPort",
-              "app_data": {
-                "ui_data": {
-                  "cardinality": {
-                    "min": 0,
-                    "max": -1
-                  },
-                  "label": "Input Port"
-                }
-              }
-            }
-          ],
-          "outputs": [
-            {
-              "id": "outPort",
-              "app_data": {
-                "ui_data": {
-                  "cardinality": {
-                    "min": 0,
-                    "max": -1
-                  },
-                  "label": "Output Port"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "id": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1",
-          "type": "execution_node",
-          "op": "elyra-kfp-examples-catalog:61e6f4141f65",
-          "app_data": {
-            "component_parameters": {
-              "notebook": {
-                "widget": "inputpath",
-                "value": {
-                  "value": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
-                  "invalid_key": "elyra_output_data"
-                }
-              },
-              "parameters": {
+              "unusual_type_dict": {
                 "widget": "string",
                 "value": "{}"
               },
-              "packages_to_install": {
+              "unusual_type_list": {
                 "widget": "string",
                 "value": "[]"
-              },
-              "input_data": {
-                "widget": "string",
-                "value": ""
-              },
-              "output_notebook": "",
-              "output_output_data": ""
+              }
             },
             "label": "",
-            "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/share/jupyter/components/kfp/run_notebook_using_papermill.yaml",
+            "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
             "ui_data": {
-              "label": "Run notebook using papermill",
-              "image": "/static/elyra/kubeflow.svg",
-              "x_pos": 244,
-              "y_pos": 166.5,
-              "description": "Run Jupyter notebook using papermill. The notebook will receive the parameter values passed to it as well as the INPUT_DATA_PATH and OUTPUT_DATA_PATH variables that will be set to the input data path (if provided) and directory for the optional output data."
+              "label": "TestOperator",
+              "image": "/static/elyra/airflow.svg",
+              "x_pos": 128,
+              "y_pos": 124.5
             }
           },
           "inputs": [
@@ -111,14 +51,7 @@
                   },
                   "label": "Input Port"
                 }
-              },
-              "links": [
-                {
-                  "id": "24a11ff0-3853-49ff-a56f-cd9ea8dadfd5",
-                  "node_id_ref": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
-                  "port_id_ref": "outPort"
-                }
-              ]
+              }
             }
           ],
           "outputs": [
@@ -137,30 +70,99 @@
           ]
         },
         {
-          "id": "e8820c55-dc79-46d1-b32e-924fa5d70d2a",
+          "id": "0eb57369-99d1-4cd0-a205-8d8d96af3ad4",
           "type": "execution_node",
-          "op": "elyra-kfp-examples-catalog:d68ec7fcdf46",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
           "app_data": {
             "component_parameters": {
-              "data": {
-                "widget": "inputpath",
-                "value": {
-                    "value": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1"
-                }
-              },
-              "hash_algorithm": {
+              "str_no_default": {
                 "widget": "string",
-                "value": "SHA512"
+                "value": "echo 'test two'"
               },
-              "output_hash": ""
+              "bool_no_default": {
+                "widget": "boolean",
+                "value": true
+              },
+              "unusual_type_dict": {
+                "widget": "string",
+                "value": "{}"
+              },
+              "unusual_type_list": {
+                "widget": "string",
+                "value": "[]"
+              }
             },
             "label": "",
-            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml",
+            "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
             "ui_data": {
-              "label": "Calculate data hash",
-              "image": "/static/elyra/kubeflow.svg",
-              "x_pos": 481,
-              "y_pos": 89.5
+              "label": "TestOperator",
+              "image": "/static/elyra/airflow.svg",
+              "x_pos": 129,
+              "y_pos": 230.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "e3922a29-f4c0-43d9-8d8b-4509aab80032",
+          "type": "execution_node",
+          "op": "local-file-catalog:8371f5970c7b:TestOperator",
+          "app_data": {
+            "component_parameters": {
+              "str_no_default": {
+                "widget": "inputpath",
+                "value": {
+                  "value": "0eb57369-99d1-4cd0-a205-8d8d96af3ad4",
+                  "option": ""
+                }
+              },
+              "bool_no_default": {
+                "widget": "boolean",
+                "value": true
+              },
+              "unusual_type_dict": {
+                "widget": "string",
+                "value": "{}"
+              },
+              "unusual_type_list": {
+                "widget": "string",
+                "value": "[]"
+              }
+            },
+            "label": "",
+            "component_source": "{'catalog_type': 'local-file-catalog', 'component_ref': {'path': 'airflow_test_operator.py'}}",
+            "ui_data": {
+              "label": "TestOperator",
+              "image": "/static/elyra/airflow.svg",
+              "x_pos": 128,
+              "y_pos": 124.5
             }
           },
           "inputs": [
@@ -177,8 +179,13 @@
               },
               "links": [
                 {
-                  "id": "9787b387-a2f1-42b3-ba80-ba652d8ae503",
-                  "node_id_ref": "089a12df-fe2f-4fcb-ae37-a1f8a6259ca1",
+                  "id": "d2f7f81d-ab43-42b1-8911-0787e2a68b71",
+                  "node_id_ref": "9a674fe4-5825-4841-8c4c-6e05879c4718",
+                  "port_id_ref": "outPort"
+                },
+                {
+                  "id": "d04ceb99-5360-448f-a9f0-034310a520f8",
+                  "node_id_ref": "0eb57369-99d1-4cd0-a205-8d8d96af3ad4",
                   "port_id_ref": "outPort"
                 }
               ]
@@ -205,10 +212,12 @@
           "comments": []
         },
         "version": 8,
-        "runtime_type": "KUBEFLOW_PIPELINES",
+        "runtime": "airflow",
+        "runtime_type": "APACHE_AIRFLOW",
+        "runtime_config": "aa-yukked1",
+        "source": "aa_operator_same_name.pipeline",
         "properties": {
-          "name": "kf_invalid_inputpath_parameter",
-          "runtime": "Kubeflow Pipelines"
+          "name": "aa_operator_same_name"
         }
       },
       "runtime_ref": ""

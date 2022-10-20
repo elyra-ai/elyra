@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import json
 import os
 from pathlib import Path
 import re
@@ -27,8 +28,10 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.github import GithubClient
@@ -39,7 +42,8 @@ PIPELINE_FILE_CUSTOM_COMPONENTS = "resources/sample_pipelines/pipeline_with_airf
 
 @pytest.fixture
 def processor(monkeypatch, setup_factory_data):
-    processor = AirflowPipelineProcessor(root_dir=os.getcwd())
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    processor = AirflowPipelineProcessor(root_dir=root_dir)
 
     # Add spoofed TestOperator to class import map
     class_import_map = {
@@ -201,14 +205,14 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                     sub_list_line_counter = 0
                     # Gets sub-list slice starting where the Notebook Op starts
                     init_line = i + 1
-                    for line in file_as_lines[init_line:]:
+                    for idx, line in enumerate(file_as_lines[init_line:], start=init_line):
                         if "namespace=" in line:
                             assert sample_metadata["metadata"]["user_namespace"] == read_key_pair(line)["value"]
                         elif "cos_endpoint=" in line:
                             assert sample_metadata["metadata"]["cos_endpoint"] == read_key_pair(line)["value"]
                         elif "cos_bucket=" in line:
                             assert sample_metadata["metadata"]["cos_bucket"] == read_key_pair(line)["value"]
-                        elif "name=" in line:
+                        elif "name=" in line and "Volume" not in file_as_lines[idx - 1]:
                             assert node["app_data"]["ui_data"]["label"] == read_key_pair(line)["value"]
                         elif "notebook=" in line:
                             assert component_parameters["filename"] == read_key_pair(line)["value"]
@@ -216,7 +220,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
                             assert component_parameters["runtime_image"] == read_key_pair(line)["value"]
                         elif "env_vars=" in line:
                             for env in component_parameters["env_vars"]:
-                                var, value = env.split("=")
+                                var, value = env.get("env_var"), env.get("value")
                                 # Gets sub-list slice starting where the env vars starts
                                 start_env = i + sub_list_line_counter + 2
                                 for env_line in file_as_lines[start_env:]:
@@ -268,6 +272,8 @@ def test_create_file_custom_components(
     monkeypatch.setattr(processor, "_get_metadata_configuration", lambda name=None, schemaspace=None: mocked_runtime)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_cc_pipeline", lambda x, y, z: parsed_ordered_dict)
+
+    print(parsed_ordered_dict)
 
     with tempfile.TemporaryDirectory() as temp_dir:
         export_pipeline_output_path = os.path.join(temp_dir, f"{export_pipeline_name}.py")
@@ -322,20 +328,30 @@ def test_create_file_custom_components(
                         # Find 'parameter=' clause in file_as_lines list
                         r = re.compile(rf"\s*{parameter}=.*")
                         parameter_clause = i + 1
-                        assert len(list(filter(r.match, file_as_lines[parameter_clause:]))) > 0
+                        parameter_in_args = len(list(filter(r.match, file_as_lines[parameter_clause:]))) > 0
+                        if parameter == MOUNTED_VOLUMES and "DeriveFromTestOperator" in node["op"]:
+                            # Asserts that "DeriveFromTestOperator", which does not define its own `mounted_volumes`
+                            # property, does not include the property in the Operator constructor args
+                            assert not parameter_in_args
+                        else:
+                            assert parameter_in_args
 
         # Test that parameter value processing proceeded as expected for each data type
         op_id = "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
         op_params = parsed_ordered_dict[op_id].get("component_params", {})
+        str_no_default = op_params.pop("str_no_default")
         expected_params = {
             "mounted_volumes": '"a component-defined property"',
-            "str_no_default": "\"echo 'test one'\"",
             "bool_no_default": True,
             "unusual_type_list": [1, 2],
             "unusual_type_dict": {},
             "int_default_non_zero": 2,
         }
         assert op_params == expected_params
+
+        filepath = os.path.join(processor.root_dir, "resources/sample_pipelines/pipeline_valid.json")
+        with open(filepath, "r") as f:
+            assert str_no_default == json.dumps(f.read())
 
 
 @pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
@@ -421,7 +437,7 @@ def test_pipeline_tree_creation(parsed_ordered_dict, sample_metadata, sample_ima
                         assert ordered_dict[key]["image_pull_policy"] == image.metadata["pull_policy"]
                 print(ordered_dict[key])
                 for env in component_parameters["env_vars"]:
-                    var, value = env.split("=")
+                    var, value = env.get("env_var"), env.get("value")
                     assert ordered_dict[key]["pipeline_envs"][var] == value
                 assert (
                     ordered_dict[key]["pipeline_envs"]["AWS_ACCESS_KEY_ID"]
@@ -443,26 +459,24 @@ def test_collect_envs(processor):
     # add system-owned envs with bogus values to ensure they get set to system-derived values,
     # and include some user-provided edge cases
     operation_envs = [
-        'ELYRA_RUNTIME_ENV="bogus_runtime"',
-        'ELYRA_ENABLE_PIPELINE_INFO="bogus_pipeline"',
-        "ELYRA_WRITABLE_CONTAINER_DIR=",  # simulate operation reference in pipeline
-        'AWS_ACCESS_KEY_ID="bogus_key"',
-        'AWS_SECRET_ACCESS_KEY="bogus_secret"',
-        "USER_EMPTY_VALUE=  ",
-        "USER_TWO_EQUALS=KEY=value",
-        "USER_NO_VALUE=",
+        {"env_var": "ELYRA_RUNTIME_ENV", "value": '"bogus_runtime"'},
+        {"env_var": "ELYRA_ENABLE_PIPELINE_INFO", "value": '"bogus_pipeline"'},
+        {"env_var": "ELYRA_WRITABLE_CONTAINER_DIR", "value": ""},  # simulate operation reference in pipeline
+        {"env_var": "AWS_ACCESS_KEY_ID", "value": '"bogus_key"'},
+        {"env_var": "AWS_SECRET_ACCESS_KEY", "value": '"bogus_secret"'},
+        {"env_var": "USER_EMPTY_VALUE", "value": "  "},
+        {"env_var": "USER_TWO_EQUALS", "value": "KEY=value"},
+        {"env_var": "USER_NO_VALUE", "value": ""},
     ]
-    component_parameters = {
-        "filename": pipelines_test_file,
-        "env_vars": operation_envs,
-        "runtime_image": "tensorflow/tensorflow:latest",
-    }
+    converted_envs = ElyraProperty.create_instance("env_vars", operation_envs)
+
     test_operation = GenericOperation(
         id="this-is-a-test-id",
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_params={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
+        elyra_params={"env_vars": converted_envs},
     )
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")
@@ -633,7 +647,7 @@ def test_process_dictionary_value_function(processor):
 
 
 @pytest.mark.parametrize(
-    "parsed_pipeline", ["resources/validation_pipelines/aa_operator_same_name.json"], indirect=True
+    "parsed_pipeline", ["resources/validation_pipelines/aa_operator_same_name.pipeline"], indirect=True
 )
 @pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
 def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance, parsed_pipeline, sample_metadata):
@@ -651,9 +665,9 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
     pipeline_def_operation_parameters = pipeline_def_operation.component_params_as_dict
     pipeline_def_operation_str_param = pipeline_def_operation_parameters["str_no_default"]
 
-    assert pipeline_def_operation_str_param["activeControl"] == "NestedEnumControl"
-    assert set(pipeline_def_operation_str_param["NestedEnumControl"].keys()) == {"value", "option"}
-    assert pipeline_def_operation_str_param["NestedEnumControl"]["value"] == upstream_task_id
+    assert pipeline_def_operation_str_param["widget"] == "inputpath"
+    assert set(pipeline_def_operation_str_param["value"].keys()) == {"value", "option"}
+    assert pipeline_def_operation_str_param["value"]["value"] == upstream_task_id
 
     ordered_operations = processor._cc_pipeline(
         parsed_pipeline, pipeline_name="some-name", pipeline_instance_id="some-instance-name"

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
+
 from abc import abstractmethod
 from copy import deepcopy
 import hashlib
@@ -39,9 +41,10 @@ from traitlets.traitlets import Integer
 from elyra._version import __version__
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentParameter
+from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.url import FileTransportAdapter
+from elyra.util.url import get_verify_parm
 
 
 class EntryData(object):
@@ -664,6 +667,7 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
                 timeout=UrlComponentCatalogConnector.REQUEST_TIMEOUT,
                 allow_redirects=True,
                 auth=auth,
+                verify=get_verify_parm(),
             )
         except Exception as e:
             self.log.error(
