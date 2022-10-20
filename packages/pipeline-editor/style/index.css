@@ -440,12 +440,9 @@ span.bx--list-box__label {
 }
 
 .elyra-PipelineEditor .form-group.field.field-integer {
-  width: 50%;
+  width: 100%;
 }
 
-.elyra-PipelineEditor .form-group.field.field-string {
-  width: 50%;
-}
 
 .elyra-PipelineEditor .array-pipelineDefaults.form-control {
   display: flex;
@@ -840,12 +837,31 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   padding-bottom: 4px;
 }
 
+div#root_component_parameters_cpu,
+div#root_component_parameters_memory,
+div#root_component_parameters_gpu,
+div#root_component_parameters_gpu_vendor,
+div#root_component_parameters_gpu_memory,
+div#root_component_parameters_gpu_memory_vendor {
+  width: 50%;
+}
+
+input#root_component_parameters_cpu,
+input#root_component_parameters_memory,
+input#root_component_parameters_gpu,
+input#root_component_parameters_gpu_vendor,
+input#root_component_parameters_gpu_memory,
+input#root_component_parameters_gpu_memory_vendor {
+  width: 100%;
+}
+
 #cpu,
+#gpu,
 #memory {
   position: absolute;
   vertical-align: baseline;
   bottom: 0;
-  width: 20%;
+  width: 50%;
 }
 
 /* fix a Safari bug where button margins default to 2px */
