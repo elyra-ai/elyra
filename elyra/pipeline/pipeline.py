@@ -341,10 +341,6 @@ class GenericOperation(Operation):
     def gpu_memory_vendor(self) -> Optional[str]:
         return self._component_params.get("gpu_memory_vendor")
 
-    @property
-    def kubernetes_secrets(self) -> List["KubernetesSecret"]:
-        return self._component_params.get(KUBERNETES_SECRETS)
-
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):
             return super().__eq__(other)
