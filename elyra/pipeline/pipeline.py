@@ -339,10 +339,10 @@ class GenericOperation(Operation):
         self._component_params["env_vars"] = KeyValueList(Operation._scrub_list(component_params.get("env_vars", [])))
         self._component_params["cpu"] = component_params.get("cpu")
         self._component_params["memory"] = component_params.get("memory")
-        self._component_params["gpu_vendor"] = component_params.get("gpu_vendor")
         self._component_params["gpu"] = component_params.get("gpu")
-        self._component_params["gpu_memory_vendor"] = component_params.get("gpu_memory_vendor")
+        self._component_params["gpu_vendor"] = component_params.get("gpu_vendor")
         self._component_params["gpu_memory"] = component_params.get("gpu_memory")
+        self._component_params["gpu_memory_vendor"] = component_params.get("gpu_memory_vendor")
 
     @property
     def name(self) -> str:
