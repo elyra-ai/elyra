@@ -87,8 +87,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             activeSessions[sessionModel.id] = sessionConnection;
           }
 
-          sessionConnection &&
-            (await updateKernel(sessionConnection, kernelSelection));
+          await updateKernel(sessionConnection, kernelSelection);
 
           // Temporary solution to give enough time for the handler to update the UI on page reload.
           setTimeout(async () => {
