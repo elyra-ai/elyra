@@ -1268,13 +1268,12 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@~1.10.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.10.0.tgz#d1b85c5273d62db46a7404de09f3008ad1955426"
-  integrity sha512-UpuCl/Hqc8S4qzNLdqVBpdfGeKOpmWaCG4QbT8U8gafy2NCNUI8A31Ox2/2i4vM7ixUp+EZWOA2FhzqXz7nSxw==
+"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1870e702/@elyra/pipeline-editor":
+  version "1.11.0-rc.0"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1870e702/@elyra/pipeline-editor#9eec006aeb8ddc399abb3c195113773aa16941a1"
   dependencies:
     "@elyra/canvas" "^12.11.2"
-    "@elyra/pipeline-services" "^1.10.0"
+    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1870e702/@elyra/pipeline-services"
     "@rjsf/core" "^4.2.3"
     "@rjsf/utils" "^5.0.0-beta.2"
     "@rjsf/validator-ajv6" "^5.0.0-beta.2"
@@ -1295,10 +1294,9 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.63.tgz#c6a6f9c0bc2215793d78fb90dd5e0b3c46044c7c"
   integrity sha512-p2pNeDmMzRawqFYljv1JAg0HbYlQ57cgMMmO3Slc5IQnKNSa08al5/rtthI04iORWOGi2cF5TNeu2IdjTk0JiA==
 
-"@elyra/pipeline-services@^1.10.0", "@elyra/pipeline-services@~1.10.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.10.0.tgz#3c12c5d4b58bfd851ecb8288cb758b94be2f1e6c"
-  integrity sha512-Uyc65Y4jLJfXwaMKhNSDwcqHgm/QfNjkGZcNb22mBORfFhhQ7tSA3LxOJwvTlvNmN/7Kdxn5vs+2O7BbTM1Pcw==
+"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1870e702/@elyra/pipeline-services":
+  version "1.11.0-rc.0"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/1870e702/@elyra/pipeline-services#f27329ad2821465c8775f06c284219f448eab621"
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
@@ -12619,7 +12617,7 @@ json5@^1.0.1:
   dependencies:
     minimist "^1.2.0"
 
-jsonc-parser@3.2.0, jsonc-parser@^3.0.0:
+jsonc-parser@3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.2.0.tgz#31ff3f4c2b9793f89c67212627c51c6394f88e76"
   integrity sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w==
