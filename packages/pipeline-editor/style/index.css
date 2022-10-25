@@ -443,7 +443,6 @@ span.bx--list-box__label {
   width: 100%;
 }
 
-
 .elyra-PipelineEditor .array-pipelineDefaults.form-control {
   display: flex;
   justify-content: space-between;
@@ -861,7 +860,7 @@ input#root_component_parameters_gpu_memory_vendor {
   position: absolute;
   vertical-align: baseline;
   bottom: 0;
-  width: 50%;
+  width: 20%;
 }
 
 /* fix a Safari bug where button margins default to 2px */
