@@ -264,13 +264,13 @@ class ExecuteFileOp(ContainerOp):
 
         if self.gpu_limit:
             if not self.gpu_vendor:
-                gpu_vendor = self.pipeline_envs.get("GPU_VENDOR", "nvidia")
-                self.container.set_gpu_limit(gpu=str(gpu_limit), vendor=gpu_vendor)
+                self.gpu_vendor = self.pipeline_envs.get("GPU_VENDOR", "nvidia")
+                self.container.set_gpu_limit(gpu=str(self.gpu_limit), vendor=self.gpu_vendor)
             else:
                 self.container.add_resource_limit(self.gpu_vendor, self.gpu_limit)
         if self.gpu_memory:
             if not self.gpu_memory_vendor:
-                raise ValueError("gpu_memory_vendor not seted while gpu_memory is specified > 0")
+                raise ValueError("gpu_memory_vendor not set while gpu_memory is specified > 0")
             self.container.add_resource_limit(self.gpu_memory_vendor, self.gpu_memory)
 
         # Generate unique ELYRA_RUN_NAME value and expose it as an environment

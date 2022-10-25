@@ -354,6 +354,9 @@ def test_validate_resource_values():
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
         "cpu": "4",
         "gpu": "6",
+        "gpu_vendor": "example.com/vcuda-core",
+        "gpu_memory": "12",
+        "gpu_memory_vendor": "example.com/vcuda-memory",
         "memory": "10",
         "runtime_image": "tensorflow/tensorflow:latest",
     }
@@ -367,6 +370,9 @@ def test_validate_resource_values():
 
     assert test_operation.cpu == "4"
     assert test_operation.gpu == "6"
+    assert test_operation.gpu_vendor == "nvidia.com/gpu"
+    assert test_operation.gpu_memory == "12"
+    assert test_operation.gpu_memory_vendor == "example.com/vcuda-memory"
     assert test_operation.memory == "10"
 
 
@@ -386,6 +392,9 @@ def test_validate_resource_values_as_none():
 
     assert test_operation.cpu is None
     assert test_operation.gpu is None
+    assert test_operation.gpu_vendor is None
+    assert test_operation.gpu_memory is None
+    assert test_operation.gpu_memory_vendor is None
     assert test_operation.memory is None
 
 
@@ -407,7 +416,30 @@ def test_validate_gpu_accepts_zero_as_value():
     )
 
     assert test_operation.gpu == "0"
+    assert test_operation.gpu_vendor == None
+    assert test_operation.gpu_memory_vendor == None
 
+def test_validate_default_gpu_vendor():
+
+    component_parameters = {
+        "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
+        "cpu": "4",
+        "gpu": "1",
+        "memory": "10",
+        "runtime_image": "tensorflow/tensorflow:latest",
+    }
+    test_operation = GenericOperation(
+        id="test-id",
+        type="execution-node",
+        classifier="execute-notebook-node",
+        name="test",
+        component_params=component_parameters,
+    )
+
+    assert test_operation.gpu == "1"
+    assert test_operation.gpu_vendor == None
+    assert test_operation.gpu_memory == None
+    assert test_operation.gpu_memory_vendor == None
 
 def test_validate_max_resource_value():
     system_max_size = str(sys.maxsize - 1)
