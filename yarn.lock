@@ -1268,7 +1268,7 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/d753e110/@elyra/pipeline-editor", "@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/d753e110/@elyra/pipeline-editor":
+"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/d753e110/@elyra/pipeline-editor":
   version "1.11.0-rc.1"
   uid "6f45c4c6b4f3b1d910b6ebde4774e9089fad93b4"
   resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/d753e110/@elyra/pipeline-editor#6f45c4c6b4f3b1d910b6ebde4774e9089fad93b4"
