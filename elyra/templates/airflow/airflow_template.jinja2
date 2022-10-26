@@ -1,7 +1,6 @@
 from airflow import DAG
 from airflow.utils.dates import days_ago
 
-
 args = {
     'project_id' : '{{ pipeline_name }}',
 }
@@ -17,31 +16,26 @@ dag = DAG(
     is_paused_upon_creation={{ is_paused_upon_creation }},
 )
 
-{{ render_secrets_for_cos(cos_secret) }}
-
 {% for key, operation in operations_list.items() %}
 {% if not operation.is_generic_operator %}
 {% for import_statement in operation.imports %}
 {{import_statement}}
 {% endfor %}
 {% else %}
-{{ render_secrets_for_generic_op(operation) }}
-{{ render_volumes_for_generic_op(operation) }}
-
+from airflow.kubernetes.secret import Secret
+from airflow.contrib.kubernetes.volume import Volume
+from airflow.contrib.kubernetes.volume_mount import VolumeMount
 from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 {% endif %}
 
-{% if operation.operator_source %}# Operator source: {{ operation.operator_source }}
-{% endif %}
+{% if operation.operator_source %}# Operator source: {{ operation.operator_source }}{% endif %}
 {% if not operation.is_generic_operator %}
 op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
                                                            task_id='{{ operation.notebook|regex_replace }}',
         {% for param, value in operation.component_params.items() %}
                                                            {{ param }}={{ value }},
         {% endfor %}
-        {% if operation.volumes or operation.kubernetes_tolerations or operation.kubernetes_pod_annotations %}
-                                                            executor_config={{ render_executor_config_for_custom_op(operation) }},
-        {% endif %}
+                                                           executor_config={{ processor.render_elyra_owned_properties(operation.elyra_params) }},
 {% else %}
 op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.notebook|regex_replace }}',
                                                             namespace='{{ user_namespace }}',
@@ -59,27 +53,23 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                                        'request_cpu': '{{ operation.cpu_request }}',
             {% endif %}
             {% if operation.mem_request %}
-                                                                       'request_memory': '{{ operation.mem_request }}',
+                                                                       'request_memory': '{{ operation.mem_request }}G',
             {% endif %}
             {% if operation.gpu_limit %}
                                                                        'limit_gpu': '{{ operation.gpu_limit }}',
             {% endif %}
-        },
+                                                            },
         {% endif %}
-    {% if operation.secrets or cos_secret %}
-                                                          secrets=[{% if operation.secrets %}{% for secret_var in operation.secret_vars %}{{ secret_var }},{% endfor %}{% endif %}{% if cos_secret %}env_var_secret_id, env_var_secret_key{% endif %}],
-    {% endif %}
-    {% if operation.volumes %}
-                                                          volumes=[{% for volume_var in operation.volume_vars %}{{ volume_var }},{% endfor %}],
-                                                          volume_mounts=[{% for mount_var in operation.volume_mount_vars %}{{ mount_var }},{% endfor %}],
-    {% endif %}
-    {% if operation.kubernetes_tolerations or operation.kubernetes_pod_annotations %}
-                                                          executor_config={{ render_executor_config_for_generic_op(operation) }},
-    {% endif %}
-                                                          in_cluster={{ in_cluster }},
-                                                          config_file="{{ kube_config_path }}",
-    {% endif %}
-                                                          dag=dag)
+                                                            volumes=[{{ processor.render_volumes(operation.elyra_params) }}],
+                                                            volume_mounts=[{{ processor.render_mounts(operation.elyra_params) }}],
+                                                            secrets=[{{ processor.render_secrets(operation.elyra_params, cos_secret) }}],
+                                                            annotations={{ processor.render_annotations(operation.elyra_params) }},
+                                                            labels={{ processor.render_labels(operation.elyra_params) }},
+                                                            tolerations=[{{ processor.render_tolerations(operation.elyra_params) }}],
+                                                            in_cluster={{ in_cluster }},
+                                                            config_file="{{ kube_config_path }}",
+{% endif %}
+                                                            dag=dag)
     {% if operation.image_pull_policy %}
         op_{{ operation.id|regex_replace }}.image_pull_policy = '{{ operation.image_pull_policy }}'
     {% endif %}

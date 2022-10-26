@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from __future__ import annotations
+
 from abc import abstractmethod
 from dataclasses import dataclass
-from enum import Enum
 from importlib import import_module
 import json
 from logging import Logger
@@ -26,6 +27,10 @@ from typing import Optional
 
 from traitlets.config import LoggingConfigurable
 
+from elyra.pipeline.component_parameter import ComponentParameter
+from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.runtime_type import RuntimeProcessorType
+
 # Rather than importing only the CatalogEntry class needed in the Component parse
 # type hint below, the catalog_connector module must be imported in its
 # entirety in order to avoid a circular reference issue
@@ -34,203 +39,7 @@ try:
 except ImportError:
     import sys
 
-    catalog_connector = sys.modules[__package__ + ".catalog_connector"]
-from elyra.pipeline.runtime_type import RuntimeProcessorType
-
-
-class ComponentParameter(object):
-    """
-    Represents a single property for a pipeline component
-    """
-
-    def __init__(
-        self,
-        id: str,
-        name: str,
-        json_data_type: str,
-        value: Any,
-        description: str,
-        allowed_input_types: List[Optional[str]] = None,
-        required: Optional[bool] = False,
-        allow_no_options: Optional[bool] = False,
-        items: Optional[List[str]] = None,
-    ):
-        """
-        :param id: Unique identifier for a property
-        :param name: The name of the property for display
-        :param json_data_type: The JSON data type that represents this parameters value
-        :param allowed_input_types: The input types that the property can accept, including those for custom rendering
-        :param value: The default value of the property
-        :param description: A description of the property for display
-        :param items: For properties with a control of 'EnumControl', the items making up the enum
-        :param required: Whether the property is required
-        :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
-            define output properties to be selected as input to this node parameter
-        """
-
-        if not id:
-            raise ValueError("Invalid component: Missing field 'id'.")
-        if not name:
-            raise ValueError("Invalid component: Missing field 'name'.")
-
-        self._ref = id
-        self._name = name
-        self._json_data_type = json_data_type
-
-        # The JSON type that the value entered for this property will be rendered in.
-        # E.g., array types are entered by users and processed by the backend as
-        # strings whereas boolean types are entered and processed as booleans
-        self._value_entry_type = json_data_type
-        if json_data_type in ["array", "object"]:
-            self._value_entry_type = "string"
-
-        if json_data_type == "boolean" and isinstance(value, str):
-            value = bool(value in ["True", "true"])
-        elif json_data_type == "number" and isinstance(value, str):
-            try:
-                # Attempt to coerce string to integer value
-                value = int(value)
-            except ValueError:
-                # Value could not be coerced to integer, assume float
-                value = float(value)
-        if json_data_type in ["array", "object"] and not isinstance(value, str):
-            value = str(value)
-        self._value = value
-
-        self._description = description
-
-        if not allowed_input_types:
-            allowed_input_types = ["inputvalue", "inputpath", "file"]
-        self._allowed_input_types = allowed_input_types
-
-        self._items = items or []
-
-        # Check description for information about 'required' parameter
-        if "not optional" in description.lower() or (
-            "required" in description.lower()
-            and "not required" not in description.lower()
-            and "n't required" not in description.lower()
-        ):
-            required = True
-
-        self._required = required
-        self._allow_no_options = allow_no_options
-
-    @property
-    def ref(self) -> str:
-        return self._ref
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @property
-    def allowed_input_types(self) -> List[Optional[str]]:
-        return self._allowed_input_types
-
-    @property
-    def json_data_type(self) -> str:
-        return self._json_data_type
-
-    @property
-    def value_entry_type(self) -> str:
-        return self._value_entry_type
-
-    @property
-    def value(self) -> Any:
-        return self._value
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @property
-    def items(self) -> List[str]:
-        return self._items
-
-    @property
-    def required(self) -> bool:
-        return bool(self._required)
-
-    @property
-    def allow_no_options(self) -> bool:
-        return self._allow_no_options
-
-    @staticmethod
-    def render_parameter_details(param: "ComponentParameter") -> str:
-        """
-        Render the parameter data type and UI hints needed for the specified param for
-        use in the custom component properties DAG template
-
-        :returns: a string literal containing the JSON object to be rendered in the DAG
-        """
-        json_dict = {"title": param.name, "description": param.description}
-        if len(param.allowed_input_types) == 1:
-            # Parameter only accepts a single type of input
-            input_type = param.allowed_input_types[0]
-            if not input_type:
-                # This is an output
-                json_dict["type"] = "string"
-                json_dict["uihints"] = {"ui:widget": "hidden", "outputpath": True}
-            elif input_type == "inputpath":
-                json_dict.update(
-                    {
-                        "type": "object",
-                        "properties": {
-                            "widget": {"type": "string", "default": input_type},
-                            "value": {"type": "string", "enum": []},
-                        },
-                        "uihints": {"widget": {"ui:field": "hidden"}, "value": {input_type: True}},
-                    }
-                )
-            elif input_type == "file":
-                json_dict["type"] = "string"
-                json_dict["uihints"] = {"ui:widget": input_type}
-            else:
-                json_dict["type"] = param.value_entry_type
-
-                # Render default value if it is not None
-                if param.value is not None:
-                    json_dict["default"] = param.value
-        else:
-            # Parameter accepts multiple types of inputs; render a oneOf block
-            one_of = []
-            for widget_type in param.allowed_input_types:
-                obj = {
-                    "type": "object",
-                    "properties": {"widget": {"type": "string"}, "value": {}},
-                    "uihints": {"widget": {"ui:widget": "hidden"}, "value": {}},
-                }
-                if widget_type == "inputvalue":
-                    obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
-                    obj["properties"]["widget"]["default"] = param.value_entry_type
-                    obj["properties"]["value"]["type"] = param.value_entry_type
-                    if param.value_entry_type == "boolean":
-                        obj["properties"]["value"]["title"] = " "
-
-                    # Render default value if it is not None
-                    if param.value is not None:
-                        obj["properties"]["value"]["default"] = param.value
-                else:  # inputpath or file types
-                    obj["title"] = InputTypeDescriptionMap[widget_type].value
-                    obj["properties"]["widget"]["default"] = widget_type
-                    if widget_type == "outputpath":
-                        obj["uihints"]["value"] = {"ui:readonly": "true", widget_type: True}
-                        obj["properties"]["value"]["type"] = "string"
-                    elif widget_type == "inputpath":
-                        obj["uihints"]["value"] = {widget_type: True}
-                        obj["properties"]["value"]["type"] = "string"
-                        obj["properties"]["value"]["enum"] = []
-                        if param.allow_no_options:
-                            obj["uihints"]["allownooptions"] = param.allow_no_options
-                    else:
-                        obj["uihints"]["value"] = {"ui:widget": widget_type}
-                        obj["properties"]["value"]["type"] = "string"
-
-                one_of.append(obj)
-            json_dict["oneOf"] = one_of
-
-        return json.dumps(json_dict)
+    catalog_connector = sys.modules[f"{__package__}.catalog_connector"]
 
 
 class Component(object):
@@ -345,10 +154,7 @@ class Component(object):
 
     @property
     def op(self) -> Optional[str]:
-        if self._op:
-            return self._op
-        else:
-            return self._id
+        return self._op or self._id
 
     @property
     def categories(self) -> List[str]:
@@ -368,9 +174,7 @@ class Component(object):
 
     @property
     def import_statement(self) -> Optional[str]:
-        if not self._package_name:
-            return None
-        return f"from {self._package_name} import {self._name}"
+        return f"from {self._package_name} import {self._name}" if self._package_name else None
 
     @property
     def input_properties(self) -> List[ComponentParameter]:
@@ -399,6 +203,20 @@ class Component(object):
         else:
             print(f"WARNING: {msg}")
 
+    def get_elyra_parameters(self) -> List[ComponentParameter]:
+        """
+        Retrieve the list of Elyra-owned ComponentParameters that apply to this
+        component, removing any whose id collides with a property parsed from
+        the component definition.
+        """
+        op_type = "generic" if self.component_reference == "elyra" else "custom"
+        elyra_params = ElyraProperty.get_classes_for_component_type(op_type, self.runtime_type)
+        if self.properties:
+            # Remove certain Elyra-owned parameters if a parameter of the same id is already present
+            parsed_property_ids = [param.ref for param in self.properties]
+            elyra_params = [param for param in elyra_params if param.property_id not in parsed_property_ids]
+        return elyra_params
+
 
 class ComponentParser(LoggingConfigurable):  # ABC
     component_platform: RuntimeProcessorType = None
@@ -409,7 +227,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
     }
 
     @classmethod
-    def create_instance(cls, platform: RuntimeProcessorType) -> "ComponentParser":
+    def create_instance(cls, platform: RuntimeProcessorType) -> ComponentParser:
         """
         Class method that creates the appropriate instance of ComponentParser based on platform type name.
         """
@@ -425,7 +243,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
         return self._file_types
 
     @abstractmethod
-    def parse(self, catalog_entry: "catalog_connector.CatalogEntry") -> Optional[List[Component]]:
+    def parse(self, catalog_entry: catalog_connector.CatalogEntry) -> Optional[List[Component]]:
         """
         Parse a component definition given in the catalog entry and return
         a list of fully-qualified Component objects
@@ -490,17 +308,6 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 data_type_info = ParameterTypeInfo(parsed_data=parsed_type_lowered, undetermined=True)
 
         return data_type_info
-
-
-class InputTypeDescriptionMap(Enum):
-    """A mapping of input types to the description that will appear in the UI"""
-
-    string = "Please enter a string value:"
-    number = "Please enter a number value:"
-    boolean = "Please select or deselect the checkbox:"
-    file = "Please select a file to use as input:"
-    inputpath = "Please select an output from a parent:"
-    outputpath = None  # outputs are read-only and don't require a description
 
 
 @dataclass

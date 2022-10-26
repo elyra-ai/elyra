@@ -29,11 +29,7 @@ import {
   JupyterFrontEndPlugin,
   ILayoutRestorer
 } from '@jupyterlab/application';
-import {
-  ICommandPalette,
-  IThemeManager,
-  WidgetTracker
-} from '@jupyterlab/apputils';
+import { ICommandPalette, WidgetTracker } from '@jupyterlab/apputils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -94,7 +90,6 @@ const extension: JupyterFrontEndPlugin<void> = {
     IMainMenu,
     ISettingRegistry
   ],
-  optional: [IThemeManager],
   activate: async (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
@@ -102,8 +97,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
     menu: IMainMenu,
-    registry: ISettingRegistry,
-    themeManager?: IThemeManager
+    registry: ISettingRegistry
   ) => {
     console.log('Elyra - pipeline-editor extension is activated!');
 
@@ -349,7 +343,6 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const runtimesWidget = new RuntimesWidget({
       app,
-      themeManager,
       display_name: 'Runtimes',
       schemaspace: RUNTIMES_SCHEMASPACE,
       icon: runtimesIcon,
@@ -366,7 +359,6 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const runtimeImagesWidget = new RuntimeImagesWidget({
       app,
-      themeManager,
       display_name: 'Runtime Images',
       schemaspace: RUNTIME_IMAGES_SCHEMASPACE,
       icon: containerIcon,
@@ -382,7 +374,6 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const componentCatalogWidget = new ComponentCatalogsWidget({
       app,
-      themeManager,
       display_name: 'Component Catalogs', // TODO: This info should come from the server for all schemaspaces
       schemaspace: COMPONENT_CATALOGS_SCHEMASPACE,
       icon: componentCatalogIcon,

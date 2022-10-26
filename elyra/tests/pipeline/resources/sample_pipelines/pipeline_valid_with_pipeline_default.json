@@ -16,12 +16,13 @@
             "label": "{{label}}",
             "component_parameters": {
               "filename": "{{filename}}",
-              "runtime_image": "{{runtime_image}}",
-              "env_vars": ["var1=var1", "var2=var2", "var3="],
+              "env_vars": [
+                { "env_var": "var1", "value": "var1" },
+                { "env_var": "var2", "value": "var2" }
+              ],
               "include_subdirectories": false,
               "dependencies": ["a.txt", "b.txt", "c.txt"],
-              "outputs": ["d.txt", "e.txt", "f.txt"],
-              "kv_test_property": ["var1 =var1", "var3=  "]
+              "outputs": ["d.txt", "e.txt", "f.txt"]
             },
             "ui_data": {
               "label": "{{label}}",
@@ -52,7 +53,9 @@
           "app_data": {
             "label": "{{label}}",
             "component_parameters": {
-              "mounted_volumes": ["/mnt/vol1=pvc-claim-1"]
+              "mounted_volumes": [
+                { "path": "/mnt/vol1", "pvc_name": "pvc-claim-1" }
+              ]
             },
             "component_source": "{{component_source}}",
             "ui_data": {
@@ -89,13 +92,14 @@
           "name": "{{name}}",
           "pipeline_defaults": {
             "runtime_image": "{{ default_image }}",
-            "env_vars": ["var1=var_one", "var2=var_two", "var3=var_three"],
-            "kv_test_property": [
-              "var1=var_one  ",
-              "var2=var2",
-              "var3  =var_three"
+            "env_vars": [
+              { "env_var": "var1", "value": "var_one" },
+              { "env_var": "var2", "value": "var_two" },
+              { "env_var": "var3", "value": "var_three" }
             ],
-            "mounted_volumes": ["/mnt/vol2=pvc-claim-2"]
+            "mounted_volumes": [
+              { "path": "/mnt/vol2", "pvc_name": "pvc-claim-2" }
+            ]
           },
           "runtime": "{{runtime description}}"
         },

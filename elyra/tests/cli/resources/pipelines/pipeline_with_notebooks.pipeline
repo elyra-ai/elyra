@@ -18,8 +18,16 @@
               "outputs": [],
               "env_vars": [],
               "kubernetes_secrets": [
-                "USER_NAME=secret-1:myuserid",
-                "USER_PASSWORD=secret-1:mypassword"
+                {
+                "env_var": "USER_NAME",
+                "name": "secret-1",
+                "key": "myuserid"
+                },
+                {
+                "env_var": "USER_PASSWORD",
+                "name": "secret-1",
+                "key": "mypassword"
+                }
               ],
               "dependencies": [],
               "include_subdirectories": false,
@@ -132,7 +140,10 @@
           "pipeline_defaults": {
             "runtime_image": "tensorflow/tensorflow:2.8.0",
             "mounted_volumes": [
-              "/mnt/vol1=pvc-claim-1"
+              {
+                "path": "/mnt/vol1",
+                "pvc_name": "pvc-claim-1"
+              }
             ]
           },
           "name": "pipeline_with_notebooks",

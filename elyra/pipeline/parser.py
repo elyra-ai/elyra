@@ -49,8 +49,6 @@ class PipelineParser(LoggingConfigurable):
         if not runtime:
             raise ValueError("Invalid pipeline: Missing runtime.")
         runtime_config = primary_pipeline.runtime_config
-        if not runtime_config:
-            raise ValueError("Invalid pipeline: Missing runtime configuration.")
 
         source = primary_pipeline.source
 
@@ -63,9 +61,14 @@ class PipelineParser(LoggingConfigurable):
             runtime_config=runtime_config,
             source=source,
             description=description,
-            pipeline_parameters=primary_pipeline.pipeline_parameters,
+            pipeline_properties=primary_pipeline.get_pipeline_default_properties(),
         )
-        self._nodes_to_operations(pipeline_definition, pipeline_object, primary_pipeline.nodes)
+
+        nodes = primary_pipeline.nodes
+        for pipeline in pipeline_definition.pipelines:
+            if pipeline.id == primary_pipeline.id:
+                nodes = pipeline.nodes
+        self._nodes_to_operations(pipeline_definition, pipeline_object, nodes)
         return pipeline_object
 
     def _nodes_to_operations(
@@ -132,13 +135,20 @@ class PipelineParser(LoggingConfigurable):
         if super_node:  # gather parent-links tied to embedded nodes inputs
             parent_operations.extend(PipelineParser._get_parent_operation_links(super_node.to_dict(), node.id))
 
+        # Split properties into component- and Elyra-owned
+        component_params, elyra_params = node.get("component_parameters", {}), {}
+        for param_id in list(component_params.keys()):
+            if param_id in node.elyra_owned_properties:
+                elyra_params[param_id] = node.pop_component_parameter(param_id)
+
         return Operation.create_instance(
             id=node.id,
             type=node.type,
             classifier=node.op,
             name=node.label,
             parent_operation_ids=parent_operations,
-            component_params=node.get("component_parameters", {}),
+            component_params=component_params,
+            elyra_params=elyra_params,
         )
 
     @staticmethod

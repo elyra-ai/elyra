@@ -17,9 +17,19 @@
             "component_parameters": {
               "filename": "sandbox/a.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=a"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "a"
+                }
+              ],
               "include_subdirectories": false,
-              "mounted_volumes": ["/mount/test=rwx-test-claim"],
+              "mounted_volumes": [
+                {
+                  "path": "/mount/test",
+                  "pvc_name": "rwx-test-claim"
+                }
+              ],
               "outputs": ["d.txt", "e.txt", "f.txt"]
             },
             "ui_data": {
@@ -68,7 +78,12 @@
             "component_parameters": {
               "filename": "sandbox/b.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=b"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "b"
+                }
+              ],
               "include_subdirectories": false,
               "inputs": ["d.txt", "e.txt", "f.txt"]
             },
@@ -125,7 +140,12 @@
             "component_parameters": {
               "filename": "sandbox/c.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=c"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "c"
+                }
+              ],
               "include_subdirectories": false
             },
             "ui_data": {
@@ -181,7 +201,12 @@
             "component_parameters": {
               "filename": "sandbox/d.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=d"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "d"
+                }
+              ],
               "include_subdirectories": false
             },
             "ui_data": {
@@ -237,7 +262,12 @@
             "component_parameters": {
               "filename": "sandbox/e.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=e"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "e"
+                }
+              ],
               "include_subdirectories": false
             },
             "ui_data": {
@@ -293,7 +323,12 @@
             "component_parameters": {
               "filename": "sandbox/f.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=f"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "f"
+                }
+              ],
               "include_subdirectories": false
             },
             "ui_data": {
@@ -349,7 +384,12 @@
             "component_parameters": {
               "filename": "sandbox/g.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=g"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "g"
+                }
+              ],
               "include_subdirectories": false
             },
             "ui_data": {
@@ -410,7 +450,12 @@
             "component_parameters": {
               "filename": "sandbox/x.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=x"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "x"
+                }
+              ],
               "include_subdirectories": false
             },
             "ui_data": {
@@ -459,7 +504,12 @@
             "component_parameters": {
               "filename": "sandbox/y.ipynb",
               "runtime_image": "elyra/examples:1.0.0-py3",
-              "env_vars": ["OP_NAME=y"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "y"
+                }
+              ],
               "include_subdirectories": false
             },
             "ui_data": {
@@ -515,7 +565,12 @@
             "component_parameters": {
               "filename": "sandbox/h.ipynb",
               "runtime_image": "tensorflow/tensorflow:2.0.0-py3",
-              "env_vars": ["OP_NAME=h"],
+              "env_vars": [
+                {
+                  "env_var": "OP_NAME",
+                  "value": "h"
+                }
+              ],
               "include_subdirectories": false
             },
             "ui_data": {
@@ -576,6 +631,11 @@
       "app_data": {
         "ui_data": {
           "comments": []
+        },
+        "properties": {
+          "pipeline_defaults": {
+            "cos_object_prefix": "test/prefix"
+          }
         },
         "version": 5,
         "runtime": "kfp",

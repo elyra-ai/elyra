@@ -15,6 +15,7 @@
 #
 import os
 from pathlib import Path
+import re
 import tarfile
 from unittest import mock
 
@@ -27,15 +28,18 @@ from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
+from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 
 
 ARCHIVE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "archive")
+PIPELINE_FILE_COMPLEX = "resources/sample_pipelines/pipeline_dependency_complex.json"
 
 
 @pytest.fixture
@@ -46,9 +50,9 @@ def processor(setup_factory_data):
 
 
 @pytest.fixture
-def pipeline():
-    pipeline_resource = _read_pipeline_resource("resources/sample_pipelines/pipeline_3_node_sample.json")
-    return PipelineParser.parse(pipeline_resource)
+def parsed_pipeline(request):
+    pipeline_resource = _read_pipeline_resource(request.param)
+    return PipelineParser().parse(pipeline_json=pipeline_resource)
 
 
 @pytest.fixture
@@ -61,6 +65,11 @@ def sample_metadata():
         "cos_bucket": "test",
         "engine": "Argo",
         "tags": [],
+        "user_namespace": "default",
+        "cos_auth_type": "USER_CREDENTIALS",
+        "api_username": "user@example.com",
+        "api_password": "12341234",
+        "runtime_type": "KUBEFLOW_PIPELINES",
     }
 
 
@@ -159,27 +168,24 @@ def test_collect_envs(processor):
     # add system-owned envs with bogus values to ensure they get set to system-derived values,
     # and include some user-provided edge cases
     operation_envs = [
-        'ELYRA_RUNTIME_ENV="bogus_runtime"',
-        'ELYRA_ENABLE_PIPELINE_INFO="bogus_pipeline"',
-        "ELYRA_WRITABLE_CONTAINER_DIR=",  # simulate operation reference in pipeline
-        'AWS_ACCESS_KEY_ID="bogus_key"',
-        'AWS_SECRET_ACCESS_KEY="bogus_secret"',
-        "USER_EMPTY_VALUE=  ",
-        "USER_TWO_EQUALS=KEY=value",
-        "USER_NO_VALUE=",
+        {"env_var": "ELYRA_RUNTIME_ENV", "value": '"bogus_runtime"'},
+        {"env_var": "ELYRA_ENABLE_PIPELINE_INFO", "value": '"bogus_pipeline"'},
+        {"env_var": "ELYRA_WRITABLE_CONTAINER_DIR", "value": ""},  # simulate operation reference in pipeline
+        {"env_var": "AWS_ACCESS_KEY_ID", "value": '"bogus_key"'},
+        {"env_var": "AWS_SECRET_ACCESS_KEY", "value": '"bogus_secret"'},
+        {"env_var": "USER_EMPTY_VALUE", "value": "  "},
+        {"env_var": "USER_TWO_EQUALS", "value": "KEY=value"},
+        {"env_var": "USER_NO_VALUE", "value": ""},
     ]
+    converted_envs = ElyraProperty.create_instance("env_vars", operation_envs)
 
-    component_parameters = {
-        "filename": pipelines_test_file,
-        "env_vars": operation_envs,
-        "runtime_image": "tensorflow/tensorflow:latest",
-    }
     test_operation = GenericOperation(
         id="this-is-a-test-id",
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_params={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
+        elyra_params={"env_vars": converted_envs},
     )
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")
@@ -545,3 +551,78 @@ def test_cc_pipeline_component_no_input(monkeypatch, processor, component_cache,
 
     # Compile pipeline and save into pipeline_path
     kfp_argo_compiler.Compiler().compile(constructed_pipeline_function, pipeline_path)
+
+
+@pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
+def test_create_yaml_complex_pipeline(monkeypatch, processor, parsed_pipeline, sample_metadata, tmpdir):
+    pipeline_json = _read_pipeline_resource(PIPELINE_FILE_COMPLEX)
+
+    # Ensure the value of COS_OBJECT_PREFIX has been propagated to the Pipeline object appropriately
+    cos_prefix = pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"].get(COS_OBJECT_PREFIX)
+    assert cos_prefix == parsed_pipeline.pipeline_properties.get(COS_OBJECT_PREFIX)
+
+    # Build a mock runtime config for use in _cc_pipeline
+    mocked_runtime = Metadata(name="test-metadata", display_name="test", schema_name="kfp", metadata=sample_metadata)
+    # Build mock runtime images for use in _cc_pipeline
+    image_one_md = {"image_name": "tensorflow/tensorflow:2.0.0-py3", "pull_policy": "IfNotPresent", "tags": []}
+    image_two_md = {"image_name": "elyra/examples:1.0.0-py3", "pull_policy": "Always", "tags": []}
+    mocked_images = [
+        Metadata(name="test-image-metadata", display_name="test-image", schema_name="kfp", metadata=image_one_md),
+        Metadata(name="test-image-metadata2", display_name="test-image2", schema_name="kfp", metadata=image_two_md),
+    ]
+
+    # Mock necessary functions (incl. side effects for each node)
+    mock_side_effects = [mocked_runtime] + [mocked_images for _ in range(len(pipeline_json["pipelines"][0]["nodes"]))]
+    mocked_func = mock.Mock(return_value="default", side_effect=mock_side_effects)
+    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    inst_id = "test-instance-id"
+    pipeline_func = lambda: processor._cc_pipeline(parsed_pipeline, pipeline_name="test", pipeline_instance_id=inst_id)
+    pipeline_path = str(Path(tmpdir) / "complex_test.yaml")
+
+    # Compile pipeline, save into pipeline_path, then read YAML
+    kfp_argo_compiler.Compiler().compile(pipeline_func, pipeline_path)
+    with open(pipeline_path) as f:
+        pipeline_yaml = yaml.safe_load(f.read())
+
+    def list_to_sorted_str(convert_list):
+        """Helper function to convert a list of files into a semicolon-separated sorted string"""
+        convert_str = ""
+        for item in convert_list:
+            convert_str += f"{item};"
+        return "".join(sorted(convert_str[:-1]))
+
+    # Sort and clean node lists in preparation for direct comparison between YAML and JSON
+    pipeline_nodes = sorted(pipeline_json["pipelines"][0]["nodes"], key=lambda d: d["app_data"]["label"])
+    yaml_nodes = [template for template in pipeline_yaml["spec"]["templates"] if template["name"] != "lambda"]
+
+    for node_yaml, node_json in zip(yaml_nodes, pipeline_nodes):
+        # Check the each node for correctness
+        if "container" not in node_yaml or "args" not in node_yaml["container"]:
+            continue
+
+        node_args = node_yaml["container"]["args"][0]
+
+        # Check that COS values are the same for each node
+        assert f'--cos-directory "{cos_prefix}/{inst_id}"' in node_args
+        assert f"--cos-endpoint {sample_metadata['cos_endpoint']}" in node_args
+        assert f"--cos-bucket {sample_metadata['cos_bucket']}" in node_args
+
+        component_parameters = node_json["app_data"]["component_parameters"]
+        assert f"--file \"{component_parameters.get('filename')}\"" in node_args  # check filename
+        assert node_yaml["container"]["image"] == component_parameters.get("runtime_image")  # check runtime image
+
+        if component_parameters.get("inputs"):  # check inputs
+            args_input = re.search(r' --inputs "([\w.;]+)" ', node_args)
+            assert list_to_sorted_str(component_parameters["inputs"]) in "".join(sorted(args_input[1]))
+        if component_parameters.get("outputs"):  # check outputs
+            args_output = re.search(r' --outputs "([\w.;]+)" ', node_args)
+            assert list_to_sorted_str(component_parameters["outputs"]) in "".join(sorted(args_output[1]))
+        if component_parameters.get("env_vars"):  # check env_vars
+            env_list_from_yaml = node_yaml["container"]["env"]
+            for var_dict in component_parameters["env_vars"]:
+                adjusted_var_dict = {"name": var_dict["env_var"], "value": var_dict["value"]}
+                assert adjusted_var_dict in env_list_from_yaml
