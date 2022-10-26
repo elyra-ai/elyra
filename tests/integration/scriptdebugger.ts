@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+const TESTFILE = 'helloworld.py';
+
 describe('Script debugger tests', () => {
   before(() => {
     cy.resetJupyterLab();
+    cy.bootstrapFile(TESTFILE);
   });
 
   afterEach(() => {
@@ -24,48 +27,57 @@ describe('Script debugger tests', () => {
   });
 
   after(() => {
-    // delete files created for testing
-    cy.deleteFile('untitled*.py');
-    cy.deleteFile('untitled*.r');
+    cy.deleteFile(TESTFILE);
   });
 
-  it('test for debugger button to be enabled for default Python kernel', () => {
-    cy.createNewScriptEditor('Python');
-    cy.wait(5000);
-    checkDefaultKernelSelection();
-    checkDebuggerButtonEnabled(true);
-  });
+  it(
+    'test for debugger button to be enabled for default Python kernel',
+    { defaultCommandTimeout: 10000 },
+    () => {
+      openFile(TESTFILE);
+      checkDefaultKernelSelection();
+      checkDebuggerButtonEnabled(true);
+    }
+  );
 
-  it('test for debugger button state persistence on page reload', () => {
-    cy.createNewScriptEditor('Python');
-    cy.wait(5000);
-    checkDefaultKernelSelection();
-    checkDebuggerButtonEnabled(true);
-    cy.reload();
-    cy.wait(5000);
-    checkDebuggerButtonEnabled(true);
-  });
+  it(
+    'test for debugger button state persistence on page reload',
+    { defaultCommandTimeout: 10000 },
+    () => {
+      openFile(TESTFILE);
+      checkDefaultKernelSelection();
+      checkDebuggerButtonEnabled(true);
+      cy.reload();
+      checkDebuggerButtonEnabled(true);
+    }
+  );
 
-  it('test for debugger button state persistence on reopening editor tab', () => {
-    cy.createNewScriptEditor('Python');
-    cy.wait(5000);
-    checkDefaultKernelSelection();
-    checkDebuggerButtonEnabled(true);
-    cy.closeTab(-1);
-    openFile('untitled.py');
-    cy.wait(5000);
-    checkDebuggerButtonEnabled(true);
-  });
+  it(
+    'test for debugger button state persistence on reopening editor tab',
+    { defaultCommandTimeout: 30000 },
+    () => {
+      openFile(TESTFILE);
+      checkDefaultKernelSelection();
+      checkDebuggerButtonEnabled(true);
+      cy.closeTab(-1);
+      // Reopen editor
+      openFile(TESTFILE);
+      checkDebuggerButtonEnabled(true);
+    }
+  );
 
-  //  TODO: Open new bug report for the failing test below
-  // it('test for debugger button disabled for default kernel without debug support', () => {
-  //   cy.createNewScriptEditor('R');
-  //   cy.wait(1000);
-  //   cy.get(
-  //     '.elyra-ScriptEditor .jp-Toolbar select > option[value*=python]'
-  //   ).should('not.exist');
-  //   checkDebuggerButtonEnabled(false); // No debug button rendered on first load
-  // });
+  it(
+    'test for debugger button disabled for default kernel without debug support',
+    { defaultCommandTimeout: 10000 },
+    () => {
+      cy.createNewScriptEditor('R');
+      cy.get(
+        '.elyra-ScriptEditor .jp-Toolbar select > option[value*=python]'
+      ).should('not.exist');
+      checkDebuggerButtonEnabled(false);
+      cy.deleteFile('untitled.r');
+    }
+  );
 });
 
 // ------------------------------
@@ -77,15 +89,20 @@ const checkDefaultKernelSelection = (): void => {
 };
 
 const checkDebuggerButtonEnabled = (enabled: boolean): void => {
+  const buttonElem = cy.get(
+    'button.jp-DebuggerBugButton[title="Enable Debugger"]'
+  );
+
   enabled
-    ? cy
-        .get('button.jp-DebuggerBugButton[title="Enable Debugger"]')
-        .should('not.be.disabled')
-    : cy
-        .get(
-          'button.jp-DebuggerBugButton[title="Select a kernel that supports debugging to enable debugger"]'
-        )
-        .should('be.disabled');
+    ? buttonElem.should('not.be.disabled')
+    : buttonElem.should('not.exist');
+
+  // TODO: should use test below after merged PR #2977
+  // : cy
+  //     .get(
+  //       'button.jp-DebuggerBugButton[title="Select a kernel that supports debugging to enable debugger"]'
+  //     )
+  //     .should('be.disabled');
 };
 
 const openFile = (fileName: string): void => {
