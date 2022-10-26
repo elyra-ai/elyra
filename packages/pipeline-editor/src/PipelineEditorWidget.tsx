@@ -759,7 +759,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       // Runtime info
       pipelineJson.pipelines[0].app_data.runtime_config =
-        configDetails?.id ?? 'local';
+        configDetails?.id ?? null;
 
       // Export info
       const pipeline_dir = PathExt.dirname(contextRef.current.path);

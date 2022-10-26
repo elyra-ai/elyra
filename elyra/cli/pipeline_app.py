@@ -31,7 +31,7 @@ from kfp import Client as ArgoClient
 
 from elyra._version import __version__
 from elyra.metadata.manager import MetadataManager
-from elyra.metadata.schema import SchemaManager
+from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
@@ -46,7 +46,6 @@ from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorResponse
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
-from elyra.pipeline.runtimes_metadata import RuntimesMetadata
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationSeverity
 
@@ -66,10 +65,10 @@ SEVERITY = {
 }
 
 
-def _get_runtime_config(runtime_config_name: Optional[str]) -> Optional[RuntimesMetadata]:
+def _get_runtime_config(runtime_config_name: Optional[str]) -> Optional[Metadata]:
     """Fetch runtime configuration for the specified name"""
-    if not runtime_config_name or runtime_config_name == "local":
-        # No runtime configuration was specified or it is local.
+    if not runtime_config_name:
+        # No runtime configuration was specified so treat as local.
         # Cannot use metadata manager to determine the runtime type.
         return None
     try:
@@ -89,29 +88,14 @@ def _get_runtime_type(runtime_config_name: Optional[str]) -> Optional[str]:
 
 def _get_runtime_schema_name(runtime_config_name: Optional[str]) -> Optional[str]:
     """Get runtime schema name for the provided runtime configuration name"""
-    if not runtime_config_name or runtime_config_name == "local":
-        # No runtime configuration was specified or it is local.
+    if not runtime_config_name:
+        # No runtime configuration was specified so treat as local.
         # Cannot use metadata manager to determine the runtime type.
         return "local"
     runtime_config = _get_runtime_config(runtime_config_name)
     if runtime_config:
         return runtime_config.schema_name
     return None
-
-
-def _get_runtime_display_name(schema_name: Optional[str]) -> Optional[str]:
-    """Return the display name for the specified runtime schema_name"""
-    if not schema_name or schema_name == "local":
-        # No schame name was  specified or it is local.
-        # Cannot use metadata manager to determine the display name.
-        return schema_name
-
-    try:
-        schema_manager = SchemaManager.instance()
-        schema = schema_manager.get_schema(Runtimes.RUNTIMES_SCHEMASPACE_NAME, schema_name)
-        return schema["display_name"]
-    except Exception as e:
-        raise click.ClickException(f"Invalid runtime configuration: {schema_name}\n {e}")
 
 
 def _get_pipeline_runtime_type(pipeline_definition: dict) -> Optional[str]:
@@ -295,7 +279,7 @@ def pipeline():
 @click.command()
 @click.option("--runtime-config", required=False, help="Runtime config where the pipeline should be processed")
 @click.argument("pipeline_path", type=Path, callback=validate_pipeline_path)
-def validate(pipeline_path, runtime_config="local"):
+def validate(pipeline_path: str, runtime_config: Optional[str] = None):
     """
     Validate pipeline
     """
@@ -475,7 +459,7 @@ def run(json_option, pipeline_path):
 
     print_banner("Elyra Pipeline Local Run")
 
-    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local", runtime_config="local")
+    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local")
 
     try:
         _validate_pipeline_definition(pipeline_definition)
@@ -501,7 +485,7 @@ def describe(json_option, pipeline_path):
     Display pipeline summary and dependencies.
     """
 
-    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local", runtime_config="local")
+    pipeline_definition = _preprocess_pipeline(pipeline_path, runtime="local")
 
     primary_pipeline = PipelineDefinition(pipeline_definition=pipeline_definition).primary_pipeline
 

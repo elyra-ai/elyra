@@ -307,11 +307,6 @@ def test_fail_create_pipeline_missing_runtime():
         Pipeline(id="Random-UUID-123123123123123", name="test-pipeline", runtime_config="default_kfp")
 
 
-def test_fail_create_pipeline_missing_runtime_config():
-    with pytest.raises(TypeError):
-        Pipeline(id="Random-UUID-123123123123123", name="test-pipeline", runtime="kfp")
-
-
 def test_pipelines_are_equal(good_pipeline):
     compare_pipeline = Pipeline(
         id="Random-UUID-123123123123123", name="test-pipeline", runtime="kfp", runtime_config="default_kfp"

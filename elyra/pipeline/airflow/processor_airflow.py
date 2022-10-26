@@ -41,6 +41,7 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
+from elyra.pipeline.component_parameter import CustomSharedMemorySize
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesAnnotation
@@ -107,7 +108,7 @@ be fully qualified (i.e., prefixed with their package names).
                 self.class_import_map[parts[1]] = f"from {parts[0]} import {parts[1]}"
         self.log.debug(f"class_package_map = {self.class_import_map}")
 
-    def process(self, pipeline: Pipeline) -> None:
+    def process(self, pipeline: Pipeline) -> "AirflowPipelineProcessorResponse":
         """
         Submit the pipeline for execution on Apache Airflow.
         """
@@ -187,7 +188,7 @@ be fully qualified (i.e., prefixed with their package names).
             if pipeline.contains_generic_operations():
                 object_storage_url = f"{cos_endpoint}"
                 os_path = join_paths(
-                    pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+                    pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
                 )
                 object_storage_path = f"/{cos_bucket}/{os_path}"
             else:
@@ -252,7 +253,7 @@ be fully qualified (i.e., prefixed with their package names).
 
         pipeline_instance_id = pipeline_instance_id or pipeline_name
         artifact_object_prefix = join_paths(
-            pipeline.pipeline_parameters.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
+            pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
         )
 
         self.log_pipeline_info(
@@ -597,6 +598,12 @@ be fully qualified (i.e., prefixed with their package names).
         for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
                 Volume(name="{v.pvc_name}", configs={{"persistentVolumeClaim": {{"claimName": "{v.pvc_name}"}}}}),"""
+        # set custom shared memory size
+        shm = elyra_parameters.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
+        if shm is not None and shm.size:
+            config = f"""configs={{"emptyDir": {{"medium": "Memory", "sizeLimit": "{shm.size}{shm.units}"}}}}"""
+            str_to_render += f"""
+                Volume(name="shm", {config}),"""
         return dedent(str_to_render)
 
     def render_mounts(self, elyra_parameters: Dict[str, ElyraProperty]) -> str:
@@ -713,17 +720,38 @@ be fully qualified (i.e., prefixed with their package names).
             }
         )
 
+    def add_custom_shared_memory_size(self, instance: CustomSharedMemorySize, execution_object: Any, **kwargs) -> None:
+        """Add CustomSharedMemorySize instance to the execution object for the given runtime processor"""
+
+        if not instance.size:
+            return
+
+        if "volumes" not in execution_object:
+            execution_object["volumes"] = []
+        if "volume_mounts" not in execution_object:
+            execution_object["volume_mounts"] = []
+        execution_object["volumes"].append(
+            {
+                "name": "shm",
+                "emptyDir": {"medium": "Memory", "sizeLimit": f"{instance.size}{instance.units}"},
+            }
+        )
+        execution_object["volume_mounts"].append(
+            {"mountPath": "/dev/shm", "name": "shm", "sub_path": None, "read_only": False},
+        )
+
     @property
     def supported_properties(self) -> Set[str]:
         """A list of Elyra-owned properties supported by this runtime processor."""
-        return [
+        return {
             pipeline_constants.ENV_VARIABLES,
             pipeline_constants.KUBERNETES_SECRETS,
             pipeline_constants.MOUNTED_VOLUMES,
             pipeline_constants.KUBERNETES_POD_ANNOTATIONS,
             pipeline_constants.KUBERNETES_POD_LABELS,
             pipeline_constants.KUBERNETES_TOLERATIONS,
-        ]
+            pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
+        }
 
 
 class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):
