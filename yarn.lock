@@ -1268,12 +1268,13 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/e9b956c3/@elyra/pipeline-editor":
-  version "1.11.0-rc.0"
-  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/e9b956c3/@elyra/pipeline-editor#3f0437894a6e71a4223910c442a6ce628330d39c"
+"@elyra/pipeline-editor@1.11.0-rc.1":
+  version "1.11.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.11.0-rc.1.tgz#2c9a67812ff2b59632697d58b4ddd2b41b15ce3d"
+  integrity sha512-c82yNcyRK5iuZeF7ROUvBSS/8Pb0nxUMcnD/R0KK7sIDeSw7YE6dXOBigOle+1MLw5hNoFVX1A49YT5ehzwN1w==
   dependencies:
     "@elyra/canvas" "^12.11.2"
-    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/e9b956c3/@elyra/pipeline-services"
+    "@elyra/pipeline-services" "^1.11.0-rc.1"
     "@rjsf/core" "^4.2.3"
     "@rjsf/utils" "^5.0.0-beta.2"
     "@rjsf/validator-ajv6" "^5.0.0-beta.2"
@@ -1294,9 +1295,10 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.63.tgz#c6a6f9c0bc2215793d78fb90dd5e0b3c46044c7c"
   integrity sha512-p2pNeDmMzRawqFYljv1JAg0HbYlQ57cgMMmO3Slc5IQnKNSa08al5/rtthI04iORWOGi2cF5TNeu2IdjTk0JiA==
 
-"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/e9b956c3/@elyra/pipeline-services":
-  version "1.11.0-rc.0"
-  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/e9b956c3/@elyra/pipeline-services#f27329ad2821465c8775f06c284219f448eab621"
+"@elyra/pipeline-services@1.11.0-rc.1", "@elyra/pipeline-services@^1.11.0-rc.1":
+  version "1.11.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.11.0-rc.1.tgz#0289a4846238df2c032d82cb3efd9b99af964957"
+  integrity sha512-Uz7ULfHj9rifbX/GTV19YMtMN+bSaxFDOvGHWQaMbKv44S1MGkOqjea2d2378ChnLZRO54e251woAvTjqV+HaQ==
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
