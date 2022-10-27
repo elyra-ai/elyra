@@ -416,8 +416,9 @@ def test_validate_gpu_accepts_zero_as_value():
     )
 
     assert test_operation.gpu == "0"
-    assert test_operation.gpu_vendor == None
-    assert test_operation.gpu_memory_vendor == None
+    assert test_operation.gpu_vendor is None
+    assert test_operation.gpu_memory_vendor is None
+
 
 def test_validate_default_gpu_vendor():
 
@@ -437,9 +438,10 @@ def test_validate_default_gpu_vendor():
     )
 
     assert test_operation.gpu == "1"
-    assert test_operation.gpu_vendor == None
-    assert test_operation.gpu_memory == None
-    assert test_operation.gpu_memory_vendor == None
+    assert test_operation.gpu_vendor is None
+    assert test_operation.gpu_memory is None
+    assert test_operation.gpu_memory_vendor is None
+
 
 def test_validate_max_resource_value():
     system_max_size = str(sys.maxsize - 1)
