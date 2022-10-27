@@ -15,6 +15,7 @@
  */
 
 const TESTFILE = 'helloworld.py';
+const TIMEOUT = 10000;
 
 describe('Script debugger tests', () => {
   before(() => {
@@ -32,7 +33,7 @@ describe('Script debugger tests', () => {
 
   it(
     'test for debugger button to be enabled for default Python kernel',
-    { defaultCommandTimeout: 10000 },
+    { defaultCommandTimeout: TIMEOUT },
     () => {
       openFile(TESTFILE);
       checkDefaultKernelSelection();
@@ -40,35 +41,35 @@ describe('Script debugger tests', () => {
     }
   );
 
-  it(
-    'test for debugger button state persistence on page reload',
-    { defaultCommandTimeout: 10000 },
-    () => {
-      openFile(TESTFILE);
-      checkDefaultKernelSelection();
-      checkDebuggerButtonEnabled(true);
-      cy.reload();
-      checkDebuggerButtonEnabled(true);
-    }
-  );
+  // it(
+  //   'test for debugger button state persistence on page reload',
+  //   { defaultCommandTimeout: 10000 },
+  //   () => {
+  //     openFile(TESTFILE);
+  //     checkDefaultKernelSelection();
+  //     checkDebuggerButtonEnabled(true);
+  //     cy.reload();
+  //     checkDebuggerButtonEnabled(true);
+  //   }
+  // );
 
-  it(
-    'test for debugger button state persistence on reopening editor tab',
-    { defaultCommandTimeout: 30000 },
-    () => {
-      openFile(TESTFILE);
-      checkDefaultKernelSelection();
-      checkDebuggerButtonEnabled(true);
-      cy.closeTab(-1);
-      // Reopen editor
-      openFile(TESTFILE);
-      checkDebuggerButtonEnabled(true);
-    }
-  );
+  // it(
+  //   'test for debugger button state persistence on reopening editor tab',
+  //   { defaultCommandTimeout: 30000 },
+  //   () => {
+  //     openFile(TESTFILE);
+  //     checkDefaultKernelSelection();
+  //     checkDebuggerButtonEnabled(true);
+  //     cy.closeTab(-1);
+  //     // Reopen editor
+  //     openFile(TESTFILE);
+  //     checkDebuggerButtonEnabled(true);
+  //   }
+  // );
 
   it(
     'test for debugger button disabled for default kernel without debug support',
-    { defaultCommandTimeout: 10000 },
+    { defaultCommandTimeout: TIMEOUT },
     () => {
       cy.createNewScriptEditor('R');
       cy.get(
@@ -96,13 +97,6 @@ const checkDebuggerButtonEnabled = (enabled: boolean): void => {
   enabled
     ? buttonElem.should('not.be.disabled')
     : buttonElem.should('not.exist');
-
-  // TODO: should use test below after merged PR #2977
-  // : cy
-  //     .get(
-  //       'button.jp-DebuggerBugButton[title="Select a kernel that supports debugging to enable debugger"]'
-  //     )
-  //     .should('be.disabled');
 };
 
 const openFile = (fileName: string): void => {
