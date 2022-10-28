@@ -43,7 +43,7 @@ describe('Script debugger tests', () => {
 
   it(
     'test for debugger button state persistence on page reload',
-    { defaultCommandTimeout: 10000 },
+    { defaultCommandTimeout: TIMEOUT },
     () => {
       openFile(TESTFILE);
       checkDefaultKernelSelection();
@@ -53,19 +53,19 @@ describe('Script debugger tests', () => {
     }
   );
 
-  // it(
-  //   'test for debugger button state persistence on reopening editor tab',
-  //   { defaultCommandTimeout: 30000 },
-  //   () => {
-  //     openFile(TESTFILE);
-  //     checkDefaultKernelSelection();
-  //     checkDebuggerButtonEnabled(true);
-  //     cy.closeTab(-1);
-  //     // Reopen editor
-  //     openFile(TESTFILE);
-  //     checkDebuggerButtonEnabled(true);
-  //   }
-  // );
+  it(
+    'test for debugger button state persistence on reopening editor tab',
+    { defaultCommandTimeout: TIMEOUT },
+    () => {
+      openFile(TESTFILE);
+      checkDefaultKernelSelection();
+      checkDebuggerButtonEnabled(true);
+      cy.closeTab(-1);
+      // Reopen editor
+      openFile(TESTFILE);
+      checkDebuggerButtonEnabled(true);
+    }
+  );
 
   it(
     'test for debugger button disabled for default kernel without debug support',
