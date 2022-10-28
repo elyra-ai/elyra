@@ -15,7 +15,7 @@
  */
 
 const TESTFILE = 'helloworld.py';
-const TIMEOUT = 10000;
+const TIMEOUT = 50000;
 
 describe('Script debugger tests', () => {
   before(() => {
