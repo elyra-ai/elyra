@@ -41,17 +41,17 @@ describe('Script debugger tests', () => {
     }
   );
 
-  // it(
-  //   'test for debugger button state persistence on page reload',
-  //   { defaultCommandTimeout: 10000 },
-  //   () => {
-  //     openFile(TESTFILE);
-  //     checkDefaultKernelSelection();
-  //     checkDebuggerButtonEnabled(true);
-  //     cy.reload();
-  //     checkDebuggerButtonEnabled(true);
-  //   }
-  // );
+  it(
+    'test for debugger button state persistence on page reload',
+    { defaultCommandTimeout: 10000 },
+    () => {
+      openFile(TESTFILE);
+      checkDefaultKernelSelection();
+      checkDebuggerButtonEnabled(true);
+      cy.reload();
+      checkDebuggerButtonEnabled(true);
+    }
+  );
 
   // it(
   //   'test for debugger button state persistence on reopening editor tab',
