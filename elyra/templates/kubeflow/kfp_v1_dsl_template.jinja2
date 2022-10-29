@@ -31,20 +31,24 @@ def generated_pipeline(
     {% set task_name = "task_" + workflow_task.escaped_task_id %}
     {{ task_name }} = factory_{{ workflow_task.component_definition_hash | python_safe }}(
 {%  for task_input_name, task_input_spec in workflow_task.task_inputs.items() %}
-{%     if task_input_spec.value and task_input_spec.data_type == "String" %}
-        {{ task_input_name }}="{{ task_input_spec.value }}",
-{%     elif task_input_spec.value and task_input_spec.data_type != "String" %}
-        {{ task_input_name }}={{ task_input_spec.value }},
-{%     elif task_input_spec.task_output_reference %}
+{%     if task_input_spec.task_output_reference %}
         {{ task_input_name }}=task_{{ task_input_spec.task_output_reference.task_id }}.outputs["{{ task_input_spec.task_output_reference.output_id }}"],
+{%     elif task_input_spec.pipeline_parameter_reference %}
+        {{ task_input_name }}={{ task_input_spec.pipeline_parameter_reference }},
+{%     elif task_input_spec.requires_quoted_rendering %}
+        {{ task_input_name }}="{{ task_input_spec.value }}",
+{%     else %}
+        {{ task_input_name }}={{ task_input_spec.value }},
 {%     endif %}
 {%  endfor %}
     )
 {%  if workflow_task.task_modifiers.image_pull_policy %}
     {{ task_name }}.container.set_image_pull_policy("{{ workflow_task.task_modifiers.image_pull_policy }}")
 {%  endif %}
+{%  if workflow_task.task_modifiers.special_output_files %}
     {{ task_name }}.output_artifact_paths["mlpipeline-metrics"] = "{{ workflow_task.task_modifiers.special_output_files.mlpipeline_metrics }}"
     {{ task_name }}.output_artifact_paths["mlpipeline-ui-metadata"] = "{{ workflow_task.task_modifiers.special_output_files.mlpipeline_ui_metadata }}"
+{% endif %}
 {%  if workflow_task.task_modifiers.object_storage_secret %}
     {{ task_name }}.apply(kfp.aws.use_aws_secret("{{ workflow_task.task_modifiers.object_storage_secret }}"))
 {%  endif %}

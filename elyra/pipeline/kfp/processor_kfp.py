@@ -535,7 +535,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         except Exception:
             # if an error was encountered log the generated DSL for troubleshooting
             self.log.error("Error post-processing generated Python DSL:")
-            self.log.info(pipeline_dsl)
+            self.log.error(pipeline_dsl)
             raise
 
         return pipeline_dsl
@@ -823,14 +823,25 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 workflow_task["component_definition_hash"] = hashlib.sha256(component.definition.encode()).hexdigest()
 
                 # Identify task inputs and outputs using the component spec
+                # If no data type was specified, string is assumed
                 factory_function = components.load_component_from_text(component.definition)
                 for input in factory_function.component_spec.inputs or []:
                     workflow_task["task_inputs"][self._sanitize_param_name(input.name)] = {
                         "value": None,
                         "task_output_reference": None,
                         "pipeline_parameter_reference": None,
-                        "data_type": input.type,
+                        "data_type": (input.type or "string").lower(),
                     }
+                    # Determine whether the value needs to be rendered in quotes
+                    # in the generated DSL code. For example "my name" (string), and 34 (integer).
+                    workflow_task["task_inputs"][self._sanitize_param_name(input.name)][
+                        "requires_quoted_rendering"
+                    ] = workflow_task["task_inputs"][self._sanitize_param_name(input.name)]["data_type"] not in [
+                        "integer",
+                        "float",
+                        "bool",
+                    ]
+
                 for output in factory_function.component_spec.outputs or []:
                     workflow_task["task_outputs"][self._sanitize_param_name(output.name)] = {
                         "data_type": output.type,
@@ -887,7 +898,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             reference["value"] = property_value
 
             self.log.debug(f"Completed processing of task '{workflow_task['name']}':")
-            self.log.debug(json.dumps(workflow_tasks, sort_keys=False, indent=4))
+            self.log.debug(json.dumps(workflow_task, sort_keys=False, indent=4))
 
             # append task to task list
             workflow_tasks[workflow_task["id"]] = workflow_task
