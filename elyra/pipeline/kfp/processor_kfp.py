@@ -1098,8 +1098,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         if not instance.size:
             # no custom size was specified; ignore
             return
-        if "kubernetes_shared_mem_size" not in execution_object:
-            execution_object["kubernetes_shared_mem_size"] = {"size": instance.size, "units": instance.units}
+        execution_object["kubernetes_shared_mem_size"] = {"size": instance.size, "units": instance.units}
 
     def add_kubernetes_secret(self, instance: KubernetesSecret, execution_object: Any, **kwargs) -> None:
         """Add KubernetesSecret instance to the execution object"""

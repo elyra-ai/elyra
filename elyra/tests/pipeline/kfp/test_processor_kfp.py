@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -28,7 +29,14 @@ from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
+from elyra.pipeline.component_parameter import CustomSharedMemorySize
+from elyra.pipeline.component_parameter import DisableNodeCaching
 from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.component_parameter import KubernetesAnnotation
+from elyra.pipeline.component_parameter import KubernetesLabel
+from elyra.pipeline.component_parameter import KubernetesSecret
+from elyra.pipeline.component_parameter import KubernetesToleration
+from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
@@ -377,6 +385,143 @@ def test_compose_container_command_args_invalid_dependency_filename(processor):
                     file_outputs=file_output,
                 )
                 assert command_args is None
+
+
+def test_add_disable_node_caching(processor):
+    """
+    Verify that add_disable_node_caching updates the execution object as expected
+    """
+    execution_object = {}
+    for instance in [
+        DisableNodeCaching("True"),
+        DisableNodeCaching("False"),
+    ]:
+        processor.add_disable_node_caching(instance=instance, execution_object=execution_object)
+        assert execution_object.get("disable_node_caching") is instance.selection
+    assert len(execution_object.keys()) == 1
+
+
+def test_add_custom_shared_memory_size(processor):
+    """
+    Verify that add_custom_shared_memory_size updates the execution object as expected
+    """
+    execution_object = {}
+    for instance in [CustomSharedMemorySize(None, None), CustomSharedMemorySize("", None)]:
+        processor.add_custom_shared_memory_size(instance=instance, execution_object=execution_object)
+        assert execution_object.get("kubernetes_shared_mem_size") is None
+
+    for instance in [
+        CustomSharedMemorySize("0.5", None),
+        CustomSharedMemorySize("3.14", "G"),
+        CustomSharedMemorySize("256", "M"),
+    ]:
+        processor.add_custom_shared_memory_size(instance=instance, execution_object=execution_object)
+        assert execution_object["kubernetes_shared_mem_size"]["size"] == instance.size
+        assert execution_object["kubernetes_shared_mem_size"]["units"] == instance.units
+
+
+def test_add_kubernetes_secret(processor):
+    """
+    Verify that add_kubernetes_secret updates the execution object as expected
+    """
+    execution_object = {}
+    for instance in [
+        KubernetesSecret("var", "secret_name", "secret_key"),
+        KubernetesSecret("var2", "secret_name", "secret_key"),
+        KubernetesSecret("var", "secret_name_2", "secret_key_2"),
+    ]:
+        processor.add_kubernetes_secret(instance=instance, execution_object=execution_object)
+        assert execution_object["kubernetes_secrets"][instance.env_var]["name"] == instance.name
+        assert execution_object["kubernetes_secrets"][instance.env_var]["key"] == instance.key
+
+    # given above instances, there should be two entries in the modified execution_object
+    assert len(execution_object["kubernetes_secrets"].keys()) == 2
+
+
+def test_add_mounted_volume(processor):
+    """
+    Verify that add_mounted_volume updates the execution object as expected
+    """
+    execution_object = {}
+    for instance in [
+        VolumeMount("/mount/path", "test-pvc", None, None),
+        VolumeMount("/mount/path2", "test-pvc-2", None, True),
+        VolumeMount("/mount/path3", "test-pvc-3", None, False),
+        VolumeMount("/mount/path4", "test-pvc-4", "sub/path", True),
+        VolumeMount("/mount/path", "test-pvc", None, True),
+    ]:
+        processor.add_mounted_volume(instance=instance, execution_object=execution_object)
+        assert execution_object["kubernetes_volumes"][instance.path]["pvc_name"] == instance.pvc_name
+        assert execution_object["kubernetes_volumes"][instance.path]["sub_path"] == instance.sub_path
+        assert execution_object["kubernetes_volumes"][instance.path]["read_only"] == instance.read_only
+
+    # given above instances, there should be four entries in the modified execution_object
+    assert len(execution_object["kubernetes_volumes"].keys()) == 4
+
+
+def test_add_kubernetes_pod_annotation(processor):
+    """
+    Verify that add_kubernetes_pod_annotation updates the execution object as expected
+    """
+    execution_object = {}
+    for instance in [
+        KubernetesAnnotation("annotation-key", None),
+        KubernetesAnnotation("prefix/annotation-key-2", ""),
+        KubernetesAnnotation("annotation-key-3", "annotation value"),
+        KubernetesAnnotation("annotation-key-3", "another annotation value"),
+    ]:
+        processor.add_kubernetes_pod_annotation(instance=instance, execution_object=execution_object)
+        if instance.value is not None:
+            assert execution_object["pod_annotations"][instance.key] == instance.value
+        else:
+            assert execution_object["pod_annotations"][instance.key] == ""
+
+    # given above instances, there should be three entries in the modified execution_object
+    assert len(execution_object["pod_annotations"].keys()) == 3
+
+
+def test_add_kubernetes_pod_label(processor):
+    """
+    Verify that add_kubernetes_pod_label updates the execution object as expected
+    """
+    execution_object = {}
+    for instance in [
+        KubernetesLabel("label-key", None),
+        KubernetesLabel("label-key-2", ""),
+        KubernetesLabel("label-key-3", "label-value"),
+        KubernetesLabel("label-key-2", "a-different-label-value"),
+    ]:
+        processor.add_kubernetes_pod_label(instance=instance, execution_object=execution_object)
+        if instance.value is not None:
+            assert execution_object["pod_labels"][instance.key] == instance.value
+        else:
+            assert execution_object["pod_labels"][instance.key] == ""
+
+    # given above instances, there should be three entries in the modified execution_object
+    assert len(execution_object["pod_labels"].keys()) == 3
+
+
+def test_add_kubernetes_toleration(processor):
+    """
+    Verify that add_kubernetes_toleration updates the execution object as expected
+    """
+    execution_object = {}
+    expected_unique_execution_object_entries = []
+    for instance in [
+        KubernetesToleration("toleration-key", "Exists", None, "NoExecute"),
+        KubernetesToleration("toleration-key", "Equals", 42, ""),
+    ]:
+        processor.add_kubernetes_toleration(instance=instance, execution_object=execution_object)
+        toleration_hash = hashlib.sha256(
+            f"{instance.key}::{instance.operator}::{instance.value}::{instance.effect}".encode()
+        ).hexdigest()
+        if toleration_hash not in expected_unique_execution_object_entries:
+            expected_unique_execution_object_entries.append(toleration_hash)
+        assert execution_object["kubernetes_tolerations"][toleration_hash]["key"] == instance.key
+        assert execution_object["kubernetes_tolerations"][toleration_hash]["value"] == instance.value
+        assert execution_object["kubernetes_tolerations"][toleration_hash]["operator"] == instance.operator
+        assert execution_object["kubernetes_tolerations"][toleration_hash]["effect"] == instance.effect
+    assert len(expected_unique_execution_object_entries) == len(execution_object["kubernetes_tolerations"].keys())
 
 
 @pytest.mark.skip(reason="TODO")
