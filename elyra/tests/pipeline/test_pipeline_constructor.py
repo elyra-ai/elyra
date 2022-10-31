@@ -370,7 +370,7 @@ def test_validate_resource_values():
 
     assert test_operation.cpu == "4"
     assert test_operation.gpu == "6"
-    assert test_operation.gpu_vendor == "nvidia.com/gpu"
+    assert test_operation.gpu_vendor == "example.com/vcuda-core"
     assert test_operation.gpu_memory == "12"
     assert test_operation.gpu_memory_vendor == "example.com/vcuda-memory"
     assert test_operation.memory == "10"
