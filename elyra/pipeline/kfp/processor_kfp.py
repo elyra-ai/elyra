@@ -709,7 +709,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         cos_directory=artifact_object_prefix,
                         cos_dependencies_archive=self._get_dependency_archive_name(operation),
                         filename=operation.filename,
-                        file_dependencies=operation.inputs,
+                        file_dependencies=operation.dependencies,
                         file_outputs=operation.outputs,
                         crio_runtime_settings=crio_runtime_settings,
                     ),
@@ -958,8 +958,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_directory: str,
         cos_dependencies_archive: str,
         filename: str,
-        file_dependencies: Optional[List[str]] = None,
-        file_outputs: Optional[List[str]] = None,
+        file_dependencies: Optional[List[str]] = [],
+        file_outputs: Optional[List[str]] = [],
         crio_runtime_settings: dict = None,
     ) -> str:
         """
@@ -1041,23 +1041,23 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Inputs and Outputs separator character.  If updated,
             # same-named variable in bootstrapper.py must be updated!
             INOUT_SEPARATOR = ";"
-            file_list = []
             for file in file_list:
                 if INOUT_SEPARATOR in file:
                     raise ValueError(f"Illegal character ({INOUT_SEPARATOR}) found in filename '{file}'.")
-                file_list.append(file.strip())
             return INOUT_SEPARATOR.join(file_list)
 
-        if file_dependencies:
-            inputs_str = self.file_list_to_string(file_dependencies)
-            command_args.append(f'--inputs "{inputs_str}" ')
+        # add [optional] dependencies that the file requires
+        if len(file_dependencies) > 0:
+            inputs_str = file_list_to_string(file_dependencies)
+            command_args.append(f"--inputs '{inputs_str}' ")
 
-        if file_outputs:
-            outputs_str = self.file_list_to_string(file_outputs)
-            command_args.append(f'--outputs "{outputs_str}" ')
+        # add [optional] outputs that the file produces
+        if len(file_outputs) > 0:
+            outputs_str = file_list_to_string(file_outputs)
+            command_args.append(f"--outputs '{outputs_str}' ")
 
         if is_crio_runtime:
-            command_args.append(f'--user-volume-path "{python_user_lib_path.as_posix()}" ')
+            command_args.append(f"--user-volume-path '{python_user_lib_path.as_posix()}' ")
 
         return "".join(command_args)
 
