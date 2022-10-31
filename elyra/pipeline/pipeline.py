@@ -22,7 +22,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import ElyraPropertyList, PipelineParameter
 from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
@@ -342,6 +342,7 @@ class Pipeline(object):
         source: Optional[str] = None,
         description: Optional[str] = None,
         pipeline_properties: Optional[Dict[str, Any]] = None,
+        pipeline_parameters: ElyraPropertyList[PipelineParameter] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -352,6 +353,7 @@ class Pipeline(object):
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
         :param description: Pipeline description
         :param pipeline_properties: Key/value pairs representing the properties of this pipeline
+        :param pipeline_parameters: an ElyraPropertyList of the pipeline parameters
         """
 
         if not name:
@@ -366,6 +368,7 @@ class Pipeline(object):
         self._runtime = runtime
         self._runtime_config = runtime_config
         self._pipeline_properties = pipeline_properties or {}
+        self._pipeline_parameters = pipeline_parameters or []
         self._operations = {}
 
     @property
@@ -402,6 +405,13 @@ class Pipeline(object):
         return self._pipeline_properties
 
     @property
+    def pipeline_parameters(self) -> ElyraPropertyList[PipelineParameter]:
+        """
+        The list of parameters associated with this pipeline
+        """
+        return self._pipeline_parameters
+
+    @property
     def operations(self) -> Dict[str, Operation]:
         return self._operations
 
@@ -432,46 +442,3 @@ class Pipeline(object):
                 and self.runtime == other.runtime
                 and self.operations == other.operations
             )
-
-
-class KeyValueList(list):
-    """
-    A list class that exposes functionality specific to lists whose entries are
-    key-value pairs separated by a pre-defined character.
-    """
-
-    _key_value_separator: str = "="
-
-    def to_dict(self) -> Dict[str, str]:
-        """
-        Properties consisting of key-value pairs are stored in a list of separated
-        strings, while most processing steps require a dictionary - so we must convert.
-        If no key/value pairs are specified, an empty dictionary is returned, otherwise
-        pairs are converted to dictionary entries, stripped of whitespace, and returned.
-        """
-        kv_dict = {}
-        for kv in self:
-            if not kv:
-                continue
-
-            if self._key_value_separator not in kv:
-                raise ValueError(
-                    f"Property {kv} does not contain the expected "
-                    f"separator character: '{self._key_value_separator}'."
-                )
-
-            key, value = kv.split(self._key_value_separator, 1)
-
-            key = key.strip()
-            if not key:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            if isinstance(value, str):
-                value = value.strip()
-            if not value:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            kv_dict[key] = value
-        return kv_dict

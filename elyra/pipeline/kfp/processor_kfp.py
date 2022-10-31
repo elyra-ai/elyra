@@ -853,6 +853,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
         }
 
+    @property
+    def supports_pipeline_parameters(self) -> bool:
+        """KfpPipelineProcessor does support pipeline parameters."""
+        return True
+
 
 class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES

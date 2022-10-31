@@ -31,6 +31,7 @@ from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_catalog import RefreshInProgressError
+from elyra.pipeline.component_parameter import PipelineParameter
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
@@ -200,22 +201,41 @@ class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self, runtime_type):
-        self.log.debug(f"Retrieving pipeline components for runtime type: {runtime_type}")
+        self.log.debug(f"Retrieving pipeline properties for runtime type: {runtime_type}")
 
         runtime_processor_type = get_runtime_processor_type(runtime_type, self.log, self.request.path)
         if not runtime_processor_type:
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
         # Get pipeline properties json
-        pipeline_properties_json = PipelineDefinition.get_canvas_properties_from_template(
-            package_name="templates/pipeline",
-            template_name="pipeline_properties_template.jinja2",
-            runtime_type=runtime_processor_type.name,
-        )
+        pipeline_properties_json = PipelineDefinition.get_pipeline_properties(runtime_type=runtime_processor_type.name)
 
         self.set_status(200)
         self.set_header("Content-Type", "application/json")
         await self.finish(pipeline_properties_json)
+
+
+class PipelineParametersHandler(HttpErrorMixin, APIHandler):
+    """Handler to expose method calls to retrieve pipeline parameters"""
+
+    @web.authenticated
+    async def get(self, runtime_type):
+        self.log.debug(f"Retrieving pipeline parameters for runtime type: {runtime_type}")
+
+        runtime_processor_type = get_runtime_processor_type(runtime_type, self.log, self.request.path)
+        if not runtime_processor_type:
+            raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
+
+        if PipelineProcessorManager.instance().supports_parameters(runtime_type=runtime_processor_type):
+            # Get pipeline parameters json
+            pipeline_properties_json = PipelineParameter.get_schema()
+            self.set_status(200)
+            self.set_header("Content-Type", "application/json")
+            await self.finish(pipeline_properties_json)
+        else:
+            # Pipeline parameters are not supported, no content to return
+            self.set_status(204)
+            await self.finish(f"{RuntimeProcessorType.get_instance_by_name(runtime_type)} does not support pipeline parameters.")
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):

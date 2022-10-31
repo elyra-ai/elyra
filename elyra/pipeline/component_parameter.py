@@ -33,7 +33,7 @@ from typing import Union
 if TYPE_CHECKING:
     from elyra.pipeline.processor import RuntimePipelineProcessor
 
-from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
+from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING, PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_LABELS
@@ -193,10 +193,10 @@ class ElyraProperty(ABC):
         processor_props = set()
         for processor in PipelineProcessorManager.instance().get_all_processors():
             props = getattr(processor, "supported_properties", set())
-            if processor.type.name == runtime_type and props:
-                processor_props = props  # correct processor is found, and it explicitly specifies its properties
-                break
-            processor_props.update(props)
+            if not runtime_type or processor.type.name == runtime_type:
+                processor_props.update(props)
+            # if processor.type.name == runtime_type and props:
+            #    break  # TODO we don't want to break this soon, considering the 1:M notion of runtime type processors
 
         all_subclasses = set()
         for sc in cls.all_subclasses():
@@ -969,8 +969,8 @@ class ComponentParameter(object):
         name: str,
         json_data_type: str,
         description: str,
+        allowed_input_types: List[Optional[str]],
         value: Optional[Any] = "",
-        allowed_input_types: Optional[List[Optional[str]]] = None,
         required: Optional[bool] = False,
         allow_no_options: Optional[bool] = False,
         items: Optional[List[str]] = None,
@@ -1018,11 +1018,7 @@ class ComponentParameter(object):
         self._value = value
 
         self._description = description
-
-        if not allowed_input_types:
-            allowed_input_types = ["inputvalue", "inputpath", "file"]
         self._allowed_input_types = allowed_input_types
-
         self._items = items or []
 
         # Check description for information about 'required' parameter
@@ -1161,3 +1157,74 @@ class InputTypeDescriptionMap(Enum):
     file = "Please select a file to use as input:"
     inputpath = "Please select an output from a parent:"
     outputpath = None  # outputs are read-only and don't require a description
+    parameter = "Please select a parameter to use as input:"
+
+
+class PipelineParameter(ElyraPropertyListItem):
+    """TODO"""
+
+    property_id = PIPELINE_PARAMETERS
+    property_display_name = "Pipeline Parameters"
+    property_description = """TODO"""
+    property_attributes = [
+        ListItemPropertyAttribute(
+            attribute_id="name",
+            display_name="Parameter Name",
+            input_type="string",
+            hidden=False,
+            required=True,
+            use_in_key=True,
+        ),
+        ListItemPropertyAttribute(
+            attribute_id="value",
+            display_name="Default Value",
+            placeholder="default_val",
+            input_type="string",
+            hidden=False,
+            required=False,  # TODO?
+            use_in_key=False,
+        ),
+        ListItemPropertyAttribute(
+            attribute_id="input_type",
+            display_name="Type",
+            placeholder="String",
+            input_type="string",
+            enum=["String"],
+            hidden=False,
+            required=True,
+            use_in_key=False,
+        ),
+        ListItemPropertyAttribute(
+            attribute_id="required",
+            display_name="Required",
+            input_type="boolean",
+            hidden=False,
+            required=True,
+            use_in_key=False,
+        ),
+    ]
+
+    def __init__(self, name, value, input_type, required, **kwargs):
+        self.name = name
+        self.value = value
+        self.input_type = input_type
+        self.required = required
+
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
+        """
+        Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
+        A PipelineParameter dict entry will be of the form:
+            {self.name: {"value": self.value, "type": self.input_type, "required": self.required}
+
+        # TODO this may not be necessary depending on how we want to handle parameters
+        """
+        return {"value": self.value, "type": self.input_type, "required": self.required}
+
+    def get_all_validation_errors(self) -> List[str]:
+        # TODO this can be implemented
+        # Ensure param name adheres to python variable naming rules
+        pass
+
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        # TODO this wont
+        pass

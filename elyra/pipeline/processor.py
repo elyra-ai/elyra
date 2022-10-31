@@ -174,6 +174,10 @@ class PipelineProcessorManager(SingletonConfigurable):
         )
         return res
 
+    def supports_parameters(self, runtime_type: RuntimeProcessorType) -> bool:
+        processors = [processor for processor in self.get_all_processors() if processor.type.name == runtime_type.name]
+        return any(hasattr(p, "supports_pipeline_parameters") and p.supports_pipeline_parameters for p in processors)
+
 
 class PipelineProcessorResponse:
 

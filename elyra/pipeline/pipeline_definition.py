@@ -30,11 +30,13 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
+from elyra.pipeline.component_parameter import PipelineParameter
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
@@ -184,8 +186,9 @@ class Pipeline(AppDataBase):
         """
         return self._node["app_data"]["ui_data"].get("comments", [])
 
-    def get_pipeline_default_properties(self) -> Dict[str, Any]:
-        """Retrieve the dictionary of pipeline default properties"""
+    @property
+    def pipeline_default_properties(self) -> Dict[str, Any]:
+        """The dictionary of pipeline default properties"""
         pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
 
         # TODO remove the block below when a pipeline migration is appropriate (after 3.13)
@@ -197,6 +200,11 @@ class Pipeline(AppDataBase):
                 self._node["app_data"]["properties"][PIPELINE_DEFAULTS] = {COS_OBJECT_PREFIX: cos_prefix}
 
         return pipeline_defaults
+
+    @property
+    def pipeline_parameters(self) -> ElyraPropertyList[PipelineParameter]:
+        """The list of pipeline parameters"""
+        return self.get_property(PIPELINE_PARAMETERS, ElyraPropertyList([]))
 
     def get_property(self, key: str, default_value=None) -> Any:
         """
@@ -230,7 +238,8 @@ class Pipeline(AppDataBase):
         Convert select pipeline-level properties to their corresponding dataclass
         object type. No validation is performed.
         """
-        pipeline_defaults = self.get_pipeline_default_properties()
+        # Convert pipeline node default values
+        pipeline_defaults = self.pipeline_default_properties
         for prop_id, value in list(pipeline_defaults.items()):
             if not ElyraProperty.subclass_exists_for_property(prop_id):
                 continue
@@ -240,6 +249,11 @@ class Pipeline(AppDataBase):
                 pipeline_defaults.pop(prop_id)
             else:
                 pipeline_defaults[prop_id] = converted_value
+
+        # Convert pipeline parameters
+        pipeline_parameters = self.pipeline_parameters
+        converted_value = ElyraProperty.create_instance(PIPELINE_PARAMETERS, pipeline_parameters)
+        self.set_property(PIPELINE_PARAMETERS, converted_value)
 
 
 class Node(AppDataBase):
@@ -597,13 +611,12 @@ class PipelineDefinition(object):
         """
         self.primary_pipeline.convert_elyra_owned_properties()
 
-        pipeline_default_properties = self.primary_pipeline.get_pipeline_default_properties()
         for node in self.pipeline_nodes:
             # Determine which Elyra-owned properties will require dataclass conversion, then convert
             node.set_elyra_owned_properties(self.primary_pipeline.type)
             node.convert_elyra_owned_properties()
 
-            for property_name, pipeline_value in pipeline_default_properties.items():
+            for property_name, pipeline_value in self.primary_pipeline.pipeline_default_properties.items():
                 if not pipeline_value or property_name not in node.propagated_properties:
                     continue
 
@@ -695,14 +708,9 @@ class PipelineDefinition(object):
         return supernode_list
 
     @staticmethod
-    def get_canvas_properties_from_template(package_name: str, template_name: str, runtime_type: str) -> Dict[str, Any]:
-        """
-        Retrieves the dict representation of the canvas-formatted properties
-        associated with the given template and package names. Rendering does
-        not require parameters as expressions are not evaluated due to the
-        SilentUndefined class.
-        """
-        loader = PackageLoader("elyra", package_name)
+    def get_pipeline_properties(runtime_type: str) -> Dict[str, Any]:
+        """Retrieves the dict representation of the canvas-formatted pipeline properties."""
+        loader = PackageLoader("elyra", "templates/pipeline")
 
         params_custom = ElyraProperty.get_classes_for_component_type("custom", runtime_type)
         params_generic = ElyraProperty.get_classes_for_component_type("generic", runtime_type)
@@ -716,9 +724,9 @@ class PipelineDefinition(object):
             "elyra_owned_parameters": params_both,
             "render_parameter_details": ComponentParameter.render_parameter_details,
         }
-        template_env = Environment(loader=loader, undefined=SilentUndefined)
+        template_env = Environment(loader=loader, undefined=SilentUndefined)  # TODO do we need SilentUndefined anymore?
         template_env.policies["json.dumps_kwargs"] = {"sort_keys": False}  # prevent automatic key sort on 'tojson'
-        template = template_env.get_template(template_name)
+        template = template_env.get_template("pipeline_properties_template.jinja2")
         template.globals.update(template_vars)
 
         output = template.render()

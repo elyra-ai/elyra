@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
+from dataclasses import field
 from importlib import import_module
 import json
 from logging import Logger
@@ -307,6 +308,10 @@ class ComponentParser(LoggingConfigurable):  # ABC
             else:  # Let this be undetermined. Callers should check for this status and adjust
                 data_type_info = ParameterTypeInfo(parsed_data=parsed_type_lowered, undetermined=True)
 
+        from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
+        if PipelineProcessorManager.instance().supports_parameters(runtime_type=self.component_platform):
+            data_type_info.allowed_input_types.append("parameter")
+
         return data_type_info
 
 
@@ -328,7 +333,7 @@ class ParameterTypeInfo:
 
     parsed_data: str
     json_data_type: Optional[str] = "string"
-    allowed_input_types: Optional[List[str]] = None
+    allowed_input_types: Optional[List[str]] = field(default_factory=lambda: ["inputvalue", "inputpath", "file"])
     default_value: Optional[Any] = ""
     required: Optional[bool] = True
     undetermined: Optional[bool] = False
