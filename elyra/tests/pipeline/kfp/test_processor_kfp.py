@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -522,6 +523,148 @@ def test_add_kubernetes_toleration(processor):
         assert execution_object["kubernetes_tolerations"][toleration_hash]["operator"] == instance.operator
         assert execution_object["kubernetes_tolerations"][toleration_hash]["effect"] == instance.effect
     assert len(expected_unique_execution_object_entries) == len(execution_object["kubernetes_tolerations"].keys())
+
+
+def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(processor, component_cache, tmpdir):
+    """
+    Verify that _generate_pipeline_dsl and _compile_pipeline_dsl yield
+    the expected output for pipeline the includes a custom component
+    """
+    reader = UrlComponentCatalogConnector([".yaml"])
+
+    # Assign test resource location
+    url = (
+        "https://raw.githubusercontent.com/elyra-ai/elyra/main/"
+        "elyra/tests/pipeline/resources/components/filter_text.yaml"
+    )
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    entry_data = reader.get_entry_data({"url": url}, {})
+    component_definition = entry_data.definition
+
+    properties = [
+        ComponentParameter(
+            id="text",
+            name="Text",
+            json_data_type="string",
+            value="default",
+            description="Text to filter",
+            allowed_input_types=["file", "inputpath", "inputvalue"],
+        ),
+        ComponentParameter(
+            id="pattern",
+            name="Pattern",
+            json_data_type="string",
+            value=".*",
+            description="Pattern to filter on",
+            allowed_input_types=["file", "inputpath", "inputvalue"],
+        ),
+    ]
+
+    # Instantiate a url-based component
+    component_id = "test_component"
+    component = Component(
+        id=component_id,
+        name="Filter text",
+        description="",
+        op="filter-text",
+        catalog_type="url-catalog",
+        component_reference={"url": url},
+        definition=component_definition,
+        categories=[],
+        properties=properties,
+    )
+
+    # Fabricate the component cache to include single filename-based component for testing
+    component_cache._component_cache[processor._type.name] = {
+        "spoofed_catalog": {"components": {component_id: component}}
+    }
+
+    # Construct hypothetical operation for component
+    operation_name = "Filter text test"
+    operation_params = {
+        "text": {"widget": "string", "value": "path/to/text.txt"},
+        "pattern": {"widget": "string", "value": "hello"},
+    }
+    operation = Operation(
+        id="filter-text-id",
+        type="execution_node",
+        classifier=component_id,
+        name=operation_name,
+        parent_operation_ids=[],
+        component_params=operation_params,
+    )
+
+    # Construct pipeline that includes this operation
+    pipeline = Pipeline(
+        id="pipeline-id",
+        name="kfp_test",
+        description="code generation test pipeline",
+        runtime="kfp",
+        runtime_config="test",
+        source="filter_text.pipeline",
+    )
+    pipeline.operations[operation.id] = operation
+
+    # generate Python DSL for the Argo workflow engine
+    generated_argo_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline, pipeline_name=pipeline.name, workflow_engine="argo"
+    )
+
+    assert generated_argo_dsl is not None
+    # Generated DSL includes workflow engine specific code in the _main_ function
+    assert "kfp.compiler.Compiler().compile(" in generated_argo_dsl
+
+    compiled_argo_output_file = Path(tmpdir) / "compiled_kfp_test_argo.yaml"
+
+    # if the compiler discovers an issue with the generated DSL this call fails
+    processor._compile_pipeline_dsl(
+        dsl=generated_argo_dsl,
+        workflow_engine="argo",
+        output_file=compiled_argo_output_file.as_posix(),
+        pipeline_conf=None,
+    )
+
+    # verify that the output file exists
+    assert compiled_argo_output_file.is_file()
+
+    # verify the file content
+    with open(compiled_argo_output_file) as fh:
+        argo_spec = yaml.safe_load(fh.read())
+
+    assert "argoproj.io/" in argo_spec["apiVersion"]
+    pipeline_spec_annotations = json.loads(argo_spec["metadata"]["annotations"]["pipelines.kubeflow.org/pipeline_spec"])
+    assert pipeline_spec_annotations["name"] == pipeline.name
+    assert pipeline_spec_annotations["description"] == pipeline.description
+
+    # generate Python DSL for the Tekton workflow engine
+    generated_tekton_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline, pipeline_name=pipeline.name, workflow_engine="tekton"
+    )
+
+    assert generated_tekton_dsl is not None
+    # Generated DSL includes workflow engine specific code in the _main_ function
+    assert "compiler.TektonCompiler().compile(" in generated_tekton_dsl
+
+    compiled_tekton_output_file = Path(tmpdir) / "compiled_kfp_test_tekton.yaml"
+
+    # if the compiler discovers an issue with the generated DSL this call fails
+    processor._compile_pipeline_dsl(
+        dsl=generated_tekton_dsl,
+        workflow_engine="tekton",
+        output_file=compiled_tekton_output_file.as_posix(),
+        pipeline_conf=None,
+    )
+
+    # verify that the output file exists
+    assert compiled_tekton_output_file.is_file()
+
+    # verify the file content
+    with open(compiled_tekton_output_file) as fh:
+        tekton_spec = yaml.safe_load(fh.read())
+
+    assert "tekton.dev/" in tekton_spec["apiVersion"]
 
 
 @pytest.mark.skip(reason="TODO")
