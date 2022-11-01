@@ -1318,9 +1318,7 @@ def test_export_airflow_format_option(airflow_runtime_instance):
             result = runner.invoke(pipeline, options)
 
             assert result.exit_code == 2, result.output
-            assert (
-                "Invalid value for --format: Valid export formats are ['py']." in result.output
-            ), result.output
+            assert "Invalid value for --format: Valid export formats are ['py']." in result.output, result.output
 
 
 @pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
