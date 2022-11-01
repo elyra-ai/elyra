@@ -27,7 +27,6 @@ import yaml
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
-from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component_parameter import CustomSharedMemorySize
@@ -530,50 +529,47 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
     Verify that _generate_pipeline_dsl and _compile_pipeline_dsl yield
     the expected output for pipeline the includes a custom component
     """
-    reader = UrlComponentCatalogConnector([".yaml"])
 
-    # Assign test resource location
-    url = (
-        "https://raw.githubusercontent.com/elyra-ai/elyra/main/"
-        "elyra/tests/pipeline/resources/components/filter_text.yaml"
-    )
+    # load test component definition
+    component_def_path = Path(__file__).parent / ".." / "resources" / "components" / "download_data.yaml"
 
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
-    entry_data = reader.get_entry_data({"url": url}, {})
+    reader = FilesystemComponentCatalogConnector([".yaml"])
+    entry_data = reader.get_entry_data({"path": component_def_path.as_posix()}, {})
     component_definition = entry_data.definition
 
     properties = [
         ComponentParameter(
-            id="text",
-            name="Text",
+            id="url",
+            name="Url",
             json_data_type="string",
-            value="default",
-            description="Text to filter",
+            value="",
+            description="",
             allowed_input_types=["file", "inputpath", "inputvalue"],
         ),
         ComponentParameter(
-            id="pattern",
-            name="Pattern",
+            id="curl_options",
+            name="Curl Options",
             json_data_type="string",
-            value=".*",
-            description="Pattern to filter on",
+            value="--location",
+            description="Additional options given to the curl program",
             allowed_input_types=["file", "inputpath", "inputvalue"],
         ),
     ]
 
-    # Instantiate a url-based component
-    component_id = "test_component"
+    # Instantiate a file-based component
+    component_id = "test-component"
     component = Component(
         id=component_id,
-        name="Filter text",
-        description="",
-        op="filter-text",
-        catalog_type="url-catalog",
-        component_reference={"url": url},
+        name="Download data",
+        description="download data from web",
+        op="download-data",
+        catalog_type="elyra-kfp-examples-catalog",
+        component_reference={"path": component_def_path.as_posix()},
         definition=component_definition,
-        categories=[],
         properties=properties,
+        categories=[],
     )
 
     # Fabricate the component cache to include single filename-based component for testing
@@ -581,14 +577,18 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
         "spoofed_catalog": {"components": {component_id: component}}
     }
 
-    # Construct hypothetical operation for component
-    operation_name = "Filter text test"
+    # Construct operation for component
+    operation_name = "Download data test"
     operation_params = {
-        "text": {"widget": "string", "value": "path/to/text.txt"},
-        "pattern": {"widget": "string", "value": "hello"},
+        "url": {
+            "widget": "string",
+            "value": "https://raw.githubusercontent.com/elyra-ai/examples/"
+            "main/pipelines/run-pipelines-on-kubeflow-pipelines/data/data.csv",
+        },
+        "curl_options": {"widget": "string", "value": "--location"},
     }
     operation = Operation(
-        id="filter-text-id",
+        id="download-data-id",
         type="execution_node",
         classifier=component_id,
         name=operation_name,
@@ -596,16 +596,15 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
         component_params=operation_params,
     )
 
-    # Construct pipeline that includes this operation
+    # Construct single-operation pipeline
     pipeline = Pipeline(
         id="pipeline-id",
-        name="kfp_test",
-        description="code generation test pipeline",
+        name="code-gen-test-custom-components",
+        description="Test code generation for custom components",
         runtime="kfp",
         runtime_config="test",
-        source="filter_text.pipeline",
+        source="download_data.pipeline",
     )
-
     pipeline.operations[operation.id] = operation
 
     # generate Python DSL for the Argo workflow engine
@@ -672,107 +671,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
         tekton_spec = yaml.safe_load(fh.read())
 
     assert "tekton.dev/" in tekton_spec["apiVersion"]
-
-
-@pytest.mark.skip(reason="TODO")
-def test_processing_url_runtime_specific_component(monkeypatch, processor, component_cache, sample_metadata, tmpdir):
-    # Define the appropriate reader for a URL-type component definition
-    kfp_supported_file_types = [".yaml"]
-    reader = UrlComponentCatalogConnector(kfp_supported_file_types)
-
-    # Assign test resource location
-    url = (
-        "https://raw.githubusercontent.com/elyra-ai/elyra/main/"
-        "elyra/tests/pipeline/resources/components/filter_text.yaml"
-    )
-
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    entry_data = reader.get_entry_data({"url": url}, {})
-    component_definition = entry_data.definition
-
-    properties = [
-        ComponentParameter(
-            id="text",
-            name="Text",
-            json_data_type="string",
-            value="default",
-            description="Text to filter",
-            allowed_input_types=["file", "inputpath", "inputvalue"],
-        ),
-        ComponentParameter(
-            id="pattern",
-            name="Pattern",
-            json_data_type="string",
-            value=".*",
-            description="Pattern to filter on",
-            allowed_input_types=["file", "inputpath", "inputvalue"],
-        ),
-    ]
-
-    # Instantiate a url-based component
-    component_id = "test_component"
-    component = Component(
-        id=component_id,
-        name="Filter text",
-        description="",
-        op="filter-text",
-        catalog_type="url-catalog",
-        component_reference={"url": url},
-        definition=component_definition,
-        categories=[],
-        properties=properties,
-    )
-
-    # Fabricate the component cache to include single filename-based component for testing
-    component_cache._component_cache[processor._type.name] = {
-        "spoofed_catalog": {"components": {component_id: component}}
-    }
-
-    # Construct hypothetical operation for component
-    operation_name = "Filter text test"
-    operation_params = {
-        "text": {"widget": "string", "value": "path/to/text.txt"},
-        "pattern": {"widget": "string", "value": "hello"},
-    }
-    operation = Operation(
-        id="filter-text-id",
-        type="execution_node",
-        classifier=component_id,
-        name=operation_name,
-        parent_operation_ids=[],
-        component_params=operation_params,
-    )
-
-    # Build a mock runtime config for use in _cc_pipeline
-    mocked_runtime = Metadata(name="test-metadata", display_name="test", schema_name="kfp", metadata=sample_metadata)
-
-    mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_metadata])
-    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
-
-    # Construct single-operation pipeline
-    pipeline = Pipeline(
-        id="pipeline-id", name="kfp_test", runtime="kfp", runtime_config="test", source="filter_text.pipeline"
-    )
-    pipeline.operations[operation.id] = operation
-
-    # Establish path and function to construct pipeline
-    pipeline_path = os.path.join(tmpdir, "kfp_test.yaml")
-    constructed_pipeline_function = lambda: processor._cc_pipeline(pipeline=pipeline, pipeline_name="test_pipeline")
-
-    # TODO Check against both argo and tekton compilations
-    # Compile pipeline and save into pipeline_path
-    kfp_argo_compiler.Compiler().compile(constructed_pipeline_function, pipeline_path)
-
-    # Read contents of pipeline YAML
-    with open(pipeline_path) as f:
-        pipeline_yaml = yaml.safe_load(f.read())
-
-    # Check the pipeline file contents for correctness
-    pipeline_template = pipeline_yaml["spec"]["templates"][0]
-    assert pipeline_template["metadata"]["annotations"]["pipelines.kubeflow.org/task_display_name"] == operation_name
-    assert pipeline_template["inputs"]["artifacts"][0]["raw"]["data"] == operation_params["text"]
-    assert pipeline_template["container"]["command"][4] == operation_params["pattern"]
 
 
 @pytest.mark.skip(reason="TODO")
@@ -875,76 +773,6 @@ def test_processing_filename_runtime_specific_component(
     assert pipeline_template["metadata"]["annotations"]["pipelines.kubeflow.org/task_display_name"] == operation_name
     assert pipeline_template["container"]["command"][3] == operation_params["url"]
     assert '"doc_type": "pipeline"' in pipeline_template["container"]["command"][3]
-
-
-@pytest.mark.skip(reason="TODO")
-def test_cc_pipeline_component_no_input(monkeypatch, processor, component_cache, sample_metadata, tmpdir):
-    """
-    Verifies that cc_pipeline can handle KFP component definitions that don't
-    include any inputs
-    """
-    # Define the appropriate reader for a filesystem-type component definition
-    kfp_supported_file_types = [".yaml"]
-    reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
-
-    # Assign test resource location
-    cpath = (Path(__file__).parent / ".." / "resources" / "components" / "kfp_test_operator_no_inputs.yaml").resolve()
-    assert cpath.is_file()
-    cpath = str(cpath)
-
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    entry_data = reader.get_entry_data({"path": cpath}, {})
-    component_definition = entry_data.definition
-
-    # Instantiate a file-based component
-    component_id = "test-component"
-    component = Component(
-        id=component_id,
-        name="No input data",
-        description="",
-        op="no-input-data",
-        catalog_type="elyra-kfp-examples-catalog",
-        component_reference={"path": cpath},
-        definition=component_definition,
-        properties=[],
-        categories=[],
-    )
-
-    # Fabricate the component cache to include single filename-based component for testing
-    component_cache._component_cache[processor._type.name] = {
-        "spoofed_catalog": {"components": {component_id: component}}
-    }
-
-    # Construct hypothetical operation for component
-    operation_name = "no-input-test"
-    operation_params = {}
-    operation = Operation(
-        id="no-input-id",
-        type="execution_node",
-        classifier=component_id,
-        name=operation_name,
-        parent_operation_ids=[],
-        component_params=operation_params,
-    )
-
-    # Build a mock runtime config for use in _cc_pipeline
-    mocked_runtime = Metadata(name="test-metadata", display_name="test", schema_name="kfp", metadata=sample_metadata)
-
-    mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_metadata])
-    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
-
-    # Construct single-operation pipeline
-    pipeline = Pipeline(
-        id="pipeline-id", name="kfp_test", runtime="kfp", runtime_config="test", source="no_input.pipeline"
-    )
-    pipeline.operations[operation.id] = operation
-
-    constructed_pipeline_function = lambda: processor._cc_pipeline(pipeline=pipeline, pipeline_name="test_pipeline")
-    pipeline_path = str(Path(tmpdir) / "no_inputs_test.yaml")
-
-    # Compile pipeline and save into pipeline_path
-    kfp_argo_compiler.Compiler().compile(constructed_pipeline_function, pipeline_path)
 
 
 @pytest.mark.skip(reason="TODO")

@@ -15,6 +15,7 @@
 #
 from datetime import datetime
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
@@ -556,16 +557,22 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         :type pipeline_conf: PipelineConf
         :raises RuntimeError: raised when a fatal error is encountered
         """
+
         with tempfile.TemporaryDirectory() as temp_dir:
             try:
-                # add temporary directory to Python module search path
+                # Add temporary directory to Python module search path.
                 sys.path.insert(0, temp_dir)
-                # save DSL in temporary file so we can import it
+                # Save DSL in temporary file so we can import it as a module.
                 dsl_file = Path(temp_dir) / "generated_dsl.py"
                 with open(dsl_file, "w") as dsl_output:
                     dsl_output.write(dsl)
-                # import DSL and a obtain handle to pipeline function
-                mod = __import__("generated_dsl")
+                # Load DSL by importing the "generated_dsl" module.
+                mod = importlib.import_module("generated_dsl")
+                # If this module was previously imported it won't reflect
+                # changes that might be in the DSL we are about to compile.
+                # Force a module re-load to pick up any changes.
+                mod = importlib.reload(mod)
+                # Obtain handle to pipeline function
                 pipeline_function = getattr(mod, "generated_pipeline")
                 # compile the DSL
                 if workflow_engine == "tekton":
