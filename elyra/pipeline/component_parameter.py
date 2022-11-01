@@ -295,6 +295,8 @@ class DisableNodeCaching(ElyraProperty):
 
     @classmethod
     def get_single_instance(cls, value: Optional[Any] = None) -> ElyraProperty | None:
+        if isinstance(value, ElyraProperty):
+            return value  # value is already a single instance, no further action required
         return DisableNodeCaching(selection=value)
 
     @classmethod
