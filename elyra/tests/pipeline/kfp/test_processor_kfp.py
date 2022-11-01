@@ -605,6 +605,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
         runtime_config="test",
         source="filter_text.pipeline",
     )
+
     pipeline.operations[operation.id] = operation
 
     # generate Python DSL for the Argo workflow engine
@@ -617,6 +618,10 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
     assert "kfp.compiler.Compiler().compile(" in generated_argo_dsl
 
     compiled_argo_output_file = Path(tmpdir) / "compiled_kfp_test_argo.yaml"
+
+    # make sure the output file does not exist (3.8+ use unlink("missing_ok=True"))
+    if compiled_argo_output_file.is_file():
+        compiled_argo_output_file.unlink()
 
     # if the compiler discovers an issue with the generated DSL this call fails
     processor._compile_pipeline_dsl(
@@ -635,8 +640,10 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
 
     assert "argoproj.io/" in argo_spec["apiVersion"]
     pipeline_spec_annotations = json.loads(argo_spec["metadata"]["annotations"]["pipelines.kubeflow.org/pipeline_spec"])
-    assert pipeline_spec_annotations["name"] == pipeline.name
-    assert pipeline_spec_annotations["description"] == pipeline.description
+    assert (
+        pipeline_spec_annotations["name"] == pipeline.name
+    ), f"DSL input: {generated_argo_dsl}\nArgo output: {argo_spec}"
+    assert pipeline_spec_annotations["description"] == pipeline.description, pipeline_spec_annotations
 
     # generate Python DSL for the Tekton workflow engine
     generated_tekton_dsl = processor._generate_pipeline_dsl(
