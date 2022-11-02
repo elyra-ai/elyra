@@ -331,8 +331,8 @@ def test_compose_container_command_args(processor):
                 cos_directory=cos_directory,
                 cos_dependencies_archive=cos_dependencies_archive,
                 filename=filename,
-                file_dependencies=file_dependency,
-                file_outputs=file_output,
+                cos_inputs=file_dependency,
+                cos_outputs=file_output,
             )
 
             if len(file_dependency) < 1:
@@ -381,8 +381,8 @@ def test_compose_container_command_args_invalid_dependency_filename(processor):
                     cos_directory=cos_directory,
                     cos_dependencies_archive=cos_dependencies_archive,
                     filename=filename,
-                    file_dependencies=file_dependency,
-                    file_outputs=file_output,
+                    cos_inputs=file_dependency,
+                    cos_outputs=file_output,
                 )
                 assert command_args is None
 
