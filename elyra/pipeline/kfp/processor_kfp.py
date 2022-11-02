@@ -508,7 +508,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         # Convert pipeline into workflow tasks
         workflow_tasks = self._generate_workflow_tasks(
-            pipeline, pipeline_name, pipeline_instance_id=pipeline_instance_id
+            pipeline,
+            pipeline_name,
+            pipeline_instance_id=pipeline_instance_id,
+            pipeline_version=pipeline_version,
+            experiment_name=experiment_name,
         )
 
         # Gather unique component definitions from workflow task list.

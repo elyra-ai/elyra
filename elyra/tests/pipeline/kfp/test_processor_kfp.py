@@ -15,10 +15,11 @@
 #
 import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import tarfile
+from typing import List
+from typing import Union
 from unittest import mock
 
 from kfp import compiler as kfp_argo_compiler
@@ -44,15 +45,14 @@ from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
+from elyra.util.kubernetes import sanitize_label_value
 
-
-ARCHIVE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "archive")
-PIPELINE_FILE_COMPLEX = "resources/sample_pipelines/pipeline_dependency_complex.json"
+PIPELINE_FILE_COMPLEX = str((Path("resources") / "sample_pipelines" / "pipeline_dependency_complex.json").as_posix())
 
 
 @pytest.fixture
-def processor(setup_factory_data):
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+def processor(setup_factory_data) -> KfpPipelineProcessor:
+    root_dir = str((Path(__file__).parent / "..").resolve())
     processor = KfpPipelineProcessor(root_dir=root_dir)
     return processor
 
@@ -81,13 +81,46 @@ def sample_metadata():
     }
 
 
-def test_fail_get_metadata_configuration_invalid_namespace(processor):
+@pytest.fixture
+def dummy_kfp_runtime_config() -> Metadata:
+    """
+    Returns a KFP runtime config metadata entry
+    """
+    kfp_runtime_config = {
+        "display_name": "Mocked KFP runtime",
+        "schema_name": "kfp",
+        "metadata": {
+            "display_name": "Mocked KFP runtime",
+            "api_endpoint": "http://examples.com:31737",
+            "cos_endpoint": "http://examples.com:31671",
+            "cos_username": "example",
+            "cos_password": "example123",
+            "cos_bucket": "test",
+            "engine": "Argo",
+            "tags": [],
+            "user_namespace": "default",
+            "cos_auth_type": "USER_CREDENTIALS",
+            "api_username": "user@example.com",
+            "api_password": "12341234",
+            "runtime_type": "KUBEFLOW_PIPELINES",
+        },
+    }
+
+    return Metadata(
+        name=kfp_runtime_config["display_name"].lower().replace(" ", "_"),
+        display_name=kfp_runtime_config["display_name"],
+        schema_name=kfp_runtime_config["schema_name"],
+        metadata=kfp_runtime_config["metadata"],
+    )
+
+
+def test_fail_get_metadata_configuration_invalid_namespace(processor: KfpPipelineProcessor):
     with pytest.raises(RuntimeError):
         processor._get_metadata_configuration(schemaspace="non_existent_namespace", name="non_existent_metadata")
 
 
-def test_generate_dependency_archive(processor):
-    pipelines_test_file = os.path.join(ARCHIVE_DIR, "test.ipynb")
+def test_generate_dependency_archive(processor: KfpPipelineProcessor):
+    pipelines_test_file = str((Path(__file__).parent / ".." / "resources" / "archive" / "test.ipynb").resolve())
     pipeline_dependencies = ["airflow.json"]
     correct_filelist = ["test.ipynb", "airflow.json"]
     component_parameters = {
@@ -115,7 +148,7 @@ def test_generate_dependency_archive(processor):
     assert sorted(correct_filelist) == sorted(tar_content)
 
 
-def test_fail_generate_dependency_archive(processor):
+def test_fail_generate_dependency_archive(processor: KfpPipelineProcessor):
     pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     pipeline_dependencies = ["non_existent_file.json"]
     component_parameters = {
@@ -135,7 +168,7 @@ def test_fail_generate_dependency_archive(processor):
         processor._generate_dependency_archive(test_operation)
 
 
-def test_get_dependency_source_dir(processor):
+def test_get_dependency_source_dir(processor: KfpPipelineProcessor):
     pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     processor.root_dir = "/this/is/an/abs/path/"
     correct_filepath = "/this/is/an/abs/path/this/is/a/rel/path"
@@ -153,7 +186,7 @@ def test_get_dependency_source_dir(processor):
     assert filepath == correct_filepath
 
 
-def test_get_dependency_archive_name(processor):
+def test_get_dependency_archive_name(processor: KfpPipelineProcessor):
     pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     correct_filename = "test-this-is-a-test-id.tar.gz"
     component_parameters = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
@@ -170,7 +203,7 @@ def test_get_dependency_archive_name(processor):
     assert filename == correct_filename
 
 
-def test_collect_envs(processor):
+def test_collect_envs(processor: KfpPipelineProcessor):
     pipelines_test_file = "this/is/a/rel/path/test.ipynb"
 
     # add system-owned envs with bogus values to ensure they get set to system-derived values,
@@ -220,7 +253,7 @@ def test_collect_envs(processor):
     assert "USER_NO_VALUE" not in envs
 
 
-def test_process_list_value_function(processor):
+def test_process_list_value_function(processor: KfpPipelineProcessor):
     # Test values that will be successfully converted to list
     assert processor._process_list_value("") == []
     assert processor._process_list_value(None) == []
@@ -241,7 +274,7 @@ def test_process_list_value_function(processor):
     assert processor._process_list_value("'elem1', 'elem2'") == "'elem1', 'elem2'"
 
 
-def test_process_dictionary_value_function(processor):
+def test_process_dictionary_value_function(processor: KfpPipelineProcessor):
     # Test values that will be successfully converted to dictionary
     assert processor._process_dictionary_value("") == {}
     assert processor._process_dictionary_value(None) == {}
@@ -291,7 +324,7 @@ def test_process_dictionary_value_function(processor):
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
 
 
-def test_compose_container_command_args(processor):
+def test_compose_container_command_args(processor: KfpPipelineProcessor):
     """
     Verify that _compose_container_command_args yields the expected output for valid input
     """
@@ -346,7 +379,7 @@ def test_compose_container_command_args(processor):
                 assert f"--outputs '{';'.join(file_output)}'" in command_args
 
 
-def test_compose_container_command_args_invalid_dependency_filename(processor):
+def test_compose_container_command_args_invalid_dependency_filename(processor: KfpPipelineProcessor):
     """
     Verify that _compose_container_command_args fails if one or more of the
     specified input file dependencies contains the reserved separator character
@@ -387,7 +420,7 @@ def test_compose_container_command_args_invalid_dependency_filename(processor):
                 assert command_args is None
 
 
-def test_add_disable_node_caching(processor):
+def test_add_disable_node_caching(processor: KfpPipelineProcessor):
     """
     Verify that add_disable_node_caching updates the execution object as expected
     """
@@ -420,7 +453,7 @@ def test_add_custom_shared_memory_size(processor):
         assert execution_object["kubernetes_shared_mem_size"]["units"] == instance.units
 
 
-def test_add_kubernetes_secret(processor):
+def test_add_kubernetes_secret(processor: KfpPipelineProcessor):
     """
     Verify that add_kubernetes_secret updates the execution object as expected
     """
@@ -438,7 +471,7 @@ def test_add_kubernetes_secret(processor):
     assert len(execution_object["kubernetes_secrets"].keys()) == 2
 
 
-def test_add_mounted_volume(processor):
+def test_add_mounted_volume(processor: KfpPipelineProcessor):
     """
     Verify that add_mounted_volume updates the execution object as expected
     """
@@ -459,7 +492,7 @@ def test_add_mounted_volume(processor):
     assert len(execution_object["kubernetes_volumes"].keys()) == 4
 
 
-def test_add_kubernetes_pod_annotation(processor):
+def test_add_kubernetes_pod_annotation(processor: KfpPipelineProcessor):
     """
     Verify that add_kubernetes_pod_annotation updates the execution object as expected
     """
@@ -480,7 +513,7 @@ def test_add_kubernetes_pod_annotation(processor):
     assert len(execution_object["pod_annotations"].keys()) == 3
 
 
-def test_add_kubernetes_pod_label(processor):
+def test_add_kubernetes_pod_label(processor: KfpPipelineProcessor):
     """
     Verify that add_kubernetes_pod_label updates the execution object as expected
     """
@@ -501,7 +534,7 @@ def test_add_kubernetes_pod_label(processor):
     assert len(execution_object["pod_labels"].keys()) == 3
 
 
-def test_add_kubernetes_toleration(processor):
+def test_add_kubernetes_toleration(processor: KfpPipelineProcessor):
     """
     Verify that add_kubernetes_toleration updates the execution object as expected
     """
@@ -524,7 +557,9 @@ def test_add_kubernetes_toleration(processor):
     assert len(expected_unique_execution_object_entries) == len(execution_object["kubernetes_tolerations"].keys())
 
 
-def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(processor, component_cache, tmpdir):
+def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
+    processor: KfpPipelineProcessor, component_cache, tmpdir
+):
     """
     Verify that _generate_pipeline_dsl and _compile_pipeline_dsl yield
     the expected output for pipeline the includes a custom component
@@ -536,7 +571,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
     # Read contents of given path -- read_component_definition() returns a
     # a dictionary of component definition content indexed by path
     reader = FilesystemComponentCatalogConnector([".yaml"])
-    entry_data = reader.get_entry_data({"path": component_def_path.as_posix()}, {})
+    entry_data = reader.get_entry_data({"path": str(component_def_path.absolute())}, {})
     component_definition = entry_data.definition
 
     properties = [
@@ -673,106 +708,130 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(pr
     assert "tekton.dev/" in tekton_spec["apiVersion"]
 
 
-@pytest.mark.skip(reason="TODO")
-def test_processing_filename_runtime_specific_component(
-    monkeypatch, processor, component_cache, sample_metadata, tmpdir
+def load_and_patch_pipeline(pipeline_filename: Union[str, Path]) -> Union[None, Pipeline]:
+    """
+    This utility function loads pipeline_filename and injects runtime information, if none is present
+    """
+
+    if not pipeline_filename or not Path(pipeline_filename).is_file():
+        return None
+
+    # load file content
+    with open(pipeline_filename, "r") as fh:
+        pipeline_json = json.loads(fh.read())
+
+    # The parser requires runtime configuration information to be embedded.
+    # If none is present, add it.
+    if len(pipeline_json["pipelines"]) > 0:
+        if pipeline_json["pipelines"][0].get("app_data", {}).get("runtime", None) is None:
+            pipeline_json["pipelines"][0]["app_data"]["runtime"] = "Kubeflow Pipelines"
+        if pipeline_json["pipelines"][0].get("app_data", {}).get("runtime_type", None) is None:
+            pipeline_json["pipelines"][0]["app_data"]["runtime_type"] = "KUBEFLOW_PIPELINES"
+
+    return PipelineParser().parse(pipeline_json=pipeline_json)
+
+
+def generate_mocked_runtime_image_configurations(pipeline: Pipeline) -> List[Metadata]:
+    if pipeline is None:
+        return []
+    mocked_runtime_image_configurations = []
+    unique_image_names = []
+    # Iterate through pipeline nodes and extract the container image references
+    # for all generic operations.
+    for operation in pipeline.operations:
+        if isinstance(operation, GenericOperation):
+            if operation.runtime_image not in unique_image_names:
+                mocked_runtime_image_configurations.append(
+                    Metadata(
+                        name="mocked",
+                        display_name="test-image",
+                        schema_name="runtime-image",
+                        metadata={
+                            "image_name": operation.runtime_image,
+                            "pull_policy": "IfNotPresent",
+                        },
+                    )
+                )
+                unique_image_names.append(operation.runtime_image)
+
+    return mocked_runtime_image_configurations
+
+
+def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_pipeline(
+    monkeypatch, processor, dummy_kfp_runtime_config, tmpdir
 ):
-    # Define the appropriate reader for a filesystem-type component definition
-    kfp_supported_file_types = [".yaml"]
-    reader = FilesystemComponentCatalogConnector(kfp_supported_file_types)
+    """
+    Validate that the output of _compile_pipeline_dsl yields the expected results.
+    If deviations are detected, they might be caused by _generate_pipeline_dsl.
+    """
 
-    # Assign test resource location
-    absolute_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "resources", "components", "download_data.yaml")
+    test_pipeline_file = (
+        Path(__file__).parent / ".." / "resources" / "test_pipelines" / "kfp" / "kfp-one-node-generic.pipeline"
     )
+    pipeline = load_and_patch_pipeline(test_pipeline_file)
+    mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(pipeline)
 
-    # Read contents of given path -- read_component_definition() returns a
-    # a dictionary of component definition content indexed by path
-    entry_data = reader.get_entry_data({"path": absolute_path}, {})
-    component_definition = entry_data.definition
-
-    properties = [
-        ComponentParameter(
-            id="url",
-            name="Url",
-            json_data_type="string",
-            value="",
-            description="",
-            allowed_input_types=["file", "inputpath", "inputvalue"],
-        ),
-        ComponentParameter(
-            id="curl_options",
-            name="Curl Options",
-            json_data_type="string",
-            value="--location",
-            description="Additional options given to the curl program",
-            allowed_input_types=["file", "inputpath", "inputvalue"],
-        ),
-    ]
-
-    # Instantiate a file-based component
-    component_id = "test-component"
-    component = Component(
-        id=component_id,
-        name="Download data",
-        description="",
-        op="download-data",
-        catalog_type="elyra-kfp-examples-catalog",
-        component_reference={"path": absolute_path},
-        definition=component_definition,
-        properties=properties,
-        categories=[],
-    )
-
-    # Fabricate the component cache to include single filename-based component for testing
-    component_cache._component_cache[processor._type.name] = {
-        "spoofed_catalog": {"components": {component_id: component}}
-    }
-
-    # Construct hypothetical operation for component
-    operation_name = "Download data test"
-    operation_params = {
-        "url": {"widget": "file", "value": "resources/sample_pipelines/pipeline_valid.json"},
-        "curl_options": {"widget": "string", "value": "--location"},
-    }
-    operation = Operation(
-        id="download-data-id",
-        type="execution_node",
-        classifier=component_id,
-        name=operation_name,
-        parent_operation_ids=[],
-        component_params=operation_params,
-    )
-
-    # Build a mock runtime config for use in _cc_pipeline
-    mocked_runtime = Metadata(name="test-metadata", display_name="test", schema_name="kfp", metadata=sample_metadata)
-
-    mocked_func = mock.Mock(return_value="default", side_effect=[mocked_runtime, sample_metadata])
+    mock_side_effects = [dummy_kfp_runtime_config] + [mocked_runtime_image_configurations]
+    mocked_func = mock.Mock(return_value="default", side_effect=mock_side_effects)
     monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
-    # Construct single-operation pipeline
-    pipeline = Pipeline(
-        id="pipeline-id", name="kfp_test", runtime="kfp", runtime_config="test", source="download_data.pipeline"
+    compiled_argo_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml")
+    compiled_argo_output_file_name = str(compiled_argo_output_file.absolute())
+
+    # generate Python DSL for the Argo workflow engine
+    pipeline_version = f"{pipeline.name}-0815"
+    experiment_name = f"{pipeline.name}-0815"
+    generated_argo_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline,
+        pipeline_name=pipeline.name,
+        workflow_engine="argo",
+        pipeline_version=pipeline_version,
+        experiment_name=experiment_name,
     )
-    pipeline.operations[operation.id] = operation
 
-    # Establish path and function to construct pipeline
-    pipeline_path = os.path.join(tmpdir, "kfp_test.yaml")
-    constructed_pipeline_function = lambda: processor._cc_pipeline(pipeline=pipeline, pipeline_name="test_pipeline")
+    # if the compiler discovers an issue with the generated DSL this call fails
+    processor._compile_pipeline_dsl(
+        dsl=generated_argo_dsl,
+        workflow_engine="argo",
+        output_file=compiled_argo_output_file_name,
+        pipeline_conf=None,
+    )
 
-    # TODO Check against both argo and tekton compilations
-    # Compile pipeline and save into pipeline_path
-    kfp_argo_compiler.Compiler().compile(constructed_pipeline_function, pipeline_path)
+    # Load generated Argo workflow
+    with open(compiled_argo_output_file_name) as f:
+        argo_spec = yaml.safe_load(f.read())
 
-    # Read contents of pipeline YAML
-    with open(pipeline_path) as f:
-        pipeline_yaml = yaml.safe_load(f.read())
+    # assert argo_spec is None
+    pipeline_meta_annotations = json.loads(argo_spec["metadata"]["annotations"]["pipelines.kubeflow.org/pipeline_spec"])
+    assert pipeline_meta_annotations["name"] == pipeline.name
+    assert pipeline_meta_annotations["description"] == pipeline.description
 
-    # Check the pipeline file contents for correctness
-    pipeline_template = pipeline_yaml["spec"]["templates"][0]
-    assert pipeline_template["metadata"]["annotations"]["pipelines.kubeflow.org/task_display_name"] == operation_name
-    assert pipeline_template["container"]["command"][3] == operation_params["url"]
-    assert '"doc_type": "pipeline"' in pipeline_template["container"]["command"][3]
+    assert len(argo_spec["spec"]["templates"]) == 2
+    dag_name = argo_spec["spec"]["entrypoint"]
+    for template in argo_spec["spec"]["templates"]:
+        if template["name"] == dag_name:
+            continue
+        # Verify component definition information (see generic_component_definition_template.jinja2)
+        #  - property 'name'
+        assert template["name"] == "run-a-file"
+        #  - property 'implememtation.container.command'
+        assert template["container"]["command"] == ["sh", "-c"]
+
+        for op_key in pipeline.operations.keys():
+            op = pipeline.operations[op_key]
+            #  - property 'implementation.container.image'
+            assert template["container"]["image"] == op.runtime_image
+
+            # Verify metadata that Elyra attaches to the pod
+            assert template["metadata"]["annotations"]["elyra/node-file-name"] == op.filename
+            assert template["metadata"]["labels"]["elyra/node-name"] == sanitize_label_value(op.name)
+            assert template["metadata"]["labels"]["elyra/node-type"] == sanitize_label_value("notebook-script")
+            assert template["metadata"]["labels"]["elyra/pipeline-name"] == sanitize_label_value(pipeline.name)
+            assert template["metadata"]["labels"]["elyra/pipeline-version"] == sanitize_label_value(pipeline_version)
+            assert template["metadata"]["labels"]["elyra/experiment-name"] == sanitize_label_value(experiment_name)
 
 
 @pytest.mark.skip(reason="TODO")
