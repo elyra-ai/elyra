@@ -498,13 +498,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         Generate Python DSL for Kubeflow Pipelines v1
         """
         # Load Kubeflow Pipelines Python DSL template
-        loader = PackageLoader("elyra", "templates/kubeflow")
+        loader = PackageLoader("elyra", "templates/kubeflow/v1")
         template_env = Environment(loader=loader)
         # Add filter that produces a Python-safe variable name
         template_env.filters["python_safe"] = lambda x: re.sub(r"[" + re.escape(string.punctuation) + "\\s]", "_", x)
         # Add filter that escapes the " character in strings
         template_env.filters["string_delimiter_safe"] = lambda string: re.sub('"', '\\"', string)
-        template = template_env.get_template("kfp_v1_dsl_template.jinja2")
+        template = template_env.get_template("python_dsl_template.jinja2")
 
         # Convert pipeline into workflow tasks
         workflow_tasks = self._generate_workflow_tasks(
@@ -633,9 +633,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
             )
             # - load the generic component definition template
-            generic_component_template = Environment(loader=PackageLoader("elyra", "templates/kubeflow")).get_template(
-                "generic_component_definition_template.jinja2"
-            )
+            generic_component_template = Environment(
+                loader=PackageLoader("elyra", "templates/kubeflow/v1")
+            ).get_template("generic_component_definition_template.jinja2")
             # Determine whether we are executing in a CRI-O runtime environment
             is_crio_runtime = os.getenv("CRIO_RUNTIME", "False").lower() == "true"
             if is_crio_runtime:
@@ -716,8 +716,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         cos_directory=artifact_object_prefix,
                         cos_dependencies_archive=self._get_dependency_archive_name(operation),
                         filename=operation.filename,
-                        file_dependencies=operation.dependencies,
-                        file_outputs=operation.outputs,
+                        cos_inputs=operation.inputs,
+                        cos_outputs=operation.outputs,
                         crio_runtime_settings=crio_runtime_settings,
                     ),
                 )
@@ -965,12 +965,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_directory: str,
         cos_dependencies_archive: str,
         filename: str,
-        file_dependencies: Optional[List[str]] = [],
-        file_outputs: Optional[List[str]] = [],
+        cos_inputs: Optional[List[str]] = [],
+        cos_outputs: Optional[List[str]] = [],
         crio_runtime_settings: dict = None,
     ) -> str:
         """
-        Compose the container commands arguments for a generic component, taking into
+        Compose the container command arguments for a generic component, taking into
         account wether the container will run in a CRI-O environment.
         """
 
@@ -1053,14 +1053,16 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     raise ValueError(f"Illegal character ({INOUT_SEPARATOR}) found in filename '{file}'.")
             return INOUT_SEPARATOR.join(file_list)
 
-        # add [optional] dependencies that the file requires
-        if len(file_dependencies) > 0:
-            inputs_str = file_list_to_string(file_dependencies)
+        # If upstream nodes declared file outputs they need to
+        # be downloaded from object storage by the bootstrapper
+        if len(cos_inputs) > 0:
+            inputs_str = file_list_to_string(cos_inputs)
             command_args.append(f"--inputs '{inputs_str}' ")
 
-        # add [optional] outputs that the file produces
-        if len(file_outputs) > 0:
-            outputs_str = file_list_to_string(file_outputs)
+        # If this node produces file outputs they need to be uploaded
+        # to object storage by the bootstrapper
+        if len(cos_outputs) > 0:
+            outputs_str = file_list_to_string(cos_outputs)
             command_args.append(f"--outputs '{outputs_str}' ")
 
         if is_crio_runtime:
