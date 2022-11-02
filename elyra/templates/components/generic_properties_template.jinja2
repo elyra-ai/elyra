@@ -75,6 +75,12 @@
           "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time).",
           "default": false
         },
+        "distributed_training": {
+          "type": "boolean",
+          "title": "Distributed Tensorflow Training",
+          "description": "Mark this step as a Tensorflow distributed training step. Supported stratagy: MultiWorkerMirroredStrategy",
+          "default": false
+        },
         "outputs_header": {
           "type": "null",
           "title": "Outputs",
