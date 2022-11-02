@@ -461,7 +461,7 @@ describe('Pipeline Editor tests', () => {
     cy.findByText(/failed export:/i).should('be.visible');
   });
 
-  it('should export pipeline as yaml', () => {
+  it('should export KFP pipeline as yaml', () => {
     // Install runtime configuration
     cy.installRuntimeConfig({ type: 'kfp' });
 
@@ -495,7 +495,41 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/helloworld.yaml');
   });
 
-  it('should export pipeline as python dsl', () => {
+  it('should export KFP pipeline as Python DSL', () => {
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
+
+    cy.openFile('helloworld.pipeline');
+
+    // try to export valid pipeline
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // check label for generic pipeline
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
+
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+
+    cy.findByLabelText(/runtime configuration/i)
+      .select('kfp_test_runtime')
+      .should('have.value', 'kfp_test_runtime');
+
+    // Validate all export options are available
+    cy.findByLabelText(/export pipeline as/i)
+      .select('Python DSL')
+      .should('have.value', 'py');
+
+    // actual export requires minio
+    cy.contains('OK').click();
+
+    // validate job was executed successfully, this can take a while in ci
+    cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
+      'be.visible'
+    );
+
+    cy.readFile('build/cypress-tests/helloworld.yaml');
+  });
+
+  it('should export Airflow pipeline as python dsl', () => {
     // Install runtime configuration
     cy.installRuntimeConfig({ type: 'airflow' });
 
@@ -600,7 +634,7 @@ describe('Pipeline Editor tests', () => {
     // Validate all export options are available
     cy.findByRole('button', { name: /export pipeline/i }).click();
     cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
-    cy.findByRole('option', { name: /python/i }).should('not.exist');
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
 
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();
@@ -671,7 +705,7 @@ describe('Pipeline Editor tests', () => {
     // Validate all export options are available for kfp
     cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
     cy.findByRole('option', { name: /yaml/i }).should('have.value', 'yaml');
-    cy.findByRole('option', { name: /python/i }).should('not.exist');
+    cy.findByRole('option', { name: /python/i }).should('have.value', 'py');
 
     // Dismiss dialog
     cy.findByRole('button', { name: /cancel/i }).click();
