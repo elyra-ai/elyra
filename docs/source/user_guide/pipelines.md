@@ -372,11 +372,15 @@ To export a pipeline from the Visual Pipeline Editor:
 
 #### Exporting a pipeline from the command line interface
 
-Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `export` command to export a pipeline to a runtime-specific format, such as YAML for Kubeflow Pipelines or Python DAG for Apache Airflow.
+Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `export` command to export a pipeline to a runtime-specific format:
+- Kubeflow Pipelines: [Python DSL](https://v1-5-branch.kubeflow.org/docs/components/pipelines/sdk/build-pipeline/) or YAML
+- Apache Airflow: Python DAG
 
 ```bash
 $ elyra-pipeline export a-notebook.pipeline --runtime-config kfp_dev_env --output /path/to/exported.yaml --overwrite
 ```
+
+By default export produces YAML formatted output for Kubeflow Pipelines and Python DAG for Apache Airflow. To choose a different format, specify the `--format` option. Supported values are `py` and `yaml` for Kubeflow Pipelines and `py` for Apache Airflow.
 
 To learn more about supported parameters, run
 ```bash
