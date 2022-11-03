@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
@@ -43,7 +44,9 @@ from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
+from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 
 PIPELINE_FILE_COMPLEX = str((Path("resources") / "sample_pipelines" / "pipeline_dependency_complex.json").as_posix())
@@ -717,7 +720,9 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
     assert "tekton.dev/" in tekton_spec["apiVersion"]
 
 
-def load_and_patch_pipeline(pipeline_filename: Union[str, Path]) -> Union[None, Pipeline]:
+def load_and_patch_pipeline(
+    pipeline_filename: Union[str, Path], with_cos_object_prefix: bool = False
+) -> Union[None, Pipeline]:
     """
     This utility function loads pipeline_filename and injects additional metadata, similar
     to what is done when a pipeline is submitted.
@@ -748,6 +753,24 @@ def load_and_patch_pipeline(pipeline_filename: Union[str, Path]) -> Union[None, 
         if pipeline_json["pipelines"][0]["app_data"].get("source", None) is None:
             pipeline_json["pipelines"][0]["app_data"]["source"] = pipeline_filename.name
 
+        if with_cos_object_prefix:
+            # Define a dummy COS prefix, if none is defined
+            if pipeline_json["pipelines"][0]["app_data"]["properties"].get("pipeline_defaults") is None:
+                pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"] = {}
+            if (
+                pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"].get(COS_OBJECT_PREFIX)
+                is None
+            ):
+                pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"][
+                    COS_OBJECT_PREFIX
+                ] = "test/project"
+        else:
+            # Remove the prefix, if one is already defined
+            if pipeline_json["pipelines"][0]["app_data"]["properties"].get("pipeline_defaults") is not None:
+                pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"].pop(
+                    COS_OBJECT_PREFIX, None
+                )
+
     return PipelineParser().parse(pipeline_json=pipeline_json)
 
 
@@ -777,16 +800,19 @@ def generate_mocked_runtime_image_configurations(pipeline: Pipeline) -> List[Met
     return mocked_runtime_image_configurations
 
 
+@pytest.mark.parametrize("use_cos_object_prefix", [True, False])
 @pytest.mark.parametrize(
     "kfp_runtime_config",
     [kfp_runtime_config(use_cos_credentials_secret=True), kfp_runtime_config(use_cos_credentials_secret=False)],
 )
-def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_test_1(
+    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, use_cos_object_prefix: bool, tmpdir
 ):
     """
     Validate that the output of method '_compile_pipeline_dsl' yields the
-    expected results for a pipeline that includes only a single generic node.
+    expected results for a pipeline that includes only a single generic node,
+    which has no optional properties defined, such as input file dependencies, output
+    files, volume mounts, or environment variables. Other tests will cover these.
     If deviations are detected, they might be caused by issues with
     method '_generate_pipeline_dsl'.
     """
@@ -798,7 +824,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline(
     )
     # Instantiate a pipeline object to make it easier to obtain the information
     # needed to perform validation.
-    pipeline = load_and_patch_pipeline(test_pipeline_file)
+    pipeline = load_and_patch_pipeline(test_pipeline_file, use_cos_object_prefix)
 
     # Make sure this is a one generic node pipeline
     assert len(pipeline.operations.keys()) == 1
@@ -812,7 +838,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline(
     mocked_func = mock.Mock(return_value="default", side_effect=mock_side_effects)
     monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
-    monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
     compiled_argo_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml")
@@ -820,12 +845,14 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline(
 
     # generate Python DSL for the Argo workflow engine
     pipeline_version = f"{pipeline.name}-0815"
+    pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
     experiment_name = f"{pipeline.name}-0815"
     generated_argo_dsl = processor._generate_pipeline_dsl(
         pipeline=pipeline,
         pipeline_name=pipeline.name,
         workflow_engine=workflow_engine,
         pipeline_version=pipeline_version,
+        pipeline_instance_id=pipeline_instance_id,
         experiment_name=experiment_name,
     )
 
@@ -862,8 +889,34 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline(
     #  - property 'implementation.container.command'
     assert node_template["container"]["command"] == ["sh", "-c"]
     #  - property 'implementation.container.args'
-    #    This is a CLOB, which we need to spot check. TODO
+    #    This is a CLOB, which we need to spot check.
     assert isinstance(node_template["container"]["args"], list) and len(node_template["container"]["args"]) == 1
+    #    Check for things that must be in this CLOB:
+    #    - the pipeline name
+    assert f"--pipeline-name '{pipeline.name}'" in node_template["container"]["args"][0]
+    #    - the object storage endpoint that this node uses for file I/O
+    assert f"--cos-endpoint '{kfp_runtime_config.metadata['cos_endpoint']}'" in node_template["container"]["args"][0]
+    #    - the object storage bucket name that this node uses for file I/O
+    assert f"--cos-bucket '{kfp_runtime_config.metadata['cos_bucket']}'" in node_template["container"]["args"][0]
+    #    - the directory within that object storage bucket
+    if pipeline.pipeline_properties.get(COS_OBJECT_PREFIX):
+        expected_directory_value = join_paths(pipeline.pipeline_properties.get(COS_OBJECT_PREFIX), pipeline_instance_id)
+        assert f"--cos-directory '{expected_directory_value}' " in node_template["container"]["args"][0]
+    else:
+        assert f"--cos-directory '{pipeline_instance_id}" in node_template["container"]["args"][0]
+    #  - the name of the archive in that directory
+    expected_archive_name = processor._get_dependency_archive_name(op)
+    assert f"--cos-dependencies-archive '{expected_archive_name}' " in node_template["container"]["args"][0]
+    #  - the name of the file that this node processes, which is included in that archive
+    assert f"--file '{op.filename}'" in node_template["container"]["args"][0]
+
+    # Check for things that should not be in this CLOB:
+    #  - Since it's a one-node pipeline, the component cannot have any "--inputs",
+    #    which are declared object storage output files from upstream components.
+    assert "--inputs" not in node_template["container"]["args"]
+    #  - The component does not declare "--outputs",
+    #    which are output files that need to be stored on object storage.
+    assert "--outputs" not in node_template["container"]["args"]
 
     #  - property 'implementation.container.image'
     assert node_template["container"]["image"] == op.runtime_image
@@ -938,3 +991,13 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline(
         node_template["outputs"]["artifacts"][1]["path"]
         == (Path(KfpPipelineProcessor.WCD) / "mlpipeline-ui-metadata.json").as_posix()
     )
+    # assert node_template["container"]["args"] is None
+
+
+def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_test_2(
+    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, use_cos_object_prefix: bool, tmpdir
+):
+    """
+    Work in progress
+    """
+    pass
