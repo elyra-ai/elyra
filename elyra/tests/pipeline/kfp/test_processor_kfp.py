@@ -22,7 +22,7 @@ from typing import List
 from typing import Union
 from unittest import mock
 
-from kfp import compiler as kfp_argo_compiler
+from kfp.dsl import RUN_ID_PLACEHOLDER
 import pytest
 import yaml
 
@@ -43,7 +43,6 @@ from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.kubernetes import sanitize_label_value
 
@@ -52,6 +51,9 @@ PIPELINE_FILE_COMPLEX = str((Path("resources") / "sample_pipelines" / "pipeline_
 
 @pytest.fixture
 def processor(setup_factory_data) -> KfpPipelineProcessor:
+    """
+    Instantiate a process for Kubeflow Pipelines
+    """
     root_dir = str((Path(__file__).parent / "..").resolve())
     processor = KfpPipelineProcessor(root_dir=root_dir)
     return processor
@@ -81,30 +83,37 @@ def sample_metadata():
     }
 
 
-@pytest.fixture
-def dummy_kfp_runtime_config() -> Metadata:
+def kfp_runtime_config(use_cos_credentials_secret: bool = False) -> Metadata:
     """
     Returns a KFP runtime config metadata entry
     """
+
     kfp_runtime_config = {
         "display_name": "Mocked KFP runtime",
         "schema_name": "kfp",
         "metadata": {
             "display_name": "Mocked KFP runtime",
-            "api_endpoint": "http://examples.com:31737",
-            "cos_endpoint": "http://examples.com:31671",
-            "cos_username": "example",
-            "cos_password": "example123",
-            "cos_bucket": "test",
             "engine": "Argo",
             "tags": [],
             "user_namespace": "default",
-            "cos_auth_type": "USER_CREDENTIALS",
             "api_username": "user@example.com",
             "api_password": "12341234",
             "runtime_type": "KUBEFLOW_PIPELINES",
+            "api_endpoint": "http://examples.com:31737",
+            "cos_endpoint": "http://examples.com:31671",
+            "cos_bucket": "test",
         },
     }
+
+    if use_cos_credentials_secret:
+        kfp_runtime_config["metadata"]["cos_auth_type"] = "KUBERNETES_SECRET"
+        kfp_runtime_config["metadata"]["cos_username"] = "my_name"
+        kfp_runtime_config["metadata"]["cos_password"] = "my_password"
+        kfp_runtime_config["metadata"]["cos_secret"] = "secret-name"
+    else:
+        kfp_runtime_config["metadata"]["cos_auth_type"] = "USER_CREDENTIALS"
+        kfp_runtime_config["metadata"]["cos_username"] = "my_name"
+        kfp_runtime_config["metadata"]["cos_password"] = "my_password"
 
     return Metadata(
         name=kfp_runtime_config["display_name"].lower().replace(" ", "_"),
@@ -710,23 +719,34 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
 
 def load_and_patch_pipeline(pipeline_filename: Union[str, Path]) -> Union[None, Pipeline]:
     """
-    This utility function loads pipeline_filename and injects runtime information, if none is present
+    This utility function loads pipeline_filename and injects additional metadata, similar
+    to what is done when a pipeline is submitted.
     """
 
-    if not pipeline_filename or not Path(pipeline_filename).is_file():
+    if not pipeline_filename:
+        return None
+
+    if not isinstance(pipeline_filename, Path):
+        pipeline_filename = Path(pipeline_filename)
+
+    if not pipeline_filename.is_file():
         return None
 
     # load file content
     with open(pipeline_filename, "r") as fh:
         pipeline_json = json.loads(fh.read())
 
-    # The parser requires runtime configuration information to be embedded.
-    # If none is present, add it.
+    # This rudimentary implementation assumes that the provided file is a valid
+    # pipeline file, which contains a primary pipeline.
     if len(pipeline_json["pipelines"]) > 0:
-        if pipeline_json["pipelines"][0].get("app_data", {}).get("runtime", None) is None:
+        # Add runtime information
+        if pipeline_json["pipelines"][0]["app_data"].get("runtime", None) is None:
             pipeline_json["pipelines"][0]["app_data"]["runtime"] = "Kubeflow Pipelines"
-        if pipeline_json["pipelines"][0].get("app_data", {}).get("runtime_type", None) is None:
+        if pipeline_json["pipelines"][0]["app_data"].get("runtime_type", None) is None:
             pipeline_json["pipelines"][0]["app_data"]["runtime_type"] = "KUBEFLOW_PIPELINES"
+        # Add the filename as pipeline source information
+        if pipeline_json["pipelines"][0]["app_data"].get("source", None) is None:
+            pipeline_json["pipelines"][0]["app_data"]["source"] = pipeline_filename.name
 
     return PipelineParser().parse(pipeline_json=pipeline_json)
 
@@ -757,21 +777,38 @@ def generate_mocked_runtime_image_configurations(pipeline: Pipeline) -> List[Met
     return mocked_runtime_image_configurations
 
 
-def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_pipeline(
-    monkeypatch, processor, dummy_kfp_runtime_config, tmpdir
+@pytest.mark.parametrize(
+    "kfp_runtime_config",
+    [kfp_runtime_config(use_cos_credentials_secret=True), kfp_runtime_config(use_cos_credentials_secret=False)],
+)
+def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline(
+    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
 ):
     """
-    Validate that the output of _compile_pipeline_dsl yields the expected results.
-    If deviations are detected, they might be caused by _generate_pipeline_dsl.
+    Validate that the output of method '_compile_pipeline_dsl' yields the
+    expected results for a pipeline that includes only a single generic node.
+    If deviations are detected, they might be caused by issues with
+    method '_generate_pipeline_dsl'.
     """
+
+    workflow_engine = "argo"
 
     test_pipeline_file = (
         Path(__file__).parent / ".." / "resources" / "test_pipelines" / "kfp" / "kfp-one-node-generic.pipeline"
     )
+    # Instantiate a pipeline object to make it easier to obtain the information
+    # needed to perform validation.
     pipeline = load_and_patch_pipeline(test_pipeline_file)
+
+    # Make sure this is a one generic node pipeline
+    assert len(pipeline.operations.keys()) == 1
+    assert isinstance(list(pipeline.operations.values())[0], GenericOperation)
+    # Use 'op' variable to access the operation
+    op = list(pipeline.operations.values())[0]
+
     mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(pipeline)
 
-    mock_side_effects = [dummy_kfp_runtime_config] + [mocked_runtime_image_configurations]
+    mock_side_effects = [kfp_runtime_config] + [mocked_runtime_image_configurations]
     mocked_func = mock.Mock(return_value="default", side_effect=mock_side_effects)
     monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
@@ -787,7 +824,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_pipeline(
     generated_argo_dsl = processor._generate_pipeline_dsl(
         pipeline=pipeline,
         pipeline_name=pipeline.name,
-        workflow_engine="argo",
+        workflow_engine=workflow_engine,
         pipeline_version=pipeline_version,
         experiment_name=experiment_name,
     )
@@ -804,107 +841,100 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_pipeline(
     with open(compiled_argo_output_file_name) as f:
         argo_spec = yaml.safe_load(f.read())
 
-    # assert argo_spec is None
+    # verify that this is an argo specification
+    assert "argoproj.io" in argo_spec["apiVersion"]
+
     pipeline_meta_annotations = json.loads(argo_spec["metadata"]["annotations"]["pipelines.kubeflow.org/pipeline_spec"])
     assert pipeline_meta_annotations["name"] == pipeline.name
     assert pipeline_meta_annotations["description"] == pipeline.description
 
+    # There should be two templates, one for the DAG and one for the generic node.
+    # Locate the one for the generic node and inspect its properties.
     assert len(argo_spec["spec"]["templates"]) == 2
-    dag_name = argo_spec["spec"]["entrypoint"]
-    for template in argo_spec["spec"]["templates"]:
-        if template["name"] == dag_name:
-            continue
-        # Verify component definition information (see generic_component_definition_template.jinja2)
-        #  - property 'name'
-        assert template["name"] == "run-a-file"
-        #  - property 'implememtation.container.command'
-        assert template["container"]["command"] == ["sh", "-c"]
+    if argo_spec["spec"]["templates"][0]["name"] == argo_spec["spec"]["entrypoint"]:
+        node_template = argo_spec["spec"]["templates"][1]
+    else:
+        node_template = argo_spec["spec"]["templates"][0]
 
-        for op_key in pipeline.operations.keys():
-            op = pipeline.operations[op_key]
-            #  - property 'implementation.container.image'
-            assert template["container"]["image"] == op.runtime_image
+    # Verify component definition information (see generic_component_definition_template.jinja2)
+    #  - property 'name'
+    assert node_template["name"] == "run-a-file"
+    #  - property 'implementation.container.command'
+    assert node_template["container"]["command"] == ["sh", "-c"]
+    #  - property 'implementation.container.args'
+    #    This is a CLOB, which we need to spot check. TODO
+    assert isinstance(node_template["container"]["args"], list) and len(node_template["container"]["args"]) == 1
 
-            # Verify metadata that Elyra attaches to the pod
-            assert template["metadata"]["annotations"]["elyra/node-file-name"] == op.filename
-            assert template["metadata"]["labels"]["elyra/node-name"] == sanitize_label_value(op.name)
-            assert template["metadata"]["labels"]["elyra/node-type"] == sanitize_label_value("notebook-script")
-            assert template["metadata"]["labels"]["elyra/pipeline-name"] == sanitize_label_value(pipeline.name)
-            assert template["metadata"]["labels"]["elyra/pipeline-version"] == sanitize_label_value(pipeline_version)
-            assert template["metadata"]["labels"]["elyra/experiment-name"] == sanitize_label_value(experiment_name)
+    #  - property 'implementation.container.image'
+    assert node_template["container"]["image"] == op.runtime_image
+    #  - property 'implementation.container.imagePullPolicy'
+    # The image pull policy is defined in the the runtime image
+    # configuration. Look it up and verified it is properly applied.
+    for runtime_image_config in mocked_runtime_image_configurations:
+        if runtime_image_config.metadata["image_name"] == op.runtime_image:
+            if runtime_image_config.metadata.get("pull_policy"):
+                assert node_template["container"]["imagePullPolicy"] == runtime_image_config.metadata["pull_policy"]
+            else:
+                assert node_template["container"].get("imagePullPolicy") is None
+            break
 
+    # Verify Kubernetes labels and annotations that Elyra attaches to pods that
+    # execute generic nodes or custom nodes
+    if op.doc:
+        # only set if a comment is attached to the node
+        assert node_template["metadata"]["annotations"].get("elyra/node-user-doc") == op.doc
 
-@pytest.mark.skip(reason="TODO")
-@pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
-def test_create_yaml_complex_pipeline(monkeypatch, processor, parsed_pipeline, sample_metadata, tmpdir):
-    pipeline_json = _read_pipeline_resource(PIPELINE_FILE_COMPLEX)
+    # Verify Kubernetes labels and annotations that Elyra attaches to pods that
+    # execute generic nodes
+    assert node_template["metadata"]["annotations"]["elyra/node-file-name"] == op.filename
+    if pipeline.source:
+        assert node_template["metadata"]["annotations"]["elyra/pipeline-source"] == pipeline.source
+    assert node_template["metadata"]["labels"]["elyra/node-name"] == sanitize_label_value(op.name)
+    assert node_template["metadata"]["labels"]["elyra/node-type"] == sanitize_label_value("notebook-script")
+    assert node_template["metadata"]["labels"]["elyra/pipeline-name"] == sanitize_label_value(pipeline.name)
+    assert node_template["metadata"]["labels"]["elyra/pipeline-version"] == sanitize_label_value(pipeline_version)
+    assert node_template["metadata"]["labels"]["elyra/experiment-name"] == sanitize_label_value(experiment_name)
 
-    # Ensure the value of COS_OBJECT_PREFIX has been propagated to the Pipeline object appropriately
-    cos_prefix = pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"].get(COS_OBJECT_PREFIX)
-    assert cos_prefix == parsed_pipeline.pipeline_properties.get(COS_OBJECT_PREFIX)
+    # Verify environment variables that Elyra attaches to pods that
+    # execute generic nodes. All values are hard-coded in the template, with the
+    # exception of "AWS_ACCESS_KEY_ID" and "AWS_SECRET_ACCESS_KEY",
+    # which are derived from a Kubernetes secret, if the runtime configuration
+    # is configured to use one.
+    use_secret_for_cos_authentication = kfp_runtime_config.metadata["cos_auth_type"] == "KUBERNETES_SECRET"
 
-    # Build a mock runtime config for use in _cc_pipeline
-    mocked_runtime = Metadata(name="test-metadata", display_name="test", schema_name="kfp", metadata=sample_metadata)
-    # Build mock runtime images for use in _cc_pipeline
-    image_one_md = {"image_name": "tensorflow/tensorflow:2.0.0-py3", "pull_policy": "IfNotPresent", "tags": []}
-    image_two_md = {"image_name": "elyra/examples:1.0.0-py3", "pull_policy": "Always", "tags": []}
-    mocked_images = [
-        Metadata(name="test-image-metadata", display_name="test-image", schema_name="kfp", metadata=image_one_md),
-        Metadata(name="test-image-metadata2", display_name="test-image2", schema_name="kfp", metadata=image_two_md),
-    ]
+    assert node_template["container"].get("env") is not None, node_template["container"]
+    for env_var in node_template["container"]["env"]:
+        if env_var["name"] == "ELYRA_RUNTIME_ENV":
+            assert env_var["value"] == "kfp"
+        elif env_var["name"] == "ELYRA_ENABLE_PIPELINE_INFO":
+            assert env_var["value"] == "True"
+        elif env_var["name"] == "ELYRA_WRITABLE_CONTAINER_DIR":
+            assert env_var["value"] == KfpPipelineProcessor.WCD
+        elif env_var["name"] == "ELYRA_RUN_NAME":
+            assert env_var["value"] == RUN_ID_PLACEHOLDER
+        elif env_var["name"] == "AWS_ACCESS_KEY_ID":
+            if use_secret_for_cos_authentication:
+                assert env_var["valueFrom"]["secretKeyRef"]["key"] == "AWS_ACCESS_KEY_ID"
+                assert env_var["valueFrom"]["secretKeyRef"]["name"] == kfp_runtime_config.metadata["cos_secret"]
+            else:
+                assert env_var["value"] == kfp_runtime_config.metadata["cos_username"]
+        elif env_var["name"] == "AWS_SECRET_ACCESS_KEY":
+            if use_secret_for_cos_authentication:
+                assert env_var["valueFrom"]["secretKeyRef"]["key"] == "AWS_SECRET_ACCESS_KEY"
+                assert env_var["valueFrom"]["secretKeyRef"]["name"] == kfp_runtime_config.metadata["cos_secret"]
+            else:
+                assert env_var["value"] == kfp_runtime_config.metadata["cos_password"]
 
-    # Mock necessary functions (incl. side effects for each node)
-    mock_side_effects = [mocked_runtime] + [mocked_images for _ in range(len(pipeline_json["pipelines"][0]["nodes"]))]
-    mocked_func = mock.Mock(return_value="default", side_effect=mock_side_effects)
-    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
-    monkeypatch.setattr(processor, "_get_dependency_archive_name", lambda x: True)
-    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
-
-    inst_id = "test-instance-id"
-    pipeline_func = lambda: processor._cc_pipeline(parsed_pipeline, pipeline_name="test", pipeline_instance_id=inst_id)
-    pipeline_path = str(Path(tmpdir) / "complex_test.yaml")
-
-    # Compile pipeline, save into pipeline_path, then read YAML
-    kfp_argo_compiler.Compiler().compile(pipeline_func, pipeline_path)
-    with open(pipeline_path) as f:
-        pipeline_yaml = yaml.safe_load(f.read())
-
-    def list_to_sorted_str(convert_list):
-        """Helper function to convert a list of files into a semicolon-separated sorted string"""
-        convert_str = ""
-        for item in convert_list:
-            convert_str += f"{item};"
-        return "".join(sorted(convert_str[:-1]))
-
-    # Sort and clean node lists in preparation for direct comparison between YAML and JSON
-    pipeline_nodes = sorted(pipeline_json["pipelines"][0]["nodes"], key=lambda d: d["app_data"]["label"])
-    yaml_nodes = [template for template in pipeline_yaml["spec"]["templates"] if template["name"] != "lambda"]
-
-    for node_yaml, node_json in zip(yaml_nodes, pipeline_nodes):
-        # Check the each node for correctness
-        if "container" not in node_yaml or "args" not in node_yaml["container"]:
-            continue
-
-        node_args = node_yaml["container"]["args"][0]
-
-        # Check that COS values are the same for each node
-        assert f'--cos-directory "{cos_prefix}/{inst_id}"' in node_args
-        assert f"--cos-endpoint {sample_metadata['cos_endpoint']}" in node_args
-        assert f"--cos-bucket {sample_metadata['cos_bucket']}" in node_args
-
-        component_parameters = node_json["app_data"]["component_parameters"]
-        assert f"--file \"{component_parameters.get('filename')}\"" in node_args  # check filename
-        assert node_yaml["container"]["image"] == component_parameters.get("runtime_image")  # check runtime image
-
-        if component_parameters.get("inputs"):  # check inputs
-            args_input = re.search(r' --inputs "([\w.;]+)" ', node_args)
-            assert list_to_sorted_str(component_parameters["inputs"]) in "".join(sorted(args_input[1]))
-        if component_parameters.get("outputs"):  # check outputs
-            args_output = re.search(r' --outputs "([\w.;]+)" ', node_args)
-            assert list_to_sorted_str(component_parameters["outputs"]) in "".join(sorted(args_output[1]))
-        if component_parameters.get("env_vars"):  # check env_vars
-            env_list_from_yaml = node_yaml["container"]["env"]
-            for var_dict in component_parameters["env_vars"]:
-                adjusted_var_dict = {"name": var_dict["env_var"], "value": var_dict["value"]}
-                assert adjusted_var_dict in env_list_from_yaml
+    # Verify that the mlpipeline specific outputs are declared
+    assert node_template.get("outputs") is not None, node_template
+    assert node_template["outputs"]["artifacts"] is not None, node_template["container"]["outputs"]
+    assert node_template["outputs"]["artifacts"][0]["name"] == "mlpipeline-metrics"
+    assert (
+        node_template["outputs"]["artifacts"][0]["path"]
+        == (Path(KfpPipelineProcessor.WCD) / "mlpipeline-metrics.json").as_posix()
+    )
+    assert node_template["outputs"]["artifacts"][1]["name"] == "mlpipeline-ui-metadata"
+    assert (
+        node_template["outputs"]["artifacts"][1]["path"]
+        == (Path(KfpPipelineProcessor.WCD) / "mlpipeline-ui-metadata.json").as_posix()
+    )

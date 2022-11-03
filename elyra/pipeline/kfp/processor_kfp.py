@@ -735,9 +735,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # hack only: since we don't use the ContainerOp constructor anymore
                 # we cannot use the file_outputs parameter to provide the information
+                # https://www.kubeflow.org/docs/components/pipelines/v1/sdk/output-viewer/
                 workflow_task["task_modifiers"]["special_output_files"] = {
-                    "mlpipeline_ui_metadata": f"{self.WCD}/mlpipeline-ui-metadata.json",
-                    "mlpipeline_metrics": f"{self.WCD}/mlpipeline-metrics.json",
+                    "mlpipeline_ui_metadata": (Path(self.WCD) / "mlpipeline-ui-metadata.json").as_posix(),
+                    "mlpipeline_metrics": (Path(self.WCD) / "mlpipeline-metrics.json").as_posix(),
                 }
 
                 # apply object storage Kubernetes secret, if one was provided
