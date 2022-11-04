@@ -110,7 +110,9 @@ def generated_pipeline(
         V1VolumeMount(
             mount_path="{{ volume_path }}",
             name="{{ volume_dict.pvc_name }}",
+{%      if volume_dict.sub_path %}            
             sub_path="{{ volume_dict.sub_path }}",
+{%      endif %}
             read_only={{ volume_dict.read_only }},
         ))
 {%    endfor %}

@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 from datetime import datetime
+from enum import Enum
+from enum import unique
 import hashlib
 import importlib
 import json
@@ -76,6 +78,32 @@ from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 from elyra.util.path import get_absolute_path
+
+
+@unique
+class WorkflowEngineType(Enum):
+    """ """
+
+    ARGO = "argo"
+    TEKTON = "tekton"
+
+    @staticmethod
+    def get_instance_by_name(name: str) -> "WorkflowEngineType":
+        """
+        Raises KeyError if parameter is not a value in the enumeration.
+        """
+        return WorkflowEngineType.__members__[name.lower()]
+
+    @staticmethod
+    def get_instance_by_value(value: str) -> "WorkflowEngineType":
+        """
+        Raises KeyError if parameter is not a value in the enumeration.
+        """
+        if value:
+            for instance in WorkflowEngineType.__members__.values():
+                if instance.value == value.lower():
+                    return instance
+        raise KeyError(f"'{value}'")
 
 
 class KfpPipelineProcessor(RuntimePipelineProcessor):
@@ -497,6 +525,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         """
         Generate Python DSL for Kubeflow Pipelines v1
         """
+
+        workflow_engine = workflow_engine.lower()
+
         # Load Kubeflow Pipelines Python DSL template
         loader = PackageLoader("elyra", "templates/kubeflow/v1")
         template_env = Environment(loader=loader)
@@ -579,7 +610,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Obtain handle to pipeline function
                 pipeline_function = getattr(mod, "generated_pipeline")
                 # compile the DSL
-                if workflow_engine == "tekton":
+                if workflow_engine.lower() == "tekton":
                     kfp_tekton_compiler.TektonCompiler().compile(
                         pipeline_function, output_file, pipeline_conf=pipeline_conf
                     )
@@ -811,7 +842,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Generate unique ELYRA_RUN_NAME value, which gets exposed as an environment
                 # variable
-                if workflow_engine == "tekton":
+                if workflow_engine.lower() == "tekton":
                     # Value is derived from an existing annotation; use dummy value
                     workflow_task["task_modifiers"]["set_run_name"] = "dummy value"
                 else:
