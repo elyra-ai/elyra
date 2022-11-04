@@ -246,6 +246,7 @@ class GenericOperation(Operation):
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
+                distributed_training: number of workers to run the step as distributed training.
         Entries for other (non-built-in) component types are a function of the respective component.
 
         :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
@@ -272,6 +273,7 @@ class GenericOperation(Operation):
         self._component_params["cpu"] = component_params.get("cpu")
         self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")
+        self._component_params["distributed_training"] = component_params.get("distributed_training")
 
         if not elyra_params:
             elyra_params = {}
@@ -318,6 +320,10 @@ class GenericOperation(Operation):
     @property
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
+
+    @property
+    def distributed_training(self) -> Optional[str]:
+        return self._component_params.get("distributed_training")
 
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):

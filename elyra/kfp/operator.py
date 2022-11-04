@@ -20,7 +20,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from kfp.dsl import ContainerOp
+from kfp.dsl import ContainerOp, PipelineParam
 from kfp.dsl import RUN_ID_PLACEHOLDER
 from kubernetes.client.models import V1EmptyDirVolumeSource
 from kubernetes.client.models import V1EnvVar
@@ -85,6 +85,7 @@ class ExecuteFileOp(ContainerOp):
         mem_request: Optional[str] = None,
         gpu_limit: Optional[str] = None,
         workflow_engine: Optional[str] = "argo",
+        rank: Optional[PipelineParam] = None,
         **kwargs,
     ):
         """Create a new instance of ContainerOp.
@@ -134,6 +135,7 @@ class ExecuteFileOp(ContainerOp):
         self.cpu_request = cpu_request
         self.mem_request = mem_request
         self.gpu_limit = gpu_limit
+        self.rank = rank
 
         argument_list = []
 
@@ -197,16 +199,22 @@ class ExecuteFileOp(ContainerOp):
                     f"curl {common_curl_options} -L {self.python_pip_config_url} --output pip.conf && cd .. &&"
                 )
 
+            rank_argument = ""
+            if self.rank is not None:
+                rank_argument = f'--rank "{self.rank}" '
+            op_name = kwargs["op_name"]
             argument_list.append(
                 f"python3 -m pip install {self.python_user_lib_path_target} packaging && "
                 "python3 -m pip freeze > requirements-current.txt && "
                 "python3 bootstrapper.py "
                 f'--pipeline-name "{self.pipeline_name}" '
+                f'--op-name "{op_name}" '
                 f"--cos-endpoint {self.cos_endpoint} "
                 f"--cos-bucket {self.cos_bucket} "
                 f'--cos-directory "{self.cos_directory}" '
                 f'--cos-dependencies-archive "{self.cos_dependencies_archive}" '
                 f'--file "{self.notebook}" '
+                f"{rank_argument} "
             )
 
             if self.pipeline_inputs:
@@ -230,6 +238,46 @@ class ExecuteFileOp(ContainerOp):
         if self.pipeline_envs:
             for key, value in self.pipeline_envs.items():  # Convert dict entries to format kfp needs
                 self.container.add_env_variable(V1EnvVar(name=key, value=value))
+
+        # Add KFP general envs.
+        self.container.add_env_variable(
+            V1EnvVar(
+                name="WORKFLOW_ID",
+                value_from=V1EnvVarSource(
+                    field_ref=V1ObjectFieldSelector(
+                        api_version="v1", field_path="metadata.labels['workflows.argoproj.io/workflow']"
+                    )
+                ),
+            )
+        )
+        self.container.add_env_variable(
+            V1EnvVar(
+                name="KFP_NAMESPACE",
+                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(
+                    api_version="v1",
+                    field_path="metadata.namespace")))
+        )
+        self.container.add_env_variable(
+            V1EnvVar(
+                name="KFP_POD_NAME",
+                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(
+                    api_version="v1",
+                    field_path="metadata.name")))
+        )
+        self.container.add_env_variable(
+            V1EnvVar(
+                name="KFP_POD_UID",
+                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(
+                    api_version="v1",
+                    field_path="metadata.uid")))
+        )
+        self.container.add_env_variable(
+            V1EnvVar(
+                name="KFP_RUN_ID",
+                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(
+                    api_version="v1",
+                    field_path="metadata.labels['pipeline/runid']")))
+        )
 
         # If crio volume size is found then assume kubeflow pipelines environment is using CRI-o as
         # its container runtime

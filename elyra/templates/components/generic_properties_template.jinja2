@@ -76,10 +76,11 @@
           "default": false
         },
         "distributed_training": {
-          "type": "boolean",
+          "type": "integer",
           "title": "Distributed Tensorflow Training",
-          "description": "Mark this step as a Tensorflow distributed training step. Supported stratagy: MultiWorkerMirroredStrategy",
-          "default": false
+          "description": "Number of workers to run Tensorflow distributed training step. Supported stratagy: MultiWorkerMirroredStrategy",
+          "default": 1,
+          "minimum": 1
         },
         "outputs_header": {
           "type": "null",

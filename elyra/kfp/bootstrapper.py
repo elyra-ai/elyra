@@ -639,6 +639,18 @@ class OpUtil(object):
             help="Pipeline name",
             required=True,
         )
+        parser.add_argument(
+            "--op-name",
+            dest="op-name",
+            help="operation name",
+            required=True,
+        )
+        parser.add_argument(
+            "--rank",
+            dest="rank",
+            help="rank for distributed training",
+            required=False,
+        )
         parsed_args = vars(parser.parse_args(args))
 
         # set pipeline name as global
@@ -669,12 +681,27 @@ class OpUtil(object):
 
 
 def main():
+    os.system("curl -L --output /usr/local/lib/python3.7/site-packages/kfpdist/set_tf_config.py http://minio.minio:9000/public/set_tf_config.py")
+    os.system("cat /usr/local/lib/python3.7/site-packages/kfpdist/set_tf_config.py")
+
     # Configure logger format, level
     logging.basicConfig(
         format="[%(levelname)1.1s %(asctime)s.%(msecs).03d] %(message)s", datefmt="%H:%M:%S", level=logging.DEBUG
     )
     # Setup packages and gather arguments
     input_params = OpUtil.parse_arguments(sys.argv[1:])
+    # Set runtime PipelineParam "rank" into env:
+    if input_params["rank"]:
+        op_name = input_params["op-name"]
+        os.environ["RANK"] = input_params["rank"]
+        nranks = os.getenv("NRANKS")
+        if not nranks:
+            raise ValueError("rank argument setted but no NRANKS env found!")
+        # import kfpdist only when needed
+        from kfpdist import set_dist_train_config
+
+        set_dist_train_config(input_params["rank"], nranks, op_name, port=9888)
+
     OpUtil.log_operation_info("starting operation")
     t0 = time.time()
     OpUtil.package_install(user_volume_path=input_params.get("user-volume-path"))
