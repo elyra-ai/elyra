@@ -121,10 +121,22 @@ def generated_pipeline(
 {%    for hash_not_used, toleration_dict in workflow_task.task_modifiers.kubernetes_tolerations.items() %}
     {{ task_name }}.add_toleration(
         V1Toleration(
+{%      if toleration_dict.effect %}
             effect="{{ toleration_dict.effect }}",
+{%      else %}
+            effect=None,
+{%      endif %}
+{%      if toleration_dict.key %}
             key="{{ toleration_dict.key }}",
+{%      else %}
+            key=None,
+{%      endif %}
             operator="{{ toleration_dict.operator }}",
+{%      if toleration_dict.value %}
             value="{{ toleration_dict.value | string_delimiter_safe }}",
+{%      else %}
+            value=None,
+{%      endif %}
         ))
 {%    endfor %}
 {%  endif %}
@@ -153,7 +165,7 @@ def generated_pipeline(
 
 if __name__ == "__main__":
     from pathlib import Path
-{% if workflow_engine == "tekton" %}
+{% if workflow_engine.lower() ==  "tekton" %}
     from kfp_tekton import compiler
 
     compiler.TektonCompiler().compile(

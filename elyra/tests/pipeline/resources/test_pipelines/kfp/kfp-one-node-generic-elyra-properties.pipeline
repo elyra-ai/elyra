@@ -46,7 +46,27 @@
               "kubernetes_shared_mem_size": {
                 "size": 0.5
               },
-              "kubernetes_tolerations": [],
+              "kubernetes_tolerations": [
+                {
+                  "key": "kt1",
+                  "operator": "Equal",
+                  "value": "3",
+                  "effect": "NoExecute"
+                },
+                {
+                  "key": "kt2",
+                  "operator": "Exists",
+                  "effect": "NoSchedule"
+                },
+                {
+                  "operator": "Exists"
+                },
+                {
+                  "key": "kt3",
+                  "operator": "Equal",
+                  "value": "v3"
+                }
+              ],
               "mounted_volumes": [
                 {
                   "path": "/test/vol1",
@@ -116,13 +136,13 @@
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "pipeline_defaults": {
+            "kubernetes_pod_annotations": [],
+            "kubernetes_shared_mem_size": {},
             "kubernetes_tolerations": [],
             "kubernetes_pod_labels": [],
-            "kubernetes_pod_annotations": [],
             "mounted_volumes": [],
-            "kubernetes_shared_mem_size": {},
-            "kubernetes_secrets": [],
-            "env_vars": []
+            "env_vars": [],
+            "kubernetes_secrets": []
           },
           "name": "kfp-one-node-generic-elyra-properties",
           "runtime": "Kubeflow Pipelines",

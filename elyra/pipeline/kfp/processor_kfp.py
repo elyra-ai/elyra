@@ -82,22 +82,20 @@ from elyra.util.path import get_absolute_path
 
 @unique
 class WorkflowEngineType(Enum):
-    """ """
+    """
+    Identifies Kubeflow Pipelines workflow engines that this
+    processor supports.
+    """
 
     ARGO = "argo"
     TEKTON = "tekton"
 
     @staticmethod
-    def get_instance_by_name(name: str) -> "WorkflowEngineType":
-        """
-        Raises KeyError if parameter is not a value in the enumeration.
-        """
-        return WorkflowEngineType.__members__[name.lower()]
-
-    @staticmethod
     def get_instance_by_value(value: str) -> "WorkflowEngineType":
         """
-        Raises KeyError if parameter is not a value in the enumeration.
+        Produces an WorkflowEngineType enum instance if the provided value
+        identifies a supported workflow engine type.
+        Raises KeyError if value is not a support workflow engine type.
         """
         if value:
             for instance in WorkflowEngineType.__members__.values():
@@ -139,8 +137,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         api_username = runtime_configuration.metadata.get("api_username")
         api_password = runtime_configuration.metadata.get("api_password")
         user_namespace = runtime_configuration.metadata.get("user_namespace")
-        workflow_engine = runtime_configuration.metadata.get("engine", "argo").lower()
-        if workflow_engine == "tekton" and not TektonClient:
+        workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_configuration.metadata.get("engine", "argo"))
+        if workflow_engine == WorkflowEngineType.TEKTON and not TektonClient:
             raise ValueError(
                 "Python package `kfp-tekton` is not installed. "
                 "Please install using `elyra[kfp-tekton]` to use Tekton engine."
@@ -173,7 +171,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Create Kubeflow Client
         #############
         try:
-            if workflow_engine == "tekton":
+            if workflow_engine == WorkflowEngineType.TEKTON:
                 client = TektonClient(
                     host=api_endpoint,
                     cookies=auth_info.get("cookies", None),
@@ -297,7 +295,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 raise
             except Exception as ex:
                 raise RuntimeError(
-                    f"Error compiling pipeline '{pipeline_name}' with engine '{workflow_engine}' to: '{pipeline_path}'"
+                    f"Error compiling pipeline '{pipeline_name}' with engine '{workflow_engine.value}'."
                 ) from ex
 
             self.log_pipeline_info(pipeline_name, "pipeline compiled", duration=time.time() - t0)
@@ -460,8 +458,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
         )
 
-        workflow_engine = runtime_configuration.metadata.get("engine", "argo").lower()
-        if workflow_engine == "tekton" and not TektonClient:
+        workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_configuration.metadata.get("engine", "argo"))
+        if workflow_engine == WorkflowEngineType.TEKTON and not TektonClient:
             raise ValueError("kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.")
 
         if Path(absolute_pipeline_export_path).exists() and not overwrite:
@@ -517,7 +515,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         self,
         pipeline: Pipeline,
         pipeline_name: str,
-        workflow_engine: str,
+        workflow_engine: WorkflowEngineType,
         pipeline_version: str = "",
         experiment_name: str = "",
         pipeline_instance_id: str = None,
@@ -525,8 +523,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         """
         Generate Python DSL for Kubeflow Pipelines v1
         """
-
-        workflow_engine = workflow_engine.lower()
 
         # Load Kubeflow Pipelines Python DSL template
         loader = PackageLoader("elyra", "templates/kubeflow/v1")
@@ -541,6 +537,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         workflow_tasks = self._generate_workflow_tasks(
             pipeline,
             pipeline_name,
+            workflow_engine,
             pipeline_instance_id=pipeline_instance_id,
             pipeline_version=pipeline_version,
             experiment_name=experiment_name,
@@ -559,7 +556,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             pipeline_parameters=None,
             workflow_tasks=workflow_tasks,
             component_definitions=unique_component_definitions,
-            workflow_engine=workflow_engine,
+            workflow_engine=workflow_engine.value,
         )
 
         # Prettify generated Python DSL
@@ -577,14 +574,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         return pipeline_dsl
 
     def _compile_pipeline_dsl(
-        self, dsl: str, workflow_engine: str, output_file: str, pipeline_conf: PipelineConf
+        self, dsl: str, workflow_engine: WorkflowEngineType, output_file: str, pipeline_conf: PipelineConf
     ) -> None:
         """
         Compile Python DSL using the compiler for the specified workflow_engine.
 
         :param dsl: the Python DSL to be compiled
         :type dsl: str
-        :param workflow_engine: Compiler to be used ("tekton" or "argo")
+        :param workflow_engine: Compiler to be used
         :type workflow_engine: str
         :param output_file: output file name
         :type output_file: str
@@ -610,7 +607,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Obtain handle to pipeline function
                 pipeline_function = getattr(mod, "generated_pipeline")
                 # compile the DSL
-                if workflow_engine.lower() == "tekton":
+                if workflow_engine == WorkflowEngineType.TEKTON:
                     kfp_tekton_compiler.TektonCompiler().compile(
                         pipeline_function, output_file, pipeline_conf=pipeline_conf
                     )
@@ -618,7 +615,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     kfp_argo_compiler.Compiler().compile(pipeline_function, output_file, pipeline_conf=pipeline_conf)
             except Exception as ex:
                 raise RuntimeError(
-                    f"Failed to compile pipeline with workflow_engine '{workflow_engine}' to '{output_file}'"
+                    f"Failed to compile pipeline with workflow_engine '{workflow_engine.value}' to '{output_file}'"
                 ) from ex
             finally:
                 # remove temporary directory from Python module search path
@@ -628,11 +625,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         self,
         pipeline: Pipeline,
         pipeline_name: str,
+        workflow_engine: WorkflowEngineType,
         pipeline_version: str = "",
         experiment_name: str = "",
         pipeline_instance_id: str = None,
-        workflow_engine: str = "argo",
-        export=False,
+        export: bool = False,
     ) -> Dict[str, Dict]:
         """
         Produce the workflow tasks that implement the pipeline nodes. The output is
@@ -842,7 +839,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Generate unique ELYRA_RUN_NAME value, which gets exposed as an environment
                 # variable
-                if workflow_engine.lower() == "tekton":
+                if workflow_engine == WorkflowEngineType.TEKTON:
                     # Value is derived from an existing annotation; use dummy value
                     workflow_task["task_modifiers"]["set_run_name"] = "dummy value"
                 else:

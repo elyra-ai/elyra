@@ -50,6 +50,7 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_LABELS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
+from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.cos import join_paths
@@ -137,6 +138,33 @@ def kfp_runtime_config(
         schema_name=kfp_runtime_config["schema_name"],
         metadata=kfp_runtime_config["metadata"],
     )
+
+
+def test_WorkflowEngineType_get_instance_by_value():
+    """
+    Validate that method 'get_instance_by_value' yields the expected results for
+    valid and invalid input.
+    """
+    # test valid inputs (the provided value is evalutaed in a case insensitive manner)
+    assert WorkflowEngineType.get_instance_by_value("argo") == WorkflowEngineType.ARGO
+    assert WorkflowEngineType.get_instance_by_value("ARGO") == WorkflowEngineType.ARGO
+    assert WorkflowEngineType.get_instance_by_value("aRGo") == WorkflowEngineType.ARGO
+    assert WorkflowEngineType.get_instance_by_value("Argo") == WorkflowEngineType.ARGO
+    assert WorkflowEngineType.get_instance_by_value("tekton") == WorkflowEngineType.TEKTON
+    assert WorkflowEngineType.get_instance_by_value("TEKTON") == WorkflowEngineType.TEKTON
+    assert WorkflowEngineType.get_instance_by_value("tEKtOn") == WorkflowEngineType.TEKTON
+    assert WorkflowEngineType.get_instance_by_value("Tekton") == WorkflowEngineType.TEKTON
+    # test invalid inputs
+    with pytest.raises(KeyError):
+        WorkflowEngineType.get_instance_by_value(None)  # there is no default
+    with pytest.raises(KeyError):
+        WorkflowEngineType.get_instance_by_value("")  # there is no default
+    with pytest.raises(KeyError):
+        WorkflowEngineType.get_instance_by_value(" argo ")  # whitespaces are not trimmed
+    with pytest.raises(KeyError):
+        WorkflowEngineType.get_instance_by_value("bitcoin")
+    with pytest.raises(KeyError):
+        WorkflowEngineType.get_instance_by_value("ether")
 
 
 def test_fail_get_metadata_configuration_invalid_namespace(processor: KfpPipelineProcessor):
@@ -669,7 +697,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
 
     # generate Python DSL for the Argo workflow engine
     generated_argo_dsl = processor._generate_pipeline_dsl(
-        pipeline=pipeline, pipeline_name=pipeline.name, workflow_engine=WorkflowEngineType.ARGO.value
+        pipeline=pipeline, pipeline_name=pipeline.name, workflow_engine=WorkflowEngineType.ARGO
     )
 
     assert generated_argo_dsl is not None
@@ -685,7 +713,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
     # if the compiler discovers an issue with the generated DSL this call fails
     processor._compile_pipeline_dsl(
         dsl=generated_argo_dsl,
-        workflow_engine=WorkflowEngineType.ARGO.value,
+        workflow_engine=WorkflowEngineType.ARGO,
         output_file=compiled_argo_output_file.as_posix(),
         pipeline_conf=None,
     )
@@ -706,7 +734,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
 
     # generate Python DSL for the Tekton workflow engine
     generated_tekton_dsl = processor._generate_pipeline_dsl(
-        pipeline=pipeline, pipeline_name=pipeline.name, workflow_engine="tekton"
+        pipeline=pipeline, pipeline_name=pipeline.name, workflow_engine=WorkflowEngineType.TEKTON
     )
 
     assert generated_tekton_dsl is not None
@@ -718,7 +746,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
     # if the compiler discovers an issue with the generated DSL this call fails
     processor._compile_pipeline_dsl(
         dsl=generated_tekton_dsl,
-        workflow_engine="tekton",
+        workflow_engine=WorkflowEngineType.TEKTON,
         output_file=compiled_tekton_output_file.as_posix(),
         pipeline_conf=None,
     )
@@ -858,7 +886,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
     generated_dsl = processor._generate_pipeline_dsl(
         pipeline=pipeline,
         pipeline_name=pipeline.name,
-        workflow_engine=workflow_engine.value,
+        workflow_engine=workflow_engine,
         pipeline_version=pipeline_version,
         pipeline_instance_id=pipeline_instance_id,
         experiment_name=experiment_name,
@@ -877,7 +905,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
     # Compile the generated Python DSL
     processor._compile_pipeline_dsl(
         dsl=generated_dsl,
-        workflow_engine=workflow_engine.value,
+        workflow_engine=workflow_engine,
         output_file=compiled_output_file_name,
         pipeline_conf=None,
     )
@@ -954,7 +982,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     generated_dsl = processor._generate_pipeline_dsl(
         pipeline=pipeline,
         pipeline_name=pipeline.name,
-        workflow_engine=workflow_engine.value,
+        workflow_engine=workflow_engine,
         pipeline_version=pipeline_version,
         pipeline_instance_id=pipeline_instance_id,
         experiment_name=experiment_name,
@@ -963,7 +991,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     # if the compiler discovers an issue with the generated DSL this call fails
     processor._compile_pipeline_dsl(
         dsl=generated_dsl,
-        workflow_engine=workflow_engine.value,
+        workflow_engine=workflow_engine,
         output_file=compiled_argo_output_file_name,
         pipeline_conf=None,
     )
@@ -1105,6 +1133,25 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
         ),
     ],
 )
+@pytest.mark.skip("TODO: implement test")
+def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
+    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+):
+    """
+    TODO Validate that code gen produces the expected artifacts if the CRIO_RUNTIME
+    environment variable is set
+    """
+    assert False
+
+
+@pytest.mark.parametrize(
+    "kfp_runtime_config",
+    [
+        kfp_runtime_config(
+            workflow_engine=WorkflowEngineType.ARGO,
+        ),
+    ],
+)
 def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
     monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
 ):
@@ -1112,6 +1159,12 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
     This test validates that the output of _generate_pipeline_dsl and _compile_pipeline_dsl
     yields the expected results for a generic node that has optional user-provided properties
     defined:
+     - data volumes
+     - shared memory size
+     - Kubernetes secrets
+     - Kubernetes labels
+     - Kubernetes annotations
+     - Kubernetes tolerations
     """
     workflow_engine = WorkflowEngineType.get_instance_by_value(kfp_runtime_config.metadata["engine"])
 
@@ -1157,7 +1210,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
     generated_dsl = processor._generate_pipeline_dsl(
         pipeline=pipeline,
         pipeline_name=pipeline.name,
-        workflow_engine=workflow_engine.value,
+        workflow_engine=workflow_engine,
         pipeline_version=pipeline_version,
         pipeline_instance_id=pipeline_instance_id,
         experiment_name=experiment_name,
@@ -1166,7 +1219,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
     # if the compiler discovers an issue with the generated DSL this call fails
     processor._compile_pipeline_dsl(
         dsl=generated_dsl,
-        workflow_engine=workflow_engine.value,
+        workflow_engine=workflow_engine,
         output_file=compiled_output_file_name,
         pipeline_conf=None,
     )
@@ -1282,4 +1335,67 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
             assert node_template["metadata"]["labels"][expected_label.key] == (expected_label.value or "")
 
     #
-    # TODO validate KUBERNETES_TOLERATIONS
+    # Validate Kubernetes tolerations
+    #
+    # Validate custom Kubernetes tolerations
+    expected_kubernetes_tolerations = op.elyra_params.get(KUBERNETES_TOLERATIONS)
+    if len(expected_kubernetes_tolerations) > 0:
+        # There must be one or more 'tolerations' entries, e.g.
+        # {effect: NoExecute, key: kt1, operator: Equal, value: '3'}
+        assert node_template.get("tolerations") is not None, node_template
+        for expected_toleration in expected_kubernetes_tolerations:
+            entry_found = False
+            for toleration_entry in node_template["tolerations"]:
+                if (
+                    toleration_entry.get("key") == expected_toleration.key
+                    and toleration_entry.get("operator") == expected_toleration.operator
+                    and toleration_entry.get("value") == expected_toleration.value
+                    and toleration_entry.get("effect") == expected_toleration.effect
+                ):
+                    entry_found = True
+                    break
+            not_found_msg = (
+                "Missing toleration entry for '"
+                f"{expected_toleration.key}::{expected_toleration.operator}::"
+                f"{expected_toleration.value}::{expected_toleration.effect}'"
+                f"in {node_template['tolerations']}"
+            )
+            assert entry_found, not_found_msg
+
+
+@pytest.mark.parametrize(
+    "kfp_runtime_config",
+    [
+        kfp_runtime_config(
+            workflow_engine=WorkflowEngineType.ARGO,
+        ),
+    ],
+)
+@pytest.mark.skip("TODO: implement test")
+def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exchange(
+    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+):
+    """
+    TODO Validate that code gen produces the expected artifacts if the pipeline contains
+    multiple generic nodes that are configured for data exchange
+    """
+    assert False
+
+
+@pytest.mark.parametrize(
+    "kfp_runtime_config",
+    [
+        kfp_runtime_config(
+            workflow_engine=WorkflowEngineType.ARGO,
+        ),
+    ],
+)
+@pytest.mark.skip("TODO: implement test")
+def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_conf(
+    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+):
+    """
+    TODO Validate that code gen produces the expected artifacts if the pipeline contains
+    generic nodes and associates runtime images are configured to require a pull secret.
+    """
+    assert False
