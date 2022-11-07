@@ -545,7 +545,7 @@ class OpUtil(object):
                 to_install_list.insert(0, f"--target={user_volume_path}")
                 to_install_list.append("--no-cache-dir")
 
-            subprocess.run([sys.executable, "-m", "pip", "install"] + to_install_list, check=True)
+            subprocess.run([sys.executable, "-m", "pip", "install", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple"] + to_install_list, check=True)
 
         if user_volume_path:
             os.environ["PIP_CONFIG_FILE"] = f"{user_volume_path}/pip.conf"
@@ -693,14 +693,16 @@ def main():
     # Set runtime PipelineParam "rank" into env:
     if input_params["rank"]:
         op_name = input_params["op-name"]
+        # FIXME: operation name will be updated by kfp, replace these chars for matching.
+        op_name = op_name.replace("_", "-")
         os.environ["RANK"] = input_params["rank"]
         nranks = os.getenv("NRANKS")
         if not nranks:
             raise ValueError("rank argument setted but no NRANKS env found!")
-        # import kfpdist only when needed
+        # NOTE: import kfpdist only when needed, to be compatible with normal elyra pipelines.
         from kfpdist import set_dist_train_config
 
-        set_dist_train_config(input_params["rank"], nranks, op_name, port=9888)
+        set_dist_train_config(int(input_params["rank"]), int(nranks), op_name, port=9888)
 
     OpUtil.log_operation_info("starting operation")
     t0 = time.time()

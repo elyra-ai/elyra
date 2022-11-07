@@ -68,6 +68,7 @@ class ExecuteFileOp(ContainerOp):
         self,
         pipeline_name: str,
         experiment_name: str,
+        op_name: str,
         notebook: str,
         cos_endpoint: str,
         cos_bucket: str,
@@ -92,6 +93,7 @@ class ExecuteFileOp(ContainerOp):
         Args:
           pipeline_name: pipeline that this op belongs to
           experiment_name: the experiment where pipeline_name is executed
+          op_name: original operation name
           notebook: name of the notebook that will be executed per this operation
           cos_endpoint: object storage endpoint e.g weaikish1.fyre.ibm.com:30442
           cos_bucket: bucket to retrieve archive from
@@ -116,6 +118,7 @@ class ExecuteFileOp(ContainerOp):
 
         self.pipeline_name = pipeline_name
         self.pipeline_version = pipeline_version
+        self.op_name = op_name
         self.pipeline_source = pipeline_source
         self.experiment_name = experiment_name
         self.notebook = notebook
@@ -202,13 +205,12 @@ class ExecuteFileOp(ContainerOp):
             rank_argument = ""
             if self.rank is not None:
                 rank_argument = f'--rank "{self.rank}" '
-            op_name = kwargs["op_name"]
             argument_list.append(
                 f"python3 -m pip install {self.python_user_lib_path_target} packaging && "
                 "python3 -m pip freeze > requirements-current.txt && "
                 "python3 bootstrapper.py "
                 f'--pipeline-name "{self.pipeline_name}" '
-                f'--op-name "{op_name}" '
+                f'--op-name "{self.op_name}" '
                 f"--cos-endpoint {self.cos_endpoint} "
                 f"--cos-bucket {self.cos_bucket} "
                 f'--cos-directory "{self.cos_directory}" '
@@ -253,30 +255,32 @@ class ExecuteFileOp(ContainerOp):
         self.container.add_env_variable(
             V1EnvVar(
                 name="KFP_NAMESPACE",
-                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(
-                    api_version="v1",
-                    field_path="metadata.namespace")))
+                value_from=V1EnvVarSource(
+                    field_ref=V1ObjectFieldSelector(api_version="v1", field_path="metadata.namespace")
+                ),
+            )
         )
         self.container.add_env_variable(
             V1EnvVar(
                 name="KFP_POD_NAME",
-                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(
-                    api_version="v1",
-                    field_path="metadata.name")))
+                value_from=V1EnvVarSource(
+                    field_ref=V1ObjectFieldSelector(api_version="v1", field_path="metadata.name")
+                ),
+            )
         )
         self.container.add_env_variable(
             V1EnvVar(
                 name="KFP_POD_UID",
-                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(
-                    api_version="v1",
-                    field_path="metadata.uid")))
+                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(api_version="v1", field_path="metadata.uid")),
+            )
         )
         self.container.add_env_variable(
             V1EnvVar(
                 name="KFP_RUN_ID",
-                value_from=V1EnvVarSource(field_ref=V1ObjectFieldSelector(
-                    api_version="v1",
-                    field_path="metadata.labels['pipeline/runid']")))
+                value_from=V1EnvVarSource(
+                    field_ref=V1ObjectFieldSelector(api_version="v1", field_path="metadata.labels['pipeline/runid']")
+                ),
+            )
         )
 
         # If crio volume size is found then assume kubeflow pipelines environment is using CRI-o as

@@ -78,7 +78,7 @@
         "distributed_training": {
           "type": "integer",
           "title": "Distributed Tensorflow Training",
-          "description": "Number of workers to run Tensorflow distributed training step. Supported stratagy: MultiWorkerMirroredStrategy",
+          "description": "Number of workers to run Tensorflow distributed training step. Supported stratagy: MultiWorkerMirroredStrategy. Use env RANK, NRANKS in your program if needed.",
           "default": 1,
           "minimum": 1
         },
