@@ -285,7 +285,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 )
 
                 # Collect pipeline configuration information
-                pipeline_conf = self._generate_pipeline_conf(pipeline)
+                pipeline_conf = self._generate_pipeline_conf(pipeline=pipeline)
 
                 # Compile the Python DSL, producing the input for the upload to
                 # Kubeflow Pipelines
@@ -480,10 +480,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 with open(absolute_pipeline_export_path, "w") as dsl_output:
                     dsl_output.write(pipeline_dsl)
             else:
+                # Generate pipeline configuration
+                pipeline_conf = self._generate_pipeline_conf(pipeline=pipeline)
                 #
                 # Export pipeline as static configuration file (YAML formatted)
                 # by invoking the compiler for the selected engine
-                self._compile_pipeline_dsl(pipeline_dsl, workflow_engine, absolute_pipeline_export_path, None)
+                self._compile_pipeline_dsl(pipeline_dsl, workflow_engine, absolute_pipeline_export_path, pipeline_conf)
         except RuntimeError:
             raise
         except Exception as ex:
@@ -947,12 +949,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         self.log_pipeline_info(pipeline_name, "Pipeline processed", duration=(time.time() - t0_all))
         return workflow_tasks
 
-    def _generate_pipeline_conf(self, pipeline: dict) -> PipelineConf:
+    def _generate_pipeline_conf(self, pipeline: Pipeline) -> PipelineConf:
         """
         Returns a KFP pipeline configuration for this pipeline, which can be empty.
 
-        :param pipeline: pipeline dictionary
-        :type pipeline: dict
         :return: https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf
         :rtype: kfp.dsl import PipelineConf
         """
@@ -964,14 +964,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Gather input for container image pull secrets in support of private container image registries
         # https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf.set_image_pull_secrets
         #
-        image_namespace = self._get_metadata_configuration(schemaspace=RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
-
-        # iterate through pipeline operations and create list of Kubernetes secret names
-        # that are associated with generic components
+        # For each generic pipeline operation determine wether its runtime image
+        # is protected by a pull secret
         container_image_pull_secret_names = []
         for operation in pipeline.operations.values():
             if isinstance(operation, GenericOperation):
-                for image_instance in image_namespace:
+                for image_instance in self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID):
                     if image_instance.metadata["image_name"] == operation.runtime_image:
                         if image_instance.metadata.get("pull_secret"):
                             container_image_pull_secret_names.append(image_instance.metadata.get("pull_secret"))

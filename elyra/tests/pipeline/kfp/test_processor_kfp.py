@@ -94,7 +94,8 @@ def sample_metadata():
 
 
 def kfp_runtime_config(
-    workflow_engine: WorkflowEngineType = WorkflowEngineType.ARGO, use_cos_credentials_secret: bool = False
+    workflow_engine: WorkflowEngineType = WorkflowEngineType.ARGO,
+    use_cos_credentials_secret: bool = False,
 ) -> Metadata:
     """
     Returns a KFP runtime config metadata entry, which meets the contraints
@@ -813,25 +814,37 @@ def load_and_patch_pipeline(
     return PipelineParser().parse(pipeline_json=pipeline_json)
 
 
-def generate_mocked_runtime_image_configurations(pipeline: Pipeline) -> List[Metadata]:
+def generate_mocked_runtime_image_configurations(
+    pipeline: Pipeline, require_pull_secret: bool = False
+) -> List[Metadata]:
+    """
+    Generates mocked runtime configuration entries for each unique
+    runtime image that is referenced by the pipeline's generic nodes.
+    """
     if pipeline is None:
-        return []
+        raise ValueError("Pipeline parameter is required")
     mocked_runtime_image_configurations = []
     unique_image_names = []
-    # Iterate through pipeline nodes and extract the container image references
-    # for all generic operations.
-    for operation in pipeline.operations:
+    # Iterate through pipeline nodes, extract the container image references
+    # for all generic operations, and produce mocked runtime image configurations.
+    counter = 1
+    for operation in pipeline.operations.values():
         if isinstance(operation, GenericOperation):
             if operation.runtime_image not in unique_image_names:
+                name = f"mocked-image-{counter}"
+                m = {
+                    "image_name": operation.runtime_image,
+                    "pull_policy": "IfNotPresent",
+                }
+                if require_pull_secret:
+                    m["pull_secret"] = f"{name.lower().replace(' ', '-')}-secret"
+
                 mocked_runtime_image_configurations.append(
                     Metadata(
-                        name="mocked",
+                        name=name,
                         display_name="test-image",
                         schema_name="runtime-image",
-                        metadata={
-                            "image_name": operation.runtime_image,
-                            "pull_policy": "IfNotPresent",
-                        },
+                        metadata=m,
                     )
                 )
                 unique_image_names.append(operation.runtime_image)
@@ -1383,6 +1396,13 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
 
 
 @pytest.mark.parametrize(
+    "require_pull_secret",
+    [
+        True,
+        False,
+    ],
+)
+@pytest.mark.parametrize(
     "kfp_runtime_config",
     [
         kfp_runtime_config(
@@ -1390,12 +1410,97 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
         ),
     ],
 )
-@pytest.mark.skip("TODO: implement test")
 def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_conf(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, require_pull_secret: bool, tmpdir
 ):
     """
-    TODO Validate that code gen produces the expected artifacts if the pipeline contains
+    Validate that code gen produces the expected artifacts if the pipeline contains
     generic nodes and associates runtime images are configured to require a pull secret.
+    The test results are not runtime type specific.
     """
-    assert False
+    workflow_engine = WorkflowEngineType.get_instance_by_value(kfp_runtime_config.metadata["engine"])
+
+    # Any valid pipeline file can be used to run this test, as long as it includes at least one node.
+    test_pipeline_file = (
+        Path(__file__).parent / ".." / "resources" / "test_pipelines" / "kfp" / "kfp-one-node-generic.pipeline"
+    )
+    # Instantiate a pipeline object to make it easier to obtain the information
+    # needed to perform validation.
+    pipeline = load_and_patch_pipeline(pipeline_filename=test_pipeline_file, with_cos_object_prefix=False)
+    assert pipeline is not None
+
+    mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(
+        pipeline,
+        require_pull_secret=require_pull_secret,
+    )
+
+    assert kfp_runtime_config is not None
+    assert mocked_runtime_image_configurations is not None
+
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    # Test begins here
+
+    compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml")
+    compiled_output_file_name = str(compiled_output_file.absolute())
+
+    # generate Python DSL for the specified workflow engine
+    pipeline_version = f"{pipeline.name}-test-0"
+    pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
+    experiment_name = f"{pipeline.name}-test-0"
+
+    # Generate pipeline DSL; this requires the _get_metadata_configuration mock
+    monkeypatch.setattr(
+        processor,
+        "_get_metadata_configuration",
+        mock.Mock(return_value="default", side_effect=[kfp_runtime_config] + [mocked_runtime_image_configurations]),
+    )
+    generated_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline,
+        pipeline_name=pipeline.name,
+        workflow_engine=workflow_engine,
+        pipeline_version=pipeline_version,
+        pipeline_instance_id=pipeline_instance_id,
+        experiment_name=experiment_name,
+    )
+
+    # Generate pipeline configuration; this requires the _get_metadata_configuration mock
+    monkeypatch.setattr(
+        processor,
+        "_get_metadata_configuration",
+        mock.Mock(return_value="default", side_effect=[mocked_runtime_image_configurations]),
+    )
+    pipeline_conf = processor._generate_pipeline_conf(pipeline=pipeline)
+
+    processor._compile_pipeline_dsl(
+        dsl=generated_dsl,
+        workflow_engine=workflow_engine,
+        output_file=compiled_output_file_name,
+        pipeline_conf=pipeline_conf,
+    )
+
+    # Load compiled workflow
+    with open(compiled_output_file_name) as f:
+        compiled_spec = yaml.safe_load(f.read())
+
+    expected_image_pull_secret_names = [
+        rti_config.metadata["pull_secret"]
+        for rti_config in mocked_runtime_image_configurations
+        if rti_config.metadata.get("pull_secret") is not None
+    ]
+
+    if len(expected_image_pull_secret_names) > 0:
+        # There must be one or more spec.imagePullSecrets entries
+        assert compiled_spec["spec"].get("imagePullSecrets") is not None, compiled_spec["spec"]
+        # Verify that each expected secret is referenced
+        for expected_secret_name in expected_image_pull_secret_names:
+            entry_found = False
+            for secret_entry in compiled_spec["spec"]["imagePullSecrets"]:
+                if secret_entry.get("name") == expected_secret_name:
+                    entry_found = True
+                    break
+            assert entry_found, (
+                f"Missing entry for image pull secret '{expected_secret_name}' "
+                f"in {compiled_spec['spec']['imagePullSecrets']}"
+            )

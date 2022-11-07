@@ -74,7 +74,7 @@
               "y_pos": 34,
               "width": 175,
               "height": 42,
-              "content": "",
+              "content": "test comment",
               "associated_id_refs": [
                 {
                   "node_ref": "d3cbeeec-0e4f-4032-8318-4500fb9aa352"
@@ -87,14 +87,15 @@
         "runtime_type": "KUBEFLOW_PIPELINES",
         "properties": {
           "pipeline_defaults": {
+            "kubernetes_shared_mem_size": {},
             "kubernetes_tolerations": [],
             "kubernetes_pod_labels": [],
             "kubernetes_pod_annotations": [],
-            "kubernetes_shared_mem_size": {},
             "mounted_volumes": [],
             "kubernetes_secrets": [],
             "env_vars": [],
-            "runtime_image": "tensorflow/tensorflow:2.8.0"
+            "runtime_image": "tensorflow/tensorflow:2.8.0",
+            "cos_object_prefix": "my/project"
           },
           "name": "kfp-one-node-generic",
           "runtime": "Kubeflow Pipelines",
