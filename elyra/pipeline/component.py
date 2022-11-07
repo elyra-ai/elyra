@@ -309,6 +309,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
                 data_type_info = ParameterTypeInfo(parsed_data=parsed_type_lowered, undetermined=True)
 
         from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
+
         if PipelineProcessorManager.instance().supports_parameters(runtime_type=self.component_platform):
             data_type_info.allowed_input_types.append("parameter")
 

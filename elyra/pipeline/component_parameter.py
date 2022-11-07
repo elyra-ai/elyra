@@ -33,7 +33,7 @@ from typing import Union
 if TYPE_CHECKING:
     from elyra.pipeline.processor import RuntimePipelineProcessor
 
-from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING, PIPELINE_PARAMETERS
+from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_LABELS
@@ -41,6 +41,7 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_annotation_value
 from elyra.util.kubernetes import is_valid_kubernetes_key
