@@ -1166,7 +1166,7 @@ class PipelineParameter(ElyraPropertyListItem):
 
     property_id = PIPELINE_PARAMETERS
     property_display_name = "Pipeline Parameters"
-    property_description = """TODO"""
+    property_description = """TODO"""  # TODO
     property_attributes = [
         ListItemPropertyAttribute(
             attribute_id="name",
@@ -1214,18 +1214,14 @@ class PipelineParameter(ElyraPropertyListItem):
     def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """
         Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
-        A PipelineParameter dict entry will be of the form:
-            {self.name: {"value": self.value, "type": self.input_type, "required": self.required}
-
-        # TODO this may not be necessary depending on how we want to handle parameters
+        A PipelineParameter dict entry will be of the form: {self.name: self.value}
         """
-        return {"value": self.value, "type": self.input_type, "required": self.required}
+        return self.value
 
     def get_all_validation_errors(self) -> List[str]:
-        # TODO this can be implemented
-        # Ensure param name adheres to python variable naming rules
+        # TODO Ensure param name adheres to python variable naming rules
         pass
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
-        # TODO this wont
+        # TODO this path may or may not be reached depending on how processing is implemented
         pass
