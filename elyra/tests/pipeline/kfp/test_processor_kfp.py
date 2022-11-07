@@ -16,6 +16,7 @@
 from datetime import datetime
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import tarfile
@@ -39,6 +40,12 @@ from elyra.pipeline.component_parameter import KubernetesLabel
 from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import VolumeMount
+from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_MEDIUM
+from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_NAME
+from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_SIZE
+from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_MOUNT_PATH
+from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_PYTHON_PATH
+from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_WORKDIR_PATH
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.kfp.processor_kfp import WorkflowEngineType
 from elyra.pipeline.parser import PipelineParser
@@ -1138,6 +1145,23 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     )
 
 
+@pytest.fixture(autouse=False)
+def enable_and_disable_crio(request):
+    """
+    Set and unset the CRIO_RUNTIME environment variable, if requested
+    """
+    # Define variable prior to the test
+    if request.param:
+        os.environ["CRIO_RUNTIME"] = "True"
+
+    yield
+
+    # Remove variable after the test
+    if request.param:
+        del os.environ["CRIO_RUNTIME"]
+
+
+@pytest.mark.parametrize("enable_and_disable_crio", [False, True], indirect=True)
 @pytest.mark.parametrize(
     "kfp_runtime_config",
     [
@@ -1146,15 +1170,149 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
         ),
     ],
 )
-@pytest.mark.skip("TODO: implement test")
 def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir, enable_and_disable_crio
 ):
     """
-    TODO Validate that code gen produces the expected artifacts if the CRIO_RUNTIME
-    environment variable is set
+    This test validates that the output of _generate_pipeline_dsl and _compile_pipeline_dsl
+    yields the expected results for a generic node when the CRIO_RUNTIME environment variable
+    is set to a valid string representation of the boolean value True (/true/i).
+    Test assumptions:
+     - Enabling CRIO_RUNTIME has the same effect for all supported workflow engines
+     - The test pipeline contains at least one generic node
+
+     With CRIO_RUNTIME enabled, the compiled output must include the following properties:
+      - in spec.templates[].volumes:
+        - emptyDir: {medium: '', sizeLimit: 20Gi}
+      name: workspace
     """
-    assert False
+    crio_runtime_enabled = os.environ.get("CRIO_RUNTIME", "").lower() == "true"
+
+    workflow_engine = WorkflowEngineType.get_instance_by_value(kfp_runtime_config.metadata["engine"])
+
+    # Any valid pipeline file can be used to run this test, as long as it includes at least one generic node.
+    test_pipeline_file = (
+        Path(__file__).parent / ".." / "resources" / "test_pipelines" / "kfp" / "kfp-one-node-generic.pipeline"
+    )
+    # Instantiate a pipeline object to make it easier to obtain the information
+    # needed to perform validation.
+    pipeline = load_and_patch_pipeline(pipeline_filename=test_pipeline_file, with_cos_object_prefix=False)
+    assert pipeline is not None
+
+    mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(
+        pipeline,
+        require_pull_secret=False,
+    )
+
+    assert kfp_runtime_config is not None
+    assert mocked_runtime_image_configurations is not None
+
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    # Test begins here
+
+    compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml")
+    compiled_output_file_name = str(compiled_output_file.absolute())
+
+    # generate Python DSL for the specified workflow engine
+    pipeline_version = f"{pipeline.name}-test-0"
+    pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
+    experiment_name = f"{pipeline.name}-test-0"
+
+    # Generate pipeline DSL; this requires the _get_metadata_configuration mock
+    monkeypatch.setattr(
+        processor,
+        "_get_metadata_configuration",
+        mock.Mock(return_value="default", side_effect=[kfp_runtime_config] + [mocked_runtime_image_configurations]),
+    )
+    generated_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline,
+        pipeline_name=pipeline.name,
+        workflow_engine=workflow_engine,
+        pipeline_version=pipeline_version,
+        pipeline_instance_id=pipeline_instance_id,
+        experiment_name=experiment_name,
+    )
+
+    # Compile the DSL
+    processor._compile_pipeline_dsl(
+        dsl=generated_dsl,
+        workflow_engine=workflow_engine,
+        output_file=compiled_output_file_name,
+        pipeline_conf=None,
+    )
+
+    # Load compiled workflow
+    with open(compiled_output_file_name) as f:
+        compiled_spec = yaml.safe_load(f.read())
+
+    # There should be multiple templates, one for the DAG and one for every generic node.
+    assert len(compiled_spec["spec"]["templates"]) >= 2
+    if crio_runtime_enabled:
+        for template in compiled_spec["spec"]["templates"]:
+            if template["name"] == compiled_spec["spec"]["entrypoint"]:
+                continue
+            # Check volume definition
+            assert template.get("volumes") is not None, template
+            entry_found = False
+            for volume_entry in template["volumes"]:
+                if volume_entry["name"] != CRIO_VOL_DEF_NAME:
+                    continue
+                assert (
+                    volume_entry.get("emptyDir") is not None
+                ), f"Unexpected volume entry '{CRIO_VOL_DEF_NAME}': {volume_entry} "
+                assert volume_entry["emptyDir"]["sizeLimit"] == CRIO_VOL_DEF_SIZE
+                assert volume_entry["emptyDir"]["medium"] == CRIO_VOL_DEF_MEDIUM
+                entry_found = True
+            assert entry_found, f"Missing volume entry '{CRIO_VOL_DEF_NAME}' for CRI-O in {template['volumes']}"
+            # Check volume mount definition
+            assert template["container"].get("volumeMounts") is not None, template["container"]
+            for volumemount_entry in template["container"]["volumeMounts"]:
+                entry_found = False
+                if volumemount_entry["name"] != CRIO_VOL_DEF_NAME:
+                    continue
+                assert volumemount_entry["mountPath"] == CRIO_VOL_MOUNT_PATH
+                entry_found = True
+                break
+            assert (
+                entry_found
+            ), f"Missing volume mount entry '{CRIO_VOL_DEF_NAME}' for CRI-O in {template['container']['volumeMounts']}"
+            # Check PYTHONPATH environment variable (python_user_lib_path)
+            assert template["container"].get("env") is not None, template["container"]
+            for env_entry in template["container"]["env"]:
+                entry_found = False
+                if env_entry["name"] != "PYTHONPATH":
+                    continue
+                assert env_entry["value"] == CRIO_VOL_PYTHON_PATH
+                entry_found = True
+                break
+            assert entry_found, f"Missing env variable entry 'PYTHONPATH' for CRI-O in {template['container']['env']}"
+            # Check the container command argument list
+            assert len(template["container"]["args"]) == 1
+            assert f"mkdir -p {CRIO_VOL_WORKDIR_PATH}" in template["container"]["args"][0]
+            assert f"--target={CRIO_VOL_PYTHON_PATH}" in template["container"]["args"][0]
+            assert f"--user-volume-path '{CRIO_VOL_PYTHON_PATH}' " in template["container"]["args"][0]
+    else:
+        for template in compiled_spec["spec"]["templates"]:
+            if template["name"] == compiled_spec["spec"]["entrypoint"]:
+                continue
+            # Check if a volume was defined
+            for volume_entry in template.get("volumes", []):
+                if volume_entry["name"] == CRIO_VOL_DEF_NAME:
+                    # if a volume with the 'reserved' name exist there could be a problem
+                    assert volume_entry.get("emptyDir") is None
+            # Check volume mount definition
+            for volumemount_entry in template["container"].get("volumeMounts", []):
+                if volumemount_entry["name"] == CRIO_VOL_DEF_NAME:
+                    assert volumemount_entry["mountPath"] != CRIO_VOL_MOUNT_PATH
+            # Check PYTHONPATH environment variable
+            for env_entry in template["container"].get("env", []):
+                assert env_entry["name"] != "PYTHONPATH"
+            # Check the container command argument list
+            assert "mkdir -p ./jupyter-work-dir" in template["container"]["args"][0]
+            assert f"--target={CRIO_VOL_PYTHON_PATH}" not in template["container"]["args"][0]
+            assert "--user-volume-path" not in template["container"]["args"][0]
 
 
 @pytest.mark.parametrize(

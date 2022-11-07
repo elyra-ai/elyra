@@ -104,6 +104,15 @@ class WorkflowEngineType(Enum):
         raise KeyError(f"'{value}'")
 
 
+# Externalize these constants to make them available to the code gen tests
+CRIO_VOL_DEF_NAME = "workspace"
+CRIO_VOL_DEF_SIZE = "20Gi"
+CRIO_VOL_DEF_MEDIUM = ""
+CRIO_VOL_MOUNT_PATH = "/opt/app-root/src"
+CRIO_VOL_WORKDIR_PATH = f"{CRIO_VOL_MOUNT_PATH}/jupyter-work-dir"
+CRIO_VOL_PYTHON_PATH = f"{CRIO_VOL_WORKDIR_PATH}/python3"
+
+
 class KfpPipelineProcessor(RuntimePipelineProcessor):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     _name = "kfp"
@@ -672,23 +681,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             ).get_template("generic_component_definition_template.jinja2")
             # Determine whether we are executing in a CRI-O runtime environment
             is_crio_runtime = os.getenv("CRIO_RUNTIME", "False").lower() == "true"
-            if is_crio_runtime:
-                crio_runtime_settings = {
-                    "emptydir_volume_size": "20Gi",
-                    "emptydir_volume_name": "workspace",
-                    "emptydir_mount_path": "/opt/app-root/src/",
-                    "container_python_dir_name": "python3",
-                }
-                crio_runtime_settings["container_work_dir_root_path"] = crio_runtime_settings["emptydir_mount_path"]
-                crio_runtime_settings["container_work_dir"] = (
-                    Path(crio_runtime_settings["container_work_dir_root_path"]) / "jupyter-work-dir"
-                ).as_posix()
-                crio_runtime_settings["python_user_lib_path"] = (
-                    Path(crio_runtime_settings["container_work_dir"])
-                    / crio_runtime_settings["container_python_dir_name"]
-                ).as_posix()
-            else:
-                crio_runtime_settings = None
 
         # All previous operation outputs should be propagated throughout the pipeline.
         # In order to process this recursively, the current operation's inputs should be combined
@@ -752,7 +744,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         filename=operation.filename,
                         cos_inputs=operation.inputs,
                         cos_outputs=operation.outputs,
-                        crio_runtime_settings=crio_runtime_settings,
+                        is_crio_runtime=is_crio_runtime,
                     ),
                 )
                 workflow_task["component_definition"] = component_definition
@@ -797,14 +789,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 if is_crio_runtime:
                     # Attach empty dir volume
                     workflow_task["task_modifiers"]["crio_runtime"] = {
-                        "emptydir_volume_size": crio_runtime_settings["emptydir_volume_size"],
-                        "emptydir_volume_name": crio_runtime_settings["emptydir_volume_name"],
-                        "emptydir_mount_path": crio_runtime_settings["emptydir_mount_path"],
+                        "emptydir_volume_name": CRIO_VOL_DEF_NAME,
+                        "emptydir_volume_size": CRIO_VOL_DEF_SIZE,
+                        "emptydir_volume_medium": CRIO_VOL_DEF_MEDIUM,
+                        "emptydir_mount_path": CRIO_VOL_MOUNT_PATH,
                     }
                     # Set Python module search path
-                    workflow_task["task_modifiers"]["env_variables"]["PYTHONPATH"] = crio_runtime_settings[
-                        "python_user_lib_path"
-                    ]
+                    workflow_task["task_modifiers"]["env_variables"]["PYTHONPATH"] = CRIO_VOL_PYTHON_PATH
 
                 # Attach identifying metadata
                 if workflow_task["task_modifiers"].get("pod_labels") is None:
@@ -998,15 +989,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         filename: str,
         cos_inputs: Optional[List[str]] = [],
         cos_outputs: Optional[List[str]] = [],
-        crio_runtime_settings: dict = None,
+        is_crio_runtime: bool = False,
     ) -> str:
         """
         Compose the container command arguments for a generic component, taking into
         account wether the container will run in a CRI-O environment.
         """
-
-        is_crio_runtime = crio_runtime_settings is not None
-
         elyra_github_org = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
         elyra_github_branch = os.getenv("ELYRA_GITHUB_BRANCH", "main" if "dev" in __version__ else "v" + __version__)
         elyra_bootstrap_script_url = os.getenv(
@@ -1025,18 +1013,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         )
 
         if is_crio_runtime:
-            container_work_dir_root_path = crio_runtime_settings["container_work_dir_root_path"]
-            container_python_dir_name = crio_runtime_settings["container_python_dir_name"]
-            container_work_dir_name = crio_runtime_settings["container_work_dir_name"]
-            container_work_dir = Path(container_work_dir_root_path) / container_work_dir_name
-            python_user_lib_path = container_work_dir / container_python_dir_name
-            python_user_lib_path_target = f"--target={python_user_lib_path.as_posix()}"
+            container_work_dir = CRIO_VOL_WORKDIR_PATH
+            container_python_path = CRIO_VOL_PYTHON_PATH
             python_pip_config_url = os.getenv(
                 "ELYRA_PIP_CONFIG_URL",
                 f"https://raw.githubusercontent.com/{elyra_github_org}/elyra/{elyra_github_branch}/etc/kfp/pip.conf",
             )
+            python_user_lib_path_target = f"--target={CRIO_VOL_PYTHON_PATH}"
         else:
-            container_work_dir = Path(".") / "jupyter-work-dir"
+            container_work_dir = "./jupyter-work-dir"
             python_user_lib_path_target = ""
 
         common_curl_options = "--fail -H 'Cache-Control: no-cache'"
@@ -1044,7 +1029,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         command_args = []
 
         command_args.append(
-            f"mkdir -p {container_work_dir.as_posix()} && cd {container_work_dir.as_posix()} && "
+            f"mkdir -p {container_work_dir} && cd {container_work_dir} && "
             f"echo 'Downloading {elyra_bootstrap_script_url}' && "
             f"curl {common_curl_options} -L {elyra_bootstrap_script_url} --output bootstrapper.py && "
             f"echo 'Downloading {elyra_requirements_url}' && "
@@ -1055,7 +1040,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         if is_crio_runtime:
             command_args.append(
-                f"mkdir {container_python_dir_name} && cd {container_python_dir_name} && "
+                f"mkdir {container_python_path} && cd {container_python_path} && "
                 f"echo 'Downloading {python_pip_config_url}' && "
                 f"curl {common_curl_options} -L {python_pip_config_url} --output pip.conf && cd .. && "
             )
@@ -1097,7 +1082,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             command_args.append(f"--outputs '{outputs_str}' ")
 
         if is_crio_runtime:
-            command_args.append(f"--user-volume-path '{python_user_lib_path.as_posix()}' ")
+            command_args.append(f"--user-volume-path '{CRIO_VOL_PYTHON_PATH}' ")
 
         return "".join(command_args)
 

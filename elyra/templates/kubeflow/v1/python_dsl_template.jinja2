@@ -150,10 +150,9 @@ def generated_pipeline(
 {%  if workflow_task.task_modifiers.crio_runtime %}
     {{ task_name }}.add_volume(V1Volume(
             name="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_name }}",
-            empty_dir=V1EmptyDirVolumeSource(medium="", size_limit="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_size }}"),
+            empty_dir=V1EmptyDirVolumeSource(medium="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_medium }}", size_limit="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_size }}"),
         ))
     {{ task_name }}.container.add_volume_mount(V1VolumeMount(mount_path="{{ workflow_task.task_modifiers.crio_runtime.emptydir_mount_path }}", name="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_name }}"))
-    {{ task_name }}.
 {%  endif %}
 {#  declare upstream dependencies -#}
 {%  if workflow_task.upstream_workflow_task_ids %}
