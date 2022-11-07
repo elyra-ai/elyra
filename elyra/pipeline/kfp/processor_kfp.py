@@ -26,7 +26,7 @@ from urllib.parse import urlsplit
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
-from kfp.dsl import PipelineConf
+from kfp.dsl import ParallelFor, PipelineConf
 from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
 from kubernetes.client import V1EmptyDirVolumeSource
@@ -530,53 +530,99 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # If operation is one of the "generic" set of NBs or scripts, construct custom ExecuteFileOp
             if isinstance(operation, GenericOperation):
                 component = ComponentCache.get_generic_component_from_op(operation.classifier)
-
-                # Collect env variables
                 pipeline_envs = self._collect_envs(
                     operation, cos_secret=cos_secret, cos_username=cos_username, cos_password=cos_password
                 )
-
                 operation_artifact_archive = self._get_dependency_archive_name(operation)
-
                 self.log.debug(
                     f"Creating pipeline component archive '{operation_artifact_archive}' for operation '{operation}'"
                 )
 
-                container_op = ExecuteFileOp(
-                    name=sanitized_operation_name,
-                    pipeline_name=pipeline_name,
-                    experiment_name=experiment_name,
-                    notebook=operation.filename,
-                    cos_endpoint=cos_endpoint,
-                    cos_bucket=cos_bucket,
-                    cos_directory=artifact_object_prefix,
-                    cos_dependencies_archive=operation_artifact_archive,
-                    pipeline_version=pipeline_version,
-                    pipeline_source=pipeline.source,
-                    pipeline_inputs=operation.inputs,
-                    pipeline_outputs=operation.outputs,
-                    pipeline_envs=pipeline_envs,
-                    emptydir_volume_size=emptydir_volume_size,
-                    cpu_request=operation.cpu,
-                    mem_request=operation.memory,
-                    gpu_limit=operation.gpu,
-                    workflow_engine=engine,
-                    image=operation.runtime_image,
-                    file_outputs={
-                        "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
-                        "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
-                    },
-                )
+                distributed_count = int(operation.distributed_training)
+                # rank is a PipelineParam, can only used as ContainerOp's arguments
+                # see https://kubeflow-pipelines.readthedocs.io/en/stable/source/kfp.dsl.html#kfp.dsl.ParallelFor
+                if distributed_count > 1:
+                    with ParallelFor(list(range(distributed_count))) as rank:
+                        # set "nranks" as env, then set "rank" to env at runtime.
+                        pipeline_envs["NRANKS"] = int(distributed_count)
+                        container_op = ExecuteFileOp(
+                            name=sanitized_operation_name,
+                            op_name=operation.name,
+                            pipeline_name=pipeline_name,
+                            experiment_name=experiment_name,
+                            notebook=operation.filename,
+                            cos_endpoint=cos_endpoint,
+                            cos_bucket=cos_bucket,
+                            cos_directory=artifact_object_prefix,
+                            cos_dependencies_archive=operation_artifact_archive,
+                            pipeline_version=pipeline_version,
+                            pipeline_source=pipeline.source,
+                            pipeline_inputs=operation.inputs,
+                            pipeline_outputs=operation.outputs,
+                            pipeline_envs=pipeline_envs,
+                            emptydir_volume_size=emptydir_volume_size,
+                            cpu_request=operation.cpu,
+                            mem_request=operation.memory,
+                            gpu_limit=operation.gpu,
+                            workflow_engine=engine,
+                            rank=rank,
+                            image=operation.runtime_image,
+                            file_outputs={
+                                "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
+                                "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
+                            },
+                        )
 
-                if cos_secret and not export:
-                    container_op.apply(use_aws_secret(cos_secret))
+                        if cos_secret and not export:
+                            container_op.apply(use_aws_secret(cos_secret))
 
-                image_namespace = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
-                for image_instance in image_namespace:
-                    if image_instance.metadata["image_name"] == operation.runtime_image and image_instance.metadata.get(
-                        "pull_policy"
-                    ):
-                        container_op.container.set_image_pull_policy(image_instance.metadata["pull_policy"])
+                        image_namespace = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
+                        for image_instance in image_namespace:
+                            if image_instance.metadata[
+                                "image_name"
+                            ] == operation.runtime_image and image_instance.metadata.get(
+                                "pull_policy"
+                            ):  # noqa
+                                container_op.container.set_image_pull_policy(image_instance.metadata["pull_policy"])
+                else:
+                    container_op = ExecuteFileOp(
+                        name=sanitized_operation_name,
+                        op_name=operation.name,
+                        pipeline_name=pipeline_name,
+                        experiment_name=experiment_name,
+                        notebook=operation.filename,
+                        cos_endpoint=cos_endpoint,
+                        cos_bucket=cos_bucket,
+                        cos_directory=artifact_object_prefix,
+                        cos_dependencies_archive=operation_artifact_archive,
+                        pipeline_version=pipeline_version,
+                        pipeline_source=pipeline.source,
+                        pipeline_inputs=operation.inputs,
+                        pipeline_outputs=operation.outputs,
+                        pipeline_envs=pipeline_envs,
+                        emptydir_volume_size=emptydir_volume_size,
+                        cpu_request=operation.cpu,
+                        mem_request=operation.memory,
+                        gpu_limit=operation.gpu,
+                        workflow_engine=engine,
+                        image=operation.runtime_image,
+                        file_outputs={
+                            "mlpipeline-metrics": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-metrics.json",  # noqa
+                            "mlpipeline-ui-metadata": f"{pipeline_envs['ELYRA_WRITABLE_CONTAINER_DIR']}/mlpipeline-ui-metadata.json",  # noqa
+                        },
+                    )
+
+                    if cos_secret and not export:
+                        container_op.apply(use_aws_secret(cos_secret))
+
+                    image_namespace = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
+                    for image_instance in image_namespace:
+                        if image_instance.metadata[
+                            "image_name"
+                        ] == operation.runtime_image and image_instance.metadata.get(
+                            "pull_policy"
+                        ):  # noqa
+                            container_op.container.set_image_pull_policy(image_instance.metadata["pull_policy"])
 
                 self.log_pipeline_info(
                     pipeline_name,

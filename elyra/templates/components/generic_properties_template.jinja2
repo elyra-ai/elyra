@@ -75,6 +75,13 @@
           "description": "Recursively include subdirectories when submitting a pipeline (This may increase submission time).",
           "default": false
         },
+        "distributed_training": {
+          "type": "integer",
+          "title": "Distributed Training",
+          "description": "Number of workers to run distributed training. Supported framework Tensorflow(Pytorch comming soon). Use env RANK, NRANKS in your program if needed.",
+          "default": 1,
+          "minimum": 1
+        },
         "outputs_header": {
           "type": "null",
           "title": "Outputs",

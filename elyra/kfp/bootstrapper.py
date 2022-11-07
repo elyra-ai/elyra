@@ -639,6 +639,18 @@ class OpUtil(object):
             help="Pipeline name",
             required=True,
         )
+        parser.add_argument(
+            "--op-name",
+            dest="op-name",
+            help="operation name",
+            required=True,
+        )
+        parser.add_argument(
+            "--rank",
+            dest="rank",
+            help="rank for distributed training",
+            required=False,
+        )
         parsed_args = vars(parser.parse_args(args))
 
         # set pipeline name as global
@@ -675,6 +687,20 @@ def main():
     )
     # Setup packages and gather arguments
     input_params = OpUtil.parse_arguments(sys.argv[1:])
+    # Set runtime PipelineParam "rank" into env:
+    if input_params["rank"]:
+        op_name = input_params["op-name"]
+        # FIXME: operation name will be updated by kfp, replace these chars for matching.
+        op_name = op_name.replace("_", "-")
+        os.environ["RANK"] = input_params["rank"]
+        nranks = os.getenv("NRANKS")
+        if not nranks:
+            raise ValueError("rank argument setted but no NRANKS env found!")
+        # NOTE: import kfpdist only when needed, to be compatible with normal elyra pipelines.
+        from kfpdist import set_dist_train_config
+
+        set_dist_train_config(int(input_params["rank"]), int(nranks), op_name, port=9888)
+
     OpUtil.log_operation_info("starting operation")
     t0 = time.time()
     OpUtil.package_install(user_volume_path=input_params.get("user-volume-path"))
