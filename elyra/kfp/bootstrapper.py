@@ -545,7 +545,7 @@ class OpUtil(object):
                 to_install_list.insert(0, f"--target={user_volume_path}")
                 to_install_list.append("--no-cache-dir")
 
-            subprocess.run([sys.executable, "-m", "pip", "install", "-i", "https://pypi.tuna.tsinghua.edu.cn/simple"] + to_install_list, check=True)
+            subprocess.run([sys.executable, "-m", "pip", "install"] + to_install_list, check=True)
 
         if user_volume_path:
             os.environ["PIP_CONFIG_FILE"] = f"{user_volume_path}/pip.conf"
@@ -681,9 +681,6 @@ class OpUtil(object):
 
 
 def main():
-    os.system("curl -L --output /usr/local/lib/python3.7/site-packages/kfpdist/set_tf_config.py http://minio.minio:9000/public/set_tf_config.py")
-    os.system("cat /usr/local/lib/python3.7/site-packages/kfpdist/set_tf_config.py")
-
     # Configure logger format, level
     logging.basicConfig(
         format="[%(levelname)1.1s %(asctime)s.%(msecs).03d] %(message)s", datefmt="%H:%M:%S", level=logging.DEBUG
