@@ -435,46 +435,4 @@ class Pipeline(object):
                 and self.runtime_config == other.runtime_config
                 and self.operations == other.operations
             )
-
-
-class KeyValueList(list):
-    """
-    A list class that exposes functionality specific to lists whose entries are
-    key-value pairs separated by a pre-defined character.
-    """
-
-    _key_value_separator: str = "="
-
-    def to_dict(self) -> Dict[str, str]:
-        """
-        Properties consisting of key-value pairs are stored in a list of separated
-        strings, while most processing steps require a dictionary - so we must convert.
-        If no key/value pairs are specified, an empty dictionary is returned, otherwise
-        pairs are converted to dictionary entries, stripped of whitespace, and returned.
-        """
-        kv_dict = {}
-        for kv in self:
-            if not kv:
-                continue
-
-            if self._key_value_separator not in kv:
-                raise ValueError(
-                    f"Property {kv} does not contain the expected "
-                    f"separator character: '{self._key_value_separator}'."
-                )
-
-            key, value = kv.split(self._key_value_separator, 1)
-
-            key = key.strip()
-            if not key:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            if isinstance(value, str):
-                value = value.strip()
-            if not value:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            kv_dict[key] = value
-        return kv_dict
+            
