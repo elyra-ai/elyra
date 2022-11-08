@@ -68,7 +68,6 @@ from elyra.pipeline.component_parameter import KubernetesToleration
 from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
-from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.processor import PipelineProcessor
@@ -658,8 +657,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Sort operations based on dependency graph (topological order)
         sorted_operations = PipelineProcessor._sort_operations(pipeline.operations)
 
-        if any(isinstance(operation, GenericOperation) for operation in sorted_operations):
-            # The pipeline contains at least one node that is implemented
+        if any(operation.is_generic for operation in sorted_operations):
+            # The pipeline contains atleast one node that is implemented
             # using a generic component: collect and verify relevant information
             runtime_configuration = self._get_metadata_configuration(
                 schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID, name=pipeline.runtime_config
@@ -729,7 +728,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         runtime_processor=self, execution_object=workflow_task["task_modifiers"]
                     )
 
-            if isinstance(operation, GenericOperation):
+            if operation.is_generic:
                 # The task is implemented using a generic component
                 workflow_task["uses_custom_component"] = False
 
@@ -955,12 +954,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Gather input for container image pull secrets in support of private container image registries
         # https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineConf.set_image_pull_secrets
         #
+        # Retrieve all runtime image configurations
+        runtime_image_configurations = self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID)
         # For each generic pipeline operation determine wether its runtime image
         # is protected by a pull secret
         container_image_pull_secret_names = []
         for operation in pipeline.operations.values():
-            if isinstance(operation, GenericOperation):
-                for image_instance in self._get_metadata_configuration(RuntimeImages.RUNTIME_IMAGES_SCHEMASPACE_ID):
+            if operation.is_generic:
+                for image_instance in runtime_image_configurations:
                     if image_instance.metadata["image_name"] == operation.runtime_image:
                         if image_instance.metadata.get("pull_secret"):
                             container_image_pull_secret_names.append(image_instance.metadata.get("pull_secret"))
