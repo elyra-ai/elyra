@@ -22,7 +22,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.component_parameter import ElyraPropertyList, PipelineParameter
+from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
@@ -342,7 +342,7 @@ class Pipeline(object):
         source: Optional[str] = None,
         description: Optional[str] = None,
         pipeline_properties: Optional[Dict[str, Any]] = None,
-        pipeline_parameters: ElyraPropertyList[PipelineParameter] = None,
+        pipeline_parameters: ElyraPropertyList = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -405,7 +405,7 @@ class Pipeline(object):
         return self._pipeline_properties
 
     @property
-    def pipeline_parameters(self) -> ElyraPropertyList[PipelineParameter]:
+    def pipeline_parameters(self) -> ElyraPropertyList:
         """
         The list of parameters associated with this pipeline
         """

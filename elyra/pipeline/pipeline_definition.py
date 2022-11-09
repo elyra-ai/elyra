@@ -30,7 +30,6 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import PipelineParameter
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
@@ -202,7 +201,7 @@ class Pipeline(AppDataBase):
         return pipeline_defaults
 
     @property
-    def pipeline_parameters(self) -> ElyraPropertyList[PipelineParameter]:
+    def pipeline_parameters(self) -> ElyraPropertyList:
         """The list of pipeline parameters"""
         return self.get_property(PIPELINE_PARAMETERS, ElyraPropertyList([]))
 
