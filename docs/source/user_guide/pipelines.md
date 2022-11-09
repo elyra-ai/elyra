@@ -380,7 +380,7 @@ Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `
 $ elyra-pipeline export a-notebook.pipeline --runtime-config kfp_dev_env --output /path/to/exported.yaml --overwrite
 ```
 
-By default export produces YAML formatted output for Kubeflow Pipelines and Python DAG for Apache Airflow. To choose a different format, specify the `--format` option. Supported values are `py` and `yaml` for Kubeflow Pipelines and `py` for Apache Airflow.
+By default, export produces YAML formatted output for Kubeflow Pipelines and <u>ONLY</u> Python DAGs for Apache Airflow. To choose a different format for Kubeflow Pipelines, specify the `--format` option. Supported values are `py` and `yaml` for Kubeflow Pipelines.
 
 To learn more about supported parameters, run
 ```bash
