@@ -601,20 +601,22 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         """
 
         with tempfile.TemporaryDirectory() as temp_dir:
+            module_name = "generated_dsl"
             try:
                 # Add temporary directory to Python module search path.
                 sys.path.insert(0, temp_dir)
                 # Save DSL in temporary file so we can import it as a module.
-                dsl_file = Path(temp_dir) / "generated_dsl.py"
+                dsl_file = Path(temp_dir) / f"{module_name}.py"
                 with open(dsl_file, "w") as dsl_output:
                     dsl_output.write(dsl)
                 # Load DSL by importing the "generated_dsl" module.
-                mod = importlib.import_module("generated_dsl")
+                mod = importlib.import_module(module_name)
                 # If this module was previously imported it won't reflect
                 # changes that might be in the DSL we are about to compile.
                 # Force a module re-load to pick up any changes.
                 mod = importlib.reload(mod)
-                # Obtain handle to pipeline function
+                # Obtain handle to pipeline function, which is named
+                # in the generated Python DSL "generated_pipeline"
                 pipeline_function = getattr(mod, "generated_pipeline")
                 # compile the DSL
                 if workflow_engine == WorkflowEngineType.TEKTON:
@@ -630,6 +632,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             finally:
                 # remove temporary directory from Python module search path
                 del sys.path[0]
+                # remove module entry; it's no longer needed now that it was
+                # processed by the Kubeflow Pipelines compiler
+                sys.modules.pop(module_name, None)
 
     def _generate_workflow_tasks(
         self,
