@@ -863,7 +863,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # If no data type was specified, string is assumed
                 factory_function = components.load_component_from_text(component.definition)
                 for input in factory_function.component_spec.inputs or []:
-                    workflow_task["task_inputs"][self._sanitize_param_name(input.name)] = {
+                    sanitized_input_name = self._sanitize_param_name(input.name)
+                    workflow_task["task_inputs"][sanitized_input_name] = {
                         "value": None,
                         "task_output_reference": None,
                         "pipeline_parameter_reference": None,
@@ -871,9 +872,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     }
                     # Determine whether the value needs to be rendered in quotes
                     # in the generated DSL code. For example "my name" (string), and 34 (integer).
-                    workflow_task["task_inputs"][self._sanitize_param_name(input.name)][
+                    workflow_task["task_inputs"][sanitized_input_name][
                         "requires_quoted_rendering"
-                    ] = workflow_task["task_inputs"][self._sanitize_param_name(input.name)]["data_type"] not in [
+                    ] = workflow_task["task_inputs"][sanitized_input_name]["data_type"] not in [
                         "integer",
                         "float",
                         "bool",
