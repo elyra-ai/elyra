@@ -119,7 +119,7 @@ def generated_pipeline(
 {%    endfor %}
 {%  endif %}
 {%  if workflow_task.task_modifiers.kubernetes_tolerations %}
-{%    for hash_not_used, toleration_dict in workflow_task.task_modifiers.kubernetes_tolerations.items() %}
+{%    for toleration_dict in workflow_task.task_modifiers.kubernetes_tolerations.values() %}
     {{ task_name }}.add_toleration(
         V1Toleration(
 {%      if toleration_dict.effect %}
