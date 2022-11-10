@@ -1077,6 +1077,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           ref={ref}
           palette={palette}
           pipelineProperties={palette.properties}
+          pipelineParameters={palette.parameters}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}

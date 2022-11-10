@@ -70,6 +70,7 @@ interface IRuntimeComponentsResponse {
   version: string;
   categories: IRuntimeComponent[];
   properties: IComponentPropertiesResponse;
+  parameters: IComponentPropertiesResponse;
 }
 
 export interface IRuntimeComponent {
@@ -164,7 +165,7 @@ export const componentFetcher = async (type: string): Promise<any> => {
 
   const pipelineParametersPromise = RequestHandler.makeGetRequest<
     IComponentPropertiesResponse
-  >(`elyra/pipeline/${type}/parameters`);
+  >(`elyra/pipeline/KUBEFLOW_PIPELINES/parameters`);
 
   const typesPromise = PipelineService.getRuntimeTypes();
 
@@ -181,7 +182,7 @@ export const componentFetcher = async (type: string): Promise<any> => {
   ]);
 
   palette.properties = pipelineProperties;
-  console.log(pipelineParameters);
+  palette.parameters = pipelineParameters;
 
   // Gather list of component IDs to fetch properties for.
   const componentList: string[] = [];
