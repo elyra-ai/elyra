@@ -30,6 +30,7 @@ def generated_pipeline(
 ):
 {% for workflow_task in workflow_tasks.values() %}
     {% set task_name = "task_" + workflow_task.escaped_task_id %}
+    # Task for node '{{ workflow_task.name }}'
     {{ task_name }} = factory_{{ workflow_task.component_definition_hash | python_safe }}(
 {%  for task_input_name, task_input_spec in workflow_task.task_inputs.items() %}
 {%     if task_input_spec.task_output_reference %}
