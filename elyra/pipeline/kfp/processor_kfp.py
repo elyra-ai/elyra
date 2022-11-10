@@ -41,7 +41,6 @@ from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.dsl import RUN_ID_PLACEHOLDER
-from kfp.aws import use_aws_secret  # noqa H306
 from kubernetes import client as k8s_client
 
 try:
