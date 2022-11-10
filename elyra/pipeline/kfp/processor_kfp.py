@@ -872,9 +872,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     }
                     # Determine whether the value needs to be rendered in quotes
                     # in the generated DSL code. For example "my name" (string), and 34 (integer).
-                    workflow_task["task_inputs"][sanitized_input_name][
-                        "requires_quoted_rendering"
-                    ] = workflow_task["task_inputs"][sanitized_input_name]["data_type"] not in [
+                    workflow_task["task_inputs"][sanitized_input_name]["requires_quoted_rendering"] = workflow_task[
+                        "task_inputs"
+                    ][sanitized_input_name]["data_type"] not in [
                         "integer",
                         "float",
                         "bool",
