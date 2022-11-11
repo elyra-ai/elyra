@@ -192,11 +192,12 @@ def test_missing_pipeline_runtime():
 def test_missing_pipeline_runtime_configuration():
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid.json")
     pipeline_json["pipelines"][0]["app_data"].pop("runtime_config")
+    # emulate what validation will do when there's no value for runtime_config...
+    pipeline_json["pipelines"][0]["app_data"]["runtime"] = "local"
 
-    with pytest.raises(ValueError) as e:
-        PipelineParser().parse(pipeline_json)
-
-    assert "Invalid pipeline: Missing runtime configuration" in str(e.value)
+    pipeline = PipelineParser().parse(pipeline_json)
+    assert pipeline.runtime == "local"
+    assert pipeline.runtime_config is None
 
 
 def test_missing_operation_id():

@@ -17,7 +17,7 @@
 
 # Ubuntu 20.04.2 LTS (Focal Fossa)
 # Repository: https://gallery.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter
-FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.4
+FROM public.ecr.aws/j1r0q0g6/notebooks/notebook-servers/jupyter:v1.5.0
 
 ARG TAG="dev"
 ARG ELYRA_VERSION

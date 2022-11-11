@@ -13,11 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import string
+
 from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_annotation_value
 from elyra.util.kubernetes import is_valid_kubernetes_resource_name
 from elyra.util.kubernetes import is_valid_label_key
 from elyra.util.kubernetes import is_valid_label_value
+from elyra.util.kubernetes import sanitize_label_value
 
 
 def test_is_valid_kubernetes_resource_name_invalid_input():
@@ -226,3 +229,109 @@ def test_is_valid_annotation_value_valid_input():
     assert is_valid_annotation_value(value="l_4")
     assert is_valid_annotation_value(value="4-you")
     assert is_valid_annotation_value(value="You.2")
+
+
+def test_sanitize_label_value():
+    valid_middle_chars = "-_."
+
+    # test min length
+    assert sanitize_label_value(None) == ""
+    assert sanitize_label_value("") == ""
+    # test max length (63)
+    assert sanitize_label_value("a" * 63) == "a" * 63
+    assert sanitize_label_value("a" * 64) == "a" * 63  # truncated
+    # test first and last char
+    assert sanitize_label_value("1") == "1"
+    assert sanitize_label_value("22") == "22"
+    assert sanitize_label_value("3_3") == "3_3"
+    assert sanitize_label_value("4u4") == "4u4"
+    assert sanitize_label_value("5$5") == "5_5"
+
+    # test first char
+    for c in string.printable:
+        if c in string.ascii_letters + string.digits:
+            # first char is valid
+            # no length violation
+            assert sanitize_label_value(c) == c
+            assert sanitize_label_value(c + "B") == c + "B"
+            # max length
+            assert sanitize_label_value(c + "B" * 62) == (c + "B" * 62)
+            # max length exceeded
+            assert sanitize_label_value(c + "B" * 63) == (c + "B" * 62)  # truncated
+        else:
+            # first char is invalid, e.g. '#a', and becomes the
+            # second char, which might require replacement
+            rv = c
+            if c not in valid_middle_chars:
+                rv = "_"
+            # no length violation
+            assert sanitize_label_value(c) == "a" + rv + "a"
+            assert sanitize_label_value(c + "B") == "a" + rv + "B"
+            # max length
+            assert sanitize_label_value(c + "B" * 62) == ("a" + rv + "B" * 61)  # truncated
+            # max length exceeded
+            assert sanitize_label_value(c + "B" * 63) == ("a" + rv + "B" * 61)  # truncated
+
+    # test last char
+    for c in string.printable:
+        if c in string.ascii_letters + string.digits:
+            # no length violation
+            assert sanitize_label_value("b" + c) == "b" + c
+            # max length
+            assert sanitize_label_value("b" * 62 + c) == ("b" * 62 + c)
+            # max length exceeded
+            assert sanitize_label_value("b" * 63 + c) == ("b" * 63)
+        else:
+            # last char is invalid, e.g. 'a#', and requires
+            # patching
+            rv = c
+            if c not in valid_middle_chars:
+                rv = "_"
+            # no length violation (char is appended)
+            assert sanitize_label_value("b" + c) == "b" + rv + "a"
+            # max length (char is replaced)
+            assert sanitize_label_value("b" * 62 + c) == ("b" * 62 + "a")
+            # max length exceeded (no action required)
+            assert sanitize_label_value("b" * 63 + c) == ("b" * 63)
+
+    # test first and last char
+    for c in string.printable:
+        if c in string.ascii_letters + string.digits:
+            # no length violation
+            assert sanitize_label_value(c + "b" + c) == c + "b" + c  # nothing is modified
+            # max length
+            assert sanitize_label_value(c + "b" * 61 + c) == (c + "b" * 61 + c)  # nothing is modified
+            # max length exceeded
+            assert sanitize_label_value(c + "b" * 62 + c) == c + "b" * 62  # truncate only
+        else:
+            # first and last characters are invalid, e.g. '#a#'
+            rv = c
+            if c not in valid_middle_chars:
+                rv = "_"
+            # no length violation
+            assert sanitize_label_value(c + "b" + c) == "a" + rv + "b" + rv + "a"
+            # max length
+            assert sanitize_label_value(c + "b" * 59 + c) == ("a" + rv + "b" * 59 + rv + "a")
+            # max length exceeded after processing, scenario 1
+            # resolved by adding char before first, replace last
+            assert sanitize_label_value(c + "b" * 60 + c) == ("a" + rv + "b" * 60 + "a")
+            # max length exceeded after processing, scenario 2
+            # resolved by adding char before first, appending after last
+            assert sanitize_label_value(c + "b" * 59 + c) == ("a" + rv + "b" * 59 + rv + "a")
+            # max length exceeded before processing, scenario 1
+            # resolved by adding char before first, truncating last
+            assert sanitize_label_value(c + "b" * 62 + c) == ("a" + rv + "b" * 61)
+            # max length exceeded before processing, scenario 2
+            # resolved by adding char before first, replacing last
+            assert sanitize_label_value(c + "b" * 60 + c * 3) == ("a" + rv + "b" * 60 + "a")
+
+    # test char in a position other than first and last
+    # if invalid, the char is replaced with '_'
+    for c in string.printable:
+        if c in string.ascii_letters + string.digits + "-_.":
+            assert sanitize_label_value("A" + c + "Z") == "A" + c + "Z"
+        else:
+            assert sanitize_label_value("A" + c + "Z") == "A_Z"
+
+    # encore
+    assert sanitize_label_value(r"¯\_(ツ)_/¯") == "a_________a"

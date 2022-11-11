@@ -20,6 +20,7 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
+from elyra.pipeline.component_parameter import CustomSharedMemorySize
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.component_parameter import KubernetesAnnotation
@@ -30,6 +31,7 @@ from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
+from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import Node
@@ -446,8 +448,13 @@ def test_valid_node_property_volumes(validation_manager):
 
     volumes = ElyraPropertyList(
         [
-            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim"),  # valid
-            VolumeMount(path="/mount/test_two", pvc_name="second-claim"),  # valid
+            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim", sub_path=None, read_only=False),
+            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim", sub_path="", read_only=False),
+            VolumeMount(path="/mount/test", pvc_name="rwx-test-claim", sub_path="relative/path", read_only=False),
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path="", read_only=True),
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path="path", read_only=True),
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path="path/", read_only=True),
+            VolumeMount(path="/mount/test_two", pvc_name="second-claim", sub_path="path/in/volume", read_only=None),
         ]
     )
     node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes
@@ -466,13 +473,18 @@ def test_invalid_node_property_volumes(validation_manager):
 
     volumes = ElyraPropertyList(
         [
-            VolumeMount(path="", pvc_name=""),  # missing mount path and pvc name
-            VolumeMount(path=None, pvc_name=None),  # missing mount path and pvc name
-            VolumeMount(path="", pvc_name="pvc"),  # missing mount path
-            VolumeMount(path=None, pvc_name="pvc"),  # missing mount path
-            VolumeMount(path="/path", pvc_name=""),  # missing pvc name
-            VolumeMount(path="/path/", pvc_name=None),  # missing pvc name
-            VolumeMount(path="/mount/test_four", pvc_name="second#claim"),  # invalid pvc name
+            VolumeMount(path="", pvc_name="", sub_path="", read_only=True),  # missing mount path and pvc name
+            VolumeMount(path=None, pvc_name=None, sub_path=None, read_only=True),  # missing mount path and pvc name
+            VolumeMount(path="", pvc_name="pvc", sub_path="", read_only=True),  # missing mount path
+            VolumeMount(path=None, pvc_name="pvc", sub_path=None, read_only=True),  # missing mount path
+            VolumeMount(path="/path", pvc_name="", sub_path="", read_only=True),  # missing pvc name
+            VolumeMount(path="/path/", pvc_name=None, sub_path=None, read_only=False),  # missing pvc name
+            VolumeMount(
+                path="/mount/test_four", pvc_name="second#claim", sub_path=None, read_only=False
+            ),  # invalid pvc name
+            VolumeMount(
+                path="/path", pvc_name="pvc", sub_path="/absolute/path", read_only=False
+            ),  # sub_path must be relative
         ]
     )
     node_dict["app_data"]["component_parameters"][MOUNTED_VOLUMES] = volumes
@@ -482,7 +494,7 @@ def test_invalid_node_property_volumes(validation_manager):
         node_id=node.id, node_label=node.label, node=node, param_name=MOUNTED_VOLUMES, response=response
     )
     issues = response.to_json().get("issues")
-    assert len(issues) == 9, issues
+    assert len(issues) == 10, issues
     assert issues[0]["severity"] == 1
     assert issues[0]["type"] == "invalidVolumeMount"
     assert issues[0]["data"]["propertyName"] == MOUNTED_VOLUMES
@@ -496,6 +508,7 @@ def test_invalid_node_property_volumes(validation_manager):
     assert "Required persistent volume claim name was not specified." in issues[6]["message"]
     assert "Required persistent volume claim name was not specified." in issues[7]["message"]
     assert "PVC name 'second#claim' is not a valid Kubernetes resource name." in issues[8]["message"]
+    assert "Sub-path '/absolute/path' must be a relative path." in issues[9]["message"]
 
 
 def test_valid_node_property_kubernetes_toleration(validation_manager):
@@ -769,6 +782,75 @@ def test_invalid_node_property_secrets(validation_manager):
     assert "Required environment variable was not specified." in issues[11]["message"]
     assert "Required secret name was not specified." in issues[12]["message"]
     assert "Required secret key was not specified." in issues[13]["message"]
+
+
+def test_valid_node_property_shared_mem_size(validation_manager):
+    """
+    Verify that valid shared memory definitions pass validation
+    """
+    response = ValidationResponse()
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+
+    # test size
+    for size in [None, 0, 3.1415, 64]:
+        shared_mem_size = CustomSharedMemorySize(size=size, units="G")
+        node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
+
+        node = Node(node_dict)
+        validation_manager._validate_elyra_owned_property(
+            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+        )
+        issues = response.to_json().get("issues")
+        assert len(issues) == 0, issues
+
+    # test units
+    for unit in ["G", None, ""]:
+        shared_mem_size = CustomSharedMemorySize(size=0, units=unit)
+        node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
+
+        node = Node(node_dict)
+        validation_manager._validate_elyra_owned_property(
+            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+        )
+        issues = response.to_json().get("issues")
+        assert len(issues) == 0, issues
+
+
+def test_invalid_node_property_shared_mem_size(validation_manager):
+    """
+    Verify that invalid shared memory definitions are flagged by validation
+    """
+    node_dict = {"id": "test-id", "app_data": {"label": "test", "ui_data": {}, "component_parameters": {}}}
+
+    # test invalid size; note that 0 and None are considered valid
+    for size in [-1, "not-a-number"]:
+        shared_mem_size = CustomSharedMemorySize(size=size, units="G")
+        node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
+        node = Node(node_dict)
+        response = ValidationResponse()
+        validation_manager._validate_elyra_owned_property(
+            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+        )
+        issues = response.to_json().get("issues")
+        assert len(issues) == 1, issues
+        assert issues[0]["message"] == f"Shared memory size '{size}' must be a positive number."
+        assert issues[0]["data"]["value"]["size"] == size
+        assert issues[0]["data"]["value"]["units"] == "G"
+
+    # test invalid units
+    for unit in ["K", "Ki", "m", "mi", "g", "gi"]:
+        shared_mem_size = CustomSharedMemorySize(size=1, units=unit)
+        node_dict["app_data"]["component_parameters"][KUBERNETES_SHARED_MEM_SIZE] = shared_mem_size
+        node = Node(node_dict)
+        response = ValidationResponse()
+        validation_manager._validate_elyra_owned_property(
+            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+        )
+        issues = response.to_json().get("issues")
+        assert len(issues) == 1, issues
+        assert issues[0]["message"] == f"Shared memory size units '{unit}' must be 'G'."
+        assert issues[0]["data"]["value"]["size"] == 1
+        assert issues[0]["data"]["value"]["units"] == unit
 
 
 def test_valid_node_property_label(validation_manager):

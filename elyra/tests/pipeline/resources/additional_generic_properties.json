@@ -1,7 +1,7 @@
 {
   "kubernetes_pod_annotations": {
     "title": "Kubernetes Pod Annotations",
-    "description": " Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node. ",
+    "description": "Metadata to be added to this node. The metadata is exposed as annotation in the Kubernetes pod that executes this node.",
     "type": "array",
     "items": {
       "type": "object",
@@ -33,7 +33,7 @@
   },
   "mounted_volumes": {
     "title": "Data Volumes",
-    "description": " Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run. ",
+    "description": "Volumes to be mounted in this node. The specified Persistent Volume Claims must exist in the Kubernetes namespace where the node is executed or this node will not run.",
     "type": "array",
     "items": {
       "type": "object",
@@ -47,6 +47,16 @@
           "type": "string",
           "title": "Persistent Volume Claim Name",
           "default": ""
+        },
+        "read_only": {
+          "default": false,
+          "title": "Mount volume read-only",
+          "type": "boolean"
+        },
+        "sub_path": {
+          "default": "",
+          "title": "Sub Path",
+          "type": "string"
         }
       },
       "required": ["path", "pvc_name"]
@@ -58,6 +68,9 @@
         },
         "pvc_name": {
           "ui:placeholder": "pvc-name"
+        },
+        "sub_path": {
+          "ui:placeholder": "relative/path/within/volume"
         }
       }
     },
@@ -65,7 +78,7 @@
   },
   "kubernetes_pod_labels": {
     "title": "Kubernetes Pod Labels",
-    "description": " Metadata to be added to this node. The metadata is exposed as label in the Kubernetes pod that executes this node. ",
+    "description": "Metadata to be added to this node. The metadata is exposed as label in the Kubernetes pod that executes this node.",
     "type": "array",
     "items": {
       "type": "object",
@@ -97,7 +110,7 @@
   },
   "kubernetes_secrets": {
     "title": "Kubernetes Secrets",
-    "description": " Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the node is executed or this node will not run. ",
+    "description": "Kubernetes secrets to make available as environment variables to this node. The secret name and key given must be present in the Kubernetes namespace where the node is executed or this node will not run.",
     "type": "array",
     "items": {
       "type": "object",
@@ -137,7 +150,7 @@
   },
   "env_vars": {
     "title": "Environment Variables",
-    "description": " Environment variables to be set on the execution environment. ",
+    "description": "Environment variables to be set on the execution environment.",
     "type": "array",
     "items": {
       "type": "object",
@@ -156,13 +169,39 @@
       "required": ["env_var"]
     },
     "uihints": {
+      "items": {
+        "env_var": {
+          "ui:placeholder": "ENV_VAR"
+        },
+        "value": {
+          "ui:placeholder": "value"
+        }
+      },
       "canRefresh": true
     },
     "default": []
   },
+  "kubernetes_shared_mem_size": {
+    "title": "Shared Memory Size",
+    "description": "Configure a custom shared memory size in gigabytes (10^9 bytes) for the pod that executes a node. A custom value is assigned if the size property value is a number greater than zero.",
+    "type": "object",
+    "properties": {
+      "size": {
+        "type": "number",
+        "title": "Memory Size (GB)",
+        "minimum": 0
+      }
+    },
+    "required": [],
+    "uihints": {
+      "size": {
+        "ui:placeholder": 0
+      }
+    }
+  },
   "kubernetes_tolerations": {
     "title": "Kubernetes Tolerations",
-    "description": " Kubernetes tolerations to apply to the pod where the node is executed. ",
+    "description": "Kubernetes tolerations to apply to the pod where the node is executed.",
     "type": "array",
     "items": {
       "type": "object",

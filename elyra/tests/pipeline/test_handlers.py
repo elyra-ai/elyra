@@ -33,6 +33,7 @@ from elyra.pipeline.pipeline_constants import (
     KUBERNETES_POD_ANNOTATIONS,
     KUBERNETES_POD_LABELS,
     KUBERNETES_SECRETS,
+    KUBERNETES_SHARED_MEM_SIZE,
     KUBERNETES_TOLERATIONS,
     MOUNTED_VOLUMES,
     PIPELINE_DEFAULTS,
@@ -265,10 +266,15 @@ async def test_get_pipeline_properties_definition(jp_fetch):
             KUBERNETES_POD_ANNOTATIONS,
             KUBERNETES_POD_LABELS,
             DISABLE_NODE_CACHING,
+            KUBERNETES_SHARED_MEM_SIZE,
         ]
         if runtime == "airflow":
+            # exclude properties that are not supported by this runtime
             default_properties.remove(DISABLE_NODE_CACHING)
-        assert all(prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties)
+            default_properties.remove(KUBERNETES_SHARED_MEM_SIZE)
+        assert all(
+            prop in payload["properties"][PIPELINE_DEFAULTS]["properties"] for prop in default_properties
+        ), runtime
 
 
 async def test_pipeline_success(jp_fetch, monkeypatch):
