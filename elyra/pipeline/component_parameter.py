@@ -291,13 +291,18 @@ class DisableNodeCaching(ElyraProperty):
     _json_data_type = "string"
 
     def __init__(self, selection, **kwargs):
-        self.selection = selection == "True"
+        self.selection = None
+        if selection == "True":
+            self.selection = True
+        elif selection == "False":
+            self.selection = False
 
     @classmethod
     def get_single_instance(cls, value: Optional[Any] = None) -> ElyraProperty | None:
         if isinstance(value, ElyraProperty):
             return value  # value is already a single instance, no further action required
-        return DisableNodeCaching(selection=value)
+        instance = DisableNodeCaching(selection=value)
+        return None if instance.should_discard() else instance
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -317,6 +322,9 @@ class DisableNodeCaching(ElyraProperty):
         """Add DisableNodeCaching info to the execution object for the given runtime processor"""
         runtime_processor.add_disable_node_caching(instance=self, execution_object=execution_object, **kwargs)
 
+    def should_discard(self) -> bool:
+        """Ignore this DisableNodeCaching instance if neither True nor False was selected."""
+        return self.selection is None
 
 class CustomSharedMemorySize(ElyraProperty):
     """An ElyraProperty representing shared memory size for a node."""
