@@ -19,15 +19,17 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 import pytest
 
 from elyra.pipeline import pipeline_constants
+from elyra.pipeline.component import Component
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES, DISABLE_NODE_CACHING
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
 
@@ -132,10 +134,14 @@ def test_elyra_property_list_difference():
     assert empty_list == []
 
 
-def test_propagate_pipeline_default_properties(monkeypatch, component_cache):
+@pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)
+def test_propagate_pipeline_default_properties(monkeypatch, catalog_instance):
     kv_dict = {"var1": "var1", "var2": "var2", "var3": "var_three"}
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_valid_with_pipeline_default.json")
 
+    # Mock the runtime_type of components in order to return an accurate
+    # set of applicable properties from `get_classes_for_component_type`
+    monkeypatch.setattr(Component, "runtime_type", mock.Mock(return_value=RuntimeProcessorType.APACHE_AIRFLOW.name))
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline_json)
 
     generic_node = None
@@ -161,6 +167,12 @@ def test_propagate_pipeline_default_properties(monkeypatch, component_cache):
     assert custom_node_test.get_component_parameter(RUNTIME_IMAGE) is None
     assert custom_node_derive1.get_component_parameter(RUNTIME_IMAGE) is None
     assert custom_node_derive2.get_component_parameter(ENV_VARIABLES) is None
+
+    # Ensure DisableNodeCaching is propagated to all custom components
+    assert generic_node.get_component_parameter(DISABLE_NODE_CACHING) is None
+    assert custom_node_test.get_component_parameter(DISABLE_NODE_CACHING).selection is True
+    assert custom_node_derive1.get_component_parameter(DISABLE_NODE_CACHING).selection is True
+    assert custom_node_derive2.get_component_parameter(DISABLE_NODE_CACHING).selection is False
 
 
 @pytest.mark.parametrize("catalog_instance", [AIRFLOW_TEST_OPERATOR_CATALOG], indirect=True)

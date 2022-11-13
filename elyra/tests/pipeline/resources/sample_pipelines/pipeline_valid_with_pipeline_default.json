@@ -71,7 +71,8 @@
           "app_data": {
             "label": "{{label}}",
             "component_parameters": {
-              "mounted_volumes": []
+              "mounted_volumes": [],
+              "disable_node_caching": "False"
             },
             "component_source": "{{component_source}}",
             "ui_data": {
@@ -99,7 +100,8 @@
             ],
             "mounted_volumes": [
               { "path": "/mnt/vol2", "pvc_name": "pvc-claim-2" }
-            ]
+            ],
+            "disable_node_caching": "True"
           },
           "runtime": "{{runtime description}}"
         },
