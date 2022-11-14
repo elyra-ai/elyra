@@ -38,7 +38,7 @@ PYTHON_VERSION?=3.9
 CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate
 
 ELYRA_VERSION:=$$(grep __version__ elyra/_version.py | cut -d"\"" -f2)
-TAG:=dev
+TAG:=3.13.0
 IMAGE_IS_LATEST=False
 ELYRA_IMAGE=elyra/elyra:$(TAG)
 ELYRA_IMAGE_LATEST=elyra/elyra:latest
