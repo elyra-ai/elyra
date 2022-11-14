@@ -23,7 +23,8 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.pipeline_constants import ENV_VARIABLES, DISABLE_NODE_CACHING
+from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
+from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE

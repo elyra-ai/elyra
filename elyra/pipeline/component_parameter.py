@@ -326,6 +326,7 @@ class DisableNodeCaching(ElyraProperty):
         """Ignore this DisableNodeCaching instance if neither True nor False was selected."""
         return self.selection is None
 
+
 class CustomSharedMemorySize(ElyraProperty):
     """An ElyraProperty representing shared memory size for a node."""
 
