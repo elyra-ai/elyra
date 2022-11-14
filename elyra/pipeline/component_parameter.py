@@ -294,7 +294,7 @@ class DisableNodeCaching(ElyraProperty):
         self.selection = None
         if selection in ["True", "true", True]:
             self.selection = True
-        elif selection == ["False", "false", False]:
+        elif selection in ["False", "false", False]:
             self.selection = False
 
     @classmethod
