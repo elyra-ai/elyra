@@ -2,6 +2,9 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.13.0 - 11/14/2022
+
+
 ## Release 3.13.0rc0 - 11/14/2022
 
 - Fix bug with propagation of node caching property - [#3012](https://github.com/elyra-ai/elyra/pull/3012)
