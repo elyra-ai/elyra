@@ -172,7 +172,7 @@ def test_propagate_pipeline_default_properties(monkeypatch, catalog_instance):
     # Ensure DisableNodeCaching is propagated to all custom components
     assert generic_node.get_component_parameter(DISABLE_NODE_CACHING) is None
     assert custom_node_test.get_component_parameter(DISABLE_NODE_CACHING).selection is True
-    assert custom_node_derive1.get_component_parameter(DISABLE_NODE_CACHING).selection is True
+    assert custom_node_derive1.get_component_parameter(DISABLE_NODE_CACHING).selection is False
     assert custom_node_derive2.get_component_parameter(DISABLE_NODE_CACHING).selection is False
 
 

@@ -55,7 +55,8 @@
             "component_parameters": {
               "mounted_volumes": [
                 { "path": "/mnt/vol1", "pvc_name": "pvc-claim-1" }
-              ]
+              ],
+              "disable_node_caching": false
             },
             "component_source": "{{component_source}}",
             "ui_data": {
