@@ -24,7 +24,7 @@ Many of these tasks can also be accomplished using the [Elyra command line inter
 
 ### Launcher
 
-Elyra adds a new category to the JupyterLab launcher, providing access to the Visual Pipeline Editor, the [Python editor](enhanced-script-support.html#python-script-execution-support), the [R editor](enhanced-script-support.html#r-script-execution-support), and the [Elyra documentation](https://elyra.readthedocs.io/en/v3.13.0/).
+Elyra adds a new category to the JupyterLab launcher, providing access to the Visual Pipeline Editor, the [Python editor](enhanced-script-support.html#python-script-execution-support), the [R editor](enhanced-script-support.html#r-script-execution-support), and the [Elyra documentation](https://elyra.readthedocs.io/en/latest/).
 
 ![Elyra category in JupyterLab launcher](../images/user_guide/jupyterlab-interface/launcher.png)
 
