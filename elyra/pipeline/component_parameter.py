@@ -290,11 +290,11 @@ class DisableNodeCaching(ElyraProperty):
     property_description = "Disable caching to force node re-execution in the target runtime environment."
     _json_data_type = "string"
 
-    def __init__(self, selection, **kwargs):
+    def __init__(self, selection: Union[str, bool], **kwargs):
         self.selection = None
-        if selection == "True":
+        if selection in ["True", "true", True]:
             self.selection = True
-        elif selection == "False":
+        elif selection == ["False", "false", False]:
             self.selection = False
 
     @classmethod
