@@ -251,8 +251,8 @@ class Pipeline(AppDataBase):
         # Convert pipeline parameters
         pipeline_parameters = self.pipeline_parameters
         converted_value = ElyraProperty.create_instance(PIPELINE_PARAMETERS, pipeline_parameters)
-        self.set_property(PIPELINE_PARAMETERS, converted_value)
-
+        if converted_value is not None:
+            self._node["app_data"][PIPELINE_PARAMETERS] = converted_value
 
 class Node(AppDataBase):
     def __init__(self, node: Dict):
@@ -619,6 +619,8 @@ class PipelineDefinition(object):
                     continue
 
                 node_value = node.get_component_parameter(property_name)
+                if property_name == "ENV_VARIABLES":
+                    print(node_value)
                 if not node_value:
                     node.set_component_parameter(property_name, pipeline_value)
                     continue
