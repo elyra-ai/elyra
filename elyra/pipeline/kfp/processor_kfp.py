@@ -854,7 +854,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         }
 
     @property
-    def supports_pipeline_parameters(self) -> bool:
+    def supports_pipeline_params(self) -> bool:
         """KfpPipelineProcessor does support pipeline parameters."""
         return True
 

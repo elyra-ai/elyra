@@ -56,7 +56,7 @@ class Component(object):
         catalog_type: str,
         component_reference: Any,
         definition: Optional[str] = None,
-        runtime_type: Optional[str] = None,
+        runtime_type: Optional[RuntimeProcessorType] = None,
         op: Optional[str] = None,
         categories: Optional[List[str]] = None,
         properties: Optional[List[ComponentParameter]] = None,
@@ -310,7 +310,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
 
         from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
 
-        if PipelineProcessorManager.instance().supports_parameters(runtime_type=self.component_platform):
+        if PipelineProcessorManager.instance().supports_pipeline_params(runtime_type=self.component_platform):
             data_type_info.allowed_input_types.append("parameter")
 
         return data_type_info

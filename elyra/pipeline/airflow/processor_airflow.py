@@ -753,6 +753,11 @@ be fully qualified (i.e., prefixed with their package names).
             pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
         }
 
+    @property
+    def supports_pipeline_params(self) -> bool:
+        """AirflowPipelineProcessor does not support pipeline parameters."""
+        return False
+
 
 class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):
 

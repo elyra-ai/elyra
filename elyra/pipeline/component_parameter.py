@@ -42,6 +42,7 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_annotation_value
 from elyra.util.kubernetes import is_valid_kubernetes_key
@@ -184,7 +185,9 @@ class ElyraProperty(ABC):
         return None
 
     @classmethod
-    def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
+    def get_classes_for_component_type(
+        cls, component_type: str, runtime_type: Optional[RuntimeProcessorType] = None
+    ) -> Set[type]:
         """
         Retrieve property subclasses that apply to the given component type
         (e.g., custom or generic) and to the given runtime type.
@@ -194,10 +197,8 @@ class ElyraProperty(ABC):
         processor_props = set()
         for processor in PipelineProcessorManager.instance().get_all_processors():
             props = getattr(processor, "supported_properties", set())
-            if not runtime_type or processor.type.name == runtime_type:
+            if not runtime_type or runtime_type == RuntimeProcessorType.LOCAL or processor.type == runtime_type:
                 processor_props.update(props)
-            # if processor.type.name == runtime_type and props:
-            #    break  # TODO we don't want to break this soon, considering the 1:M notion of runtime type processors
 
         all_subclasses = set()
         for sc in cls.all_subclasses():
@@ -1171,6 +1172,7 @@ class PipelineParameter(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="name",
             display_name="Parameter Name",
+            placeholder="PARAM_1",
             input_type="string",
             hidden=False,
             required=True,
@@ -1182,13 +1184,13 @@ class PipelineParameter(ElyraPropertyListItem):
             placeholder="default_val",
             input_type="string",
             hidden=False,
-            required=False,  # TODO?
+            required=False,
             use_in_key=False,
         ),
         ListItemPropertyAttribute(
             attribute_id="input_type",
             display_name="Type",
-            placeholder="String",
+            default_value="String",
             input_type="string",
             enum=["String"],
             hidden=False,

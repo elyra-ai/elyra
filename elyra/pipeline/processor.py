@@ -174,9 +174,19 @@ class PipelineProcessorManager(SingletonConfigurable):
         )
         return res
 
-    def supports_parameters(self, runtime_type: RuntimeProcessorType) -> bool:
-        processors = [processor for processor in self.get_all_processors() if processor.type.name == runtime_type.name]
-        return any(hasattr(p, "supports_pipeline_parameters") and p.supports_pipeline_parameters for p in processors)
+    def supports_pipeline_params(self, runtime_type: RuntimeProcessorType) -> bool:
+        """Returns boolean indicating whether this runtime type supports pipeline parameters."""
+        if runtime_type == RuntimeProcessorType.LOCAL:
+            # The LOCAL(/generic) processor must support parameters, as pipelines
+            # of this type can (currently) be submitted to any runtime
+            return True
+        for processor in self.get_all_processors():
+            if runtime_type != processor.type:
+                continue
+            if hasattr(processor, "supports_pipeline_params") and processor.supports_pipeline_params:
+                # If any processor of the given type supports pipeline parameters, return True
+                return True
+        return False
 
 
 class PipelineProcessorResponse:

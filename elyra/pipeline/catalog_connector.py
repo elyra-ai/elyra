@@ -103,7 +103,7 @@ class CatalogEntry(object):
         self.entry_data = entry_data
         self.entry_reference = entry_reference
         self.catalog_type = catalog_instance.schema_name
-        self.runtime_type = catalog_instance.runtime_type.name  # noqa
+        self.runtime_type = catalog_instance.runtime_type  # noqa
         self.categories = catalog_instance.metadata.get("categories", [])
 
         self.id = self.compute_unique_id(hash_keys)

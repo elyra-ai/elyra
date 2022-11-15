@@ -24,7 +24,6 @@ from typing import Union
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
-from jinja2 import Undefined
 
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_parameter import ComponentParameter
@@ -707,7 +706,7 @@ class PipelineDefinition(object):
         return supernode_list
 
     @staticmethod
-    def get_pipeline_properties(runtime_type: str) -> Dict[str, Any]:
+    def get_pipeline_properties(runtime_type: RuntimeProcessorType) -> Dict[str, Any]:
         """Retrieves the dict representation of the canvas-formatted pipeline properties."""
         loader = PackageLoader("elyra", "templates/pipeline")
 
@@ -723,21 +722,10 @@ class PipelineDefinition(object):
             "elyra_owned_parameters": params_both,
             "render_parameter_details": ComponentParameter.render_parameter_details,
         }
-        template_env = Environment(loader=loader, undefined=SilentUndefined)  # TODO do we need SilentUndefined anymore?
+        template_env = Environment(loader=loader)
         template_env.policies["json.dumps_kwargs"] = {"sort_keys": False}  # prevent automatic key sort on 'tojson'
         template = template_env.get_template("pipeline_properties_template.jinja2")
         template.globals.update(template_vars)
 
         output = template.render()
         return json.loads(output)
-
-
-class SilentUndefined(Undefined):
-    """
-    A subclass of the jinja2.Undefined class used to represent undefined
-    values in the template. Undefined errors as a result of the evaluation
-    of expressions will fail silently and render as null.
-    """
-
-    def _fail_with_undefined_error(self, *args, **kwargs):
-        return None
