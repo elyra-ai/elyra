@@ -234,7 +234,7 @@ class PipelineParametersHandler(HttpErrorMixin, APIHandler):
             await self.finish(pipeline_properties_json)
         else:
             # Pipeline parameters are not supported, no content to return
-            self.set_status(200)
+            self.set_status(405)
             await self.finish(
                 f"Runtime processor type '{runtime_processor_type.value}' does not support pipeline parameters."
             )
