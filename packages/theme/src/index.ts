@@ -49,7 +49,7 @@ const CommandIDs = {
 const extension: JupyterFrontEndPlugin<ILauncher> = {
   id: ELYRA_THEME_NAMESPACE,
   autoStart: true,
-  requires: [ITranslator, ILabShell, IMainMenu],
+  requires: [ITranslator, ILabShell, IMainMenu, JupyterFrontEnd.IPaths],
   optional: [ICommandPalette],
   provides: ILauncher,
   activate: (
@@ -57,6 +57,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     translator: ITranslator,
     labShell: ILabShell,
     mainMenu: IMainMenu,
+    paths: JupyterFrontEnd.IPaths,
     palette: ICommandPalette | null
   ): ILauncher => {
     console.log('Elyra - theme extension is activated!');
@@ -156,7 +157,18 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       label: 'Documentation',
       icon: helpIcon,
       execute: (args: any) => {
-        window.open('https://github.com/elevo-ai/tutorial', '_blank');
+        const hubPrefix = paths.urls.hubPrefix;
+        if (hubPrefix !== null && hubPrefix !== undefined) {
+          window.location.href =
+            window.location.origin +
+            hubPrefix.replace('/hub/', '/') +
+            'user-redirect/proxy/integra-docs:80/';
+        } else {
+          window.location.href =
+            window.location.origin +
+            paths.urls.base +
+            'user-redirect/proxy/integra-docs:80/';
+        }
       }
     });
 

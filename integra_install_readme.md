@@ -30,21 +30,21 @@ Instruction to build integra/elyra jupyter distributions
 Dependencies:
    - Get Miniconda for python3 (https://docs.conda.io/en/latest/miniconda.html)(https://repo.anaconda.com/miniconda/Miniconda3-py37_4.12.0-Linux-x86_64.sh)
    - Install using the command 
-     	bash Miniconda3-latest-Linux-x86_64.sh (https://conda.io/projects/conda/en/latest/user-guide/install/linux.html)
+     	- bash Miniconda3-latest-Linux-x86_64.sh (https://conda.io/projects/conda/en/latest/user-guide/install/linux.html)
       
 Create conda venv:
-   conda create -n <env-name> python==3.7.9
+   - conda create -n <env-name> python==3.7.9
 
 Install required packages inside conda venv:
    - Activate previous created conda venv
-     	conda activate <env-name>
-   - Install nodejs
-   	conda install -y -c conda-forge/label/main nodejs
+         - conda activate <env-name>
+   - Install nodejs 
+         - conda install -y -c conda-forge/label/main nodejs
    - Install yarn 
-     	conda install -y -c conda-forge/label/main yarn
+         - conda install -y -c conda-forge/label/main yarn
    - git clone eleoai/elyra
-     	git clone https://github.com/elevo-ai/elyra
-        cd elyra
+         - git clone https://github.com/elevo-ai/elyra
+         - cd elyra
    - run create_integra_release.py python script to get the integra distribution files
-     	python create_integra_release.py prepare --version 3.11.0.dev0
+         - python create_integra_release.py prepare --version 3.11.0.dev0
      
