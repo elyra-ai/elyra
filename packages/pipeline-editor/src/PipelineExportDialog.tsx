@@ -60,15 +60,6 @@ export const PipelineExportDialog: React.FC<IProps> = ({
 }) => {
   return (
     <form className="elyra-dialog-form">
-      <label htmlFor="export_name">Export Name:</label>
-      <br />
-      <input
-        type="text"
-        id="export_name"
-        name="export_name"
-        defaultValue={exportName}
-        data-form-required
-      />
       <RuntimeConfigSelect
         runtimeData={runtimeData}
         pipelineType={pipelineType}
@@ -78,6 +69,17 @@ export const PipelineExportDialog: React.FC<IProps> = ({
           return <FileTypeSelect fileTypes={info?.export_file_types ?? []} />;
         }}
       </RuntimeConfigSelect>
+      <label htmlFor="export_name">Export Filename:</label>
+      <br />
+      <input
+        type="text"
+        id="export_name"
+        name="export_name"
+        defaultValue={exportName}
+        data-form-required
+      />
+      <br />
+      <br />
       <input
         type="checkbox"
         className="elyra-Dialog-checkbox"
