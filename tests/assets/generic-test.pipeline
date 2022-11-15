@@ -130,7 +130,7 @@
         },
         "version": 8,
         "properties": {
-          "name": "helloworld",
+          "name": "generic-test",
           "runtime": "Generic"
         }
       },

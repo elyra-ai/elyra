@@ -670,10 +670,16 @@ def describe(json_option, pipeline_path):
     "--output",
     required=False,
     type=Path,
-    help="Exported file name (including optional path). Defaults to " " the current directory and the pipeline name.",
+    help="Exported file name (including optional path). Defaults to the current directory and the pipeline name.",
+)
+@click.option(
+    "--format",
+    required=False,
+    type=str,
+    help="File export format.",
 )
 @click.option("--overwrite", is_flag=True, help="Overwrite output file if it already exists.")
-def export(pipeline_path, runtime_config, output, overwrite):
+def export(pipeline_path, runtime_config, output, format, overwrite):
     """
     Export a pipeline to a runtime-specific format
     """
@@ -699,14 +705,20 @@ def export(pipeline_path, runtime_config, output, overwrite):
             param_hint="--runtime-config",
         )
 
+    # Determine which export format(s) the runtime processor supports
     resources = RuntimeTypeResources.get_instance_by_type(RuntimeProcessorType.get_instance_by_name(runtime_type))
     supported_export_formats = resources.get_export_extensions()
     if len(supported_export_formats) == 0:
         raise click.ClickException(f"Runtime type '{runtime_type}' does not support export.")
 
-    # If, in the future, a runtime supports multiple export output formats,
-    # the user can choose one. For now, choose the only option.
-    selected_export_format = supported_export_formats[0]
+    # Verify that the user selected a valid format. If none was specified,
+    # the first from the supported list is selected as default.
+    selected_export_format = (format or supported_export_formats[0]).lower()
+    if selected_export_format not in supported_export_formats:
+        raise click.BadParameter(
+            f"Valid export formats are {supported_export_formats}.",
+            param_hint="--format",
+        )
     selected_export_format_suffix = f".{selected_export_format}"
 
     # generate output file name from the user-provided input
