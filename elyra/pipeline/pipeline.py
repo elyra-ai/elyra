@@ -432,4 +432,3 @@ class Pipeline(object):
                 and self.runtime == other.runtime
                 and self.operations == other.operations
             )
-            
