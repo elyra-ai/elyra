@@ -254,6 +254,7 @@ class Pipeline(AppDataBase):
         if converted_value is not None:
             self._node["app_data"][PIPELINE_PARAMETERS] = converted_value
 
+
 class Node(AppDataBase):
     def __init__(self, node: Dict):
         super().__init__(node)
