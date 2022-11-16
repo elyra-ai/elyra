@@ -20,19 +20,14 @@ limitations under the License.
 
 Welcome to Elyra! If you are interested in contributing to the [Elyra code repo](README.md)
 then checkout the [Contributor's Guide](https://github.com/elyra-ai/community/blob/main/contributing.md) and 
-the [Code of Conduct](https://github.com/elyra-ai/community/blob/main/code-of-conduct.md). 
+the [Code of Conduct](https://github.com/elyra-ai/community/blob/main/CODE_OF_CONDUCT.md). 
 
 The [Elyra community repo](https://github.com/elyra-ai/community) contains information on how the community
 is organized and other information that is pertinent to contributing.
 
-### Getting Started
+# Thank you to all our contributors!
+<a href="https://github.com/elyra-ai/elyra/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=elyra-ai/elyra" />
+</a>
 
-It's encouraged that you look under the [Issues](https://github.com/elyra-ai/elyra/issues) tab for contribution opportunites.
-For those new to the project, we suggest looking under:
-
-- Issues tagged as [Good First Issue](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22good+first+issue%22)
-- Issues tagged as [Help Wanted](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22help+wanted%22 )
-- Issues tagged as [Good First Project](https://github.com/elyra-ai/elyra/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+project%22)
-
-If you are planning to contribute to source code, the [development workflow](https://elyra.readthedocs.io/en/latest/developer_guide/development-workflow.html) can help you set up and 
-build Elyra in a development environment.
+Made with [contrib.rocks](https://contrib.rocks).
