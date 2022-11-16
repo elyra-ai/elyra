@@ -227,17 +227,19 @@ class PipelineParametersHandler(HttpErrorMixin, APIHandler):
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
         if PipelineProcessorManager.instance().supports_pipeline_params(runtime_type=runtime_processor_type):
-            # Get pipeline parameters json
-            pipeline_properties_json = PipelineParameter.get_schema()
+            # Get pipeline parameters json schema
+            pipeline_params_json = PipelineParameter.get_schema()
             self.set_status(200)
-            self.set_header("Content-Type", "application/json")
-            await self.finish(pipeline_properties_json)
         else:
-            # Pipeline parameters are not supported, no content to return
-            self.set_status(405)
-            await self.finish(
-                f"Runtime processor type '{runtime_processor_type.value}' does not support pipeline parameters."
+            # Pipeline parameters are not supported, return message indicating such
+            processor_name = runtime_processor_type.value
+            pipeline_params_json = json.dumps(
+                {"message": f"Runtime processor type '{processor_name}' does not support pipeline parameters."}
             )
+            self.set_status(405)
+
+        self.set_header("Content-Type", "application/json")
+        await self.finish(pipeline_params_json)
 
 
 class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
