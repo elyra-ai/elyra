@@ -140,11 +140,28 @@ class ElyraProperty(ABC):
         cls._subclass_property_map = {sc.property_id: sc for sc in cls.all_subclasses() if hasattr(sc, "property_id")}
 
     @classmethod
+    def get_class_for_property(cls, prop_id) -> type | None:
+        """Returns the ElyraProperty subclass corresponding to the given property id."""
+        if not cls._subclass_property_map:
+            cls.build_property_map()
+        return cls._subclass_property_map.get(prop_id)
+
+    @classmethod
+    def subclass_exists_for_property(cls, prop_id: str) -> bool:
+        """
+        Returns a boolean indicating whether a corresponding ElyraProperty subclass
+        exists for the given property id.
+        """
+        return cls.get_class_for_property(prop_id) is not None
+
+    @classmethod
     def get_single_instance(cls, value: Optional[Dict[str, Any]] = None) -> ElyraProperty | None:
         """Unpack values from dictionary object and instantiate a class instance."""
+        if isinstance(value, ElyraProperty):
+            return value  # value is already a single instance, no further action required
+
         if not isinstance(value, dict):
             value = {}
-
         params = {attr.id: cls.strip_if_string(value.get(attr.id)) for attr in cls.property_attributes}
         instance = getattr(import_module(cls.__module__), cls.__name__)(**params)
         return None if instance.should_discard() else instance
@@ -152,10 +169,10 @@ class ElyraProperty(ABC):
     @classmethod
     def create_instance(cls, prop_id: str, value: Optional[Any]) -> ElyraProperty | ElyraPropertyList | None:
         """Create an instance of a class with the given property id using the user-entered values."""
-        if not cls._subclass_property_map:
-            cls.build_property_map()
+        sc = cls.get_class_for_property(prop_id)
+        if sc is None:
+            return None
 
-        sc = cls._subclass_property_map.get(prop_id)
         if issubclass(sc, ElyraPropertyListItem):
             if not isinstance(value, list):
                 return None
@@ -163,7 +180,6 @@ class ElyraProperty(ABC):
             return ElyraPropertyList(instances).deduplicate()  # convert to ElyraPropertyList and de-dupe
         elif issubclass(sc, ElyraProperty):
             return sc.get_single_instance(value)
-
         return None
 
     @classmethod
@@ -274,12 +290,19 @@ class DisableNodeCaching(ElyraProperty):
     property_description = "Disable caching to force node re-execution in the target runtime environment."
     _json_data_type = "string"
 
-    def __init__(self, selection, **kwargs):
-        self.selection = selection == "True"
+    def __init__(self, selection: Union[str, bool], **kwargs):
+        self.selection = None
+        if selection in ["True", "true", True]:
+            self.selection = True
+        elif selection in ["False", "false", False]:
+            self.selection = False
 
     @classmethod
     def get_single_instance(cls, value: Optional[Any] = None) -> ElyraProperty | None:
-        return DisableNodeCaching(selection=value)
+        if isinstance(value, ElyraProperty):
+            return value  # value is already a single instance, no further action required
+        instance = DisableNodeCaching(selection=value)
+        return None if instance.should_discard() else instance
 
     @classmethod
     def get_schema(cls) -> Dict[str, Any]:
@@ -298,6 +321,10 @@ class DisableNodeCaching(ElyraProperty):
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         """Add DisableNodeCaching info to the execution object for the given runtime processor"""
         runtime_processor.add_disable_node_caching(instance=self, execution_object=execution_object, **kwargs)
+
+    def should_discard(self) -> bool:
+        """Ignore this DisableNodeCaching instance if neither True nor False was selected."""
+        return self.selection is None
 
 
 class CustomSharedMemorySize(ElyraProperty):

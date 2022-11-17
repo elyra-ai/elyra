@@ -2,6 +2,28 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.13.0 - 11/14/2022
+
+
+## Release 3.13.0rc0 - 11/14/2022
+
+- Fix bug with propagation of node caching property - [#3012](https://github.com/elyra-ai/elyra/pull/3012)
+- Update pipeline editor packages - [#3009](https://github.com/elyra-ai/elyra/pull/3009)
+- Rewrite KFP code generation - [#2993](https://github.com/elyra-ai/elyra/pull/2993)
+- Document how to refresh component catalog entries - [#2997](https://github.com/elyra-ai/elyra/pull/2997)
+- Add integration tests for Script debugger - [#2971](https://github.com/elyra-ai/elyra/pull/2971)
+- Bump pipeline editor to rc2 - [#2992](https://github.com/elyra-ai/elyra/pull/2992)
+- Bypass instance conversion if needed for DisableNodeCaching - [#2981](https://github.com/elyra-ai/elyra/pull/2981)
+- Fix debugger button state on kernel selection change - [#2977](https://github.com/elyra-ai/elyra/pull/2977)
+- Fix handling of `cos_object_prefix` pipeline property - [#2972](https://github.com/elyra-ai/elyra/pull/2972)
+- Pipeline Editor: Allow for configuration of shared memory size - [#2942](https://github.com/elyra-ai/elyra/pull/2942)
+- Tolerate runtime configuration instances named 'local' - [#2968](https://github.com/elyra-ai/elyra/pull/2968)
+- Pipeline Editor: Extend data volume node property - [#2961](https://github.com/elyra-ai/elyra/pull/2961)
+- Prepare to make all Elyra-owned properties object-valued - [#2957](https://github.com/elyra-ai/elyra/pull/2957)
+- kf-notebook Dockerfile: upgrade Jupyter base image from v1.4 to v1.5 - [#2962](https://github.com/elyra-ai/elyra/pull/2962)
+- Remove Material UI ThemeProvider and Metadata header - [#2955](https://github.com/elyra-ai/elyra/pull/2955)
+- Add blog post to publication list - [#2960](https://github.com/elyra-ai/elyra/pull/2960)
+
 ## Release 3.12.0 - 10/04/2022
 
 - Update pipeline editor node package to 1.10 - [#2950](https://github.com/elyra-ai/elyra/pull/2950)

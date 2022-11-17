@@ -1,0 +1,156 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "84d22396-568f-4c06-8558-95f715bba023",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "component_parameters": {
+              "dependencies": [],
+              "include_subdirectories": false,
+              "outputs": [],
+              "env_vars": [],
+              "kubernetes_pod_annotations": [
+                {
+                  "key": "anno-key-1",
+                  "value": "anno-value-1"
+                },
+                {
+                  "key": "anno-key-without-value-2"
+                }
+              ],
+              "kubernetes_pod_labels": [
+                {
+                  "key": "label-key-without-value-1"
+                },
+                {
+                  "key": "label-key-2",
+                  "value": "label-value-2"
+                }
+              ],
+              "kubernetes_secrets": [
+                {
+                  "env_var": "secret_env_var_1",
+                  "name": "secret-1",
+                  "key": "secret-key-1"
+                }
+              ],
+              "kubernetes_shared_mem_size": {
+                "size": 0.5
+              },
+              "kubernetes_tolerations": [
+                {
+                  "key": "kt1",
+                  "operator": "Equal",
+                  "value": "3",
+                  "effect": "NoExecute"
+                },
+                {
+                  "key": "kt2",
+                  "operator": "Exists",
+                  "effect": "NoSchedule"
+                },
+                {
+                  "operator": "Exists"
+                },
+                {
+                  "key": "kt3",
+                  "operator": "Equal",
+                  "value": "v3"
+                }
+              ],
+              "mounted_volumes": [
+                {
+                  "path": "/test/vol1",
+                  "pvc_name": "test-pvc-1",
+                  "read_only": false
+                },
+                {
+                  "path": "/test/vol2",
+                  "pvc_name": "test-pvc-2",
+                  "sub_path": "sub/path",
+                  "read_only": false
+                },
+                {
+                  "path": "/test/vol3",
+                  "pvc_name": "test-pvc-3",
+                  "sub_path": "sub/path",
+                  "read_only": true
+                }
+              ],
+              "filename": "a-notebook.ipynb",
+              "runtime_image": "tensorflow/tensorflow:2.8.0"
+            },
+            "label": "",
+            "ui_data": {
+              "label": "a-notebook.ipynb",
+              "image": "/static/elyra/notebook.svg",
+              "x_pos": 183,
+              "y_pos": 77,
+              "description": "Run notebook file"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "properties": {
+          "pipeline_defaults": {
+            "kubernetes_pod_annotations": [],
+            "kubernetes_shared_mem_size": {},
+            "kubernetes_tolerations": [],
+            "kubernetes_pod_labels": [],
+            "mounted_volumes": [],
+            "env_vars": [],
+            "kubernetes_secrets": []
+          },
+          "name": "kfp-one-node-generic-elyra-properties",
+          "runtime": "Kubeflow Pipelines",
+          "description": "Test pipeline for generic nodes and Elyra properties"
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

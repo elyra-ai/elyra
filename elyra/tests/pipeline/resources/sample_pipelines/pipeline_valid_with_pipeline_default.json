@@ -55,7 +55,8 @@
             "component_parameters": {
               "mounted_volumes": [
                 { "path": "/mnt/vol1", "pvc_name": "pvc-claim-1" }
-              ]
+              ],
+              "disable_node_caching": false
             },
             "component_source": "{{component_source}}",
             "ui_data": {
@@ -71,7 +72,8 @@
           "app_data": {
             "label": "{{label}}",
             "component_parameters": {
-              "mounted_volumes": []
+              "mounted_volumes": [],
+              "disable_node_caching": "False"
             },
             "component_source": "{{component_source}}",
             "ui_data": {
@@ -99,7 +101,8 @@
             ],
             "mounted_volumes": [
               { "path": "/mnt/vol2", "pvc_name": "pvc-claim-2" }
-            ]
+            ],
+            "disable_node_caching": "True"
           },
           "runtime": "{{runtime description}}"
         },
