@@ -41,19 +41,19 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import CustomSharedMemorySize
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesLabel
-from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
+from elyra.pipeline.properties import CustomSharedMemorySize
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import KubernetesAnnotation
+from elyra.pipeline.properties import KubernetesLabel
+from elyra.pipeline.properties import KubernetesToleration
+from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.github import GithubClient
@@ -367,27 +367,27 @@ be fully qualified (i.e., prefixed with their package names).
                 # Convert the user-entered value of certain properties according to their type
                 for component_property in component.properties:
                     self.log.debug(
-                        f"Processing component parameter '{component_property.name}' "
+                        f"Processing component property '{component_property.name}' "
                         f"of type '{component_property.json_data_type}'"
                     )
 
                     # Skip properties for which no value was given
-                    if component_property.ref not in operation.component_params.keys():
+                    if component_property.ref not in operation.component_props.keys():
                         continue
 
                     # Get corresponding property's value from parsed pipeline
-                    property_value_dict = operation.component_params.get(component_property.ref)
+                    property_value_dict = operation.component_props.get(component_property.ref)
                     data_entry_type = property_value_dict.get("widget", None)  # one of: inputpath, file, raw data type
                     property_value = property_value_dict.get("value", None)
 
                     if data_entry_type == "inputpath":
-                        # Path-based parameters accept an input from a parent
+                        # Path-based properties accept an input from a parent
                         parent_node_name = self._get_node_name(
                             target_ops, json.loads(json.dumps(property_value))["value"]
                         )
                         processed_value = "\"{{ ti.xcom_pull(task_ids='" + parent_node_name + "') }}\""
-                        operation.component_params[component_property.ref] = processed_value
-                    else:  # Parameter is either of a raw data type or file contents
+                        operation.component_props[component_property.ref] = processed_value
+                    else:  # Property is either of a raw data type or file contents
                         if data_entry_type == "file" and property_value:
                             # Read a value from a file
                             absolute_path = get_absolute_path(self.root_dir, property_value)
@@ -401,19 +401,19 @@ be fully qualified (i.e., prefixed with their package names).
                         # Adjust value based on data type for correct rendering in DAG template
                         if component_property.json_data_type == "string":
                             # Add surrounding quotation marks to string value
-                            operation.component_params[component_property.ref] = json.dumps(property_value)
+                            operation.component_props[component_property.ref] = json.dumps(property_value)
                         elif component_property.json_data_type == "object":
                             processed_value = self._process_dictionary_value(property_value)
-                            operation.component_params[component_property.ref] = processed_value
+                            operation.component_props[component_property.ref] = processed_value
                         elif component_property.json_data_type == "array":
                             processed_value = self._process_list_value(property_value)
-                            operation.component_params[component_property.ref] = processed_value
+                            operation.component_props[component_property.ref] = processed_value
                         else:  # booleans and numbers can be rendered as-is
-                            operation.component_params[component_property.ref] = property_value
+                            operation.component_props[component_property.ref] = property_value
 
-                # Remove inputs and outputs from params dict until support for data exchange is provided
-                operation.component_params_as_dict.pop("inputs")
-                operation.component_params_as_dict.pop("outputs")
+                # Remove inputs and outputs from props dict until support for data exchange is provided
+                operation.component_props_as_dict.pop("inputs")
+                operation.component_props_as_dict.pop("outputs")
 
                 # Locate the import statement. If not found raise...
                 import_stmts = []
@@ -445,7 +445,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "imports": import_stmts,
                     "class_name": component.name,
                     "parent_operation_ids": operation.parent_operation_ids,
-                    "component_params": operation.component_params_as_dict,
+                    "component_props": operation.component_props_as_dict,
                     "operator_source": component.component_source,
                 }
 
@@ -453,7 +453,7 @@ be fully qualified (i.e., prefixed with their package names).
                 {
                     "is_generic_operator": operation.is_generic,
                     "doc": operation.doc,
-                    "elyra_params": operation.elyra_params,
+                    "elyra_props": operation.elyra_props,
                 }
             )
             target_ops.append(target_op)
@@ -563,7 +563,7 @@ be fully qualified (i.e., prefixed with their package names).
 
     def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
         """
-        For component parameters of type dictionary, if a string value is returned from the superclass
+        For component properties of type dictionary, if a string value is returned from the superclass
         method, it must be converted to include surrounding quotation marks for correct rendering
         in jinja DAG template.
         """
@@ -574,7 +574,7 @@ be fully qualified (i.e., prefixed with their package names).
 
     def _process_list_value(self, value: str) -> Union[List, str]:
         """
-        For component parameters of type list, if a string value is returned from the superclass
+        For component properties of type list, if a string value is returned from the superclass
         method, it must be converted to include surrounding quotation marks for correct rendering
         in jinja DAG template.
         """
@@ -589,36 +589,36 @@ be fully qualified (i.e., prefixed with their package names).
                 return operation["notebook"]
         return None
 
-    def render_volumes(self, elyra_parameters: Dict[str, ElyraProperty]) -> str:
+    def render_volumes(self, elyra_properties: Dict[str, ElyraProperty]) -> str:
         """
         Render volumes defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         str_to_render = ""
-        for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
+        for v in elyra_properties.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
                 Volume(name="{v.pvc_name}", configs={{"persistentVolumeClaim": {{"claimName": "{v.pvc_name}"}}}}),"""
         # set custom shared memory size
-        shm = elyra_parameters.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
+        shm = elyra_properties.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
         if shm is not None and shm.size:
             config = f"""configs={{"emptyDir": {{"medium": "Memory", "sizeLimit": "{shm.size}{shm.units}"}}}}"""
             str_to_render += f"""
                 Volume(name="shm", {config}),"""
         return dedent(str_to_render)
 
-    def render_mounts(self, elyra_parameters: Dict[str, ElyraProperty]) -> str:
+    def render_mounts(self, elyra_properties: Dict[str, ElyraProperty]) -> str:
         """
         Render volume mounts defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         str_to_render = ""
-        for v in elyra_parameters.get(pipeline_constants.MOUNTED_VOLUMES, []):
+        for v in elyra_properties.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
                  VolumeMount(name="{v.pvc_name}", mount_path="{v.path}",
                  sub_path="{v.sub_path}", read_only={v.read_only}),"""
         return dedent(str_to_render)
 
-    def render_secrets(self, elyra_parameters: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
+    def render_secrets(self, elyra_properties: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
         """
         Render Kubernetes secrets defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
@@ -628,34 +628,34 @@ be fully qualified (i.e., prefixed with their package names).
             str_to_render += f"""
                 Secret("env", "AWS_ACCESS_KEY_ID", "{cos_secret}", "AWS_ACCESS_KEY_ID"),
                 Secret("env", "AWS_SECRET_ACCESS_KEY", "{cos_secret}", "AWS_SECRET_ACCESS_KEY"),"""
-        for s in elyra_parameters.get(pipeline_constants.KUBERNETES_SECRETS, []):
+        for s in elyra_properties.get(pipeline_constants.KUBERNETES_SECRETS, []):
             str_to_render += f"""
                 Secret("env", "{s.env_var}", "{s.name}", "{s.key}"),"""
         return dedent(str_to_render)
 
-    def render_annotations(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
+    def render_annotations(self, elyra_properties: Dict[str, ElyraProperty]) -> Dict:
         """
         Render Kubernetes annotations defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
         """
-        annotations = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_ANNOTATIONS, ElyraPropertyList([]))
+        annotations = elyra_properties.get(pipeline_constants.KUBERNETES_POD_ANNOTATIONS, ElyraPropertyList([]))
         return {key: value or "" for key, value in annotations.to_dict().items()}
 
-    def render_labels(self, elyra_parameters: Dict[str, ElyraProperty]) -> Dict:
+    def render_labels(self, elyra_properties: Dict[str, ElyraProperty]) -> Dict:
         """
         Render Kubernetes labels defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
         """
-        labels = elyra_parameters.get(pipeline_constants.KUBERNETES_POD_LABELS, ElyraPropertyList([]))
+        labels = elyra_properties.get(pipeline_constants.KUBERNETES_POD_LABELS, ElyraPropertyList([]))
         return {key: value or "" for key, value in labels.to_dict().items()}
 
-    def render_tolerations(self, elyra_parameters: Dict[str, ElyraProperty]):
+    def render_tolerations(self, elyra_properties: Dict[str, ElyraProperty]):
         """
         Render any Kubernetes tolerations defined for an operation for use in the Airflow DAG template
         :returns: a string literal containing the python code to be rendered in the DAG
         """
         str_to_render = ""
-        for t in elyra_parameters.get(pipeline_constants.KUBERNETES_TOLERATIONS, []):
+        for t in elyra_properties.get(pipeline_constants.KUBERNETES_TOLERATIONS, []):
             key = f'"{t.key}"' if t.key is not None else t.key
             value = f'"{t.value}"' if t.value is not None else t.value
             effect = f'"{t.effect}"' if t.effect is not None else t.effect
@@ -663,12 +663,12 @@ be fully qualified (i.e., prefixed with their package names).
                 {{"key": {key}, "operator": "{t.operator}", "value": {value}, "effect": {effect}}},"""
         return dedent(str_to_render)
 
-    def render_elyra_owned_properties(self, elyra_parameters: Dict[str, ElyraProperty]):
+    def render_elyra_owned_properties(self, elyra_properties: Dict[str, ElyraProperty]):
         """
         Build the KubernetesExecutor object for the given operation for use in the DAG.
         """
         kubernetes_executor = {}
-        for value in elyra_parameters.values():
+        for value in elyra_properties.values():
             if isinstance(value, (ElyraProperty, ElyraPropertyList)):
                 value.add_to_execution_object(runtime_processor=self, execution_object=kubernetes_executor)
 

@@ -26,9 +26,6 @@ from jinja2 import Environment
 from jinja2 import PackageLoader
 
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ComponentParameter
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
@@ -36,6 +33,9 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
+from elyra.pipeline.properties import ComponentProperty
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import ElyraPropertyList
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -354,7 +354,7 @@ class Node(AppDataBase):
         if component:
             # Properties that have the same ref (id) as Elyra-owned node properties
             # should be skipped during property propagation and conversion
-            self.elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
+            self.elyra_owned_properties = {param.property_id for param in component.get_elyra_properties()}
 
     @property
     def propagated_properties(self) -> Set[str]:
@@ -720,10 +720,10 @@ class PipelineDefinition(object):
         params_both = params_custom & params_generic
 
         template_vars = {
-            "elyra_owned_custom_parameters": params_both ^ params_custom,
-            "elyra_owned_generic_parameters": params_generic ^ params_both,
-            "elyra_owned_parameters": params_both,
-            "render_parameter_details": ComponentParameter.render_parameter_details,
+            "elyra_owned_custom_properties": params_both ^ params_custom,
+            "elyra_owned_generic_properties": params_generic ^ params_both,
+            "elyra_owned_properties": params_both,
+            "render_property_details": ComponentProperty.render_property_details,
         }
         template_env = Environment(loader=loader)
         template_env.policies["json.dumps_kwargs"] = {"sort_keys": False}  # prevent automatic key sort on 'tojson'

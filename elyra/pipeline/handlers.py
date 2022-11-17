@@ -31,11 +31,11 @@ from elyra.metadata.schemaspaces import ComponentCatalogs
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_catalog import RefreshInProgressError
-from elyra.pipeline.component_parameter import PipelineParameter
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.properties import PipelineParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.pipeline.validation import PipelineValidationManager

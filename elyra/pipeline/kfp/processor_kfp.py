@@ -56,15 +56,6 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import CustomSharedMemorySize
-from elyra.pipeline.component_parameter import DisableNodeCaching
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesLabel
-from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.pipeline import Operation
@@ -72,6 +63,15 @@ from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
+from elyra.pipeline.properties import CustomSharedMemorySize
+from elyra.pipeline.properties import DisableNodeCaching
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import KubernetesAnnotation
+from elyra.pipeline.properties import KubernetesLabel
+from elyra.pipeline.properties import KubernetesSecret
+from elyra.pipeline.properties import KubernetesToleration
+from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
@@ -726,7 +726,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             # Add Elyra-owned properties (data volume mounts, kubernetes labels, etc)
             # to the task_modifiers property.
-            for value in operation.elyra_params.values():
+            for value in operation.elyra_props.values():
                 if isinstance(value, (ElyraProperty, ElyraPropertyList)):
                     value.add_to_execution_object(
                         runtime_processor=self, execution_object=workflow_task["task_modifiers"]
@@ -888,7 +888,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # task inputs and task add-ons
                 for component_property in component.properties:
                     self.log.debug(
-                        f"Processing component parameter '{component_property.name}' "
+                        f"Processing component property '{component_property.name}' "
                         f"of type '{component_property.json_data_type}'"
                     )
 
@@ -904,18 +904,18 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         reference = workflow_task["task_modifiers"][sanitized_component_property_id]
 
                     # Get corresponding property's value from parsed pipeline
-                    property_value_dict = operation.component_params.get(component_property.ref)
+                    property_value_dict = operation.component_props.get(component_property.ref)
                     data_entry_type = property_value_dict.get("widget", None)  # one of: inputpath, file, raw data type
                     property_value = property_value_dict.get("value", None)
                     if data_entry_type == "inputpath":
                         # task input is the output of an upstream task
                         output_node_id = property_value["value"]  # parent node id
-                        output_node_parameter_key = property_value["option"].replace("output_", "")  # parent param
+                        output_node_property_key = property_value["option"].replace("output_", "")  # parent property
                         reference["task_output_reference"] = {
                             "task_id": re.sub(r"[" + re.escape(string.punctuation) + "\\s]", "_", output_node_id),
-                            "output_id": self._sanitize_param_name(output_node_parameter_key),
+                            "output_id": self._sanitize_param_name(output_node_property_key),
                         }
-                    else:  # Parameter is either of a raw data type or file contents
+                    else:  # Property is either of a raw data type or file contents
                         if data_entry_type == "file" and property_value:
                             # Read value from the specified file
                             absolute_path = get_absolute_path(self.root_dir, property_value)
@@ -1095,7 +1095,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     @staticmethod
     def _sanitize_param_name(name: str) -> str:
         """
-        Sanitize a component parameter name.
+        Sanitize a component property or pipeline parameter name.
 
         Behavior is mirrored from how Kubeflow 1.X sanitizes identifier names:
         - https://github.com/kubeflow/pipelines/blob/1.8.1/sdk/python/kfp/components/_naming.py#L32-L42

@@ -19,9 +19,6 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 import pytest
 
 from elyra.pipeline import pipeline_constants
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import KubernetesSecret
 from elyra.pipeline.pipeline_constants import DISABLE_NODE_CACHING
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
@@ -29,6 +26,9 @@ from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import KubernetesSecret
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
 

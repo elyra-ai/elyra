@@ -31,15 +31,6 @@ import yaml
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentParameter
-from elyra.pipeline.component_parameter import CustomSharedMemorySize
-from elyra.pipeline.component_parameter import DisableNodeCaching
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesLabel
-from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_MEDIUM
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_NAME
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_SIZE
@@ -59,6 +50,15 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.properties import ComponentProperty
+from elyra.pipeline.properties import CustomSharedMemorySize
+from elyra.pipeline.properties import DisableNodeCaching
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import KubernetesAnnotation
+from elyra.pipeline.properties import KubernetesLabel
+from elyra.pipeline.properties import KubernetesSecret
+from elyra.pipeline.properties import KubernetesToleration
+from elyra.pipeline.properties import VolumeMount
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
@@ -194,7 +194,7 @@ def test_generate_dependency_archive(processor: KfpPipelineProcessor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     archive_location = processor._generate_dependency_archive(test_operation)
@@ -222,7 +222,7 @@ def test_fail_generate_dependency_archive(processor: KfpPipelineProcessor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     with pytest.raises(Exception):
@@ -239,7 +239,7 @@ def test_get_dependency_source_dir(processor: KfpPipelineProcessor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     filepath = processor._get_dependency_source_dir(test_operation)
@@ -256,7 +256,7 @@ def test_get_dependency_archive_name(processor: KfpPipelineProcessor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     filename = processor._get_dependency_archive_name(test_operation)
@@ -286,8 +286,8 @@ def test_collect_envs(processor: KfpPipelineProcessor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
-        elyra_params={"env_vars": converted_envs},
+        component_props={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
+        elyra_props={"env_vars": converted_envs},
     )
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")
@@ -636,7 +636,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
     component_definition = entry_data.definition
 
     properties = [
-        ComponentParameter(
+        ComponentProperty(
             id="url",
             name="Url",
             json_data_type="string",
@@ -644,7 +644,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
             description="",
             allowed_input_types=["file", "inputpath", "inputvalue"],
         ),
-        ComponentParameter(
+        ComponentProperty(
             id="curl_options",
             name="Curl Options",
             json_data_type="string",
@@ -689,7 +689,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
         classifier=component_id,
         name=operation_name,
         parent_operation_ids=[],
-        component_params=operation_params,
+        component_props=operation_params,
     )
 
     # Construct single-operation pipeline
@@ -1409,7 +1409,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     #
     # validate data volumes, if applicable
-    expected_volume_mounts = op.elyra_params.get(MOUNTED_VOLUMES)
+    expected_volume_mounts = op.elyra_props.get(MOUNTED_VOLUMES)
     if len(expected_volume_mounts) > 0:
         # There must be one or more 'volumeMounts' entry and one or more 'volumes' entry
         assert node_template["container"].get("volumeMounts") is not None, node_template["container"]
@@ -1440,7 +1440,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     #
     # validate custom shared memory size, if applicable
-    custom_shared_mem_size = op.elyra_params.get(KUBERNETES_SHARED_MEM_SIZE)
+    custom_shared_mem_size = op.elyra_props.get(KUBERNETES_SHARED_MEM_SIZE)
     if custom_shared_mem_size:
         # There must be one 'volumeMounts' entry and one 'volumes' entry
         assert node_template["container"].get("volumeMounts") is not None, node_template["container"]
@@ -1470,7 +1470,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     #
     # validate Kubernetes secrets, if applicable
-    expected_kubernetes_secrets = op.elyra_params.get(KUBERNETES_SECRETS)
+    expected_kubernetes_secrets = op.elyra_props.get(KUBERNETES_SECRETS)
     if len(expected_kubernetes_secrets) > 0:
         # There must be one or more 'env' entries
         assert node_template["container"].get("env") is not None, node_template["container"]
@@ -1485,7 +1485,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
             assert entry_found, f"Missing entry for secret '{secret.env_var}' in {node_template['container']['env']}"
 
     # Validate custom Kubernetes annotations
-    expected_kubernetes_annotations = op.elyra_params.get(KUBERNETES_POD_ANNOTATIONS)
+    expected_kubernetes_annotations = op.elyra_props.get(KUBERNETES_POD_ANNOTATIONS)
     if len(expected_kubernetes_annotations) > 0:
         # There must be one or more 'metadata.annotations' entries
         assert node_template["metadata"].get("annotations") is not None, node_template["metadata"]
@@ -1497,7 +1497,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     #
     # Validate custom Kubernetes labels
-    expected_kubernetes_labels = op.elyra_params.get(KUBERNETES_POD_LABELS)
+    expected_kubernetes_labels = op.elyra_props.get(KUBERNETES_POD_LABELS)
     if len(expected_kubernetes_labels) > 0:
         # There must be one or more 'metadata.labels' entries
         assert node_template["metadata"].get("labels") is not None, node_template["metadata"]
@@ -1509,7 +1509,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
     # Validate Kubernetes tolerations
     #
     # Validate custom Kubernetes tolerations
-    expected_kubernetes_tolerations = op.elyra_params.get(KUBERNETES_TOLERATIONS)
+    expected_kubernetes_tolerations = op.elyra_props.get(KUBERNETES_TOLERATIONS)
     if len(expected_kubernetes_tolerations) > 0:
         # There must be one or more 'tolerations' entries, e.g.
         # {effect: NoExecute, key: kt1, operator: Equal, value: '3'}

@@ -20,13 +20,6 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
-from elyra.pipeline.component_parameter import CustomSharedMemorySize
-from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import EnvironmentVariable
-from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
@@ -36,6 +29,13 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
+from elyra.pipeline.properties import CustomSharedMemorySize
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import EnvironmentVariable
+from elyra.pipeline.properties import KubernetesAnnotation
+from elyra.pipeline.properties import KubernetesSecret
+from elyra.pipeline.properties import KubernetesToleration
+from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationResponse
 from elyra.tests.pipeline.util import _read_pipeline_resource

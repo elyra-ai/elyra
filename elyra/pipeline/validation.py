@@ -29,9 +29,6 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyJSONEncoder
-from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
@@ -40,6 +37,9 @@ from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import ElyraPropertyJSONEncoder
+from elyra.pipeline.properties import ElyraPropertyList
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.path import get_expanded_path
 

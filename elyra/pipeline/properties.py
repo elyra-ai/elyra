@@ -59,7 +59,7 @@ class PropertyInputType:
 
     allowed_types = {
         "string": {"default_value": ""},
-        "boolean": {"default_value": False, "placeholder": "Check box for true"},
+        "boolean": {"default_value": False, "placeholder": " "},
         "number": {},
         "array": {"default_value": "[]"},
         "object": {"default_value": "{}"},
@@ -75,9 +75,11 @@ class PropertyInputType:
         if input_type not in self.allowed_types:
             raise ValueError(f"Invalid property type: valid types are f{list(self.allowed_types.keys())}.")
 
+        type_defaults = self.allowed_types[input_type]
+
         self.input_type = input_type
-        self.default_value = default_value or self.allowed_types[input_type].get("default_value")
-        self.placeholder = placeholder or self.allowed_types[input_type].get("placeholder")
+        self.default_value = default_value if default_value is not None else type_defaults.get("default_value")
+        self.placeholder = placeholder if placeholder is not None else type_defaults.get("placeholder")
         self.enum = enum
 
 
@@ -648,7 +650,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="sub_path",
             display_name="Sub Path",
-            allowed_input_types=[PropertyInputType(input_type="string", placeholder="/relative/path/within/volume")],
+            allowed_input_types=[PropertyInputType(input_type="string", placeholder="relative/path/within/volume")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -656,7 +658,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="read_only",
             display_name="Mount volume read-only",
-            allowed_input_types=[PropertyInputType(input_type="boolean", default_value=False, placeholder=" ")],
+            allowed_input_types=[PropertyInputType(input_type="boolean", default_value=False, placeholder=None)],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -838,7 +840,9 @@ class KubernetesToleration(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="operator",
             display_name="Operator",
-            allowed_input_types=[PropertyInputType(input_type="string", placeholder="Equal", enum=["Equal", "Exists"])],
+            allowed_input_types=[
+                PropertyInputType(input_type="string", default_value="Equal", enum=["Equal", "Exists"])
+            ],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -996,7 +1000,7 @@ class ElyraPropertyJSONEncoder(json.JSONEncoder):
         return o.__dict__ if isinstance(o, ElyraProperty) else super().default(o)
 
 
-class ComponentParameter(object):
+class ComponentProperty(object):
     """
     Represents a single property for a pipeline component
     """
@@ -1016,13 +1020,13 @@ class ComponentParameter(object):
         """
         :param id: Unique identifier for a property
         :param name: The name of the property for display
-        :param json_data_type: The JSON data type that represents this parameters value
+        :param json_data_type: The JSON data type that represents this property's value
         :param allowed_input_types: The input types that the property can accept, including those for custom rendering
         :param value: The default value of the property
         :param description: A description of the property for display
         :param required: Whether the property is required
         :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
-            define output properties to be selected as input to this node parameter
+            define output properties to be selected as input to this node property
         :param items: For properties with a control of 'EnumControl', the items making up the enum
         """
 
@@ -1059,7 +1063,7 @@ class ComponentParameter(object):
         self._allowed_input_types = allowed_input_types
         self._items = items or []
 
-        # Check description for information about 'required' parameter
+        # Check description for information about 'required' property
         if "not optional" in description.lower() or (
             "required" in description.lower()
             and "not required" not in description.lower()
@@ -1111,16 +1115,16 @@ class ComponentParameter(object):
         return self._allow_no_options
 
     @staticmethod
-    def render_parameter_details(param: ComponentParameter) -> str:
+    def render_property_details(prop: ComponentProperty) -> str:
         """
-        Render the parameter data type and UI hints needed for the specified param for
+        Render the property data type and UI hints needed for the specified property for
         use in the custom component properties DAG template
         :returns: a string literal containing the JSON object to be rendered in the DAG
         """
-        json_dict = {"title": param.name, "description": param.description}
-        if len(param.allowed_input_types) == 1:
-            # Parameter only accepts a single type of input
-            input_type = param.allowed_input_types[0]
+        json_dict = {"title": prop.name, "description": prop.description}
+        if len(prop.allowed_input_types) == 1:
+            # Property only accepts a single type of input
+            input_type = prop.allowed_input_types[0]
             if not input_type:
                 # This is an output
                 json_dict["type"] = "string"
@@ -1140,30 +1144,30 @@ class ComponentParameter(object):
                 json_dict["type"] = "string"
                 json_dict["uihints"] = {"ui:widget": input_type}
             else:
-                json_dict["type"] = param.value_entry_type
+                json_dict["type"] = prop.value_entry_type
 
                 # Render default value if it is not None
-                if param.value is not None:
-                    json_dict["default"] = param.value
+                if prop.value is not None:
+                    json_dict["default"] = prop.value
         else:
-            # Parameter accepts multiple types of inputs; render a oneOf block
+            # Property accepts multiple types of inputs; render a oneOf block
             one_of = []
-            for widget_type in param.allowed_input_types:
+            for widget_type in prop.allowed_input_types:
                 obj = {
                     "type": "object",
                     "properties": {"widget": {"type": "string"}, "value": {}},
                     "uihints": {"widget": {"ui:widget": "hidden"}, "value": {}},
                 }
                 if widget_type == "inputvalue":
-                    obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
-                    obj["properties"]["widget"]["default"] = param.value_entry_type
-                    obj["properties"]["value"]["type"] = param.value_entry_type
-                    if param.value_entry_type == "boolean":
+                    obj["title"] = InputTypeDescriptionMap[prop.value_entry_type].value
+                    obj["properties"]["widget"]["default"] = prop.value_entry_type
+                    obj["properties"]["value"]["type"] = prop.value_entry_type
+                    if prop.value_entry_type == "boolean":
                         obj["properties"]["value"]["title"] = " "
 
                     # Render default value if it is not None
-                    if param.value is not None:
-                        obj["properties"]["value"]["default"] = param.value
+                    if prop.value is not None:
+                        obj["properties"]["value"]["default"] = prop.value
                 else:  # inputpath or file types
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
@@ -1174,8 +1178,8 @@ class ComponentParameter(object):
                         obj["uihints"]["value"] = {widget_type: True}
                         obj["properties"]["value"]["type"] = "string"
                         obj["properties"]["value"]["enum"] = []
-                        if param.allow_no_options:
-                            obj["uihints"]["allownooptions"] = param.allow_no_options
+                        if prop.allow_no_options:
+                            obj["uihints"]["allownooptions"] = prop.allow_no_options
                     else:
                         obj["uihints"]["value"] = {"ui:widget": widget_type}
                         obj["properties"]["value"]["type"] = "string"
@@ -1272,6 +1276,7 @@ class PipelineParameter(ElyraPropertyListItem):
 
     def get_all_validation_errors(self) -> List[str]:
         # TODO Ensure param name adheres to python variable naming rules
+        # TODO If 'required' is True, ensure that a value or default value has been provided
         pass
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):

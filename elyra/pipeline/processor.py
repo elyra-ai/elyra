@@ -40,17 +40,17 @@ from urllib3.exceptions import MaxRetryError
 from elyra.metadata.manager import MetadataManager
 from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import CustomSharedMemorySize
-from elyra.pipeline.component_parameter import DisableNodeCaching
-from elyra.pipeline.component_parameter import EnvironmentVariable
-from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesLabel
-from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.properties import CustomSharedMemorySize
+from elyra.pipeline.properties import DisableNodeCaching
+from elyra.pipeline.properties import EnvironmentVariable
+from elyra.pipeline.properties import KubernetesAnnotation
+from elyra.pipeline.properties import KubernetesLabel
+from elyra.pipeline.properties import KubernetesSecret
+from elyra.pipeline.properties import KubernetesToleration
+from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.util.archive import create_temp_archive
@@ -561,7 +561,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
     def _process_dictionary_value(self, value: str) -> Union[Dict, str]:
         """
-        For component parameters of type dictionary, the user-entered string value given in the pipeline
+        For component properties of type dictionary, the user-entered string value given in the pipeline
         JSON should be converted to the appropriate Dict format, if possible. If a Dict cannot be formed,
         log and return stripped string value.
         """
@@ -581,14 +581,14 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
         # Value could not be successfully converted to dictionary
         if not isinstance(converted_dict, dict):
-            self.log.debug(f"Could not convert entered parameter value `{value}` to dictionary")
+            self.log.debug(f"Could not convert entered property value `{value}` to dictionary")
             return value
 
         return converted_dict
 
     def _process_list_value(self, value: str) -> Union[List, str]:
         """
-        For component parameters of type list, the user-entered string value given in the pipeline JSON
+        For component properties of type list, the user-entered string value given in the pipeline JSON
         should be converted to the appropriate List format, if possible. If a List cannot be formed,
         log and return stripped string value.
         """
@@ -608,7 +608,7 @@ class RuntimePipelineProcessor(PipelineProcessor):
 
         # Value could not be successfully converted to list
         if not isinstance(converted_list, list):
-            self.log.debug(f"Could not convert entered parameter value `{value}` to list")
+            self.log.debug(f"Could not convert entered property value `{value}` to list")
             return value
 
         return converted_list

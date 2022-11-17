@@ -35,7 +35,6 @@ from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.parser import PipelineParser
@@ -44,6 +43,7 @@ from elyra.pipeline.pipeline_definition import Pipeline
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorResponse
+from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.pipeline.validation import PipelineValidationManager

@@ -28,8 +28,8 @@ from typing import Optional
 
 from traitlets.config import LoggingConfigurable
 
-from elyra.pipeline.component_parameter import ComponentParameter
-from elyra.pipeline.component_parameter import ElyraProperty
+from elyra.pipeline.properties import ComponentProperty
+from elyra.pipeline.properties import ElyraProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 # Rather than importing only the CatalogEntry class needed in the Component parse
@@ -59,7 +59,7 @@ class Component(object):
         runtime_type: Optional[RuntimeProcessorType] = None,
         op: Optional[str] = None,
         categories: Optional[List[str]] = None,
-        properties: Optional[List[ComponentParameter]] = None,
+        properties: Optional[List[ComponentProperty]] = None,
         extensions: Optional[List[str]] = None,
         parameter_refs: Optional[dict] = None,
         package_name: Optional[str] = None,
@@ -162,7 +162,7 @@ class Component(object):
         return self._categories
 
     @property
-    def properties(self) -> Optional[List[ComponentParameter]]:
+    def properties(self) -> Optional[List[ComponentProperty]]:
         return self._properties
 
     @property
@@ -178,15 +178,15 @@ class Component(object):
         return f"from {self._package_name} import {self._name}" if self._package_name else None
 
     @property
-    def input_properties(self) -> List[ComponentParameter]:
+    def input_properties(self) -> List[ComponentProperty]:
         return [prop for prop in self._properties if None not in prop.allowed_input_types]
 
     @property
-    def output_properties(self) -> List[ComponentParameter]:
+    def output_properties(self) -> List[ComponentProperty]:
         return [prop for prop in self._properties if None in prop.allowed_input_types]
 
     @property
-    def required_properties(self) -> List[ComponentParameter]:
+    def required_properties(self) -> List[ComponentProperty]:
         return [prop for prop in self.input_properties if prop.required]
 
     @property
@@ -204,19 +204,19 @@ class Component(object):
         else:
             print(f"WARNING: {msg}")
 
-    def get_elyra_parameters(self) -> List[ComponentParameter]:
+    def get_elyra_properties(self) -> List[ComponentProperty]:
         """
-        Retrieve the list of Elyra-owned ComponentParameters that apply to this
-        component, removing any whose id collides with a property parsed from
+        Retrieve the list of Elyra-owned ComponentProperty objects that apply to
+        this component, removing any whose id collides with a property parsed from
         the component definition.
         """
         op_type = "generic" if self.component_reference == "elyra" else "custom"
-        elyra_params = ElyraProperty.get_classes_for_component_type(op_type, self.runtime_type)
+        elyra_props = ElyraProperty.get_classes_for_component_type(op_type, self.runtime_type)
         if self.properties:
-            # Remove certain Elyra-owned parameters if a parameter of the same id is already present
+            # Remove certain Elyra-owned properties if a component-defined property of the same id is already present
             parsed_property_ids = [param.ref for param in self.properties]
-            elyra_params = [param for param in elyra_params if param.property_id not in parsed_property_ids]
-        return elyra_params
+            elyra_props = [param for param in elyra_props if param.property_id not in parsed_property_ids]
+        return elyra_props
 
 
 class ComponentParser(LoggingConfigurable):  # ABC
@@ -253,16 +253,16 @@ class ComponentParser(LoggingConfigurable):  # ABC
 
     def _format_description(self, description: str, data_type: str) -> str:
         """
-        Adds parameter type information parsed from component specification
-        to parameter description.
+        Adds property type information parsed from component specification
+        to property description.
         """
         if description:
             return f"{description} (type: {data_type})"
         return f"(type: {data_type})"
 
-    def determine_type_information(self, parsed_type: str) -> "ParameterTypeInfo":
+    def determine_type_information(self, parsed_type: str) -> "PropertyTypeInfo":
         """
-        Takes the type information of a component parameter as parsed from the component
+        Takes the type information of a component property as parsed from the component
         specification and returns a new type that is one of several standard options.
         """
         parsed_type_lowered = parsed_type.lower()
@@ -282,31 +282,31 @@ class ComponentParser(LoggingConfigurable):  # ABC
                     default_value = []
 
                 # Since we know the type, create our return value and bail
-                data_type_info = ParameterTypeInfo(
+                data_type_info = PropertyTypeInfo(
                     parsed_data=parsed_type_lowered, json_data_type=data_type, default_value=default_value
                 )
                 break
         else:  # None of the container types were found...
             # Standardize type names
             if any(word in parsed_type_lowered for word in ["str", "string"]):
-                data_type_info = ParameterTypeInfo(
+                data_type_info = PropertyTypeInfo(
                     parsed_data=parsed_type_lowered,
                     json_data_type="string",
                 )
             elif any(word in parsed_type_lowered for word in ["int", "integer", "number"]):
-                data_type_info = ParameterTypeInfo(
+                data_type_info = PropertyTypeInfo(
                     parsed_data=parsed_type_lowered, json_data_type="number", default_value=0
                 )
             elif any(word in parsed_type_lowered for word in ["float"]):
-                data_type_info = ParameterTypeInfo(
+                data_type_info = PropertyTypeInfo(
                     parsed_data=parsed_type_lowered, json_data_type="number", default_value=0.0
                 )
             elif any(word in parsed_type_lowered for word in ["bool", "boolean"]):
-                data_type_info = ParameterTypeInfo(
+                data_type_info = PropertyTypeInfo(
                     parsed_data=parsed_type_lowered, json_data_type="boolean", default_value=False
                 )
             else:  # Let this be undetermined. Callers should check for this status and adjust
-                data_type_info = ParameterTypeInfo(parsed_data=parsed_type_lowered, undetermined=True)
+                data_type_info = PropertyTypeInfo(parsed_data=parsed_type_lowered, undetermined=True)
 
         from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
 
@@ -317,7 +317,7 @@ class ComponentParser(LoggingConfigurable):  # ABC
 
 
 @dataclass
-class ParameterTypeInfo:
+class PropertyTypeInfo:
     """
     This class is initialized by ComponentParser.determine_type_information() and used by subclass
     implementations to determine the current state of parsing a data-type.
@@ -327,7 +327,7 @@ class ParameterTypeInfo:
     are advised to attempt further parsing. In such cases, the rest of the attributes of the instance
     will reflect a 'string' data type as that is the most flexible data_type and, hence, the default.
 
-    Allowed input types for the given parameter defaults to the set of all available input types,
+    Allowed input types for the given property defaults to the set of all available input types,
     unless the child method is able to determine that the allowed types must be adjusted,
     e.g. kfp path-based types.
     """

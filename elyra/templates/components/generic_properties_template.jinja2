@@ -98,7 +98,7 @@
             }
           }
         },
-        {% if elyra_owned_parameters %}
+        {% if elyra_owned_properties %}
         "additional_properties_header": {
           "type": "null",
           "title": "Additional Properties",
@@ -107,7 +107,7 @@
             "ui:field": "header"
           }
         },
-        {% for property in elyra_owned_parameters|sort(attribute="property_id") %}
+        {% for property in elyra_owned_properties|sort(attribute="property_id") %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}{% if loop.index != loop|length %},{% endif %}
         {% endfor %}
         {% endif %}

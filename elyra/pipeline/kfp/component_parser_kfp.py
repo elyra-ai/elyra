@@ -26,8 +26,8 @@ import yaml
 from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.kfp.kfp_component_utils import component_yaml_schema
+from elyra.pipeline.properties import ComponentProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -60,8 +60,8 @@ class KfpComponentParser(ComponentParser):
 
         return [component]
 
-    def _parse_properties(self, component_yaml: Dict[str, Any]) -> List[ComponentParameter]:
-        properties: List[ComponentParameter] = []
+    def _parse_properties(self, component_yaml: Dict[str, Any]) -> List[ComponentProperty]:
+        properties: List[ComponentProperty] = []
 
         # NOTE: Currently no runtime-specific properties are needed
         # properties.extend(self.get_runtime_specific_properties())
@@ -118,7 +118,7 @@ class KfpComponentParser(ComponentParser):
                 else:
                     ref_name = f"output_{ref_name}"
 
-                component_params = ComponentParameter(
+                component_props = ComponentProperty(
                     id=ref_name,
                     name=display_name,
                     json_data_type=data_type_info.json_data_type,
@@ -128,7 +128,7 @@ class KfpComponentParser(ComponentParser):
                     required=required,
                 )
 
-                properties.append(component_params)
+                properties.append(component_props)
 
         return properties
 
