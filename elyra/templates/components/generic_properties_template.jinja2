@@ -53,6 +53,16 @@
           "description": "The total amount of RAM specified.",
           "minimum": 0
         },
+        "pipeline_parameters": {
+          "type": "array",
+          "title": "Pipeline Parameters",
+          "description": "Pipeline parameters that should be passed to this file.",
+          "items": {
+            "type": "string",
+            "enum": []
+          },
+          "uniqueItems": true
+        },
         "dependencies": {
           "title": "File Dependencies",
           "description": "Local file dependencies that need to be copied to remote execution environment.",
