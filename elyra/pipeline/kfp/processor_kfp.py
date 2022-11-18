@@ -884,7 +884,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "data_type": output.type,
                     }
 
-                # Iterate over component parameters and assign values to
+                # Iterate over component properties and assign values to
                 # task inputs and task add-ons
                 for component_property in component.properties:
                     self.log.debug(
@@ -915,6 +915,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             "task_id": re.sub(r"[" + re.escape(string.punctuation) + "\\s]", "_", output_node_id),
                             "output_id": self._sanitize_param_name(output_node_property_key),
                         }
+
+                    elif data_entry_type == "parameter":
+                        # If the value is not found, assign it the default value assigned in parser
+                        if property_value is None:
+                            property_value = component_property.value
+
                     else:  # Property is either of a raw data type or file contents
                         if data_entry_type == "file" and property_value:
                             # Read value from the specified file

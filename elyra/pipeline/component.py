@@ -214,8 +214,8 @@ class Component(object):
         elyra_props = ElyraProperty.get_classes_for_component_type(op_type, self.runtime_type)
         if self.properties:
             # Remove certain Elyra-owned properties if a component-defined property of the same id is already present
-            parsed_property_ids = [param.ref for param in self.properties]
-            elyra_props = [param for param in elyra_props if param.property_id not in parsed_property_ids]
+            parsed_property_ids = [prop.ref for prop in self.properties]
+            elyra_props = [prop for prop in elyra_props if prop.property_id not in parsed_property_ids]
         return elyra_props
 
 

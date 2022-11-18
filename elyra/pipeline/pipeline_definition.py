@@ -354,7 +354,7 @@ class Node(AppDataBase):
         if component:
             # Properties that have the same ref (id) as Elyra-owned node properties
             # should be skipped during property propagation and conversion
-            self.elyra_owned_properties = {param.property_id for param in component.get_elyra_properties()}
+            self.elyra_owned_properties = {prop.property_id for prop in component.get_elyra_properties()}
 
     @property
     def propagated_properties(self) -> Set[str]:

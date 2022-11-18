@@ -280,11 +280,11 @@ class ElyraProperty(ABC):
                     }
 
                     if allowed_type.default_value is not None:
-                        schema_obj["value"]["default"] = allowed_type.default_value
+                        schema_obj["properties"]["value"]["default"] = allowed_type.default_value
                     if allowed_type.enum:
-                        schema_obj["value"]["enum"] = allowed_type.enum
+                        schema_obj["properties"]["value"]["enum"] = allowed_type.enum
                     # if allowed_type.placeholder is not None:  # TODO ignoring placeholders in oneOfs for now
-                    #    schema_obj[uihints] = {"ui:placeholder": allowed_type.placeholder}
+                    #    schema_obj["properties"][uihints] = {"ui:placeholder": allowed_type.placeholder}
 
                     properties[attr.id]["oneOf"].append(schema_obj)
 
