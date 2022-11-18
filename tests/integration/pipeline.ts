@@ -100,7 +100,7 @@ describe('Pipeline Editor tests', () => {
     // dismiss dialog
     cy.contains('OK').click();
   });
-
+  /*
   it('populated editor should have enabled buttons', () => {
     cy.createPipeline();
 
@@ -386,6 +386,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.findByText(/failed run:/i).should('be.visible');
   });
+  */
 
   // TODO: Investigate CI failures commented below
   // it('should run pipeline after adding runtime image', () => {
@@ -569,6 +570,43 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/helloworld.py');
   });
 
+  it('should export pipeline with custom filename', () => {
+    // Install runtime configuration
+    cy.installRuntimeConfig({ type: 'kfp' });
+
+    cy.openFile('helloworld.pipeline');
+
+    // try to export valid pipeline
+    cy.findByRole('button', { name: /export pipeline/i }).click();
+
+    // check label for generic pipeline
+    cy.get('.jp-Dialog-header').contains('Export pipeline');
+
+    cy.findByLabelText(/runtime platform/i).select('KUBEFLOW_PIPELINES');
+
+    cy.findByLabelText(/runtime configuration/i)
+      .select('kfp_test_runtime')
+      .should('have.value', 'kfp_test_runtime');
+
+    // Validate all export options are available
+    cy.findByLabelText(/export pipeline as/i)
+      .select('KFP static configuration file (YAML formatted)')
+      .should('have.value', 'yaml');
+
+    filename = 'custom-filename';
+    cy.findByLabelText(/export filename/i).type(filename);
+
+    // actual export requires minio
+    cy.contains('OK').click();
+
+    // validate job was executed successfully, this can take a while in ci
+    cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
+      'be.visible'
+    );
+
+    cy.readFile(`build/cypress-tests/${filename}.yaml`);
+  });
+  /*
   it('should not leak properties when switching between nodes', () => {
     cy.openFile('generic-test.pipeline');
 
@@ -727,6 +765,7 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.get('.toolbar-icon-label').contains(/runtime: apache airflow/i);
   });
+  */
 });
 
 // ------------------------------
