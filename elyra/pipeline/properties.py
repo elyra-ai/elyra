@@ -272,8 +272,11 @@ class ElyraProperty(ABC):
                 for allowed_type in attr.allowed_input_types:
                     display_title = f"{allowed_type.display_name}-type parameter"
                     schema_obj = {
-                        "type": {"type": "string", "default": allowed_type.input_type},
-                        "value": {"type": allowed_type.json_data_type, "title": display_title},
+                        "type": "object",
+                        "properties": {
+                            "type": {"type": "string", "default": allowed_type.input_type},
+                            "value": {"type": allowed_type.json_data_type, "title": display_title},
+                        },
                     }
 
                     if allowed_type.default_value is not None:
