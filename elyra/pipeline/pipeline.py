@@ -423,7 +423,7 @@ class Pipeline(object):
         return False
 
     def __eq__(self, other: "Pipeline") -> bool:
-        if isinstance(self, other.__class__):
+        if isinstance(other, Pipeline):
             return (
                 self.id == other.id
                 and self.name == other.name
@@ -432,3 +432,4 @@ class Pipeline(object):
                 and self.runtime == other.runtime
                 and self.operations == other.operations
             )
+        return False

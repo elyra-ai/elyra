@@ -66,11 +66,11 @@ class MetadataStore(ABC):
 
 
 def caching_enabled(func):
-    """Checks if file store cache is enabled.  If not, just return, else perform function."""
+    """Checks if file store cache is enabled.  If not, just return None, else perform function."""
 
     def wrapped(self, *args, **kwargs):
         if not self.enabled:
-            return
+            return None
         return func(self, *args, **kwargs)
 
     return wrapped
