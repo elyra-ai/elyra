@@ -1,0 +1,206 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: kfp-multi-node-generic-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.13, pipelines.kubeflow.org/pipeline_compilation_time: '2022-11-18T15:59:21.916600',
+    pipelines.kubeflow.org/pipeline_spec: '{"description": "This test pipeline contains
+      multiple generic nodes that are dependent on each other.", "name": "kfp-multi-node-generic"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.13}
+spec:
+  entrypoint: kfp-multi-node-generic
+  templates:
+  - name: kfp-multi-node-generic
+    dag:
+      tasks:
+      - {name: run-a-file, template: run-a-file}
+      - name: run-a-file-2
+        template: run-a-file-2
+        dependencies: [run-a-file]
+      - name: run-a-file-3
+        template: run-a-file-3
+        dependencies: [run-a-file-2]
+  - name: run-a-file
+    container:
+      args: ['mkdir -p ./jupyter-work-dir && cd ./jupyter-work-dir && echo ''Downloading
+          https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py
+          --output bootstrapper.py && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt
+          --output requirements-elyra.txt && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt
+          --output requirements-elyra-py37.txt && python3 -m pip install  packaging
+          && python3 -m pip freeze > requirements-current.txt && python3 bootstrapper.py
+          --pipeline-name ''kfp-multi-node-generic'' --cos-endpoint ''http://examples.com:31671''
+          --cos-bucket ''test'' --cos-directory ''kfp-multi-node-generic-1118155921''
+          --cos-dependencies-archive ''producer-f7ee2b31-58f4-4e15-853e-6c144b2cde0c.tar.gz''
+          --file ''producer.ipynb'' --outputs ''producer_output.csv'' ']
+      command: [sh, -c]
+      env:
+      - {name: ELYRA_RUNTIME_ENV, value: kfp}
+      - {name: AWS_ACCESS_KEY_ID, value: my_name}
+      - {name: AWS_SECRET_ACCESS_KEY, value: my_password}
+      - name: ELYRA_ENABLE_PIPELINE_INFO
+        value: "True"
+      - {name: ELYRA_WRITABLE_CONTAINER_DIR, value: /tmp}
+      - {name: ELYRA_RUN_NAME, value: '{{workflow.uid}}'}
+      image: tensorflow/tensorflow:2.8.0
+      imagePullPolicy: IfNotPresent
+    outputs:
+      artifacts:
+      - {name: mlpipeline-metrics, path: /tmp/mlpipeline-metrics.json}
+      - {name: mlpipeline-ui-metadata, path: /tmp/mlpipeline-ui-metadata.json}
+    metadata:
+      annotations: {elyra/node-user-doc: Creates file 'producer_output.csv', elyra/node-file-name: producer.ipynb,
+        elyra/pipeline-source: kfp-multi-node-generic.pipeline, pipelines.kubeflow.org/task_display_name: produce
+          a file, pipelines.kubeflow.org/component_spec: '{"description": "Run a Jupyter
+          notebook or Python/R script", "implementation": {"container": {"args": ["mkdir
+          -p ./jupyter-work-dir && cd ./jupyter-work-dir && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py
+          --output bootstrapper.py && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt
+          --output requirements-elyra.txt && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt
+          --output requirements-elyra-py37.txt && python3 -m pip install  packaging
+          && python3 -m pip freeze > requirements-current.txt && python3 bootstrapper.py
+          --pipeline-name ''kfp-multi-node-generic'' --cos-endpoint ''http://examples.com:31671''
+          --cos-bucket ''test'' --cos-directory ''kfp-multi-node-generic-1118155921''
+          --cos-dependencies-archive ''producer-f7ee2b31-58f4-4e15-853e-6c144b2cde0c.tar.gz''
+          --file ''producer.ipynb'' --outputs ''producer_output.csv'' "], "command":
+          ["sh", "-c"], "image": "tensorflow/tensorflow:2.8.0"}}, "name": "Run a file"}',
+        pipelines.kubeflow.org/component_ref: '{"digest": "2b9b0ec6ef7a2053a5bb75959797ab96f36d358618bd8d0f49fe73fd513a210f"}'}
+      labels:
+        elyra/node-type: notebook-script
+        elyra/pipeline-name: kfp-multi-node-generic
+        elyra/pipeline-version: kfp-multi-node-generic-0815
+        elyra/experiment-name: kfp-multi-node-generic-0815
+        elyra/node-name: produce_a_file
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.13
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+  - name: run-a-file-2
+    container:
+      args: ['mkdir -p ./jupyter-work-dir && cd ./jupyter-work-dir && echo ''Downloading
+          https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py
+          --output bootstrapper.py && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt
+          --output requirements-elyra.txt && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt
+          --output requirements-elyra-py37.txt && python3 -m pip install  packaging
+          && python3 -m pip freeze > requirements-current.txt && python3 bootstrapper.py
+          --pipeline-name ''kfp-multi-node-generic'' --cos-endpoint ''http://examples.com:31671''
+          --cos-bucket ''test'' --cos-directory ''kfp-multi-node-generic-1118155921''
+          --cos-dependencies-archive ''consumer-producer-06192cb4-1037-492c-a87c-bdadd869a649.tar.gz''
+          --file ''consumer-producer.ipynb'' --inputs ''producer_output.csv'' --outputs
+          ''consumer_producer_output.csv'' ']
+      command: [sh, -c]
+      env:
+      - {name: ELYRA_RUNTIME_ENV, value: kfp}
+      - {name: AWS_ACCESS_KEY_ID, value: my_name}
+      - {name: AWS_SECRET_ACCESS_KEY, value: my_password}
+      - name: ELYRA_ENABLE_PIPELINE_INFO
+        value: "True"
+      - {name: ELYRA_WRITABLE_CONTAINER_DIR, value: /tmp}
+      - {name: ELYRA_RUN_NAME, value: '{{workflow.uid}}'}
+      image: tensorflow/tensorflow:2.8.0
+      imagePullPolicy: IfNotPresent
+    outputs:
+      artifacts:
+      - {name: mlpipeline-metrics, path: /tmp/mlpipeline-metrics.json}
+      - {name: mlpipeline-ui-metadata, path: /tmp/mlpipeline-ui-metadata.json}
+    metadata:
+      annotations:
+        elyra/node-user-doc: |-
+          Reads file 'producer_output.csv'
+          Creates file 'consumer_producer_output.csv'
+        elyra/node-file-name: consumer-producer.ipynb
+        elyra/pipeline-source: kfp-multi-node-generic.pipeline
+        pipelines.kubeflow.org/task_display_name: consumer-producer
+        pipelines.kubeflow.org/component_spec: '{"description": "Run a Jupyter notebook
+          or Python/R script", "implementation": {"container": {"args": ["mkdir -p
+          ./jupyter-work-dir && cd ./jupyter-work-dir && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py
+          --output bootstrapper.py && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt
+          --output requirements-elyra.txt && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt
+          --output requirements-elyra-py37.txt && python3 -m pip install  packaging
+          && python3 -m pip freeze > requirements-current.txt && python3 bootstrapper.py
+          --pipeline-name ''kfp-multi-node-generic'' --cos-endpoint ''http://examples.com:31671''
+          --cos-bucket ''test'' --cos-directory ''kfp-multi-node-generic-1118155921''
+          --cos-dependencies-archive ''consumer-producer-06192cb4-1037-492c-a87c-bdadd869a649.tar.gz''
+          --file ''consumer-producer.ipynb'' --inputs ''producer_output.csv'' --outputs
+          ''consumer_producer_output.csv'' "], "command": ["sh", "-c"], "image": "tensorflow/tensorflow:2.8.0"}},
+          "name": "Run a file"}'
+        pipelines.kubeflow.org/component_ref: '{"digest": "1277d2b2629ea01dd3922cd5faa43d838a16d5f06fca110ac0ff43479937b6e7"}'
+      labels:
+        elyra/node-type: notebook-script
+        elyra/pipeline-name: kfp-multi-node-generic
+        elyra/pipeline-version: kfp-multi-node-generic-0815
+        elyra/experiment-name: kfp-multi-node-generic-0815
+        elyra/node-name: consumer-producer
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.13
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+  - name: run-a-file-3
+    container:
+      args: ['mkdir -p ./jupyter-work-dir && cd ./jupyter-work-dir && echo ''Downloading
+          https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py
+          --output bootstrapper.py && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt
+          --output requirements-elyra.txt && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt
+          --output requirements-elyra-py37.txt && python3 -m pip install  packaging
+          && python3 -m pip freeze > requirements-current.txt && python3 bootstrapper.py
+          --pipeline-name ''kfp-multi-node-generic'' --cos-endpoint ''http://examples.com:31671''
+          --cos-bucket ''test'' --cos-directory ''kfp-multi-node-generic-1118155921''
+          --cos-dependencies-archive ''consumer-c7ce204c-01d2-401d-a343-f95f7985bdd9.tar.gz''
+          --file ''consumer.ipynb'' --inputs ''producer_output.csv;consumer_producer_output.csv'' ']
+      command: [sh, -c]
+      env:
+      - {name: ELYRA_RUNTIME_ENV, value: kfp}
+      - {name: AWS_ACCESS_KEY_ID, value: my_name}
+      - {name: AWS_SECRET_ACCESS_KEY, value: my_password}
+      - name: ELYRA_ENABLE_PIPELINE_INFO
+        value: "True"
+      - {name: ELYRA_WRITABLE_CONTAINER_DIR, value: /tmp}
+      - {name: ELYRA_RUN_NAME, value: '{{workflow.uid}}'}
+      image: tensorflow/tensorflow:2.8.0
+      imagePullPolicy: IfNotPresent
+    outputs:
+      artifacts:
+      - {name: mlpipeline-metrics, path: /tmp/mlpipeline-metrics.json}
+      - {name: mlpipeline-ui-metadata, path: /tmp/mlpipeline-ui-metadata.json}
+    metadata:
+      annotations: {elyra/node-user-doc: Reads file 'consumer_producer_output.csv',
+        elyra/node-file-name: consumer.ipynb, elyra/pipeline-source: kfp-multi-node-generic.pipeline,
+        pipelines.kubeflow.org/task_display_name: consume a file, pipelines.kubeflow.org/component_spec: '{"description":
+          "Run a Jupyter notebook or Python/R script", "implementation": {"container":
+          {"args": ["mkdir -p ./jupyter-work-dir && cd ./jupyter-work-dir && echo
+          ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py
+          --output bootstrapper.py && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt
+          --output requirements-elyra.txt && echo ''Downloading https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt''
+          && curl --fail -H ''Cache-Control: no-cache'' -L https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt
+          --output requirements-elyra-py37.txt && python3 -m pip install  packaging
+          && python3 -m pip freeze > requirements-current.txt && python3 bootstrapper.py
+          --pipeline-name ''kfp-multi-node-generic'' --cos-endpoint ''http://examples.com:31671''
+          --cos-bucket ''test'' --cos-directory ''kfp-multi-node-generic-1118155921''
+          --cos-dependencies-archive ''consumer-c7ce204c-01d2-401d-a343-f95f7985bdd9.tar.gz''
+          --file ''consumer.ipynb'' --inputs ''producer_output.csv;consumer_producer_output.csv''
+          "], "command": ["sh", "-c"], "image": "tensorflow/tensorflow:2.8.0"}}, "name":
+          "Run a file"}', pipelines.kubeflow.org/component_ref: '{"digest": "de4872c9bd000c60736f7d6b4a628e59548325eba7650832fc7e54402929a532"}'}
+      labels:
+        elyra/node-type: notebook-script
+        elyra/pipeline-name: kfp-multi-node-generic
+        elyra/pipeline-version: kfp-multi-node-generic-0815
+        elyra/experiment-name: kfp-multi-node-generic-0815
+        elyra/node-name: consume_a_file
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.13
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+  arguments:
+    parameters: []
+  serviceAccountName: pipeline-runner
