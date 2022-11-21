@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import { elyraIcon, helpIcon, whatsNewIcon } from '@elyra/ui-components';
+import {
+  elyraIcon,
+  viewIcon,
+  helpIcon,
+  whatsNewIcon
+} from '@elyra/ui-components';
 import {
   ILabShell,
   JupyterFrontEnd,
@@ -40,7 +45,8 @@ const ELYRA_THEME_NAMESPACE = 'elyra-theme-extension';
 const CommandIDs = {
   create: 'launcher:create',
   openHelp: 'elyra:open-help',
-  releases: 'elyra:releases'
+  releases: 'elyra:releases',
+  view: 'elyra:view'
 };
 
 /**
@@ -159,15 +165,38 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       execute: (args: any) => {
         const hubPrefix = paths.urls.hubPrefix;
         if (hubPrefix !== null && hubPrefix !== undefined) {
-          window.location.href =
+          window.open(
             window.location.origin +
-            hubPrefix.replace('/hub/', '/') +
-            'user-redirect/proxy/integra-docs:80/';
+              hubPrefix.replace('/hub/', '/') +
+              'user-redirect/proxy/integra-docs:80/'
+          );
         } else {
-          window.location.href =
+          window.open(
             window.location.origin +
-            paths.urls.base +
-            'user-redirect/proxy/integra-docs:80/';
+              paths.urls.base +
+              'user-redirect/proxy/integra-docs:80/'
+          );
+        }
+      }
+    });
+
+    commands.addCommand(CommandIDs.view, {
+      label: 'Integra Explorer',
+      icon: viewIcon,
+      execute: (args: any) => {
+        const hubPrefix = paths.urls.hubPrefix;
+        if (hubPrefix !== null && hubPrefix !== undefined) {
+          window.open(
+            window.location.origin +
+              hubPrefix.replace('/hub/', '/') +
+              'user-redirect/proxy/integraexplorer-service:8900/'
+          );
+        } else {
+          window.open(
+            window.location.origin +
+              paths.urls.base +
+              'user-redirect/proxy/integraexplorer-service:8900/'
+          );
         }
       }
     });
@@ -191,9 +220,15 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     });
 
     model.add({
+      command: CommandIDs.view,
+      category: 'Integra',
+      rank: 11
+    });
+
+    model.add({
       command: CommandIDs.releases,
       category: 'Elyra',
-      rank: 11
+      rank: 12
     });
 
     return model;
