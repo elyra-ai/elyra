@@ -45,11 +45,11 @@
     "unlink:dev": "yarn unlink @jupyterlab/builder"
   },
   "dependencies": {
-    "@elyra/metadata-common": "3.13.0-dev",
-    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/45fce6e2/@elyra/pipeline-editor",
-    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/45fce6e2/@elyra/pipeline-services",
-    "@elyra/services": "3.13.0-dev",
-    "@elyra/ui-components": "3.13.0-dev",
+    "@elyra/metadata-common": "3.14.0-dev",
+    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/cc2c7f1b/@elyra/pipeline-editor",
+    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/cc2c7f1b/@elyra/pipeline-services",
+    "@elyra/services": "3.14.0-dev",
+    "@elyra/ui-components": "3.14.0-dev",
     "@jupyterlab/application": "^3.4.6",
     "@jupyterlab/apputils": "^3.4.6",
     "@jupyterlab/builder": "^3.4.6",

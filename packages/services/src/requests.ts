@@ -195,6 +195,10 @@ export class RequestHandler {
           response[type]().then(
             // handle cases where the server returns a valid response
             (result: any) => {
+              console.log(response);
+              if (response.status === 405) {
+                resolve(null);
+              }
               if (response.status < 200 || response.status >= 300) {
                 return reject(result);
               }
