@@ -17,6 +17,7 @@ import json
 from pathlib import Path
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Union
 
@@ -36,15 +37,29 @@ from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 
 @pytest.fixture()
 def metadata_managers(jp_environ, jp_data_dir):
+    """
+    This fixture creates an elyra.metadata.manager.MetadataManager instance for the
+    Runtimes.RUNTIMES_IMAGES_SCHEMASPACE_NAME and an elyra.metadata.manager.MetadataManager instance for the
+    Runtimes.RUNTIMES_SCHEMASPACE_NAME.
+    The fixture yields a dictionary:
+        {
+            RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME: MetadataManager,
+            Runtimes.RUNTIMES_SCHEMASPACE_NAME: MetadataManager
+        }
+    """
+    # Set up the required directory structure
     metadata_dir = Path(jp_data_dir) / "metadata"
     metadata_dir.mkdir(parents=False)
-    (metadata_dir / RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME).mkdir()
-    rti_metadata_mgr = MetadataManager(
-        schemaspace=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME, metadata_store_class=FileMetadataStore
-    )
     (metadata_dir / Runtimes.RUNTIMES_SCHEMASPACE_NAME).mkdir()
+    (metadata_dir / RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME).mkdir()
+
+    # Create MM for Runtimes.RUNTIMES_SCHEMASPACE_NAME
     r_metadata_mgr = MetadataManager(
         schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_NAME, metadata_store_class=FileMetadataStore
+    )
+    # Create MM for RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME
+    rti_metadata_mgr = MetadataManager(
+        schemaspace=RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME, metadata_store_class=FileMetadataStore
     )
 
     yield {
@@ -55,41 +70,51 @@ def metadata_managers(jp_environ, jp_data_dir):
 
 @pytest.fixture()
 def rti_mmanager(metadata_managers):
+    """
+    This fixture creates an elyra.metadata.manager.MetadataManager instance for the
+    Runtimes.RUNTIMES_IMAGES_SCHEMASPACE_NAME.
+    """
     yield metadata_managers.get(RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME)
 
 
 @pytest.fixture()
 def rt_mmanager(metadata_managers):
+    """
+    This fixture creates an elyra.metadata.manager.MetadataManager instance for the
+    Runtimes.RUNTIMES_SCHEMASPACE_NAME.
+    """
     yield metadata_managers.get(Runtimes.RUNTIMES_SCHEMASPACE_NAME)
 
 
 @pytest.fixture()
 def runtime_config(rt_mmanager, request):
     """
-    Create a persisted Kubeflow Pipelines runtime configuration. The generated
-    configuration is customizable by passing a dictionary to the fixture:
-    {
-        "config_name": "custom-config-name",  # default is "test-config"
-        "workflow_engine": WorkflowEngineType.XXX,  # Enum value, ARGO is default
-        "use_cos_credentials_secret": True,  # or False (default)
+    Create a persisted Kubeflow Pipelines runtime configuration.
+    Optional inputs:
+        - "config_name": str (defaults to "test-config")
+        - "workflow_engine": WorkflowEngineType.XXX (defaults to WorkflowEngineType.ARGO)
+        - "use_cos_credentials_secret": bool,  # (defaults to False)
+    The fixture yields the following:
+        - elyra.metadata.metadata.Metadata instance
     }
     """
-    # invoke helper method to persist the runtime configuration
+    # Invoke helper method to create a persisted runtime configuration
     yield create_runtime_config(metadata_managers[Runtimes.RUNTIMES_SCHEMASPACE_NAME], request.param)
 
 
 @pytest.fixture()
 def runtime_image_config(rti_mmanager, request):
     """
-    Create a persisted runtime image configuration. The following properties are
-    configurable by passing a parameter of type dictionary to this fixture:
-    {
-        "image_name": "<container_image_name>",  # default: "mocked-container-image"
-        "require_pull_secret": True,  # or False (default)
-    }
+    Create a persisted runtime image configuration.
+    Optional inputs:
+        - "image_name": str (defaults to "mocked-container-image")
+        - "require_pull_secret": bool (default: False)
+    The fixture yields the following:
+        - elyra.metadata.metadata.Metadata instance
     """
     image_name = request.param.pop("image_name", "mocked-container-image")
     customization_options = request.param
+    # Invoke helper method to create a persisted runtime image configuration
     yield create_runtime_image_config(
         rti_mmanager,
         image_name,
@@ -98,22 +123,25 @@ def runtime_image_config(rti_mmanager, request):
 
 
 @pytest.fixture()
-def runtime_image_configs(rti_mmanager, request):
+def runtime_image_configs(rti_mmanager, request) -> List[Metadata]:
     """
     Create persisted runtime image configurations for the specified pipeline file.
-    The following properties are configurable by passing a parameter of type dictionary
-    to this fixture:
-    {
-        "pipeline_file",
-        "require_pull_secret": True,  # or False (default)
-    }
+    Required inputs:
+     - "pipeline_file": existing pipeline filename
+    Optional inputs:
+        - "require_pull_secret": bool (default: False)
+    The fixture yields the following:
+        - "runtime_image_configs": array of elyra.metadata.metadata.Metadata instances
     """
+    # check required parameters
+    assert request.param.get("pipeline_file") is not None
 
     # Load pipeline
     # Create runtime image configurations
     customization_options = {
         "require_pull_secret": request.param.get("require_pull_secret"),
     }
+    # Invoke helper method to create persisted runtime image configurations
     yield create_runtime_image_configs(
         rti_metadata_manager=metadata_managers[RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME],
         pipeline_file=request.param.get("pipeline_file"),
@@ -135,13 +163,13 @@ def metadata_dependencies(metadata_managers, request):
         - "require_pull_secret": bool (default: False)
     The fixture yields the following:
      - "pipeline_file": the pipeline file name, as specified as input
-     - "pipeline_object": a elyra.pipeline.pipeline.Pipeline instance
-     - "runtime_config": a elyra.metadata.metadata.Metadata instance
+     - "pipeline_object": elyra.pipeline.pipeline.Pipeline instance
+     - "runtime_config": elyra.metadata.metadata.Metadata instance
      - "runtime_image_configs": array of elyra.metadata.metadata.Metadata instances
      - "metadata_managers": dictionary [str, elyra.metadata.manager.MetadataManager]
        (keys are RuntimeImages.RUNTIMES_IMAGES_SCHEMASPACE_NAME and
        Runtimes.RUNTIMES_SCHEMASPACE_NAME)
-     - "fixture_parameters": dictonary containing the fixture's inputs
+     - "fixture_parameters": dictionary containing the fixture's inputs
     """
     # check required parameters
     assert request.param.get("pipeline_file") is not None
@@ -184,10 +212,6 @@ def metadata_dependencies(metadata_managers, request):
         "fixture_parameters": request.param,
     }
 
-
-# ------------------------------
-# Supporting fixtures
-# ------------------------------
 
 # ------------------------------
 # Supporting functions
@@ -250,15 +274,14 @@ def create_runtime_image_config(
     customization_options: Dict[str, Any] = {},
 ) -> Metadata:
     """
-    Create a persisted runtime image configuration. The generated runtime image
-    configuration is customizable using these options properties:
-    {
-        "require_pull_secret": True,  # or False (default)
-    }
+    Create a persisted runtime image configuration for the specified container
+    image. The generated runtime image is customizable using these options:
+        - "require_pull_secret": True/False,  # default is False
     """
     if not image_name:
         image_name = "mocked-container-image"
 
+    # Generate a metadata filename using the provided container image name as input.
     config_name = sanitize_container_image_name(image_name)
 
     update_required = True
@@ -294,12 +317,13 @@ def create_runtime_image_config(
 def create_runtime_image_configs(
     rti_metadata_manager: MetadataManager,
     pipeline_file: Union[Path, str],
-    pipeline_object: Pipeline,
+    pipeline_object: Pipeline = None,
     customization_options: Dict[str, Any] = {},
-) -> Metadata:
+) -> List[Metadata]:
     """
     Create persisted runtime image configurations for the specified pipeline_file
-    or pipeline_object.
+    or pipeline_object, applying the specified customization options:
+      - "require_pull_secret" (True/False [default])
     """
     assert rti_metadata_manager is not None
 
@@ -331,11 +355,12 @@ def get_pipeline_object(
     pipeline_filename: Union[Path, str], customization_options: Optional[Dict[str, Any]]
 ) -> Pipeline:
     """
-    Customization options:
-     - "with_cos_object_prefix" (True/False)
-     - "resources_cpu" (number)
-     - "resources_gpu" (number)
-     - "resources_memory" (number)
+    Creates a KFP Pipeline instance from pipeline_filename, taking into account the
+    following optional customization options:
+      - "with_cos_object_prefix" (True/False)
+      - "resources_cpu" (number, applied to all generic nodes)
+      - "resources_gpu" (number, applied to all generic nodes)
+      - "resources_memory" (number, applied to all generic nodes)
     """
     assert pipeline_filename is not None, "A pipeline filename is required."
 
@@ -398,5 +423,10 @@ def get_pipeline_object(
 
 
 def sanitize_container_image_name(name: str) -> str:
+    """
+    This helper function sanitizes the provided container image name (e.g.
+    'quay.io/myorg/my-image:my-tag') by replacing the following characters
+    to a dash ('-'): space, colon, forward slash, and dot.
+    """
     safe_char = "-"
     return name.lower().replace(" ", safe_char).replace(":", safe_char).replace("/", safe_char).replace(".", safe_char)
