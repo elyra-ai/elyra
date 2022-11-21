@@ -226,7 +226,7 @@ class Pipeline(AppDataBase):
         if not key:
             raise ValueError("Key is required")
 
-        if not value:
+        if value is None:
             raise ValueError("Value is required")
 
         self._node["app_data"]["properties"][key] = value
@@ -249,10 +249,9 @@ class Pipeline(AppDataBase):
                 pipeline_defaults[prop_id] = converted_value
 
         # Convert pipeline parameters
-        pipeline_parameters = self.pipeline_parameters
-        converted_value = ElyraProperty.create_instance(PIPELINE_PARAMETERS, pipeline_parameters)
+        converted_value = ElyraProperty.create_instance(PIPELINE_PARAMETERS, self.pipeline_parameters)
         if converted_value is not None:
-            self._node["app_data"][PIPELINE_PARAMETERS] = converted_value
+            self.set_property(PIPELINE_PARAMETERS, converted_value)
 
 
 class Node(AppDataBase):

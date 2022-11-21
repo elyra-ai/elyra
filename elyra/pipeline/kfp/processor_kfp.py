@@ -71,6 +71,7 @@ from elyra.pipeline.properties import KubernetesAnnotation
 from elyra.pipeline.properties import KubernetesLabel
 from elyra.pipeline.properties import KubernetesSecret
 from elyra.pipeline.properties import KubernetesToleration
+from elyra.pipeline.properties import PipelineParameter
 from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
@@ -562,7 +563,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             elyra_version=__version__,
             pipeline_name=pipeline_name,
             pipeline_description=pipeline.description,
-            pipeline_parameters=None,
+            pipeline_parameters=pipeline.parameters,
             workflow_tasks=workflow_tasks,
             component_definitions=unique_component_definitions,
             workflow_engine=workflow_engine.value,
@@ -736,8 +737,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # The task is implemented using a generic component
                 workflow_task["uses_custom_component"] = False
 
+                # Set parameters specified for this task and add each as a task input
+                task_parameters = [param for param in pipeline.parameters if param.name in operation.parameters]
+                workflow_task["task_inputs"] = {
+                    param.name: {"pipeline_parameter_reference": param.name} for param in task_parameters
+                }
+
                 component_definition = generic_component_template.render(
                     container_image=operation.runtime_image,
+                    task_parameters=task_parameters,
                     command_args=self._compose_container_command_args(
                         pipeline_name=pipeline_name,
                         cos_endpoint=cos_endpoint,
@@ -747,6 +755,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         filename=operation.filename,
                         cos_inputs=operation.inputs,
                         cos_outputs=operation.outputs,
+                        task_parameters=task_parameters,
                         is_crio_runtime=is_crio_runtime,
                     ),
                 )
@@ -917,11 +926,16 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         }
 
                     elif data_entry_type == "parameter":
-                        # If the value is not found, assign it the default value assigned in parser
-                        if property_value is None:
-                            property_value = component_property.value
+                        # task input is the name of a pipeline parameter
+                        if property_value is None or property_value not in pipeline.parameters.to_dict():
+                            # Parameter name not found in list, fall back to using the raw default value
+                            reference["value"] = component_property.value
+                        else:
+                            # Set pipeline parameter reference for this task
+                            reference["pipeline_parameter_reference"] = property_value
 
-                    else:  # Property is either of a raw data type or file contents
+                    else:
+                        # task input is a raw value, either from file contents or entered manually
                         if data_entry_type == "file" and property_value:
                             # Read value from the specified file
                             absolute_path = get_absolute_path(self.root_dir, property_value)
@@ -1001,11 +1015,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         filename: str,
         cos_inputs: Optional[List[str]] = [],
         cos_outputs: Optional[List[str]] = [],
+        task_parameters: Optional[List[PipelineParameter]] = None,
         is_crio_runtime: bool = False,
     ) -> str:
         """
         Compose the container command arguments for a generic component, taking into
-        account wether the container will run in a CRI-O environment.
+        account whether the container will run in a CRI-O environment.
         """
         elyra_github_org = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
         elyra_github_branch = os.getenv("ELYRA_GITHUB_BRANCH", "main" if "dev" in __version__ else "v" + __version__)
@@ -1013,6 +1028,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             "ELYRA_BOOTSTRAP_SCRIPT_URL",
             f"https://raw.githubusercontent.com/{elyra_github_org}/elyra/{elyra_github_branch}/elyra/kfp/bootstrapper.py",  # noqa E501
         )
+        elyra_bootstrap_script_url = (
+            "https://raw.githubusercontent.com/kiersten-stokes/elyra/bootstrapper-changes/elyra/kfp/bootstrapper.py",
+        )  # TODO change back after testing
         elyra_requirements_url = os.getenv(
             "ELYRA_REQUIREMENTS_URL",
             f"https://raw.githubusercontent.com/{elyra_github_org}/"
@@ -1038,17 +1056,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         common_curl_options = "--fail -H 'Cache-Control: no-cache'"
 
-        command_args = []
-
-        command_args.append(
-            f"mkdir -p {container_work_dir} && cd {container_work_dir} && "
+        command_args = [
+            f"mkdir -p {container_work_dir} && cd {container_work_dir}",
             f"echo 'Downloading {elyra_bootstrap_script_url}' && "
-            f"curl {common_curl_options} -L {elyra_bootstrap_script_url} --output bootstrapper.py && "
+            f"curl {common_curl_options} -L {elyra_bootstrap_script_url} --output bootstrapper.py",
             f"echo 'Downloading {elyra_requirements_url}' && "
-            f"curl {common_curl_options} -L {elyra_requirements_url} --output requirements-elyra.txt && "
+            f"curl {common_curl_options} -L {elyra_requirements_url} --output requirements-elyra.txt",
             f"echo 'Downloading {elyra_requirements_url_py37}' && "
-            f"curl {common_curl_options} -L {elyra_requirements_url_py37} --output requirements-elyra-py37.txt && "
-        )
+            f"curl {common_curl_options} -L {elyra_requirements_url_py37} --output requirements-elyra-py37.txt",
+        ]
 
         if is_crio_runtime:
             command_args.append(
@@ -1057,7 +1073,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 f"curl {common_curl_options} -L {python_pip_config_url} --output pip.conf && cd .. && "
             )
 
-        command_args.append(
+        bootstrapper_command = [
             f"python3 -m pip install {python_user_lib_path_target} packaging && "
             "python3 -m pip freeze > requirements-current.txt && "
             "python3 bootstrapper.py "
@@ -1067,36 +1083,47 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             f"--cos-directory '{cos_directory}' "
             f"--cos-dependencies-archive '{cos_dependencies_archive}' "
             f"--file '{filename}' "
-        )
+        ]
 
-        def file_list_to_string(file_list: List[str]) -> str:
+        def list_to_string(item_list: List[str]) -> str:
             """
-            Utiltity function that converts a list of strings to a string
+            Utility function that converts a list of strings to a string
             """
             # Inputs and Outputs separator character.  If updated,
             # same-named variable in bootstrapper.py must be updated!
             INOUT_SEPARATOR = ";"
-            for file in file_list:
-                if INOUT_SEPARATOR in file:
-                    raise ValueError(f"Illegal character ({INOUT_SEPARATOR}) found in filename '{file}'.")
-            return INOUT_SEPARATOR.join(file_list)
+            for item in item_list:
+                if INOUT_SEPARATOR in item:
+                    raise ValueError(f"Illegal character ({INOUT_SEPARATOR}) found in list item '{item}'.")
+            return INOUT_SEPARATOR.join(item_list)
 
         # If upstream nodes declared file outputs they need to
         # be downloaded from object storage by the bootstrapper
         if len(cos_inputs) > 0:
-            inputs_str = file_list_to_string(cos_inputs)
-            command_args.append(f"--inputs '{inputs_str}' ")
+            inputs_str = list_to_string(cos_inputs)
+            bootstrapper_command.append(f"--inputs '{inputs_str}' ")
 
         # If this node produces file outputs they need to be uploaded
         # to object storage by the bootstrapper
         if len(cos_outputs) > 0:
-            outputs_str = file_list_to_string(cos_outputs)
-            command_args.append(f"--outputs '{outputs_str}' ")
+            outputs_str = list_to_string(cos_outputs)
+            bootstrapper_command.append(f"--outputs '{outputs_str}' ")
 
         if is_crio_runtime:
-            command_args.append(f"--user-volume-path '{CRIO_VOL_PYTHON_PATH}' ")
+            bootstrapper_command.append(f"--user-volume-path '{CRIO_VOL_PYTHON_PATH}' ")
 
-        return "".join(command_args)
+        # Set parameters as env vars; this must be done here rather than adding an
+        # env var to the task object because the parameter must be customizable
+        if task_parameters:
+            parameter_str = list_to_string([f"{param.name}=${param.name}" for param in task_parameters])
+            pass_method = "env"  # TODO make configurable
+            bootstrapper_command.append(
+                f"--pipeline-parameters '{parameter_str}' --parameter-pass-method '{pass_method}' "
+            )
+
+        command_args.append("".join(bootstrapper_command))
+
+        return command_args
 
     @staticmethod
     def _sanitize_param_name(name: str) -> str:

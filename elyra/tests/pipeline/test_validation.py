@@ -426,7 +426,7 @@ def test_invalid_node_property_env_var(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=ENV_VARIABLES, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=ENV_VARIABLES, response=response
     )
     issues = response.to_json().get("issues")
     assert issues[0]["severity"] == 1
@@ -461,7 +461,7 @@ def test_valid_node_property_volumes(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=MOUNTED_VOLUMES, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=MOUNTED_VOLUMES, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 0
@@ -491,7 +491,7 @@ def test_invalid_node_property_volumes(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=MOUNTED_VOLUMES, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=MOUNTED_VOLUMES, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 10, issues
@@ -532,7 +532,7 @@ def test_valid_node_property_kubernetes_toleration(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_TOLERATIONS, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=KUBERNETES_TOLERATIONS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 0, response.to_json()
@@ -567,7 +567,7 @@ def test_valid_node_property_kubernetes_pod_annotation(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_POD_ANNOTATIONS, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=KUBERNETES_POD_ANNOTATIONS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 0, response.to_json()
@@ -616,7 +616,7 @@ def test_invalid_node_property_kubernetes_toleration(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_TOLERATIONS, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=KUBERNETES_TOLERATIONS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == len(invalid_tolerations), response.to_json()
@@ -695,7 +695,7 @@ def test_invalid_node_property_kubernetes_pod_annotation(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_POD_ANNOTATIONS, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=KUBERNETES_POD_ANNOTATIONS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == len(
@@ -723,7 +723,7 @@ def test_valid_node_property_secrets(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SECRETS, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=KUBERNETES_SECRETS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 0, issues
@@ -750,7 +750,7 @@ def test_invalid_node_property_secrets(validation_manager):
 
     node = Node(node_dict)
     validation_manager._validate_elyra_owned_property(
-        node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SECRETS, response=response
+        node_id=node.id, node_label=node.label, node=node, property_name=KUBERNETES_SECRETS, response=response
     )
     issues = response.to_json().get("issues")
     assert len(issues) == 14, issues
@@ -798,7 +798,11 @@ def test_valid_node_property_shared_mem_size(validation_manager):
 
         node = Node(node_dict)
         validation_manager._validate_elyra_owned_property(
-            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+            node_id=node.id,
+            node_label=node.label,
+            node=node,
+            property_name=KUBERNETES_SHARED_MEM_SIZE,
+            response=response,
         )
         issues = response.to_json().get("issues")
         assert len(issues) == 0, issues
@@ -810,7 +814,11 @@ def test_valid_node_property_shared_mem_size(validation_manager):
 
         node = Node(node_dict)
         validation_manager._validate_elyra_owned_property(
-            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+            node_id=node.id,
+            node_label=node.label,
+            node=node,
+            property_name=KUBERNETES_SHARED_MEM_SIZE,
+            response=response,
         )
         issues = response.to_json().get("issues")
         assert len(issues) == 0, issues
@@ -829,7 +837,11 @@ def test_invalid_node_property_shared_mem_size(validation_manager):
         node = Node(node_dict)
         response = ValidationResponse()
         validation_manager._validate_elyra_owned_property(
-            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+            node_id=node.id,
+            node_label=node.label,
+            node=node,
+            property_name=KUBERNETES_SHARED_MEM_SIZE,
+            response=response,
         )
         issues = response.to_json().get("issues")
         assert len(issues) == 1, issues
@@ -844,7 +856,11 @@ def test_invalid_node_property_shared_mem_size(validation_manager):
         node = Node(node_dict)
         response = ValidationResponse()
         validation_manager._validate_elyra_owned_property(
-            node_id=node.id, node_label=node.label, node=node, param_name=KUBERNETES_SHARED_MEM_SIZE, response=response
+            node_id=node.id,
+            node_label=node.label,
+            node=node,
+            property_name=KUBERNETES_SHARED_MEM_SIZE,
+            response=response,
         )
         issues = response.to_json().get("issues")
         assert len(issues) == 1, issues

@@ -212,6 +212,7 @@
         "name": "super-node-test",
         "runtime": "kfp",
         "runtime_config": "kfp-yukked1",
+        "properties": {},
         "ui_data": {
           "comments": []
         },
@@ -321,6 +322,7 @@
         }
       ],
       "app_data": {
+        "properties": {},
         "ui_data": {
           "comments": []
         },

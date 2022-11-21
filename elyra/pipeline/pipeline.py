@@ -23,6 +23,7 @@ from typing import List
 from typing import Optional
 
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.properties import ElyraPropertyList
 from elyra.pipeline.properties import EnvironmentVariable
@@ -246,6 +247,7 @@ class GenericOperation(Operation):
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
+                parameters: a list of names of pipeline parameters that should be passed to this operation
         Entries for other (non-built-in) component types are a function of the respective component.
 
         :param elyra_props: dictionary of property key:value pairs that are owned by Elyra
@@ -272,6 +274,7 @@ class GenericOperation(Operation):
         self._component_props["cpu"] = component_props.get("cpu")
         self._component_props["gpu"] = component_props.get("gpu")
         self._component_props["memory"] = component_props.get("memory")
+        self._component_props["parameters"] = component_props.get(PIPELINE_PARAMETERS, [])
 
         if not elyra_props:
             elyra_props = {}
@@ -319,6 +322,10 @@ class GenericOperation(Operation):
     def gpu(self) -> Optional[str]:
         return self._component_props.get("gpu")
 
+    @property
+    def parameters(self) -> Optional[List[str]]:
+        return self._component_props.get("parameters")
+
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):
             return super().__eq__(other)
@@ -353,7 +360,7 @@ class Pipeline(object):
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
         :param description: Pipeline description
         :param pipeline_properties: Key/value pairs representing the properties of this pipeline
-        :param pipeline_parameters: an ElyraPropertyList of the pipeline parameters
+        :param pipeline_parameters: an ElyraPropertyList of pipeline parameters
         """
 
         if not name:
@@ -368,7 +375,7 @@ class Pipeline(object):
         self._runtime = runtime
         self._runtime_config = runtime_config
         self._pipeline_properties = pipeline_properties or {}
-        self._pipeline_parameters = pipeline_parameters or []
+        self._pipeline_parameters = pipeline_parameters or ElyraPropertyList([])
         self._operations = {}
 
     @property
@@ -405,7 +412,7 @@ class Pipeline(object):
         return self._pipeline_properties
 
     @property
-    def pipeline_parameters(self) -> ElyraPropertyList:
+    def parameters(self) -> ElyraPropertyList:
         """
         The list of parameters associated with this pipeline
         """

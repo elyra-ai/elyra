@@ -20,6 +20,7 @@ from abc import abstractmethod
 from enum import Enum
 from importlib import import_module
 import json
+from keyword import iskeyword
 import re
 from typing import Any
 from typing import Dict
@@ -1265,17 +1266,27 @@ class PipelineParameter(ElyraPropertyListItem):
         ),
     ]
 
-    def __init__(self, name, value, required, **kwargs):
-        # TODO convert the value here based on default value vs. value assignment
+    def __init__(self, name, value, default_value, required, **kwargs):
         self.name = name
-        self.value = value
         self.required = required
 
+        # Assign default value, if given
+        self.default_value = default_value.get("value") if isinstance(default_value, dict) else None
+
+        # Assign value, if set; use default_value if not
+        self.value = value.get("value") if isinstance(value, dict) else self.default_value
+
         # Determine python type of given value
-        self.input_type = type(self.value)
-        if isinstance(self.input_type, str):
-            # TODO check for list or dict
+        self.python_data_type = value.get("type") if isinstance(value, dict) else "str"
+        if self.python_data_type == "list":
+            # TODO convert value to list as needed
             pass
+        elif self.python_data_type == "dict":
+            # TODO convert value to dict as needed
+            pass
+
+        # TODO the KFP type name must also be present - probably want to assign this in the KFP processor instead
+        self.display_type = PropertyInputType.allowed_types.get(self.python_data_type, {}).get("display_name")
 
     def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """
@@ -1284,11 +1295,32 @@ class PipelineParameter(ElyraPropertyListItem):
         """
         return self.value
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert instance to a dict with relevant class attributes."""
+        return {"name": self.name, "value": self.value, "default_value": self.default_value, "required": self.required}
+
+    def get_value_for_display(self) -> Dict[str, Any]:
+        """Get a representation of the instance to display in UI error messages."""
+        return self.to_dict()
+
     def get_all_validation_errors(self) -> List[str]:
-        # TODO Ensure param name adheres to python variable naming rules
-        # TODO If 'required' is True, ensure that a value or default value has been provided
-        pass
+        """Perform custom validation on an instance."""
+        validation_errors = []
+        if not self.name:
+            validation_errors.append("Required parameter name was not specified.")
+        elif not self.name.isidentifier():
+            # param name is not a valid python variable name
+            validation_errors.append(
+                f"'{self.name}' is not a valid parameter name: name must be a Python variable name."
+            )
+        elif iskeyword(self.name):
+            # param name collides with a python keyword (e.g. class, def, etc.)
+            validation_errors.append(f"'{self.name}' is not a valid parameter name: name cannot be a Python keyword.")
+
+        # If 'required' is True, a value must be provided
+        if self.required and self.value is None or self.value == "":
+            validation_errors.append("Parameter is marked as required but no value has been assigned.")
+        return validation_errors
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
-        # TODO this path may or may not be reached depending on how processing is implemented
-        pass
+        raise RuntimeError("Method should not be invoked.")
