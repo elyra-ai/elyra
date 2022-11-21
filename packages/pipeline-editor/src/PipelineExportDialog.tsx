@@ -49,12 +49,22 @@ interface IProps {
   runtimeData: IRuntimeData;
   runtimeTypeInfo: IRuntimeType[];
   pipelineType?: string;
+  parameters?: {
+    name: string;
+    default_value?: {
+      type: 'str' | 'int' | 'float' | 'bool' | 'list' | 'dict';
+      value: any;
+    };
+    type?: string;
+    required?: boolean;
+  }[];
 }
 
 export const PipelineExportDialog: React.FC<IProps> = ({
   runtimeData,
   runtimeTypeInfo,
-  pipelineType
+  pipelineType,
+  parameters
 }) => {
   return (
     <form className="elyra-dialog-form">
@@ -75,6 +85,40 @@ export const PipelineExportDialog: React.FC<IProps> = ({
       />
       <label htmlFor="overwrite">Replace if file already exists</label>
       <br />
+      <br />
+      {parameters ? (
+        <div>
+          <label
+            style={{
+              fontWeight: '600',
+              fontSize: 'var(--jp-content-font-size1)'
+            }}
+          >
+            Parameters
+          </label>
+          {parameters.map(param => {
+            if (!param.name) {
+              return undefined;
+            }
+            return (
+              <div key={param.name}>
+                <label htmlFor={`${param.name}-paramInput`}>
+                  {param.name}:
+                </label>
+                <br />
+                <input
+                  id={`${param.name}-paramInput`}
+                  name={`${param.name}-paramInput`}
+                  defaultValue={param.default_value?.value}
+                  data-form-required={param.required}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div />
+      )}
     </form>
   );
 };

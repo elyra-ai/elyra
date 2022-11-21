@@ -713,6 +713,9 @@ const PipelineWrapper: React.FC<IProps> = ({
                 runtimeData={runtimeData}
                 runtimeTypeInfo={runtimeTypes}
                 pipelineType={type}
+                parameters={
+                  pipelineJson?.pipelines[0].app_data.properties.parameters
+                }
               />
             ),
             buttons: [Dialog.cancelButton(), Dialog.okButton()],
