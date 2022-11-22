@@ -695,6 +695,9 @@ const PipelineWrapper: React.FC<IProps> = ({
                 name={pipelineName}
                 runtimeData={runtimeData}
                 pipelineType={type}
+                parameters={
+                  pipelineJson?.pipelines[0].app_data.properties.parameters
+                }
               />
             ),
             buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -710,6 +713,9 @@ const PipelineWrapper: React.FC<IProps> = ({
                 runtimeData={runtimeData}
                 runtimeTypeInfo={runtimeTypes}
                 pipelineType={type}
+                parameters={
+                  pipelineJson?.pipelines[0].app_data.properties.parameters
+                }
               />
             ),
             buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -756,6 +762,19 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0].app_data.source = PathExt.basename(
         contextRef.current.path
       );
+      for (const paramIndex in pipelineJson.pipelines[0].app_data.properties
+        .parameters ?? []) {
+        const param =
+          pipelineJson.pipelines[0].app_data.properties.parameters[paramIndex];
+        if (param.name) {
+          pipelineJson.pipelines[0].app_data.properties.parameters[
+            paramIndex
+          ].value = dialogResult.value[`${param.name}-paramInput`];
+        }
+      }
+      console.log(pipelineJson);
+      pipelineJson.pipelines[0].app_data.name =
+        dialogResult.value.pipeline_name ?? pipelineName;
 
       // Runtime info
       pipelineJson.pipelines[0].app_data.runtime_config =

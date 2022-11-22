@@ -521,6 +521,12 @@ span.bx--list-box__label {
   margin-right: 3px;
 }
 
+.elyra-formEditor#pipeline-parameters
+  .description-wrapper:hover
+  .field-description {
+  transform: translate(-50%, 130%);
+}
+
 .field-array-of-object .array-item:hover,
 .field-object
   > fieldset
