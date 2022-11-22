@@ -754,9 +754,9 @@ be fully qualified (i.e., prefixed with their package names).
         }
 
     @property
-    def supports_pipeline_params(self) -> bool:
+    def pipeline_parameter_class(self) -> Optional[type]:
         """AirflowPipelineProcessor does not support pipeline parameters."""
-        return False
+        return None
 
 
 class AirflowPipelineProcessorResponse(RuntimePipelineProcessorResponse):

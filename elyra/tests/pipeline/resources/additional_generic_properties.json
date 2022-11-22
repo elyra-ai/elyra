@@ -190,7 +190,7 @@
     "type": "object",
     "properties": {
       "size": {
-        "type": "number",
+        "type": "integer",
         "title": "Memory Size (GB)",
         "minimum": 0
       }

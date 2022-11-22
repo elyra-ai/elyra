@@ -58,33 +58,36 @@ class PropertyInputType:
     object with optional custom default value, placeholder, and enum.
     """
 
-    allowed_types = {
-        "str": {"display_name": "String", "json_type": "string", "default_value": ""},
-        "bool": {"display_name": "Boolean", "json_type": "boolean", "default_value": False, "placeholder": " "},
-        "int": {"display_name": "Integer", "json_type": "number"},
-        "float": {"display_name": "Float", "json_type": "number"},
-        "list": {"display_name": "List", "json_type": "string", "default_value": "[]"},  # TODO check json type
-        "dict": {"display_name": "Dictionary", "json_type": "string", "default_value": "{}"},  # TODO check json type
+    _python_input_types = {
+        "str": {"json_type": "string", "default_value": ""},
+        "bool": {"json_type": "boolean", "default_value": False, "placeholder": " "},
+        "int": {"json_type": "integer"},
+        "float": {"json_type": "number"},
+        "list": {"json_type": "array", "default_value": []},
+        "dict": {"json_type": "dict", "default_value": {}},
     }
 
     def __init__(
         self,
-        input_type: str,
+        base_input_type: str,
         default_value: Optional[Any] = None,
         placeholder: Optional[Any] = None,
         enum: Optional[List[Any]] = None,
+        runtime_specific_types: Optional[Dict[str, Dict]] = None,
     ):
-        if input_type not in self.allowed_types:
+        # Get type info from passed in type dict, if available; default to standard python types
+        allowed_input_types = runtime_specific_types or self._python_input_types
+        if base_input_type not in allowed_input_types:
             raise ValueError(
-                f"Invalid property type '{input_type}': valid types are f{list(self.allowed_types.keys())}."
+                f"Invalid property type '{base_input_type}': valid types are f{list(allowed_input_types.keys())}."
             )
+        type_defaults = allowed_input_types[base_input_type]
 
-        type_defaults = self.allowed_types[input_type]
-
-        self.input_type = input_type
+        # Set types needed for schema
+        self.base_input_type = base_input_type
         self.json_data_type = type_defaults.get("json_type")
-        self.display_name = type_defaults.get("display_name")
 
+        # Set extra schema details
         self.default_value = default_value if default_value is not None else type_defaults.get("default_value")
         self.placeholder = placeholder if placeholder is not None else type_defaults.get("placeholder")
         self.enum = enum
@@ -271,21 +274,23 @@ class ElyraProperty(ABC):
                 # Render a oneOf block
                 properties[attr.id]["oneOf"] = []
                 for allowed_type in attr.allowed_input_types:
-                    display_title = f"{allowed_type.display_name}-type parameter"
+                    display_title = f"Parameter value type: {allowed_type.base_input_type}"
                     schema_obj = {
                         "type": "object",
+                        "title": display_title,
                         "properties": {
-                            "type": {"type": "string", "default": allowed_type.input_type},
-                            "value": {"type": allowed_type.json_data_type, "title": display_title},
+                            "type": {"type": "string", "default": allowed_type.base_input_type},
+                            "value": {"type": allowed_type.json_data_type, "title": allowed_type.base_input_type},
                         },
+                        "uihints": {"type": {"ui:widget": "hidden"}},
                     }
 
                     if allowed_type.default_value is not None:
                         schema_obj["properties"]["value"]["default"] = allowed_type.default_value
                     if allowed_type.enum:
                         schema_obj["properties"]["value"]["enum"] = allowed_type.enum
-                    # if allowed_type.placeholder is not None:  # TODO ignoring placeholders in oneOfs for now
-                    #    schema_obj["properties"][uihints] = {"ui:placeholder": allowed_type.placeholder}
+                    if allowed_type.placeholder is not None:
+                        schema_obj["uihints"]["value"] = {"ui:placeholder": allowed_type.placeholder}
 
                     properties[attr.id]["oneOf"].append(schema_obj)
 
@@ -399,14 +404,14 @@ class CustomSharedMemorySize(ElyraProperty):
         PropertyAttribute(
             attribute_id="size",
             display_name="Memory Size (GB)",
-            allowed_input_types=[PropertyInputType(input_type="int", placeholder=0)],
+            allowed_input_types=[PropertyInputType(base_input_type="int", placeholder=0)],
             hidden=False,
             required=False,
         ),
         PropertyAttribute(
             attribute_id="units",
             display_name="Units",
-            allowed_input_types=[PropertyInputType(input_type="str")],
+            allowed_input_types=[PropertyInputType(base_input_type="str")],
             hidden=True,
             required=False,
         ),
@@ -511,7 +516,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="env_var",
             display_name="Environment Variable",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="ENV_VAR")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="ENV_VAR")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -519,7 +524,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="value")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="value")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -578,7 +583,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="env_var",
             display_name="Environment Variable",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="ENV_VAR")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="ENV_VAR")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -586,7 +591,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="name",
             display_name="Secret Name",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="secret-name")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="secret-name")],
             hidden=False,
             required=True,
             use_in_key=False,
@@ -594,7 +599,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Secret Key",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="secret-key")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="secret-key")],
             hidden=False,
             required=True,
             use_in_key=False,
@@ -645,7 +650,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="path",
             display_name="Mount Path",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="/mount/path")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="/mount/path")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -653,7 +658,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="pvc_name",
             display_name="Persistent Volume Claim Name",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="pvc-name")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="pvc-name")],
             hidden=False,
             required=True,
             use_in_key=False,
@@ -661,7 +666,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="sub_path",
             display_name="Sub Path",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="relative/path/within/volume")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="relative/path/within/volume")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -669,7 +674,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="read_only",
             display_name="Mount volume read-only",
-            allowed_input_types=[PropertyInputType(input_type="bool", default_value=False, placeholder=None)],
+            allowed_input_types=[PropertyInputType(base_input_type="bool", default_value=False, placeholder=None)],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -727,7 +732,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="annotation_key")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="annotation_key")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -735,7 +740,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="annotation_value")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="annotation_value")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -786,7 +791,7 @@ class KubernetesLabel(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="label_key")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="label_key")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -794,7 +799,7 @@ class KubernetesLabel(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="label_value")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="label_value")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -843,7 +848,7 @@ class KubernetesToleration(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="key")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="key")],
             hidden=False,
             required=False,
             use_in_key=True,
@@ -851,7 +856,9 @@ class KubernetesToleration(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="operator",
             display_name="Operator",
-            allowed_input_types=[PropertyInputType(input_type="str", default_value="Equal", enum=["Equal", "Exists"])],
+            allowed_input_types=[
+                PropertyInputType(base_input_type="str", default_value="Equal", enum=["Equal", "Exists"])
+            ],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -859,7 +866,7 @@ class KubernetesToleration(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="value")],
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="value")],
             hidden=False,
             required=False,
             use_in_key=True,
@@ -869,7 +876,7 @@ class KubernetesToleration(ElyraPropertyListItem):
             display_name="Effect",
             allowed_input_types=[
                 PropertyInputType(
-                    input_type="str",
+                    base_input_type="str",
                     placeholder="NoSchedule",
                     enum=["", "NoExecute", "NoSchedule", "PreferNoSchedule"],
                 )
@@ -1006,7 +1013,7 @@ class ElyraPropertyJSONEncoder(json.JSONEncoder):
         """
         Render dataclass content as dict
         """
-        return o.__dict__ if isinstance(o, ElyraProperty) else super().default(o)
+        return o.__dict__ if isinstance(o, (ElyraProperty, PropertyInputType)) else super().default(o)
 
 
 class ComponentProperty(object):
@@ -1212,59 +1219,11 @@ class InputTypeDescriptionMap(Enum):
 
 
 class PipelineParameter(ElyraPropertyListItem):
-    """TODO"""
+    """An ElyraProperty representing a single pipeline parameter"""
 
     property_id = PIPELINE_PARAMETERS
     property_display_name = "Pipeline Parameters"
-    property_description = """TODO"""  # TODO
-    property_attributes = [
-        ListItemPropertyAttribute(
-            attribute_id="name",
-            display_name="Parameter Name",
-            allowed_input_types=[PropertyInputType(input_type="str", placeholder="param_1")],
-            hidden=False,
-            required=True,
-            use_in_key=True,
-        ),
-        ListItemPropertyAttribute(
-            attribute_id="default_value",
-            display_name="Default Value",
-            allowed_input_types=[
-                PropertyInputType(input_type="str", placeholder="default_val"),
-                PropertyInputType(input_type="int"),
-                PropertyInputType(input_type="float"),
-                PropertyInputType(input_type="bool"),
-                PropertyInputType(input_type="list"),
-                PropertyInputType(input_type="dict"),
-            ],
-            hidden=False,
-            required=False,
-            use_in_key=False,
-        ),
-        ListItemPropertyAttribute(
-            attribute_id="value",
-            display_name="Value",
-            allowed_input_types=[
-                PropertyInputType(input_type="str"),
-                PropertyInputType(input_type="int"),
-                PropertyInputType(input_type="float"),
-                PropertyInputType(input_type="bool"),
-                PropertyInputType(input_type="list"),
-                PropertyInputType(input_type="dict"),
-            ],
-            hidden=True,
-            required=False,
-            use_in_key=False,
-        ),
-        ListItemPropertyAttribute(
-            attribute_id="required",
-            display_name="Required",
-            allowed_input_types=[PropertyInputType(input_type="bool", placeholder=" ")],
-            hidden=False,
-            required=True,
-            use_in_key=False,
-        ),
-    ]
+    property_description = """Typed variables to be passed to the pipeline."""
 
     def __init__(self, name, value, default_value, required, **kwargs):
         self.name = name
@@ -1275,18 +1234,6 @@ class PipelineParameter(ElyraPropertyListItem):
 
         # Assign value, if set; use default_value if not
         self.value = value.get("value") if isinstance(value, dict) else self.default_value
-
-        # Determine python type of given value
-        self.python_data_type = value.get("type") if isinstance(value, dict) else "str"
-        if self.python_data_type == "list":
-            # TODO convert value to list as needed
-            pass
-        elif self.python_data_type == "dict":
-            # TODO convert value to dict as needed
-            pass
-
-        # TODO the KFP type name must also be present - probably want to assign this in the KFP processor instead
-        self.display_type = PropertyInputType.allowed_types.get(self.python_data_type, {}).get("display_name")
 
     def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """
@@ -1305,6 +1252,105 @@ class PipelineParameter(ElyraPropertyListItem):
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
+        raise RuntimeError("Method should be invoked only by runtime-specific subclasses.")
+
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        raise RuntimeError("Method should not be invoked.")
+
+
+class KfpPropertyInputType(PropertyInputType):
+    """
+    An object representing a single allowed input type for a PropertyAttribute
+    object for KUBEFLOW_PIPELINES runtime processors.
+    """
+
+    _allowed_input_types = {
+        "String": {"python_type": "str", "json_type": "string", "default_value": ""},
+        "Bool": {"python_type": "bool", "json_type": "boolean", "default_value": False, "placeholder": " "},
+        "Integer": {"python_type": "int", "json_type": "integer"},
+        "Float": {"python_type": "float", "json_type": "number"},
+        "List": {"python_type": "list", "json_type": "array", "default_value": []},
+        "Dict": {"python_type": "dict", "json_type": "object", "default_value": {}},
+    }
+
+    def __init__(
+        self,
+        base_input_type: str,
+        default_value: Optional[Any] = None,
+        placeholder: Optional[Any] = None,
+        enum: Optional[List[Any]] = None,
+    ):
+        super().__init__(
+            base_input_type=base_input_type,
+            default_value=default_value,
+            placeholder=placeholder,
+            enum=enum,
+            runtime_specific_types=self._allowed_input_types,
+        )
+
+        self.python_type = self._allowed_input_types[base_input_type].get("python_type") or f'"{base_input_type}"'
+
+
+class KfpPipelineParameter(PipelineParameter):
+    """An ElyraProperty representing a single pipeline parameter for the Kubeflow Pipelines runtime"""
+
+    property_id = "KFP_PIPELINE_PARAMETERS"
+    property_attributes = [
+        ListItemPropertyAttribute(
+            attribute_id="name",
+            display_name="Parameter Name",
+            allowed_input_types=[PropertyInputType(base_input_type="str", placeholder="param_1")],
+            hidden=False,
+            required=True,
+            use_in_key=True,
+        ),
+        ListItemPropertyAttribute(
+            attribute_id="default_value",
+            display_name="Default Value",
+            allowed_input_types=[
+                KfpPropertyInputType(base_input_type="String", placeholder="default_val"),
+                KfpPropertyInputType(base_input_type="Integer"),
+                KfpPropertyInputType(base_input_type="Float"),
+                KfpPropertyInputType(base_input_type="Bool"),
+                KfpPropertyInputType(base_input_type="List"),
+                KfpPropertyInputType(base_input_type="Dict"),
+            ],
+            hidden=False,
+            required=False,
+            use_in_key=False,
+        ),
+        ListItemPropertyAttribute(
+            attribute_id="value",
+            display_name="Value",
+            allowed_input_types=[
+                KfpPropertyInputType(base_input_type="String"),
+                KfpPropertyInputType(base_input_type="Integer"),
+                KfpPropertyInputType(base_input_type="Float"),
+                KfpPropertyInputType(base_input_type="Bool"),
+                KfpPropertyInputType(base_input_type="List"),
+                KfpPropertyInputType(base_input_type="Dict"),
+            ],
+            hidden=True,
+            required=False,
+            use_in_key=False,
+        ),
+        ListItemPropertyAttribute(
+            attribute_id="required",
+            display_name="Required",
+            allowed_input_types=[PropertyInputType(base_input_type="bool", placeholder=" ")],
+            hidden=False,
+            required=True,
+            use_in_key=False,
+        ),
+    ]
+
+    def __init__(self, name, value, default_value, required, **kwargs):
+        super().__init__(name=name, value=value, default_value=default_value, required=required)
+        self.input_type = KfpPropertyInputType(base_input_type=value.get("type"))
+        # TODO Coerce number types to ints and floats if needed
+
+    def get_all_validation_errors(self) -> List[str]:
+        """Perform custom validation on an instance."""
         validation_errors = []
         if not self.name:
             validation_errors.append("Required parameter name was not specified.")
@@ -1320,7 +1366,6 @@ class PipelineParameter(ElyraPropertyListItem):
         # If 'required' is True, a value must be provided
         if self.required and self.value is None or self.value == "":
             validation_errors.append("Parameter is marked as required but no value has been assigned.")
-        return validation_errors
 
-    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
-        raise RuntimeError("Method should not be invoked.")
+        # TODO check that input type matches the value
+        return validation_errors

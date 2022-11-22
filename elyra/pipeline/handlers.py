@@ -32,10 +32,10 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_catalog import RefreshInProgressError
 from elyra.pipeline.parser import PipelineParser
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.processor import PipelineProcessorRegistry
-from elyra.pipeline.properties import PipelineParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.pipeline.validation import PipelineValidationManager
@@ -226,9 +226,11 @@ class PipelineParametersHandler(HttpErrorMixin, APIHandler):
         if not runtime_processor_type:
             raise web.HTTPError(400, f"Invalid runtime type '{runtime_type}'")
 
-        if PipelineProcessorManager.instance().supports_pipeline_params(runtime_type=runtime_processor_type):
+        ppm = PipelineProcessorManager.instance()
+        pipeline_parameter_class = ppm.get_pipeline_parameter_class(runtime_type=runtime_processor_type)
+        if pipeline_parameter_class is not None:
             # Get pipeline parameters json schema
-            pipeline_params_json = PipelineParameter.get_schema()
+            pipeline_params_json = pipeline_parameter_class.get_schema()
             self.set_status(200)
         else:
             # Pipeline parameters are not supported, return message indicating such
@@ -282,6 +284,9 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         if self.request.path.endswith("/properties"):
             # Return complete set of component properties
             json_response = ComponentCache.to_canvas_properties(component)
+            if not PipelineProcessorManager.instance().supports_pipeline_params(runtime_type=runtime_processor_type):
+                # Pipeline parameters are not supported and the property can be removed from the set
+                json_response["properties"]["component_parameters"]["properties"].pop(PIPELINE_PARAMETERS, None)
         else:
             # Return component definition content
             json_response = json.dumps(

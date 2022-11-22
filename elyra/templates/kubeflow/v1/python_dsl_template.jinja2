@@ -26,7 +26,7 @@ factory_{{ hash | python_safe }} = kfp.components.load_component_from_text(compo
 def generated_pipeline(
 {% if pipeline_parameters %}
 {% for parameter in pipeline_parameters %}
-    {{ parameter.name }}: {{ parameter.python_data_type}} = {{ parameter.value|tojson }},
+    {{ parameter.name }}: {{ parameter.input_type.python_type }} = {{ parameter.value|tojson }},
 {% endfor %}
 {% endif %}
 ):

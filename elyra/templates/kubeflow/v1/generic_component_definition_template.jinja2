@@ -3,15 +3,14 @@ description: Run a Jupyter notebook or Python/R script
 {% if task_parameters %}
 inputs:
 {%- for parameter in task_parameters %}
-- {name: {{ parameter.name }}, type: {{ parameter.display_type }}}
+- {name: {{ parameter.name }}, type: {{ parameter.input_type.base_input_type }}}
 {%- endfor %}
 {% endif %}
 implementation:
   container:
     image: {{ container_image }}
-    command:
-    - sh
-    - -c
+    command: [sh, -c]
+    args:
     - |
       {%- for parameter in task_parameters %}
       {{ parameter.name }}="${{ loop.index0 }}"

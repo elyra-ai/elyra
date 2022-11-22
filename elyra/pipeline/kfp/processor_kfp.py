@@ -67,6 +67,7 @@ from elyra.pipeline.properties import CustomSharedMemorySize
 from elyra.pipeline.properties import DisableNodeCaching
 from elyra.pipeline.properties import ElyraProperty
 from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import KfpPipelineParameter
 from elyra.pipeline.properties import KubernetesAnnotation
 from elyra.pipeline.properties import KubernetesLabel
 from elyra.pipeline.properties import KubernetesSecret
@@ -529,10 +530,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         pipeline_version: str = "",
         experiment_name: str = "",
         pipeline_instance_id: str = None,
+        code_generation_options: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Generate Python DSL for Kubeflow Pipelines v1
         """
+        if not code_generation_options:
+            code_generation_options = {}
 
         # Load Kubeflow Pipelines Python DSL template
         loader = PackageLoader("elyra", "templates/kubeflow/v1")
@@ -558,12 +562,27 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         for key, operation in workflow_tasks.items():
             unique_component_definitions[operation["component_definition_hash"]] = operation["component_definition"]
 
+        referenced_parameters: List[PipelineParameter] = pipeline.parameters
+        if code_generation_options.get("render_all_parameters") is not True:
+            # Gather the list of parameter names referenced by the pipeline's tasks
+            referenced_parameter_names: Set[str] = set()
+            for task in workflow_tasks.values():
+                for task_details in task["task_inputs"].values():
+                    parameter_reference = task_details.get("pipeline_parameter_reference")
+                    if parameter_reference:
+                        referenced_parameter_names.add(parameter_reference)
+
+            # Reduce set of pipeline parameters to those referenced by pipeline tasks
+            for parameter in pipeline.parameters:
+                if parameter.name not in referenced_parameter_names:
+                    referenced_parameters.remove(parameter)
+
         # render the Kubeflow Pipelines Python DSL template
         pipeline_dsl = template.render(
             elyra_version=__version__,
             pipeline_name=pipeline_name,
             pipeline_description=pipeline.description,
-            pipeline_parameters=pipeline.parameters,
+            pipeline_parameters=referenced_parameters,
             workflow_tasks=workflow_tasks,
             component_definitions=unique_component_definitions,
             workflow_engine=workflow_engine.value,
@@ -1017,7 +1036,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         cos_outputs: Optional[List[str]] = [],
         task_parameters: Optional[List[PipelineParameter]] = None,
         is_crio_runtime: bool = False,
-    ) -> str:
+    ) -> List[str]:
         """
         Compose the container command arguments for a generic component, taking into
         account whether the container will run in a CRI-O environment.
@@ -1028,9 +1047,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             "ELYRA_BOOTSTRAP_SCRIPT_URL",
             f"https://raw.githubusercontent.com/{elyra_github_org}/elyra/{elyra_github_branch}/elyra/kfp/bootstrapper.py",  # noqa E501
         )
-        elyra_bootstrap_script_url = (
-            "https://raw.githubusercontent.com/kiersten-stokes/elyra/bootstrapper-changes/elyra/kfp/bootstrapper.py",
-        )  # TODO change back after testing
         elyra_requirements_url = os.getenv(
             "ELYRA_REQUIREMENTS_URL",
             f"https://raw.githubusercontent.com/{elyra_github_org}/"
@@ -1116,9 +1132,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # env var to the task object because the parameter must be customizable
         if task_parameters:
             parameter_str = list_to_string([f"{param.name}=${param.name}" for param in task_parameters])
-            pass_method = "env"  # TODO make configurable
+            # pass_method = "env"
             bootstrapper_command.append(
-                f"--pipeline-parameters '{parameter_str}' --parameter-pass-method '{pass_method}' "
+                f"--pipeline-parameters '{parameter_str}' --parameter-pass-method '{self.parameter_pass_method}' "
             )
 
         command_args.append("".join(bootstrapper_command))
@@ -1221,9 +1237,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         }
 
     @property
-    def supports_pipeline_params(self) -> bool:
-        """KfpPipelineProcessor does support pipeline parameters."""
-        return True
+    def pipeline_parameter_class(self) -> Optional[type]:
+        """KfpPipelineProcessor supports KfpPipelineParameter objects."""
+        return KfpPipelineParameter
 
 
 class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):

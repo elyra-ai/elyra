@@ -37,6 +37,7 @@ from elyra.pipeline.pipeline_constants import (
     KUBERNETES_TOLERATIONS,
     MOUNTED_VOLUMES,
     PIPELINE_DEFAULTS,
+    PIPELINE_PARAMETERS,
     RUNTIME_IMAGE,
 )
 from elyra.pipeline.processor import PipelineProcessorManager
@@ -148,6 +149,11 @@ async def test_get_component_properties_config(jp_fetch):
         "",
     )  # remove Elyra-owned property rendering loop
     properties = json.loads(template)
+
+    # Remove pipeline parameters from properties if necessary
+    if not PipelineProcessorManager.instance().supports_pipeline_params(runtime_type=runtime_type):
+        # Pipeline parameters are not supported and the property can be removed from the set
+        properties["properties"]["component_parameters"]["properties"].pop(PIPELINE_PARAMETERS, None)
 
     # Fetch Elyra-owned properties
     elyra_properties = json.loads(pkg_resources.read_text(resources, "additional_generic_properties.json"))

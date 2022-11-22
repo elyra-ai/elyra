@@ -33,6 +33,7 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
 from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
+from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.properties import ComponentProperty
 from elyra.pipeline.properties import ElyraProperty
 from elyra.pipeline.properties import ElyraPropertyList
@@ -233,8 +234,8 @@ class Pipeline(AppDataBase):
 
     def convert_elyra_owned_properties(self) -> None:
         """
-        Convert select pipeline-level properties to their corresponding dataclass
-        object type. No validation is performed.
+        Convert select pipeline-level properties to instance of their
+        corresponding class object type. No validation is performed.
         """
         # Convert pipeline node default values
         pipeline_defaults = self.pipeline_default_properties
@@ -248,8 +249,24 @@ class Pipeline(AppDataBase):
             else:
                 pipeline_defaults[prop_id] = converted_value
 
-        # Convert pipeline parameters
-        converted_value = ElyraProperty.create_instance(PIPELINE_PARAMETERS, self.pipeline_parameters)
+    def convert_pipeline_parameters(self, runtime_type_name: str) -> None:
+        """
+        Convert any pipeline parameters to instance of the appropriate
+        runtime-specific class. No validation is performed.
+        """
+        if not self.pipeline_parameters:
+            return None
+        if not runtime_type_name:
+            return None  # runtime type name is not given, pipeline cannot support parameters
+
+        # Retrieve the pipelime parameter class associated with pipeline's runtime
+        runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_name)
+        parameter_class = PipelineProcessorManager.instance().get_pipeline_parameter_class(runtime_type=runtime_type)
+        if parameter_class is None:
+            return None  # runtime type does not support parameters, skip
+
+        # Convert pipeline parameters to runtime-specific instances
+        converted_value = ElyraProperty.create_instance(parameter_class.property_id, self.pipeline_parameters)
         if converted_value is not None:
             self.set_property(PIPELINE_PARAMETERS, converted_value)
 
@@ -608,6 +625,7 @@ class PipelineDefinition(object):
         the values to any nodes that do not set their own value for that property.
         """
         self.primary_pipeline.convert_elyra_owned_properties()
+        self.primary_pipeline.convert_pipeline_parameters(runtime_type_name=self.primary_pipeline.type)
 
         for node in self.pipeline_nodes:
             # Determine which Elyra-owned properties will require dataclass conversion, then convert

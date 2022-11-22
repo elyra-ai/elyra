@@ -405,6 +405,7 @@ def test_compose_container_command_args(processor: KfpPipelineProcessor):
         cos_dependencies_archive=cos_dependencies_archive,
         filename=filename,
     )
+    command_args = "".join(command_args)
     assert f"--pipeline-name '{pipeline_name}'" in command_args
     assert f"--cos-endpoint '{cos_endpoint}'" in command_args
     assert f"--cos-bucket '{cos_bucket}'" in command_args
@@ -428,6 +429,7 @@ def test_compose_container_command_args(processor: KfpPipelineProcessor):
                 cos_inputs=file_dependency,
                 cos_outputs=file_output,
             )
+            command_args = "".join(command_args)
 
             if len(file_dependency) < 1:
                 assert "--inputs" not in command_args
@@ -465,7 +467,7 @@ def test_compose_container_command_args_invalid_dependency_filename(processor: K
             with pytest.raises(
                 ValueError,
                 match=re.escape(
-                    f"Illegal character ({reserved_separator_char}) found in filename '{invalid_file_name}'."
+                    f"Illegal character ({reserved_separator_char}) found in list item '{invalid_file_name}'."
                 ),
             ):
                 command_args = processor._compose_container_command_args(
