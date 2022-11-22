@@ -273,6 +273,34 @@ button.elyra-editor-tag.unapplied-tag {
   background-position-y: 50%;
 }
 
+.elyra-formEditor .checkbox label > span {
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  width: fit-content;
+}
+
+.elyra-formEditor .checkboxes {
+  max-height: 6em;
+  overflow: auto;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 0.5em;
+  padding: 3px;
+  width: 75%;
+}
+
+.elyra-formEditor .checkboxes::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+  height: 7px;
+}
+
+.elyra-formEditor .checkboxes::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
 .elyra-formEditor
   .label-header
   .description-wrapper

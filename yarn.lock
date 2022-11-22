@@ -1268,29 +1268,12 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/metadata-common@3.13.0-dev":
-  version "3.13.0"
-  resolved "https://registry.yarnpkg.com/@elyra/metadata-common/-/metadata-common-3.13.0.tgz#63e2d59f4df931d27dc9c1c9db0e5f6b087d08b8"
-  integrity sha512-Nl7jkOMX4i9lLt5DFHp2wGFFWUbwolU9cF0eMKsAbgtU3kXMZEbjnpyCI+y+g6sIzzupYxt2BMwr8d3mC49fwA==
-  dependencies:
-    "@elyra/services" "3.13.0"
-    "@elyra/ui-components" "3.13.0"
-    "@jupyterlab/application" "^3.4.6"
-    "@jupyterlab/apputils" "^3.4.6"
-    "@jupyterlab/codeeditor" "^3.4.6"
-    "@jupyterlab/ui-components" "^3.4.6"
-    "@lumino/algorithm" "^1.3.3"
-    "@lumino/messaging" "^1.4.3"
-    "@lumino/widgets" "^1.19.0"
-    react "^17.0.1"
-    react-dom "^17.0.1"
-
-"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/cc2c7f1b/@elyra/pipeline-editor":
+"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/fa92d3e5/@elyra/pipeline-editor":
   version "1.11.0-rc.2"
-  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/cc2c7f1b/@elyra/pipeline-editor#a94d98f9960f11abda2d4c1456f70aa511387af7"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/fa92d3e5/@elyra/pipeline-editor#c1b9708df85751b736dcb638476f4cdcb74e527e"
   dependencies:
     "@elyra/canvas" "^12.11.2"
-    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/cc2c7f1b/@elyra/pipeline-services"
+    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/fa92d3e5/@elyra/pipeline-services"
     "@rjsf/core" "^4.2.3"
     "@rjsf/utils" "^5.0.0-beta.2"
     "@rjsf/validator-ajv6" "^5.0.0-beta.2"
@@ -1311,36 +1294,12 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.63.tgz#c6a6f9c0bc2215793d78fb90dd5e0b3c46044c7c"
   integrity sha512-p2pNeDmMzRawqFYljv1JAg0HbYlQ57cgMMmO3Slc5IQnKNSa08al5/rtthI04iORWOGi2cF5TNeu2IdjTk0JiA==
 
-"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/cc2c7f1b/@elyra/pipeline-services":
+"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/fa92d3e5/@elyra/pipeline-services":
   version "1.11.0-rc.2"
-  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/cc2c7f1b/@elyra/pipeline-services#afcefaa01795ea61a4afc022930892ed12613b0e"
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/fa92d3e5/@elyra/pipeline-services#afcefaa01795ea61a4afc022930892ed12613b0e"
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
-
-"@elyra/services@3.13.0":
-  version "3.13.0"
-  resolved "https://registry.yarnpkg.com/@elyra/services/-/services-3.13.0.tgz#23cf9c2ba1b2b644d1fc047da520ea0f9a3fd8af"
-  integrity sha512-BxrrGAwjj9FSC+eHACBlHQGOyfTtTlO1aoUHhkV1yPSeNT+ECkToZhxSU6WIwAby/IIV1VRcaOp4dAvllxhNyQ==
-  dependencies:
-    "@jupyterlab/apputils" "^3.4.6"
-    "@jupyterlab/coreutils" "^5.4.6"
-    "@jupyterlab/services" "^6.4.6"
-    react "^17.0.1"
-    react-dom "^17.0.1"
-    react-intl "^3.0.0"
-
-"@elyra/ui-components@3.13.0":
-  version "3.13.0"
-  resolved "https://registry.yarnpkg.com/@elyra/ui-components/-/ui-components-3.13.0.tgz#c12c2f6530f74fee41a482ef58c9dadb7e841188"
-  integrity sha512-ofmmkdewEmB5uVkYafhCzXn+KJM2qv+R/O8BXOXV21+QayW3Mw/4xDHqrwcGHv9bxjtQ8qWO0vyNYqtC+Viuzg==
-  dependencies:
-    "@jupyterlab/apputils" "^3.4.6"
-    "@jupyterlab/ui-components" "^3.4.6"
-    "@rjsf/core" "^3.1.0"
-    react "^17.0.1"
-    react-dom "^17.0.1"
-    react-json-tree "^0.11.2"
 
 "@emotion/is-prop-valid@^1.1.0":
   version "1.2.0"
