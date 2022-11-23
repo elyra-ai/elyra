@@ -58,17 +58,6 @@
           "title": "GPU Vendor",
           "description": "GPU Vendor, or K8s GPU resource type, default nvidia.com/gpu."
         },
-        "gpu_memory": {
-          "type": "integer",
-          "title": "GPU Mem",
-          "description": "Resource amount of GPU Memory. Must be an integer.",
-          "minimum": 0
-        },
-        "gpu_memory_vendor": {
-          "type": "string",
-          "title": "GPU Mem Vendor",
-          "description": "When using vGPU resource types like tencent.com/vcuda-core, set corresponding GPU memory limits like tencent.com/vcuda-memory."
-        },
         "dependencies": {
           "title": "File Dependencies",
           "description": "Local file dependencies that need to be copied to remote execution environment.",

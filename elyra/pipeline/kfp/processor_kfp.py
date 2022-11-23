@@ -787,15 +787,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 gpu_vendor = "nvidia.com/gpu"
                 if operation.gpu_vendor:
                     gpu_vendor = operation.gpu_vendor
-                workflow_task["task_modifiers"]["gpu_limit"] = {
-                    "size": operation.gpu,
-                    "vendor": gpu_vendor,
-                }
-                if operation.gpu_memory:
-                    workflow_task["task_modifiers"]["gpu_memory_limit"] = {
-                    "size": operation.gpu_memory,
-                    "vendor": operation.gpu_memory_vendor,
-                }
+                workflow_task["task_modifiers"]["gpu_limit"] = {"size": operation.gpu, "vendor": gpu_vendor}
 
                 if is_crio_runtime:
                     # Attach empty dir volume
