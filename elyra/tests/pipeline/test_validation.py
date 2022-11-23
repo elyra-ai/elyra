@@ -450,7 +450,7 @@ def test_validate_filepath(pvm, dummy_text_file: Path, dummy_binary_file: Path):
     assert not response.has_fatal, response.to_json()
     assert not response.to_json().get("issues")
 
-    # Test scenario 3: binary files are invalid input for 'file' widgets
+    # Test scenario 4: binary files are invalid input for 'file' widgets
     # for custom components
     pvm._validate_filepath(
         node_id=node["id"],
