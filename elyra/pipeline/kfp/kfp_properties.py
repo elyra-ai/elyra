@@ -36,7 +36,7 @@ class KfpPropertyInputType(PropertyInputType):
         "Bool": {"type_hint": "bool", "json_type": "boolean", "default_value": False, "placeholder": " "},
         "Integer": {"type_hint": "int", "json_type": "integer"},
         "Float": {"type_hint": "float", "json_type": "number", "render_input_value": True},
-        "CustomString": {"json_type": "string", "type_title": "String with custom class name"}
+        # "CustomString": {"json_type": "string", "type_title": "String with custom class name"}
         # "List": {"type_hint": "list", "json_type": "array", "default_value": []},  # not yet supported by frontend
         # "Dict": {"type_hint": "dict", "json_type": "object", "default_value": {}},  # not yet supported by frontend
     }
@@ -113,11 +113,11 @@ class KfpPipelineParameter(PipelineParameter):
 
     def __init__(self, name, value, default_value, required, **kwargs):
         super().__init__(name=name, value=value, default_value=default_value, required=required)
-        user_selected_type = default_value.get("type")  # TODO or value.get("type")
+        user_selected_type = default_value.get("type")  # TODO or value.get("type") - depends on pipeline JSON
 
         kwargs = {}
-        if user_selected_type == "CustomString":
-            kwargs["type_hint"] = "..."  # TODO grab custom type name entered by user
+        # if user_selected_type == "CustomString":
+        #    kwargs["type_hint"] = "..."  # TODO grab custom type name entered by user
 
         self.input_type = KfpPropertyInputType(base_type=user_selected_type, **kwargs)
         # TODO Coerce number types to ints and floats if needed
@@ -139,6 +139,4 @@ class KfpPipelineParameter(PipelineParameter):
         # If 'required' is True, a value must be provided
         if self.required and self.value is None or self.value == "":
             validation_errors.append("Parameter is marked as required but no value has been assigned.")
-
-        # TODO check that input type matches the value?
         return validation_errors
