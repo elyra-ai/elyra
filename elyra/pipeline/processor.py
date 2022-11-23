@@ -31,7 +31,6 @@ from typing import Union
 
 import entrypoints
 from minio.error import S3Error
-from traitlets import default
 from traitlets.config import Bool
 from traitlets.config import LoggingConfigurable
 from traitlets.config import SingletonConfigurable
@@ -391,29 +390,6 @@ class PipelineProcessor(LoggingConfigurable):  # ABC
 
 
 class RuntimePipelineProcessor(PipelineProcessor):
-
-    # Set the method for passing parameters to notebook and scripts
-    parameter_pass_default = "env"
-    parameter_pass_method_env = "ELYRA_PARAMETER_PASS_METHOD"
-    parameter_pass_method = Unicode(
-        parameter_pass_default,
-        help="""Sets the method to be used to pass pipeline parameters
-                 to notebooks and scripts. Can be one of: ["env"].
-                 (default=env). (ELYRA_PARAMETER_PASS_METHOD env var)""",
-    ).tag(config=True)
-
-    @default("parameter_pass_method")
-    def parameter_pass_method_default(self):
-        parameter_pass_default = RuntimePipelineProcessor.parameter_pass_default
-        try:
-            parameter_pass_default = int(os.getenv(self.parameter_pass_method_env, parameter_pass_default))
-        except ValueError:
-            self.log.info(
-                f"Unable to parse environmental variable {self.parameter_pass_method_env}, "
-                f"using the default value of {self.parameter_pass_default}"
-            )
-        return parameter_pass_default
-
     def _get_dependency_archive_name(self, operation: GenericOperation) -> str:
         return f"{Path(operation.filename).stem}-{operation.id}.tar.gz"
 

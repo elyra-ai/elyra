@@ -42,6 +42,8 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.dsl import RUN_ID_PLACEHOLDER
 from kubernetes import client as k8s_client
+from traitlets import default
+from traitlets import Unicode
 
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
@@ -58,6 +60,7 @@ from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
+from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.processor import PipelineProcessor
@@ -67,7 +70,6 @@ from elyra.pipeline.properties import CustomSharedMemorySize
 from elyra.pipeline.properties import DisableNodeCaching
 from elyra.pipeline.properties import ElyraProperty
 from elyra.pipeline.properties import ElyraPropertyList
-from elyra.pipeline.properties import KfpPipelineParameter
 from elyra.pipeline.properties import KubernetesAnnotation
 from elyra.pipeline.properties import KubernetesLabel
 from elyra.pipeline.properties import KubernetesSecret
@@ -122,6 +124,30 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     # must exist and be known before the container is started.
     # Defaults to `/tmp`
     WCD = os.getenv("ELYRA_WRITABLE_CONTAINER_DIR", "/tmp").strip().rstrip("/")
+
+    # Set the method for passing parameters to notebook and scripts
+    # Only one value is currently supported ("env", which passes
+    # parameters as environment variables)
+    parameter_pass_default = "env"
+    parameter_pass_method_env = "ELYRA_PARAMETER_PASS_METHOD"
+    parameter_pass_method = Unicode(
+        parameter_pass_default,
+        help="""Sets the method to be used to pass pipeline parameters
+                     to notebooks and scripts. Can be one of: ["env"].
+                     (default=env). (ELYRA_PARAMETER_PASS_METHOD env var)""",
+    ).tag(config=True)
+
+    @default("parameter_pass_method")
+    def parameter_pass_method_default(self):
+        parameter_pass_default = RuntimePipelineProcessor.parameter_pass_default
+        try:
+            parameter_pass_default = os.getenv(self.parameter_pass_method_env, parameter_pass_default)
+        except ValueError:
+            self.log.info(
+                f"Unable to parse environmental variable {self.parameter_pass_method_env}, "
+                f"using the default value of {self.parameter_pass_default}"
+            )
+        return parameter_pass_default
 
     def process(self, pipeline):
         """
@@ -562,7 +588,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         for key, operation in workflow_tasks.items():
             unique_component_definitions[operation["component_definition_hash"]] = operation["component_definition"]
 
-        referenced_parameters: List[PipelineParameter] = pipeline.parameters
+        pipeline_parameters: List[PipelineParameter] = pipeline.parameters
         if code_generation_options.get("render_all_parameters") is not True:
             # Gather the list of parameter names referenced by the pipeline's tasks
             referenced_parameter_names: Set[str] = set()
@@ -575,14 +601,14 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             # Reduce set of pipeline parameters to those referenced by pipeline tasks
             for parameter in pipeline.parameters:
                 if parameter.name not in referenced_parameter_names:
-                    referenced_parameters.remove(parameter)
+                    pipeline_parameters.remove(parameter)
 
         # render the Kubeflow Pipelines Python DSL template
         pipeline_dsl = template.render(
             elyra_version=__version__,
             pipeline_name=pipeline_name,
             pipeline_description=pipeline.description,
-            pipeline_parameters=referenced_parameters,
+            pipeline_parameters=pipeline_parameters,
             workflow_tasks=workflow_tasks,
             component_definitions=unique_component_definitions,
             workflow_engine=workflow_engine.value,
@@ -1132,7 +1158,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # env var to the task object because the parameter must be customizable
         if task_parameters:
             parameter_str = list_to_string([f"{param.name}=${param.name}" for param in task_parameters])
-            # pass_method = "env"
             bootstrapper_command.append(
                 f"--pipeline-parameters '{parameter_str}' --parameter-pass-method '{self.parameter_pass_method}' "
             )
