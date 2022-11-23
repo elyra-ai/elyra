@@ -440,7 +440,7 @@ span.bx--list-box__label {
 }
 
 .elyra-PipelineEditor .form-group.field.field-integer {
-  width: 30%;
+  width: 100%;
 }
 
 .elyra-PipelineEditor .array-pipelineDefaults.form-control {
@@ -834,6 +834,20 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 .elyra-resourceInputDescription {
   padding-top: 4px;
   padding-bottom: 4px;
+}
+
+div#root_component_parameters_cpu,
+div#root_component_parameters_memory,
+div#root_component_parameters_gpu,
+div#root_component_parameters_gpu_vendor {
+  width: 50%;
+}
+
+input#root_component_parameters_cpu,
+input#root_component_parameters_memory,
+input#root_component_parameters_gpu,
+input#root_component_parameters_gpu_vendor {
+  width: 100%;
 }
 
 #cpu,

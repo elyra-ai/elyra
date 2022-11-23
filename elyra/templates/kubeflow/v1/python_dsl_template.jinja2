@@ -65,7 +65,7 @@ def generated_pipeline(
     {{ task_name }}.container.set_memory_request(memory="{{ workflow_task.task_modifiers.mem_request.size }}{{ workflow_task.task_modifiers.mem_request.units }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.gpu_limit and workflow_task.task_modifiers.gpu_limit.size %}
-    {{ task_name }}.container.set_gpu_limit(gpu="{{ workflow_task.task_modifiers.gpu_limit.size }}", vendor="{{ workflow_task.task_modifiers.gpu_limit.vendor }}")
+    {{ task_name }}.container.add_resource_limit(resource_name="{{ workflow_task.task_modifiers.gpu_limit.vendor }}", value="{{ workflow_task.task_modifiers.gpu_limit.size }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.env_variables %}
 {%    for env_var_name, env_var_value in workflow_task.task_modifiers.env_variables.items() %}
