@@ -527,6 +527,12 @@ span.bx--list-box__label {
   transform: translate(-45%, 145%);
 }
 
+.elyra-formEditor#pipeline-parameters .checkbox label {
+  display: flex;
+  align-items: center;
+  margin: 0px 0 7px 0;
+}
+
 .field-array-of-object .array-item:hover,
 .field-object
   > fieldset
