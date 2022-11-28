@@ -46,6 +46,7 @@ form.rjsf {
 fieldset#root > div > fieldset {
   display: flex;
   flex-wrap: wrap;
+  min-inline-size: auto;
 }
 
 label.control-label {
@@ -54,10 +55,7 @@ label.control-label {
 }
 
 fieldset#root {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: space-between;
+  display: contents;
 }
 
 .form-group.field {
@@ -282,11 +280,10 @@ button.elyra-editor-tag.unapplied-tag {
 
 .elyra-formEditor .checkboxes {
   max-height: 6em;
-  overflow: auto;
+  overflow: scroll;
   border: 1px solid var(--jp-border-color2);
   border-radius: 0.5em;
   padding: 3px;
-  width: 75%;
 }
 
 .elyra-formEditor .checkboxes::-webkit-scrollbar {
