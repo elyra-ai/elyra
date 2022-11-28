@@ -524,7 +524,7 @@ span.bx--list-box__label {
 .elyra-formEditor#pipeline-parameters
   .description-wrapper:hover
   .field-description {
-  transform: translate(-50%, 130%);
+  transform: translate(-45%, 145%);
 }
 
 .field-array-of-object .array-item:hover,
