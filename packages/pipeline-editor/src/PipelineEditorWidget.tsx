@@ -710,6 +710,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                 runtimeData={runtimeData}
                 runtimeTypeInfo={runtimeTypes}
                 pipelineType={type}
+                exportName={pipelineName}
               />
             ),
             buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -765,7 +766,8 @@ const PipelineWrapper: React.FC<IProps> = ({
       const pipeline_dir = PathExt.dirname(contextRef.current.path);
       const basePath = pipeline_dir ? `${pipeline_dir}/` : '';
       const exportType = dialogResult.value.pipeline_filetype;
-      const exportPath = `${basePath}${pipelineName}.${exportType}`;
+      const exportName = dialogResult.value.export_name;
+      const exportPath = `${basePath}${exportName}.${exportType}`;
 
       switch (actionType) {
         case 'run':
