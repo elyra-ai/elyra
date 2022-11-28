@@ -30,7 +30,7 @@ export interface IParameterProps {
 export const ParameterInputForm: React.FC<IParameterProps> = ({
   parameters
 }) => {
-  return parameters ? (
+  return parameters && parameters.length > 0 ? (
     <div>
       <label
         style={{

@@ -686,6 +686,16 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       let dialogOptions: Partial<Dialog.IOptions<any>>;
 
+      const parameters = pipelineJson?.pipelines[0].app_data.properties.parameters.filter(
+        (param: any) => {
+          return !!pipelineJson.pipelines[0].nodes.find((node: any) => {
+            return node.app_data.component_parameters?.pipeline_parameters?.includes(
+              param.name
+            );
+          });
+        }
+      );
+
       switch (actionType) {
         case 'run':
           dialogOptions = {
@@ -695,9 +705,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                 name={pipelineName}
                 runtimeData={runtimeData}
                 pipelineType={type}
-                parameters={
-                  pipelineJson?.pipelines[0].app_data.properties.parameters
-                }
+                parameters={parameters}
               />
             ),
             buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -713,9 +721,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                 runtimeData={runtimeData}
                 runtimeTypeInfo={runtimeTypes}
                 pipelineType={type}
-                parameters={
-                  pipelineJson?.pipelines[0].app_data.properties.parameters
-                }
+                parameters={parameters}
               />
             ),
             buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -772,7 +778,6 @@ const PipelineWrapper: React.FC<IProps> = ({
           ].value = dialogResult.value[`${param.name}-paramInput`];
         }
       }
-      console.log(pipelineJson);
       pipelineJson.pipelines[0].app_data.name =
         dialogResult.value.pipeline_name ?? pipelineName;
 
