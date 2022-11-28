@@ -64,7 +64,9 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
                 data-form-required={param.required}
                 type="checkbox"
               />
-              <label htmlFor={`${param.name}-paramInput`}>{param.name}</label>
+              <label htmlFor={`${param.name}-paramInput`}>{`${param.name}${
+                param.required ? '*' : ''
+              }`}</label>
               <br />
               <br />
             </div>
@@ -72,7 +74,9 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
         }
         return (
           <div key={param.name}>
-            <label htmlFor={`${param.name}-paramInput`}>{param.name}:</label>
+            <label htmlFor={`${param.name}-paramInput`}>{`${param.name}${
+              param.required ? '*' : ''
+            }:`}</label>
             <br />
             <input
               id={`${param.name}-paramInput`}
