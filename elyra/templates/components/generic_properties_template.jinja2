@@ -56,7 +56,10 @@
         "gpu_vendor": {
           "type": "string",
           "title": "GPU Vendor",
-          "description": "GPU Vendor, or K8s GPU resource type, default nvidia.com/gpu."
+          "description": "GPU Vendor, or K8s GPU resource type, default 'nvidia.com/gpu'.",
+          "uihints": {
+            "ui:placeholder": "nvidia.com/gpu"
+          }
         },
         "dependencies": {
           "title": "File Dependencies",
