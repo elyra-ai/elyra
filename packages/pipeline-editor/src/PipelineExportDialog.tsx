@@ -52,7 +52,7 @@ interface IProps {
   parameters?: {
     name: string;
     default_value?: {
-      type: 'str' | 'int' | 'float' | 'bool' | 'list' | 'dict';
+      type: 'String' | 'Integer' | 'Float' | 'Bool';
       value: any;
     };
     type?: string;
@@ -100,6 +100,16 @@ export const PipelineExportDialog: React.FC<IProps> = ({
             if (!param.name) {
               return undefined;
             }
+            let type = 'text';
+            switch (param.default_value?.type) {
+              case 'Bool':
+                type = 'checkbox';
+                break;
+              case 'Float':
+              case 'Integer':
+                type = 'number';
+                break;
+            }
             return (
               <div key={param.name}>
                 <label htmlFor={`${param.name}-paramInput`}>
@@ -109,6 +119,7 @@ export const PipelineExportDialog: React.FC<IProps> = ({
                 <input
                   id={`${param.name}-paramInput`}
                   name={`${param.name}-paramInput`}
+                  type={type}
                   defaultValue={param.default_value?.value}
                   data-form-required={param.required}
                 />
