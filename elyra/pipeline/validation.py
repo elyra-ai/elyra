@@ -41,8 +41,8 @@ from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
-from elyra.util.path import get_expanded_path
 from elyra.util.kubernetes import is_valid_kubernetes_device_plugin_name
+from elyra.util.path import get_expanded_path
 
 
 class ValidationSeverity(IntEnum):
