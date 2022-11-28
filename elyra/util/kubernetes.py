@@ -67,6 +67,16 @@ def is_valid_kubernetes_key(name: str) -> bool:
     return re.match(r"^[\w\-_.]+$", name) is not None
 
 
+def is_valid_kubernetes_device_plugin_name(key: str) -> bool:
+    """
+    Returns a truthy value indicating whether name meets the kubernetes
+    naming constraints for device plugin custom schedulable resource, as outlined in the link below.
+
+    https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/#using-device-plugins
+    """
+    return is_valid_annotation_key(key)
+
+
 def is_valid_annotation_key(key: str) -> bool:
     """
     Returns a truthy value indicating whether name meets the kubernetes
