@@ -461,6 +461,7 @@ class PipelineValidationManager(SingletonConfigurable):
                     property_name="dependencies",
                     filename=dependency,
                     response=response,
+                    binary_file_ok=True,
                 )
 
     async def _validate_custom_component_node_properties(
@@ -560,6 +561,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             property_name=property_name,
                             filename=filename,
                             response=response,
+                            binary_file_ok=False,  # reject files that are not UTF encoded
                         )
                     elif self._is_required_property(component_property_dict, property_name):
                         response.add_message(
@@ -695,6 +697,7 @@ class PipelineValidationManager(SingletonConfigurable):
         filename: str,
         response: ValidationResponse,
         file_dir: Optional[str] = "",
+        binary_file_ok: bool = True,
     ) -> None:
         """
         Checks the file structure, paths and existence of pipeline dependencies.
@@ -705,6 +708,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param filename: the name of the file or directory to verify
         :param response: ValidationResponse containing the issue list to be updated
         :param file_dir: the dir path of the where the pipeline file resides in the elyra workspace
+        :param binary_file_ok: whether to reject binary files
         """
         file_dir = file_dir or self.root_dir
 
@@ -752,6 +756,24 @@ class PipelineValidationManager(SingletonConfigurable):
                     "value": normalized_path,
                 },
             )
+        elif not binary_file_ok:
+            # Validate that the file is utf-8 encoded by trying to read it
+            # as text file
+            try:
+                with open(normalized_path, "r") as fh:
+                    fh.read()
+            except UnicodeDecodeError:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidFileType",
+                    message="Property was assigned a file that is not unicode encoded.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": property_name,
+                        "value": normalized_path,
+                    },
+                )
 
     def _validate_label(self, node_id: str, node_label: str, response: ValidationResponse) -> None:
         """

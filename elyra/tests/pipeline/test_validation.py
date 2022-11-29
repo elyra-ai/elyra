@@ -15,6 +15,8 @@
 #
 
 import os
+from pathlib import Path
+import pickle
 
 from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
@@ -38,6 +40,7 @@ from elyra.pipeline.properties import KubernetesToleration
 from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.validation import PipelineValidationManager
 from elyra.pipeline.validation import ValidationResponse
+from elyra.pipeline.validation import ValidationSeverity
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
 
@@ -57,6 +60,41 @@ def validation_manager(setup_factory_data, component_cache):
     root = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__), "resources/validation_pipelines"))
     yield PipelineValidationManager.instance(root_dir=root)
     PipelineValidationManager.clear_instance()
+
+
+@pytest.fixture()
+def pvm(request, component_cache, tmp_path):
+    yield PipelineValidationManager.instance(root_dir=str(tmp_path))
+    PipelineValidationManager.clear_instance()
+
+
+@pytest.fixture()
+def dummy_text_file(tmp_path) -> Path:
+    """
+    Create a text file in tmp_path, which contains dummy data.
+    """
+    dummy_file = tmp_path / "text_file.txt"
+    assert not dummy_file.exists()
+    with open(dummy_file, "w") as fh:
+        fh.write("1,2,3,4,5\n")
+        fh.write("6,7,8,9,10\n")
+    yield dummy_file
+    # cleanup
+    dummy_file.unlink()
+
+
+@pytest.fixture()
+def dummy_binary_file(tmp_path) -> Path:
+    """
+    Create a binary file in tmp_path, which contains dummy data.
+    """
+    dummy_file = tmp_path / "binary_file.bin"
+    assert not dummy_file.exists()
+    with open(dummy_file, "wb") as fh:
+        pickle.dump({"key": "value"}, fh)
+    yield dummy_file
+    # cleanup
+    dummy_file.unlink()
 
 
 async def test_invalid_lower_pipeline_version(validation_manager, load_pipeline):
@@ -356,25 +394,80 @@ def test_invalid_node_property_dependency_filepath_non_existent(validation_manag
     assert issues[0]["data"]["nodeID"] == node["id"]
 
 
-def test_valid_node_property_dependency_filepath(validation_manager):
+def test_validate_filepath(pvm, dummy_text_file: Path, dummy_binary_file: Path):
+    """
+    Test function: PipelineValidationManager._validate_filepath
+    Scope: validate binary_file_ok function parameter
+    """
     response = ValidationResponse()
-    valid_filename = os.path.join(
-        os.path.dirname(__file__), "resources/validation_pipelines/generic_single_cycle.pipeline"
-    )
+
     node = {"id": "test-id", "app_data": {"label": "test"}}
     property_name = "test-property"
 
-    validation_manager._validate_filepath(
+    # Test scenario 1: text files and binary files are valid dependencies
+    # for generic components ('binary_file_ok' is explicitly set to True)
+    for file_dependency in [dummy_text_file, dummy_binary_file]:
+        pvm._validate_filepath(
+            node_id=node["id"],
+            file_dir=str(file_dependency.parent),
+            property_name=property_name,
+            node_label=node["app_data"]["label"],
+            filename=str(file_dependency),
+            response=response,
+            binary_file_ok=True,
+        )
+
+        assert not response.has_fatal, response.to_json()
+        assert not response.to_json().get("issues")
+
+    # Test scenario 2: text files and binary files are valid dependencies
+    # for generic components (use default for 'binary_file_ok' )
+    for file_dependency in [dummy_text_file, dummy_binary_file]:
+        pvm._validate_filepath(
+            node_id=node["id"],
+            file_dir=str(file_dependency.parent),
+            property_name=property_name,
+            node_label=node["app_data"]["label"],
+            filename=str(file_dependency),
+            response=response,
+        )
+
+        assert not response.has_fatal, response.to_json()
+        assert not response.to_json().get("issues")
+
+    # Test scenario 3: text files are valid input for 'file' widgets
+    # for custom components ('binary_file_ok' is explicitly set to False)
+    pvm._validate_filepath(
         node_id=node["id"],
-        file_dir=os.getcwd(),
+        file_dir=str(dummy_text_file.parent),
         property_name=property_name,
         node_label=node["app_data"]["label"],
-        filename=valid_filename,
+        filename=str(dummy_text_file),
         response=response,
+        binary_file_ok=False,
     )
 
-    assert not response.has_fatal
+    assert not response.has_fatal, response.to_json()
     assert not response.to_json().get("issues")
+
+    # Test scenario 4: binary files are invalid input for 'file' widgets
+    # for custom components
+    pvm._validate_filepath(
+        node_id=node["id"],
+        file_dir=str(dummy_binary_file.parent),
+        property_name=property_name,
+        node_label=node["app_data"]["label"],
+        filename=str(dummy_binary_file),
+        response=response,
+        binary_file_ok=False,
+    )
+
+    response_json = response.to_json()
+    assert response.has_fatal, response_json
+    assert response_json["issues"][0]["severity"] == ValidationSeverity.Error
+    assert response_json["issues"][0]["type"] == "invalidFileType"
+    assert "Property was assigned a file that is not unicode encoded." in response_json["issues"][0]["message"]
+    assert str(dummy_binary_file) in response_json["issues"][0]["data"]["value"]
 
 
 async def test_valid_node_property_pipeline_filepath(monkeypatch, validation_manager, load_pipeline):
