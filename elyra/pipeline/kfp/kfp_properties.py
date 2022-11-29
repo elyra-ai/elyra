@@ -36,7 +36,11 @@ class KfpPropertyInputType(PropertyInputType):
         "Bool": {"type_hint": "bool", "json_type": "boolean", "default_value": False, "placeholder": " "},
         "Integer": {"type_hint": "int", "json_type": "integer"},
         "Float": {"type_hint": "float", "json_type": "number", "render_input_value": True},
-        # "CustomString": {"json_type": "string", "type_title": "String with custom class name"}
+        # "GCSPath": {"type_hint": "GCSPath", "json_type": "string", "default_value": "", "placeholder": "gs://"},
+        # "GCRPath": {"type_hint": "GCRPath", "json_type": "string", "default_value": "", "placeholder": "gcr.io/"},
+        # "GCPRegion": {"type_hint": "GCPRegion", "json_type": "string", "default_value": ""},
+        # "GCPProjectID": {"type_hint": "GCPProjectID", "json_type": "string", "default_value": ""},
+        "CustomString": {"json_type": "string", "type_title": "String-valued parameter of arbitrary type"}
         # "List": {"type_hint": "list", "json_type": "array", "default_value": []},  # not yet supported by frontend
         # "Dict": {"type_hint": "dict", "json_type": "object", "default_value": {}},  # not yet supported by frontend
     }
@@ -69,6 +73,7 @@ class KfpPipelineParameter(PipelineParameter):
     property_attributes = [
         ListItemPropertyAttribute(
             attribute_id="name",
+            description="The name of the parameter (must be a valid python variable name)",
             display_name="Parameter Name",
             allowed_input_types=[PropertyInputType(base_type="str", placeholder="param_1")],
             hidden=False,
@@ -77,6 +82,7 @@ class KfpPipelineParameter(PipelineParameter):
         ),
         ListItemPropertyAttribute(
             attribute_id="default_value",
+            description="A default value to assign to the parameter",
             display_name="Default Value",
             allowed_input_types=[
                 KfpPropertyInputType(base_type="String", placeholder="default_val"),
@@ -103,6 +109,7 @@ class KfpPipelineParameter(PipelineParameter):
         ),
         ListItemPropertyAttribute(
             attribute_id="required",
+            description="Whether a value is required for this property during pipeline submit/export",
             display_name="Required",
             allowed_input_types=[PropertyInputType(base_type="bool", placeholder=" ")],
             hidden=False,
@@ -139,4 +146,6 @@ class KfpPipelineParameter(PipelineParameter):
         # If 'required' is True, a value must be provided
         if self.required and self.value is None or self.value == "":
             validation_errors.append("Parameter is marked as required but no value has been assigned.")
+
+        # TODO If GCSPath or GCRPath are selected, verify they conform to regex listed in KFP
         return validation_errors

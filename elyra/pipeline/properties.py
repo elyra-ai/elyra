@@ -105,6 +105,7 @@ class PropertyAttribute:
     def __init__(
         self,
         attribute_id: str,
+        description: Optional[str] = None,
         display_name: Optional[str] = None,
         allowed_input_types: Optional[List[PropertyInputType]] = None,
         hidden: Optional[bool] = False,
@@ -112,6 +113,7 @@ class PropertyAttribute:
     ):
         """
         :param attribute_id: a shorthand id for this attribute, e.g. "env_var"
+        :param description: a description of this attribute
         :param display_name: the display name for this attribute
         :param allowed_input_types: a list of accepted PropertyInputTypes for this property
         :param hidden: whether this attribute should be hidden in the UI, preventing users from entering a value
@@ -121,6 +123,7 @@ class PropertyAttribute:
             raise ValueError("Invalid Elyra property attribute: missing attribute_id.")
 
         self.id = attribute_id
+        self.description = description
         self.title = display_name
         self.allowed_input_types = allowed_input_types or []
         self.hidden = hidden
@@ -136,6 +139,7 @@ class ListItemPropertyAttribute(PropertyAttribute):
     def __init__(
         self,
         attribute_id: str,
+        description: Optional[str] = None,
         display_name: Optional[str] = None,
         allowed_input_types: Optional[List[PropertyInputType]] = None,
         hidden: Optional[bool] = False,
@@ -146,7 +150,7 @@ class ListItemPropertyAttribute(PropertyAttribute):
         :param use_in_key: whether this attribute should be used when constructing a
             key for an instance that will be used to de-duplicate list items
         """
-        super().__init__(attribute_id, display_name, allowed_input_types, hidden, required)
+        super().__init__(attribute_id, description, display_name, allowed_input_types, hidden, required)
         self.use_in_key = use_in_key
 
 
@@ -261,6 +265,8 @@ class ElyraProperty(ABC):
                 required_list.append(attr.id)
 
             properties[attr.id] = {"title": attr.title or attr.id}
+            if attr.description:
+                properties[attr.id]["description"] = attr.description
 
             if len(attr.allowed_input_types) == 1:
                 allowed_type: PropertyInputType = attr.allowed_input_types[0]
