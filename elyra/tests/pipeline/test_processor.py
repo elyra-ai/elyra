@@ -76,7 +76,6 @@ def test_generate_dependency_archive(processor: KfpPipelineProcessor):
     with tarfile.open(archive_location, "r:gz") as tar:
         for tarinfo in tar:
             if tarinfo.isreg():
-                print(tarinfo.name)
                 tar_content.append(tarinfo.name)
 
     assert sorted(correct_filelist) == sorted(tar_content)

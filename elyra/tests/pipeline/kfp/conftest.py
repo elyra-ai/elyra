@@ -134,7 +134,7 @@ def runtime_image_configs(rti_mmanager, request) -> List[Metadata]:
         - "runtime_image_configs": array of elyra.metadata.metadata.Metadata instances
     """
     # check required parameters
-    assert request.param.get("pipeline_file") is not None
+    assert request.param.get("pipeline_file") is not None, "A pipeline filename is required."
 
     # Load pipeline
     # Create runtime image configurations
@@ -153,7 +153,7 @@ def runtime_image_configs(rti_mmanager, request) -> List[Metadata]:
 def metadata_dependencies(metadata_managers, request):
     """
     Create Elyra metadata repository artifacts that are required by the specified
-    pipeline a runtime configuration and zero or more runtime image configurations.
+    pipeline: a runtime configuration and zero or more runtime image configurations.
     Required inputs:
      - "pipeline_file": existing pipeline filename
     Optional inputs:
@@ -161,7 +161,7 @@ def metadata_dependencies(metadata_managers, request):
         - "workflow_engine": WorkflowEngineType.ARGO or WorkflowEngineType.TEKTON
         - "use_cos_credentials_secret": bool (default: False)
         - "require_pull_secret": bool (default: False)
-    The fixture yields the following:
+    The fixture yields a dictionary with the following keys:
      - "pipeline_file": the pipeline file name, as specified as input
      - "pipeline_object": elyra.pipeline.pipeline.Pipeline instance
      - "runtime_config": elyra.metadata.metadata.Metadata instance
@@ -172,7 +172,7 @@ def metadata_dependencies(metadata_managers, request):
      - "fixture_parameters": dictionary containing the fixture's inputs
     """
     # check required parameters
-    assert request.param.get("pipeline_file") is not None
+    assert request.param.get("pipeline_file") is not None, "A pipeline filename is required."
 
     # Create a Pipeline object from the pipeline file, applying the customization
     # options
