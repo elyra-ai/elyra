@@ -1186,7 +1186,7 @@ class ComponentProperty(object):
                     # Render default value if it is not None
                     if prop.value is not None:
                         obj["properties"]["value"]["default"] = prop.value
-                else:  # inputpath or file types
+                else:  # custom widget types (inputpath, file, parameter)
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
                     if widget_type == "outputpath":
@@ -1199,7 +1199,8 @@ class ComponentProperty(object):
                         if prop.allow_no_options:
                             obj["uihints"]["allownooptions"] = prop.allow_no_options
                     else:
-                        obj["uihints"]["value"] = {"ui:widget": widget_type}
+                        if widget_type != "parameter":
+                            obj["uihints"]["value"] = {"ui:widget": widget_type}
                         obj["properties"]["value"]["type"] = "string"
 
                 one_of.append(obj)
