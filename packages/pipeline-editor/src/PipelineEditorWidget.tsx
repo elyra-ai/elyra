@@ -686,7 +686,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       let dialogOptions: Partial<Dialog.IOptions<any>>;
 
-      const parameters = pipelineJson?.pipelines[0].app_data.properties.parameters.filter(
+      const parameters = pipelineJson?.pipelines[0].app_data.properties.parameters?.filter(
         (param: any) => {
           return !!pipelineJson.pipelines[0].nodes.find((node: any) => {
             return node.app_data.component_parameters?.pipeline_parameters?.includes(
