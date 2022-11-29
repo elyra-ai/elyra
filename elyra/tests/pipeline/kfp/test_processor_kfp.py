@@ -19,22 +19,18 @@ import json
 import os
 from pathlib import Path
 import re
-import tarfile
-from typing import List
-from typing import Union
-from unittest import mock
+from typing import Any
+from typing import Dict
 
 from kfp.dsl import RUN_ID_PLACEHOLDER
 import pytest
 import yaml
 
-from elyra.metadata.metadata import Metadata
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParameter
 from elyra.pipeline.component_parameter import CustomSharedMemorySize
 from elyra.pipeline.component_parameter import DisableNodeCaching
-from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.component_parameter import KubernetesAnnotation
 from elyra.pipeline.component_parameter import KubernetesLabel
 from elyra.pipeline.component_parameter import KubernetesSecret
@@ -48,7 +44,6 @@ from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_PYTHON_PATH
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_WORKDIR_PATH
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.kfp.processor_kfp import WorkflowEngineType
-from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
@@ -59,7 +54,7 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
-from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
+from elyra.pipeline.processor import PipelineProcessor
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 
@@ -67,9 +62,9 @@ PIPELINE_FILE_COMPLEX = str((Path("resources") / "sample_pipelines" / "pipeline_
 
 
 @pytest.fixture
-def processor(setup_factory_data) -> KfpPipelineProcessor:
+def processor() -> KfpPipelineProcessor:
     """
-    Instantiate a process for Kubeflow Pipelines
+    Instantiate a Kubeflow Pipelines processor.
     """
     root_dir = str((Path(__file__).parent / "..").resolve())
     processor = KfpPipelineProcessor(root_dir=root_dir)
@@ -77,80 +72,25 @@ def processor(setup_factory_data) -> KfpPipelineProcessor:
 
 
 @pytest.fixture
-def parsed_pipeline(request):
-    pipeline_resource = _read_pipeline_resource(request.param)
-    return PipelineParser().parse(pipeline_json=pipeline_resource)
-
-
-@pytest.fixture
-def sample_metadata():
-    return {
-        "api_endpoint": "http://examples.com:31737",
-        "cos_endpoint": "http://examples.com:31671",
-        "cos_username": "example",
-        "cos_password": "example123",
-        "cos_bucket": "test",
-        "engine": "Argo",
-        "tags": [],
-        "user_namespace": "default",
-        "cos_auth_type": "USER_CREDENTIALS",
-        "api_username": "user@example.com",
-        "api_password": "12341234",
-        "runtime_type": "KUBEFLOW_PIPELINES",
-    }
-
-
-def kfp_runtime_config(
-    workflow_engine: WorkflowEngineType = WorkflowEngineType.ARGO,
-    use_cos_credentials_secret: bool = False,
-) -> Metadata:
+def processor_with_factory_data(setup_factory_data) -> KfpPipelineProcessor:
     """
-    Returns a KFP runtime config metadata entry, which meets the contraints
-    defined by the specified parameters
+    Instantiate a Kubeflow Pipelines processor and create
+    system-owned runtime image configurations. This simulates the behavior
+    of installing and running Elyra.
     """
+    root_dir = str((Path(__file__).parent / "..").resolve())
+    processor = KfpPipelineProcessor(root_dir=root_dir)
+    return processor
 
-    kfp_runtime_config = {
-        "display_name": "Mocked KFP runtime",
-        "schema_name": "kfp",
-        "metadata": {
-            "display_name": "Mocked KFP runtime",
-            "tags": [],
-            "user_namespace": "default",
-            "api_username": "user@example.com",
-            "api_password": "12341234",
-            "runtime_type": "KUBEFLOW_PIPELINES",
-            "api_endpoint": "http://examples.com:31737",
-            "cos_endpoint": "http://examples.com:31671",
-            "cos_bucket": "test",
-        },
-    }
 
-    if workflow_engine == WorkflowEngineType.TEKTON:
-        kfp_runtime_config["metadata"]["engine"] = "Tekton"
-    else:
-        kfp_runtime_config["metadata"]["engine"] = "Argo"
-
-    if use_cos_credentials_secret:
-        kfp_runtime_config["metadata"]["cos_auth_type"] = "KUBERNETES_SECRET"
-        kfp_runtime_config["metadata"]["cos_username"] = "my_name"
-        kfp_runtime_config["metadata"]["cos_password"] = "my_password"
-        kfp_runtime_config["metadata"]["cos_secret"] = "secret-name"
-    else:
-        kfp_runtime_config["metadata"]["cos_auth_type"] = "USER_CREDENTIALS"
-        kfp_runtime_config["metadata"]["cos_username"] = "my_name"
-        kfp_runtime_config["metadata"]["cos_password"] = "my_password"
-
-    return Metadata(
-        name=kfp_runtime_config["display_name"].lower().replace(" ", "_"),
-        display_name=kfp_runtime_config["display_name"],
-        schema_name=kfp_runtime_config["schema_name"],
-        metadata=kfp_runtime_config["metadata"],
-    )
+# ---------------------------------------------------
+# Tests for class WorkflowEngineType
+# ---------------------------------------------------
 
 
 def test_WorkflowEngineType_get_instance_by_value():
     """
-    Validate that method 'get_instance_by_value' yields the expected results for
+    Validate that static method 'WorkflowEngineType.get_instance_by_value' yields the expected results for
     valid and invalid input.
     """
     # test valid inputs (the provided value is evalutaed in a case insensitive manner)
@@ -175,214 +115,9 @@ def test_WorkflowEngineType_get_instance_by_value():
         WorkflowEngineType.get_instance_by_value("ether")
 
 
-def test_fail_get_metadata_configuration_invalid_namespace(processor: KfpPipelineProcessor):
-    with pytest.raises(RuntimeError):
-        processor._get_metadata_configuration(schemaspace="non_existent_namespace", name="non_existent_metadata")
-
-
-def test_generate_dependency_archive(processor: KfpPipelineProcessor):
-    pipelines_test_file = str((Path(__file__).parent / ".." / "resources" / "archive" / "test.ipynb").resolve())
-    pipeline_dependencies = ["airflow.json"]
-    correct_filelist = ["test.ipynb", "airflow.json"]
-    component_parameters = {
-        "filename": pipelines_test_file,
-        "dependencies": pipeline_dependencies,
-        "runtime_image": "tensorflow/tensorflow:latest",
-    }
-    test_operation = GenericOperation(
-        id="123e4567-e89b-12d3-a456-426614174000",
-        type="execution-node",
-        classifier="execute-notebook-node",
-        name="test",
-        component_params=component_parameters,
-    )
-
-    archive_location = processor._generate_dependency_archive(test_operation)
-
-    tar_content = []
-    with tarfile.open(archive_location, "r:gz") as tar:
-        for tarinfo in tar:
-            if tarinfo.isreg():
-                print(tarinfo.name)
-                tar_content.append(tarinfo.name)
-
-    assert sorted(correct_filelist) == sorted(tar_content)
-
-
-def test_fail_generate_dependency_archive(processor: KfpPipelineProcessor):
-    pipelines_test_file = "this/is/a/rel/path/test.ipynb"
-    pipeline_dependencies = ["non_existent_file.json"]
-    component_parameters = {
-        "filename": pipelines_test_file,
-        "dependencies": pipeline_dependencies,
-        "runtime_image": "tensorflow/tensorflow:latest",
-    }
-    test_operation = GenericOperation(
-        id="123e4567-e89b-12d3-a456-426614174000",
-        type="execution-node",
-        classifier="execute-notebook-node",
-        name="test",
-        component_params=component_parameters,
-    )
-
-    with pytest.raises(Exception):
-        processor._generate_dependency_archive(test_operation)
-
-
-def test_get_dependency_source_dir(processor: KfpPipelineProcessor):
-    pipelines_test_file = "this/is/a/rel/path/test.ipynb"
-    processor.root_dir = "/this/is/an/abs/path/"
-    correct_filepath = "/this/is/an/abs/path/this/is/a/rel/path"
-    component_parameters = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
-    test_operation = GenericOperation(
-        id="123e4567-e89b-12d3-a456-426614174000",
-        type="execution-node",
-        classifier="execute-notebook-node",
-        name="test",
-        component_params=component_parameters,
-    )
-
-    filepath = processor._get_dependency_source_dir(test_operation)
-
-    assert filepath == correct_filepath
-
-
-def test_get_dependency_archive_name(processor: KfpPipelineProcessor):
-    pipelines_test_file = "this/is/a/rel/path/test.ipynb"
-    correct_filename = "test-this-is-a-test-id.tar.gz"
-    component_parameters = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
-    test_operation = GenericOperation(
-        id="this-is-a-test-id",
-        type="execution-node",
-        classifier="execute-notebook-node",
-        name="test",
-        component_params=component_parameters,
-    )
-
-    filename = processor._get_dependency_archive_name(test_operation)
-
-    assert filename == correct_filename
-
-
-def test_collect_envs(processor: KfpPipelineProcessor):
-    pipelines_test_file = "this/is/a/rel/path/test.ipynb"
-
-    # add system-owned envs with bogus values to ensure they get set to system-derived values,
-    # and include some user-provided edge cases
-    operation_envs = [
-        {"env_var": "ELYRA_RUNTIME_ENV", "value": '"bogus_runtime"'},
-        {"env_var": "ELYRA_ENABLE_PIPELINE_INFO", "value": '"bogus_pipeline"'},
-        {"env_var": "ELYRA_WRITABLE_CONTAINER_DIR", "value": ""},  # simulate operation reference in pipeline
-        {"env_var": "AWS_ACCESS_KEY_ID", "value": '"bogus_key"'},
-        {"env_var": "AWS_SECRET_ACCESS_KEY", "value": '"bogus_secret"'},
-        {"env_var": "USER_EMPTY_VALUE", "value": "  "},
-        {"env_var": "USER_TWO_EQUALS", "value": "KEY=value"},
-        {"env_var": "USER_NO_VALUE", "value": ""},
-    ]
-    converted_envs = ElyraProperty.create_instance("env_vars", operation_envs)
-
-    test_operation = GenericOperation(
-        id="this-is-a-test-id",
-        type="execution-node",
-        classifier="execute-notebook-node",
-        name="test",
-        component_params={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
-        elyra_params={"env_vars": converted_envs},
-    )
-
-    envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")
-
-    assert envs["ELYRA_RUNTIME_ENV"] == "kfp"
-    assert envs["AWS_ACCESS_KEY_ID"] == "Alice"
-    assert envs["AWS_SECRET_ACCESS_KEY"] == "secret"
-    assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
-    assert envs["ELYRA_WRITABLE_CONTAINER_DIR"] == "/tmp"
-    assert "USER_EMPTY_VALUE" not in envs
-    assert envs["USER_TWO_EQUALS"] == "KEY=value"
-    assert "USER_NO_VALUE" not in envs
-
-    # Repeat with non-None secret - ensure user and password envs are not present, but others are
-    envs = processor._collect_envs(test_operation, cos_secret="secret", cos_username="Alice", cos_password="secret")
-
-    assert envs["ELYRA_RUNTIME_ENV"] == "kfp"
-    assert "AWS_ACCESS_KEY_ID" not in envs
-    assert "AWS_SECRET_ACCESS_KEY" not in envs
-    assert envs["ELYRA_ENABLE_PIPELINE_INFO"] == "True"
-    assert envs["ELYRA_WRITABLE_CONTAINER_DIR"] == "/tmp"
-    assert "USER_EMPTY_VALUE" not in envs
-    assert envs["USER_TWO_EQUALS"] == "KEY=value"
-    assert "USER_NO_VALUE" not in envs
-
-
-def test_process_list_value_function(processor: KfpPipelineProcessor):
-    # Test values that will be successfully converted to list
-    assert processor._process_list_value("") == []
-    assert processor._process_list_value(None) == []
-    assert processor._process_list_value("[]") == []
-    assert processor._process_list_value("None") == []
-    assert processor._process_list_value("['elem1']") == ["elem1"]
-    assert processor._process_list_value("['elem1', 'elem2', 'elem3']") == ["elem1", "elem2", "elem3"]
-    assert processor._process_list_value("  ['elem1',   'elem2' , 'elem3']  ") == ["elem1", "elem2", "elem3"]
-    assert processor._process_list_value("[1, 2]") == [1, 2]
-    assert processor._process_list_value("[True, False, True]") == [True, False, True]
-    assert processor._process_list_value("[{'obj': 'val', 'obj2': 'val2'}, {}]") == [{"obj": "val", "obj2": "val2"}, {}]
-
-    # Test values that will not be successfully converted to list
-    assert processor._process_list_value("[[]") == "[[]"
-    assert processor._process_list_value("[elem1, elem2]") == "[elem1, elem2]"
-    assert processor._process_list_value("elem1, elem2") == "elem1, elem2"
-    assert processor._process_list_value("  elem1, elem2  ") == "elem1, elem2"
-    assert processor._process_list_value("'elem1', 'elem2'") == "'elem1', 'elem2'"
-
-
-def test_process_dictionary_value_function(processor: KfpPipelineProcessor):
-    # Test values that will be successfully converted to dictionary
-    assert processor._process_dictionary_value("") == {}
-    assert processor._process_dictionary_value(None) == {}
-    assert processor._process_dictionary_value("{}") == {}
-    assert processor._process_dictionary_value("None") == {}
-    assert processor._process_dictionary_value("{'key': 'value'}") == {"key": "value"}
-
-    dict_as_str = "{'key1': 'value', 'key2': 'value'}"
-    assert processor._process_dictionary_value(dict_as_str) == {"key1": "value", "key2": "value"}
-
-    dict_as_str = "  {  'key1': 'value'  , 'key2'  : 'value'}  "
-    assert processor._process_dictionary_value(dict_as_str) == {"key1": "value", "key2": "value"}
-
-    dict_as_str = "{'key1': [1, 2, 3], 'key2': ['elem1', 'elem2']}"
-    assert processor._process_dictionary_value(dict_as_str) == {"key1": [1, 2, 3], "key2": ["elem1", "elem2"]}
-
-    dict_as_str = "{'key1': 2, 'key2': 'value', 'key3': True, 'key4': None, 'key5': [1, 2, 3]}"
-    expected_value = {"key1": 2, "key2": "value", "key3": True, "key4": None, "key5": [1, 2, 3]}
-    assert processor._process_dictionary_value(dict_as_str) == expected_value
-
-    dict_as_str = "{'key1': {'key2': 2, 'key3': 3, 'key4': 4}, 'key5': {}}"
-    expected_value = {
-        "key1": {
-            "key2": 2,
-            "key3": 3,
-            "key4": 4,
-        },
-        "key5": {},
-    }
-    assert processor._process_dictionary_value(dict_as_str) == expected_value
-
-    # Test values that will not be successfully converted to dictionary
-    assert processor._process_dictionary_value("{{}") == "{{}"
-    assert processor._process_dictionary_value("{key1: value, key2: value}") == "{key1: value, key2: value}"
-    assert processor._process_dictionary_value("  { key1: value, key2: value }  ") == "{ key1: value, key2: value }"
-    assert processor._process_dictionary_value("key1: value, key2: value") == "key1: value, key2: value"
-    assert processor._process_dictionary_value("{'key1': true}") == "{'key1': true}"
-    assert processor._process_dictionary_value("{'key': null}") == "{'key': null}"
-
-    dict_as_str = "{'key1': [elem1, elem2, elem3], 'key2': ['elem1', 'elem2']}"
-    assert processor._process_dictionary_value(dict_as_str) == dict_as_str
-
-    dict_as_str = "{'key1': {key2: 2}, 'key3': ['elem1', 'elem2']}"
-    assert processor._process_dictionary_value(dict_as_str) == dict_as_str
-
-    dict_as_str = "{'key1': {key2: 2}, 'key3': ['elem1', 'elem2']}"
-    assert processor._process_dictionary_value(dict_as_str) == dict_as_str
+# ---------------------------------------------------
+# Test method KfpPipelineProcessor._compose_container_command_args
+# ---------------------------------------------------
 
 
 def test_compose_container_command_args(processor: KfpPipelineProcessor):
@@ -479,6 +214,18 @@ def test_compose_container_command_args_invalid_dependency_filename(processor: K
                     cos_outputs=file_output,
                 )
                 assert command_args is None
+
+
+# ---------------------------------------------------
+# Tests for methods
+#  - KfpPipelineProcessor._add_disable_node_caching
+#  - KfpPipelineProcessor._add_custom_shared_memory_size
+#  - KfpPipelineProcessor._add_kubernetes_secret
+#  - KfpPipelineProcessor._add_mounted_volume
+#  - KfpPipelineProcessor._add_kubernetes_pod_annotation
+#  - KfpPipelineProcessor._add_kubernetes_pod_label
+#  - KfpPipelineProcessor._add_kubernetes_toleration
+# ---------------------------------------------------
 
 
 def test_add_disable_node_caching(processor: KfpPipelineProcessor):
@@ -616,6 +363,13 @@ def test_add_kubernetes_toleration(processor: KfpPipelineProcessor):
         assert execution_object["kubernetes_tolerations"][toleration_hash]["operator"] == instance.operator
         assert execution_object["kubernetes_tolerations"][toleration_hash]["effect"] == instance.effect
     assert len(expected_unique_execution_object_entries) == len(execution_object["kubernetes_tolerations"].keys())
+
+
+# ---------------------------------------------------
+# Tests for methods
+#  - KfpPipelineProcessor._generate_pipeline_dsl
+#  - KfpPipelineProcessor._compile_pipeline_dsl
+# ---------------------------------------------------
 
 
 def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
@@ -769,105 +523,32 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
     assert "tekton.dev/" in tekton_spec["apiVersion"]
 
 
-def load_and_patch_pipeline(
-    pipeline_filename: Union[str, Path], with_cos_object_prefix: bool = False
-) -> Union[None, Pipeline]:
-    """
-    This utility function loads pipeline_filename and injects additional metadata, similar
-    to what is done when a pipeline is submitted.
-    """
-
-    assert pipeline_filename is not None, "A pipeline filename is required."
-
-    if not isinstance(pipeline_filename, Path):
-        pipeline_filename = Path(pipeline_filename)
-
-    assert pipeline_filename.is_file(), f"Pipeline '{pipeline_filename}' does not exist."
-
-    # load file content
-    with open(pipeline_filename, "r") as fh:
-        pipeline_json = json.loads(fh.read())
-
-    # This rudimentary implementation assumes that the provided file is a valid
-    # pipeline file, which contains a primary pipeline.
-    if len(pipeline_json["pipelines"]) > 0:
-        # Add runtime information
-        if pipeline_json["pipelines"][0]["app_data"].get("runtime", None) is None:
-            pipeline_json["pipelines"][0]["app_data"]["runtime"] = "Kubeflow Pipelines"
-        if pipeline_json["pipelines"][0]["app_data"].get("runtime_type", None) is None:
-            pipeline_json["pipelines"][0]["app_data"]["runtime_type"] = "KUBEFLOW_PIPELINES"
-        # Add the filename as pipeline source information
-        if pipeline_json["pipelines"][0]["app_data"].get("source", None) is None:
-            pipeline_json["pipelines"][0]["app_data"]["source"] = pipeline_filename.name
-
-        if with_cos_object_prefix:
-            # Define a dummy COS prefix, if none is defined
-            if pipeline_json["pipelines"][0]["app_data"]["properties"].get("pipeline_defaults") is None:
-                pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"] = {}
-            if (
-                pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"].get(COS_OBJECT_PREFIX)
-                is None
-            ):
-                pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"][
-                    COS_OBJECT_PREFIX
-                ] = "test/project"
-        else:
-            # Remove the prefix, if one is already defined
-            if pipeline_json["pipelines"][0]["app_data"]["properties"].get("pipeline_defaults") is not None:
-                pipeline_json["pipelines"][0]["app_data"]["properties"]["pipeline_defaults"].pop(
-                    COS_OBJECT_PREFIX, None
-                )
-
-    return PipelineParser().parse(pipeline_json=pipeline_json)
-
-
-def generate_mocked_runtime_image_configurations(
-    pipeline: Pipeline, require_pull_secret: bool = False
-) -> List[Metadata]:
-    """
-    Generates mocked runtime configuration entries for each unique
-    runtime image that is referenced by the pipeline's generic nodes.
-    """
-    if pipeline is None:
-        raise ValueError("Pipeline parameter is required")
-    mocked_runtime_image_configurations = []
-    unique_image_names = []
-    # Iterate through pipeline nodes, extract the container image references
-    # for all generic operations, and produce mocked runtime image configurations.
-    counter = 1
-    for operation in pipeline.operations.values():
-        if isinstance(operation, GenericOperation):
-            if operation.runtime_image not in unique_image_names:
-                name = f"mocked-image-{counter}"
-                m = {
-                    "image_name": operation.runtime_image,
-                    "pull_policy": "IfNotPresent",
-                }
-                if require_pull_secret:
-                    m["pull_secret"] = f"{name.lower().replace(' ', '-')}-secret"
-
-                mocked_runtime_image_configurations.append(
-                    Metadata(
-                        name=name,
-                        display_name="test-image",
-                        schema_name="runtime-image",
-                        metadata=m,
-                    )
-                )
-                unique_image_names.append(operation.runtime_image)
-
-    return mocked_runtime_image_configurations
-
-
 @pytest.mark.parametrize(
-    "kfp_runtime_config",
+    "metadata_dependencies",
     [
-        kfp_runtime_config(workflow_engine=WorkflowEngineType.ARGO),
-        kfp_runtime_config(workflow_engine=WorkflowEngineType.TEKTON),
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+        },
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.TEKTON,
+        },
     ],
+    indirect=True,
 )
 def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
 ):
     """
     This test validates the following:
@@ -877,22 +558,19 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
     This test does not validate that the output artifacts correctly reflect the test pipeline.
     Other tests do that.
     """
-    workflow_engine = WorkflowEngineType.get_instance_by_value(kfp_runtime_config.metadata["engine"])
 
-    # Any valid pipeline file can be used to run this test, as long as it includes at least one node.
-    test_pipeline_file = (
-        Path(__file__).parent / ".." / "resources" / "test_pipelines" / "kfp" / "kfp-one-node-generic.pipeline"
-    )
-    # Instantiate a pipeline object to make it easier to obtain the information
-    # needed to perform validation.
-    pipeline = load_and_patch_pipeline(test_pipeline_file, False)
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
     assert pipeline is not None
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
+    assert runtime_config.name == pipeline.runtime_config
 
-    mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(pipeline)
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
 
-    mock_side_effects = [kfp_runtime_config] + [mocked_runtime_image_configurations]
-    mocked_func = mock.Mock(return_value="default", side_effect=mock_side_effects)
-    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
@@ -941,16 +619,34 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
         assert "argoproj.io/" in workflow_spec["apiVersion"]
 
 
-@pytest.mark.parametrize("use_cos_object_prefix", [True, False])
 @pytest.mark.parametrize(
-    "kfp_runtime_config",
+    "metadata_dependencies",
     [
-        kfp_runtime_config(workflow_engine=WorkflowEngineType.ARGO, use_cos_credentials_secret=True),
-        kfp_runtime_config(workflow_engine=WorkflowEngineType.ARGO, use_cos_credentials_secret=False),
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+            "use_cos_credentials_secret": True,
+        },
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+            "use_cos_credentials_secret": False,
+        },
     ],
+    indirect=True,
 )
 def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_test_1(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, use_cos_object_prefix: bool, tmpdir
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
 ):
     """
     This test validates that the output of _generate_pipeline_dsl and _compile_pipeline_dsl
@@ -965,18 +661,16 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     such as environment variables, Kubernetes labels, or data volumes.
     """
 
-    workflow_engine = WorkflowEngineType.get_instance_by_value(kfp_runtime_config.metadata["engine"])
-
-    # The test pipeline should only include one generic node that has only the following
-    # required properties defined:
-    #  - runtime image
-    test_pipeline_file = (
-        Path(__file__).parent / ".." / "resources" / "test_pipelines" / "kfp" / "kfp-one-node-generic.pipeline"
-    )
-    # Instantiate a pipeline object to make it easier to obtain the information
-    # needed to perform validation.
-    pipeline = load_and_patch_pipeline(test_pipeline_file, use_cos_object_prefix)
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
     assert pipeline is not None
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
+    assert runtime_config.name == pipeline.runtime_config
+    runtime_image_configs = metadata_dependencies["runtime_image_configs"]
+
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
 
     # Make sure this is a one generic node pipeline
     assert len(pipeline.operations.keys()) == 1
@@ -984,11 +678,8 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     # Use 'op' variable to access the operation
     op = list(pipeline.operations.values())[0]
 
-    mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(pipeline)
-
-    mock_side_effects = [kfp_runtime_config] + [mocked_runtime_image_configurations]
-    mocked_func = mock.Mock(return_value="default", side_effect=mock_side_effects)
-    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
@@ -1047,9 +738,9 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     #    - the pipeline name
     assert f"--pipeline-name '{pipeline.name}'" in node_template["container"]["args"][0]
     #    - the object storage endpoint that this node uses for file I/O
-    assert f"--cos-endpoint '{kfp_runtime_config.metadata['cos_endpoint']}'" in node_template["container"]["args"][0]
+    assert f"--cos-endpoint '{runtime_config.metadata['cos_endpoint']}'" in node_template["container"]["args"][0]
     #    - the object storage bucket name that this node uses for file I/O
-    assert f"--cos-bucket '{kfp_runtime_config.metadata['cos_bucket']}'" in node_template["container"]["args"][0]
+    assert f"--cos-bucket '{runtime_config.metadata['cos_bucket']}'" in node_template["container"]["args"][0]
     #    - the directory within that object storage bucket
     if pipeline.pipeline_properties.get(COS_OBJECT_PREFIX):
         expected_directory_value = join_paths(pipeline.pipeline_properties.get(COS_OBJECT_PREFIX), pipeline_instance_id)
@@ -1075,7 +766,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     #  - property 'implementation.container.imagePullPolicy'
     # The image pull policy is defined in the the runtime image
     # configuration. Look it up and verified it is properly applied.
-    for runtime_image_config in mocked_runtime_image_configurations:
+    for runtime_image_config in runtime_image_configs:
         if runtime_image_config.metadata["image_name"] == op.runtime_image:
             if runtime_image_config.metadata.get("pull_policy"):
                 assert node_template["container"]["imagePullPolicy"] == runtime_image_config.metadata["pull_policy"]
@@ -1105,7 +796,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     # exception of "AWS_ACCESS_KEY_ID" and "AWS_SECRET_ACCESS_KEY",
     # which are derived from a Kubernetes secret, if the runtime configuration
     # is configured to use one.
-    use_secret_for_cos_authentication = kfp_runtime_config.metadata["cos_auth_type"] == "KUBERNETES_SECRET"
+    use_secret_for_cos_authentication = runtime_config.metadata["cos_auth_type"] == "KUBERNETES_SECRET"
 
     assert node_template["container"].get("env") is not None, node_template["container"]
     for env_var in node_template["container"]["env"]:
@@ -1120,15 +811,15 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
         elif env_var["name"] == "AWS_ACCESS_KEY_ID":
             if use_secret_for_cos_authentication:
                 assert env_var["valueFrom"]["secretKeyRef"]["key"] == "AWS_ACCESS_KEY_ID"
-                assert env_var["valueFrom"]["secretKeyRef"]["name"] == kfp_runtime_config.metadata["cos_secret"]
+                assert env_var["valueFrom"]["secretKeyRef"]["name"] == runtime_config.metadata["cos_secret"]
             else:
-                assert env_var["value"] == kfp_runtime_config.metadata["cos_username"]
+                assert env_var["value"] == runtime_config.metadata["cos_username"]
         elif env_var["name"] == "AWS_SECRET_ACCESS_KEY":
             if use_secret_for_cos_authentication:
                 assert env_var["valueFrom"]["secretKeyRef"]["key"] == "AWS_SECRET_ACCESS_KEY"
-                assert env_var["valueFrom"]["secretKeyRef"]["name"] == kfp_runtime_config.metadata["cos_secret"]
+                assert env_var["valueFrom"]["secretKeyRef"]["name"] == runtime_config.metadata["cos_secret"]
             else:
-                assert env_var["value"] == kfp_runtime_config.metadata["cos_password"]
+                assert env_var["value"] == runtime_config.metadata["cos_password"]
 
     # Verify that the mlpipeline specific outputs are declared
     assert node_template.get("outputs") is not None, node_template
@@ -1145,6 +836,116 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     )
 
 
+@pytest.mark.parametrize(
+    "metadata_dependencies",
+    [
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+        },
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+            "resources_cpu": 1,
+            "resources_gpu": 2,
+            "resources_memory": 3,
+        },
+    ],
+    indirect=True,
+)
+def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_test_2(
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
+):
+    """
+    This test validates that the output of _generate_pipeline_dsl and _compile_pipeline_dsl
+    yields the expected results for a generic node that has the following properties defined:
+        - Resources: CPU
+        - Resources: GPU
+        - Resources: memory
+
+    this test only covers the Argo workflow engine.
+    """
+
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
+    assert pipeline is not None
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
+    assert runtime_config.name == pipeline.runtime_config
+
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
+
+    # Make sure this is a one generic node pipeline
+    assert pipeline.contains_generic_operations()
+    assert len(pipeline.operations.keys()) == 1
+
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    compiled_argo_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml")
+    compiled_argo_output_file_name = str(compiled_argo_output_file.absolute())
+
+    # generate Python DSL for the Argo workflow engine
+    pipeline_version = f"{pipeline.name}-0815"
+    pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
+    experiment_name = f"{pipeline.name}-0815"
+    generated_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline,
+        pipeline_name=pipeline.name,
+        workflow_engine=workflow_engine,
+        pipeline_version=pipeline_version,
+        pipeline_instance_id=pipeline_instance_id,
+        experiment_name=experiment_name,
+    )
+
+    # if the compiler discovers an issue with the generated DSL this call fails
+    processor._compile_pipeline_dsl(
+        dsl=generated_dsl,
+        workflow_engine=workflow_engine,
+        output_file=compiled_argo_output_file_name,
+        pipeline_conf=None,
+    )
+
+    # Load generated Argo workflow
+    with open(compiled_argo_output_file_name) as f:
+        argo_spec = yaml.safe_load(f.read())
+
+    # verify that this is an argo specification
+    assert "argoproj.io" in argo_spec["apiVersion"]
+
+    # There should be two templates, one for the DAG and one for the generic node.
+    # Locate the one for the generic node and inspect its properties.
+    assert len(argo_spec["spec"]["templates"]) == 2
+    if argo_spec["spec"]["templates"][0]["name"] == argo_spec["spec"]["entrypoint"]:
+        node_template = argo_spec["spec"]["templates"][1]
+    else:
+        node_template = argo_spec["spec"]["templates"][0]
+
+    op = list(pipeline.operations.values())[0]
+
+    if op.gpu or op.cpu or op.memory:
+        assert node_template["container"].get("resources") is not None
+        if op.gpu:
+            assert node_template["container"]["resources"]["limits"]["nvidia.com/gpu"] == str(op.gpu)
+        if op.cpu:
+            assert node_template["container"]["resources"]["requests"]["cpu"] == str(op.cpu)
+        if op.memory:
+            assert node_template["container"]["resources"]["requests"]["memory"] == f"{op.memory}G"
+
+
 @pytest.fixture(autouse=False)
 def enable_and_disable_crio(request):
     """
@@ -1154,7 +955,7 @@ def enable_and_disable_crio(request):
     if request.param:
         os.environ["CRIO_RUNTIME"] = "True"
 
-    yield
+    yield request.param
 
     # Remove variable after the test
     if request.param:
@@ -1163,15 +964,22 @@ def enable_and_disable_crio(request):
 
 @pytest.mark.parametrize("enable_and_disable_crio", [False, True], indirect=True)
 @pytest.mark.parametrize(
-    "kfp_runtime_config",
+    "metadata_dependencies",
     [
-        kfp_runtime_config(
-            workflow_engine=WorkflowEngineType.ARGO,
-        ),
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+        },
     ],
+    indirect=True,
 )
 def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir, enable_and_disable_crio
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir, enable_and_disable_crio
 ):
     """
     This test validates that the output of _generate_pipeline_dsl and _compile_pipeline_dsl
@@ -1188,25 +996,17 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
     """
     crio_runtime_enabled = os.environ.get("CRIO_RUNTIME", "").lower() == "true"
 
-    workflow_engine = WorkflowEngineType.get_instance_by_value(kfp_runtime_config.metadata["engine"])
-
-    # Any valid pipeline file can be used to run this test, as long as it includes at least one generic node.
-    test_pipeline_file = (
-        Path(__file__).parent / ".." / "resources" / "test_pipelines" / "kfp" / "kfp-one-node-generic.pipeline"
-    )
-    # Instantiate a pipeline object to make it easier to obtain the information
-    # needed to perform validation.
-    pipeline = load_and_patch_pipeline(pipeline_filename=test_pipeline_file, with_cos_object_prefix=False)
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
     assert pipeline is not None
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
 
-    mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(
-        pipeline,
-        require_pull_secret=False,
-    )
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
 
-    assert kfp_runtime_config is not None
-    assert mocked_runtime_image_configurations is not None
-
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
@@ -1220,12 +1020,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
     pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
     experiment_name = f"{pipeline.name}-test-0"
 
-    # Generate pipeline DSL; this requires the _get_metadata_configuration mock
-    monkeypatch.setattr(
-        processor,
-        "_get_metadata_configuration",
-        mock.Mock(return_value="default", side_effect=[kfp_runtime_config] + [mocked_runtime_image_configurations]),
-    )
     generated_dsl = processor._generate_pipeline_dsl(
         pipeline=pipeline,
         pipeline_name=pipeline.name,
@@ -1316,15 +1110,22 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
 
 
 @pytest.mark.parametrize(
-    "kfp_runtime_config",
+    "metadata_dependencies",
     [
-        kfp_runtime_config(
-            workflow_engine=WorkflowEngineType.ARGO,
-        ),
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic-elyra-properties.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+        },
     ],
+    indirect=True,
 )
 def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
 ):
     """
     This test validates that the output of _generate_pipeline_dsl and _compile_pipeline_dsl
@@ -1337,23 +1138,15 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
      - Kubernetes annotations
      - Kubernetes tolerations
     """
-    workflow_engine = WorkflowEngineType.get_instance_by_value(kfp_runtime_config.metadata["engine"])
 
-    # The test pipeline should only include one generic node that has the following optional
-    # user-specified properties defined:
-    #  - data volumes
-    test_pipeline_file = (
-        Path(__file__).parent
-        / ".."
-        / "resources"
-        / "test_pipelines"
-        / "kfp"
-        / "kfp-one-node-generic-elyra-properties.pipeline"
-    )
-    # Instantiate a pipeline object to make it easier to obtain the information
-    # needed to perform validation.
-    pipeline = load_and_patch_pipeline(test_pipeline_file)
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
     assert pipeline is not None
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
+
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
 
     # Make sure this is a one generic node pipeline
     assert len(pipeline.operations.keys()) == 1
@@ -1361,11 +1154,8 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
     # Use 'op' variable to access the operation
     op = list(pipeline.operations.values())[0]
 
-    mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(pipeline)
-
-    mock_side_effects = [kfp_runtime_config] + [mocked_runtime_image_configurations]
-    mocked_func = mock.Mock(return_value="default", side_effect=mock_side_effects)
-    monkeypatch.setattr(processor, "_get_metadata_configuration", mocked_func)
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
@@ -1535,66 +1325,168 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
 
 @pytest.mark.parametrize(
-    "kfp_runtime_config",
+    "metadata_dependencies",
     [
-        kfp_runtime_config(
-            workflow_engine=WorkflowEngineType.ARGO,
-        ),
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-multi-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+        },
     ],
+    indirect=True,
 )
-@pytest.mark.skip("TODO: implement test")
 def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exchange(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, tmpdir
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
 ):
     """
-    TODO Validate that code gen produces the expected artifacts if the pipeline contains
-    multiple generic nodes that are configured for data exchange
+    Validate that code gen produces the expected artifacts if the pipeline contains
+    multiple generic nodes that are configured for data exchange. To achieve complete
+    test coverage the pipeline must contain at least three generic nodes that are
+    dependend on each other:
+    producer node -> consumer/producer node -> consumer node
+    (output only) -> (input and output)     -> (input only)
     """
-    assert False
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
+    assert pipeline is not None
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
+    runtime_image_configs = metadata_dependencies["runtime_image_configs"]
+    assert runtime_image_configs is not None
+
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
+
+    # Make sure the pipeline contains at least one generic node
+    assert pipeline.contains_generic_operations()
+
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    # Test begins here
+
+    compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml")
+    compiled_output_file_name = str(compiled_output_file.absolute())
+
+    # generate Python DSL
+    pipeline_version = f"{pipeline.name}-0815"
+    pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
+    experiment_name = f"{pipeline.name}-0815"
+    generated_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline,
+        pipeline_name=pipeline.name,
+        workflow_engine=workflow_engine,
+        pipeline_version=pipeline_version,
+        pipeline_instance_id=pipeline_instance_id,
+        experiment_name=experiment_name,
+    )
+
+    # if the compiler discovers an issue with the generated DSL this call fails
+    processor._compile_pipeline_dsl(
+        dsl=generated_dsl,
+        workflow_engine=workflow_engine,
+        output_file=compiled_output_file_name,
+        pipeline_conf=None,
+    )
+
+    # Load compiled output
+    with open(compiled_output_file_name) as fh:
+        compiled_spec = yaml.safe_load(fh.read())
+
+    # There should be at least four templates, one for the DAG and three
+    # for generic nodes. Each template spec for generic nodes is named
+    # "run-a-file[-index]". The "-index" is added by the compiler to
+    # guarantee uniqueness.
+    assert len(compiled_spec["spec"]["templates"]) >= 3
+    template_specs = {}
+    for node_template in compiled_spec["spec"]["templates"]:
+        if node_template["name"] == compiled_spec["spec"]["entrypoint"] or not node_template["name"].startswith(
+            "run-a-file"
+        ):
+            continue
+        template_specs[node_template["name"]] = node_template
+
+    # Iterate through sorted operations and verify that their inputs
+    # and outputs are properly represented in their respective template
+    # specifications.
+    template_index = 1
+    for op in PipelineProcessor._sort_operations(pipeline.operations):
+        if not op.is_generic:
+            # ignore custom nodes
+            continue
+        if template_index == 1:
+            template_name = "run-a-file"
+        else:
+            template_name = f"run-a-file-{template_index}"
+        template_index = template_index + 1
+        # compare outputs
+        if len(op.outputs) > 0:
+            assert (
+                f"--outputs '{';'.join(op.outputs)}'" in template_specs[template_name]["container"]["args"][0]
+            ), f"missing in template {template_name}"
+        # compare inputs
+        if len(op.inputs) > 0:
+            assert (
+                f"--inputs '{';'.join(op.inputs)}'" in template_specs[template_name]["container"]["args"][0]
+            ), f"missing in template {template_name}"
 
 
 @pytest.mark.parametrize(
-    "require_pull_secret",
+    "metadata_dependencies",
     [
-        True,
-        False,
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+            "require_pull_secret": True,
+        },
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+            "require_pull_secret": False,
+        },
     ],
-)
-@pytest.mark.parametrize(
-    "kfp_runtime_config",
-    [
-        kfp_runtime_config(
-            workflow_engine=WorkflowEngineType.ARGO,
-        ),
-    ],
+    indirect=True,
 )
 def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_conf(
-    monkeypatch, processor: KfpPipelineProcessor, kfp_runtime_config: Metadata, require_pull_secret: bool, tmpdir
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
 ):
     """
     Validate that code gen produces the expected artifacts if the pipeline contains
     generic nodes and associates runtime images are configured to require a pull secret.
     The test results are not runtime type specific.
     """
-    workflow_engine = WorkflowEngineType.get_instance_by_value(kfp_runtime_config.metadata["engine"])
-
-    # Any valid pipeline file can be used to run this test, as long as it includes at least one node.
-    test_pipeline_file = (
-        Path(__file__).parent / ".." / "resources" / "test_pipelines" / "kfp" / "kfp-one-node-generic.pipeline"
-    )
-    # Instantiate a pipeline object to make it easier to obtain the information
-    # needed to perform validation.
-    pipeline = load_and_patch_pipeline(pipeline_filename=test_pipeline_file, with_cos_object_prefix=False)
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
     assert pipeline is not None
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
+    runtime_image_configs = metadata_dependencies["runtime_image_configs"]
+    assert runtime_image_configs is not None
 
-    mocked_runtime_image_configurations = generate_mocked_runtime_image_configurations(
-        pipeline,
-        require_pull_secret=require_pull_secret,
-    )
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
 
-    assert kfp_runtime_config is not None
-    assert mocked_runtime_image_configurations is not None
+    # Make sure the pipeline contains at least one generic node
+    assert pipeline.contains_generic_operations()
 
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
@@ -1608,12 +1500,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_
     pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
     experiment_name = f"{pipeline.name}-test-0"
 
-    # Generate pipeline DSL; this requires the _get_metadata_configuration mock
-    monkeypatch.setattr(
-        processor,
-        "_get_metadata_configuration",
-        mock.Mock(return_value="default", side_effect=[kfp_runtime_config] + [mocked_runtime_image_configurations]),
-    )
     generated_dsl = processor._generate_pipeline_dsl(
         pipeline=pipeline,
         pipeline_name=pipeline.name,
@@ -1623,14 +1509,11 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_
         experiment_name=experiment_name,
     )
 
-    # Generate pipeline configuration; this requires the _get_metadata_configuration mock
-    monkeypatch.setattr(
-        processor,
-        "_get_metadata_configuration",
-        mock.Mock(return_value="default", side_effect=[mocked_runtime_image_configurations]),
-    )
+    # Generate pipeline configuration, which includes information about
+    # pull secrets that are required to download the runtime images.
     pipeline_conf = processor._generate_pipeline_conf(pipeline=pipeline)
 
+    # Compile DSL; the output should
     processor._compile_pipeline_dsl(
         dsl=generated_dsl,
         workflow_engine=workflow_engine,
@@ -1644,7 +1527,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_
 
     expected_image_pull_secret_names = [
         rti_config.metadata["pull_secret"]
-        for rti_config in mocked_runtime_image_configurations
+        for rti_config in runtime_image_configs
         if rti_config.metadata.get("pull_secret") is not None
     ]
 
