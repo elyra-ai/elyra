@@ -154,6 +154,10 @@ class Component(object):
         return self._runtime_type
 
     @property
+    def runtime_type_name(self) -> Optional[str]:
+        return self._runtime_type.name if isinstance(self._runtime_type, RuntimeProcessorType) else None
+
+    @property
     def op(self) -> Optional[str]:
         return self._op or self._id
 

@@ -15,8 +15,8 @@
           "id": "{{ component.id }}",
           "image": "",
           "label": "{{ component.name }}",
-          {% if component.runtime_type %}
-          "runtime_type": "{{ component.runtime_type }}",
+          {% if component.runtime_type_name %}
+          "runtime_type": "{{ component.runtime_type_name }}",
           {% endif %}
           "type": "execution_node",
           "inputs": [
