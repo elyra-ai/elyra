@@ -584,7 +584,8 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
         if package == "text-extensions-for-pandas":
             virtualenv.run(
                 f"python3 -m pip install --target={tmpdir} git+https://github.com/akchinSTC/"
-                "text-extensions-for-pandas@3de5ce17ab0493dcdf88b51e8727f580c08d6997")
+                "text-extensions-for-pandas@3de5ce17ab0493dcdf88b51e8727f580c08d6997"
+            )
         else:
             virtualenv.run(f"python3 -m pip install --target={tmpdir} {package}=={version}")
 
@@ -602,8 +603,9 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
         virtualenv_packages[package_name] = package_version
 
     for package, version in expected_packages.items():
-        assert virtualenv_packages[package].split(".")[0] == version.split(".")[0], \
-            f"Major version mismatch for package {package}"
+        assert (
+            virtualenv_packages[package].split(".")[0] == version.split(".")[0]
+        ), f"Major version mismatch for package {package}"
 
 
 def test_convert_notebook_to_html(tmpdir):
