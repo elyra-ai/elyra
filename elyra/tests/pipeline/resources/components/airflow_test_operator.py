@@ -23,7 +23,7 @@ from airflow.operators.imported_operator import ImportedOperator  # noqa TODO
 
 
 class TestOperator(BaseOperator):
-    """
+    r"""
     Operator derives from BaseOperator and mimics Airflow v1 Operator structure.
     Note that some parameters have been intentionally omitted from the docstring
     in order to test that fallback types are assigned appropriately.
