@@ -686,7 +686,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       let dialogOptions: Partial<Dialog.IOptions<any>>;
 
-      const parameters = pipelineJson?.pipelines[0].app_data.properties.parameters?.filter(
+      const parameters = pipelineJson?.pipelines[0].app_data.properties.pipeline_parameters?.filter(
         (param: any) => {
           return !!pipelineJson.pipelines[0].nodes.find((node: any) => {
             return node.app_data.component_parameters?.pipeline_parameters?.includes(
@@ -769,11 +769,13 @@ const PipelineWrapper: React.FC<IProps> = ({
         contextRef.current.path
       );
       for (const paramIndex in pipelineJson.pipelines[0].app_data.properties
-        .parameters ?? []) {
+        .pipeline_parameters ?? []) {
         const param =
-          pipelineJson.pipelines[0].app_data.properties.parameters[paramIndex];
+          pipelineJson.pipelines[0].app_data.properties.pipeline_parameters[
+            paramIndex
+          ];
         if (param.name) {
-          pipelineJson.pipelines[0].app_data.properties.parameters[
+          pipelineJson.pipelines[0].app_data.properties.pipeline_parameters[
             paramIndex
           ].value = dialogResult.value[`${param.name}-paramInput`];
         }
