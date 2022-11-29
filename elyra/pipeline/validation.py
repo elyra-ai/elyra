@@ -431,7 +431,7 @@ class PipelineValidationManager(SingletonConfigurable):
                     )
             for resource_vendor in ["gpu_vendor"]:
                 vendor = node.get_component_parameter(resource_vendor)
-                if not is_valid_kubernetes_device_plugin_name(vendor):
+                if vendor and not is_valid_kubernetes_device_plugin_name(vendor):
                     response.add_message(
                         severity=ValidationSeverity.Error,
                         message_type="invalidNodeProperty",
