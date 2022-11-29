@@ -55,11 +55,11 @@ class TestOperator(BaseOperator):
     :param unusual_type_list: a list parameter with the phrase 'string' in type description
     :type unusual_type_list: a list of strings
     :param long_description_property: a string parameter with a very long description
-        that wraps lines and also has an escaped underscore in it, as shown here: (\_)  # noqa W605
+        that wraps lines and also has an escaped underscore in it, as shown here: (\_)
     :type long_description_property: str
     :param: mounted_volumes: a property with the same name as an Elyra system property
     :type: str
-    """
+    """  # noqa W605
 
     def __init__(
         self,
