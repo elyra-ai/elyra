@@ -32,8 +32,8 @@ from urllib.parse import urlparse
 
 from deprecation import deprecated
 from jupyter_core.paths import ENV_JUPYTER_PATH
-from requests import session
 from requests.auth import HTTPBasicAuth
+from requests.sessions import Session
 from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import default
 from traitlets.traitlets import Integer
@@ -659,7 +659,7 @@ class UrlComponentCatalogConnector(ComponentCatalogConnector):
                 return None
 
         try:
-            requests_session = session()
+            requests_session = Session()
             if pr.scheme == "file":
                 requests_session.mount("file://", FileTransportAdapter())
             res = requests_session.get(
