@@ -62,8 +62,8 @@ async def test_modify_component_catalogs(component_cache, metadata_manager_with_
 
     # Create new registry instance with a single URL-based component
     urls = [
-        "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components/"
-        "airflow_test_operator.py"
+        "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/"
+        "resources/components/airflow_test_operator.py"
     ]
 
     instance_metadata = {
@@ -301,8 +301,8 @@ def test_parse_airflow_component_file():
 
     # Ensure that a long description with line wrapping and a backslash escape has rendered
     # (and hence did not raise an error during json.loads in the properties API request)
-    parsed_description = """a string parameter with a very long description
-        that wraps lines and also has an escaped underscore in it, as shown here: (\_)  # noqa W605"""
+    parsed_description = r"""a string parameter with a very long description
+        that wraps lines and also has an escaped underscore in it, as shown here: (\_)"""  # noqa W605
     modified_description = parsed_description.replace("\n", " ") + " (type: str)"  # modify desc acc. to parser rules
     assert get_parameter_description("long_description_property") == modified_description
 
@@ -378,7 +378,10 @@ def test_parse_airflow_component_url():
     reader = UrlComponentCatalogConnector(airflow_supported_file_types)
 
     # Read contents of given path
-    url = "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/resources/components/airflow_test_operator.py"  # noqa: E501
+    url = (
+        "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/tests/pipeline/"
+        "resources/components/airflow_test_operator.py"
+    )
     catalog_entry_data = {"url": url}
 
     # Construct a catalog instance
@@ -459,9 +462,9 @@ def test_parse_airflow_component_file_no_inputs():
 @pytest.mark.parametrize(
     "invalid_url",
     [
-        "https://nourl.py",  # test an invalid host
-        "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/\
-     pipeline/tests/resources/components/invalid_file.py",  # test an invalid file
+        "https://non-existent-host.py",  # test an invalid host
+        "https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/"
+        "tests/pipeline/resources/components/missing_file.py",  # test an invalid file
     ],
     indirect=True,
 )

@@ -20,6 +20,7 @@ import os
 import shutil
 from tempfile import mkdtemp
 from tempfile import TemporaryDirectory
+from typing import AnyStr
 from typing import List
 from typing import Optional
 
@@ -55,6 +56,13 @@ def mock_data_dir():
         os.environ["JUPYTER_DATA_DIR"] = orig_data_dir
     else:
         os.environ.pop("JUPYTER_DATA_DIR")
+
+
+def get_file_contents(filename: str) -> AnyStr:
+    contents: AnyStr
+    with open(filename) as f:
+        contents = f.read()
+    return contents
 
 
 def test_no_opts(script_runner):
@@ -1406,14 +1414,14 @@ def test_export_without_clean(script_runner, mock_data_dir):
     create_json_file(export_directory, metadata_filename, dummy_json)
     metadata_file_path = os.path.join(export_directory, metadata_filename)
     assert os.path.exists(metadata_file_path)
-    assert json.loads(open(metadata_file_path).read()) == dummy_json
+    assert json.loads(get_file_contents(metadata_file_path)) == dummy_json
 
     # create additional dummy file with a different name and verify its contents
     dummy_filename = "dummy.json"
     create_json_file(export_directory, dummy_filename, dummy_json)
     dummy_file_path = os.path.join(export_directory, dummy_filename)
     assert os.path.exists(dummy_file_path)
-    assert json.loads(open(dummy_file_path).read()) == dummy_json
+    assert json.loads(get_file_contents(dummy_file_path)) == dummy_json
 
     # create dummy file under different folder (different schema) and verify its contents
     export_directory_other = os.path.join(directory_parameter, "runtimes")
@@ -1422,7 +1430,7 @@ def test_export_without_clean(script_runner, mock_data_dir):
     create_json_file(export_directory_other, dummy_filename_other, dummy_json)
     dummy_file_path_other = os.path.join(export_directory_other, dummy_filename_other)
     assert os.path.exists(dummy_file_path_other)
-    assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+    assert json.loads(get_file_contents(dummy_file_path_other)) == dummy_json
 
     # export metadata without --clean flag
     ret = script_runner.run(
@@ -1445,17 +1453,17 @@ def test_export_without_clean(script_runner, mock_data_dir):
     assert len(export_directory_files) == 2
 
     assert export_directory_files[0] == dummy_filename
-    assert json.loads(open(dummy_file_path).read()) == dummy_json
+    assert json.loads(get_file_contents(dummy_file_path)) == dummy_json
 
     assert export_directory_files[1] == metadata_filename
-    exported_metadata = json.loads(open(metadata_file_path).read())
+    exported_metadata = json.loads(get_file_contents(metadata_file_path))
     assert "schema_name" in exported_metadata
     assert exported_metadata.get("schema_name") == valid_metadata_json.get("schema_name")
 
     export_directory_other_files = sorted(os.listdir(export_directory_other), key=str.casefold)
     assert len(export_directory_other_files) == 1
     assert export_directory_other_files[0] == dummy_filename_other
-    assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+    assert json.loads(get_file_contents(dummy_file_path_other)) == dummy_json
     temp_dir.cleanup()
 
 
@@ -1479,14 +1487,14 @@ def test_export_clean(script_runner, mock_data_dir):
     create_json_file(export_directory, metadata_filename, dummy_json)
     metadata_file_path = os.path.join(export_directory, metadata_filename)
     assert os.path.exists(metadata_file_path)
-    assert json.loads(open(metadata_file_path).read()) == dummy_json
+    assert json.loads(get_file_contents(metadata_file_path)) == dummy_json
 
     # create additional dummy file with a different name and verify its contents
     dummy_filename = "dummy.json"
     create_json_file(export_directory, dummy_filename, dummy_json)
     dummy_file_path = os.path.join(export_directory, dummy_filename)
     assert os.path.exists(dummy_file_path)
-    assert json.loads(open(dummy_file_path).read()) == dummy_json
+    assert json.loads(get_file_contents(dummy_file_path)) == dummy_json
 
     # create dummy file under different folder (different schema) and verify its contents
     export_directory_other = os.path.join(directory_parameter, "runtimes")
@@ -1495,7 +1503,7 @@ def test_export_clean(script_runner, mock_data_dir):
     create_json_file(export_directory_other, dummy_filename_other, dummy_json)
     dummy_file_path_other = os.path.join(export_directory_other, dummy_filename_other)
     assert os.path.exists(dummy_file_path_other)
-    assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+    assert json.loads(get_file_contents(dummy_file_path_other)) == dummy_json
 
     # export metadata with --clean flag
     ret = script_runner.run(
@@ -1521,14 +1529,14 @@ def test_export_clean(script_runner, mock_data_dir):
     assert len(export_directory_files) == 1
 
     assert export_directory_files[0] == metadata_filename
-    exported_metadata = json.loads(open(metadata_file_path).read())
+    exported_metadata = json.loads(get_file_contents(metadata_file_path))
     assert "schema_name" in exported_metadata
     assert exported_metadata.get("schema_name") == valid_metadata_json.get("schema_name")
 
     export_directory_other_files = sorted(os.listdir(export_directory_other), key=str.casefold)
     assert len(export_directory_other_files) == 1
     assert export_directory_other_files[0] == dummy_filename_other
-    assert json.loads(open(dummy_file_path_other).read()) == dummy_json
+    assert json.loads(get_file_contents(dummy_file_path_other)) == dummy_json
     temp_dir.cleanup()
 
 
@@ -1593,7 +1601,7 @@ def test_import_non_json_file(script_runner):
     with open(dummy_filepath, "w") as f:
         f.write(dummy_file_content)
     assert os.path.exists(dummy_filepath)
-    assert open(dummy_filepath).read() == dummy_file_content
+    assert get_file_contents(dummy_filepath) == dummy_file_content
 
     # import metadata
     ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
@@ -1613,14 +1621,14 @@ def test_import_valid_metadata_files(script_runner, mock_data_dir):
     with open(metadata_file_path, "w") as f:
         json.dump(valid_metadata_json, f)
     assert os.path.exists(metadata_file_path)
-    assert json.loads(open(metadata_file_path).read()) == valid_metadata_json
+    assert json.loads(get_file_contents(metadata_file_path)) == valid_metadata_json
 
     metadata_filename2 = "valid2.json"
     metadata_file_path2 = os.path.join(directory_parameter, metadata_filename2)
     with open(metadata_file_path2, "w") as f:
         json.dump(valid_metadata2_json, f)
     assert os.path.exists(metadata_file_path2)
-    assert json.loads(open(metadata_file_path2).read()) == valid_metadata2_json
+    assert json.loads(get_file_contents(metadata_file_path2)) == valid_metadata2_json
 
     # import metadata
     ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
@@ -1665,7 +1673,8 @@ def test_import_invalid_metadata_file(script_runner, mock_data_dir):
     with open(metadata_file_path, "w") as f:
         json.dump(invalid_metadata_json, f)
     assert os.path.exists(metadata_file_path)
-    assert json.loads(open(metadata_file_path).read()) == invalid_metadata_json
+    with open(metadata_file_path) as f:
+        assert json.load(f) == invalid_metadata_json
 
     # import metadata
     ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
@@ -1699,7 +1708,7 @@ def test_import_with_subfolder(script_runner, mock_data_dir):
     with open(metadata_file_path, "w") as f:
         json.dump(valid_metadata_json, f)
     assert os.path.exists(metadata_file_path)
-    assert json.loads(open(metadata_file_path).read()) == valid_metadata_json
+    assert json.loads(get_file_contents(metadata_file_path)) == valid_metadata_json
 
     # add invalid metadata json files in the directory
     invalid_metadata_filename = "invalid.json"
@@ -1707,12 +1716,12 @@ def test_import_with_subfolder(script_runner, mock_data_dir):
     with open(invalid_metadata_file_path, "w") as f:
         json.dump(invalid_metadata_json, f)
     assert os.path.exists(invalid_metadata_file_path)
-    assert json.loads(open(invalid_metadata_file_path).read()) == invalid_metadata_json
+    assert json.loads(get_file_contents(invalid_metadata_file_path)) == invalid_metadata_json
 
     invalid_metadata_file_path2 = os.path.join(directory_parameter, "invalid2.json")
     shutil.copyfile(invalid_metadata_file_path, invalid_metadata_file_path2)
     assert os.path.exists(invalid_metadata_file_path2)
-    assert json.loads(open(invalid_metadata_file_path2).read()) == invalid_metadata_json
+    assert json.loads(get_file_contents(invalid_metadata_file_path2)) == invalid_metadata_json
 
     # create a sub-folder within import directory and add a valid metadata file in it
     os.mkdir(os.path.join(directory_parameter, "subfolder"))
@@ -1721,7 +1730,7 @@ def test_import_with_subfolder(script_runner, mock_data_dir):
     with open(metadata_file_path2, "w") as f:
         json.dump(valid_metadata2_json, f)
     assert os.path.exists(metadata_file_path2)
-    assert json.loads(open(metadata_file_path2).read()) == valid_metadata2_json
+    assert json.loads(get_file_contents(metadata_file_path2)) == valid_metadata2_json
 
     # import metadata
     ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
@@ -1784,7 +1793,7 @@ def test_import_overwrite_flag(script_runner, mock_data_dir):
     with open(metadata_file_path, "w") as f:
         json.dump(valid_metadata_json, f)
     assert os.path.exists(metadata_file_path)
-    assert json.loads(open(metadata_file_path).read()) == valid_metadata_json
+    assert json.loads(get_file_contents(metadata_file_path)) == valid_metadata_json
 
     # add valid metadata json file for new metadata
     metadata_filename2 = "valid2.json"
@@ -1792,7 +1801,7 @@ def test_import_overwrite_flag(script_runner, mock_data_dir):
     with open(metadata_file_path2, "w") as f:
         json.dump(valid_metadata_json, f)
     assert os.path.exists(metadata_file_path2)
-    assert json.loads(open(metadata_file_path2).read()) == valid_metadata_json
+    assert json.loads(get_file_contents(metadata_file_path2)) == valid_metadata_json
 
     # import metadata without overwrite flag
     ret = script_runner.run("elyra-metadata", "import", METADATA_TEST_SCHEMASPACE, f"--directory={directory_parameter}")
@@ -1833,7 +1842,7 @@ def test_import_overwrite_flag(script_runner, mock_data_dir):
     with open(metadata_file_path2, "w") as f:
         json.dump(valid_display_name_json, f)
     assert os.path.exists(metadata_file_path2)
-    assert json.loads(open(metadata_file_path2).read()) == valid_display_name_json
+    assert json.loads(get_file_contents(metadata_file_path2)) == valid_display_name_json
 
     # add another valid metadata json file for new metadata
     metadata_filename3 = "another.json"
@@ -1841,7 +1850,7 @@ def test_import_overwrite_flag(script_runner, mock_data_dir):
     with open(metadata_file_path3, "w") as f:
         json.dump(another_metadata_json, f)
     assert os.path.exists(metadata_file_path3)
-    assert json.loads(open(metadata_file_path3).read()) == another_metadata_json
+    assert json.loads(get_file_contents(metadata_file_path3)) == another_metadata_json
 
     # re-try import metadata with overwrite flag
     ret = script_runner.run(
