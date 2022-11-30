@@ -1,4 +1,4 @@
-black<=21.12b0
+black[jupyter]<=21.12b0
 click<=8.0.4
 flake8>=3.5.0
 flake8-import-order>=0.18.1
