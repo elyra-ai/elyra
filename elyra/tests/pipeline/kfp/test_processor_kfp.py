@@ -46,17 +46,15 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.properties import ComponentProperty
 from elyra.pipeline.properties import CustomSharedMemorySize
 from elyra.pipeline.properties import DisableNodeCaching
-from elyra.pipeline.properties import ElyraProperty
 from elyra.pipeline.properties import KubernetesAnnotation
 from elyra.pipeline.properties import KubernetesLabel
 from elyra.pipeline.properties import KubernetesSecret
 from elyra.pipeline.properties import KubernetesToleration
 from elyra.pipeline.properties import VolumeMount
-from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
-from elyra.pipeline.processor import PipelineProcessor
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 

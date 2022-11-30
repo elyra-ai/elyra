@@ -18,9 +18,9 @@ import tarfile
 
 import pytest
 
-from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.pipeline import GenericOperation
+from elyra.pipeline.properties import ElyraProperty
 
 
 # ---------------------------------------------------
@@ -57,7 +57,7 @@ def test_generate_dependency_archive(processor: KfpPipelineProcessor):
     pipelines_test_file = str((Path(__file__).parent / "resources" / "archive" / "test.ipynb").resolve())
     pipeline_dependencies = ["airflow.json"]
     correct_filelist = ["test.ipynb", "airflow.json"]
-    component_parameters = {
+    component_properties = {
         "filename": pipelines_test_file,
         "dependencies": pipeline_dependencies,
         "runtime_image": "tensorflow/tensorflow:latest",
@@ -67,7 +67,7 @@ def test_generate_dependency_archive(processor: KfpPipelineProcessor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_properties,
     )
 
     archive_location = processor._generate_dependency_archive(test_operation)
@@ -84,7 +84,7 @@ def test_generate_dependency_archive(processor: KfpPipelineProcessor):
 def test_fail_generate_dependency_archive(processor: KfpPipelineProcessor):
     pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     pipeline_dependencies = ["non_existent_file.json"]
-    component_parameters = {
+    component_properties = {
         "filename": pipelines_test_file,
         "dependencies": pipeline_dependencies,
         "runtime_image": "tensorflow/tensorflow:latest",
@@ -94,7 +94,7 @@ def test_fail_generate_dependency_archive(processor: KfpPipelineProcessor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_properties,
     )
 
     with pytest.raises(Exception):
@@ -110,13 +110,13 @@ def test_get_dependency_source_dir(processor: KfpPipelineProcessor):
     pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     processor.root_dir = "/this/is/an/abs/path/"
     correct_filepath = "/this/is/an/abs/path/this/is/a/rel/path"
-    component_parameters = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
+    component_properties = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
     test_operation = GenericOperation(
         id="123e4567-e89b-12d3-a456-426614174000",
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_properties,
     )
 
     filepath = processor._get_dependency_source_dir(test_operation)
@@ -132,13 +132,13 @@ def test_get_dependency_source_dir(processor: KfpPipelineProcessor):
 def test_get_dependency_archive_name(processor: KfpPipelineProcessor):
     pipelines_test_file = "this/is/a/rel/path/test.ipynb"
     correct_filename = "test-this-is-a-test-id.tar.gz"
-    component_parameters = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
+    component_properties = {"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"}
     test_operation = GenericOperation(
         id="this-is-a-test-id",
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_properties,
     )
 
     filename = processor._get_dependency_archive_name(test_operation)
@@ -173,8 +173,8 @@ def test_collect_envs(processor: KfpPipelineProcessor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
-        elyra_params={"env_vars": converted_envs},
+        component_props={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
+        elyra_props={"env_vars": converted_envs},
     )
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")
