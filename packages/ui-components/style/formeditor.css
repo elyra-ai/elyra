@@ -278,6 +278,21 @@ button.elyra-editor-tag.unapplied-tag {
   width: fit-content;
 }
 
+.elyra-formEditor#pipeline-parameters .field-boolean .checkbox label {
+  margin: 0;
+}
+
+.elyra-formEditor .field-boolean .checkbox label > span {
+  display: none;
+}
+
+.elyra-formEditor .field-boolean {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .elyra-formEditor .checkboxes {
   max-height: 6em;
   overflow: scroll;
