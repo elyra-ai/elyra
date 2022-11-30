@@ -81,7 +81,7 @@ class PropertyInputType:
 
         if base_type not in allowed_input_types:
             raise ValueError(
-                f"Invalid property type '{base_type}': valid types are f{list(allowed_input_types.keys())}."
+                f"Invalid property type '{base_type}': valid types are {list(allowed_input_types.keys())}."
             )
         type_defaults = allowed_input_types[base_type]
 
