@@ -61,6 +61,6 @@
   },
   "jupyterlab": {
     "extension": false,
-    "outputDir": "../../dist/labextensions/@elyra/services"
+    "outputDir": "../../build/labextensions/@elyra/services"
   }
 }

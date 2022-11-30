@@ -56,6 +56,6 @@
   },
   "jupyterlab": {
     "extension": false,
-    "outputDir": "../../dist/labextensions/@elyra/metadata-common"
+    "outputDir": "../../build/labextensions/@elyra/metadata-common"
   }
 }

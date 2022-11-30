@@ -1,6 +1,234 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = [
+    "hatchling>=1.2.0"
+]
+
+[project]
+name = "elyra"
+description="Elyra provides AI Centric extensions to JupyterLab"
+maintainers = [
+    {name = "Elyra Maintainers"},
+]
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = [
+    "autopep8>=1.5.0",
+    "click>=8",  # elyra-ai/elyra#2579
+    "colorama",
+    "deprecation",
+    "entrypoints>=0.3",
+    "jinja2>=3",
+    "jsonschema>=3.2.0,<4.0",  # Cap from kfp
+    "jupyter_core>=4.6.0",
+    "jupyter_client>=6.1.7",
+    "jupyter-packaging>=0.10",
+    "jupyter_server>=1.7.0",
+    "jupyterlab>=3.4.6",  # comment out to use local jupyterlab
+    "jupyterlab-lsp>=3.8.0",  # comment out to use local jupyterlab
+    "jupyterlab-git~=0.32",  # Avoid breaking 1.x changes
+    "jupyter-resource-usage>=0.5.1",
+    "MarkupSafe>=2.1",
+    "minio>=7.0.0",
+    "nbclient>=0.5.1",
+    "nbconvert>=6.4.5",
+    "nbdime~=3.1",  # Cap from jupyterlab-git
+    "nbformat>=5.1.2",
+    "networkx>=2.5.1",
+    "papermill>=2.3.4",
+    "python-lsp-server[all]>=1.1.0",
+    "pyyaml>=5.3.1,<6.0",  # Cap from kfp
+    "requests>=2.25.1",
+    "rfc3986-validator>=0.1.1",
+    "tornado>=6.1.0",
+    "traitlets>=4.3.2",
+    "typing-extensions>=3.10,<5",  # Cap from kfp
+    "urllib3>=1.26.5",
+    "watchdog>=2.1.3",
+    "websocket-client",
+    "yaspin",
+    "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
+    "pygithub",
+    "black<=21.12b0",  # Cap due to psf/black#2846
+]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+dynamic = ['version']
+
+[project.urls]
+Documentation = "https://elyra.readthedocs.io/en/latest"
+Homepage = "https://github.com/elyra-ai/elyra"
+
+[project.optional-dependencies]
+test = [
+    "elyra-examples-kfp-catalog",
+    "git-python",
+    "importlib-resources",
+    "pytest>=5.4.1",
+    "pytest-console-scripts",
+    "pytest-tornasync",
+    "pytest_virtualenv",
+    "requests-mock",
+    "requests-unixsocket",
+    "kfp-tekton"
+]
+kfp-tekton = [
+    "kfp-tekton~=1.3.0"
+]
+kfp-examples = [
+    "elyra-examples-kfp-catalog"
+]
+gitlab = [
+    "python-gitlab"
+]
+
+# Console scripts
+[project.scripts]
+elyra-metadata = "elyra.metadata.metadata_app:MetadataApp.main"
+elyra-pipeline = "elyra.cli.pipeline_app:pipeline"
+jupyter-elyra = "elyra.elyra_app:launch_instance"
+
+# Elyra entry points
+[project.entry-points."metadata.schemaspaces"]
+runtimes = "elyra.metadata.schemaspaces:Runtimes"
+runtimes-images = "elyra.metadata.schemaspaces:RuntimeImages"
+code-snippets = "elyra.metadata.schemaspaces:CodeSnippets"
+component-catalogs = "elyra.metadata.schemaspaces:ComponentCatalogs"
+metadata-tests = "elyra.tests.metadata.test_utils:MetadataTestSchemaspace"
+
+[project.entry-points."metadata.schemas_providers"]
+runtimes = "elyra.metadata.schemasproviders:RuntimesSchemas"
+runtimes-images = "elyra.metadata.schemasproviders:RuntimeImagesSchemas"
+code-snippets = "elyra.metadata.schemasproviders:CodeSnippetsSchemas"
+component-catalogs = "elyra.metadata.schemasproviders:ComponentCatalogsSchemas"
+airflow-provider-package-catalog-schema = "elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_schema_provider:AirflowProviderPackageSchemasProvider"
+airflow-package-catalog-schema = "elyra.pipeline.airflow.package_catalog_connector.airflow_package_schema_provider:AirflowPackageSchemasProvider"
+metadata-tests = "elyra.tests.metadata.test_utils:MetadataTestSchemasProvider"
+
+[project.entry-points."elyra.pipeline.processors"]
+local = "elyra.pipeline.local.processor_local:LocalPipelineProcessor"
+airflow = "elyra.pipeline.airflow.processor_airflow:AirflowPipelineProcessor"
+kfp = "elyra.pipeline.kfp.processor_kfp:KfpPipelineProcessor"
+
+[project.entry-points."elyra.component.catalog_types"]
+url-catalog = "elyra.pipeline.catalog_connector:UrlComponentCatalogConnector"
+local-file-catalog = "elyra.pipeline.catalog_connector:FilesystemComponentCatalogConnector"
+local-directory-catalog = "elyra.pipeline.catalog_connector:DirectoryComponentCatalogConnector"
+airflow-provider-package-catalog = "elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_catalog_connector:AirflowProviderPackageCatalogConnector"
+airflow-package-catalog = "elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_connector:AirflowPackageCatalogConnector"
+
+[project.entry-points."papermill.engine"]
+ElyraEngine = "elyra.pipeline.elyra_engine:ElyraEngine"
+
+# Include license file in base/root of repository
+[license]
+file = "LICENSE"
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+[tool.hatch.version]
+path = "elyra/_version.py"
+
+[tool.hatch.build]
+ignore-vcs = true
+
+# Include data files with dist
+[tool.hatch.build.targets.wheel.shared-data]
+"etc/config/jupyter_notebook_config.d" = "etc/jupyter/jupyter_notebook_config.d"
+"etc/config/jupyter_server_config.d" = "etc/jupyter/jupyter_server_config.d"
+"etc/config/settings" = "etc/jupyter/labconfig"
+"etc/config/metadata/runtime-images" = "share/jupyter/metadata/runtime-images"
+"etc/config/metadata/component-catalogs" = "share/jupyter/metadata/component-catalogs"
+"etc/config/components" = "share/jupyter/components"
+"etc/config/components/kfp" = "share/jupyter/components/kfp/"
+"etc/config/components/airflow" = "share/jupyter/components/airflow/"
+"build/labextensions" = "share/jupyter/labextensions"
+
+# Specify which files to include and exclude in source distribution
+[tool.hatch.build.targets.sdist]
+include = [
+    "build/labextensions",
+    "elyra",
+    "etc/config/components/*.json",
+    "etc/config/components/kfp*/.yaml",
+    "etc/config/jupyter_notebook_config.d/*.json",
+    "etc/config/jupyter_server_config.d/*.json",
+    "etc/config/metadata/runtime-images/*.json",
+    "etc/config/metadata/component-registries/*.json",
+    "etc/config/settings/*.json",
+]
+exclude = [
+    "*.ipynb",
+    "*.py[cod]",
+    "__pycache__",
+    ".git",
+    ".gitignore",
+    ".ipynb_checkpoints",
+    ".DS_Store",
+    "*.sh",
+    "docs",
+    "tests",
+]
+
+# Move flake8 configuration from setup.cfg. Use pflake8 instead of flake8.
+# pflake8 is a flake8 wrapper compatible with pyproject.toml
+[tool.flake8]
+application-import-names = ["elyra", "test"]
+application-package-names = ["elyra", "test"]
+enable-extensions = "G"
+max-line-length = 120
+# References:
+# https://flake8.readthedocs.io/en/latest/user/configuration.html
+# https://flake8.readthedocs.io/en/latest/user/error-codes.html
+ignore = [
+    # Import formatting
+    "E4",
+    # Comparing types instead of isinstance
+    "E721",
+    # Assigning lambda expression
+    "E731",
+    # Ambiguous variable names
+    "E741",
+    # File contains nothing but comments
+    "H104",
+    # Include name with TODOs as in # TODO(yourname)
+    "H101",
+    # Enable mocking
+    "H216",
+    # Multi line docstrings should start without a leading new line
+    "H404",
+    # Multi line docstrings should start with a one line summary followed by an empty line
+    "H405",
+    # Line break before binary operator
+    "W503",
+    # Allow breaks after binary operators
+    "W504"
+]
+import-order-style = "google"
+
+# Configuration parameters for the black code formatting tool
 [tool.black]
 # max line length; same as 'max-line-length' in setup.cfg
 line-length = 120
 
 # Python versions that should be supported by the produced output
 target-version = ['py37', 'py38', 'py39', 'py310']
+
+# Migrate configurations from pytest.ini
+[tool.pytest.ini_options]
+markers = [
+    "script_launch_mode"
+]
+script_launch_mode = "subprocess"

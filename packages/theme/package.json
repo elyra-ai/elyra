@@ -30,8 +30,8 @@
     "build:lib": "tsc",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
-    "clean": "rimraf lib tsconfig.tsbuildinfo ../../dist/labextensions/@elyra/theme-extension",
-    "lab:dev": "jupyter labextension develop --overwrite ../../dist/labextensions/@elyra/theme-extension",
+    "clean": "rimraf lib tsconfig.tsbuildinfo ../../build/labextensions/@elyra/theme-extension",
+    "lab:dev": "jupyter labextension develop --overwrite ../../build/labextensions/@elyra/theme-extension",
     "dist": "npm pack .",
     "prepare": "npm run build",
     "watch": "run-p watch:src watch:labextension",
@@ -65,6 +65,6 @@
   },
   "jupyterlab": {
     "extension": true,
-    "outputDir": "../../dist/labextensions/@elyra/theme-extension"
+    "outputDir": "../../build/labextensions/@elyra/theme-extension"
   }
 }

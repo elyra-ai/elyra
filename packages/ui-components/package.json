@@ -50,6 +50,6 @@
   },
   "jupyterlab": {
     "extension": false,
-    "outputDir": "../../dist/labextensions/@elyra/ui-components"
+    "outputDir": "../../build/labextensions/@elyra/ui-components"
   }
 }

@@ -171,7 +171,7 @@ package-ui: build-dependencies yarn-install lint-ui build-ui
 package-ui-dev: dev-dependencies yarn-install dev-link lint-ui build-ui
 
 build-server: # Build backend
-	$(PYTHON) -m setup bdist_wheel sdist
+	$(PYTHON) -m build
 
 uninstall-server-package:
 	@$(PYTHON_PIP) uninstall elyra -y
