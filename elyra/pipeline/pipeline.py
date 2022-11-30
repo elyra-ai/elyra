@@ -246,6 +246,7 @@ class GenericOperation(Operation):
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
+                gpu_vendor: gpu resource type, eg. nvidia.com/gpu, amd.com/gpu etc.
         Entries for other (non-built-in) component types are a function of the respective component.
 
         :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
@@ -270,8 +271,9 @@ class GenericOperation(Operation):
         self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
         self._component_params["cpu"] = component_params.get("cpu")
-        self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")
+        self._component_params["gpu"] = component_params.get("gpu")
+        self._component_params["gpu_vendor"] = component_params.get("gpu_vendor")
 
         if not elyra_params:
             elyra_params = {}
@@ -318,6 +320,10 @@ class GenericOperation(Operation):
     @property
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
+
+    @property
+    def gpu_vendor(self) -> Optional[str]:
+        return self._component_params.get("gpu_vendor")
 
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):

@@ -285,7 +285,9 @@ The following alphabetically sorted list identifies the node properties that are
 
 ##### Resources: CPU, GPU, and RAM
    - Resources that the notebook or script requires. RAM takes units of gigabytes (10<sup>9</sup> bytes).
-   - The values are ignored when the pipeline is executed locally. 
+   - Specify a custom Kubernetes GPU vendor, if desired. The default vendor is `nvidia.com/gpu`. See [this topic in the Kubernetes documentation](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/) for more information.
+   - The values are ignored when the pipeline is executed locally.
+   - Example: `amd.com/gpu`
 
 ##### Runtime image
 
