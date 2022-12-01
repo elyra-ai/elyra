@@ -57,7 +57,7 @@ class PropertyInputType:
     object with optional custom default value, placeholder, and enum.
     """
 
-    _python_input_types = {
+    _python_defined_types = {
         "str": {"json_type": "string", "default_value": ""},
         "bool": {"json_type": "boolean", "default_value": False, "placeholder": " "},
         "int": {"json_type": "integer"},
@@ -75,9 +75,9 @@ class PropertyInputType:
         **kwargs,
     ):
         # Get type info from passed in type dict, if available; default to standard python types
-        allowed_input_types = kwargs.get("allowed_input_types")
+        allowed_input_types = kwargs.get("runtime_defined_types")
         if not allowed_input_types:
-            allowed_input_types = self._python_input_types
+            allowed_input_types = self._python_defined_types
 
         if base_type not in allowed_input_types:
             raise ValueError(
@@ -110,6 +110,7 @@ class PropertyAttribute:
         allowed_input_types: Optional[List[PropertyInputType]] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
+        pattern: Optional[str] = None,
     ):
         """
         :param attribute_id: a shorthand id for this attribute, e.g. "env_var"
@@ -118,6 +119,7 @@ class PropertyAttribute:
         :param allowed_input_types: a list of accepted PropertyInputTypes for this property
         :param hidden: whether this attribute should be hidden in the UI, preventing users from entering a value
         :param required: whether a value for this attribute is required
+        :param pattern: a regex validation pattern to use for values given for this attribute
         """
         if not attribute_id:
             raise ValueError("Invalid Elyra property attribute: missing attribute_id.")
@@ -126,8 +128,10 @@ class PropertyAttribute:
         self.description = description
         self.title = display_name
         self.allowed_input_types = allowed_input_types or []
+        self.default_type = self.allowed_input_types[0] if self.allowed_input_types else None
         self.hidden = hidden
         self.required = required
+        self.pattern = pattern
 
 
 class ListItemPropertyAttribute(PropertyAttribute):
@@ -144,13 +148,14 @@ class ListItemPropertyAttribute(PropertyAttribute):
         allowed_input_types: Optional[List[PropertyInputType]] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
+        pattern: Optional[str] = None,
         use_in_key: Optional[bool] = True,
     ):
         """
         :param use_in_key: whether this attribute should be used when constructing a
             key for an instance that will be used to de-duplicate list items
         """
-        super().__init__(attribute_id, description, display_name, allowed_input_types, hidden, required)
+        super().__init__(attribute_id, description, display_name, allowed_input_types, hidden, required, pattern)
         self.use_in_key = use_in_key
 
 
@@ -267,6 +272,8 @@ class ElyraProperty(ABC):
             properties[attr.id] = {"title": attr.title or attr.id}
             if attr.description:
                 properties[attr.id]["description"] = attr.description
+            if attr.pattern:
+                properties[attr.id]["pattern"] = attr.pattern
 
             if len(attr.allowed_input_types) == 1:
                 allowed_type: PropertyInputType = attr.allowed_input_types[0]
@@ -279,16 +286,22 @@ class ElyraProperty(ABC):
                 if allowed_type.placeholder is not None:
                     uihints[attr.id] = {"ui:placeholder": allowed_type.placeholder}
 
-            else:
-                # Render a oneOf block
+            elif len(attr.allowed_input_types) > 1:
+                # Set default type to be the first one defined in the property_attributes list
+                properties[attr.id]["default"] = {
+                    "type": attr.allowed_input_types[0].base_type,
+                    "value": attr.allowed_input_types[0].default_value,
+                }
+
+                # Render a oneOf block and loop through allowed types to fill it
                 properties[attr.id]["oneOf"] = []
-                for allowed_type in attr.allowed_input_types:
+                for allowed_type in sorted(attr.allowed_input_types, key=lambda t: t.base_type):
                     schema_obj = {
                         "type": "object",
-                        "title": f"Parameter type: {allowed_type.type_title or allowed_type.base_type}",
+                        "title": allowed_type.type_title or allowed_type.base_type,
                         "properties": {
-                            "type": {"type": "string", "default": allowed_type.base_type},
-                            "value": {"type": allowed_type.json_data_type},
+                            "type": {"title": "Type", "type": "string", "default": allowed_type.base_type},
+                            "value": {"title": attr.title, "type": allowed_type.json_data_type},
                         },
                         "uihints": {"type": {"ui:widget": "hidden"}},
                     }
@@ -1241,9 +1254,11 @@ class PipelineParameter(ElyraPropertyListItem):
     property_display_name = "Pipeline Parameters"
     property_description = """Typed variables to be passed to the pipeline."""
 
-    def __init__(self, name, value, default_value, required, **kwargs):
+    def __init__(self, name, description, value, default_value, required, **kwargs):
         self.name = name
+        self.description = description
         self.required = required
+        self.selected_type = default_value.get("type")  # TODO may change with pipeline JSON
 
         # Assign default value, if given
         self.default_value = default_value.get("value") if isinstance(default_value, dict) else None

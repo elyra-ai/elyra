@@ -971,7 +971,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                             "task_id": re.sub(r"[" + re.escape(string.punctuation) + "\\s]", "_", output_node_id),
                             "output_id": self._sanitize_param_name(output_node_property_key),
                         }
-
                     elif data_entry_type == "parameter":
                         # task input is the name of a pipeline parameter
                         param_name = property_value.get("name")

@@ -31,7 +31,7 @@ class KfpPropertyInputType(PropertyInputType):
     object for KUBEFLOW_PIPELINES runtime processors.
     """
 
-    _kfp_input_types = {
+    _kfp_defined_types = {
         "String": {"type_hint": "str", "json_type": "string", "default_value": ""},
         "Bool": {"type_hint": "bool", "json_type": "boolean", "default_value": False, "placeholder": " "},
         "Integer": {"type_hint": "int", "json_type": "integer"},
@@ -58,11 +58,11 @@ class KfpPropertyInputType(PropertyInputType):
             default_value=default_value,
             placeholder=placeholder,
             enum=enum,
-            allowed_input_types=self._kfp_input_types,
+            runtime_defined_types=self._kfp_defined_types,
             **kwargs,
         )
 
-        self.type_hint = kwargs.get("type_hint") or self._kfp_input_types[base_type].get("type_hint")
+        self.type_hint = kwargs.get("type_hint") or self._kfp_defined_types[base_type].get("type_hint")
         self.component_input_type = kwargs.get("type_hint") or self.base_type
 
 
@@ -79,6 +79,16 @@ class KfpPipelineParameter(PipelineParameter):
             hidden=False,
             required=True,
             use_in_key=True,
+            pattern="^[a-zA-Z][a-zA-Z0-9_]*$",
+        ),
+        ListItemPropertyAttribute(
+            attribute_id="description",
+            description="A description for this parameter",
+            display_name="Description",
+            allowed_input_types=[PropertyInputType(base_type="str")],
+            hidden=False,
+            required=False,
+            use_in_key=False,
         ),
         ListItemPropertyAttribute(
             attribute_id="default_value",
@@ -113,22 +123,19 @@ class KfpPipelineParameter(PipelineParameter):
             display_name="Required",
             allowed_input_types=[PropertyInputType(base_type="bool", placeholder=" ")],
             hidden=False,
-            required=True,
+            required=False,
             use_in_key=False,
         ),
     ]
 
     default_type = "String"
 
-    def __init__(self, name, value, default_value, required, **kwargs):
-        super().__init__(name=name, value=value, default_value=default_value, required=required)
-        user_selected_type = default_value.get("type")  # TODO or value.get("type") - depends on pipeline JSON
+    def __init__(self, name, description, value, default_value, required, **kwargs):
+        super().__init__(
+            name=name, description=description, value=value, default_value=default_value, required=required
+        )
 
-        kwargs = {}
-        # if user_selected_type == "CustomString":
-        #    kwargs["type_hint"] = "..."  # TODO grab custom type name entered by user
-
-        self.input_type = KfpPropertyInputType(base_type=user_selected_type, **kwargs)
+        self.input_type = KfpPropertyInputType(base_type=self.selected_type or self.default_type)
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""
@@ -145,7 +152,7 @@ class KfpPipelineParameter(PipelineParameter):
             validation_errors.append(f"'{self.name}' is not a valid parameter name: name cannot be a Python keyword.")
 
         # If 'required' is True, a value must be provided
-        if self.required and self.value is None or self.value == "":
+        if self.required and (self.value is None or self.value == ""):
             validation_errors.append("Parameter is marked as required but no value has been assigned.")
 
         # TODO If GCSPath or GCRPath are selected, verify they conform to regex listed in KFP
