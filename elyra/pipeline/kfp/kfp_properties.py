@@ -31,7 +31,7 @@ class KfpPropertyInputType(PropertyInputType):
     object for KUBEFLOW_PIPELINES runtime processors.
     """
 
-    kfp_input_types = {
+    _kfp_input_types = {
         "String": {"type_hint": "str", "json_type": "string", "default_value": ""},
         "Bool": {"type_hint": "bool", "json_type": "boolean", "default_value": False, "placeholder": " "},
         "Integer": {"type_hint": "int", "json_type": "integer"},
@@ -58,11 +58,11 @@ class KfpPropertyInputType(PropertyInputType):
             default_value=default_value,
             placeholder=placeholder,
             enum=enum,
-            allowed_input_types=self.kfp_input_types,
+            allowed_input_types=self._kfp_input_types,
             **kwargs,
         )
 
-        self.type_hint = kwargs.get("type_hint") or self.kfp_input_types[base_type].get("type_hint")
+        self.type_hint = kwargs.get("type_hint") or self._kfp_input_types[base_type].get("type_hint")
         self.component_input_type = kwargs.get("type_hint") or self.base_type
 
 
@@ -118,6 +118,8 @@ class KfpPipelineParameter(PipelineParameter):
         ),
     ]
 
+    default_type = "String"
+
     def __init__(self, name, value, default_value, required, **kwargs):
         super().__init__(name=name, value=value, default_value=default_value, required=required)
         user_selected_type = default_value.get("type")  # TODO or value.get("type") - depends on pipeline JSON
@@ -127,7 +129,6 @@ class KfpPipelineParameter(PipelineParameter):
         #    kwargs["type_hint"] = "..."  # TODO grab custom type name entered by user
 
         self.input_type = KfpPropertyInputType(base_type=user_selected_type, **kwargs)
-        # TODO Coerce number types to ints and floats if needed
 
     def get_all_validation_errors(self) -> List[str]:
         """Perform custom validation on an instance."""

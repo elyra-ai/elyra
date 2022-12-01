@@ -1039,6 +1039,7 @@ class ComponentProperty(object):
         value: Optional[Any] = "",
         required: Optional[bool] = False,
         allow_no_options: Optional[bool] = False,
+        parsed_data_type: Optional[str] = None,
         items: Optional[List[str]] = None,
     ):
         """
@@ -1051,6 +1052,7 @@ class ComponentProperty(object):
         :param required: Whether the property is required
         :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
             define output properties to be selected as input to this node property
+        :param parsed_data_type: The raw data typed exactly as parsed from the component spec
         :param items: For properties with a control of 'EnumControl', the items making up the enum
         """
 
@@ -1084,6 +1086,7 @@ class ComponentProperty(object):
         self._value = value
 
         self._description = description
+        self._parsed_data_type = parsed_data_type
         self._allowed_input_types = allowed_input_types
         self._items = items or []
 
@@ -1137,6 +1140,10 @@ class ComponentProperty(object):
     @property
     def allow_no_options(self) -> bool:
         return self._allow_no_options
+
+    @property
+    def parsed_data_type(self) -> Optional[str]:
+        return self._parsed_data_type
 
     @staticmethod
     def render_property_details(prop: ComponentProperty) -> str:
@@ -1265,3 +1272,19 @@ class PipelineParameter(ElyraPropertyListItem):
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         raise RuntimeError("Method should not be invoked.")
+
+    @staticmethod
+    def get_parameter_type_from_dict(param_as_dict: dict, pipeline_runtime: str) -> str:
+        """
+        Get the data type of the given raw parameter in dict form. If not found, use the
+        default type defined by the runtime type-specific parameter implementation.
+        """
+        from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
+
+        # Determine the default type for the parameter class for the given runtime
+        ppm = PipelineProcessorManager.instance()
+        runtime_processor = ppm.get_processor_for_runtime(pipeline_runtime)
+        parameter_class = ppm.get_pipeline_parameter_class(runtime_type=runtime_processor.type)
+        parameter_default_type = parameter_class.default_type
+
+        return param_as_dict.get("default_value", {}).get("type", parameter_default_type)  # TODO

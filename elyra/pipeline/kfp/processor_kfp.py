@@ -571,6 +571,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         template_env.filters["python_safe"] = lambda x: re.sub(r"[" + re.escape(string.punctuation) + "\\s]", "_", x)
         # Add filter that escapes the " character in strings
         template_env.filters["string_delimiter_safe"] = lambda string: re.sub('"', '\\"', string)
+        # Add filter that converts a value to a python variable value (e.g. puts quotes around strings)
+        template_env.filters["to_python_var"] = lambda val: json.dumps(val) if isinstance(val, str) else val
         template = template_env.get_template("python_dsl_template.jinja2")
 
         # Convert pipeline into workflow tasks
@@ -972,12 +974,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                     elif data_entry_type == "parameter":
                         # task input is the name of a pipeline parameter
-                        if property_value is None or property_value not in pipeline.parameters.to_dict():
+                        param_name = property_value.get("name")
+                        if param_name is None or param_name not in pipeline.parameters.to_dict():
                             # Parameter name not found in list, fall back to using the raw default value
                             reference["value"] = component_property.value
                         else:
                             # Set pipeline parameter reference for this task
-                            reference["pipeline_parameter_reference"] = property_value
+                            reference["pipeline_parameter_reference"] = param_name
 
                     else:
                         # task input is a raw value, either from file contents or entered manually

@@ -126,6 +126,7 @@ class KfpComponentParser(ComponentParser):
                     value=(value or data_type_info.default_value),
                     description=description,
                     required=required,
+                    parsed_data_type=data_type_parsed,
                 )
 
                 properties.append(component_props)
