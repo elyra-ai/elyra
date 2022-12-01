@@ -689,10 +689,6 @@ def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, sha
     assert byo_1.resource.startswith(str(factory_location))
 
 
-@pytest.mark.skipif(
-    os.getenv("TEST_VALIDATION_PERFORMANCE", "0") != "1",
-    reason="test_validation_performance - enable via env TEST_VALIDATION_PERFORMANCE=1",
-)
 def test_validation_performance():
     import psutil
 
@@ -714,7 +710,7 @@ def test_validation_performance():
     memory_end = process.memory_info()
     diff = (memory_end.rss - memory_start.rss) / 1024
     print(
-        f"Memory: {diff:,} kb, Start: {memory_start.rss / 1024 / 1024:,.3f} mb, "
+        f"\nMemory: {diff:,} kb, Start: {memory_start.rss / 1024 / 1024:,.3f} mb, "
         f"End: {memory_end.rss / 1024 / 1024:,.3f} mb., "
         f"Elapsed time: {t1-t0:.3f}s over {iterations} iterations."
     )

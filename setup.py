@@ -98,11 +98,11 @@ setup_args = dict(
         "watchdog>=2.1.3",
         "websocket-client",
         "yaspin",
+        "black<=21.12b0",  # Cap due to psf/black#2846
         # KFP runtime dependencies
         "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
         # Airflow runtime dependencies
         "pygithub",
-        "black<=21.12b0",  # Cap due to psf/black#2846
     ],
     extras_require={
         "test": ["elyra-examples-kfp-catalog", "pytest", "pytest-tornasync"],
@@ -121,6 +121,7 @@ setup_args = dict(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     entry_points={
         "console_scripts": [

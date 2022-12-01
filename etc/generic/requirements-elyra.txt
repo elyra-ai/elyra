@@ -11,7 +11,7 @@ nbclient==0.6.3
 nbconvert==6.5.1
 nbformat==5.4.0
 papermill==2.3.4
-pyzmq==22.3.0
+pyzmq==24.0.1
 prompt-toolkit==3.0.29
 requests==2.27.1
 tornado==6.1

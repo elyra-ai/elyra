@@ -194,7 +194,8 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
         assert export_pipeline_output_path == response
         assert os.path.isfile(export_pipeline_output_path)
 
-        file_as_lines = open(response).read().splitlines()
+        with open(response) as f:
+            file_as_lines = f.read().splitlines()
 
         assert "from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator" in file_as_lines
 
@@ -300,7 +301,8 @@ def test_create_file_custom_components(
         assert export_pipeline_output_path == response
         assert os.path.isfile(export_pipeline_output_path)
 
-        file_as_lines = open(response).read().splitlines()
+        with open(response) as f:
+            file_as_lines = f.read().splitlines()
 
         pipeline_description = pipeline_json["pipelines"][0]["app_data"]["properties"]["description"]
         escaped_description = pipeline_description.replace('"""', '\\"\\"\\"')

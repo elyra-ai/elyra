@@ -44,6 +44,7 @@ from elyra.pipeline.properties import ElyraPropertyJSONEncoder
 from elyra.pipeline.properties import ElyraPropertyList
 from elyra.pipeline.properties import PipelineParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.util.kubernetes import is_valid_kubernetes_device_plugin_name
 from elyra.util.path import get_expanded_path
 
 
@@ -437,6 +438,20 @@ class PipelineValidationManager(SingletonConfigurable):
                         resource_name=resource_name,
                         resource_value=resource_value,
                         response=response,
+                    )
+            for resource_vendor in ["gpu_vendor"]:
+                vendor = node.get_component_parameter(resource_vendor)
+                if vendor and not is_valid_kubernetes_device_plugin_name(vendor):
+                    response.add_message(
+                        severity=ValidationSeverity.Error,
+                        message_type="invalidNodeProperty",
+                        message="Property is not a valid resource vendor name.",
+                        data={
+                            "nodeID": node.id,
+                            "nodeName": node_label,
+                            "propertyName": resource_vendor,
+                            "value": vendor,
+                        },
                     )
 
             for prop in node.elyra_owned_properties:
