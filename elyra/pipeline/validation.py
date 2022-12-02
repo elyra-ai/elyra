@@ -178,7 +178,9 @@ class PipelineValidationManager(SingletonConfigurable):
 
         self._validate_pipeline_graph(pipeline=pipeline, response=response)
 
-        self._validate_pipeline_properties(pipeline_definition=pipeline_definition, response=response)
+        await self._validate_pipeline_properties(
+            pipeline_definition=pipeline_definition, pipeline_runtime=pipeline_runtime, response=response
+        )
 
         if response.has_fatal:
             return response
@@ -931,24 +933,68 @@ class PipelineValidationManager(SingletonConfigurable):
                 data={},
             )
 
-    def _validate_pipeline_properties(
-        self, pipeline_definition: PipelineDefinition, response: ValidationResponse
+    async def _validate_pipeline_properties(
+        self, pipeline_definition: PipelineDefinition, pipeline_runtime: str, response: ValidationResponse
     ) -> None:
         """
-        Validates select pipeline properties
+        Validates select pipeline properties, such as pipeline parameters
 
         :param pipeline_definition: PipelineDefinition object describing the pipeline
+        :param pipeline_runtime: name of the pipeline runtime for execution  e.g. kfp, airflow, local
         :param response: ValidationResponse containing the issue list to be updated
         """
         pipeline_parameters = pipeline_definition.primary_pipeline.pipeline_parameters
-        for parameter in pipeline_parameters:
-            for msg in parameter.get_all_validation_errors():
+
+        # Determine which parameters are referenced by nodes
+        referenced_param_names = []
+        for pipeline in pipeline_definition.pipelines:
+            for node in pipeline.nodes:
+                if node.type == "execution_node":
+                    if Operation.is_generic_operation(node.op):
+                        referenced_param_names.extend(node.get_component_parameter(PIPELINE_PARAMETERS))
+                    else:
+                        component_props = await self._get_component_properties(node.op, pipeline_runtime)
+                        if component_props is None:
+                            continue
+                        for prop in component_props:
+                            property_value = node.get_component_parameter(prop.ref, {})
+                            if property_value.get("widget") == "parameter":
+                                referenced_param_names.extend(property_value.get("value"))
+
+        # Validate individual parameters that are referenced by nodes
+        referenced_params = [p for p in pipeline_parameters if p.name in referenced_param_names]
+        for param in referenced_params:
+            for msg in param.get_all_validation_errors():
                 response.add_message(
                     severity=ValidationSeverity.Error,
                     message_type="invalidPipelineParameter",
                     message=msg,
-                    data={"value": parameter.get_value_for_display()},
+                    data={"value": param.get_value_for_display()},
                 )
+
+        # Validate that there are no duplicate parameter names among the referenced parameters
+        param_name_freq = {p: referenced_param_names.count(p.name) for p in set(referenced_param_names)}
+        for param_name, param_count in param_name_freq.items():
+            if param_count > 1:
+                values = [p.get_value_for_display() for p in pipeline_parameters if p.name == param_name]
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidPipelineParameter",
+                    message=f"One or more nodes reference pipeline parameter with name '{param_name}', "
+                    "but multiple parameters with this name are defined.",
+                    data={"value": values},
+                )
+
+        # Warn if a defined parameter is not referenced by a node
+        # TODO should this only occur if a value is assigned?
+        unreferenced_params = [p for p in pipeline_parameters if p.name not in referenced_param_names]
+        for param in unreferenced_params:
+            response.add_message(
+                severity=ValidationSeverity.Warning,
+                message_type="invalidPipelineParameter",
+                message=f"Pipeline defines parameter '{param.name}', but it is not referenced by any node.",
+                data={"value": param.get_value_for_display()},
+            )
 
     def _get_pipeline_id(self, pipeline: dict, node_id: str) -> Optional[str]:
         """
