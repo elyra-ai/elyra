@@ -92,6 +92,8 @@ def validate_dependencies() -> None:
         raise DependencyException("Please install yarn https://classic.yarnpkg.com/")
     if not dependency_exists("twine"):
         raise DependencyException("Please install twine https://twine.readthedocs.io/en/latest/#installation")
+    if not dependency_exists("pip-compile"):
+        raise DependencyException("Please install pip-tools https://pypi.org/project/pip-tools/")
 
 
 def validate_environment() -> None:
@@ -101,6 +103,8 @@ def validate_environment() -> None:
 
 def update_version_to_release() -> None:
     global config
+
+    print(f"Updating documentation to Release v{config.new_version}")
 
     old_version = config.old_version
     old_npm_version = config.old_npm_version
@@ -257,6 +261,8 @@ def update_version_to_release() -> None:
             cwd=config.source_dir,
         )
         check_run(["yarn", "version", "--new-version", new_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
+
+        print(f"Finished updating documentation to Release v{config.new_version}")
 
     except Exception as ex:
         raise UpdateVersionException from ex
@@ -500,6 +506,14 @@ def build_server():
     print("")
 
 
+def create_requirements_lockfile():
+    print("-----------------------------------------------------------------")
+    print("--------------------- Creating Lockfile -------------------------")
+    print("-----------------------------------------------------------------")
+    check_run(["pip-compile", "--generate-hashes", "pyproject.toml"], cwd=config.source_dir, capture_output=False)
+    check_run(["git", "add", "requirements.txt"], cwd=config.source_dir, capture_output=False)
+
+
 def show_release_artifacts():
     global config
     dist_dir = os.path.join(config.source_dir, "dist")
@@ -734,7 +748,7 @@ def prepare_changelog() -> None:
     generate_changelog()
     # commit
     check_run(
-        ["git", "commit", "-a", "-m", f"Update changelog for release {config.new_version}"], cwd=config.source_dir
+        ["git", "commit", "-a", "-s", "-m", f"Update changelog for release {config.new_version}"], cwd=config.source_dir
     )
 
 
@@ -750,11 +764,16 @@ def prepare_release() -> None:
     checkout_code()
     # generate changelog with new release list of commits
     prepare_changelog()
+    # create requirements lock file
+    create_requirements_lockfile()
     # Update to new release version
     update_version_to_release()
     # commit and tag
-    check_run(["git", "commit", "-a", "-m", f"Release v{config.new_version}"], cwd=config.source_dir)
-    check_run(["git", "tag", config.tag], cwd=config.source_dir)
+    print(f"Committing changes for release v{config.new_version}")
+    check_run(["git", "commit", "-a", "-s", "-m", f"Release v{config.new_version}"], cwd=config.source_dir)
+    # Ensure you have tags.gpgSign set to True and user.signingkey configured via git config
+    print(f"Creating tag for release v{config.new_version}")
+    check_run(["git", "tag", config.tag, "-m", f"Release v{config.new_version}"], cwd=config.source_dir)
     # server-only wheel
     build_server()
     # build release wheel and npm artifacts
@@ -764,7 +783,7 @@ def prepare_release() -> None:
     # back to development
     update_version_to_dev()
     # commit
-    check_run(["git", "commit", "-a", "-m", f"Prepare for next development iteration"], cwd=config.source_dir)
+    check_run(["git", "commit", "-a", "-s", "-m", f"Prepare for next development iteration"], cwd=config.source_dir)
     # prepare extensions
     prepare_extensions_release()
     # prepare runtime extsnsions
