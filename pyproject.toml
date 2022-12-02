@@ -49,7 +49,7 @@ dependencies = [
     "yaspin",
     "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
     "pygithub",
-    "black<=21.12b0",  # Cap due to psf/black#2846
+    "black>=22.8.0",
 ]
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
@@ -63,6 +63,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 dynamic = ['version']
 
@@ -223,7 +224,7 @@ import-order-style = "google"
 line-length = 120
 
 # Python versions that should be supported by the produced output
-target-version = ['py37', 'py38', 'py39', 'py310']
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
 
 # Migrate configurations from pytest.ini
 [tool.pytest.ini_options]
