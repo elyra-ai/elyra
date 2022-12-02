@@ -78,6 +78,7 @@ test = [
     "importlib-resources",
     "pytest>=5.4.1",
     "pytest-console-scripts",
+    "pytest_jupyter",
     "pytest-tornasync",
     "pytest_virtualenv",
     "requests-mock",
