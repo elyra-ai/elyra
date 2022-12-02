@@ -46,8 +46,8 @@
   },
   "dependencies": {
     "@elyra/metadata-common": "3.14.0-dev",
-    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/f942554c/@elyra/pipeline-editor",
-    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/f942554c/@elyra/pipeline-services",
+    "@elyra/pipeline-editor": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/5996ec57/@elyra/pipeline-editor",
+    "@elyra/pipeline-services": "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/5996ec57/@elyra/pipeline-services",
     "@elyra/services": "3.14.0-dev",
     "@elyra/ui-components": "3.14.0-dev",
     "@jupyterlab/application": "^3.4.6",
