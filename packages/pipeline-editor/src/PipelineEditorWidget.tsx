@@ -686,15 +686,21 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       let dialogOptions: Partial<Dialog.IOptions<any>>;
 
-      const parameters = pipelineJson?.pipelines[0].app_data.properties.pipeline_parameters?.filter(
+      pipelineJson.pipelines[0].app_data.properties.pipeline_parameters = pipelineJson.pipelines[0].app_data.properties.pipeline_parameters?.filter(
         (param: any) => {
           return !!pipelineJson.pipelines[0].nodes.find((node: any) => {
-            return node.app_data.component_parameters?.pipeline_parameters?.includes(
-              param.name
+            return (
+              param.name !== '' &&
+              node.app_data.component_parameters?.pipeline_parameters?.includes(
+                param.name
+              )
             );
           });
         }
       );
+
+      const parameters =
+        pipelineJson?.pipelines[0].app_data.properties.pipeline_parameters;
 
       switch (actionType) {
         case 'run':
@@ -762,6 +768,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         contextRef.current.path
       );
 
+      console.log(pipelineJson);
       // Metadata
       pipelineJson.pipelines[0].app_data.name =
         dialogResult.value.pipeline_name ?? pipelineName;
