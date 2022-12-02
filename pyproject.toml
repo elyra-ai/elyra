@@ -244,8 +244,8 @@ filterwarnings = [
   "ignore:There is no current event loop:DeprecationWarning",
 
   # Papermill has included a parameter into a configurable's init and traitlets detects when
-  # no attributes match the argument
-  "ignore:Passing unrecognized arguments to super(PapermillNotebookClient):DeprecationWarning",
+  # no attributes match the argument (note single-quote required for raw-string interpretation)
+  'ignore:Passing unrecognized arguments to super\(PapermillNotebookClient\):DeprecationWarning',
 
   # jupyter_core 5.x changes how it locates platform dirs and produces this warning
   "ignore:Jupyter is migrating its paths to use standard platformdirs:DeprecationWarning",
@@ -262,6 +262,7 @@ filterwarnings = [
   "ignore:numpy not found, skipping conversion test:ImportWarning",
 
   # minio/api.py produces these warnings - tests show urllib3==1.26.x in use
-  "ignore:HTTPResponse.getheader() is deprecated and will be removed in urllib3 v2.1.0.:DeprecationWarning",
-  "ignore:HTTPResponse.getheaders() is deprecated and will be removed in urllib3 v2.1.0.:DeprecationWarning",
+  # test_main_method_with_wildcard_outputs
+  'ignore:HTTPResponse.getheader\(\) is deprecated and will be removed in urllib3 v2.1.0.:DeprecationWarning',
+  'ignore:HTTPResponse.getheaders\(\) is deprecated and will be removed in urllib3 v2.1.0.:DeprecationWarning',
 ]
