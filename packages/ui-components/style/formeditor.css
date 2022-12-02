@@ -241,11 +241,11 @@ button.elyra-editor-tag.unapplied-tag {
   width: 80%;
 }
 
-.elyra-formEditor .field-description {
+.field-description {
   display: none;
 }
 
-.elyra-formEditor .description-wrapper:hover .field-description {
+.description-wrapper:hover .field-description {
   color: var(--jp-content-font-color1);
   position: absolute;
   bottom: 110%;
@@ -324,12 +324,12 @@ button.elyra-editor-tag.unapplied-tag {
   margin-bottom: 10px;
 }
 
-.elyra-formEditor .description-wrapper {
+.description-wrapper {
   width: fit-content;
   position: relative;
 }
 
-.elyra-formEditor .description-button {
+.description-button {
   border-radius: 100%;
   margin-left: 6px;
   border: 1px solid var(--jp-border-color1);
@@ -338,7 +338,7 @@ button.elyra-editor-tag.unapplied-tag {
   padding: 2px 5px;
 }
 
-.elyra-formEditor .label-header {
+.label-header {
   display: flex;
   align-items: center;
 }

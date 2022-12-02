@@ -24,6 +24,7 @@ export interface IParameterProps {
     };
     type?: string;
     required?: boolean;
+    description?: string;
   }[];
 }
 
@@ -73,10 +74,18 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
         }
         return (
           <div key={param.name}>
-            <label htmlFor={`${param.name}-paramInput`}>{`${param.name}${
-              param.required ? '*' : ''
-            }:`}</label>
-            <br />
+            <div className="label-header">
+              <label
+                className="control-label"
+                htmlFor={`${param.name}-paramInput`}
+              >{`${param.name}${param.required ? '*' : ''}`}</label>
+              {param.description && (
+                <div className="description-wrapper">
+                  <div className="description-button">?</div>
+                  <p className={'field-description'}>{param.description}</p>
+                </div>
+              )}
+            </div>
             <input
               id={`${param.name}-paramInput`}
               name={`${param.name}-paramInput`}
