@@ -287,6 +287,8 @@ class ElyraProperty(ABC):
                     uihints[attr.id] = {"ui:placeholder": allowed_type.placeholder}
 
             elif len(attr.allowed_input_types) > 1:
+                properties[attr.id].pop("title")
+
                 # Set default type to be the first one defined in the property_attributes list
                 properties[attr.id]["default"] = {
                     "type": attr.allowed_input_types[0].base_type,
@@ -300,14 +302,15 @@ class ElyraProperty(ABC):
                         "type": "object",
                         "title": allowed_type.type_title or allowed_type.base_type,
                         "properties": {
-                            "type": {"title": "Type", "type": "string", "default": allowed_type.base_type},
+                            "type": {
+                                "title": "Type",
+                                "type": "string",
+                                "default": allowed_type.type_title or allowed_type.base_type,
+                            },
                             "value": {"title": attr.title, "type": allowed_type.json_data_type},
                         },
                         "uihints": {"type": {"ui:widget": "hidden"}},
                     }
-                    if allowed_type.json_data_type == "boolean":
-                        schema_obj["properties"]["value"]["title"] = "Check for true"
-
                     if allowed_type.default_value is not None:
                         schema_obj["properties"]["value"]["default"] = allowed_type.default_value
                     if allowed_type.enum:
@@ -1287,19 +1290,3 @@ class PipelineParameter(ElyraPropertyListItem):
 
     def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
         raise RuntimeError("Method should not be invoked.")
-
-    @staticmethod
-    def get_parameter_type_from_dict(param_as_dict: dict, pipeline_runtime: str) -> str:
-        """
-        Get the data type of the given raw parameter in dict form. If not found, use the
-        default type defined by the runtime type-specific parameter implementation.
-        """
-        from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
-
-        # Determine the default type for the parameter class for the given runtime
-        ppm = PipelineProcessorManager.instance()
-        runtime_processor = ppm.get_processor_for_runtime(pipeline_runtime)
-        parameter_class = ppm.get_pipeline_parameter_class(runtime_type=runtime_processor.type)
-        parameter_default_type = parameter_class.default_type
-
-        return param_as_dict.get("default_value", {}).get("type", parameter_default_type)  # TODO

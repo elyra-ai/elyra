@@ -178,7 +178,7 @@ class PipelineValidationManager(SingletonConfigurable):
 
         self._validate_pipeline_graph(pipeline=pipeline, response=response)
 
-        await self._validate_pipeline_properties(
+        await self._validate_pipeline_parameters(
             pipeline_definition=pipeline_definition, pipeline_runtime=pipeline_runtime, response=response
         )
 
@@ -496,8 +496,7 @@ class PipelineValidationManager(SingletonConfigurable):
         for param in node.elyra_owned_properties:
             self._validate_elyra_owned_property(node.id, node.label, node, param, response, required=False)
 
-        # List of defined pipeline parameter names
-        pipeline_parameter_names = [p.name for p in pipeline_definition.primary_pipeline.pipeline_parameters]
+        pipeline_parameters = pipeline_definition.primary_pipeline.pipeline_parameters
 
         # Full set of properties for the operation as definted in the component spec
         component_props = await self._get_component_properties(node_op=node.op, pipeline_runtime=pipeline_runtime)
@@ -556,18 +555,19 @@ class PipelineValidationManager(SingletonConfigurable):
                                     data={"nodeID": node.id, "nodeName": node.label, "parentNodeID": upstream_node_id},
                                 )
                 elif node_input_type == "parameter":
-                    param = property_value.get("value")
-                    param_name = param.get("name")
+                    param_name = property_value.get("value")
                     self._validate_node_parameter_name(
                         param_name=param_name,
-                        pipeline_param_names=pipeline_parameter_names,
+                        pipeline_parameters=pipeline_parameters,
                         node_id=node.id,
                         node_label=node.label,
                         response=response,
                         property_name=prop.ref,
                     )
 
-                    param_type = PipelineParameter.get_parameter_type_from_dict(param, pipeline_runtime)
+                    param_type = PipelineValidationManager.get_parameter_type_from_name(
+                        param_name, pipeline_parameters, pipeline_runtime
+                    )
                     if prop.parsed_data_type is not None and prop.parsed_data_type != param_type:
                         response.add_message(
                             severity=ValidationSeverity.Warning,
@@ -835,7 +835,7 @@ class PipelineValidationManager(SingletonConfigurable):
     def _validate_node_parameter_name(
         self,
         param_name: str,
-        pipeline_param_names: List[str],
+        pipeline_parameters: List[PipelineParameter],
         node_id: str,
         node_label: str,
         response: ValidationResponse,
@@ -845,12 +845,13 @@ class PipelineValidationManager(SingletonConfigurable):
         Check to ensure that a pipeline parameter listed as input to a node is defined.
 
         :param param_name: parameter name to check
-        :param pipeline_param_names: a list of defined pipeline parameter names
+        :param pipeline_parameters: a list of defined pipeline parameters
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
         :param response: ValidationResponse containing the issue list to be updated
         """
-        if param_name not in pipeline_param_names:
+        pipeline_parameter_names = [p.name for p in pipeline_parameters]
+        if param_name not in pipeline_parameter_names:
             response.add_message(
                 severity=ValidationSeverity.Error,
                 message_type="invalidNodeProperty",
@@ -933,7 +934,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 data={},
             )
 
-    async def _validate_pipeline_properties(
+    async def _validate_pipeline_parameters(
         self, pipeline_definition: PipelineDefinition, pipeline_runtime: str, response: ValidationResponse
     ) -> None:
         """
@@ -959,9 +960,10 @@ class PipelineValidationManager(SingletonConfigurable):
                         for prop in component_props:
                             property_value = node.get_component_parameter(prop.ref, {})
                             if property_value.get("widget") == "parameter":
-                                referenced_param_names.extend(property_value.get("value"))
+                                referenced_param_names.append(property_value.get("value"))
 
-        # Validate individual parameters that are referenced by nodes
+        # Validate parameters that are referenced by nodes according to the
+        # validation rules of the individual PipelineParameter class
         referenced_params = [p for p in pipeline_parameters if p.name in referenced_param_names]
         for param in referenced_params:
             for msg in param.get_all_validation_errors():
@@ -973,7 +975,7 @@ class PipelineValidationManager(SingletonConfigurable):
                 )
 
         # Validate that there are no duplicate parameter names among the referenced parameters
-        param_name_freq = {p: referenced_param_names.count(p.name) for p in set(referenced_param_names)}
+        param_name_freq = {p: referenced_param_names.count(p) for p in set(referenced_param_names)}
         for param_name, param_count in param_name_freq.items():
             if param_count > 1:
                 values = [p.get_value_for_display() for p in pipeline_parameters if p.name == param_name]
@@ -986,15 +988,41 @@ class PipelineValidationManager(SingletonConfigurable):
                 )
 
         # Warn if a defined parameter is not referenced by a node
-        # TODO should this only occur if a value is assigned?
         unreferenced_params = [p for p in pipeline_parameters if p.name not in referenced_param_names]
         for param in unreferenced_params:
+            if param.value is None or param.value == "":
+                continue
             response.add_message(
                 severity=ValidationSeverity.Warning,
                 message_type="invalidPipelineParameter",
                 message=f"Pipeline defines parameter '{param.name}', but it is not referenced by any node.",
                 data={"value": param.get_value_for_display()},
             )
+
+    @staticmethod
+    def get_parameter_type_from_name(
+        param_name: str, pipeline_parameters: List[PipelineParameter], pipeline_runtime: str
+    ) -> str:
+        """
+        Get the data type of the given raw parameter in dict form. If not found, use the
+        default type defined by the runtime type-specific parameter implementation.
+        """
+        from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
+
+        # Determine the default type for the parameter class for the given runtime
+        ppm = PipelineProcessorManager.instance()
+        runtime_processor = ppm.get_processor_for_runtime(pipeline_runtime)
+        parameter_class = ppm.get_pipeline_parameter_class(runtime_type=runtime_processor.type)
+        parameter_default_type = parameter_class.default_type
+
+        parameter = None
+        # Find matching parameter name within the list of parameters
+        for param in pipeline_parameters:
+            if param.name == param_name:
+                parameter = param
+                break  # use first instance found
+
+        return parameter.selected_type if isinstance(parameter, PipelineParameter) else parameter_default_type
 
     def _get_pipeline_id(self, pipeline: dict, node_id: str) -> Optional[str]:
         """

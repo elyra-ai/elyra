@@ -973,7 +973,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         }
                     elif data_entry_type == "parameter":
                         # task input is the name of a pipeline parameter
-                        param_name = property_value.get("name")
+                        param_name = property_value
                         if param_name is None or param_name not in pipeline.parameters.to_dict():
                             # Parameter name not found in list, fall back to using the raw default value
                             reference["value"] = component_property.value
