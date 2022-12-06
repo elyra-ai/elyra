@@ -84,7 +84,7 @@ class KfpComponentParser(ComponentParser):
                     required = False
 
                 # Assign parsed data type (default to string)
-                data_type_parsed = param.get("type", "string")
+                data_type_parsed = param.get("type", "String")
 
                 # Define adjusted type as either inputPath or outputPath
                 data_type_adjusted = data_type_parsed  # can be str, bool, int, etc. or inputPath or outputPath
