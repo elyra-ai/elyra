@@ -1211,10 +1211,6 @@ class ComponentProperty(object):
                     # Render default value if it is not None
                     if prop.value is not None:
                         obj["properties"]["value"]["default"] = prop.value
-
-                    # Render parsed data type if present
-                    if prop.parsed_data_type:
-                        obj["uihints"]["value"] = {"ui:typefilter": prop.parsed_data_type}
                 else:  # custom widget types (inputpath, file, parameter)
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
@@ -1227,7 +1223,11 @@ class ComponentProperty(object):
                         obj["properties"]["value"]["enum"] = []
                         if prop.allow_no_options:
                             obj["uihints"]["allownooptions"] = prop.allow_no_options
-                    elif widget_type != "parameter":
+                    elif widget_type == "parameter":
+                        # Render parsed data type if present
+                        if prop.parsed_data_type:
+                            obj["uihints"]["value"] = {"ui:typefilter": prop.parsed_data_type}
+                    else:
                         obj["uihints"]["value"] = {"ui:widget": widget_type}
 
                 one_of.append(obj)
