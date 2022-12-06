@@ -287,7 +287,7 @@ class ElyraProperty(ABC):
                     uihints[attr.id] = {"ui:placeholder": allowed_type.placeholder}
 
             elif len(attr.allowed_input_types) > 1:
-                properties[attr.id].pop("title")
+                properties[attr.id]["title"] = "Type"
 
                 # Set default type to be the first one defined in the property_attributes list
                 properties[attr.id]["default"] = {
@@ -302,11 +302,7 @@ class ElyraProperty(ABC):
                         "type": "object",
                         "title": allowed_type.type_title or allowed_type.base_type,
                         "properties": {
-                            "type": {
-                                "title": "Type",
-                                "type": "string",
-                                "default": allowed_type.type_title or allowed_type.base_type,
-                            },
+                            "type": {"type": "string", "default": allowed_type.type_title or allowed_type.base_type},
                             "value": {"title": attr.title, "type": allowed_type.json_data_type},
                         },
                         "uihints": {"type": {"ui:widget": "hidden"}},
