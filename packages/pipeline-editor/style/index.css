@@ -433,9 +433,14 @@ span.bx--list-box__label {
 
 .elyra-PipelineEditor .elyra-formEditor .field-object > fieldset > legend,
 .elyra-PipelineEditor
+  .elyra-formEditor:not(#pipeline-parameters)
   .form-group.field.field-oneOf
   .form-group.field-object
-  .label-header {
+  .label-header,
+.elyra-formEditor#pipeline-parameters
+  .field-oneOf
+  .field-object
+  > .label-header {
   display: none;
 }
 
