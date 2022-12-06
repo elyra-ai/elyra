@@ -350,7 +350,7 @@ class FileOpBase(ABC):
         """Make pipeline parameters available as environment variables."""
         for name, value in self.pipeline_param_dict.items():
             if name in os.environ:
-                continue  # TODO is this the desired behavior?
+                continue  # avoid overwriting env vars with the same name
             os.environ[name] = value
 
 

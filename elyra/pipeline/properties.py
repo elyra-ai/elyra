@@ -1259,13 +1259,13 @@ class PipelineParameter(ElyraPropertyListItem):
         self.name = name
         self.description = description
         self.required = required
-        self.selected_type = default_value.get("type")  # TODO may change with pipeline JSON
+        self.selected_type = default_value.get("type")
 
         # Assign default value, if given
         self.default_value = default_value.get("value") if isinstance(default_value, dict) else None
 
         # Assign value, if set; use default_value if not
-        self.value = value if value is not None else self.default_value  # TODO may change with pipeline JSON
+        self.value = value if value is not None else self.default_value
 
     def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """

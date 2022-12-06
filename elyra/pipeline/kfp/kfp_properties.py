@@ -155,5 +155,4 @@ class KfpPipelineParameter(PipelineParameter):
         if self.required and (self.value is None or self.value == ""):
             validation_errors.append("Parameter is marked as required but no value has been assigned.")
 
-        # TODO If GCSPath or GCRPath are selected, verify they conform to regex listed in KFP
         return validation_errors

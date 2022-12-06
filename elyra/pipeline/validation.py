@@ -975,7 +975,10 @@ class PipelineValidationManager(SingletonConfigurable):
                 )
 
         # Validate that there are no duplicate parameter names among the referenced parameters
-        param_name_freq = {p: referenced_param_names.count(p) for p in set(referenced_param_names)}
+        # Note: this should not happen during normal workflow because parameters are de-duplicated
+        # according to name during pipeline definition property conversion
+        param_names = [p.name for p in pipeline_parameters]
+        param_name_freq = {p: param_names.count(p) for p in set(param_names)}
         for param_name, param_count in param_name_freq.items():
             if param_count > 1:
                 values = [p.get_value_for_display() for p in pipeline_parameters if p.name == param_name]
@@ -987,7 +990,9 @@ class PipelineValidationManager(SingletonConfigurable):
                     data={"value": values},
                 )
 
-        # Warn if a defined parameter is not referenced by a node
+        # Warn if a defined parameter is not referenced by a node (if parameter has an assigned value)
+        # Note: this should not happen during normal workflow because only parameters selected
+        # by a node/node property should be passed in the pipeline JSON
         unreferenced_params = [p for p in pipeline_parameters if p.name not in referenced_param_names]
         for param in unreferenced_params:
             if param.value is None or param.value == "":
