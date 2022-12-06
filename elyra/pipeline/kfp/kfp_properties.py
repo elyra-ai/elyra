@@ -119,7 +119,7 @@ class KfpPipelineParameter(PipelineParameter):
         ),
         ListItemPropertyAttribute(
             attribute_id="required",
-            description="Whether a value is required for this property during pipeline submit/export",
+            description="Whether a value is required for this parameter during pipeline submit/export",
             display_name="Required",
             allowed_input_types=[PropertyInputType(base_type="bool", placeholder=" ")],
             hidden=False,
