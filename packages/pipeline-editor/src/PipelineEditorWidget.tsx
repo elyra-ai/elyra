@@ -768,23 +768,20 @@ const PipelineWrapper: React.FC<IProps> = ({
         contextRef.current.path
       );
 
-      console.log(pipelineJson);
       // Metadata
       pipelineJson.pipelines[0].app_data.name =
         dialogResult.value.pipeline_name ?? pipelineName;
       pipelineJson.pipelines[0].app_data.source = PathExt.basename(
         contextRef.current.path
       );
-      for (const paramIndex in pipelineJson.pipelines[0].app_data.properties
-        .pipeline_parameters ?? []) {
-        const param =
-          pipelineJson.pipelines[0].app_data.properties.pipeline_parameters[
-            paramIndex
-          ];
+      for (const paramIndex in parameters ?? []) {
+        const param = parameters[paramIndex];
         if (param.name) {
+          const paramOverride = dialogResult.value[`${param.name}-paramInput`];
           pipelineJson.pipelines[0].app_data.properties.pipeline_parameters[
             paramIndex
-          ].value = dialogResult.value[`${param.name}-paramInput`];
+          ].value =
+            paramOverride === '' ? param.default_value?.value : paramOverride;
         }
       }
       pipelineJson.pipelines[0].app_data.name =
