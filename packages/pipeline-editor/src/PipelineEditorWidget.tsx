@@ -691,9 +691,14 @@ const PipelineWrapper: React.FC<IProps> = ({
           return !!pipelineJson.pipelines[0].nodes.find((node: any) => {
             return (
               param.name !== '' &&
-              node.app_data.component_parameters?.pipeline_parameters?.includes(
+              (node.app_data.component_parameters?.pipeline_parameters?.includes(
                 param.name
-              )
+              ) ||
+                Object.values(node.app_data.component_parameters ?? {}).find(
+                  (property: any) =>
+                    property.widget === 'parameter' &&
+                    property.value === param.name
+                ))
             );
           });
         }
