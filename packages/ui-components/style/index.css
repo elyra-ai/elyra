@@ -178,6 +178,12 @@
   z-index: 999;
 }
 
+.jp-Dialog-body,
+.jp-Dialog-content {
+  overflow-y: scroll;
+  overflow-x: unset;
+}
+
 .elyra-browseFileDialog .jp-Dialog-content {
   height: 400px;
   width: 600px;

@@ -82,7 +82,15 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
               {param.description && (
                 <div className="description-wrapper">
                   <div className="description-button">?</div>
-                  <p className={'field-description'}>{param.description}</p>
+                  <p
+                    style={{
+                      left: `${param.name.length / 2}ch`,
+                      maxWidth: `${param.name.length * 2}ch`
+                    }}
+                    className={'field-description'}
+                  >
+                    {param.description}
+                  </p>
                 </div>
               )}
             </div>
