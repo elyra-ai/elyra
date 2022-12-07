@@ -460,9 +460,9 @@ class PipelineValidationManager(SingletonConfigurable):
                 self._validate_elyra_owned_property(node.id, node.label, node, prop, response, required=False)
 
             # validate pipeline parameters
-            pipeline_param_names = [p.name for p in pipeline_definition.primary_pipeline.pipeline_parameters]
+            pipeline_params = pipeline_definition.primary_pipeline.pipeline_parameters
             for param_name in node.get_component_parameter(PIPELINE_PARAMETERS, []):
-                self._validate_node_parameter_name(param_name, pipeline_param_names, node.id, node_label, response)
+                self._validate_node_parameter_name(param_name, pipeline_params, node.id, node_label, response)
         else:
             # Only env vars need to be validated for local runtime
             self._validate_elyra_owned_property(node.id, node.label, node, ENV_VARIABLES, response)

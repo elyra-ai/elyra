@@ -139,7 +139,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
     @default("parameter_pass_method")
     def parameter_pass_method_default(self):
-        parameter_pass_default = RuntimePipelineProcessor.parameter_pass_default
+        parameter_pass_default = KfpPipelineProcessor.parameter_pass_default
         try:
             parameter_pass_default = os.getenv(self.parameter_pass_method_env, parameter_pass_default)
         except ValueError:
