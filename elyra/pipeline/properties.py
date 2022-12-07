@@ -288,6 +288,7 @@ class ElyraProperty(ABC):
 
             elif len(attr.allowed_input_types) > 1:
                 properties[attr.id]["title"] = "Type"
+                properties[attr.id]["description"] = "The type of this parameter"
 
                 # Set default type to be the first one defined in the property_attributes list
                 properties[attr.id]["default"] = {
@@ -303,7 +304,11 @@ class ElyraProperty(ABC):
                         "title": allowed_type.type_title or allowed_type.base_type,
                         "properties": {
                             "type": {"type": "string", "default": allowed_type.type_title or allowed_type.base_type},
-                            "value": {"title": attr.title, "type": allowed_type.json_data_type},
+                            "value": {
+                                "title": attr.title,
+                                "description": attr.description,
+                                "type": allowed_type.json_data_type,
+                            },
                         },
                         "uihints": {"type": {"ui:widget": "hidden"}},
                     }
