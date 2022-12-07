@@ -22,6 +22,7 @@ from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 from conftest import KFP_COMPONENT_CACHE_INSTANCE
 import pytest
 
+from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
@@ -29,6 +30,7 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.properties import CustomSharedMemorySize
@@ -1172,3 +1174,175 @@ async def test_pipeline_aa_parent_node_missing_xcom_push(
     assert issues[0]["type"] == "invalidNodeProperty"
     assert issues[0]["data"]["nodeID"] == invalid_node_id
     assert issues[0]["data"]["parentNodeID"] == invalid_parent_id
+
+
+async def test_kfp_invalid_pipeline_parameter_type():
+    invalid_type = "SomeCustomType"
+    with pytest.raises(ValueError) as ve:
+        # Try to instantiate a parameter with an invalid KFP type
+        KfpPipelineParameter(
+            name=None, description="", value="", default_value={"type": invalid_type, "value": "val"}, required=False
+        )
+        assert f"Invalid property type '{invalid_type}': valid types are" in ve
+
+
+async def test_invalid_pipeline_parameter_duplicates(validation_manager, load_pipeline):
+    pipeline, response = load_pipeline("kf_with_parameters.pipeline")
+    duplicate_parameters = ElyraPropertyList(
+        [
+            KfpPipelineParameter(name="param1", description="dup", value="value1", default_value={}, required=True),
+            KfpPipelineParameter(name="param1", description="dup", value="value2", default_value={}, required=True),
+        ]
+    )
+
+    referenced_params = ["param1"]
+    pipeline["pipelines"][0]["nodes"][0]["app_data"]["component_parameters"]["pipeline_parameters"] = referenced_params
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    pipeline_definition.primary_pipeline.set_property(PIPELINE_PARAMETERS, duplicate_parameters)
+    await validation_manager._validate_pipeline_parameters(
+        pipeline_definition=pipeline_definition,
+        pipeline_runtime="kfp",
+        response=response,
+    )
+
+    issues = response.to_json().get("issues")
+    assert len(issues) == 1, issues
+
+    # Validate duplicate parameters
+    assert issues[0]["severity"] == 1
+    assert issues[0]["type"] == "invalidPipelineParameter"
+    assert (
+        "One or more nodes reference pipeline parameter with name 'param1', "
+        "but multiple parameters with this name are defined." in issues[0]["message"]
+    )
+
+
+@pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+async def test_invalid_pipeline_parameter(validation_manager, load_pipeline, catalog_instance):
+    pipeline, response = load_pipeline("kf_with_parameters.pipeline")
+    referenced_params = [None, "", "2param", "class", "param1", "param4"]
+    invalid_parameter_instances = [
+        KfpPipelineParameter(name=None, description="", value="", default_value={}, required=False),
+        KfpPipelineParameter(name="", description="", value="", default_value={}, required=False),
+        KfpPipelineParameter(name="2param", description="", value="", default_value={}, required=False),
+        KfpPipelineParameter(name="class", description="", value="", default_value={}, required=False),
+        KfpPipelineParameter(name="param1", description="", value=None, default_value={}, required=True),
+        KfpPipelineParameter(name="param4", description="", value="", default_value={}, required=True),
+    ]
+
+    valid_parameter_instances = [
+        KfpPipelineParameter(name="param2", description="dup", value="value1", default_value={}, required=True),
+        KfpPipelineParameter(name="param2", description="dup", value="value2", default_value={}, required=True),
+        KfpPipelineParameter(name="param3", description="unref", value="value2", default_value={}, required=True),
+    ]
+
+    pipeline_parameters = invalid_parameter_instances + valid_parameter_instances
+    pipeline["pipelines"][0]["app_data"]["properties"][PIPELINE_PARAMETERS] = pipeline_parameters
+    pipeline["pipelines"][0]["nodes"][0]["app_data"]["component_parameters"]["pipeline_parameters"] = referenced_params
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_pipeline_parameters(
+        pipeline_definition=pipeline_definition,
+        pipeline_runtime="kfp",
+        response=response,
+    )
+
+    issues = response.to_json().get("issues")
+    assert len(issues) == 6, issues
+
+    # Validate specific (referenced) parameter instances
+    assert issues[0]["severity"] == 1
+    assert issues[0]["type"] == "invalidPipelineParameter"
+    assert "Required parameter name was not specified." in issues[0]["message"]
+    assert issues[0]["data"]["value"].get("name") == ""
+    assert "'2param' is not a valid parameter name: name must be a Python variable name." in issues[1]["message"]
+    assert "'class' is not a valid parameter name: name cannot be a Python keyword." in issues[2]["message"]
+    assert "Parameter is marked as required but no value has been assigned." in issues[3]["message"]
+    assert "Parameter is marked as required but no value has been assigned." in issues[4]["message"]
+
+    # Validate unreferenced parameter
+    assert issues[5]["severity"] == 2
+    assert issues[5]["type"] == "invalidPipelineParameter"
+    assert "Pipeline defines parameter 'param3', but it is not referenced by any node." in issues[5]["message"]
+
+
+@pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+async def test_valid_pipeline_parameter(validation_manager, load_pipeline, catalog_instance):
+    pipeline, response = load_pipeline("kf_with_parameters.pipeline")
+    referenced_params = ["param1", "param2", "param3", "param4", "param5"]
+    valid_pipeline_parameters = [
+        KfpPipelineParameter(name="param1", description="", value="value1", default_value={}, required=True),
+        KfpPipelineParameter(
+            name="param2", description="", value=2, default_value={"type": "Integer", "value": 1}, required=True
+        ),
+        KfpPipelineParameter(name="param3", description="", value=False, default_value={"type": "Bool"}, required=True),
+        KfpPipelineParameter(
+            name="param4", description="", value=1.5, default_value={"type": "Float", "value": 0.5}, required=True
+        ),
+        KfpPipelineParameter(
+            name="param5",
+            description="",
+            value=1.5,
+            default_value={"type": "String", "value": "default"},
+            required=True,
+        ),
+    ]
+
+    pipeline["pipelines"][0]["app_data"]["properties"][PIPELINE_PARAMETERS] = valid_pipeline_parameters
+    pipeline["pipelines"][0]["nodes"][0]["app_data"]["component_parameters"]["pipeline_parameters"] = referenced_params
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_pipeline_parameters(
+        pipeline_definition=pipeline_definition,
+        pipeline_runtime="kfp",
+        response=response,
+    )
+
+    issues = response.to_json().get("issues")
+    assert len(issues) == 0, issues
+
+
+@pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+async def test_invalid_node_property_pipeline_parameter(validation_manager, load_pipeline, catalog_instance):
+    pipeline, response = load_pipeline("kf_with_parameters.pipeline")
+    valid_pipeline_parameters = [
+        KfpPipelineParameter(
+            name="param1", description="", value=2, default_value={"type": "Integer", "value": 1}, required=True
+        ),
+    ]
+
+    pipeline["pipelines"][0]["app_data"]["properties"][PIPELINE_PARAMETERS] = valid_pipeline_parameters
+    pipeline["pipelines"][0]["nodes"][0]["app_data"]["component_parameters"]["pipeline_parameters"] = ["p2", "p3"]
+
+    pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+    await validation_manager._validate_node_properties(
+        pipeline_definition=pipeline_definition,
+        response=response,
+        pipeline_type="KUBEFLOW_PIPELINES",
+        pipeline_runtime="kfp",
+    )
+
+    issues = response.to_json().get("issues")
+    assert len(issues) == 5, issues
+
+    # Validate pipeline_parameters generic node property: referenced parameter doesn't exist
+    assert issues[0]["severity"] == 1
+    assert issues[0]["type"] == "invalidNodeProperty"
+    assert "Node depends on a pipeline parameter that is not defined." in issues[0]["message"]
+    assert issues[0]["data"]["value"] == "p2"
+    assert "Node depends on a pipeline parameter that is not defined." in issues[1]["message"]
+    assert issues[1]["data"]["value"] == "p3"
+
+    # Validate pipeline_parameters custom node property: referenced parameter doesn't exist
+    assert issues[3]["severity"] == 1
+    assert issues[3]["type"] == "invalidNodeProperty"
+    assert "Node depends on a pipeline parameter that is not defined." in issues[3]["message"]
+    assert issues[3]["data"]["value"] == "param2"
+    assert issues[3]["data"]["propertyName"] == "curl_options"
+
+    # Validate pipeline_parameters custom node property: referenced parameter type doesn't match property input type
+    assert issues[4]["severity"] == 2
+    assert issues[4]["type"] == "invalidNodeProperty"
+    assert "the type of the selected parameter does not match the type given" in issues[4]["message"]
+    assert issues[4]["data"]["propertyName"] == "curl_options"

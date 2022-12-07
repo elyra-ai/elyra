@@ -1,0 +1,117 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "c06ad0e7-8c86-462b-b3fc-a7d771f75707",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "{{uuid-Notebook}}",
+          "type": "execution_node",
+          "op": "execute-notebook-node",
+          "app_data": {
+            "label": "label",
+            "component_parameters": {
+              "label": "",
+              "filename": "notebookA.ipynb",
+              "runtime_image": "continuumio/anaconda3:2020.07",
+              "outputs": [],
+              "env_vars": [],
+              "dependencies": [],
+              "include_subdirectories": false,
+              "pipeline_parameters": ["{{pipeline_param_name_list}}"]
+            },
+            "ui_data": {
+              "label": "label",
+              "description": "Notebook file"
+            }
+          }
+        },
+        {
+          "id": "5a244bf5-bc26-48a3-8680-b9c08a6746a0",
+          "type": "execution_node",
+          "op": "elyra-kfp-examples-catalog:a08014f9252f",
+          "app_data": {
+            "component_parameters": {
+              "url": {
+                "widget": "parameter",
+                "value": "param1"
+              },
+              "curl_options": {
+                "widget": "parameter",
+                "value": "param2"
+              },
+              "output_data": ""
+            },
+            "label": "",
+            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
+            "ui_data": {
+              "label": "Download data",
+              "image": "/static/elyra/kubeflow.svg",
+              "x_pos": 16,
+              "y_pos": 78.5
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "runtime": "{{runtime}}",
+        "runtime_config": "{{runtime-config}}",
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "ui_data": {
+          "comments": []
+        },
+        "properties": {
+          "name": "{{name}}",
+          "pipeline_defaults": {
+            "runtime_image": "{{ default_image }}",
+            "env_vars": [
+              { "env_var": "var1", "value": "var_one" },
+              { "env_var": "var2", "value": "var_two" },
+              { "env_var": "var3", "value": "var_three" }
+            ],
+            "mounted_volumes": [
+              { "path": "/mnt/vol2", "pvc_name": "pvc-claim-2" }
+            ],
+            "disable_node_caching": "True"
+          },
+          "runtime": "{{runtime description}}",
+          "pipeline_parameters": ["{{pipeline_parameters}}"]
+        },
+        "version": 5
+      }
+    }
+  ],
+  "schemas": []
+}

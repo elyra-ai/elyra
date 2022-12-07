@@ -498,8 +498,8 @@ class PipelineValidationManager(SingletonConfigurable):
 
         pipeline_parameters = pipeline_definition.primary_pipeline.pipeline_parameters
 
-        # Full set of properties for the operation as definted in the component spec
-        component_props = await self._get_component_properties(node_op=node.op, pipeline_runtime=pipeline_runtime)
+        # Full set of properties for the operation as defined in the component spec
+        component_props = await self._get_component_properties(node_op=node.op, pipeline_runtime=pipeline_runtime) or []
         for prop in component_props:
             property_value = node.get_component_parameter(prop.ref)
             if not property_value or property_value.get("value") is None:

@@ -1259,7 +1259,9 @@ class PipelineParameter(ElyraPropertyListItem):
         self.name = name
         self.description = description
         self.required = required
-        self.selected_type = default_value.get("type")
+
+        # Assign selected type, if given
+        self.selected_type = default_value.get("type") if isinstance(default_value, dict) else None
 
         # Assign default value, if given
         self.default_value = default_value.get("value") if isinstance(default_value, dict) else None
