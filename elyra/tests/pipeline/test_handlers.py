@@ -324,3 +324,18 @@ async def test_validation_handler(jp_fetch, monkeypatch):
     http_response = await jp_fetch("elyra", "pipeline", "validate", body=json_body, method="POST")
 
     assert http_response.code == 200
+
+
+async def test_get_pipeline_parameters_schema(jp_fetch, caplog):
+    # Ensure all valid components can be found
+    unsupported_runtime_types = [RuntimeProcessorType.LOCAL, RuntimeProcessorType.APACHE_AIRFLOW]
+    for runtime_type in unsupported_runtime_types:
+        with pytest.raises(HTTPClientError) as e:
+            await jp_fetch("elyra", "pipeline", runtime_type.name, "parameters", method="GET")
+        assert expected_http_error(e, 405)
+        msg_body = json.loads(e.value.response.body.decode()).get("message")
+        assert "does not support pipeline parameters" in msg_body
+
+    runtime_type = RuntimeProcessorType.KUBEFLOW_PIPELINES
+    response = await jp_fetch("elyra", "pipeline", "components", runtime_type.name)
+    assert response.code == 200

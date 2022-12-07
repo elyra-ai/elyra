@@ -1176,16 +1176,6 @@ async def test_pipeline_aa_parent_node_missing_xcom_push(
     assert issues[0]["data"]["parentNodeID"] == invalid_parent_id
 
 
-async def test_kfp_invalid_pipeline_parameter_type():
-    invalid_type = "SomeCustomType"
-    with pytest.raises(ValueError) as ve:
-        # Try to instantiate a parameter with an invalid KFP type
-        KfpPipelineParameter(
-            name=None, description="", value="", default_value={"type": invalid_type, "value": "val"}, required=False
-        )
-        assert f"Invalid property type '{invalid_type}': valid types are" in ve
-
-
 async def test_invalid_pipeline_parameter_duplicates(validation_manager, load_pipeline):
     pipeline, response = load_pipeline("kf_with_parameters.pipeline")
     duplicate_parameters = ElyraPropertyList(
@@ -1304,7 +1294,9 @@ async def test_valid_pipeline_parameter(validation_manager, load_pipeline, catal
 
 
 @pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
-async def test_invalid_node_property_pipeline_parameter(validation_manager, load_pipeline, catalog_instance):
+async def test_invalid_node_property_pipeline_parameter(
+    validation_manager, load_pipeline, catalog_instance, monkeypatch
+):
     pipeline, response = load_pipeline("kf_with_parameters.pipeline")
     valid_pipeline_parameters = [
         KfpPipelineParameter(
@@ -1316,6 +1308,10 @@ async def test_invalid_node_property_pipeline_parameter(validation_manager, load
     pipeline["pipelines"][0]["nodes"][0]["app_data"]["component_parameters"]["pipeline_parameters"] = ["p2", "p3"]
 
     pipeline_definition = PipelineDefinition(pipeline_definition=pipeline)
+
+    monkeypatch.setattr(
+        validation_manager, "_validate_filepath", lambda node_id, node_label, property_name, filename, response: True
+    )
     await validation_manager._validate_node_properties(
         pipeline_definition=pipeline_definition,
         response=response,

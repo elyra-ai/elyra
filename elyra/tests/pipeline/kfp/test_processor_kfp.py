@@ -28,6 +28,7 @@ import yaml
 
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.component import Component
+from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_MEDIUM
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_NAME
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_SIZE
@@ -1547,3 +1548,13 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_
                 f"Missing entry for image pull secret '{expected_secret_name}' "
                 f"in {compiled_spec['spec']['imagePullSecrets']}"
             )
+
+
+async def test_kfp_invalid_pipeline_parameter_type():
+    invalid_type = "SomeCustomType"
+    with pytest.raises(ValueError) as ve:
+        # Try to instantiate a parameter with an invalid KFP type
+        KfpPipelineParameter(
+            name=None, description="", value="", default_value={"type": invalid_type, "value": "val"}, required=False
+        )
+        assert f"Invalid property type '{invalid_type}': valid types are" in ve
