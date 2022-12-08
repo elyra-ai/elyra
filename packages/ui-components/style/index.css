@@ -178,6 +178,13 @@
   z-index: 999;
 }
 
+.elyra-formEditor#pipeline-parameters
+  .array-item
+  .form-group.field
+  .label-header {
+  margin-top: 10px;
+}
+
 .elyra-browseFileDialog .jp-Dialog-content {
   height: 400px;
   width: 600px;
