@@ -16,6 +16,7 @@
             "component_parameters": {
               "dependencies": [],
               "include_subdirectories": false,
+              "pipeline_parameters": ["param1", "param2"],
               "outputs": [],
               "env_vars": [],
               "kubernetes_pod_annotations": [],
@@ -99,6 +100,36 @@
           },
           "name": "kfp-one-node-generic",
           "runtime": "Kubeflow Pipelines",
+          "pipeline_parameters": [
+            {
+              "name": "param1",
+              "description": "",
+              "default_value": {
+                "type": "String",
+                "value": "my value"
+              },
+              "required": false
+            },
+            {
+              "name": "param2",
+              "description": "",
+              "default_value": {
+                "type": "Integer",
+                "value": 2
+              },
+              "value": 3,
+              "required": false
+            },
+            {
+              "name": "param3",
+              "description": "",
+              "default_value": {
+                "type": "String",
+                "value": "not present"
+              },
+              "required": false
+            }
+          ],
           "description": "A Kubeflow Pipelines pipeline that contains one generic node"
         }
       },
