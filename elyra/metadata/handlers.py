@@ -96,6 +96,9 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         instance = Metadata.from_dict(schemaspace, {**body})
         return instance
 
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
+
 
 class MetadataResourceHandler(HttpErrorMixin, APIHandler):
     """Handler for metadata configuration specific resource (e.g. a runtime element)."""
@@ -175,6 +178,9 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
         self.set_status(204)
         self.finish()
 
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
+
 
 class SchemaHandler(HttpErrorMixin, APIHandler):
     """Handler for schemaspace schemas."""
@@ -194,6 +200,9 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
         schemas_model = {schemaspace: list(schemas.values())}
         self.set_header("Content-Type", "application/json")
         self.finish(schemas_model)
+
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
 
 
 class SchemaResourceHandler(HttpErrorMixin, APIHandler):
@@ -215,6 +224,9 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
         self.set_header("Content-Type", "application/json")
         self.finish(schema)
 
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
+
 
 class SchemaspaceHandler(HttpErrorMixin, APIHandler):
     """Handler for retrieving schemaspace names."""
@@ -234,6 +246,9 @@ class SchemaspaceHandler(HttpErrorMixin, APIHandler):
 
         self.set_header("Content-Type", "application/json")
         self.finish(schemaspace_model)
+
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
 
 
 class SchemaspaceResourceHandler(HttpErrorMixin, APIHandler):
@@ -260,3 +275,6 @@ class SchemaspaceResourceHandler(HttpErrorMixin, APIHandler):
 
         self.set_header("Content-Type", "application/json")
         self.finish(schemaspace_info_model)
+
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)

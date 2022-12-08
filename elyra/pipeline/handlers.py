@@ -127,6 +127,9 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         self.set_header("Content-Type", "application/json")
         await self.finish(json_msg)
 
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
+
 
 class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to execute pipelines as batch jobs"""
@@ -171,6 +174,9 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         self.set_header("Content-Type", "application/json")
         await self.finish(json_msg)
 
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
+
 
 class PipelineComponentHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipelines editor component configuration"""
@@ -195,6 +201,9 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
         self.set_header("Content-Type", "application/json")
         await self.finish(palette_json)
 
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
+
 
 class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to retrieve pipeline properties"""
@@ -213,6 +222,9 @@ class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", "application/json")
         await self.finish(pipeline_properties_json)
+
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
 
 
 class PipelineParametersHandler(HttpErrorMixin, APIHandler):
@@ -297,6 +309,9 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         self.set_header("Content-Type", "application/json")
         await self.finish(json_response)
 
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
+
 
 class PipelineValidationHandler(HttpErrorMixin, APIHandler):
     """Handler to expose method calls to validate pipeline payloads for errors"""
@@ -321,6 +336,9 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
         self.set_header("Content-Type", "application/json")
         await self.finish(json_msg)
 
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
+
 
 class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
     """Handler to get static information relative to the set of configured runtime types"""
@@ -337,6 +355,9 @@ class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
         self.set_status(200)
         self.set_header("Content-Type", "application/json")
         await self.finish({"runtime_types": runtime_types})
+
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
 
 
 class ComponentCacheHandler(HttpErrorMixin, APIHandler):
@@ -358,6 +379,9 @@ class ComponentCacheHandler(HttpErrorMixin, APIHandler):
             self.set_status(409, str(ripe))
 
         await self.finish()
+
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
 
 
 class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
@@ -384,3 +408,6 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
         self.set_status(204)
 
         await self.finish()
+
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)

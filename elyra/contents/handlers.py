@@ -74,3 +74,6 @@ class ContentHandler(HttpErrorMixin, APIHandler):
             path = path[1:]
         absolute_path = os.path.normpath(os.path.join(root_dir, path))
         return absolute_path
+
+    def write_error(self, status_code, **kwargs):
+        HttpErrorMixin().write_error(status_code, **kwargs)
