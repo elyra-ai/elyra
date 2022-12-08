@@ -560,11 +560,6 @@ class OpUtil(object):
                         f"{current_packages[package]}. This may conflict with the required "
                         f"version: {ver} . Skipping..."
                     )
-                elif isinstance(version.parse(current_packages[package]), version.LegacyVersion):
-                    logger.warning(
-                        f"WARNING: Package '{package}' found with unsupported Legacy version "
-                        f"scheme {current_packages[package]} already installed. Skipping..."
-                    )
                 elif version.parse(ver) > version.parse(current_packages[package]):
                     logger.info(f"Updating {package} package from version {current_packages[package]} to {ver}...")
                     to_install_list.append(f"{package}=={ver}")

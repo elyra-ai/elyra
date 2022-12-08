@@ -508,19 +508,16 @@ def test_package_installation(monkeypatch, virtualenv):
         "ipykernel": "5.3.0",
         "ansiwrap": "0.8.4",
         "packaging": "20.0",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
     }
     current_packages = {
         "bleach": "3.1.5",
         "ansiwrap": "0.7.0",
         "packaging": "20.4",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
     }
     expected_packages = {
         "ipykernel": "5.3.0",
         "ansiwrap": "0.8.4",
         "packaging": "20.4",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
     }
 
     mocked_func = mock.Mock(side_effect=[elyra_packages, current_packages])
@@ -531,10 +528,6 @@ def test_package_installation(monkeypatch, virtualenv):
     virtualenv.run("python3 -m pip install bleach==3.1.5")
     virtualenv.run("python3 -m pip install ansiwrap==0.7.0")
     virtualenv.run("python3 -m pip install packaging==20.4")
-    virtualenv.run(
-        "python3 -m pip install git+https://github.com/akchinSTC/"
-        "text-extensions-for-pandas@3de5ce17ab0493dcdf88b51e8727f580c08d6997"
-    )
 
     bootstrapper.OpUtil.package_install(user_volume_path=None)
     virtualenv_packages = {}
@@ -558,20 +551,17 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
     elyra_packages = {
         "ipykernel": "5.3.0",
         "ansiwrap": "0.8.4",
-        "packaging": "20.0",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
+        "packaging": "22.0",
     }
     current_packages = {
         "bleach": "3.1.5",
         "ansiwrap": "0.7.0",
         "packaging": "21.0",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
     }
     expected_packages = {
         "ipykernel": "5.3.0",
         "ansiwrap": "0.8.4",
-        "packaging": "21.0",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
+        "packaging": "22.0",
     }
 
     mocked_func = mock.Mock(side_effect=[elyra_packages, current_packages])
@@ -581,13 +571,7 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
 
     virtualenv.run("python3 -m pip install --upgrade pip")
     for package, version in current_packages.items():
-        if package == "text-extensions-for-pandas":
-            virtualenv.run(
-                f"python3 -m pip install --target={tmpdir} git+https://github.com/akchinSTC/"
-                "text-extensions-for-pandas@3de5ce17ab0493dcdf88b51e8727f580c08d6997"
-            )
-        else:
-            virtualenv.run(f"python3 -m pip install --target={tmpdir} {package}=={version}")
+        virtualenv.run(f"python3 -m pip install --target={tmpdir} {package}=={version}")
 
     bootstrapper.OpUtil.package_install(user_volume_path=str(tmpdir))
     virtualenv_packages = {}
@@ -811,7 +795,7 @@ def test_fail_missing_directory_parse_arguments():
 
 def test_requirements_file(monkeypatch, tmpdir, caplog):
     elyra_requirements_file = Path(__file__).parent / "resources/test-requirements-elyra.txt"
-    elyra_correct_number_of_packages = 19
+    elyra_correct_number_of_packages = 18
     elyra_packages = bootstrapper.OpUtil.package_list_to_dict(str(elyra_requirements_file))
     assert len(elyra_packages) == elyra_correct_number_of_packages
 
