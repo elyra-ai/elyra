@@ -795,7 +795,7 @@ def test_fail_missing_directory_parse_arguments():
 
 def test_requirements_file(monkeypatch, tmpdir, caplog):
     elyra_requirements_file = Path(__file__).parent / "resources/test-requirements-elyra.txt"
-    elyra_correct_number_of_packages = 19
+    elyra_correct_number_of_packages = 18
     elyra_packages = bootstrapper.OpUtil.package_list_to_dict(str(elyra_requirements_file))
     assert len(elyra_packages) == elyra_correct_number_of_packages
 
