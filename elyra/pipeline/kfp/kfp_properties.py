@@ -73,7 +73,7 @@ class KfpPipelineParameter(PipelineParameter):
     property_attributes = [
         ListItemPropertyAttribute(
             attribute_id="name",
-            description="The name of the parameter (must be a valid python variable name)",
+            description="The name of the parameter. This must be a valid Python identifier and not a keyword.",
             display_name="Parameter Name",
             allowed_input_types=[PropertyInputType(base_type="str", placeholder="param_1")],
             hidden=False,
@@ -83,7 +83,7 @@ class KfpPipelineParameter(PipelineParameter):
         ),
         ListItemPropertyAttribute(
             attribute_id="description",
-            description="A description for this parameter",
+            description="A description for this parameter.",
             display_name="Description",
             allowed_input_types=[PropertyInputType(base_type="str")],
             hidden=False,
@@ -92,7 +92,7 @@ class KfpPipelineParameter(PipelineParameter):
         ),
         ListItemPropertyAttribute(
             attribute_id="default_value",
-            description="A default value to assign to the parameter",
+            description="A default value for the parameter.",
             display_name="Default Value",
             allowed_input_types=[
                 KfpPropertyInputType(base_type="String", placeholder="default_val"),
@@ -119,7 +119,7 @@ class KfpPipelineParameter(PipelineParameter):
         ),
         ListItemPropertyAttribute(
             attribute_id="required",
-            description="Whether a value is required for this parameter during pipeline submit/export",
+            description="Whether a value is required for this parameter during pipeline submit or export.",
             display_name="Required",
             allowed_input_types=[PropertyInputType(base_type="bool", placeholder=" ")],
             hidden=False,
