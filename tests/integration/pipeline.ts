@@ -100,7 +100,7 @@ describe('Pipeline Editor tests', () => {
     // dismiss dialog
     cy.contains('OK').click();
   });
-  /*
+
   it('populated editor should have enabled buttons', () => {
     cy.createPipeline();
 
@@ -386,7 +386,6 @@ describe('Pipeline Editor tests', () => {
 
     cy.findByText(/failed run:/i).should('be.visible');
   });
-  */
 
   // TODO: Investigate CI failures commented below
   // it('should run pipeline after adding runtime image', () => {
@@ -606,7 +605,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.readFile(`build/cypress-tests/${filename}.yaml`);
   });
-  /*
+
   it('should not leak properties when switching between nodes', () => {
     cy.openFile('generic-test.pipeline');
 
@@ -765,7 +764,6 @@ describe('Pipeline Editor tests', () => {
     cy.createPipeline({ type: 'airflow' });
     cy.get('.toolbar-icon-label').contains(/runtime: apache airflow/i);
   });
-  */
 });
 
 // ------------------------------
