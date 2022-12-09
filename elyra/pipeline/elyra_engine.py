@@ -59,7 +59,7 @@ class ElyraEngine(NBClientEngine):
         """
 
         # Exclude parameters that named differently downstream
-        safe_kwargs = remove_args(["timeout", "startup_timeout", "kernel_env", "kernel_cwd"], **kwargs)
+        safe_kwargs = remove_args(["timeout", "startup_timeout", "kernel_env", "kernel_cwd", "input_path"], **kwargs)
 
         # Nicely handle preprocessor arguments prioritizing values set by engine
         final_kwargs = merge_kwargs(

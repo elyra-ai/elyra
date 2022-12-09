@@ -378,7 +378,7 @@ class OpUtil(object):
         if sys.version_info.major == 3:
             if sys.version_info.minor == 7:
                 return "requirements-elyra-py37.txt"
-            elif sys.version_info.minor in [8, 9, 10]:
+            elif sys.version_info.minor in [8, 9, 10, 11]:
                 return "requirements-elyra.txt"
         logger.error(
             f"This version of Python '{sys.version_info.major}.{sys.version_info.minor}' "

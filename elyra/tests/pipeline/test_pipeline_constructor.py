@@ -307,11 +307,6 @@ def test_fail_create_pipeline_missing_runtime():
         Pipeline(id="Random-UUID-123123123123123", name="test-pipeline", runtime_config="default_kfp")
 
 
-def test_fail_create_pipeline_missing_runtime_config():
-    with pytest.raises(TypeError):
-        Pipeline(id="Random-UUID-123123123123123", name="test-pipeline", runtime="kfp")
-
-
 def test_pipelines_are_equal(good_pipeline):
     compare_pipeline = Pipeline(
         id="Random-UUID-123123123123123", name="test-pipeline", runtime="kfp", runtime_config="default_kfp"
@@ -358,8 +353,9 @@ def test_validate_resource_values():
     component_parameters = {
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
         "cpu": "4",
-        "gpu": "6",
         "memory": "10",
+        "gpu": "6",
+        "gpu_vendor": "example.com/gpu",
         "runtime_image": "tensorflow/tensorflow:latest",
     }
     test_operation = GenericOperation(
@@ -372,6 +368,7 @@ def test_validate_resource_values():
 
     assert test_operation.cpu == "4"
     assert test_operation.gpu == "6"
+    assert test_operation.gpu_vendor == "example.com/gpu"
     assert test_operation.memory == "10"
 
 
@@ -390,8 +387,9 @@ def test_validate_resource_values_as_none():
     )
 
     assert test_operation.cpu is None
-    assert test_operation.gpu is None
     assert test_operation.memory is None
+    assert test_operation.gpu is None
+    assert test_operation.gpu_vendor is None
 
 
 def test_validate_gpu_accepts_zero_as_value():

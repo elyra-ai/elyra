@@ -41,17 +41,25 @@
           "description": "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
           "minimum": 0
         },
+        "memory": {
+          "type": "integer",
+          "title": "RAM(GB)",
+          "description": "The total amount of RAM specified.",
+          "minimum": 0
+        },
         "gpu": {
           "type": "integer",
           "title": "GPU",
           "description": "For GPU-intensive workloads, you can choose more than 1 GPU. Must be an integer.",
           "minimum": 0
         },
-        "memory": {
-          "type": "integer",
-          "title": "RAM(GB)",
-          "description": "The total amount of RAM specified.",
-          "minimum": 0
+        "gpu_vendor": {
+          "type": "string",
+          "title": "GPU Vendor",
+          "description": "GPU Vendor, or K8s GPU resource type, default 'nvidia.com/gpu'.",
+          "uihints": {
+            "ui:placeholder": "nvidia.com/gpu"
+          }
         },
         "dependencies": {
           "title": "File Dependencies",
@@ -63,9 +71,9 @@
           },
           "default": [],
           "uihints": {
+            "files": true,
             "items": {
-              "ui:placeholder": "*.py",
-              "ui:widget": "file"
+              "ui:placeholder": "*.py"
             }
           }
         },

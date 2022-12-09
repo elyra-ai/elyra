@@ -41,6 +41,7 @@ from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
 from elyra.pipeline.runtime_type import RuntimeProcessorType
+from elyra.util.kubernetes import is_valid_kubernetes_device_plugin_name
 from elyra.util.path import get_expanded_path
 
 
@@ -142,19 +143,17 @@ class PipelineValidationManager(SingletonConfigurable):
             return response
 
         # Validation can be driven from runtime_config since both runtime and pipeline_type can
-        # be derived from that and we should not use the 'runtime' and 'runtime_type' fields in
+        # be derived from that, and we should not use the 'runtime' and 'runtime_type' fields in
         # the pipeline.
         # Note: validation updates the pipeline definition with the correct values
         # of 'runtime' and 'runtime_type' obtained from 'runtime_config'.  We may want to move this
         # into PipelineDefinition, but then parsing tests have issues because parsing (tests) assume
         # no validation has been applied to the pipeline.
         runtime_config = primary_pipeline.runtime_config
-        if runtime_config is None:
-            runtime_config = "local"
 
         pipeline_runtime = PipelineValidationManager._determine_runtime(runtime_config)
         if PipelineProcessorManager.instance().is_supported_runtime(pipeline_runtime):
-            # Set the runtime since its derived from runtime_config and valid
+            # Set the runtime since it's derived from runtime_config and valid
             primary_pipeline.set("runtime", pipeline_runtime)
         else:
             response.add_message(
@@ -179,7 +178,7 @@ class PipelineValidationManager(SingletonConfigurable):
         if response.has_fatal:
             return response
 
-        # Set runtime_type since its derived from runtime_config, in case its needed
+        # Set runtime_type since it's derived from runtime_config, in case it's needed
         primary_pipeline.set("runtime_type", pipeline_type)
 
         await self._validate_node_properties(
@@ -192,21 +191,21 @@ class PipelineValidationManager(SingletonConfigurable):
         return response
 
     @staticmethod
-    def _determine_runtime(runtime_config: str) -> str:
+    def _determine_runtime(runtime_config: Optional[str]) -> str:
         """Derives the runtime (processor) from the runtime_config."""
-        # If not present or 'local', treat as special case.
-        if not runtime_config or runtime_config.upper() == RuntimeProcessorType.LOCAL.name:
+        # If runtime_config is not specified, treat as LOCAL.
+        if not runtime_config:
             return RuntimeProcessorType.LOCAL.name.lower()
 
         runtime_metadata = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID).get(runtime_config)
         return runtime_metadata.schema_name
 
     @staticmethod
-    def _determine_runtime_type(runtime_config: str) -> str:
+    def _determine_runtime_type(runtime_config: Optional[str]) -> str:
         """Derives the runtime type (platform) from the runtime_config."""
-        # Pull the runtime_type (platform) from the runtime_config
-        # Need to special case 'local' runtime_config instances
-        if runtime_config.lower() == "local":
+        # Pull the runtime_type (platform) from the runtime_config.
+        # If not set, use LOCAL
+        if not runtime_config:
             runtime_type = RuntimeProcessorType.LOCAL
         else:
             runtime_metadata = MetadataManager(schemaspace=Runtimes.RUNTIMES_SCHEMASPACE_ID).get(runtime_config)
@@ -430,6 +429,20 @@ class PipelineValidationManager(SingletonConfigurable):
                         resource_value=resource_value,
                         response=response,
                     )
+            for resource_vendor in ["gpu_vendor"]:
+                vendor = node.get_component_parameter(resource_vendor)
+                if vendor and not is_valid_kubernetes_device_plugin_name(vendor):
+                    response.add_message(
+                        severity=ValidationSeverity.Error,
+                        message_type="invalidNodeProperty",
+                        message="Property is not a valid resource vendor name.",
+                        data={
+                            "nodeID": node.id,
+                            "nodeName": node_label,
+                            "propertyName": resource_vendor,
+                            "value": vendor,
+                        },
+                    )
 
             for param in node.elyra_owned_properties:
                 required = self._is_required_property(component_props, param)
@@ -449,6 +462,7 @@ class PipelineValidationManager(SingletonConfigurable):
                     property_name="dependencies",
                     filename=dependency,
                     response=response,
+                    binary_file_ok=True,
                 )
 
     async def _validate_custom_component_node_properties(
@@ -534,6 +548,7 @@ class PipelineValidationManager(SingletonConfigurable):
                             property_name=default_parameter,
                             filename=filename,
                             response=response,
+                            binary_file_ok=False,  # reject files that are not UTF encoded
                         )
                     elif self._is_required_property(component_property_dict, default_parameter):
                         response.add_message(
@@ -669,6 +684,7 @@ class PipelineValidationManager(SingletonConfigurable):
         filename: str,
         response: ValidationResponse,
         file_dir: Optional[str] = "",
+        binary_file_ok: bool = True,
     ) -> None:
         """
         Checks the file structure, paths and existence of pipeline dependencies.
@@ -679,6 +695,7 @@ class PipelineValidationManager(SingletonConfigurable):
         :param filename: the name of the file or directory to verify
         :param response: ValidationResponse containing the issue list to be updated
         :param file_dir: the dir path of the where the pipeline file resides in the elyra workspace
+        :param binary_file_ok: whether to reject binary files
         """
         file_dir = file_dir or self.root_dir
 
@@ -726,6 +743,24 @@ class PipelineValidationManager(SingletonConfigurable):
                     "value": normalized_path,
                 },
             )
+        elif not binary_file_ok:
+            # Validate that the file is utf-8 encoded by trying to read it
+            # as text file
+            try:
+                with open(normalized_path, "r") as fh:
+                    fh.read()
+            except UnicodeDecodeError:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidFileType",
+                    message="Property was assigned a file that is not unicode encoded.",
+                    data={
+                        "nodeID": node_id,
+                        "nodeName": node_label,
+                        "propertyName": property_name,
+                        "value": normalized_path,
+                    },
+                )
 
     def _validate_label(self, node_id: str, node_label: str, response: ValidationResponse) -> None:
         """

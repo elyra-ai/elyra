@@ -124,7 +124,10 @@ class KubeflowPipelinesResources(RuntimeTypeResources):
 
     type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     icon_endpoint = "static/elyra/kubeflow.svg"
-    export_file_types = [{"id": "yaml", "display_name": "KFP static configuration file (YAML formatted)"}]
+    export_file_types = [
+        {"id": "yaml", "display_name": "KFP static configuration file (YAML formatted)"},
+        {"id": "py", "display_name": "Python DSL"},
+    ]
 
 
 class LocalResources(RuntimeTypeResources):

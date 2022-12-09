@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import re
+import string
 
 
 def is_valid_kubernetes_resource_name(name: str) -> bool:
@@ -64,6 +65,16 @@ def is_valid_kubernetes_key(name: str) -> bool:
         return False
 
     return re.match(r"^[\w\-_.]+$", name) is not None
+
+
+def is_valid_kubernetes_device_plugin_name(key: str) -> bool:
+    """
+    Returns a truthy value indicating whether name meets the kubernetes
+    naming constraints for device plugin custom schedulable resource, as outlined in the link below.
+
+    https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/#using-device-plugins
+    """
+    return is_valid_annotation_key(key)
 
 
 def is_valid_annotation_key(key: str) -> bool:
@@ -145,3 +156,60 @@ def is_valid_label_value(value: str) -> bool:
         return False
 
     return re.match(r"^[a-zA-Z0-9]([-_\.A-Za-z0-9]*[a-zA-Z0-9])*$", value) is not None
+
+
+def sanitize_label_value(value: str) -> str:
+    """Produce a Kubernetes-compliant label value
+
+    Valid label values must be 63 characters or less and
+    must be empty or begin and end with an alphanumeric
+    character ([a-z0-9A-Z]) with dashes (-), underscores
+    (_), dots (.), and alphanumerics between.
+    """
+
+    if value is None or len(value) == 0:
+        return ""  # nothing to do
+
+    max_length = 63
+    # This char is added at the front and/or back
+    # of value, if the first and/or last character
+    # is invalid. For example a value of "-abc"
+    # is converted to "a-abc". The specified character
+    # must meet the label value constraints.
+    valid_char = "a"
+    # This char is used to replace invalid characters
+    # that are in the "middle" of value. For example
+    # a value of "abc%def" is converted to "abc_def".
+    # The specified character must meet the label value
+    # constraints.
+    valid_middle_char = "_"
+
+    # must begin with [0-9a-zA-Z]
+    valid_chars = string.ascii_letters + string.digits
+    if value[0] not in valid_chars:
+        value = valid_char + value
+
+    value = value[:max_length]  # enforce max length
+
+    # must end with [0-9a-zA-Z]
+    if value[-1] not in valid_chars:
+        if len(value) <= max_length - 1:
+            # append valid character if max length
+            # would not be exceeded
+            value = value + valid_char
+        else:
+            # replace with valid character
+            value = value[:-1] + valid_char
+
+    # middle chars must be [0-9a-zA-Z\-_.]
+    valid_chars = valid_chars + "-_."
+
+    newstr = ""
+    for c in range(len(value)):
+        if value[c] not in valid_chars:
+            newstr = newstr + valid_middle_char
+        else:
+            newstr = newstr + value[c]
+    value = newstr
+
+    return value

@@ -62,11 +62,6 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
       }
 
       const kernelSelection = (widget as ScriptEditor).kernelSelection;
-      const debuggerAvailable = await widget.debuggerAvailable(kernelSelection);
-
-      if (!debuggerAvailable) {
-        return;
-      }
 
       const sessions = app.serviceManager.sessions;
       try {
@@ -80,7 +75,6 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             activeSessions[sessionModel.id] = sessionConnection;
           }
         }
-
         if (sessionModel) {
           let sessionConnection: Session.ISessionConnection | null =
             activeSessions[sessionModel.id];
@@ -92,20 +86,14 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
             sessionConnection = sessions.connectTo({ model: sessionModel });
             activeSessions[sessionModel.id] = sessionConnection;
           }
-          if (sessionModel.kernel?.name !== kernelSelection) {
-            // New kernel selection detected, update session connection
-            await changeKernel(sessionConnection, kernelSelection);
-            sessionModel = await sessions.findByPath(path);
-            if (sessionConnection && sessionModel) {
-              activeSessions[sessionModel.id] = sessionConnection;
-            }
-          }
+
+          await updateKernel(sessionConnection, kernelSelection);
 
           // Temporary solution to give enough time for the handler to update the UI on page reload.
           setTimeout(async () => {
             await handler.update(widget, sessionConnection);
             app.commands.notifyCommandChanged();
-          }, 1000);
+          }, 500);
         }
       } catch (error) {
         console.warn(
@@ -161,28 +149,29 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         type: 'file',
         name: path
       };
-      let sessionConnection;
+      let sessionConnection = null;
       try {
-        sessionConnection = await sessionManager.startNew(options);
-        sessionConnection.setPath(path);
-        console.log(
-          `Kernel session started for ${path} with selected ${kernelSelection} kernel.`
-        );
+        if (kernelSelection) {
+          sessionConnection = await sessionManager.startNew(options);
+          sessionConnection.setPath(path);
+          console.log(`Kernel session started for ${kernelSelection} kernel`);
+        }
       } catch (error) {
         console.warn('Exception: start session = ' + JSON.stringify(error));
-        sessionConnection = null;
       }
       return sessionConnection;
     };
 
-    const changeKernel = async (
+    const updateKernel = async (
       sessionConnection: Session.ISessionConnection,
       kernelSelection: string
     ): Promise<void> => {
       try {
         const prev = sessionConnection.kernel?.name;
-        await sessionConnection.changeKernel({ name: kernelSelection });
-        console.log(`Kernel change from ${prev} to ${kernelSelection}`);
+        if (kernelSelection && prev !== kernelSelection) {
+          await sessionConnection.changeKernel({ name: kernelSelection });
+          console.log(`Kernel change from ${prev} to ${kernelSelection}`);
+        }
       } catch (error) {
         console.warn('Exception: change kernel = ' + JSON.stringify(error));
       }

@@ -95,6 +95,7 @@ Each pipeline node is configured using properties. Default node properties are a
  - [Kubernetes tolerations](#kubernetes-tolerations)
  - [Kubernetes pod annotations](#kubernetes-pod-annotations)
  - [Kubernetes pod labels](#kubernetes-pod-labels)
+ - [Shared memory size](#shared-memory-size)
 
 **Default properties that apply only to generic nodes**
 
@@ -157,6 +158,7 @@ Nodes that are implemented using [generic components](pipeline-components.html#g
    - [Kubernetes tolerations](#kubernetes-tolerations)
    - [Kubernetes pod annotations](#kubernetes-pod-annotations)
    - [Kubernetes pod labels](#kubernetes-pod-labels)
+   - [Shared memory size](#shared-memory-size)
 
 ##### Configuring custom nodes
 
@@ -167,6 +169,7 @@ Nodes that are implemented using [custom components](pipeline-components.html#cu
    - [Kubernetes pod annotations](#kubernetes-pod-annotations)
    - [Kubernetes pod labels](#kubernetes-pod-labels)
    - [Disable node caching](#disable-node-caching)
+   - [Shared memory size](#shared-memory-size)
 
 #### Defining dependencies between nodes
 
@@ -209,6 +212,8 @@ The following alphabetically sorted list identifies the node properties that are
    - Format: 
      - _Mount path_: the path where the PVC shall be mounted in the container. Example: `/mnt/datavol/`
      - _Persistent volume claim name_: a valid [Kubernetes resource name](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names) identifying a PVC that exists in the Kubernetes namespace where the pipeline nodes are executed. Example: `my-data-pvc`
+     - _Sub path_: relative path within the volume from which the container's volume should be mounted. Defaults to the volume's root. Example: `existing/path/in/volume`
+     - _Mount volume read-only_: whether to mount the volume in read-only mode
    - Data volumes are not mounted when the pipeline is executed locally.
 
 ##### Disable node caching
@@ -280,7 +285,9 @@ The following alphabetically sorted list identifies the node properties that are
 
 ##### Resources: CPU, GPU, and RAM
    - Resources that the notebook or script requires. RAM takes units of gigabytes (10<sup>9</sup> bytes).
-   - The values are ignored when the pipeline is executed locally. 
+   - Specify a custom Kubernetes GPU vendor, if desired. The default vendor is `nvidia.com/gpu`. See [this topic in the Kubernetes documentation](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/) for more information.
+   - The values are ignored when the pipeline is executed locally.
+   - Example: `amd.com/gpu`
 
 ##### Runtime image
 
@@ -288,6 +295,13 @@ The following alphabetically sorted list identifies the node properties that are
    - The value is ignored when the pipeline is executed locally. 
    - A default runtime image can also be set in the pipeline properties tab. If a default image is set, the **Runtime Image** property in the node properties tab will indicate that a pipeline default is set. Individual nodes can override the pipeline default value. 
    - Example: `TensorFlow 2.0`
+
+##### Shared memory size
+
+Shared memory to be allocated on the pod where the component is executed. 
+   - Format: 
+     - _Memory size_: Custom shared memory size in gigabytes (10<sup>9</sup> bytes). The Kubernetes default is used if set to zero.
+   - Shared memory size is ignored when the pipeline is executed with the `local` runtime option.
  
 ### Running pipelines
 
@@ -362,11 +376,15 @@ To export a pipeline from the Visual Pipeline Editor:
 
 #### Exporting a pipeline from the command line interface
 
-Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `export` command to export a pipeline to a runtime-specific format, such as YAML for Kubeflow Pipelines or Python DAG for Apache Airflow.
+Use the [`elyra-pipeline`](command-line-interface.html#working-with-pipelines) `export` command to export a pipeline to a runtime-specific format:
+- Kubeflow Pipelines: [Python DSL](https://v1-5-branch.kubeflow.org/docs/components/pipelines/sdk/build-pipeline/) or YAML
+- Apache Airflow: Python DAG
 
 ```bash
 $ elyra-pipeline export a-notebook.pipeline --runtime-config kfp_dev_env --output /path/to/exported.yaml --overwrite
 ```
+
+By default, export produces YAML formatted output for Kubeflow Pipelines and <u>ONLY</u> Python DAGs for Apache Airflow. To choose a different format for Kubeflow Pipelines, specify the `--format` option. Supported values are `py` and `yaml` for Kubeflow Pipelines.
 
 To learn more about supported parameters, run
 ```bash

@@ -138,6 +138,16 @@ To add components from a catalog:
 
  > Tip: check the log file for error messages if no components from the added catalog are displayed in the palette.
 
+#### Reloading a component catalog entry
+
+To reload a catalog entry if the underlying catalog has changed: 
+
+1. Open the `Pipeline Components` panel.
+1. Click the `reload` icon next to the entry name.
+1. The catalog entry is re-loaded and changes are reflected in the Visual Pipeline Editor palette. How quickly the entry is processed depends on the catalog type, the number of entries in the catalog, and network connectivity.
+
+> Tip: check the log file for error messages if no updates from the reloaded catalog are displayed in the palette. 
+
 #### Modifying a component catalog entry
 
 1. Open the `Pipeline Components` panel.

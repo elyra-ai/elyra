@@ -23,7 +23,7 @@ import {
   JupyterFrontEndPlugin,
   ILayoutRestorer
 } from '@jupyterlab/application';
-import { ICommandPalette, IThemeManager } from '@jupyterlab/apputils';
+import { ICommandPalette } from '@jupyterlab/apputils';
 import { Cell } from '@jupyterlab/cells';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { DocumentWidget } from '@jupyterlab/docregistry';
@@ -51,13 +51,11 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
   id: CODE_SNIPPET_EXTENSION_ID,
   autoStart: true,
   requires: [ICommandPalette, ILayoutRestorer, IEditorServices],
-  optional: [IThemeManager],
   activate: (
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     restorer: ILayoutRestorer,
-    editorServices: IEditorServices,
-    themeManager?: IThemeManager
+    editorServices: IEditorServices
   ) => {
     console.log('Elyra - code-snippet extension is activated!');
 
@@ -67,7 +65,6 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
 
     const codeSnippetWidget = new CodeSnippetWidget({
       app,
-      themeManager,
       display_name: 'Code Snippets',
       schemaspace: CODE_SNIPPET_SCHEMASPACE,
       schema: CODE_SNIPPET_SCHEMA,

@@ -335,6 +335,16 @@ span.bx--list-box__label {
   fill: var(--jp-inverse-layout-color1);
 }
 
+.elyra-PipelineEditor span.palette-flyout-category-text {
+  color: var(--jp-content-font-color0);
+}
+
+.elyra-PipelineEditor .bx--accordion__item svg.bx--accordion__arrow,
+.arrangeHorizontally-action .toolbar-icon svg,
+.arrangeVertically-action .toolbar-icon svg {
+  fill: var(--jp-inverse-layout-color1);
+}
+
 .tip-palette-item,
 .tip-palette-category,
 .tip-palette-label,
@@ -430,7 +440,7 @@ span.bx--list-box__label {
 }
 
 .elyra-PipelineEditor .form-group.field.field-integer {
-  width: 30%;
+  width: 100%;
 }
 
 .elyra-PipelineEditor .array-pipelineDefaults.form-control {
@@ -511,16 +521,47 @@ span.bx--list-box__label {
   margin-right: 3px;
 }
 
-.field-array-of-object .array-item:hover {
+.field-array-of-object .array-item:hover,
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset:hover {
   background-color: var(--jp-border-color3);
 }
 
-.field-array-of-object .array-item {
+.field-array-of-object .array-item,
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--jp-border-color2);
   padding: 10px;
   border-radius: 5px;
+}
+
+.field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object:not(.small-object-field)
+  > fieldset {
+  margin: 5px 0;
+}
+
+.elyra-PipelineEditor
+  .field-object
+  > fieldset
+  > .field-object
+  > fieldset
+  > .field-object
+  .errorIndicator {
+  left: -5px;
 }
 
 .field-array-of-object button.jp-mod-styled.jp-mod-warn {
@@ -795,6 +836,20 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   padding-bottom: 4px;
 }
 
+div#root_component_parameters_cpu,
+div#root_component_parameters_memory,
+div#root_component_parameters_gpu,
+div#root_component_parameters_gpu_vendor {
+  width: 50%;
+}
+
+input#root_component_parameters_cpu,
+input#root_component_parameters_memory,
+input#root_component_parameters_gpu,
+input#root_component_parameters_gpu_vendor {
+  width: 100%;
+}
+
 #cpu,
 #gpu,
 #memory {
@@ -894,8 +949,13 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   font-size: var(--jp-content-font-size2);
 }
 
-.elyra-PipelineEditor-Alert {
+.Toastify .elyra-PipelineEditor-toast {
   white-space: pre-line;
+  width: auto;
+}
+
+.elyra-PipelineEditor-toast .Toastify__toast {
+  cursor: auto;
 }
 
 /* fix font ligatures */

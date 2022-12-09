@@ -1,0 +1,8 @@
+name: Run a file
+description: Run a Jupyter notebook or Python/R script
+
+implementation:
+  container:
+    image: {{ container_image }}
+    command: [sh, -c]
+    args: ["{{ command_args }}"]

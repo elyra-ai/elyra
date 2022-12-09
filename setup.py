@@ -71,7 +71,7 @@ setup_args = dict(
         "entrypoints>=0.3",
         "jinja2>=3",
         "jsonschema>=3.2.0,<4.0",  # Cap from kfp
-        "jupyter_core>=4.6.0",
+        "jupyter_core>=4.11.2",
         "jupyter_client>=6.1.7",
         "jupyter-packaging>=0.10",
         "jupyter_server>=1.7.0",
@@ -82,7 +82,7 @@ setup_args = dict(
         "MarkupSafe>=2.1",
         "minio>=7.0.0",
         "nbclient>=0.5.1",
-        "nbconvert>=6.4.5",
+        "nbconvert>=6.5.1",
         "nbdime~=3.1",  # Cap from jupyterlab-git
         "nbformat>=5.1.2",
         "networkx>=2.5.1",
@@ -98,11 +98,11 @@ setup_args = dict(
         "watchdog>=2.1.3",
         "websocket-client",
         "yaspin",
+        "black<=21.12b0",  # Cap due to psf/black#2846
         # KFP runtime dependencies
         "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
         # Airflow runtime dependencies
         "pygithub",
-        "black<=21.12b0",  # Cap due to psf/black#2846
     ],
     extras_require={
         "test": ["elyra-examples-kfp-catalog", "pytest", "pytest-tornasync"],
@@ -121,6 +121,7 @@ setup_args = dict(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     entry_points={
         "console_scripts": [

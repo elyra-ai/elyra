@@ -523,11 +523,6 @@ class OpUtil(object):
                         f"{current_packages[package]}. This may conflict with the required "
                         f"version: {ver} . Skipping..."
                     )
-                elif isinstance(version.parse(current_packages[package]), version.LegacyVersion):
-                    logger.warning(
-                        f"WARNING: Package '{package}' found with unsupported Legacy version "
-                        f"scheme {current_packages[package]} already installed. Skipping..."
-                    )
                 elif version.parse(ver) > version.parse(current_packages[package]):
                     logger.info(f"Updating {package} package from version {current_packages[package]} to {ver}...")
                     to_install_list.append(f"{package}=={ver}")
@@ -559,7 +554,7 @@ class OpUtil(object):
         if sys.version_info.major == 3:
             if sys.version_info.minor == 7:
                 return "requirements-elyra-py37.txt"
-            elif sys.version_info.minor in [8, 9, 10]:
+            elif sys.version_info.minor in [8, 9, 10, 11]:
                 return "requirements-elyra.txt"
         logger.error(
             f"This version of Python '{sys.version_info.major}.{sys.version_info.minor}' "

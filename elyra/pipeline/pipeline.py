@@ -246,6 +246,7 @@ class GenericOperation(Operation):
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
+                gpu_vendor: gpu resource type, eg. nvidia.com/gpu, amd.com/gpu etc.
         Entries for other (non-built-in) component types are a function of the respective component.
 
         :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
@@ -270,8 +271,9 @@ class GenericOperation(Operation):
         self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
         self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
         self._component_params["cpu"] = component_params.get("cpu")
-        self._component_params["gpu"] = component_params.get("gpu")
         self._component_params["memory"] = component_params.get("memory")
+        self._component_params["gpu"] = component_params.get("gpu")
+        self._component_params["gpu_vendor"] = component_params.get("gpu_vendor")
 
         if not elyra_params:
             elyra_params = {}
@@ -319,6 +321,10 @@ class GenericOperation(Operation):
     def gpu(self) -> Optional[str]:
         return self._component_params.get("gpu")
 
+    @property
+    def gpu_vendor(self) -> Optional[str]:
+        return self._component_params.get("gpu_vendor")
+
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):
             return super().__eq__(other)
@@ -338,10 +344,10 @@ class Pipeline(object):
         id: str,
         name: str,
         runtime: str,
-        runtime_config: str,
+        runtime_config: Optional[str] = None,
         source: Optional[str] = None,
         description: Optional[str] = None,
-        pipeline_parameters: Optional[Dict[str, Any]] = None,
+        pipeline_properties: Optional[Dict[str, Any]] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -351,15 +357,13 @@ class Pipeline(object):
         :param runtime_config: Runtime configuration that should be used to submit the pipeline to execution
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
         :param description: Pipeline description
-        :param pipeline_parameters: Key/value pairs representing the parameters of this pipeline
+        :param pipeline_properties: Key/value pairs representing the properties of this pipeline
         """
 
         if not name:
             raise ValueError("Invalid pipeline: Missing pipeline name.")
         if not runtime:
             raise ValueError("Invalid pipeline: Missing runtime.")
-        if not runtime_config:
-            raise ValueError("Invalid pipeline: Missing runtime configuration.")
 
         self._id = id
         self._name = name
@@ -367,7 +371,7 @@ class Pipeline(object):
         self._source = source
         self._runtime = runtime
         self._runtime_config = runtime_config
-        self._pipeline_parameters = pipeline_parameters or {}
+        self._pipeline_properties = pipeline_properties or {}
         self._operations = {}
 
     @property
@@ -397,11 +401,11 @@ class Pipeline(object):
         return self._runtime_config
 
     @property
-    def pipeline_parameters(self) -> Dict[str, Any]:
+    def pipeline_properties(self) -> Dict[str, Any]:
         """
-        The dictionary of global parameters associated with each node of the pipeline
+        The dictionary of global properties associated with this pipeline
         """
-        return self._pipeline_parameters
+        return self._pipeline_properties
 
     @property
     def operations(self) -> Dict[str, Operation]:
@@ -425,56 +429,13 @@ class Pipeline(object):
         return False
 
     def __eq__(self, other: "Pipeline") -> bool:
-        if isinstance(self, other.__class__):
+        if isinstance(other, Pipeline):
             return (
                 self.id == other.id
                 and self.name == other.name
                 and self.source == other.source
                 and self.description == other.description
                 and self.runtime == other.runtime
-                and self.runtime_config == other.runtime_config
                 and self.operations == other.operations
             )
-
-
-class KeyValueList(list):
-    """
-    A list class that exposes functionality specific to lists whose entries are
-    key-value pairs separated by a pre-defined character.
-    """
-
-    _key_value_separator: str = "="
-
-    def to_dict(self) -> Dict[str, str]:
-        """
-        Properties consisting of key-value pairs are stored in a list of separated
-        strings, while most processing steps require a dictionary - so we must convert.
-        If no key/value pairs are specified, an empty dictionary is returned, otherwise
-        pairs are converted to dictionary entries, stripped of whitespace, and returned.
-        """
-        kv_dict = {}
-        for kv in self:
-            if not kv:
-                continue
-
-            if self._key_value_separator not in kv:
-                raise ValueError(
-                    f"Property {kv} does not contain the expected "
-                    f"separator character: '{self._key_value_separator}'."
-                )
-
-            key, value = kv.split(self._key_value_separator, 1)
-
-            key = key.strip()
-            if not key:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            if isinstance(value, str):
-                value = value.strip()
-            if not value:
-                # Invalid entry; skip inclusion and continue
-                continue
-
-            kv_dict[key] = value
-        return kv_dict
+        return False

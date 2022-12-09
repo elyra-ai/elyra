@@ -504,26 +504,23 @@ def test_fail_bad_notebook_main_method(monkeypatch, s3_setup, tmpdir):
 
 
 def test_package_installation(monkeypatch, virtualenv):
-    elyra_dict = {
+    elyra_packages = {
         "ipykernel": "5.3.0",
         "ansiwrap": "0.8.4",
         "packaging": "20.0",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
     }
-    to_install_dict = {
+    current_packages = {
         "bleach": "3.1.5",
         "ansiwrap": "0.7.0",
         "packaging": "20.4",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
     }
-    correct_dict = {
+    expected_packages = {
         "ipykernel": "5.3.0",
         "ansiwrap": "0.8.4",
         "packaging": "20.4",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
     }
 
-    mocked_func = mock.Mock(return_value="default", side_effect=[elyra_dict, to_install_dict])
+    mocked_func = mock.Mock(side_effect=[elyra_packages, current_packages])
 
     monkeypatch.setattr(bootstrapper.OpUtil, "package_list_to_dict", mocked_func)
     monkeypatch.setattr(sys, "executable", virtualenv.python)
@@ -531,13 +528,9 @@ def test_package_installation(monkeypatch, virtualenv):
     virtualenv.run("python3 -m pip install bleach==3.1.5")
     virtualenv.run("python3 -m pip install ansiwrap==0.7.0")
     virtualenv.run("python3 -m pip install packaging==20.4")
-    virtualenv.run(
-        "python3 -m pip install git+https://github.com/akchinSTC/"
-        "text-extensions-for-pandas@3de5ce17ab0493dcdf88b51e8727f580c08d6997"
-    )
 
     bootstrapper.OpUtil.package_install(user_volume_path=None)
-    virtual_env_dict = {}
+    virtualenv_packages = {}
     output = virtualenv.run("python3 -m pip freeze", capture=True)
     print("This is the [pip freeze] output :\n" + output)
     for line in output.strip().split("\n"):
@@ -547,49 +540,41 @@ def test_package_installation(monkeypatch, virtualenv):
             package_name, package_version = line.strip("\n").split(sep="===")
         else:
             package_name, package_version = line.strip("\n").split(sep="==")
-        virtual_env_dict[package_name] = package_version
+        virtualenv_packages[package_name] = package_version
 
-    for package, version in correct_dict.items():
-        assert virtual_env_dict[package] == version
+    for package, version in expected_packages.items():
+        assert virtualenv_packages[package] == version
 
 
 def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
     # TODO : Need to add test for direct-source e.g. ' @ '
-    elyra_dict = {
+    elyra_packages = {
         "ipykernel": "5.3.0",
         "ansiwrap": "0.8.4",
-        "packaging": "20.0",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
+        "packaging": "22.0",
     }
-    to_install_dict = {
+    current_packages = {
         "bleach": "3.1.5",
         "ansiwrap": "0.7.0",
         "packaging": "21.0",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
     }
-    correct_dict = {
+    expected_packages = {
         "ipykernel": "5.3.0",
         "ansiwrap": "0.8.4",
-        "packaging": "21.0",
-        "text-extensions-for-pandas": "0.0.1-prealpha",
+        "packaging": "22.0",
     }
 
-    mocked_func = mock.Mock(return_value="default", side_effect=[elyra_dict, to_install_dict])
+    mocked_func = mock.Mock(side_effect=[elyra_packages, current_packages])
 
     monkeypatch.setattr(bootstrapper.OpUtil, "package_list_to_dict", mocked_func)
     monkeypatch.setattr(sys, "executable", virtualenv.python)
 
     virtualenv.run("python3 -m pip install --upgrade pip")
-    virtualenv.run(f"python3 -m pip install --target={tmpdir} bleach==3.1.5")
-    virtualenv.run(f"python3 -m pip install --target={tmpdir} ansiwrap==0.7.0")
-    virtualenv.run(f"python3 -m pip install --target={tmpdir} packaging==20.9")
-    virtualenv.run(
-        f"python3 -m pip install --target={tmpdir} git+https://github.com/akchinSTC/"
-        "text-extensions-for-pandas@3de5ce17ab0493dcdf88b51e8727f580c08d6997"
-    )
+    for package, version in current_packages.items():
+        virtualenv.run(f"python3 -m pip install --target={tmpdir} {package}=={version}")
 
     bootstrapper.OpUtil.package_install(user_volume_path=str(tmpdir))
-    virtual_env_dict = {}
+    virtualenv_packages = {}
     output = virtualenv.run(f"python3 -m pip freeze --path={tmpdir}", capture=True)
     print("This is the [pip freeze] output :\n" + output)
     for line in output.strip().split("\n"):
@@ -599,10 +584,12 @@ def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
             package_name, package_version = line.strip("\n").split(sep="===")
         else:
             package_name, package_version = line.strip("\n").split(sep="==")
-        virtual_env_dict[package_name] = package_version
+        virtualenv_packages[package_name] = package_version
 
-    for package, version in correct_dict.items():
-        assert virtual_env_dict[package].split(".")[0] == version.split(".")[0]
+    for package, version in expected_packages.items():
+        assert (
+            virtualenv_packages[package].split(".")[0] == version.split(".")[0]
+        ), f"Major version mismatch for package {package}"
 
 
 def test_convert_notebook_to_html(tmpdir):
@@ -808,16 +795,16 @@ def test_fail_missing_directory_parse_arguments():
 
 def test_requirements_file(monkeypatch, tmpdir, caplog):
     elyra_requirements_file = Path(__file__).parent / "resources/test-requirements-elyra.txt"
-    elyra_correct_number_of_packages = 19
-    elyra_list_dict = bootstrapper.OpUtil.package_list_to_dict(elyra_requirements_file)
-    assert len(elyra_list_dict) == elyra_correct_number_of_packages
+    elyra_correct_number_of_packages = 18
+    elyra_packages = bootstrapper.OpUtil.package_list_to_dict(str(elyra_requirements_file))
+    assert len(elyra_packages) == elyra_correct_number_of_packages
 
     current_requirements_file = Path(__file__).parent / "resources/test-requirements-current.txt"
     current_correct_number_of_packages = 15
-    current_list_dict = bootstrapper.OpUtil.package_list_to_dict(current_requirements_file)
-    assert len(current_list_dict) == current_correct_number_of_packages
+    current_packages = bootstrapper.OpUtil.package_list_to_dict(str(current_requirements_file))
+    assert len(current_packages) == current_correct_number_of_packages
 
-    mocked_package_list_to_dict = mock.Mock(return_value="default", side_effect=[elyra_list_dict, current_list_dict])
+    mocked_package_list_to_dict = mock.Mock(side_effect=[elyra_packages, current_packages])
     monkeypatch.setattr(bootstrapper.OpUtil, "package_list_to_dict", mocked_package_list_to_dict)
 
     mocked_subprocess_run = mock.Mock(return_value="default")
