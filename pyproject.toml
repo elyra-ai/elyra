@@ -5,7 +5,7 @@ requires = [
 ]
 
 [project]
-name = "elyra"
+name="elyra"
 description="Elyra provides AI Centric extensions to JupyterLab"
 maintainers = [
     {name = "Elyra Maintainers"},

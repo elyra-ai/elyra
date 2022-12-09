@@ -482,9 +482,9 @@ def build_server():
     print("-----------------------------------------------------------------")
 
     # update project name
-    sed(_source("setup.py"), r'name="elyra"', 'name="elyra-server"')
+    sed(_source("pyproject.toml"), r'name="elyra"', 'name="elyra-server"')
     sed(
-        _source("setup.py"),
+        _source("pyproject.toml"),
         r'description="Elyra provides AI Centric extensions to JupyterLab"',
         'description="The elyra-server package provides common core libraries and functions that are required by '
         "Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. "
