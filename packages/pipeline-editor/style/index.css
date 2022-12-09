@@ -839,8 +839,13 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   max-width: 700px;
 }
 
-.elyra-dialog-form input[type='text'] {
+.elyra-dialog-form input:not([type='checkbox']) {
   width: 100%;
+}
+
+.elyra-dialog-form .description-wrapper:hover .field-description {
+  max-width: 25ch;
+  font-size: var(--jp-content-font-size1);
 }
 
 .elyra-dialog-form input,

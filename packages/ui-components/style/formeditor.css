@@ -294,11 +294,12 @@ button.elyra-editor-tag.unapplied-tag {
 }
 
 .elyra-formEditor .checkboxes {
-  max-height: 6em;
+  height: 6em;
   overflow: scroll;
   border: 1px solid var(--jp-border-color2);
   border-radius: 0.5em;
   padding: 3px;
+  resize: vertical;
 }
 
 .elyra-formEditor .checkboxes::-webkit-scrollbar {

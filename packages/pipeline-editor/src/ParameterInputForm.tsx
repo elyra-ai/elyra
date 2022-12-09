@@ -15,6 +15,8 @@
  */
 import React from 'react';
 
+const DIALOG_WIDTH = 27;
+
 export interface IParameterProps {
   parameters?: {
     name: string;
@@ -45,6 +47,10 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
         if (!param.name) {
           return undefined;
         }
+        const required =
+          param.required === true && !param.default_value?.value
+            ? true
+            : undefined;
         let type = 'text';
         switch (param.default_value?.type) {
           case 'Bool':
@@ -65,7 +71,7 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
                 type="checkbox"
               />
               <label htmlFor={`${param.name}-paramInput`}>{`${param.name}${
-                param.required ? '*' : ''
+                required ? '*' : ''
               }`}</label>
               <br />
               <br />
@@ -84,8 +90,11 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
                   <div className="description-button">?</div>
                   <p
                     style={{
-                      left: `${param.name.length / 2}ch`,
-                      maxWidth: `${param.name.length * 2}ch`
+                      transform: `translate(0px, -10%)`,
+                      left: `-${Math.min(
+                        param.name.length,
+                        Math.min(DIALOG_WIDTH, param.description.length)
+                      ) - 4}ch`
                     }}
                     className={'field-description'}
                   >
@@ -99,11 +108,7 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
               name={`${param.name}-paramInput`}
               type={type}
               placeholder={param.default_value?.value}
-              data-form-required={
-                param.required === true && !param.default_value?.value
-                  ? true
-                  : undefined
-              }
+              data-form-required={required}
             />
             <br />
             <br />
