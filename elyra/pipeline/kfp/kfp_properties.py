@@ -65,6 +65,12 @@ class KfpPropertyInputType(PropertyInputType):
         self.type_hint = kwargs.get("type_hint") or self._kfp_defined_types[base_type].get("type_hint")
         self.component_input_type = kwargs.get("type_hint") or self.base_type
 
+        if self.component_input_type == "Bool":
+            # Due to a known issue with KFP (https://github.com/kubeflow/pipelines/issues/5111),
+            # inputs of type "Bool" must be rendered as "Boolean" in the component inputs field
+            # of the component spec
+            self.component_input_type = "Boolean"
+
 
 class KfpPipelineParameter(PipelineParameter):
     """An ElyraProperty representing a single pipeline parameter for the Kubeflow Pipelines runtime"""
