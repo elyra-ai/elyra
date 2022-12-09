@@ -366,6 +366,8 @@ To export a pipeline from the Visual Pipeline Editor:
 1. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, or Apache Airflow) and a runtime configuration for that platform. For runtime-specific pipelines select a runtime configuration.
 
 1. Select an export format.
+
+1. Customize your file name using the Export Filename box
    
    ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
 
