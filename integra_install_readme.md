@@ -75,6 +75,8 @@ conda create -n <env-name> python==3.7.9
 
    - run the create_integra_release.py python script to get the integra distribution files
      ```
+     conda activate <env-name>
+     cd elyra
      python create_integra_release.py prepare --version 3.11.0.dev0
      ```
 
@@ -82,4 +84,9 @@ conda create -n <env-name> python==3.7.9
      `/nfs/projects1/shared-tools/elevo-dependfiles/elyra*` for everyone!
      Update the target location in file `create_integra_release.py` to
      avoid that.
+     
+     Also note that building Elyra modifies a lot of files that are checked
+     into git. If you made any changes that you want to commit, then do that
+     before running the build command above to avoid mixing your changes with
+     those made by the build.
      
