@@ -40,7 +40,7 @@ def generated_pipeline(
 {%     elif task_input_spec.pipeline_parameter_reference %}
         {{ task_input_name }}={{ task_input_spec.pipeline_parameter_reference }},
 {%     elif task_input_spec.requires_quoted_rendering %}
-        {{ task_input_name }}="{{ task_input_spec.value }}",
+        {{ task_input_name }}="""{{ task_input_spec.value | string_delimiter_safe }}""",
 {%     else %}
         {{ task_input_name }}={{ task_input_spec.value }},
 {%     endif %}
