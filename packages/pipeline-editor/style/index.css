@@ -848,6 +848,10 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
   font-size: var(--jp-content-font-size1);
 }
 
+.elyra-formEditor .array-item .field-object .form-group.field {
+  padding: 0;
+}
+
 .elyra-dialog-form input,
 .elyra-dialog-form select.jp-mod-styled {
   border-radius: 4px;
