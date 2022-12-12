@@ -1288,6 +1288,7 @@ class PipelineParameter(ElyraPropertyListItem):
             "description": self.description,
             "value": self.value,
             "default_value": self.default_value,
+            "type": self.selected_type,
             "required": self.required,
         }
 

@@ -572,7 +572,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Add filter that escapes the " character in strings
         template_env.filters["string_delimiter_safe"] = lambda string: re.sub('"', '\\"', string)
         # Add filter that converts a value to a python variable value (e.g. puts quotes around strings)
-        template_env.filters["to_python_var"] = lambda val: json.dumps(val) if isinstance(val, str) else val
+        template_env.filters["param_val_to_python_var"] = (
+            lambda p: json.dumps(p.value) if p.input_type.base_type == "String" else p.value
+        )
         template = template_env.get_template("python_dsl_template.jinja2")
 
         # Convert pipeline into workflow tasks
