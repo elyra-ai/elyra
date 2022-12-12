@@ -109,7 +109,7 @@ Each pipeline node is configured using properties. Default node properties are a
 
 #### Defining pipeline parameters
 
-Certain runtime-specific pipelines include support for pipeline parameters, which are configurable in the "Pipeline Properties" panel.
+Certain runtime-specific pipelines include support for pipeline parameters, which are configurable in the "Pipeline Editor Properties" panel.
 To access the panel click the "Open panel" button on the right side and select the "Pipeline Parameters" tab. The tab will only be present for those runtime platforms that support pipeline parameters.
 
    ![Open the pipeline parameters panel](../images/user_guide/pipelines/open-pipeline-parameters.gif)
@@ -346,9 +346,9 @@ To run a pipeline from the Visual Pipeline Editor:
 
    ![Configure pipeline run options](../images/user_guide/pipelines/configure-pipeline-run-options.png)
 
-3. Configure pipeline parameters, if applicable. If any nodes reference parameters defined in the `Pipeline Parameters` panel, the value these parameters take can be customized here. If a parameter is marked as required and no default value is set, a value must be provided before the `OK` button is enabled.
+3. [Configure pipeline parameters](pipelines.html#defining-pipeline-parameters), if applicable. If any nodes reference parameters defined in the `Pipeline Parameters` panel, the value these parameters take can be customized here. If a parameter is marked as required and no default value is set, a value must be provided before the `OK` button is enabled.
 
-   ![Configure pipeline export options with parameters](../images/user_guide/pipelines/configure-pipeline-submit-options-parameters.gif)
+   ![Configure pipeline submit options with parameters](../images/user_guide/pipelines/configure-pipeline-submit-options-parameters.gif)
 
 4. Select `OK`
 
@@ -405,7 +405,7 @@ To export a pipeline from the Visual Pipeline Editor:
    
    ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
 
-5. Configure pipeline parameters, if applicable. If any nodes reference parameters defined in the `Pipeline Parameters` panel, the value these parameters take can be customized here. If a parameter is marked as required and no default value is set, a value must be provided before the `OK` button is enabled.
+5. [Configure pipeline parameters](pipelines.html#defining-pipeline-parameters), if applicable. If any nodes reference parameters defined in the `Pipeline Parameters` panel, the value these parameters take can be customized here. If a parameter is marked as required and no default value is set, a value must be provided before the `OK` button is enabled.
 
    ![Configure pipeline export options with parameters](../images/user_guide/pipelines/configure-pipeline-export-options-parameters.gif)
 

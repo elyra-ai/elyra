@@ -114,7 +114,7 @@ The Kubernetes Secrets property can be used to associate environment variable na
 Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
 
 ### Pipeline parameters
-File-based components can take advantage of pipeline parameters for those runtime processors that support them. When pipeline parameters are supported, the `Pipeline Parameters` property will be present in the `Node Properties` panel. Check the box to select the parameter(s) that should be passed to this node.
+File-based components can take advantage of [pipeline parameters](pipelines.html#defining-pipeline-parameters) for those runtime processors that support them. When pipeline parameters are supported, the `Pipeline Parameters` property will be present in the `Node Properties` panel. Check the box to select the parameter(s) that should be passed to this node.
 
 ![Select pipeline parameters](../images/user_guide/best-practices-file-based-nodes/elyra-node-parameters.png)
 
