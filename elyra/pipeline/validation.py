@@ -952,7 +952,9 @@ class PipelineValidationManager(SingletonConfigurable):
             for node in pipeline.nodes:
                 if node.type == "execution_node":
                     if Operation.is_generic_operation(node.op):
-                        referenced_param_names.extend(node.get_component_parameter(PIPELINE_PARAMETERS))
+                        node_parameters = node.get_component_parameter(PIPELINE_PARAMETERS, [])
+                        if node_parameters:
+                            referenced_param_names.extend(node_parameters)
                     else:
                         component_props = await self._get_component_properties(node.op, pipeline_runtime)
                         if component_props is None:
@@ -961,6 +963,18 @@ class PipelineValidationManager(SingletonConfigurable):
                             property_value = node.get_component_parameter(prop.ref, {})
                             if property_value.get("widget") == "parameter":
                                 referenced_param_names.append(property_value.get("value"))
+
+        # Validate that parameters referenced by nodes are defined on the pipeline level
+        if not pipeline_parameters:
+            for param_name in referenced_param_names:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidPipelineParameter",
+                    message=f"One or more nodes reference pipeline parameter with name '{param_name}', "
+                    "but no pipeline parameters with this name are defined.",
+                )
+            # If no pipeline parameters are defined, return; remaining cases do not apply
+            return
 
         # Validate parameters that are referenced by nodes according to the
         # validation rules of the individual PipelineParameter class
