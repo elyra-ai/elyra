@@ -122,12 +122,12 @@ Click `Add` to add a parameter to this pipeline. Each parameter has the followin
  - `Default Value`: Optional. A default value for the parameter. This value can be overridden by providing a value for this parameter during pipeline submit or export.
  - `Required`: Whether a value is required for this parameter during pipeline submit or export. The default is `False`.
 
-Next, configure node properties to use the defined parameters as desired. This process will differ for generic nodes and custom nodes. See the [`Node properties reference` subsection](#pipeline-parameters) or the [best practices guide](best-practices-file-based-nodes.html#proprietary-environment-variables) for information on configuring parameters for generic nodes.
+Next, configure node properties to use the defined parameters as desired. This process will differ for generic nodes and custom nodes. See the [`Node properties reference` subsection](#pipeline-parameters) or the [best practices guide](best-practices-file-based-nodes.html#pipeline-parameters) for information on configuring parameters for generic nodes.
 For custom nodes, a parameter can be selected to use as input to a node in the dropdown list for an input property. Only parameters that have the same type as the given node property can be selected to use as input for that property.
 
    ![Select a pipeline parameter to use as a node input](../images/user_guide/pipelines/select-parameter.gif)
 
-On pipeline submit or export, all parameters that have been referenced by generic or custom nodes will be displayed in the pop-up dialog. Values can be assigned in this dialog box in order to override any defined default values. A value must be provided if a parameter has been marked as required, and the `OK` button will be disabled until a value is entered. See [Running pipelines](#running-pipelines) or [Exporting pipelines](#exporting-pipelines) for more information.
+On pipeline submit or export, all parameters that have been referenced by generic or custom nodes will be displayed in the pop-up dialog. Values can be assigned in this dialog box in order to override any defined default values. A value must be provided if a parameter has been marked as required, and the `OK` button will be disabled until a value is entered. See [Running pipelines](#running-a-pipeline-from-the-visual-pipeline-editor) or [Exporting pipelines](#exporting-a-pipeline-from-the-visual-pipeline-editor) for more information.
 
 #### Adding nodes
 
