@@ -342,16 +342,22 @@ To run a pipeline from the Visual Pipeline Editor:
 
    ![Open pipeline run wizard](../images/user_guide/pipelines/pipeline-editor-run.png)
 
-1. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, Apache Airflow) and a runtime configuration for that platform. For runtime-specific  pipelines select a runtime configuration.
+2. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, Apache Airflow) and a runtime configuration for that platform. For runtime-specific  pipelines select a runtime configuration.
 
    ![Configure pipeline run options](../images/user_guide/pipelines/configure-pipeline-run-options.png)
 
-1. Elyra does not include a pipeline run monitoring interface for pipelines:
+3. Configure pipeline parameters, if applicable. If any nodes reference parameters defined in the `Pipeline Parameters` panel, the value these parameters take can be customized here. If a parameter is marked as required and no default value is set, a value must be provided before the `OK` button is enabled.
+
+   ![Configure pipeline export options with parameters](../images/user_guide/pipelines/configure-pipeline-submit-options-parameters.gif)
+
+4. Select `OK`
+
+5. Elyra does not include a pipeline run monitoring interface for pipelines:
    - For local/JupyterLab execution check the console output.
    - For Kubeflow Pipelines open the Central Dashboard link.
    - For Apache Airflow open the web GUI link.
 
-1. The pipeline run output artifacts are stored in the following locations:
+6. The pipeline run output artifacts are stored in the following locations:
    - For local/JupyterLab execution all artifacts are stored in the local file system.
    - For Kubeflow Pipelines and Apache Airflow output artifacts for generic components are stored in the runtime configuration's designated object storage bucket.   
 
@@ -387,19 +393,25 @@ Before you can export a pipeline on Kubeflow Pipelines or Apache Airflow you mus
 #### Exporting a pipeline from the Visual Pipeline Editor
 
 To export a pipeline from the Visual Pipeline Editor:
-1. Click `Export Pipeline` in the editor's tool bar.
+1. Click `Export Pipeline` in the editor's toolbar.
 
    ![Open pipeline run wizard](../images/user_guide/pipelines/pipeline-editor-export.png)
 
-1. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, or Apache Airflow) and a runtime configuration for that platform. For runtime-specific pipelines select a runtime configuration.
+2. For generic pipelines select a runtime platform (local, Kubeflow Pipelines, or Apache Airflow) and a runtime configuration for that platform. For runtime-specific pipelines select a runtime configuration.
 
-1. Select an export format.
+3. Select an export format.
 
-1. Customize your file name using the Export Filename box
+4. Customize your file name using the Export Filename box
    
    ![Configure pipeline export options](../images/user_guide/pipelines/configure-pipeline-export-options.png)
 
-1. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is monitoring.
+5. Configure pipeline parameters, if applicable. If any nodes reference parameters defined in the `Pipeline Parameters` panel, the value these parameters take can be customized here. If a parameter is marked as required and no default value is set, a value must be provided before the `OK` button is enabled.
+
+   ![Configure pipeline export options with parameters](../images/user_guide/pipelines/configure-pipeline-export-options-parameters.gif)
+
+6. Select `OK`
+
+7. Import the exported pipeline file using the Kubeflow Central Dashboard or add it to the Git repository that Apache Airflow is monitoring.
 
 
 #### Exporting a pipeline from the command line interface
