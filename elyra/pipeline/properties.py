@@ -1283,7 +1283,13 @@ class PipelineParameter(ElyraPropertyListItem):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert instance to a dict with relevant class attributes."""
-        return {"name": self.name, "value": self.value, "default_value": self.default_value, "required": self.required}
+        return {
+            "name": self.name,
+            "description": self.description,
+            "value": self.value,
+            "default_value": self.default_value,
+            "required": self.required,
+        }
 
     def get_value_for_display(self) -> Dict[str, Any]:
         """Get a representation of the instance to display in UI error messages."""
