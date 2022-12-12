@@ -24,13 +24,20 @@ limitations under the License.
 {% endcomment %}
 -->
 
-Instruction to build integra/elyra jupyter distributions
-================================================================
+# Instructions to build integra/elyra jupyter distributions
+
+## One-time setup
 
 Dependencies:
-   - Get Miniconda for python3 (https://docs.conda.io/en/latest/miniconda.html)(https://repo.anaconda.com/miniconda/Miniconda3-py37_4.12.0-Linux-x86_64.sh)
+   - Get Miniconda for python3 (https://docs.conda.io/en/latest/miniconda.html). Use the Python 3 Linux x86_64 installer,
+     which is a shell script you download.
    - Install using the command 
      	- bash Miniconda3-latest-Linux-x86_64.sh (https://conda.io/projects/conda/en/latest/user-guide/install/linux.html)
+   - Initialize conda, either in the installer or later, using this command:
+        - conda init
+   - Remove the code that conda init adds to your ~/.bashrc and move it to a separate script.
+     Only source that code when you actually want to use miniconda and not our regular Python environment.
+     Make sure you don't have the PYTHONPATH env variable set or activated a regular Python venv when using miniconda.
       
 Create conda venv:
    - conda create -n <env-name> python==3.7.9
@@ -42,9 +49,19 @@ Install required packages inside conda venv:
          - conda install -y -c conda-forge/label/main nodejs
    - Install yarn 
          - conda install -y -c conda-forge/label/main yarn
+   - Install the black code formatter
+         - conda install -y black
    - git clone eleoai/elyra
          - git clone https://github.com/elevo-ai/elyra
          - cd elyra
+
+## Commands done once per build
+
    - run create_integra_release.py python script to get the integra distribution files
          - python create_integra_release.py prepare --version 3.11.0.dev0
+
+     Warning: Doing this will overwrite the Elyra distribution files on in
+     /nfs/projects1/shared-tools/elevo-dependfiles/elyra* for everyone!
+     Update the target location in file create_integra_release.py to
+     avoid that.
      
