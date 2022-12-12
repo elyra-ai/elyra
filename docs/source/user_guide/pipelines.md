@@ -307,7 +307,7 @@ The following alphabetically sorted list identifies the node properties that are
    - Example: `data/*.csv`
 
 ##### Pipeline Parameters
-   - This property applies only to generic components. Custom components can also use pipeline parameters, but the [method by which to configure them](TODO) is different.
+   - This property applies only to generic components. Custom components can also use pipeline parameters, but the [method by which to configure them](#defining-pipeline-parameters) is different.
    - A list of defined [pipeline parameters](#defining-pipeline-parameters) that should be passed to this generic component.
    - Check the box next to a parameter name to indicate that it should be passed to this node. Parameters are passed to generic components by setting them as environment variables in the node container. Due to constraints imposed by environment variables, the parameter value will appear as a string when accessed in the generic node regardless of the `Type` that was selected for the parameter in the `Pipeline Parameters` tab.
 
