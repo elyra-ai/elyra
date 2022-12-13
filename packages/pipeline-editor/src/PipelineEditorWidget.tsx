@@ -787,8 +787,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         if (param.name) {
           let paramOverride = dialogResult.value[`${param.name}-paramInput`];
           if (
-            param.default_value?.type === 'Integer' ||
-            param.default_value?.type === 'Float'
+            (param.default_value?.type === 'Integer' ||
+              param.default_value?.type === 'Float') &&
+            paramOverride !== ''
           ) {
             paramOverride = Number(paramOverride);
           }
