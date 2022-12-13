@@ -780,16 +780,26 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0].app_data.source = PathExt.basename(
         contextRef.current.path
       );
+
+      // Pipeline parameter overrides
       for (const paramIndex in parameters ?? []) {
         const param = parameters[paramIndex];
         if (param.name) {
-          const paramOverride = dialogResult.value[`${param.name}-paramInput`];
+          let paramOverride = dialogResult.value[`${param.name}-paramInput`];
+          if (
+            param.default_value?.type === 'Integer' ||
+            param.default_value?.type === 'Float'
+          ) {
+            paramOverride = Number(paramOverride);
+          }
           pipelineJson.pipelines[0].app_data.properties.pipeline_parameters[
             paramIndex
           ].value =
             paramOverride === '' ? param.default_value?.value : paramOverride;
         }
       }
+
+      // Pipeline name
       pipelineJson.pipelines[0].app_data.name =
         dialogResult.value.pipeline_name ?? pipelineName;
 
