@@ -28,11 +28,11 @@ import pytest
 
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.airflow.processor_airflow import AirflowPipelineProcessor
-from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.properties import ElyraProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.tests.pipeline.test_pipeline_parser import _read_pipeline_resource
 from elyra.util.github import GithubClient
@@ -332,7 +332,7 @@ def test_create_file_custom_components(
                     # Component parameters must be compared with those on the Operation
                     # object rather than those given in the pipeline JSON, since property
                     # propagation in PipelineDefinition can result in changed parameters
-                    component_parameters = op.component_params
+                    component_parameters = op.component_props
                     break
             for i in range(len(file_as_lines)):
                 # Matches custom component operators
@@ -351,7 +351,7 @@ def test_create_file_custom_components(
 
         # Test that parameter value processing proceeded as expected for each data type
         op_id = "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
-        op_params = parsed_ordered_dict[op_id].get("component_params", {})
+        op_params = parsed_ordered_dict[op_id].get("component_props", {})
         str_no_default = op_params.pop("str_no_default")
         expected_params = {
             "mounted_volumes": '"a component-defined property"',
@@ -488,8 +488,8 @@ def test_collect_envs(processor):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
-        elyra_params={"env_vars": converted_envs},
+        component_props={"filename": pipelines_test_file, "runtime_image": "tensorflow/tensorflow:latest"},
+        elyra_props={"env_vars": converted_envs},
     )
 
     envs = processor._collect_envs(test_operation, cos_secret=None, cos_username="Alice", cos_password="secret")
@@ -675,7 +675,7 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
 
     pipeline_def_operation = parsed_pipeline.operations[task_id]
-    pipeline_def_operation_parameters = pipeline_def_operation.component_params_as_dict
+    pipeline_def_operation_parameters = pipeline_def_operation.component_props_as_dict
     pipeline_def_operation_str_param = pipeline_def_operation_parameters["str_no_default"]
 
     assert pipeline_def_operation_str_param["widget"] == "inputpath"
@@ -685,7 +685,7 @@ def test_same_name_operator_in_pipeline(monkeypatch, processor, catalog_instance
     ordered_operations = processor._cc_pipeline(
         parsed_pipeline, pipeline_name="some-name", pipeline_instance_id="some-instance-name"
     )
-    operation_parameters = ordered_operations[task_id]["component_params"]
+    operation_parameters = ordered_operations[task_id]["component_props"]
     operation_parameter_str_command = operation_parameters["str_no_default"]
 
     assert operation_parameter_str_command == "\"{{ ti.xcom_pull(task_ids='TestOperator_1') }}\""

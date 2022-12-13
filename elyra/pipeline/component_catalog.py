@@ -43,7 +43,7 @@ from elyra.pipeline.catalog_connector import ComponentCatalogConnector
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
-from elyra.pipeline.component_parameter import ComponentParameter
+from elyra.pipeline.properties import ComponentProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 BLOCKING_TIMEOUT = 0.5
@@ -682,8 +682,8 @@ class ComponentCache(SingletonConfigurable):
             template = ComponentCache.load_jinja_template("canvas_properties_template.jinja2")
 
         template_vars = {
-            "elyra_owned_parameters": component.get_elyra_parameters(),
-            "render_parameter_details": ComponentParameter.render_parameter_details,
+            "elyra_owned_properties": component.get_elyra_properties(),
+            "render_property_details": ComponentProperty.render_property_details,
         }
         template.globals.update(template_vars)
         canvas_properties = template.render(component=component)

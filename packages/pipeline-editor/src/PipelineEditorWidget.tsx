@@ -686,6 +686,27 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       let dialogOptions: Partial<Dialog.IOptions<any>>;
 
+      pipelineJson.pipelines[0].app_data.properties.pipeline_parameters = pipelineJson.pipelines[0].app_data.properties.pipeline_parameters?.filter(
+        (param: any) => {
+          return !!pipelineJson.pipelines[0].nodes.find((node: any) => {
+            return (
+              param.name !== '' &&
+              (node.app_data.component_parameters?.pipeline_parameters?.includes(
+                param.name
+              ) ||
+                Object.values(node.app_data.component_parameters ?? {}).find(
+                  (property: any) =>
+                    property.widget === 'parameter' &&
+                    property.value === param.name
+                ))
+            );
+          });
+        }
+      );
+
+      const parameters =
+        pipelineJson?.pipelines[0].app_data.properties.pipeline_parameters;
+
       switch (actionType) {
         case 'run':
           dialogOptions = {
@@ -695,6 +716,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                 name={pipelineName}
                 runtimeData={runtimeData}
                 pipelineType={type}
+                parameters={parameters}
               />
             ),
             buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -711,6 +733,7 @@ const PipelineWrapper: React.FC<IProps> = ({
                 runtimeTypeInfo={runtimeTypes}
                 pipelineType={type}
                 exportName={pipelineName}
+                parameters={parameters}
               />
             ),
             buttons: [Dialog.cancelButton(), Dialog.okButton()],
@@ -757,6 +780,29 @@ const PipelineWrapper: React.FC<IProps> = ({
       pipelineJson.pipelines[0].app_data.source = PathExt.basename(
         contextRef.current.path
       );
+
+      // Pipeline parameter overrides
+      for (const paramIndex in parameters ?? []) {
+        const param = parameters[paramIndex];
+        if (param.name) {
+          let paramOverride = dialogResult.value[`${param.name}-paramInput`];
+          if (
+            (param.default_value?.type === 'Integer' ||
+              param.default_value?.type === 'Float') &&
+            paramOverride !== ''
+          ) {
+            paramOverride = Number(paramOverride);
+          }
+          pipelineJson.pipelines[0].app_data.properties.pipeline_parameters[
+            paramIndex
+          ].value =
+            paramOverride === '' ? param.default_value?.value : paramOverride;
+        }
+      }
+
+      // Pipeline name
+      pipelineJson.pipelines[0].app_data.name =
+        dialogResult.value.pipeline_name ?? pipelineName;
 
       // Runtime info
       pipelineJson.pipelines[0].app_data.runtime_config =
@@ -1079,6 +1125,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           ref={ref}
           palette={palette}
           pipelineProperties={palette.properties}
+          pipelineParameters={palette.parameters}
           toolbar={toolbar}
           pipeline={pipeline}
           onAction={onAction}

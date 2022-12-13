@@ -41,7 +41,7 @@ from traitlets.traitlets import Integer
 from elyra._version import __version__
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import Component
-from elyra.pipeline.component_parameter import ComponentParameter
+from elyra.pipeline.properties import ComponentProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.url import FileTransportAdapter
 from elyra.util.url import get_verify_parm
@@ -103,7 +103,7 @@ class CatalogEntry(object):
         self.entry_data = entry_data
         self.entry_reference = entry_reference
         self.catalog_type = catalog_instance.schema_name
-        self.runtime_type = catalog_instance.runtime_type.name  # noqa
+        self.runtime_type = catalog_instance.runtime_type  # noqa
         self.categories = catalog_instance.metadata.get("categories", [])
 
         self.id = self.compute_unique_id(hash_keys)
@@ -132,7 +132,7 @@ class CatalogEntry(object):
         return f"{self.catalog_type}:{hash_digest}"
 
     def get_component(
-        self, id: str, name: str, description: str, properties: List[ComponentParameter], file_extension: str
+        self, id: str, name: str, description: str, properties: List[ComponentProperty], file_extension: str
     ) -> Component:
         """
         Construct a Component object given the arguments (as parsed from the definition file)

@@ -41,6 +41,8 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
+from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.kubernetes import is_valid_annotation_key
 from elyra.util.kubernetes import is_valid_annotation_value
 from elyra.util.kubernetes import is_valid_kubernetes_key
@@ -49,43 +51,87 @@ from elyra.util.kubernetes import is_valid_label_key
 from elyra.util.kubernetes import is_valid_label_value
 
 
+class PropertyInputType:
+    """
+    An object representing a single allowed input type for a PropertyAttribute
+    object with optional custom default value, placeholder, and enum.
+    """
+
+    _python_defined_types = {
+        "str": {"json_type": "string", "default_value": ""},
+        "bool": {"json_type": "boolean", "default_value": False, "placeholder": " "},
+        "int": {"json_type": "integer"},
+        "float": {"json_type": "number"},
+        "list": {"json_type": "string", "default_value": "[]"},
+        "dict": {"json_type": "string", "default_value": "{}"},
+    }
+
+    def __init__(
+        self,
+        base_type: str,
+        default_value: Optional[Any] = None,
+        placeholder: Optional[Any] = None,
+        enum: Optional[List[Any]] = None,
+        **kwargs,
+    ):
+        # Get type info from passed in type dict, if available; default to standard python types
+        allowed_input_types = kwargs.get("runtime_defined_types")
+        if not allowed_input_types:
+            allowed_input_types = self._python_defined_types
+
+        if base_type not in allowed_input_types:
+            raise ValueError(
+                f"Invalid property type '{base_type}': valid types are {list(allowed_input_types.keys())}."
+            )
+        type_defaults = allowed_input_types[base_type]
+
+        # Set types needed for schema
+        self.base_type = base_type
+        self.json_data_type = type_defaults.get("json_type")
+
+        # Set extra schema details
+        self.default_value = default_value if default_value is not None else type_defaults.get("default_value")
+        self.placeholder = placeholder if placeholder is not None else type_defaults.get("placeholder")
+        self.enum = enum
+        self.type_title = type_defaults.get("type_title")
+
+
 class PropertyAttribute:
     """
     An attribute of an ElyraProperty instance that provides the means to construct the
     schema for a property and contains information for processing property instances.
     """
 
-    _input_type_to_default_value = {"boolean": False, "array": "[]", "object": "{}", "string": ""}
-
     def __init__(
         self,
         attribute_id: str,
+        description: Optional[str] = None,
         display_name: Optional[str] = None,
-        placeholder: Optional[Any] = None,
-        default_value: Optional[Any] = None,
-        input_type: Optional[str] = None,
-        enum: Optional[List[Any]] = None,
+        allowed_input_types: Optional[List[PropertyInputType]] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
+        pattern: Optional[str] = None,
     ):
         """
         :param attribute_id: a shorthand id for this attribute, e.g. "env_var"
+        :param description: a description of this attribute
         :param display_name: the display name for this attribute
-        :param placeholder: a placeholder value to be shown in the input field for this attribute
-        :param default_value: the default value to assign the attribute
-        :param input_type: the JSON data type of this attribute ("string", "boolean", "number", "array", or "object")
-        :param enum: a list of possible values that this attribute can take (will appear in a dropdown menu)
+        :param allowed_input_types: a list of accepted PropertyInputTypes for this property
         :param hidden: whether this attribute should be hidden in the UI, preventing users from entering a value
         :param required: whether a value for this attribute is required
+        :param pattern: a regex validation pattern to use for values given for this attribute
         """
+        if not attribute_id:
+            raise ValueError("Invalid Elyra property attribute: missing attribute_id.")
+
         self.id = attribute_id
+        self.description = description
         self.title = display_name
-        self.placeholder = placeholder
-        self.default_value = default_value or self._input_type_to_default_value.get(input_type)
-        self.input_type = input_type
-        self.enum = enum
+        self.allowed_input_types = allowed_input_types or []
+        self.default_type = self.allowed_input_types[0] if self.allowed_input_types else None
         self.hidden = hidden
         self.required = required
+        self.pattern = pattern
 
 
 class ListItemPropertyAttribute(PropertyAttribute):
@@ -97,20 +143,19 @@ class ListItemPropertyAttribute(PropertyAttribute):
     def __init__(
         self,
         attribute_id: str,
+        description: Optional[str] = None,
         display_name: Optional[str] = None,
-        placeholder: Optional[Any] = None,
-        default_value: Optional[Any] = None,
-        input_type: Optional[str] = None,
-        enum: Optional[List[Any]] = None,
+        allowed_input_types: Optional[List[PropertyInputType]] = None,
         hidden: Optional[bool] = False,
         required: Optional[bool] = False,
+        pattern: Optional[str] = None,
         use_in_key: Optional[bool] = True,
     ):
         """
         :param use_in_key: whether this attribute should be used when constructing a
             key for an instance that will be used to de-duplicate list items
         """
-        super().__init__(attribute_id, display_name, placeholder, default_value, input_type, enum, hidden, required)
+        super().__init__(attribute_id, description, display_name, allowed_input_types, hidden, required, pattern)
         self.use_in_key = use_in_key
 
 
@@ -183,7 +228,9 @@ class ElyraProperty(ABC):
         return None
 
     @classmethod
-    def get_classes_for_component_type(cls, component_type: str, runtime_type: Optional[str] = "") -> Set[type]:
+    def get_classes_for_component_type(
+        cls, component_type: str, runtime_type: Optional[RuntimeProcessorType] = None
+    ) -> Set[type]:
         """
         Retrieve property subclasses that apply to the given component type
         (e.g., custom or generic) and to the given runtime type.
@@ -193,10 +240,8 @@ class ElyraProperty(ABC):
         processor_props = set()
         for processor in PipelineProcessorManager.instance().get_all_processors():
             props = getattr(processor, "supported_properties", set())
-            if processor.type.name == runtime_type and props:
-                processor_props = props  # correct processor is found, and it explicitly specifies its properties
-                break
-            processor_props.update(props)
+            if not runtime_type or runtime_type == RuntimeProcessorType.LOCAL or processor.type == runtime_type:
+                processor_props.update(props)
 
         all_subclasses = set()
         for sc in cls.all_subclasses():
@@ -221,16 +266,60 @@ class ElyraProperty(ABC):
         for attr in cls.property_attributes:
             if attr.hidden:
                 continue
-
-            properties[attr.id] = {"type": attr.input_type, "title": attr.title or attr.id}
-            if attr.default_value is not None:
-                properties[attr.id]["default"] = attr.default_value
-            if attr.enum:
-                properties[attr.id]["enum"] = attr.enum
-            if attr.placeholder is not None:
-                uihints[attr.id] = {"ui:placeholder": attr.placeholder}
             if attr.required:
                 required_list.append(attr.id)
+
+            properties[attr.id] = {"title": attr.title or attr.id}
+            if attr.description:
+                properties[attr.id]["description"] = attr.description
+            if attr.pattern:
+                properties[attr.id]["pattern"] = attr.pattern
+
+            if len(attr.allowed_input_types) == 1:
+                allowed_type: PropertyInputType = attr.allowed_input_types[0]
+
+                properties[attr.id]["type"] = allowed_type.json_data_type
+                if allowed_type.default_value is not None:
+                    properties[attr.id]["default"] = allowed_type.default_value
+                if allowed_type.enum:
+                    properties[attr.id]["enum"] = allowed_type.enum
+                if allowed_type.placeholder is not None:
+                    uihints[attr.id] = {"ui:placeholder": allowed_type.placeholder}
+
+            elif len(attr.allowed_input_types) > 1:
+                properties[attr.id]["title"] = "Type"
+                properties[attr.id]["description"] = "The type of this parameter"
+
+                # Set default type to be the first one defined in the property_attributes list
+                properties[attr.id]["default"] = {
+                    "type": attr.allowed_input_types[0].base_type,
+                    "value": attr.allowed_input_types[0].default_value,
+                }
+
+                # Render a oneOf block and loop through allowed types to fill it
+                properties[attr.id]["oneOf"] = []
+                for allowed_type in sorted(attr.allowed_input_types, key=lambda t: t.base_type):
+                    schema_obj = {
+                        "type": "object",
+                        "title": allowed_type.type_title or allowed_type.base_type,
+                        "properties": {
+                            "type": {"type": "string", "default": allowed_type.type_title or allowed_type.base_type},
+                            "value": {
+                                "title": attr.title,
+                                "description": attr.description,
+                                "type": allowed_type.json_data_type,
+                            },
+                        },
+                        "uihints": {"type": {"ui:widget": "hidden"}},
+                    }
+                    if allowed_type.default_value is not None:
+                        schema_obj["properties"]["value"]["default"] = allowed_type.default_value
+                    if allowed_type.enum:
+                        schema_obj["properties"]["value"]["enum"] = allowed_type.enum
+                    if allowed_type.placeholder is not None:
+                        schema_obj["uihints"]["value"] = {"ui:placeholder": allowed_type.placeholder}
+
+                    properties[attr.id]["oneOf"].append(schema_obj)
 
         if issubclass(cls, ElyraPropertyListItem):
             items = {"type": "object", "properties": properties, "required": required_list}
@@ -342,15 +431,14 @@ class CustomSharedMemorySize(ElyraProperty):
         PropertyAttribute(
             attribute_id="size",
             display_name="Memory Size (GB)",
-            placeholder=0,
-            input_type="number",
+            allowed_input_types=[PropertyInputType(base_type="int", placeholder=0)],
             hidden=False,
             required=False,
         ),
         PropertyAttribute(
             attribute_id="units",
             display_name="Units",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str")],
             hidden=True,
             required=False,
         ),
@@ -455,8 +543,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="env_var",
             display_name="Environment Variable",
-            placeholder="ENV_VAR",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="ENV_VAR")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -464,8 +551,7 @@ class EnvironmentVariable(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
-            placeholder="value",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="value")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -524,8 +610,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="env_var",
             display_name="Environment Variable",
-            placeholder="ENV_VAR",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="ENV_VAR")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -533,8 +618,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="name",
             display_name="Secret Name",
-            placeholder="secret-name",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="secret-name")],
             hidden=False,
             required=True,
             use_in_key=False,
@@ -542,8 +626,7 @@ class KubernetesSecret(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Secret Key",
-            placeholder="secret-key",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="secret-key")],
             hidden=False,
             required=True,
             use_in_key=False,
@@ -594,8 +677,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="path",
             display_name="Mount Path",
-            placeholder="/mount/path",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="/mount/path")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -603,8 +685,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="pvc_name",
             display_name="Persistent Volume Claim Name",
-            placeholder="pvc-name",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="pvc-name")],
             hidden=False,
             required=True,
             use_in_key=False,
@@ -612,8 +693,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="sub_path",
             display_name="Sub Path",
-            placeholder="relative/path/within/volume",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="relative/path/within/volume")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -621,9 +701,7 @@ class VolumeMount(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="read_only",
             display_name="Mount volume read-only",
-            placeholder=None,
-            default_value=False,
-            input_type="boolean",
+            allowed_input_types=[PropertyInputType(base_type="bool", default_value=False, placeholder=None)],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -681,8 +759,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
-            placeholder="annotation_key",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="annotation_key")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -690,8 +767,7 @@ class KubernetesAnnotation(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
-            placeholder="annotation_value",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="annotation_value")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -742,8 +818,7 @@ class KubernetesLabel(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
-            placeholder="label_key",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="label_key")],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -751,8 +826,7 @@ class KubernetesLabel(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
-            placeholder="label_value",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="label_value")],
             hidden=False,
             required=False,
             use_in_key=False,
@@ -801,8 +875,7 @@ class KubernetesToleration(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="key",
             display_name="Key",
-            placeholder="key",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="key")],
             hidden=False,
             required=False,
             use_in_key=True,
@@ -810,9 +883,7 @@ class KubernetesToleration(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="operator",
             display_name="Operator",
-            input_type="string",
-            default_value="Equal",
-            enum=["Equal", "Exists"],
+            allowed_input_types=[PropertyInputType(base_type="str", default_value="Equal", enum=["Equal", "Exists"])],
             hidden=False,
             required=True,
             use_in_key=True,
@@ -820,8 +891,7 @@ class KubernetesToleration(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="value",
             display_name="Value",
-            placeholder="value",
-            input_type="string",
+            allowed_input_types=[PropertyInputType(base_type="str", placeholder="value")],
             hidden=False,
             required=False,
             use_in_key=True,
@@ -829,9 +899,13 @@ class KubernetesToleration(ElyraPropertyListItem):
         ListItemPropertyAttribute(
             attribute_id="effect",
             display_name="Effect",
-            placeholder="NoSchedule",
-            input_type="string",
-            enum=["", "NoExecute", "NoSchedule", "PreferNoSchedule"],
+            allowed_input_types=[
+                PropertyInputType(
+                    base_type="str",
+                    placeholder="NoSchedule",
+                    enum=["", "NoExecute", "NoSchedule", "PreferNoSchedule"],
+                )
+            ],
             hidden=False,
             required=False,
             use_in_key=True,
@@ -964,10 +1038,10 @@ class ElyraPropertyJSONEncoder(json.JSONEncoder):
         """
         Render dataclass content as dict
         """
-        return o.__dict__ if isinstance(o, ElyraProperty) else super().default(o)
+        return o.__dict__ if isinstance(o, (ElyraProperty, PropertyInputType)) else super().default(o)
 
 
-class ComponentParameter(object):
+class ComponentProperty(object):
     """
     Represents a single property for a pipeline component
     """
@@ -978,22 +1052,24 @@ class ComponentParameter(object):
         name: str,
         json_data_type: str,
         description: str,
+        allowed_input_types: List[Optional[str]],
         value: Optional[Any] = "",
-        allowed_input_types: Optional[List[Optional[str]]] = None,
         required: Optional[bool] = False,
         allow_no_options: Optional[bool] = False,
+        parsed_data_type: Optional[str] = None,
         items: Optional[List[str]] = None,
     ):
         """
         :param id: Unique identifier for a property
         :param name: The name of the property for display
-        :param json_data_type: The JSON data type that represents this parameters value
+        :param json_data_type: The JSON data type that represents this property's value
         :param allowed_input_types: The input types that the property can accept, including those for custom rendering
         :param value: The default value of the property
         :param description: A description of the property for display
         :param required: Whether the property is required
         :param allow_no_options: Specifies whether to allow parent nodes that don't specifically
-            define output properties to be selected as input to this node parameter
+            define output properties to be selected as input to this node property
+        :param parsed_data_type: The raw data typed exactly as parsed from the component spec
         :param items: For properties with a control of 'EnumControl', the items making up the enum
         """
 
@@ -1027,14 +1103,11 @@ class ComponentParameter(object):
         self._value = value
 
         self._description = description
-
-        if not allowed_input_types:
-            allowed_input_types = ["inputvalue", "inputpath", "file"]
+        self._parsed_data_type = parsed_data_type
         self._allowed_input_types = allowed_input_types
-
         self._items = items or []
 
-        # Check description for information about 'required' parameter
+        # Check description for information about 'required' property
         if "not optional" in description.lower() or (
             "required" in description.lower()
             and "not required" not in description.lower()
@@ -1085,17 +1158,21 @@ class ComponentParameter(object):
     def allow_no_options(self) -> bool:
         return self._allow_no_options
 
+    @property
+    def parsed_data_type(self) -> Optional[str]:
+        return self._parsed_data_type
+
     @staticmethod
-    def render_parameter_details(param: ComponentParameter) -> str:
+    def render_property_details(prop: ComponentProperty) -> str:
         """
-        Render the parameter data type and UI hints needed for the specified param for
+        Render the property data type and UI hints needed for the specified property for
         use in the custom component properties DAG template
         :returns: a string literal containing the JSON object to be rendered in the DAG
         """
-        json_dict = {"title": param.name, "description": param.description}
-        if len(param.allowed_input_types) == 1:
-            # Parameter only accepts a single type of input
-            input_type = param.allowed_input_types[0]
+        json_dict = {"title": prop.name, "description": prop.description}
+        if len(prop.allowed_input_types) == 1:
+            # Property only accepts a single type of input
+            input_type = prop.allowed_input_types[0]
             if not input_type:
                 # This is an output
                 json_dict["type"] = "string"
@@ -1115,45 +1192,48 @@ class ComponentParameter(object):
                 json_dict["type"] = "string"
                 json_dict["uihints"] = {"ui:widget": input_type}
             else:
-                json_dict["type"] = param.value_entry_type
+                json_dict["type"] = prop.value_entry_type
 
                 # Render default value if it is not None
-                if param.value is not None:
-                    json_dict["default"] = param.value
+                if prop.value is not None:
+                    json_dict["default"] = prop.value
         else:
-            # Parameter accepts multiple types of inputs; render a oneOf block
+            # Property accepts multiple types of inputs; render a oneOf block
             one_of = []
-            for widget_type in param.allowed_input_types:
+            for widget_type in prop.allowed_input_types:
                 obj = {
                     "type": "object",
                     "properties": {"widget": {"type": "string"}, "value": {}},
                     "uihints": {"widget": {"ui:widget": "hidden"}, "value": {}},
                 }
                 if widget_type == "inputvalue":
-                    obj["title"] = InputTypeDescriptionMap[param.value_entry_type].value
-                    obj["properties"]["widget"]["default"] = param.value_entry_type
-                    obj["properties"]["value"]["type"] = param.value_entry_type
-                    if param.value_entry_type == "boolean":
+                    obj["title"] = InputTypeDescriptionMap[prop.value_entry_type].value
+                    obj["properties"]["widget"]["default"] = prop.value_entry_type
+                    obj["properties"]["value"]["type"] = prop.value_entry_type
+                    if prop.value_entry_type == "boolean":
                         obj["properties"]["value"]["title"] = " "
 
                     # Render default value if it is not None
-                    if param.value is not None:
-                        obj["properties"]["value"]["default"] = param.value
-                else:  # inputpath or file types
+                    if prop.value is not None:
+                        obj["properties"]["value"]["default"] = prop.value
+                else:  # custom widget types (inputpath, file, parameter)
                     obj["title"] = InputTypeDescriptionMap[widget_type].value
                     obj["properties"]["widget"]["default"] = widget_type
+                    obj["properties"]["value"]["type"] = "string"
                     if widget_type == "outputpath":
                         obj["uihints"]["value"] = {"ui:readonly": "true", widget_type: True}
                         obj["properties"]["value"]["type"] = "string"
                     elif widget_type == "inputpath":
                         obj["uihints"]["value"] = {widget_type: True}
-                        obj["properties"]["value"]["type"] = "string"
                         obj["properties"]["value"]["enum"] = []
-                        if param.allow_no_options:
-                            obj["uihints"]["allownooptions"] = param.allow_no_options
+                        if prop.allow_no_options:
+                            obj["uihints"]["allownooptions"] = prop.allow_no_options
+                    elif widget_type == "parameter":
+                        # Render parsed data type if present
+                        if prop.parsed_data_type:
+                            obj["uihints"]["value"] = {"ui:typefilter": prop.parsed_data_type}
                     else:
                         obj["uihints"]["value"] = {"ui:widget": widget_type}
-                        obj["properties"]["value"]["type"] = "string"
 
                 one_of.append(obj)
             json_dict["oneOf"] = one_of
@@ -1170,3 +1250,55 @@ class InputTypeDescriptionMap(Enum):
     file = "Please select a file to use as input:"
     inputpath = "Please select an output from a parent:"
     outputpath = None  # outputs are read-only and don't require a description
+    parameter = "Please select a parameter to use as input:"
+
+
+class PipelineParameter(ElyraPropertyListItem):
+    """An ElyraProperty representing a single pipeline parameter"""
+
+    property_id = PIPELINE_PARAMETERS
+    property_display_name = "Pipeline Parameters"
+    property_description = """Typed variables to be passed to the pipeline."""
+
+    def __init__(self, name, description, value, default_value, required, **kwargs):
+        self.name = name
+        self.description = description
+        self.required = required or False
+
+        # Assign selected type, if given
+        self.selected_type = default_value.get("type") if isinstance(default_value, dict) else None
+
+        # Assign default value, if given
+        self.default_value = default_value.get("value") if isinstance(default_value, dict) else None
+
+        # Assign value, if set; use default_value if not
+        self.value = value if value is not None else self.default_value
+
+    def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
+        """
+        Returns the value to be used when constructing a dict from a list of ElyraPropertyListItem.
+        A PipelineParameter dict entry will be of the form: {self.name: self.value}
+        """
+        return self.value
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert instance to a dict with relevant class attributes."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "value": self.value,
+            "default_value": self.default_value,
+            "type": self.selected_type,
+            "required": self.required,
+        }
+
+    def get_value_for_display(self) -> Dict[str, Any]:
+        """Get a representation of the instance to display in UI error messages."""
+        return self.to_dict()
+
+    def get_all_validation_errors(self) -> List[str]:
+        """Perform custom validation on an instance."""
+        raise RuntimeError("Method should be invoked only by runtime-specific subclasses.")
+
+    def add_to_execution_object(self, runtime_processor: RuntimePipelineProcessor, execution_object: Any, **kwargs):
+        raise RuntimeError("Method should not be invoked.")

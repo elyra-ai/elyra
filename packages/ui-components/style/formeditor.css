@@ -46,6 +46,7 @@ form.rjsf {
 fieldset#root > div > fieldset {
   display: flex;
   flex-wrap: wrap;
+  min-inline-size: auto;
 }
 
 label.control-label {
@@ -54,10 +55,7 @@ label.control-label {
 }
 
 fieldset#root {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: space-between;
+  display: contents;
 }
 
 .form-group.field {
@@ -243,11 +241,11 @@ button.elyra-editor-tag.unapplied-tag {
   width: 80%;
 }
 
-.elyra-formEditor .field-description {
+.field-description {
   display: none;
 }
 
-.elyra-formEditor .description-wrapper:hover .field-description {
+.description-wrapper:hover .field-description {
   color: var(--jp-content-font-color1);
   position: absolute;
   bottom: 110%;
@@ -273,6 +271,49 @@ button.elyra-editor-tag.unapplied-tag {
   background-position-y: 50%;
 }
 
+.elyra-formEditor .checkbox label > span {
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  width: fit-content;
+}
+
+.elyra-formEditor#pipeline-parameters .field-boolean .checkbox label {
+  margin: 0;
+}
+
+.elyra-formEditor .field-boolean .checkbox label > span {
+  display: none;
+}
+
+.elyra-formEditor .field-boolean {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.elyra-formEditor .checkboxes {
+  height: 6em;
+  overflow: scroll;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 0.5em;
+  padding: 3px;
+  resize: vertical;
+}
+
+.elyra-formEditor .checkboxes::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 7px;
+  height: 7px;
+}
+
+.elyra-formEditor .checkboxes::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
 .elyra-formEditor
   .label-header
   .description-wrapper
@@ -284,12 +325,12 @@ button.elyra-editor-tag.unapplied-tag {
   margin-bottom: 10px;
 }
 
-.elyra-formEditor .description-wrapper {
+.description-wrapper {
   width: fit-content;
   position: relative;
 }
 
-.elyra-formEditor .description-button {
+.description-button {
   border-radius: 100%;
   margin-left: 6px;
   border: 1px solid var(--jp-border-color1);
@@ -298,7 +339,7 @@ button.elyra-editor-tag.unapplied-tag {
   padding: 2px 5px;
 }
 
-.elyra-formEditor .label-header {
+.label-header {
   display: flex;
   align-items: center;
 }

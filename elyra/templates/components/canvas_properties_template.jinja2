@@ -19,7 +19,7 @@
           }
         },
         {% for property in component.input_properties %}
-        "{{ property.ref }}": {{ render_parameter_details(property) }},
+        "{{ property.ref }}": {{ render_property_details(property) }},
         {% endfor %}
         {% endif %}
         {% if component.output_properties|length > 0 %}
@@ -32,10 +32,10 @@
           }
         },
         {% for property in component.output_properties %}
-        "{{ property.ref }}": {{ render_parameter_details(property) }},
+        "{{ property.ref }}": {{ render_property_details(property) }},
         {% endfor %}
         {% endif %}
-        {% if elyra_owned_parameters %}
+        {% if elyra_owned_properties %}
         "additional_properties_header": {
           "type": "null",
           "title": "Additional Properties",
@@ -44,7 +44,7 @@
             "ui:field": "header"
           }
         },
-        {% for property in elyra_owned_parameters|sort(attribute="property_id") %}
+        {% for property in elyra_owned_properties|sort(attribute="property_id") %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}
           {% if loop.index != loop|length %}
           ,

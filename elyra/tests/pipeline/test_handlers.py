@@ -37,6 +37,7 @@ from elyra.pipeline.pipeline_constants import (
     KUBERNETES_TOLERATIONS,
     MOUNTED_VOLUMES,
     PIPELINE_DEFAULTS,
+    PIPELINE_PARAMETERS,
     RUNTIME_IMAGE,
 )
 from elyra.pipeline.processor import PipelineProcessorManager
@@ -138,16 +139,21 @@ async def test_get_component_properties_config(jp_fetch):
     template = pkg_resources.read_text(resources, "generic_properties_template.jinja2")
     template = template.replace("{{ component.name }}", "Notebook")
     template = template.replace("{{ component.extensions|tojson }}", '[".ipynb"]')
-    template = template.replace("{% if elyra_owned_parameters %}", "")
+    template = template.replace("{% if elyra_owned_properties %}", "")
     template = template.replace(
         """,
-        {% for property in elyra_owned_parameters|sort(attribute="property_id") %}
+        {% for property in elyra_owned_properties|sort(attribute="property_id") %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}{% if loop.index != loop|length %},{% endif %}
         {% endfor %}
         {% endif %}""",
         "",
     )  # remove Elyra-owned property rendering loop
     properties = json.loads(template)
+
+    # Remove pipeline parameters from properties if necessary
+    if not PipelineProcessorManager.instance().supports_pipeline_params(runtime_type=runtime_type):
+        # Pipeline parameters are not supported and the property can be removed from the set
+        properties["properties"]["component_parameters"]["properties"].pop(PIPELINE_PARAMETERS, None)
 
     # Fetch Elyra-owned properties
     elyra_properties = json.loads(pkg_resources.read_text(resources, "additional_generic_properties.json"))
@@ -318,3 +324,18 @@ async def test_validation_handler(jp_fetch, monkeypatch):
     http_response = await jp_fetch("elyra", "pipeline", "validate", body=json_body, method="POST")
 
     assert http_response.code == 200
+
+
+async def test_get_pipeline_parameters_schema(jp_fetch, caplog):
+    # Ensure all valid components can be found
+    unsupported_runtime_types = [RuntimeProcessorType.LOCAL, RuntimeProcessorType.APACHE_AIRFLOW]
+    for runtime_type in unsupported_runtime_types:
+        with pytest.raises(HTTPClientError) as e:
+            await jp_fetch("elyra", "pipeline", runtime_type.name, "parameters", method="GET")
+        assert expected_http_error(e, 405)
+        msg_body = json.loads(e.value.response.body.decode()).get("message")
+        assert "does not support pipeline parameters" in msg_body
+
+    runtime_type = RuntimeProcessorType.KUBEFLOW_PIPELINES
+    response = await jp_fetch("elyra", "pipeline", "components", runtime_type.name)
+    assert response.code == 200

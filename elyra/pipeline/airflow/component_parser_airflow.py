@@ -23,7 +23,7 @@ from typing import Optional
 from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component_parameter import ComponentParameter
+from elyra.pipeline.properties import ComponentProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 CONTROL_ID = "OneOfControl"
@@ -75,7 +75,7 @@ class AirflowComponentParser(ComponentParser):
 
             # Get the properties for this Operator class
             try:
-                component_properties: List[ComponentParameter] = self._parse_properties_from_init(**content)
+                component_properties: List[ComponentProperty] = self._parse_properties_from_init(**content)
             except Exception as e:
                 self.log.error(
                     f"Properties of operator '{component_class}' associated with identifier '{entry_reference}' "
@@ -200,10 +200,10 @@ class AirflowComponentParser(ComponentParser):
                     return body_item.value.s.strip()
         return None
 
-    def _parse_properties_from_init(self, init_function: ast.FunctionDef, docstring: str) -> List[ComponentParameter]:
+    def _parse_properties_from_init(self, init_function: ast.FunctionDef, docstring: str) -> List[ComponentProperty]:
         """
         Parse the init function and docstring of single operator class to create a list
-        of ComponentParameter objects.
+        of ComponentProperty objects.
         """
         properties = []
 
@@ -241,7 +241,7 @@ class AirflowComponentParser(ComponentParser):
                 # Escape quotation marks to avoid error during json.loads
                 value = value.replace('"', '\\"').replace('"""', '\\"\\"\\"')
 
-            component_param = ComponentParameter(
+            component_param = ComponentProperty(
                 id=arg_name,
                 name=arg_name,
                 json_data_type=data_type_info.json_data_type,

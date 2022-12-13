@@ -35,7 +35,7 @@
             "ui:placeholder": "project/subproject"
           }
         },
-        {% if elyra_owned_parameters %}
+        {% if elyra_owned_properties %}
         "node_defaults_header": {
           "type": "null",
           "title": "Node Defaults",
@@ -46,7 +46,7 @@
           }
         },
         {% endif %}
-        {% for property in elyra_owned_parameters %}
+        {% for property in elyra_owned_properties %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }},
         {% endfor %}
         "generic_node_defaults_header": {
@@ -63,16 +63,16 @@
           "description": "Container image used as execution environment.",
           "type": "string"
         }
-        {% if elyra_owned_generic_parameters %}
+        {% if elyra_owned_generic_properties %}
         ,
         {% endif %}
-        {% for property in elyra_owned_generic_parameters %}
+        {% for property in elyra_owned_generic_properties %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}
           {% if loop.index != loop|length %}
           ,
           {% endif %}
         {% endfor %}
-        {% if elyra_owned_custom_parameters %}
+        {% if elyra_owned_custom_properties %}
         ,
         "custom_node_defaults_header": {
           "type": "null",
@@ -84,7 +84,7 @@
           }
         },
         {% endif %}
-        {% for property in elyra_owned_custom_parameters %}
+        {% for property in elyra_owned_custom_properties %}
         "{{property.property_id}}": {{ property.get_schema()|tojson }}
           {% if loop.index != loop|length %}
           ,

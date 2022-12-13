@@ -22,10 +22,11 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import EnvironmentVariable
 
 # TODO: Make pipeline version available more widely
 # as today is only available on the pipeline editor
@@ -48,14 +49,14 @@ class Operation(object):
         name: str,
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
-        component_params: Optional[Dict[str, Any]] = None,
-        elyra_params: Optional[Dict[str, Any]] = None,
+        component_props: Optional[Dict[str, Any]] = None,
+        elyra_props: Optional[Dict[str, Any]] = None,
     ) -> Operation:
         """Class method that creates the appropriate instance of Operation based on inputs."""
 
         if Operation.is_generic_operation(classifier):
-            return GenericOperation(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
-        return Operation(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
+            return GenericOperation(id, type, name, classifier, parent_operation_ids, component_props, elyra_props)
+        return Operation(id, type, name, classifier, parent_operation_ids, component_props, elyra_props)
 
     def __init__(
         self,
@@ -64,8 +65,8 @@ class Operation(object):
         name: str,
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
-        component_params: Optional[Dict[str, Any]] = None,
-        elyra_params: Optional[Dict[str, Any]] = None,
+        component_props: Optional[Dict[str, Any]] = None,
+        elyra_props: Optional[Dict[str, Any]] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier, e.g. 123e4567-e89b-12d3-a456-426614174000
@@ -73,9 +74,9 @@ class Operation(object):
         :param classifier: indicates the operation's class
         :param name: The name of the operation
         :param parent_operation_ids: List of parent operation 'ids' required to execute prior to this operation
-        :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
+        :param component_props: dictionary of property key:value pairs that are used in the creation of a
             non-Generic operation instance
-        :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
+        :param elyra_props: dictionary of property key:value pairs that are owned by Elyra
         """
 
         # Validate that the operation has all required properties
@@ -93,13 +94,13 @@ class Operation(object):
         self._classifier = classifier
         self._name = name
         self._parent_operation_ids = parent_operation_ids or []
-        self._component_params = component_params or {}
-        self._elyra_params = elyra_params or {}
+        self._component_props = component_props or {}
+        self._elyra_props = elyra_props or {}
         self._doc = None
 
         # Scrub the inputs and outputs lists
-        self._component_params["inputs"] = Operation._scrub_list(component_params.get("inputs", []))
-        self._component_params["outputs"] = Operation._scrub_list(component_params.get("outputs", []))
+        self._component_props["inputs"] = Operation._scrub_list(component_props.get("inputs", []))
+        self._component_props["outputs"] = Operation._scrub_list(component_props.get("outputs", []))
 
     @property
     def id(self) -> str:
@@ -134,28 +135,28 @@ class Operation(object):
         return self._parent_operation_ids
 
     @property
-    def component_params(self) -> Optional[Dict[str, Any]]:
-        return self._component_params
+    def component_props(self) -> Optional[Dict[str, Any]]:
+        return self._component_props
 
     @property
-    def component_params_as_dict(self) -> Dict[str, Any]:
-        return self._component_params or {}
+    def component_props_as_dict(self) -> Dict[str, Any]:
+        return self._component_props or {}
 
     @property
-    def elyra_params(self) -> Optional[Dict[str, Any]]:
-        return self._elyra_params or {}
+    def elyra_props(self) -> Optional[Dict[str, Any]]:
+        return self._elyra_props or {}
 
     @property
     def inputs(self) -> Optional[List[str]]:
-        return self._component_params.get("inputs")
+        return self._component_props.get("inputs")
 
     @inputs.setter
     def inputs(self, value: List[str]):
-        self._component_params["inputs"] = value
+        self._component_props["inputs"] = value
 
     @property
     def outputs(self) -> Optional[List[str]]:
-        return self._component_params.get("outputs")
+        return self._component_props.get("outputs")
 
     @property
     def is_generic(self) -> bool:
@@ -163,7 +164,7 @@ class Operation(object):
 
     @outputs.setter
     def outputs(self, value: List[str]):
-        self._component_params["outputs"] = value
+        self._component_props["outputs"] = value
 
     def __eq__(self, other: Operation) -> bool:
         if isinstance(self, other.__class__):
@@ -173,20 +174,20 @@ class Operation(object):
                 and self.classifier == other.classifier
                 and self.name == other.name
                 and self.parent_operation_ids == other.parent_operation_ids
-                and self.component_params == other.component_params
+                and self.component_props == other.component_props
             )
         return False
 
     def __str__(self) -> str:
-        params = ""
-        for key, value in self.component_params_as_dict.items():
-            params += f"\t{key}: {value}, \n"
+        props = ""
+        for key, value in self.component_props_as_dict.items():
+            props += f"\t{key}: {value}, \n"
 
         return (
             f"componentID : {self.id} \n "
             f"name : {self.name} \n "
             f"parent_operation_ids : {self.parent_operation_ids} \n "
-            f"component_parameters: {{\n{params}}} \n"
+            f"component_properties: {{\n{props}}} \n"
         )
 
     @staticmethod
@@ -217,8 +218,8 @@ class GenericOperation(Operation):
         name: str,
         classifier: str,
         parent_operation_ids: Optional[List[str]] = None,
-        component_params: Optional[Dict[str, Any]] = None,
-        elyra_params: Optional[Dict[str, Any]] = None,
+        component_props: Optional[Dict[str, Any]] = None,
+        elyra_props: Optional[Dict[str, Any]] = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -227,10 +228,10 @@ class GenericOperation(Operation):
         :param classifier: indicates the operation's class
         :param name: The name of the operation
         :param parent_operation_ids: List of parent operation 'ids' required to execute prior to this operation
-        :param component_params: dictionary of parameter key:value pairs that are used in the creation of a
+        :param component_props: dictionary of property key:value pairs that are used in the creation of a
                                  a non-standard operation instance
 
-        Component_params for "generic components" (i.e., those with one of the following classifier values:
+        component_props for "generic components" (i.e., those with one of the following classifier values:
         ["execute-notebook-node", "execute-python-node", "execute-r-node"]) can expect to have the following
         entries.
                 filename: The relative path to the source file in the users local environment
@@ -246,38 +247,40 @@ class GenericOperation(Operation):
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
+                parameters: a list of names of pipeline parameters that should be passed to this operation
                 gpu_vendor: gpu resource type, eg. nvidia.com/gpu, amd.com/gpu etc.
         Entries for other (non-built-in) component types are a function of the respective component.
 
-        :param elyra_params: dictionary of parameter key:value pairs that are owned by Elyra
+        :param elyra_props: dictionary of property key:value pairs that are owned by Elyra
         """
 
-        super().__init__(id, type, name, classifier, parent_operation_ids, component_params, elyra_params)
+        super().__init__(id, type, name, classifier, parent_operation_ids, component_props, elyra_props)
 
-        if not component_params.get("filename"):
+        if not component_props.get("filename"):
             raise ValueError("Invalid pipeline operation: Missing field 'operation filename'.")
-        if not component_params.get("runtime_image"):
+        if not component_props.get("runtime_image"):
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
-        if component_params.get("cpu") and not self._validate_range(component_params.get("cpu"), min_value=1):
+        if component_props.get("cpu") and not self._validate_range(component_props.get("cpu"), min_value=1):
             raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
-        if component_params.get("gpu") and not self._validate_range(component_params.get("gpu"), min_value=0):
+        if component_props.get("gpu") and not self._validate_range(component_props.get("gpu"), min_value=0):
             raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
-        if component_params.get("memory") and not self._validate_range(component_params.get("memory"), min_value=1):
+        if component_props.get("memory") and not self._validate_range(component_props.get("memory"), min_value=1):
             raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
 
         # Re-build object to include default values
-        self._component_params["filename"] = component_params.get("filename")
-        self._component_params["runtime_image"] = component_params.get("runtime_image")
-        self._component_params["dependencies"] = Operation._scrub_list(component_params.get("dependencies", []))
-        self._component_params["include_subdirectories"] = component_params.get("include_subdirectories", False)
-        self._component_params["cpu"] = component_params.get("cpu")
-        self._component_params["memory"] = component_params.get("memory")
-        self._component_params["gpu"] = component_params.get("gpu")
-        self._component_params["gpu_vendor"] = component_params.get("gpu_vendor")
+        self._component_props["filename"] = component_props.get("filename")
+        self._component_props["runtime_image"] = component_props.get("runtime_image")
+        self._component_props["dependencies"] = Operation._scrub_list(component_props.get("dependencies", []))
+        self._component_props["include_subdirectories"] = component_props.get("include_subdirectories", False)
+        self._component_props["cpu"] = component_props.get("cpu")
+        self._component_props["memory"] = component_props.get("memory")
+        self._component_props["gpu"] = component_props.get("gpu")
+        self._component_props["gpu_vendor"] = component_props.get("gpu_vendor")
+        self._component_props["parameters"] = component_props.get(PIPELINE_PARAMETERS, [])
 
-        if not elyra_params:
-            elyra_params = {}
-        self._elyra_params["env_vars"] = ElyraPropertyList(elyra_params.get(ENV_VARIABLES, []))
+        if not elyra_props:
+            elyra_props = {}
+        self._elyra_props["env_vars"] = ElyraPropertyList(elyra_props.get(ENV_VARIABLES, []))
 
     @property
     def name(self) -> str:
@@ -291,39 +294,43 @@ class GenericOperation(Operation):
 
     @property
     def filename(self) -> str:
-        return self._component_params.get("filename")
+        return self._component_props.get("filename")
 
     @property
     def runtime_image(self) -> str:
-        return self._component_params.get(RUNTIME_IMAGE)
+        return self._component_props.get(RUNTIME_IMAGE)
 
     @property
     def dependencies(self) -> Optional[List[str]]:
-        return self._component_params.get("dependencies")
+        return self._component_props.get("dependencies")
 
     @property
     def include_subdirectories(self) -> Optional[bool]:
-        return self._component_params.get("include_subdirectories")
+        return self._component_props.get("include_subdirectories")
 
     @property
     def env_vars(self) -> ElyraPropertyList[EnvironmentVariable]:
-        return self._elyra_params.get(ENV_VARIABLES)
+        return self._elyra_props.get(ENV_VARIABLES)
 
     @property
     def cpu(self) -> Optional[str]:
-        return self._component_params.get("cpu")
+        return self._component_props.get("cpu")
 
     @property
     def memory(self) -> Optional[str]:
-        return self._component_params.get("memory")
+        return self._component_props.get("memory")
 
     @property
     def gpu(self) -> Optional[str]:
-        return self._component_params.get("gpu")
+        return self._component_props.get("gpu")
+
+    @property
+    def parameters(self) -> Optional[List[str]]:
+        return self._component_props.get("parameters")
 
     @property
     def gpu_vendor(self) -> Optional[str]:
-        return self._component_params.get("gpu_vendor")
+        return self._component_props.get("gpu_vendor")
 
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):
@@ -348,6 +355,7 @@ class Pipeline(object):
         source: Optional[str] = None,
         description: Optional[str] = None,
         pipeline_properties: Optional[Dict[str, Any]] = None,
+        pipeline_parameters: ElyraPropertyList = None,
     ):
         """
         :param id: Generated UUID, 128 bit number used as a unique identifier
@@ -358,6 +366,7 @@ class Pipeline(object):
         :param source: The pipeline source, e.g. a pipeline file or a notebook.
         :param description: Pipeline description
         :param pipeline_properties: Key/value pairs representing the properties of this pipeline
+        :param pipeline_parameters: an ElyraPropertyList of pipeline parameters
         """
 
         if not name:
@@ -372,6 +381,7 @@ class Pipeline(object):
         self._runtime = runtime
         self._runtime_config = runtime_config
         self._pipeline_properties = pipeline_properties or {}
+        self._pipeline_parameters = pipeline_parameters or ElyraPropertyList([])
         self._operations = {}
 
     @property
@@ -406,6 +416,13 @@ class Pipeline(object):
         The dictionary of global properties associated with this pipeline
         """
         return self._pipeline_properties
+
+    @property
+    def parameters(self) -> ElyraPropertyList:
+        """
+        The list of parameters associated with this pipeline
+        """
+        return self._pipeline_parameters
 
     @property
     def operations(self) -> Dict[str, Operation]:

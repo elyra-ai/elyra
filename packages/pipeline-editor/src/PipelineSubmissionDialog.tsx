@@ -16,10 +16,12 @@
 
 import * as React from 'react';
 
+import { IParameterProps, ParameterInputForm } from './ParameterInputForm';
+
 import { IRuntimeData } from './runtime-utils';
 import RuntimeConfigSelect from './RuntimeConfigSelect';
 
-interface IProps {
+interface IProps extends IParameterProps {
   name: string;
   runtimeData: IRuntimeData;
   pipelineType?: string;
@@ -28,7 +30,8 @@ interface IProps {
 export const PipelineSubmissionDialog: React.FC<IProps> = ({
   name,
   runtimeData,
-  pipelineType
+  pipelineType,
+  parameters
 }) => {
   return (
     <form className="elyra-dialog-form">
@@ -47,6 +50,7 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
         runtimeData={runtimeData}
         pipelineType={pipelineType}
       />
+      <ParameterInputForm parameters={parameters} />
     </form>
   );
 };

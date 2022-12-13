@@ -28,14 +28,7 @@ import yaml
 
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.component import Component
-from elyra.pipeline.component import ComponentParameter
-from elyra.pipeline.component_parameter import CustomSharedMemorySize
-from elyra.pipeline.component_parameter import DisableNodeCaching
-from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesLabel
-from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import VolumeMount
+from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_MEDIUM
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_NAME
 from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_SIZE
@@ -55,6 +48,15 @@ from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
 from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.processor import PipelineProcessor
+from elyra.pipeline.properties import ComponentProperty
+from elyra.pipeline.properties import CustomSharedMemorySize
+from elyra.pipeline.properties import DisableNodeCaching
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import KubernetesAnnotation
+from elyra.pipeline.properties import KubernetesLabel
+from elyra.pipeline.properties import KubernetesSecret
+from elyra.pipeline.properties import KubernetesToleration
+from elyra.pipeline.properties import VolumeMount
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 
@@ -140,6 +142,7 @@ def test_compose_container_command_args(processor: KfpPipelineProcessor):
         cos_dependencies_archive=cos_dependencies_archive,
         filename=filename,
     )
+    command_args = "".join(command_args)
     assert f"--pipeline-name '{pipeline_name}'" in command_args
     assert f"--cos-endpoint '{cos_endpoint}'" in command_args
     assert f"--cos-bucket '{cos_bucket}'" in command_args
@@ -163,6 +166,7 @@ def test_compose_container_command_args(processor: KfpPipelineProcessor):
                 cos_inputs=file_dependency,
                 cos_outputs=file_output,
             )
+            command_args = "".join(command_args)
 
             if len(file_dependency) < 1:
                 assert "--inputs" not in command_args
@@ -200,7 +204,7 @@ def test_compose_container_command_args_invalid_dependency_filename(processor: K
             with pytest.raises(
                 ValueError,
                 match=re.escape(
-                    f"Illegal character ({reserved_separator_char}) found in filename '{invalid_file_name}'."
+                    f"Illegal character ({reserved_separator_char}) found in list item '{invalid_file_name}'."
                 ),
             ):
                 command_args = processor._compose_container_command_args(
@@ -390,7 +394,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
     component_definition = entry_data.definition
 
     properties = [
-        ComponentParameter(
+        ComponentProperty(
             id="url",
             name="Url",
             json_data_type="string",
@@ -398,7 +402,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
             description="",
             allowed_input_types=["file", "inputpath", "inputvalue"],
         ),
-        ComponentParameter(
+        ComponentProperty(
             id="curl_options",
             name="Curl Options",
             json_data_type="string",
@@ -443,7 +447,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
         classifier=component_id,
         name=operation_name,
         parent_operation_ids=[],
-        component_params=operation_params,
+        component_props=operation_params,
     )
 
     # Construct single-operation pipeline
@@ -682,6 +686,9 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     # have no bearing on the outcome of this test.
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    # Mock pipeline to not include any parameters
+    monkeypatch.setattr(pipeline, "_pipeline_parameters", ElyraPropertyList([]))
 
     compiled_argo_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml").name
     compiled_argo_output_file_name = str(compiled_argo_output_file.absolute())
@@ -1010,6 +1017,9 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
+    # Mock pipeline to not include any parameters
+    monkeypatch.setattr(pipeline, "_pipeline_parameters", ElyraPropertyList([]))
+
     # Test begins here
 
     compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml").name
@@ -1199,7 +1209,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     #
     # validate data volumes, if applicable
-    expected_volume_mounts = op.elyra_params.get(MOUNTED_VOLUMES)
+    expected_volume_mounts = op.elyra_props.get(MOUNTED_VOLUMES)
     if len(expected_volume_mounts) > 0:
         # There must be one or more 'volumeMounts' entry and one or more 'volumes' entry
         assert node_template["container"].get("volumeMounts") is not None, node_template["container"]
@@ -1230,7 +1240,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     #
     # validate custom shared memory size, if applicable
-    custom_shared_mem_size = op.elyra_params.get(KUBERNETES_SHARED_MEM_SIZE)
+    custom_shared_mem_size = op.elyra_props.get(KUBERNETES_SHARED_MEM_SIZE)
     if custom_shared_mem_size:
         # There must be one 'volumeMounts' entry and one 'volumes' entry
         assert node_template["container"].get("volumeMounts") is not None, node_template["container"]
@@ -1260,7 +1270,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     #
     # validate Kubernetes secrets, if applicable
-    expected_kubernetes_secrets = op.elyra_params.get(KUBERNETES_SECRETS)
+    expected_kubernetes_secrets = op.elyra_props.get(KUBERNETES_SECRETS)
     if len(expected_kubernetes_secrets) > 0:
         # There must be one or more 'env' entries
         assert node_template["container"].get("env") is not None, node_template["container"]
@@ -1275,7 +1285,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
             assert entry_found, f"Missing entry for secret '{secret.env_var}' in {node_template['container']['env']}"
 
     # Validate custom Kubernetes annotations
-    expected_kubernetes_annotations = op.elyra_params.get(KUBERNETES_POD_ANNOTATIONS)
+    expected_kubernetes_annotations = op.elyra_props.get(KUBERNETES_POD_ANNOTATIONS)
     if len(expected_kubernetes_annotations) > 0:
         # There must be one or more 'metadata.annotations' entries
         assert node_template["metadata"].get("annotations") is not None, node_template["metadata"]
@@ -1287,7 +1297,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     #
     # Validate custom Kubernetes labels
-    expected_kubernetes_labels = op.elyra_params.get(KUBERNETES_POD_LABELS)
+    expected_kubernetes_labels = op.elyra_props.get(KUBERNETES_POD_LABELS)
     if len(expected_kubernetes_labels) > 0:
         # There must be one or more 'metadata.labels' entries
         assert node_template["metadata"].get("labels") is not None, node_template["metadata"]
@@ -1299,7 +1309,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
     # Validate Kubernetes tolerations
     #
     # Validate custom Kubernetes tolerations
-    expected_kubernetes_tolerations = op.elyra_params.get(KUBERNETES_TOLERATIONS)
+    expected_kubernetes_tolerations = op.elyra_props.get(KUBERNETES_TOLERATIONS)
     if len(expected_kubernetes_tolerations) > 0:
         # There must be one or more 'tolerations' entries, e.g.
         # {effect: NoExecute, key: kt1, operator: Equal, value: '3'}
@@ -1545,3 +1555,255 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_
                 f"Missing entry for image pull secret '{expected_secret_name}' "
                 f"in {compiled_spec['spec']['imagePullSecrets']}"
             )
+
+
+@pytest.mark.parametrize(
+    "metadata_dependencies",
+    [
+        {
+            "pipeline_file": Path(__file__).parent
+            / ".."
+            / "resources"
+            / "test_pipelines"
+            / "kfp"
+            / "kfp-one-node-generic.pipeline",
+            "workflow_engine": WorkflowEngineType.ARGO,
+        }
+    ],
+    indirect=True,
+)
+def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_with_parameters(
+    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
+):
+    """
+    Validate that code gen produces the expected artifacts if the pipeline contains
+    generic nodes with pipeline parameters specified.
+    The test results are KFP-specific.
+    """
+    # Obtain artifacts from metadata_dependencies fixture
+    test_pipeline_file = metadata_dependencies["pipeline_file"]
+    pipeline = metadata_dependencies["pipeline_object"]
+    assert pipeline is not None
+    assert isinstance(pipeline.parameters, list) and len(pipeline.parameters) == 3
+
+    runtime_config = metadata_dependencies["runtime_config"]
+    assert runtime_config is not None
+
+    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
+
+    # Make sure the pipeline contains at least one generic node
+    assert pipeline.contains_generic_operations()
+
+    # Mock calls that require access to object storage, because their side effects
+    # have no bearing on the outcome of this test.
+    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
+    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
+
+    # Test begins here
+    compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml").name
+    compiled_output_file_name = str(compiled_output_file.absolute())
+
+    # generate Python DSL for the specified workflow engine
+    pipeline_version = f"{pipeline.name}-test-0"
+    pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
+    experiment_name = f"{pipeline.name}-test-0"
+
+    generated_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline,
+        pipeline_name=pipeline.name,
+        workflow_engine=workflow_engine,
+        pipeline_version=pipeline_version,
+        pipeline_instance_id=pipeline_instance_id,
+        experiment_name=experiment_name,
+    )
+
+    # Compile DSL; the output should
+    processor._compile_pipeline_dsl(
+        dsl=generated_dsl,
+        workflow_engine=workflow_engine,
+        output_file=compiled_output_file_name,
+        pipeline_conf=None,
+    )
+
+    # Load compiled workflow
+    with open(compiled_output_file_name) as f:
+        compiled_spec = yaml.safe_load(f.read())
+
+    # Test parameters appear as expected
+    yaml_pipeline_params = compiled_spec["spec"]["arguments"]["parameters"]
+    # Only two parameters are referenced by a node in the pipeline, so only 2 should be present in YAML
+    assert len(yaml_pipeline_params) == 2
+    # Assert params defined in YAML correspond to those defined by the Pipeline object
+    for param_from_yaml in yaml_pipeline_params:
+        param_name, param_value = param_from_yaml.get("name"), param_from_yaml.get("value")
+        assert any(param.name == param_name and str(param.value) == param_value for param in pipeline.parameters)
+
+    yaml_node_params = compiled_spec["spec"]["templates"][1]["inputs"]["parameters"]
+    # Only two parameters are referenced by this node, so only 2 should be present as inputs
+    assert len(yaml_node_params) == 2
+    # Assert params defined in YAML correspond to those defined by the Pipeline object
+    for param_from_yaml in yaml_node_params:
+        param_name = param_from_yaml.get("name")
+        assert any(param.name == param_name for param in pipeline.parameters)
+
+
+def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_components_with_parameters(
+    processor: KfpPipelineProcessor, component_cache, tmpdir
+):
+    """
+    Validate that code gen produces the expected artifacts if the pipeline contains
+    custom nodes with pipeline parameters specified.
+    The test results are KFP-specific.
+    """
+    # load test component definition
+    component_def_path = Path(__file__).parent / ".." / "resources" / "components" / "filter_text.yaml"
+
+    # Read contents of given path -- read_component_definition() returns a
+    # a dictionary of component definition content indexed by path
+    reader = FilesystemComponentCatalogConnector([".yaml"])
+    entry_data = reader.get_entry_data({"path": str(component_def_path.absolute())}, {})
+    component_definition = entry_data.definition
+
+    properties = [
+        ComponentProperty(
+            id="text",
+            name="Text",
+            json_data_type="string",
+            value="",
+            description="",
+            allowed_input_types=["file", "inputpath", "inputvalue", "parameter"],
+            parsed_data_type="String",
+        ),
+        ComponentProperty(
+            id="pattern",
+            name="Pattern",
+            json_data_type="string",
+            value=".*",
+            description="Additional options given to the curl program",
+            allowed_input_types=["file", "inputpath", "inputvalue", "parameter"],
+            parsed_data_type="String",
+        ),
+    ]
+
+    # Instantiate a file-based component
+    component_id = "test-component"
+    component = Component(
+        id=component_id,
+        name="Filter Text",
+        description="Filter input text according to the given regex pattern",
+        op="filter_text",
+        catalog_type="elyra-kfp-examples-catalog",
+        component_reference={"path": component_def_path.as_posix()},
+        definition=component_definition,
+        properties=properties,
+        categories=[],
+    )
+
+    # Fabricate the component cache to include single filename-based component for testing
+    component_cache._component_cache[processor._type.name] = {
+        "spoofed_catalog": {"components": {component_id: component}}
+    }
+
+    # Construct operation for component
+    operation_name = "Filter text test"
+    operation_params = {
+        "text": {"widget": "inputvalue", "value": "spoofed_value"},
+        "pattern": {"widget": "parameter", "value": "param1"},
+    }
+    operation = Operation(
+        id="filter-text-id",
+        type="execution_node",
+        classifier=component_id,
+        name=operation_name,
+        parent_operation_ids=[],
+        component_props=operation_params,
+    )
+
+    # Define pipeline parameters
+    pipeline_parameters = ElyraPropertyList(
+        [
+            KfpPipelineParameter(
+                name="param1", description="", value="val1", default_value={"type": "String"}, required=True
+            )
+        ]
+    )
+
+    # Construct single-operation pipeline
+    pipeline = Pipeline(
+        id="pipeline-id",
+        name="code-gen-test-custom-components",
+        description="Test code generation for custom components",
+        runtime="kfp",
+        runtime_config="test",
+        source="filter_text.pipeline",
+        pipeline_parameters=pipeline_parameters,
+    )
+    pipeline.operations[operation.id] = operation
+
+    # generate Python DSL for the Argo workflow engine
+    generated_dsl = processor._generate_pipeline_dsl(
+        pipeline=pipeline, pipeline_name=pipeline.name, workflow_engine=WorkflowEngineType.ARGO
+    )
+
+    assert generated_dsl is not None
+    # Generated DSL includes workflow engine specific code in the _main_ function
+    assert "kfp.compiler.Compiler().compile(" in generated_dsl
+
+    compiled_output_file = Path(tmpdir) / "compiled_kfp_test.yaml"
+
+    # make sure the output file does not exist (3.8+ use unlink("missing_ok=True"))
+    if compiled_output_file.is_file():
+        compiled_output_file.unlink()
+
+    # if the compiler discovers an issue with the generated DSL this call fails
+    processor._compile_pipeline_dsl(
+        dsl=generated_dsl,
+        workflow_engine=WorkflowEngineType.ARGO,
+        output_file=compiled_output_file.as_posix(),
+        pipeline_conf=None,
+    )
+
+    # verify that the output file exists
+    assert compiled_output_file.is_file()
+
+    # verify the file content
+    with open(compiled_output_file) as fh:
+        compiled_spec = yaml.safe_load(fh.read())
+    print(compiled_spec)
+
+    # Test parameters appear as expected
+    yaml_pipeline_params = compiled_spec["spec"]["arguments"]["parameters"]
+    # Only two parameters are referenced by a node in the pipeline, so only 1 should be present in YAML
+    assert len(yaml_pipeline_params) == 1
+    # Assert params defined in YAML correspond to those defined by the Pipeline object
+    for param_from_yaml in yaml_pipeline_params:
+        param_name, param_value = param_from_yaml.get("name"), param_from_yaml.get("value")
+        assert any(param.name == param_name and str(param.value) == param_value for param in pipeline.parameters)
+
+    yaml_node_params = compiled_spec["spec"]["templates"][0]["inputs"]["parameters"]
+    # Only two parameters are referenced by this node, so only 1 should be present as input
+    assert len(yaml_node_params) == 1
+    # Assert params defined in YAML correspond to those defined by the Pipeline object
+    for param_from_yaml in yaml_node_params:
+        param_name = param_from_yaml.get("name")
+        assert any(param.name == param_name for param in pipeline.parameters)
+
+
+def test_kfp_invalid_pipeline_parameter_type():
+    invalid_type = "SomeCustomType"
+    with pytest.raises(ValueError) as ve:
+        # Try to instantiate a parameter with an invalid KFP type
+        KfpPipelineParameter(
+            name="inv", description="", value="", default_value={"type": invalid_type, "value": "val"}, required=False
+        )
+        assert f"Invalid property type '{invalid_type}': valid types are" in ve
+
+
+def test_kfp_valid_pipeline_parameter_type():
+    valid_types = ["String", "Bool", "Integer", "Float"]
+    for valid_type in valid_types:
+        parameter = KfpPipelineParameter(
+            name="valid_param", description="", value=None, default_value={"type": valid_type}, required=False
+        )
+        assert parameter.name == "valid_param"
+        assert parameter.input_type.base_type == valid_type

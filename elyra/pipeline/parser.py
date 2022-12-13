@@ -61,7 +61,8 @@ class PipelineParser(LoggingConfigurable):
             runtime_config=runtime_config,
             source=source,
             description=description,
-            pipeline_properties=primary_pipeline.get_pipeline_default_properties(),
+            pipeline_properties=primary_pipeline.pipeline_default_properties,
+            pipeline_parameters=primary_pipeline.pipeline_parameters,
         )
 
         nodes = primary_pipeline.nodes
@@ -136,10 +137,10 @@ class PipelineParser(LoggingConfigurable):
             parent_operations.extend(PipelineParser._get_parent_operation_links(super_node.to_dict(), node.id))
 
         # Split properties into component- and Elyra-owned
-        component_params, elyra_params = node.get("component_parameters", {}), {}
-        for param_id in list(component_params.keys()):
-            if param_id in node.elyra_owned_properties:
-                elyra_params[param_id] = node.pop_component_parameter(param_id)
+        component_props, elyra_props = node.get("component_parameters", {}), {}
+        for prop_id in list(component_props.keys()):
+            if prop_id in node.elyra_owned_properties:
+                elyra_props[prop_id] = node.pop_component_parameter(prop_id)
 
         return Operation.create_instance(
             id=node.id,
@@ -147,8 +148,8 @@ class PipelineParser(LoggingConfigurable):
             classifier=node.op,
             name=node.label,
             parent_operation_ids=parent_operations,
-            component_params=component_params,
-            elyra_params=elyra_params,
+            component_props=component_props,
+            elyra_props=elyra_props,
         )
 
     @staticmethod

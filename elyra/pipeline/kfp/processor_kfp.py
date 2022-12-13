@@ -42,6 +42,8 @@ from kfp import components as components
 from kfp.dsl import PipelineConf
 from kfp.dsl import RUN_ID_PLACEHOLDER
 from kubernetes import client as k8s_client
+from traitlets import default
+from traitlets import Unicode
 
 try:
     from kfp_tekton import compiler as kfp_tekton_compiler
@@ -56,22 +58,24 @@ from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline import pipeline_constants
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import CustomSharedMemorySize
-from elyra.pipeline.component_parameter import DisableNodeCaching
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import KubernetesAnnotation
-from elyra.pipeline.component_parameter import KubernetesLabel
-from elyra.pipeline.component_parameter import KubernetesSecret
-from elyra.pipeline.component_parameter import KubernetesToleration
-from elyra.pipeline.component_parameter import VolumeMount
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
+from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessor
 from elyra.pipeline.processor import RuntimePipelineProcessorResponse
+from elyra.pipeline.properties import CustomSharedMemorySize
+from elyra.pipeline.properties import DisableNodeCaching
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import KubernetesAnnotation
+from elyra.pipeline.properties import KubernetesLabel
+from elyra.pipeline.properties import KubernetesSecret
+from elyra.pipeline.properties import KubernetesToleration
+from elyra.pipeline.properties import PipelineParameter
+from elyra.pipeline.properties import VolumeMount
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
@@ -120,6 +124,30 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
     # must exist and be known before the container is started.
     # Defaults to `/tmp`
     WCD = os.getenv("ELYRA_WRITABLE_CONTAINER_DIR", "/tmp").strip().rstrip("/")
+
+    # Set the method for passing parameters to notebook and scripts
+    # Only one value is currently supported ("env", which passes
+    # parameters as environment variables)
+    parameter_pass_default = "env"
+    parameter_pass_method_env = "ELYRA_PARAMETER_PASS_METHOD"
+    parameter_pass_method = Unicode(
+        parameter_pass_default,
+        help="""Sets the method to be used to pass pipeline parameters
+                     to notebooks and scripts. Can be one of: ["env"].
+                     (default=env). (ELYRA_PARAMETER_PASS_METHOD env var)""",
+    ).tag(config=True)
+
+    @default("parameter_pass_method")
+    def parameter_pass_method_default(self):
+        parameter_pass_default = KfpPipelineProcessor.parameter_pass_default
+        try:
+            parameter_pass_default = os.getenv(self.parameter_pass_method_env, parameter_pass_default)
+        except ValueError:
+            self.log.info(
+                f"Unable to parse environmental variable {self.parameter_pass_method_env}, "
+                f"using the default value of {self.parameter_pass_default}"
+            )
+        return parameter_pass_default
 
     def process(self, pipeline):
         """
@@ -528,10 +556,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         pipeline_version: str = "",
         experiment_name: str = "",
         pipeline_instance_id: str = None,
+        code_generation_options: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Generate Python DSL for Kubeflow Pipelines v1
         """
+        if not code_generation_options:
+            code_generation_options = {}
 
         # Load Kubeflow Pipelines Python DSL template
         loader = PackageLoader("elyra", "templates/kubeflow/v1")
@@ -540,6 +571,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         template_env.filters["python_safe"] = lambda x: re.sub(r"[" + re.escape(string.punctuation) + "\\s]", "_", x)
         # Add filter that escapes the " character in strings
         template_env.filters["string_delimiter_safe"] = lambda string: re.sub('"', '\\"', string)
+        # Add filter that converts a value to a python variable value (e.g. puts quotes around strings)
+        template_env.filters["param_val_to_python_var"] = (
+            lambda p: json.dumps(p.value) if p.input_type.base_type == "String" else p.value
+        )
         template = template_env.get_template("python_dsl_template.jinja2")
 
         # Convert pipeline into workflow tasks
@@ -557,12 +592,27 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         for key, operation in workflow_tasks.items():
             unique_component_definitions[operation["component_definition_hash"]] = operation["component_definition"]
 
+        pipeline_parameters: List[PipelineParameter] = pipeline.parameters
+        if code_generation_options.get("render_all_parameters") is not True:
+            # Gather the list of parameter names referenced by the pipeline's tasks
+            referenced_parameter_names: Set[str] = set()
+            for task in workflow_tasks.values():
+                for task_details in task["task_inputs"].values():
+                    parameter_reference = task_details.get("pipeline_parameter_reference")
+                    if parameter_reference:
+                        referenced_parameter_names.add(parameter_reference)
+
+            # Reduce set of pipeline parameters to those referenced by pipeline tasks
+            for parameter in pipeline.parameters:
+                if parameter.name not in referenced_parameter_names:
+                    pipeline_parameters.remove(parameter)
+
         # render the Kubeflow Pipelines Python DSL template
         pipeline_dsl = template.render(
             elyra_version=__version__,
             pipeline_name=pipeline_name,
             pipeline_description=pipeline.description,
-            pipeline_parameters=None,
+            pipeline_parameters=pipeline_parameters,
             workflow_tasks=workflow_tasks,
             component_definitions=unique_component_definitions,
             workflow_engine=workflow_engine.value,
@@ -726,7 +776,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             # Add Elyra-owned properties (data volume mounts, kubernetes labels, etc)
             # to the task_modifiers property.
-            for value in operation.elyra_params.values():
+            for value in operation.elyra_props.values():
                 if isinstance(value, (ElyraProperty, ElyraPropertyList)):
                     value.add_to_execution_object(
                         runtime_processor=self, execution_object=workflow_task["task_modifiers"]
@@ -736,8 +786,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # The task is implemented using a generic component
                 workflow_task["uses_custom_component"] = False
 
+                # Set parameters specified for this task and add each as a task input
+                task_parameters = [param for param in pipeline.parameters if param.name in operation.parameters]
+                workflow_task["task_inputs"] = {
+                    param.name: {"pipeline_parameter_reference": param.name} for param in task_parameters
+                }
+
                 component_definition = generic_component_template.render(
                     container_image=operation.runtime_image,
+                    task_parameters=task_parameters,
                     command_args=self._compose_container_command_args(
                         pipeline_name=pipeline_name,
                         cos_endpoint=cos_endpoint,
@@ -747,6 +804,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         filename=operation.filename,
                         cos_inputs=operation.inputs,
                         cos_outputs=operation.outputs,
+                        task_parameters=task_parameters,
                         is_crio_runtime=is_crio_runtime,
                     ),
                 )
@@ -884,11 +942,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "data_type": output.type,
                     }
 
-                # Iterate over component parameters and assign values to
+                # Iterate over component properties and assign values to
                 # task inputs and task add-ons
                 for component_property in component.properties:
                     self.log.debug(
-                        f"Processing component parameter '{component_property.name}' "
+                        f"Processing component property '{component_property.name}' "
                         f"of type '{component_property.json_data_type}'"
                     )
 
@@ -904,18 +962,29 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         reference = workflow_task["task_modifiers"][sanitized_component_property_id]
 
                     # Get corresponding property's value from parsed pipeline
-                    property_value_dict = operation.component_params.get(component_property.ref)
+                    property_value_dict = operation.component_props.get(component_property.ref)
                     data_entry_type = property_value_dict.get("widget", None)  # one of: inputpath, file, raw data type
                     property_value = property_value_dict.get("value", None)
                     if data_entry_type == "inputpath":
                         # task input is the output of an upstream task
                         output_node_id = property_value["value"]  # parent node id
-                        output_node_parameter_key = property_value["option"].replace("output_", "")  # parent param
+                        output_node_property_key = property_value["option"].replace("output_", "")  # parent property
                         reference["task_output_reference"] = {
                             "task_id": re.sub(r"[" + re.escape(string.punctuation) + "\\s]", "_", output_node_id),
-                            "output_id": self._sanitize_param_name(output_node_parameter_key),
+                            "output_id": self._sanitize_param_name(output_node_property_key),
                         }
-                    else:  # Parameter is either of a raw data type or file contents
+                    elif data_entry_type == "parameter":
+                        # task input is the name of a pipeline parameter
+                        param_name = property_value
+                        if param_name is None or param_name not in pipeline.parameters.to_dict():
+                            # Parameter name not found in list, fall back to using the raw default value
+                            reference["value"] = component_property.value
+                        else:
+                            # Set pipeline parameter reference for this task
+                            reference["pipeline_parameter_reference"] = param_name
+
+                    else:
+                        # task input is a raw value, either from file contents or entered manually
                         if data_entry_type == "file" and property_value:
                             # Read value from the specified file
                             absolute_path = get_absolute_path(self.root_dir, property_value)
@@ -995,11 +1064,12 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         filename: str,
         cos_inputs: Optional[List[str]] = [],
         cos_outputs: Optional[List[str]] = [],
+        task_parameters: Optional[List[PipelineParameter]] = None,
         is_crio_runtime: bool = False,
-    ) -> str:
+    ) -> List[str]:
         """
         Compose the container command arguments for a generic component, taking into
-        account wether the container will run in a CRI-O environment.
+        account whether the container will run in a CRI-O environment.
         """
         elyra_github_org = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
         elyra_github_branch = os.getenv("ELYRA_GITHUB_BRANCH", "main" if "dev" in __version__ else "v" + __version__)
@@ -1032,17 +1102,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         common_curl_options = "--fail -H 'Cache-Control: no-cache'"
 
-        command_args = []
-
-        command_args.append(
-            f"mkdir -p {container_work_dir} && cd {container_work_dir} && "
+        command_args = [
+            f"mkdir -p {container_work_dir} && cd {container_work_dir}",
             f"echo 'Downloading {elyra_bootstrap_script_url}' && "
-            f"curl {common_curl_options} -L {elyra_bootstrap_script_url} --output bootstrapper.py && "
+            f"curl {common_curl_options} -L {elyra_bootstrap_script_url} --output bootstrapper.py",
             f"echo 'Downloading {elyra_requirements_url}' && "
-            f"curl {common_curl_options} -L {elyra_requirements_url} --output requirements-elyra.txt && "
+            f"curl {common_curl_options} -L {elyra_requirements_url} --output requirements-elyra.txt",
             f"echo 'Downloading {elyra_requirements_url_py37}' && "
-            f"curl {common_curl_options} -L {elyra_requirements_url_py37} --output requirements-elyra-py37.txt && "
-        )
+            f"curl {common_curl_options} -L {elyra_requirements_url_py37} --output requirements-elyra-py37.txt",
+        ]
 
         if is_crio_runtime:
             command_args.append(
@@ -1051,7 +1119,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 f"curl {common_curl_options} -L {python_pip_config_url} --output pip.conf && cd .. && "
             )
 
-        command_args.append(
+        bootstrapper_command = [
             f"python3 -m pip install {python_user_lib_path_target} packaging && "
             "python3 -m pip freeze > requirements-current.txt && "
             "python3 bootstrapper.py "
@@ -1061,41 +1129,51 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             f"--cos-directory '{cos_directory}' "
             f"--cos-dependencies-archive '{cos_dependencies_archive}' "
             f"--file '{filename}' "
-        )
+        ]
 
-        def file_list_to_string(file_list: List[str]) -> str:
+        def list_to_string(item_list: List[str]) -> str:
             """
-            Utiltity function that converts a list of strings to a string
+            Utility function that converts a list of strings to a string
             """
             # Inputs and Outputs separator character.  If updated,
             # same-named variable in bootstrapper.py must be updated!
             INOUT_SEPARATOR = ";"
-            for file in file_list:
-                if INOUT_SEPARATOR in file:
-                    raise ValueError(f"Illegal character ({INOUT_SEPARATOR}) found in filename '{file}'.")
-            return INOUT_SEPARATOR.join(file_list)
+            for item in item_list:
+                if INOUT_SEPARATOR in item:
+                    raise ValueError(f"Illegal character ({INOUT_SEPARATOR}) found in list item '{item}'.")
+            return INOUT_SEPARATOR.join(item_list)
 
         # If upstream nodes declared file outputs they need to
         # be downloaded from object storage by the bootstrapper
         if len(cos_inputs) > 0:
-            inputs_str = file_list_to_string(cos_inputs)
-            command_args.append(f"--inputs '{inputs_str}' ")
+            inputs_str = list_to_string(cos_inputs)
+            bootstrapper_command.append(f"--inputs '{inputs_str}' ")
 
         # If this node produces file outputs they need to be uploaded
         # to object storage by the bootstrapper
         if len(cos_outputs) > 0:
-            outputs_str = file_list_to_string(cos_outputs)
-            command_args.append(f"--outputs '{outputs_str}' ")
+            outputs_str = list_to_string(cos_outputs)
+            bootstrapper_command.append(f"--outputs '{outputs_str}' ")
 
         if is_crio_runtime:
-            command_args.append(f"--user-volume-path '{CRIO_VOL_PYTHON_PATH}' ")
+            bootstrapper_command.append(f"--user-volume-path '{CRIO_VOL_PYTHON_PATH}' ")
 
-        return "".join(command_args)
+        # Set parameters as env vars; this must be done here rather than adding an
+        # env var to the task object because the parameter must be customizable
+        if task_parameters:
+            parameter_str = list_to_string([f"{param.name}=${param.name}" for param in task_parameters])
+            bootstrapper_command.append(
+                f"--pipeline-parameters '{parameter_str}' --parameter-pass-method '{self.parameter_pass_method}' "
+            )
+
+        command_args.append("".join(bootstrapper_command))
+
+        return command_args
 
     @staticmethod
     def _sanitize_param_name(name: str) -> str:
         """
-        Sanitize a component parameter name.
+        Sanitize a component property or pipeline parameter name.
 
         Behavior is mirrored from how Kubeflow 1.X sanitizes identifier names:
         - https://github.com/kubeflow/pipelines/blob/1.8.1/sdk/python/kfp/components/_naming.py#L32-L42
@@ -1186,6 +1264,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             pipeline_constants.DISABLE_NODE_CACHING,
             pipeline_constants.KUBERNETES_SHARED_MEM_SIZE,
         }
+
+    @property
+    def pipeline_parameter_class(self) -> Optional[type]:
+        """KfpPipelineProcessor supports KfpPipelineParameter objects."""
+        return KfpPipelineParameter
 
 
 class KfpPipelineProcessorResponse(RuntimePipelineProcessorResponse):

@@ -16,6 +16,8 @@
 
 import * as React from 'react';
 
+import { IParameterProps, ParameterInputForm } from './ParameterInputForm';
+
 import { IRuntimeType } from './PipelineService';
 import { IRuntimeData } from './runtime-utils';
 import RuntimeConfigSelect from './RuntimeConfigSelect';
@@ -45,7 +47,7 @@ const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({ fileTypes }) => {
   );
 };
 
-interface IProps {
+interface IProps extends IParameterProps {
   runtimeData: IRuntimeData;
   runtimeTypeInfo: IRuntimeType[];
   pipelineType?: string;
@@ -56,7 +58,8 @@ export const PipelineExportDialog: React.FC<IProps> = ({
   runtimeData,
   runtimeTypeInfo,
   pipelineType,
-  exportName
+  exportName,
+  parameters
 }) => {
   return (
     <form className="elyra-dialog-form">
@@ -88,6 +91,8 @@ export const PipelineExportDialog: React.FC<IProps> = ({
       />
       <label htmlFor="overwrite">Replace if file already exists</label>
       <br />
+      <br />
+      <ParameterInputForm parameters={parameters} />
     </form>
   );
 };

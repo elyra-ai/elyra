@@ -17,10 +17,10 @@ import sys
 
 import pytest
 
-from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.properties import ElyraProperty
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def good_operation():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
     return test_operation
 
@@ -72,7 +72,7 @@ def test_create_operation_with_dependencies():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.dependencies == dependencies
@@ -91,7 +91,7 @@ def test_create_operation_include_subdirectories():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.include_subdirectories == include_subdirectories
@@ -109,8 +109,8 @@ def test_create_operation_with_environmental_variables():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
-        elyra_params={"env_vars": env_variables},
+        component_props=component_parameters,
+        elyra_props={"env_vars": env_variables},
     )
 
     assert test_operation.env_vars == env_variables
@@ -129,7 +129,7 @@ def test_create_operation_with_inputs():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.inputs == inputs
@@ -148,7 +148,7 @@ def test_create_operation_with_outputs():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.outputs == outputs
@@ -167,7 +167,7 @@ def test_create_operation_with_parent_operations():
         classifier="execute-notebook-node",
         name="test",
         parent_operation_ids=parent_operation_ids,
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.parent_operation_ids == parent_operation_ids
@@ -183,7 +183,7 @@ def test_create_operation_correct_naming():
         type="execution-node",
         classifier="execute-notebook-node",
         name=label,
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.name == label.split(".")[0]
@@ -199,7 +199,7 @@ def test_fail_create_operation_missing_id():
             type="execution-node",
             classifier="execute-notebook-node",
             name="test",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 
@@ -210,7 +210,7 @@ def test_fail_create_operation_missing_type():
     }
     with pytest.raises(TypeError):
         GenericOperation(
-            id="test-id", classifier="execute-notebook-node", name="test", component_params=component_parameters
+            id="test-id", classifier="execute-notebook-node", name="test", component_props=component_parameters
         )
 
 
@@ -220,7 +220,7 @@ def test_fail_create_operation_missing_classifier():
         "runtime_image": "tensorflow/tensorflow:latest",
     }
     with pytest.raises(TypeError):
-        Operation(id="test-id", type="execution-node", name="test", component_params=component_parameters)
+        Operation(id="test-id", type="execution-node", name="test", component_props=component_parameters)
 
 
 def test_fail_create_operation_missing_runtime_image():
@@ -231,7 +231,7 @@ def test_fail_create_operation_missing_runtime_image():
             type="execution-node",
             classifier="execute-notebook-node",
             name="test",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 
@@ -245,7 +245,7 @@ def test_fail_create_operation_missing_name():
             id="test-id",
             type="execution-node",
             classifier="execute-notebook-node",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 
@@ -261,7 +261,7 @@ def test_fail_operations_are_equal(good_operation):
         classifier="execute-notebook-node",
         name="test",
         parent_operation_ids=parent_operation_ids,
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
     with pytest.raises(AssertionError):
         assert compare_operation == good_operation
@@ -277,7 +277,7 @@ def test_operations_are_equal(good_operation):
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert compare_operation == good_operation
@@ -363,7 +363,7 @@ def test_validate_resource_values():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.cpu == "4"
@@ -383,7 +383,7 @@ def test_validate_resource_values_as_none():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.cpu is None
@@ -406,7 +406,7 @@ def test_validate_gpu_accepts_zero_as_value():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.gpu == "0"
@@ -425,7 +425,7 @@ def test_validate_max_resource_value():
         type="execution-node",
         classifier="execute-notebook-node",
         name="test",
-        component_params=component_parameters,
+        component_props=component_parameters,
     )
 
     assert test_operation.memory == system_max_size
@@ -445,7 +445,7 @@ def test_fail_validate_max_resource_value_exceeded():
             type="execution-node",
             classifier="execute-notebook-node",
             name="test",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 
@@ -461,7 +461,7 @@ def test_fail_creating_operation_with_negative_gpu_resources():
             type="execution-node",
             classifier="execute-notebook-node",
             name="test",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 
@@ -477,7 +477,7 @@ def test_fail_creating_operation_with_0_cpu_resources():
             type="execution-node",
             classifier="execute-notebook-node",
             name="test",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 
@@ -493,7 +493,7 @@ def test_fail_creating_operation_with_negative_cpu_resources():
             type="execution-node",
             classifier="execute-notebook-node",
             name="test",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 
@@ -509,7 +509,7 @@ def test_fail_creating_operation_with_0_memory_resources():
             type="execution-node",
             classifier="execute-notebook-node",
             name="test",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 
@@ -525,7 +525,7 @@ def test_fail_creating_operation_with_negative_memory_resources():
             type="execution-node",
             classifier="execute-notebook-node",
             name="test",
-            component_params=component_parameters,
+            component_props=component_parameters,
         )
 
 

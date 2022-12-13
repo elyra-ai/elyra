@@ -299,7 +299,7 @@ def test_parse_kfp_component_file():
     )
     assert get_parameter_description("test_unusual_type_list") == "The test command description (type: An array)"
     assert get_parameter_description("test_unusual_type_string") == "The test command description (type: A string)"
-    assert get_parameter_description("test_unusual_type_notgiven") == "The test command description (type: string)"
+    assert get_parameter_description("test_unusual_type_notgiven") == "The test command description (type: String)"
 
 
 def test_parse_kfp_component_url():

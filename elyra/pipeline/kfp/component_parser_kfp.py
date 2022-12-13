@@ -26,8 +26,8 @@ import yaml
 from elyra.pipeline.catalog_connector import CatalogEntry
 from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
-from elyra.pipeline.component_parameter import ComponentParameter
 from elyra.pipeline.kfp.kfp_component_utils import component_yaml_schema
+from elyra.pipeline.properties import ComponentProperty
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -60,8 +60,8 @@ class KfpComponentParser(ComponentParser):
 
         return [component]
 
-    def _parse_properties(self, component_yaml: Dict[str, Any]) -> List[ComponentParameter]:
-        properties: List[ComponentParameter] = []
+    def _parse_properties(self, component_yaml: Dict[str, Any]) -> List[ComponentProperty]:
+        properties: List[ComponentProperty] = []
 
         # NOTE: Currently no runtime-specific properties are needed
         # properties.extend(self.get_runtime_specific_properties())
@@ -84,7 +84,7 @@ class KfpComponentParser(ComponentParser):
                     required = False
 
                 # Assign parsed data type (default to string)
-                data_type_parsed = param.get("type", "string")
+                data_type_parsed = param.get("type", "String")
 
                 # Define adjusted type as either inputPath or outputPath
                 data_type_adjusted = data_type_parsed  # can be str, bool, int, etc. or inputPath or outputPath
@@ -118,7 +118,7 @@ class KfpComponentParser(ComponentParser):
                 else:
                     ref_name = f"output_{ref_name}"
 
-                component_params = ComponentParameter(
+                component_props = ComponentProperty(
                     id=ref_name,
                     name=display_name,
                     json_data_type=data_type_info.json_data_type,
@@ -126,9 +126,10 @@ class KfpComponentParser(ComponentParser):
                     value=(value or data_type_info.default_value),
                     description=description,
                     required=required,
+                    parsed_data_type=data_type_parsed,
                 )
 
-                properties.append(component_params)
+                properties.append(component_props)
 
         return properties
 
@@ -202,7 +203,6 @@ class KfpComponentParser(ComponentParser):
         """
         data_type_info = super().determine_type_information(parsed_type)
 
-        data_type_info.allowed_input_types = []
         # By default, original input type (determined by parent) is stored as the `json_data_type`
         # and then overridden with Kubeflow Pipeline's meta-type
         if data_type_info.undetermined:

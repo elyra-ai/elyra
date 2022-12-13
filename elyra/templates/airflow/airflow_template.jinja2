@@ -32,10 +32,10 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 {% if not operation.is_generic_operator %}
 op_{{ operation.id|regex_replace }} = {{ operation.class_name }}(
                                                            task_id='{{ operation.notebook|regex_replace }}',
-        {% for param, value in operation.component_params.items() %}
+        {% for param, value in operation.component_props.items() %}
                                                            {{ param }}={{ value }},
         {% endfor %}
-                                                           executor_config={{ processor.render_elyra_owned_properties(operation.elyra_params) }},
+                                                           executor_config={{ processor.render_elyra_owned_properties(operation.elyra_props) }},
 {% else %}
 op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.notebook|regex_replace }}',
                                                             namespace='{{ user_namespace }}',
@@ -60,12 +60,12 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
             {% endif %}
                                                             },
         {% endif %}
-                                                            volumes=[{{ processor.render_volumes(operation.elyra_params) }}],
-                                                            volume_mounts=[{{ processor.render_mounts(operation.elyra_params) }}],
-                                                            secrets=[{{ processor.render_secrets(operation.elyra_params, cos_secret) }}],
-                                                            annotations={{ processor.render_annotations(operation.elyra_params) }},
-                                                            labels={{ processor.render_labels(operation.elyra_params) }},
-                                                            tolerations=[{{ processor.render_tolerations(operation.elyra_params) }}],
+                                                            volumes=[{{ processor.render_volumes(operation.elyra_props) }}],
+                                                            volume_mounts=[{{ processor.render_mounts(operation.elyra_props) }}],
+                                                            secrets=[{{ processor.render_secrets(operation.elyra_props, cos_secret) }}],
+                                                            annotations={{ processor.render_annotations(operation.elyra_props) }},
+                                                            labels={{ processor.render_labels(operation.elyra_props) }},
+                                                            tolerations=[{{ processor.render_tolerations(operation.elyra_props) }}],
                                                             in_cluster={{ in_cluster }},
                                                             config_file="{{ kube_config_path }}",
 {% endif %}

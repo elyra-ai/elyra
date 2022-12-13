@@ -21,9 +21,9 @@ from typing import List
 from typing import Optional
 import uuid
 
-from elyra.pipeline.component_parameter import ElyraProperty
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Pipeline
+from elyra.pipeline.properties import ElyraProperty
 
 
 def _read_pipeline_resource(pipeline_filename):
@@ -112,8 +112,8 @@ class NodeBase(object):
             self.name,
             self.classifier,
             parent_operation_ids=self.parent_operations,
-            component_params=component_parameters,
-            elyra_params={"env_vars": self.env_vars},
+            component_props=component_parameters,
+            elyra_props={"env_vars": self.env_vars},
         )
 
 

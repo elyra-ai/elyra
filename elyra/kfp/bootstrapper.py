@@ -25,6 +25,7 @@ import sys
 from tempfile import TemporaryFile
 import time
 from typing import Any
+from typing import Dict
 from typing import Optional
 from typing import Type
 from typing import TypeVar
@@ -75,9 +76,12 @@ class FileOpBase(ABC):
         from minio.credentials import providers
 
         self.filepath = kwargs["filepath"]
-        self.input_params = kwargs or []
+        self.input_params = kwargs or {}
         self.cos_endpoint = urlparse(self.input_params.get("cos-endpoint"))
         self.cos_bucket = self.input_params.get("cos-bucket")
+
+        self.parameter_pass_method = self.input_params.get("parameter_pass_method")
+        self.pipeline_param_dict = self.convert_param_str_to_dict(self.input_params.get("pipeline_parameters"))
 
         # Infer secure from the endpoint's scheme.
         self.secure = self.cos_endpoint.scheme == "https"
@@ -330,6 +334,25 @@ class FileOpBase(ABC):
             else:
                 self.put_file_to_object_storage(matched_file)
 
+    def convert_param_str_to_dict(self, pipeline_parameters: Optional[str] = None) -> Dict[str, Any]:
+        """Convert INOUT-separated string of pipeline parameters into a dictionary."""
+        parameter_dict = {}
+        if pipeline_parameters:
+            parameter_list = pipeline_parameters.split(INOUT_SEPARATOR)
+            for parameter in parameter_list:
+                param_name, value = parameter.split("=", 1)
+                if self.parameter_pass_method == "env" and (not value or not isinstance(value, str)):
+                    continue  # env vars must be non-empty strings
+                parameter_dict[param_name] = value
+        return parameter_dict
+
+    def set_parameters_in_env(self) -> None:
+        """Make pipeline parameters available as environment variables."""
+        for name, value in self.pipeline_param_dict.items():
+            if name in os.environ:
+                continue  # avoid overwriting env vars with the same name
+            os.environ[name] = value
+
 
 class NotebookFileOp(FileOpBase):
     """Perform Notebook File Operation"""
@@ -338,8 +361,8 @@ class NotebookFileOp(FileOpBase):
         """Execute the Notebook and upload results to object storage"""
         notebook = os.path.basename(self.filepath)
         notebook_name = notebook.replace(".ipynb", "")
-        notebook_output = notebook_name + "-output.ipynb"
-        notebook_html = notebook_name + ".html"
+        notebook_output = f"{notebook_name}-output.ipynb"
+        notebook_html = f"{notebook_name}.html"
 
         try:
             OpUtil.log_operation_info(f"executing notebook using 'papermill {notebook} {notebook_output}'")
@@ -347,9 +370,13 @@ class NotebookFileOp(FileOpBase):
             # Include kernel selection in execution time
             kernel_name = NotebookFileOp.find_best_kernel(notebook)
 
+            kwargs = {}
+            if self.parameter_pass_method == "env":
+                self.set_parameters_in_env()
+
             import papermill
 
-            papermill.execute_notebook(notebook, notebook_output, kernel_name=kernel_name)
+            papermill.execute_notebook(notebook, notebook_output, kernel_name=kernel_name, **kwargs)
             duration = time.time() - t0
             OpUtil.log_operation_info("notebook execution completed", duration)
 
@@ -444,15 +471,20 @@ class PythonFileOp(FileOpBase):
         """Execute the Python script and upload results to object storage"""
         python_script = os.path.basename(self.filepath)
         python_script_name = python_script.replace(".py", "")
-        python_script_output = python_script_name + ".log"
+        python_script_output = f"{python_script_name}.log"
 
         try:
             OpUtil.log_operation_info(
-                f"executing python script using " f"'python3 {python_script}' to '{python_script_output}'"
+                f"executing python script using 'python3 {python_script}' to '{python_script_output}'"
             )
             t0 = time.time()
+
+            run_args = ["python3", python_script]
+            if self.parameter_pass_method == "env":
+                self.set_parameters_in_env()
+
             with open(python_script_output, "w") as log_file:
-                subprocess.run(["python3", python_script], stdout=log_file, stderr=subprocess.STDOUT, check=True)
+                subprocess.run(run_args, stdout=log_file, stderr=subprocess.STDOUT, check=True)
 
             duration = time.time() - t0
             OpUtil.log_operation_info("python script execution completed", duration)
@@ -475,13 +507,18 @@ class RFileOp(FileOpBase):
         """Execute the R script and upload results to object storage"""
         r_script = os.path.basename(self.filepath)
         r_script_name = r_script.replace(".r", "")
-        r_script_output = r_script_name + ".log"
+        r_script_output = f"{r_script_name}.log"
 
         try:
-            OpUtil.log_operation_info(f"executing R script using " f"'Rscript {r_script}' to '{r_script_output}'")
+            OpUtil.log_operation_info(f"executing R script using 'Rscript {r_script}' to '{r_script_output}'")
             t0 = time.time()
+
+            run_args = ["Rscript", r_script]
+            if self.parameter_pass_method == "env":
+                self.set_parameters_in_env()
+
             with open(r_script_output, "w") as log_file:
-                subprocess.run(["Rscript", r_script], stdout=log_file, stderr=subprocess.STDOUT, check=True)
+                subprocess.run(run_args, stdout=log_file, stderr=subprocess.STDOUT, check=True)
 
             duration = time.time() - t0
             OpUtil.log_operation_info("R script execution completed", duration)
@@ -633,6 +670,21 @@ class OpUtil(object):
             dest="pipeline-name",
             help="Pipeline name",
             required=True,
+        )
+        parser.add_argument(
+            "-r",
+            "--pipeline-parameters",
+            dest="pipeline_parameters",
+            help="Pipeline parameters that apply to this node",
+            required=False,
+        )
+        parser.add_argument(
+            "-m",
+            "--parameter-pass-method",
+            dest="parameter_pass_method",
+            choices=["env"],
+            help="The method by which pipeline parameters should be applied to this node.",
+            required=False,
         )
         parsed_args = vars(parser.parse_args(args))
 

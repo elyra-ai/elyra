@@ -24,18 +24,19 @@ from typing import Union
 
 from jinja2 import Environment
 from jinja2 import PackageLoader
-from jinja2 import Undefined
 
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ComponentParameter
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import PIPELINE_DEFAULTS
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
+from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.properties import ComponentProperty
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import ElyraPropertyList
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 
@@ -184,8 +185,9 @@ class Pipeline(AppDataBase):
         """
         return self._node["app_data"]["ui_data"].get("comments", [])
 
-    def get_pipeline_default_properties(self) -> Dict[str, Any]:
-        """Retrieve the dictionary of pipeline default properties"""
+    @property
+    def pipeline_default_properties(self) -> Dict[str, Any]:
+        """The dictionary of pipeline default properties"""
         pipeline_defaults = self.get_property(PIPELINE_DEFAULTS, {})
 
         # TODO remove the block below when a pipeline migration is appropriate (after 3.13)
@@ -197,6 +199,11 @@ class Pipeline(AppDataBase):
                 self._node["app_data"]["properties"][PIPELINE_DEFAULTS] = {COS_OBJECT_PREFIX: cos_prefix}
 
         return pipeline_defaults
+
+    @property
+    def pipeline_parameters(self) -> ElyraPropertyList:
+        """The list of pipeline parameters"""
+        return self.get_property(PIPELINE_PARAMETERS, ElyraPropertyList([]))
 
     def get_property(self, key: str, default_value=None) -> Any:
         """
@@ -220,17 +227,18 @@ class Pipeline(AppDataBase):
         if not key:
             raise ValueError("Key is required")
 
-        if not value:
+        if value is None:
             raise ValueError("Value is required")
 
         self._node["app_data"]["properties"][key] = value
 
     def convert_elyra_owned_properties(self) -> None:
         """
-        Convert select pipeline-level properties to their corresponding dataclass
-        object type. No validation is performed.
+        Convert select pipeline-level properties to instance of their
+        corresponding class object type. No validation is performed.
         """
-        pipeline_defaults = self.get_pipeline_default_properties()
+        # Convert pipeline node default values
+        pipeline_defaults = self.pipeline_default_properties
         for prop_id, value in list(pipeline_defaults.items()):
             if not ElyraProperty.subclass_exists_for_property(prop_id):
                 continue
@@ -240,6 +248,27 @@ class Pipeline(AppDataBase):
                 pipeline_defaults.pop(prop_id)
             else:
                 pipeline_defaults[prop_id] = converted_value
+
+    def convert_pipeline_parameters(self, runtime_type_name: str) -> None:
+        """
+        Convert any pipeline parameters to instance of the appropriate
+        runtime-specific class. No validation is performed.
+        """
+        if not self.pipeline_parameters:
+            return None
+        if not runtime_type_name:
+            return None  # runtime type name is not given, pipeline cannot support parameters
+
+        # Retrieve the pipelime parameter class associated with pipeline's runtime
+        runtime_type = RuntimeProcessorType.get_instance_by_name(runtime_type_name)
+        parameter_class = PipelineProcessorManager.instance().get_pipeline_parameter_class(runtime_type=runtime_type)
+        if parameter_class is None:
+            return None  # runtime type does not support parameters, skip
+
+        # Convert pipeline parameters to runtime-specific instances
+        converted_value = ElyraProperty.create_instance(parameter_class.property_id, self.pipeline_parameters)
+        if converted_value is not None:
+            self.set_property(PIPELINE_PARAMETERS, converted_value)
 
 
 class Node(AppDataBase):
@@ -341,7 +370,7 @@ class Node(AppDataBase):
         if component:
             # Properties that have the same ref (id) as Elyra-owned node properties
             # should be skipped during property propagation and conversion
-            self.elyra_owned_properties = {param.property_id for param in component.get_elyra_parameters()}
+            self.elyra_owned_properties = {prop.property_id for prop in component.get_elyra_properties()}
 
     @property
     def propagated_properties(self) -> Set[str]:
@@ -596,18 +625,20 @@ class PipelineDefinition(object):
         the values to any nodes that do not set their own value for that property.
         """
         self.primary_pipeline.convert_elyra_owned_properties()
+        self.primary_pipeline.convert_pipeline_parameters(runtime_type_name=self.primary_pipeline.type)
 
-        pipeline_default_properties = self.primary_pipeline.get_pipeline_default_properties()
         for node in self.pipeline_nodes:
             # Determine which Elyra-owned properties will require dataclass conversion, then convert
             node.set_elyra_owned_properties(self.primary_pipeline.type)
             node.convert_elyra_owned_properties()
 
-            for property_name, pipeline_value in pipeline_default_properties.items():
+            for property_name, pipeline_value in self.primary_pipeline.pipeline_default_properties.items():
                 if not pipeline_value or property_name not in node.propagated_properties:
                     continue
 
                 node_value = node.get_component_parameter(property_name)
+                if property_name == "ENV_VARIABLES":
+                    print(node_value)
                 if not node_value:
                     node.set_component_parameter(property_name, pipeline_value)
                     continue
@@ -695,14 +726,9 @@ class PipelineDefinition(object):
         return supernode_list
 
     @staticmethod
-    def get_canvas_properties_from_template(package_name: str, template_name: str, runtime_type: str) -> Dict[str, Any]:
-        """
-        Retrieves the dict representation of the canvas-formatted properties
-        associated with the given template and package names. Rendering does
-        not require parameters as expressions are not evaluated due to the
-        SilentUndefined class.
-        """
-        loader = PackageLoader("elyra", package_name)
+    def get_pipeline_properties(runtime_type: RuntimeProcessorType) -> Dict[str, Any]:
+        """Retrieves the dict representation of the canvas-formatted pipeline properties."""
+        loader = PackageLoader("elyra", "templates/pipeline")
 
         params_custom = ElyraProperty.get_classes_for_component_type("custom", runtime_type)
         params_generic = ElyraProperty.get_classes_for_component_type("generic", runtime_type)
@@ -711,26 +737,15 @@ class PipelineDefinition(object):
         params_both = params_custom & params_generic
 
         template_vars = {
-            "elyra_owned_custom_parameters": params_both ^ params_custom,
-            "elyra_owned_generic_parameters": params_generic ^ params_both,
-            "elyra_owned_parameters": params_both,
-            "render_parameter_details": ComponentParameter.render_parameter_details,
+            "elyra_owned_custom_properties": params_both ^ params_custom,
+            "elyra_owned_generic_properties": params_generic ^ params_both,
+            "elyra_owned_properties": params_both,
+            "render_property_details": ComponentProperty.render_property_details,
         }
-        template_env = Environment(loader=loader, undefined=SilentUndefined)
+        template_env = Environment(loader=loader)
         template_env.policies["json.dumps_kwargs"] = {"sort_keys": False}  # prevent automatic key sort on 'tojson'
-        template = template_env.get_template(template_name)
+        template = template_env.get_template("pipeline_properties_template.jinja2")
         template.globals.update(template_vars)
 
         output = template.render()
         return json.loads(output)
-
-
-class SilentUndefined(Undefined):
-    """
-    A subclass of the jinja2.Undefined class used to represent undefined
-    values in the template. Undefined errors as a result of the evaluation
-    of expressions will fail silently and render as null.
-    """
-
-    def _fail_with_undefined_error(self, *args, **kwargs):
-        return None

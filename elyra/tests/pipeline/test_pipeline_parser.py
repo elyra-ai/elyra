@@ -16,12 +16,12 @@
 from conftest import AIRFLOW_TEST_OPERATOR_CATALOG
 import pytest
 
-from elyra.pipeline.component_parameter import ElyraPropertyList
-from elyra.pipeline.component_parameter import EnvironmentVariable
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import EnvironmentVariable
 from elyra.tests.pipeline.util import _read_pipeline_resource
 
 
@@ -39,8 +39,8 @@ def valid_operation():
         type="execution_node",
         classifier="execute-notebook-node",
         name="{{label}}",
-        component_params=component_parameters,
-        elyra_params={"env_vars": ElyraPropertyList(env_vars)},
+        component_props=component_parameters,
+        elyra_props={"env_vars": ElyraPropertyList(env_vars)},
     )
 
 
@@ -54,8 +54,8 @@ def test_valid_pipeline(valid_operation):
     assert pipeline.runtime_config == "{{runtime-config}}"
     assert len(pipeline.operations) == 1
 
-    pipeline_op_envs = pipeline.operations["{{uuid}}"].elyra_params.pop(ENV_VARIABLES)
-    valid_op_envs = valid_operation.elyra_params.pop(ENV_VARIABLES)
+    pipeline_op_envs = pipeline.operations["{{uuid}}"].elyra_props.pop(ENV_VARIABLES)
+    valid_op_envs = valid_operation.elyra_props.pop(ENV_VARIABLES)
     assert pipeline_op_envs.to_dict() == valid_op_envs.to_dict()
 
     assert pipeline.operations["{{uuid}}"] == valid_operation
@@ -71,8 +71,8 @@ def test_pipeline_with_dirty_list_values(valid_operation):
     assert pipeline.runtime_config == "{{runtime-config}}"
     assert len(pipeline.operations) == 1
 
-    pipeline_op_envs = pipeline.operations["{{uuid}}"].elyra_params.pop(ENV_VARIABLES)
-    valid_op_envs = valid_operation.elyra_params.pop(ENV_VARIABLES)
+    pipeline_op_envs = pipeline.operations["{{uuid}}"].elyra_props.pop(ENV_VARIABLES)
+    valid_op_envs = valid_operation.elyra_props.pop(ENV_VARIABLES)
     assert pipeline_op_envs.to_dict() == valid_op_envs.to_dict()
 
     assert pipeline.operations["{{uuid}}"] == valid_operation
@@ -259,11 +259,11 @@ def test_custom_component_parsed_properties(monkeypatch, catalog_instance):
     custom_op = parsed_pipeline.operations[operation_id]
 
     # Ensure this operation's component params does not include the empty mounted volumes list
-    assert custom_op.elyra_params.get(MOUNTED_VOLUMES) == []
+    assert custom_op.elyra_props.get(MOUNTED_VOLUMES) == []
 
     operation_id = "bb9606ca-29ec-4133-a36a-67bd2a1f6dc3"
     custom_op = parsed_pipeline.operations[operation_id]
 
     # Ensure this operation's component params includes the value for the component-defined mounted volumes property
-    assert custom_op.component_params_as_dict.get(MOUNTED_VOLUMES)["value"] == "a component-defined property"
-    assert custom_op.elyra_params.get(MOUNTED_VOLUMES) is None
+    assert custom_op.component_props_as_dict.get(MOUNTED_VOLUMES)["value"] == "a component-defined property"
+    assert custom_op.elyra_props.get(MOUNTED_VOLUMES) is None

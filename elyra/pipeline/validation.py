@@ -29,17 +29,20 @@ from elyra.metadata.manager import MetadataManager
 from elyra.metadata.schema import SchemaManager
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.pipeline.component_catalog import ComponentCache
-from elyra.pipeline.component_parameter import ElyraProperty
-from elyra.pipeline.component_parameter import ElyraPropertyJSONEncoder
-from elyra.pipeline.component_parameter import ElyraPropertyList
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_SCHEMA
 from elyra.pipeline.pipeline import PIPELINE_CURRENT_VERSION
 from elyra.pipeline.pipeline_constants import ENV_VARIABLES
+from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_constants import RUNTIME_IMAGE
 from elyra.pipeline.pipeline_definition import Node
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
+from elyra.pipeline.properties import ComponentProperty
+from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.properties import ElyraPropertyJSONEncoder
+from elyra.pipeline.properties import ElyraPropertyList
+from elyra.pipeline.properties import PipelineParameter
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.kubernetes import is_valid_kubernetes_device_plugin_name
 from elyra.util.path import get_expanded_path
@@ -174,6 +177,10 @@ class PipelineValidationManager(SingletonConfigurable):
         )
 
         self._validate_pipeline_graph(pipeline=pipeline, response=response)
+
+        await self._validate_pipeline_parameters(
+            pipeline_definition=pipeline_definition, pipeline_runtime=pipeline_runtime, response=response
+        )
 
         if response.has_fatal:
             return response
@@ -387,7 +394,10 @@ class PipelineValidationManager(SingletonConfigurable):
                 if node.type == "execution_node":
                     if Operation.is_generic_operation(node.op):
                         await self._validate_generic_node_properties(
-                            node=node, response=response, pipeline_runtime=pipeline_runtime
+                            node=node,
+                            response=response,
+                            pipeline_runtime=pipeline_runtime,
+                            pipeline_definition=pipeline_definition,
                         )
                     # Validate runtime components against specific node properties in component registry
                     else:
@@ -398,11 +408,14 @@ class PipelineValidationManager(SingletonConfigurable):
                             pipeline_definition=pipeline_definition,
                         )
 
-    async def _validate_generic_node_properties(self, node: Node, response: ValidationResponse, pipeline_runtime: str):
+    async def _validate_generic_node_properties(
+        self, node: Node, response: ValidationResponse, pipeline_definition: PipelineDefinition, pipeline_runtime: str
+    ):
         """
         Validate properties of a generic node
         :param node: the generic node to check
         :param response: the validation response object to attach any error messages
+        :param pipeline_definition: the pipeline definition containing the node
         :param pipeline_runtime: the pipeline runtime selected
         :return:
         """
@@ -410,7 +423,6 @@ class PipelineValidationManager(SingletonConfigurable):
         image_name = node.get_component_parameter(RUNTIME_IMAGE)
         filename = node.get_component_parameter("filename")
         dependencies = node.get_component_parameter("dependencies")
-        component_props = await self._get_component_properties(node.op)
 
         self._validate_filepath(
             node_id=node.id, node_label=node_label, property_name="filename", filename=filename, response=response
@@ -444,9 +456,13 @@ class PipelineValidationManager(SingletonConfigurable):
                         },
                     )
 
-            for param in node.elyra_owned_properties:
-                required = self._is_required_property(component_props, param)
-                self._validate_elyra_owned_property(node.id, node.label, node, param, response, required)
+            for prop in node.elyra_owned_properties:
+                self._validate_elyra_owned_property(node.id, node.label, node, prop, response, required=False)
+
+            # validate pipeline parameters
+            pipeline_params = pipeline_definition.primary_pipeline.pipeline_parameters
+            for param_name in node.get_component_parameter(PIPELINE_PARAMETERS, []):
+                self._validate_node_parameter_name(param_name, pipeline_params, node.id, node_label, response)
         else:
             # Only env vars need to be validated for local runtime
             self._validate_elyra_owned_property(node.id, node.label, node, ENV_VARIABLES, response)
@@ -476,33 +492,32 @@ class PipelineValidationManager(SingletonConfigurable):
         :param pipeline_runtime: the pipeline runtime selected
         :return:
         """
-        # Full dict of properties for the operation e.g. current params, optionals etc
-        component_property_dict = await self._get_component_properties(node.op, pipeline_runtime)
-        current_parameters = component_property_dict["properties"]["component_parameters"]["properties"]
-
+        # Validate Elyra-owned properties (e.g. annotations, env vars, tolerations, etc.)
         for param in node.elyra_owned_properties:
-            param_required = self._is_required_property(component_property_dict, param)
-            self._validate_elyra_owned_property(node.id, node.label, node, param, response, param_required)
+            self._validate_elyra_owned_property(node.id, node.label, node, param, response, required=False)
 
-        # List of just the current parameters for the component
-        parsed_parameters = [p for p in current_parameters.keys() if p not in node.elyra_owned_properties]
-        for default_parameter in parsed_parameters:
-            node_param = node.get_component_parameter(default_parameter)
-            if not node_param or node_param.get("value") is None:
-                if self._is_required_property(component_property_dict, default_parameter):
+        pipeline_parameters = pipeline_definition.primary_pipeline.pipeline_parameters
+
+        # Full set of properties for the operation as defined in the component spec
+        component_props = await self._get_component_properties(node_op=node.op, pipeline_runtime=pipeline_runtime) or []
+        for prop in component_props:
+            property_value = node.get_component_parameter(prop.ref)
+            if not property_value or property_value.get("value") is None:
+                if prop.required is True:
                     response.add_message(
                         severity=ValidationSeverity.Error,
                         message_type="invalidNodeProperty",
                         message="Node is missing a value for a required property.",
-                        data={"nodeID": node.id, "nodeName": node.label, "propertyName": default_parameter},
+                        data={"nodeID": node.id, "nodeName": node.label, "propertyName": prop.ref},
                     )
             else:
-                if node_param.get("widget") == "inputpath":
+                node_input_type = property_value.get("widget")
+                if node_input_type == "inputpath":
                     # The value of any component property with widget type `inputpath` will be a
                     # dictionary of two keys:
                     #   "value": the node ID of the parent node containing the output
                     #   "option": the name of the key (which is an output) of the above referenced node
-                    inputpath_value = node_param.get("value")
+                    inputpath_value = property_value.get("value")
                     if (
                         not isinstance(inputpath_value, dict)
                         or len(inputpath_value) != 2
@@ -511,7 +526,7 @@ class PipelineValidationManager(SingletonConfigurable):
                         response.add_message(
                             severity=ValidationSeverity.Error,
                             message_type="invalidNodeProperty",
-                            message="Node parameter takes output from a parent, but parameter structure is malformed.",
+                            message="Node property takes output from a parent, but property structure is malformed.",
                             data={"nodeID": node.id, "nodeName": node.label},
                         )
                     node_ids = [x.get("node_id_ref", None) for x in node.component_links]
@@ -521,7 +536,7 @@ class PipelineValidationManager(SingletonConfigurable):
                         response.add_message(
                             severity=ValidationSeverity.Error,
                             message_type="invalidNodeProperty",
-                            message="Node parameter takes output from a parent, but the referenced node is not a "
+                            message="Node property takes output from a parent, but the referenced node is not a "
                             "parent. Check your node-to-node connections.",
                             data={"nodeID": node.id, "nodeName": node.label},
                         )
@@ -535,27 +550,51 @@ class PipelineValidationManager(SingletonConfigurable):
                                 response.add_message(
                                     severity=ValidationSeverity.Error,
                                     message_type="invalidNodeProperty",
-                                    message="Node parameter takes output from a parent, but the parent "
+                                    message="Node property takes output from a parent, but the parent "
                                     "node does not have the xcom_push property enabled.",
                                     data={"nodeID": node.id, "nodeName": node.label, "parentNodeID": upstream_node_id},
                                 )
-                elif node_param.get("widget") == "file":
-                    filename = node_param.get("value")
+                elif node_input_type == "parameter":
+                    param_name = property_value.get("value")
+                    self._validate_node_parameter_name(
+                        param_name=param_name,
+                        pipeline_parameters=pipeline_parameters,
+                        node_id=node.id,
+                        node_label=node.label,
+                        response=response,
+                        property_name=prop.ref,
+                    )
+
+                    param_type = PipelineValidationManager.get_parameter_type_from_name(
+                        param_name, pipeline_parameters, pipeline_runtime
+                    )
+                    if prop.parsed_data_type is not None and prop.parsed_data_type != param_type:
+                        response.add_message(
+                            severity=ValidationSeverity.Warning,
+                            message_type="invalidNodeProperty",
+                            message="Node property takes a pipeline parameter as input, but "
+                            "the type of the selected parameter does not match the "
+                            "type given in the component definition.",
+                            data={"nodeID": node.id, "nodeName": node.label, "propertyName": prop.ref},
+                        )
+
+                elif node_input_type == "file":
+                    filename = property_value.get("value")
                     if filename:
                         self._validate_filepath(
                             node_id=node.id,
                             node_label=node.label,
-                            property_name=default_parameter,
+                            property_name=prop.ref,
                             filename=filename,
                             response=response,
                             binary_file_ok=False,  # reject files that are not UTF encoded
                         )
-                    elif self._is_required_property(component_property_dict, default_parameter):
+                    elif prop.required is True:
                         response.add_message(
                             severity=ValidationSeverity.Error,
                             message_type="invalidNodeProperty",
                             message="Node is missing a value for a required property.",
-                            data={"nodeID": node.id, "nodeName": node.label, "propertyName": default_parameter},
+                            data={"nodeID": node.id, "nodeName": node.label, "propertyName": prop.ref},
                         )
 
     def _validate_container_image_name(
@@ -634,7 +673,7 @@ class PipelineValidationManager(SingletonConfigurable):
         node_id: str,
         node_label: str,
         node: Node,
-        param_name: str,
+        property_name: str,
         response: ValidationResponse,
         required: bool = False,
     ) -> None:
@@ -643,7 +682,7 @@ class PipelineValidationManager(SingletonConfigurable):
         e.g. foo/path=pvc_name
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
-        :param param_name: the name of the parameter to check
+        :param property_name: the name of the property to check
         :param response: ValidationResponse containing the issue list to be updated
         """
 
@@ -656,24 +695,24 @@ class PipelineValidationManager(SingletonConfigurable):
                     data={
                         "nodeID": node_id,
                         "nodeName": node_label,
-                        "propertyName": param_name,
+                        "propertyName": property_name,
                         "value": elyra_property.get_value_for_display(),
                     },
                 )
 
-        param_value = node.get_component_parameter(param_name)
-        if param_value:
-            if isinstance(param_value, ElyraPropertyList):
-                for prop in param_value:
+        property_value = node.get_component_parameter(property_name)
+        if property_value:
+            if isinstance(property_value, ElyraPropertyList):
+                for prop in property_value:
                     validate_elyra_owned_property(prop)
-            elif isinstance(param_value, ElyraProperty):
-                validate_elyra_owned_property(param_value)
+            elif isinstance(property_value, ElyraProperty):
+                validate_elyra_owned_property(property_value)
         elif required:
             response.add_message(
                 severity=ValidationSeverity.Error,
                 message_type="invalidNodeProperty",
                 message="Required property value is missing.",
-                data={"nodeID": node.id, "nodeName": node_label, "propertyName": param_name},
+                data={"nodeID": node.id, "nodeName": node_label, "propertyName": property_name},
             )
 
     def _validate_filepath(
@@ -793,6 +832,38 @@ class PipelineValidationManager(SingletonConfigurable):
                 data={"nodeID": node_id, "nodeName": node_label, "propertyName": "label", "value": node_label},
             )
 
+    def _validate_node_parameter_name(
+        self,
+        param_name: str,
+        pipeline_parameters: List[PipelineParameter],
+        node_id: str,
+        node_label: str,
+        response: ValidationResponse,
+        property_name: Optional[str] = PIPELINE_PARAMETERS,
+    ) -> None:
+        """
+        Check to ensure that a pipeline parameter listed as input to a node is defined.
+
+        :param param_name: parameter name to check
+        :param pipeline_parameters: a list of defined pipeline parameters
+        :param node_id: the unique ID of the node
+        :param node_label: the given node name or user customized name/label of the node
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        pipeline_parameter_names = [p.name for p in pipeline_parameters]
+        if param_name not in pipeline_parameter_names:
+            response.add_message(
+                severity=ValidationSeverity.Error,
+                message_type="invalidNodeProperty",
+                message="Node depends on a pipeline parameter that is not defined.",
+                data={
+                    "nodeID": node_id,
+                    "nodeName": node_label,
+                    "propertyName": property_name,
+                    "value": param_name,
+                },
+            )
+
     def _validate_pipeline_graph(self, pipeline: dict, response: ValidationResponse) -> None:
         """
         Validates that the pipeline is an acyclic graph, meaning no circular references
@@ -863,6 +934,115 @@ class PipelineValidationManager(SingletonConfigurable):
                 data={},
             )
 
+    async def _validate_pipeline_parameters(
+        self, pipeline_definition: PipelineDefinition, pipeline_runtime: str, response: ValidationResponse
+    ) -> None:
+        """
+        Validates select pipeline properties, such as pipeline parameters
+
+        :param pipeline_definition: PipelineDefinition object describing the pipeline
+        :param pipeline_runtime: name of the pipeline runtime for execution  e.g. kfp, airflow, local
+        :param response: ValidationResponse containing the issue list to be updated
+        """
+        pipeline_parameters = pipeline_definition.primary_pipeline.pipeline_parameters
+
+        # Determine which parameters are referenced by nodes
+        referenced_param_names = []
+        for pipeline in pipeline_definition.pipelines:
+            for node in pipeline.nodes:
+                if node.type == "execution_node":
+                    if Operation.is_generic_operation(node.op):
+                        node_parameters = node.get_component_parameter(PIPELINE_PARAMETERS, [])
+                        if node_parameters:
+                            referenced_param_names.extend(node_parameters)
+                    else:
+                        component_props = await self._get_component_properties(node.op, pipeline_runtime)
+                        if component_props is None:
+                            continue
+                        for prop in component_props:
+                            property_value = node.get_component_parameter(prop.ref, {})
+                            if property_value.get("widget") == "parameter":
+                                referenced_param_names.append(property_value.get("value"))
+
+        # Validate that parameters referenced by nodes are defined on the pipeline level
+        if not pipeline_parameters:
+            for param_name in referenced_param_names:
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidPipelineParameter",
+                    message=f"One or more nodes reference pipeline parameter with name '{param_name}', "
+                    "but no pipeline parameters with this name are defined.",
+                )
+            # If no pipeline parameters are defined, return; remaining cases do not apply
+            return
+
+        # Validate parameters that are referenced by nodes according to the
+        # validation rules of the individual PipelineParameter class
+        referenced_params = [p for p in pipeline_parameters if p.name in referenced_param_names]
+        for param in referenced_params:
+            for msg in param.get_all_validation_errors():
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidPipelineParameter",
+                    message=msg,
+                    data={"value": param.get_value_for_display()},
+                )
+
+        # Validate that there are no duplicate parameter names among the referenced parameters
+        # Note: this should not happen during normal workflow because parameters are de-duplicated
+        # according to name during pipeline definition property conversion
+        param_names = [p.name for p in pipeline_parameters]
+        param_name_freq = {p: param_names.count(p) for p in set(param_names)}
+        for param_name, param_count in param_name_freq.items():
+            if param_count > 1:
+                values = [p.get_value_for_display() for p in pipeline_parameters if p.name == param_name]
+                response.add_message(
+                    severity=ValidationSeverity.Error,
+                    message_type="invalidPipelineParameter",
+                    message=f"One or more nodes reference pipeline parameter with name '{param_name}', "
+                    "but multiple parameters with this name are defined.",
+                    data={"value": values},
+                )
+
+        # Warn if a defined parameter is not referenced by a node (if parameter has an assigned value)
+        # Note: this should not happen during normal workflow because only parameters selected
+        # by a node/node property should be passed in the pipeline JSON
+        unreferenced_params = [p for p in pipeline_parameters if p.name not in referenced_param_names]
+        for param in unreferenced_params:
+            if param.value is None or param.value == "":
+                continue
+            response.add_message(
+                severity=ValidationSeverity.Warning,
+                message_type="invalidPipelineParameter",
+                message=f"Pipeline defines parameter '{param.name}', but it is not referenced by any node.",
+                data={"value": param.get_value_for_display()},
+            )
+
+    @staticmethod
+    def get_parameter_type_from_name(
+        param_name: str, pipeline_parameters: List[PipelineParameter], pipeline_runtime: str
+    ) -> str:
+        """
+        Get the data type of the given raw parameter in dict form. If not found, use the
+        default type defined by the runtime type-specific parameter implementation.
+        """
+        from elyra.pipeline.processor import PipelineProcessorManager  # placed here to avoid circular reference
+
+        # Determine the default type for the parameter class for the given runtime
+        ppm = PipelineProcessorManager.instance()
+        runtime_processor = ppm.get_processor_for_runtime(pipeline_runtime)
+        parameter_class = ppm.get_pipeline_parameter_class(runtime_type=runtime_processor.type)
+        parameter_default_type = parameter_class.default_type
+
+        parameter = None
+        # Find matching parameter name within the list of parameters
+        for param in pipeline_parameters:
+            if param.name == param_name:
+                parameter = param
+                break  # use first instance found
+
+        return parameter.selected_type if isinstance(parameter, PipelineParameter) else parameter_default_type
+
     def _get_pipeline_id(self, pipeline: dict, node_id: str) -> Optional[str]:
         """
         Given a node ID, returns the pipeline ID of where the node is currently connected to
@@ -878,29 +1058,21 @@ class PipelineValidationManager(SingletonConfigurable):
                     return single_pipeline["id"]
         return None
 
-    async def _get_component_properties(self, node_op: str, pipeline_runtime: Optional[str] = None) -> Dict:
+    @staticmethod
+    async def _get_component_properties(
+        node_op: str, pipeline_runtime: Optional[str] = None
+    ) -> Optional[List[ComponentProperty]]:
         """
-        Retrieve the full dict of properties associated with the node_op
+        Retrieve the full list of ComponentProperty objects associated with the node
         :param node_op: the node operation e.g. execute-notebook-node
-        :return: a list of property names associated with the node op
+        :return: a list of properties associated with the node
         """
-        if not pipeline_runtime:
-            pipeline_runtime = RuntimeProcessorType.LOCAL.name.lower()
-
-        # list of components associated with the pipeline runtime being used
-        component_list = await PipelineProcessorManager.instance().get_components(pipeline_runtime)
-        components = ComponentCache.to_canvas_palette(component_list)
-
-        for category in components["categories"]:
-            for node_type in category["node_types"]:
-                if node_op == node_type["op"]:
-                    component = await PipelineProcessorManager.instance().get_component(pipeline_runtime, node_op)
-                    if not component:  # component is generic; retrieve using static method
-                        component = ComponentCache.get_generic_component_from_op(node_op)
-                    component_properties = ComponentCache.to_canvas_properties(component)
-                    return component_properties
-
-        return {}
+        # Get Component object associated with the pipeline runtime and node_op
+        component = await PipelineProcessorManager.instance().get_component(
+            component_id=node_op, runtime=pipeline_runtime or RuntimeProcessorType.LOCAL.name.lower()
+        )
+        # Return properties if Component was found (assumes generic components will not call this method)
+        return None if component is None else component.input_properties
 
     def _get_node_names(self, pipeline: dict, node_id_list: list) -> List:
         """
@@ -972,20 +1144,6 @@ class PipelineValidationManager(SingletonConfigurable):
         :return:
         """
         return pipeline["pipelines"][0]["app_data"].get("properties") is None
-
-    def _is_required_property(self, property_dict: dict, node_property: str) -> bool:
-        """
-        Determine whether a component parameter is required to function correctly
-        :param property_dict: the dictionary for the component
-        :param node_property: the component property to check
-        :return:
-        """
-        required_parameters = property_dict["properties"]["component_parameters"].get("required")
-        if required_parameters:
-            return node_property in required_parameters
-
-        param = property_dict["properties"]["component_parameters"]["properties"].get(node_property, {})
-        return param.get("required", False)
 
     def _get_parent_id_list(
         self, pipeline_definition: PipelineDefinition, node_id_list: list, parent_list: list

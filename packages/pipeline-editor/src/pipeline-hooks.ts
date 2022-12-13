@@ -70,6 +70,7 @@ interface IRuntimeComponentsResponse {
   version: string;
   categories: IRuntimeComponent[];
   properties: IComponentPropertiesResponse;
+  parameters: IComponentPropertiesResponse;
 }
 
 export interface IRuntimeComponent {
@@ -162,15 +163,26 @@ export const componentFetcher = async (type: string): Promise<any> => {
     IComponentPropertiesResponse
   >(`elyra/pipeline/${type}/properties`);
 
+  const pipelineParametersPromise = RequestHandler.makeGetRequest<
+    IComponentPropertiesResponse
+  >(`elyra/pipeline/${type}/parameters`);
+
   const typesPromise = PipelineService.getRuntimeTypes();
 
-  const [palette, pipelineProperties, types] = await Promise.all([
+  const [
+    palette,
+    pipelineProperties,
+    pipelineParameters,
+    types
+  ] = await Promise.all([
     palettePromise,
     pipelinePropertiesPromise,
+    pipelineParametersPromise,
     typesPromise
   ]);
 
   palette.properties = pipelineProperties;
+  palette.parameters = pipelineParameters;
 
   // Gather list of component IDs to fetch properties for.
   const componentList: string[] = [];
