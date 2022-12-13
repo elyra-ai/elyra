@@ -31,7 +31,11 @@ limitations under the License.
 
 #### Best practices
 
-> This documentation content is currently under development.
+##### Pipeline parameters
+
+Elyra supports [configuring pipeline parameters](pipelines.html#defining-pipeline-parameters) for Kubeflow Pipelines workflows. A parameter can be selected to use as input to a custom node in the dropdown list for an input property. Only parameters that have the same type as the given node property can be selected to use as input for that property. Currently, the Kubeflow Pipelines types of `String`, `Bool`, `Float` and `Integer` are supported. 
+
+See the [Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/components/pipelines/v1/sdk/parameters/) for more information on parameters.
 
 ### Apache Airflow components
 

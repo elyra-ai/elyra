@@ -112,3 +112,10 @@ notebook or script is executed in:
 The Kubernetes Secrets property can be used to associate environment variable names with secrets, preventing sensitive information from being exposed in the pipeline file, the pipeline editor, and the runtime environment. As with static environment variables, secret-based environment variable values can be set on an individual node and/or defined as pipeline default values and shared across nodes belonging to the same pipeline. A default value can also be overridden for a particular node by redefining the secret for a given variable name in the node properties.
 
 Secrets are ignored when the pipeline is executed locally. For remote execution, if an environment variable was assigned both a static value (via the 'Environment Variables' property) and a Kubernetes secret value, the secret's value is used.
+
+### Pipeline parameters
+File-based components can take advantage of [pipeline parameters](pipelines.html#defining-pipeline-parameters) for those runtime processors that support them. When pipeline parameters are supported, the `Pipeline Parameters` property will be present in the `Node Properties` panel. Check the box to select the parameter(s) that should be passed to this node.
+
+![Select pipeline parameters](../images/user_guide/best-practices-file-based-nodes/elyra-node-parameters.png)
+
+Parameters are passed to file-based nodes by setting them as environment variables in the node container. Due to constraints imposed by environment variables, the parameter value will appear as a string when accessed in the generic node regardless of the `Type` that was selected for the parameter in the `Pipeline Parameters` tab.
