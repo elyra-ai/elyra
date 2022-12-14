@@ -778,7 +778,7 @@ def publish_release(working_dir) -> None:
         f"{config.source_dir}/dist/elyra-{config.new_version}-py3-none-any.whl",
         f"{config.source_dir}/dist/elyra-{config.new_version}.tar.gz",
         f"{config.source_dir}/dist/elyra_server-{config.new_version}-py3-none-any.whl",
-        f"{config.source_dir}/dist/elyra-server-{config.new_version}.tar.gz",
+        f"{config.source_dir}/dist/elyra_server-{config.new_version}.tar.gz",
         f"{config.work_dir}/airflow-notebook/dist/airflow_notebook-{config.new_version}-py3-none-any.whl",
         f"{config.work_dir}/airflow-notebook/dist/airflow-notebook-{config.new_version}.tar.gz",
         f"{config.work_dir}/kfp-notebook/dist/kfp_notebook-{config.new_version}-py3-none-any.whl",
