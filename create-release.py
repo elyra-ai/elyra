@@ -482,9 +482,9 @@ def build_server():
     print("-----------------------------------------------------------------")
 
     # update project name
-    sed(_source("setup.py"), r'name="elyra"', 'name="elyra-server"')
+    sed(_source("pyproject.toml"), r'name="elyra"', 'name="elyra-server"')
     sed(
-        _source("setup.py"),
+        _source("pyproject.toml"),
         r'description="Elyra provides AI Centric extensions to JupyterLab"',
         'description="The elyra-server package provides common core libraries and functions that are required by '
         "Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. "
@@ -518,8 +518,8 @@ def show_release_artifacts():
 def copy_extension_dir(extension: str, work_dir: str) -> None:
     global config
 
-    extension_package_source_dir = os.path.join(config.source_dir, "dist/labextensions/@elyra", extension)
-    extension_package_dest_dir = os.path.join(work_dir, "dist/labextensions/@elyra", extension)
+    extension_package_source_dir = os.path.join(config.source_dir, "build/labextensions/@elyra", extension)
+    extension_package_dest_dir = os.path.join(work_dir, "build/labextensions/@elyra", extension)
     os.makedirs(os.path.dirname(extension_package_dest_dir), exist_ok=True)
     shutil.copytree(extension_package_source_dir, extension_package_dest_dir)
 
@@ -664,7 +664,7 @@ def prepare_extensions_release() -> None:
         setup_file = os.path.join(extension_source_dir, "setup.py")
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data - files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
+        sed(setup_file, "{{data - files}}", re.escape("('share/jupyter/labextensions', 'build/labextensions', '**')"))
         sed(setup_file, "{{install - requires}}", f"'elyra-server=={config.new_version}',")
         sed(setup_file, "{{description}}", f"'{extensions[extension].description}'")
 

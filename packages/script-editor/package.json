@@ -65,6 +65,6 @@
   },
   "jupyterlab": {
     "extension": false,
-    "outputDir": "../../dist/labextensions/@elyra/script-editor"
+    "outputDir": "../../build/labextensions/@elyra/script-editor"
   }
 }

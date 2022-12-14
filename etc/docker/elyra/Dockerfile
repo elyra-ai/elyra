@@ -23,10 +23,19 @@ ARG TAG="dev"
 ARG ELYRA_VERSION
 ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
 
-COPY requirements.txt ${ELYRA_PACKAGE}* ./
+# - Include with KFP Tekton support ('kfp-tekton') and component examples ('kfp-examples')
+ARG ELYRA_EXTRAS=[kfp-tekton,kfp-examples,gitlab]
+
+COPY requirements.txt ${ELYRA_PACKAGE} ./
+
+USER root
+RUN chown jovyan:users ./requirements.txt ./"${ELYRA_PACKAGE}"
+USER jovyan
+
+RUN ls -al /home/jovyan
 
 # Install Elyra
-RUN python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE"[all] && rm $ELYRA_PACKAGE
+RUN python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE""$ELYRA_EXTRAS" && rm "$ELYRA_PACKAGE"
 
 # Install custom requirements
 RUN python3 -m pip install -r requirements.txt && rm requirements.txt
