@@ -197,6 +197,7 @@ install-gitlab-dependency:
 	- $(PYTHON_PIP) install --upgrade python-gitlab
 
 check-install:
+	# Expected to fail due to elyra/ai#3058
 	jupyter server extension list
 	jupyter labextension list
 
