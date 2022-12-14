@@ -25,7 +25,6 @@ dependencies = [
     "jupyter-events<0.5.0",  # Cap from kfp from jsonschema
     "jupyter-packaging>=0.10",
     "jupyter_server>=1.7.0",
-    "jupyter_server_terminals<=0.4.0",
     "jupyterlab>=3.4.6,<4.0",  # comment out to use local jupyterlab
     "jupyterlab-lsp>=3.8.0",  # comment out to use local jupyterlab
     "jupyterlab-git~=0.32",  # Avoid breaking 1.x changes
@@ -183,6 +182,7 @@ exclude = [
     ".DS_Store",
     "*.sh",
     "docs",
+    "build/release",
 ]
 
 # Move flake8 configuration from setup.cfg. Use pflake8 instead of flake8.
