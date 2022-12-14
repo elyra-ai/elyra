@@ -2,6 +2,10 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.14.1 - 12/14/2022
+
+- Remove jupyter-server-terminal cap and fix release script - [#3057](https://github.com/elyra-ai/elyra/pull/3057)
+
 ## Release 3.14.0 - 12/14/2022
 
 - Move build system to use pyproject.toml - [#3038](https://github.com/elyra-ai/elyra/pull/3038)
