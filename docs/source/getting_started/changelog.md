@@ -2,6 +2,36 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.14.0 - 12/14/2022
+
+- Move build system to use pyproject.toml - [#3038](https://github.com/elyra-ai/elyra/pull/3038)
+- Add documentation for pipeline parameters - [#3053](https://github.com/elyra-ai/elyra/pull/3053)
+- Add support for pipeline parameters - [#3001](https://github.com/elyra-ai/elyra/pull/3001)
+- Cap jupyter-events to <0.5.0 due to jsonschema version conflict - [#3055](https://github.com/elyra-ai/elyra/pull/3055)
+- Add new integration test for testing custom export filename - [#3052](https://github.com/elyra-ai/elyra/pull/3052)
+- Update documentation for exporting pipelines to file - [#3039](https://github.com/elyra-ai/elyra/pull/3039)
+- Properly escape string property inputs - [#3048](https://github.com/elyra-ai/elyra/pull/3048)
+- Add version cap to Jupyterlab - [#3051](https://github.com/elyra-ai/elyra/pull/3051)
+- Bump decode-uri-component from 0.2.0 to 0.2.2 - [#3043](https://github.com/elyra-ai/elyra/pull/3043)
+- Remove deprecated legacy python package checks - [#3050](https://github.com/elyra-ai/elyra/pull/3050)
+- Update test dependencies to min of project, address dependabot warnings - [#3042](https://github.com/elyra-ai/elyra/pull/3042)
+- Fix generic component schema to unblock frontend changes to file browse feature - [#3040](https://github.com/elyra-ai/elyra/pull/3040)
+- Add Python 3.11 support - [#3033](https://github.com/elyra-ai/elyra/pull/3033)
+- Address warnings produced by tests - [#3032](https://github.com/elyra-ai/elyra/pull/3032)
+- Enable linting of jupyter notebooks - [#3031](https://github.com/elyra-ai/elyra/pull/3031)
+- Support configuration of GPU vendor - [#3029](https://github.com/elyra-ai/elyra/pull/3029)
+- Add and update KFP processor tests - [#3022](https://github.com/elyra-ai/elyra/pull/3022)
+- Validation: reject binary property input files for custom components - [#3026](https://github.com/elyra-ai/elyra/pull/3026)
+- Allow for custom export file name - [#2999](https://github.com/elyra-ai/elyra/pull/2999)
+- Bump jupyter-core from 4.10.0 to 4.11.2 in /etc/generic - [#3008](https://github.com/elyra-ai/elyra/pull/3008)
+- Fix code of conduct link - [#3027](https://github.com/elyra-ai/elyra/pull/3027)
+- Address some code scan issues - [#3021](https://github.com/elyra-ai/elyra/pull/3021)
+- Update repository with LFAI onboarding requirements - [#2980](https://github.com/elyra-ai/elyra/pull/2980)
+- Add reference to latest Elyra blog post to the documentation - [#3011](https://github.com/elyra-ai/elyra/pull/3011)
+- Removed unused KeyValueList class - [#3003](https://github.com/elyra-ai/elyra/pull/3003)
+- Update GH pull request template - [#3015](https://github.com/elyra-ai/elyra/pull/3015)
+- Remove broken doc badge and add openssf best practices badge - [#3013](https://github.com/elyra-ai/elyra/pull/3013)
+
 ## Release 3.13.0 - 11/14/2022
 
 
