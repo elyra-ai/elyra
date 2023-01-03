@@ -136,11 +136,9 @@ const preventDefaultDialogHandler = (
 // Returns true if given element is valid
 const isFieldValid = (element: any): boolean => {
   if (element.type === 'number') {
-    const ifRequiredHasValue = element.hasAttribute('data-form-required')
+    return element.hasAttribute('data-form-required')
       ? element.value !== ''
       : true;
-    const validNumber = Number(element.value.trim()) >= 0;
-    return ifRequiredHasValue && validNumber;
   }
   return element.value.trim() ? true : false;
 };
