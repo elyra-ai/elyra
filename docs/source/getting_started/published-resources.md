@@ -20,6 +20,8 @@ limitations under the License.
 
 Articles, blog posts, and other resources covering Elyra. [Examples and tutorials are located here](tutorials.md).
 
+- 2023
+    - January 4: [Build Versatile Pipelines in Elyra using Pipeline Parameters](https://medium.com/@kiersten.stokes/5634f8d5ae8d?source=friends_link&sk=12bbac0e9d58059aa605fc09585495e4)
 - 2022:
     - November 16: [Customizing Elyra pipelines](https://medium.com/@ptitzler/be47efa619d8?source=friends_link&sk=701085dc076de0c40b1c198d987ce91e)
     - October 7: [Review of the latest Elyra Pipeline Editor improvements](https://medium.com/codait/review-of-the-latest-elyra-pipeline-editor-improvements-c30d9776631b?source=friends_link&sk=6ea77297f5a7fbe6613fd797d5a72d4b)
