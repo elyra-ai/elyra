@@ -20,7 +20,7 @@ dependencies = [
     "entrypoints>=0.3",
     "jinja2>=3",
     "jsonschema>=3.2.0,<4.0",  # Cap from kfp
-    "jupyter_core>=4.11.2,<5",  # Cap due to v5 not support python<3.8
+    "jupyter_core>=4.11.0",  # Do not increase floor past 4.11.1 until Python 3.7 EOL
     "jupyter_client>=6.1.7",
     "jupyter-events<0.5.0",  # Cap from kfp from jsonschema
     "jupyter-packaging>=0.10",
@@ -32,6 +32,7 @@ dependencies = [
     "MarkupSafe>=2.1",
     "minio>=7.0.0",
     "nbclient>=0.5.1",
+    "nbclient>=0.5.1,<=0.7.0;python_version=='3.7'",  # nbclient > 0.7 requires jupyter_core >= 4.12 which doesn't exist in conda for 3.7
     "nbconvert>=6.5.1",
     "nbdime~=3.1",  # Cap from jupyterlab-git
     "nbformat>=5.1.2",
