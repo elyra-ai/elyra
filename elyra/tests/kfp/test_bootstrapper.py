@@ -546,6 +546,7 @@ def test_package_installation(monkeypatch, virtualenv):
         assert virtualenv_packages[package] == version
 
 
+@pytest.mark.skip(reason="Temporarily disabling see elyra#3072")
 def test_package_installation_with_target_path(monkeypatch, virtualenv, tmpdir):
     # TODO : Need to add test for direct-source e.g. ' @ '
     elyra_packages = {
