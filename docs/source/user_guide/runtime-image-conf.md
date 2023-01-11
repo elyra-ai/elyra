@@ -201,6 +201,10 @@ Example:
 
 - `quay.io/jdoe/my-image:1.0.0`
 
+NOTE: Use SHA256-digest format in airgapped Openshift environments to support ImageContentSourcePolicy and automatic referral of images to a target repository server or to 
+just support unique non-modifiable image digests instead of potentially mutable tags. SHA256-digest format is supported on all platforms (Kubernetes, Openshift, Docker) 
+for image references.  
+
 NOTE: If you want to verify the hash signatures of our factory images you can compare the image hash signature to its official published image in DockerHub. 
 For example, our tensorflow image is defined as `tensorflow/tensorflow@sha256:7c01f75d58fadc2cd1109d5baac1925ed131e05925d840b1b49363c794d1c4db`  
 You can navigate to the tensorflow's [official Dockerhub page](https://hub.docker.com/layers/tensorflow/tensorflow/2.8.0/images/sha256-7c01f75d58fadc2cd1109d5baac1925ed131e05925d840b1b49363c794d1c4db?context=explore)
