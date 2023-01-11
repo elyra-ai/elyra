@@ -185,7 +185,7 @@ Example: `My custom runtime container image`
 
 ##### Image Name (image_name)
 
-The name and tag of an existing container image in a container registry that meets the stated prerequisites. This property is required.
+The name and tag or name and SHA256-digest of an existing container image in a container registry that meets the stated prerequisites. This property is required.
 
 Example:
 
