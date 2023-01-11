@@ -37,7 +37,7 @@ Object {
                 "output-1.csv",
                 "output-2.csv",
               ],
-              "runtime_image": "continuumio/anaconda3:2021.11",
+              "runtime_image": "continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8",
             },
             "label": "",
             "ui_data": Object {
@@ -94,7 +94,7 @@ Object {
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
-              "runtime_image": "continuumio/anaconda3:2021.11",
+              "runtime_image": "continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8",
             },
             "label": "",
             "ui_data": Object {
@@ -153,7 +153,7 @@ Object {
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
-              "runtime_image": "continuumio/anaconda3:2021.11",
+              "runtime_image": "continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8",
             },
             "label": "",
             "ui_data": Object {
@@ -213,7 +213,7 @@ Object {
                 "input-1.csv",
                 "input-2.csv",
               ],
-              "runtime_image": "continuumio/anaconda3:2021.11",
+              "runtime_image": "continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8",
             },
             "label": "",
             "ui_data": Object {
@@ -273,7 +273,7 @@ Object {
                 "output-3.csv",
                 "output-4.csv",
               ],
-              "runtime_image": "continuumio/anaconda3:2021.11",
+              "runtime_image": "continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8",
             },
             "label": "",
             "ui_data": Object {
