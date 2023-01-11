@@ -19,10 +19,10 @@ dependencies = [
     "deprecation",
     "entrypoints>=0.3",
     "jinja2>=3",
-    "jsonschema>=3.2.0,<4.0",  # Cap from kfp
+    "jsonschema>=3.2.0",
     "jupyter_core>=4.11.2,<5",  # Cap due to v5 not support python<3.8
     "jupyter_client>=6.1.7",
-    "jupyter-events<0.5.0",  # Cap from kfp from jsonschema
+    "jupyter-events>=0.6.2",
     "jupyter-packaging>=0.10",
     "jupyter_server>=1.7.0",
     "jupyterlab>=3.4.6,<4.0",  # comment out to use local jupyterlab
@@ -38,7 +38,7 @@ dependencies = [
     "networkx>=2.5.1",
     "papermill>=2.3.4",
     "python-lsp-server[all]>=1.1.0",
-    "pyyaml>=5.3.1,<6.0",  # Cap from kfp
+    "pyyaml>=5.3.1",
     "requests>=2.25.1",
     "rfc3986-validator>=0.1.1",
     "tornado>=6.1.0",
