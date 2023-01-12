@@ -96,6 +96,12 @@ kfp-examples = [
 gitlab = [
     "python-gitlab"
 ]
+# The following is a collection of "non-test" extra dependencies from above.
+all = [
+    "kfp-tekton~=1.3.0",
+    "elyra-examples-kfp-catalog",
+    "python-gitlab",
+]
 
 # Console scripts
 [project.scripts]
