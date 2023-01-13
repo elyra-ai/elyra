@@ -185,19 +185,30 @@ Example: `My custom runtime container image`
 
 ##### Image Name (image_name)
 
-The name and tag of an existing container image in a container registry that meets the stated prerequisites. This property is required.
+The name and tag or name and SHA256-digest of an existing container image in a container registry that meets the stated prerequisites. This property is required.
 
 Example:
 
-- `jdoe/my-image:1.0.0`
+- `jdoe/my-image:1.0.0`  
+OR
+- `jdoe/my-image@sha256:ee783a4c0fccc7317c150450e84579544e171dd01a3f76cf2711262aced85767`
 
-Providing only `owner/image:tag` uses default registry: Docker Hub registry
+Providing only `owner/image[@SHA256]:tag/hash` uses default registry: Docker Hub registry
 
 In general for other public container registries, the URL shall contain also `registry`, therefore the complete URL to be used in this case is: `registry/owner/image:tag`
 
 Example:
 
 - `quay.io/jdoe/my-image:1.0.0`
+
+NOTE: Use SHA256-digest format in airgapped Openshift environments to support ImageContentSourcePolicy and automatic referral of images to a target repository server or to 
+just support unique non-modifiable image digests instead of potentially mutable tags. SHA256-digest format is supported on all platforms (Kubernetes, Openshift, Docker) 
+for image references.  
+
+NOTE: If you want to verify the hash signatures of our factory images you can compare the image hash signature to its official published image in DockerHub. 
+For example, our tensorflow image is defined as `tensorflow/tensorflow@sha256:7c01f75d58fadc2cd1109d5baac1925ed131e05925d840b1b49363c794d1c4db`  
+You can navigate to the tensorflow's [official Dockerhub page](https://hub.docker.com/layers/tensorflow/tensorflow/2.8.0/images/sha256-7c01f75d58fadc2cd1109d5baac1925ed131e05925d840b1b49363c794d1c4db?context=explore)
+find the image version (in this example its 2.8.0) and verify the hash matches the one listed under `DIGEST: sha256: XXXXX.....`
 
 ##### Image Pull Policy (pull_policy)
 

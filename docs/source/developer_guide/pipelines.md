@@ -45,7 +45,7 @@ For more details on the **pipeline json definition** see it's [json schema](http
 				"label": "generate-contributions",
 				"component_parameters": {
 					"filename": "demo-pipelines/generate-contributions.ipynb",
-					"runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+					"runtime_image": "tensorflow/tensorflow@sha256:7c01f75d58fadc2cd1109d5baac1925ed131e05925d840b1b49363c794d1c4db",
 					"outputs": ["community_contributions.csv"],
 					"env_vars": ["GITHUB_TOKEN=xxxx"],
 					"dependencies": ["contributors.csv"],
@@ -89,7 +89,7 @@ For more details on the **pipeline json definition** see it's [json schema](http
 				"label": "generate-stats",
 				"component_parameters": {
 					"filename": "demo-pipelines/generate-stats.ipynb",
-					"runtime_image": "tensorflow/tensorflow:2.0.0-py3",
+					"runtime_image": "tensorflow/tensorflow@sha256:7c01f75d58fadc2cd1109d5baac1925ed131e05925d840b1b49363c794d1c4db",
 					"outputs": ["community_stats.csv"],
 					"env_vars": ["GITHUB_TOKEN=xxxx"],
 					"dependencies": ["contributors.csv"],
@@ -125,7 +125,7 @@ For more details on the **pipeline json definition** see it's [json schema](http
 				"label": "overview",
 				"component_parameters": {
 					"filename": "demo-pipelines/overview.ipynb",
-					"runtime_image": "elyra/tensorflow:1.15.2-py3",
+					"runtime_image": "tensorflow/tensorflow@sha256:7c01f75d58fadc2cd1109d5baac1925ed131e05925d840b1b49363c794d1c4db",
 					"include_subdirectories": false
 				},
 				"ui_data": {

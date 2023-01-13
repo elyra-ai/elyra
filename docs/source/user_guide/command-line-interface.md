@@ -57,11 +57,11 @@ Specify the `--json` parameter to return the results in JSON to allow for progra
 ```
 $ elyra-metadata list runtime-images --json | jq ".[].display_name"
 "R Script"
-"Anaconda (2020.07) with Python 3.x"
-"Tensorflow 2.3.0"
-"Pandas 1.1.1"
+"Anaconda (2021.11) with Python 3.x"
+"Tensorflow 2.8.0"
+"Pandas 1.4.1"
 "Pytorch 1.4 with CUDA-devel"
-"Tensorflow 2.3.0 with GPU"
+"Tensorflow 2.8.0 with GPU"
 "Pytorch 1.4 with CUDA-runtime"
 "Pandas on quay.io"
 ```
