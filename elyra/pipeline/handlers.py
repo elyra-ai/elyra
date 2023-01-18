@@ -128,7 +128,7 @@ class PipelineExportHandler(HttpErrorMixin, APIHandler):
         await self.finish(json_msg)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
 
 
 class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
@@ -175,7 +175,7 @@ class PipelineSchedulerHandler(HttpErrorMixin, APIHandler):
         await self.finish(json_msg)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
 
 
 class PipelineComponentHandler(HttpErrorMixin, APIHandler):
@@ -202,7 +202,7 @@ class PipelineComponentHandler(HttpErrorMixin, APIHandler):
         await self.finish(palette_json)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
 
 
 class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
@@ -224,7 +224,7 @@ class PipelinePropertiesHandler(HttpErrorMixin, APIHandler):
         await self.finish(pipeline_properties_json)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
 
 
 class PipelineParametersHandler(HttpErrorMixin, APIHandler):
@@ -310,7 +310,7 @@ class PipelineComponentPropertiesHandler(HttpErrorMixin, APIHandler):
         await self.finish(json_response)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
 
 
 class PipelineValidationHandler(HttpErrorMixin, APIHandler):
@@ -337,7 +337,7 @@ class PipelineValidationHandler(HttpErrorMixin, APIHandler):
         await self.finish(json_msg)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
 
 
 class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
@@ -357,7 +357,7 @@ class PipelineRuntimeTypesHandler(HttpErrorMixin, APIHandler):
         await self.finish({"runtime_types": runtime_types})
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
 
 
 class ComponentCacheHandler(HttpErrorMixin, APIHandler):
@@ -381,7 +381,7 @@ class ComponentCacheHandler(HttpErrorMixin, APIHandler):
         await self.finish()
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
 
 
 class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
@@ -410,4 +410,4 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
         await self.finish()
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(status_code, **kwargs)
