@@ -97,7 +97,7 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
         return instance
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(self, status_code, **kwargs)
 
 
 class MetadataResourceHandler(HttpErrorMixin, APIHandler):
@@ -179,7 +179,7 @@ class MetadataResourceHandler(HttpErrorMixin, APIHandler):
         self.finish()
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(self, status_code, **kwargs)
 
 
 class SchemaHandler(HttpErrorMixin, APIHandler):
@@ -202,7 +202,7 @@ class SchemaHandler(HttpErrorMixin, APIHandler):
         self.finish(schemas_model)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(self, status_code, **kwargs)
 
 
 class SchemaResourceHandler(HttpErrorMixin, APIHandler):
@@ -225,7 +225,7 @@ class SchemaResourceHandler(HttpErrorMixin, APIHandler):
         self.finish(schema)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(self, status_code, **kwargs)
 
 
 class SchemaspaceHandler(HttpErrorMixin, APIHandler):
@@ -248,7 +248,7 @@ class SchemaspaceHandler(HttpErrorMixin, APIHandler):
         self.finish(schemaspace_model)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(self, status_code, **kwargs)
 
 
 class SchemaspaceResourceHandler(HttpErrorMixin, APIHandler):
@@ -277,4 +277,4 @@ class SchemaspaceResourceHandler(HttpErrorMixin, APIHandler):
         self.finish(schemaspace_info_model)
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(self, status_code, **kwargs)

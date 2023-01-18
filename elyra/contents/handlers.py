@@ -76,4 +76,4 @@ class ContentHandler(HttpErrorMixin, APIHandler):
         return absolute_path
 
     def write_error(self, status_code, **kwargs):
-        HttpErrorMixin().write_error(status_code, **kwargs)
+        HttpErrorMixin.write_error(self, status_code, **kwargs)
