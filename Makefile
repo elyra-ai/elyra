@@ -28,7 +28,9 @@
 SHELL:=/bin/bash
 
 # Container execs
-CONTAINER_EXEC=docker
+CONTAINER_EXEC?=docker
+# If using podman, use "--format docker" instead
+CONTAINER_OUTPUT_OPTION?=--output=type=docker
 
 # Python execs
 PYTHON?=python3
@@ -262,7 +264,7 @@ elyra-image: # Build Elyra stand-alone container image
 	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker/
 	$(CONTAINER_EXEC) buildx build \
         --progress=plain \
-        --output=type=docker \
+        $(CONTAINER_OUTPUT_OPTION) \
 		--tag docker.io/$(ELYRA_IMAGE) \
 		--tag quay.io/$(ELYRA_IMAGE) \
 		--build-arg TAG=$(TAG) \
@@ -287,7 +289,7 @@ kf-notebook-image: # Build elyra image for use with Kubeflow Notebook Server
 	cp dist/elyra-$(ELYRA_VERSION)-py3-none-any.whl build/docker-kubeflow/
 	$(CONTAINER_EXEC) buildx build \
         --progress=plain \
-        --output=type=docker \
+        $(CONTAINER_OUTPUT_OPTION) \
 		--tag docker.io/$(KF_NOTEBOOK_IMAGE) \
 		--tag quay.io/$(KF_NOTEBOOK_IMAGE) \
 		--build-arg TAG=$(TAG) \
