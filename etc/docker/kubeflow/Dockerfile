@@ -24,16 +24,13 @@ ARG ELYRA_VERSION
 ARG ELYRA_PACKAGE=elyra-"$ELYRA_VERSION"-py3-none-any.whl
 
 # - Include with KFP Tekton support ('kfp-tekton') and component examples ('kfp-examples')
-ARG ELYRA_EXTRAS=[all]
+ARG ELYRA_EXTRAS=[kfp-tekton,kfp-examples,gitlab]
 
 # Includes the readme as a token file for COPY that always exists, otherwise production builds fail when whl not present
 COPY README.md ${ELYRA_PACKAGE}* ./
 
 USER root
 RUN chown jovyan:users ./"${ELYRA_PACKAGE}"
-RUN apt update  \
-    && apt-get install gcc -y  \
-    && rm -rf /var/lib/apt/lists/*
 USER jovyan
 
 # Update pip
