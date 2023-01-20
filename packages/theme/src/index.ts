@@ -168,20 +168,20 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
           window.open(
             window.location.origin +
               hubPrefix.replace('/hub/', '/') +
-              'user-redirect/proxy/integra-docs:80/'
+              'user-redirect/proxy/foresight-docs-service:80/'
           );
         } else {
           window.open(
             window.location.origin +
               paths.urls.base +
-              'user-redirect/proxy/integra-docs:80/'
+              'user-redirect/proxy/foresight-docs-service:80/'
           );
         }
       }
     });
 
     commands.addCommand(CommandIDs.view, {
-      label: 'Integra Explorer',
+      label: 'Foresight Explorer',
       icon: viewIcon,
       execute: (args: any) => {
         const hubPrefix = paths.urls.hubPrefix;
@@ -189,13 +189,13 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
           window.open(
             window.location.origin +
               hubPrefix.replace('/hub/', '/') +
-              'user-redirect/proxy/integraexplorer-service:8900/'
+              'user-redirect/proxy/foresight-explorer-service:8900/'
           );
         } else {
           window.open(
             window.location.origin +
               paths.urls.base +
-              'user-redirect/proxy/integraexplorer-service:8900/'
+              'user-redirect/proxy/foresight-explorer-service:8900/'
           );
         }
       }
@@ -215,13 +215,13 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
     model.add({
       command: CommandIDs.openHelp,
-      category: 'Integra',
+      category: 'Foresight',
       rank: 10
     });
 
     model.add({
       command: CommandIDs.view,
-      category: 'Integra',
+      category: 'Foresight',
       rank: 11
     });
 

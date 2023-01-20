@@ -100,7 +100,7 @@ def _source(file: str) -> str:
 
 def build_server():
     global config
-  
+
     print("-----------------------------------------------------------------")
     print("------------------------ Installing elyra ------------------------")
     print("-----------------------------------------------------------------")
@@ -113,37 +113,25 @@ def build_server():
     print("-----------------------------------------------------------------")
 
     # update project name
-    sed(_source("setup.py"), r'name="elyra"', 'name="elyra-server"')
+    sed(_source("pyproject.toml"), r'name="elyra"', 'name="elyra-server"')
     sed(
-        _source("setup.py"),
+        _source("pyproject.toml"),
         r'description="Elyra provides AI Centric extensions to JupyterLab"',
-        'description="The elyra/Integra-server package provides common core libraries and functions that are required by '
+        'description="The elyra foresight server package provides common core libraries and functions that are required by '
         "Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. "
         "Please install the 'elyra' package instead. e.g. pip install elyra[all]\"",
     )
 
     # build server wheel
     check_run(["make", "build-server"], cwd=config.source_dir, capture_output=False)
-    print(
-        f'Copying : {_source("dist/elyra_server-" + config.new_version + "-py3-none-any.whl")} to {config.elevo_depend_files}'
-    )
-    check_run(
-        [
-            "cp",
-            _source("dist/elyra_server-" + config.new_version + "-py3-none-any.whl"),
-            config.elevo_depend_files,
-        ],
-        cwd=config.work_dir,
-    )
-    print("")
 
-    sed(_source("setup.py"), r'name="elyra-server"', 'name="elyra"')
+    sed(_source("pyproject.toml"), r'name="elyra-server"', 'name="elyra"')
     sed(
-        _source("setup.py"),
-        r'description="The elyra/Integra-server package provides common core libraries and functions that are required by '
+        _source("pyproject.toml"),
+        r'description="The elyra/foresight server package provides common core libraries and functions that are required by '
         "Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. "
         "Please install the 'elyra' package instead. e.g. pip install elyra[all]\"",
-        'description="Elyra provides AI Centric extensions to JupyterLab"'
+        'description="Elyra provides AI Centric extensions to JupyterLab"',
     )
     print("")
 
@@ -151,8 +139,8 @@ def build_server():
 def copy_extension_dir(extension: str, work_dir: str) -> None:
     global config
 
-    extension_package_source_dir = os.path.join(config.source_dir, "dist/labextensions/@elyra", extension)
-    extension_package_dest_dir = os.path.join(work_dir, "dist/labextensions/@elyra", extension)
+    extension_package_source_dir = os.path.join(config.source_dir, "build/labextensions/@elyra", extension)
+    extension_package_dest_dir = os.path.join(work_dir, "build/labextensions/@elyra", extension)
     os.makedirs(os.path.dirname(extension_package_dest_dir), exist_ok=True)
     shutil.copytree(extension_package_source_dir, extension_package_dest_dir)
 
@@ -163,19 +151,19 @@ def prepare_extensions_release() -> None:
     print("-----------------------------------------------------------------")
     print("--------------- Preparing Individual Extensions -----------------")
     print("-----------------------------------------------------------------")
-  
+
     extensions = {
         "elyra-template-extension": SimpleNamespace(
             packages=["template-extension", "metadata-extension", "theme-extension"],
             description=f"The Template editor extension adds support for reusable code fragments, "
-                        f"making programming in JupyterLab more efficient by reducing repetitive work. "
-                        f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/templates.html",
+            f"making programming in JupyterLab more efficient by reducing repetitive work. "
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/templates.html",
         ),
         "elyra-code-snippet-extension": SimpleNamespace(
             packages=["code-snippet-extension", "metadata-extension", "theme-extension"],
             description=f"The code-snippet editor extension adds support for reusable code fragments, "
-                        f"making programming in JupyterLab more efficient by reducing repetitive work. "
-                        f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
+            f"making programming in JupyterLab more efficient by reducing repetitive work. "
+            f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
         ),
     }
 
@@ -193,7 +181,7 @@ def prepare_extensions_release() -> None:
         setup_file = os.path.join(extension_source_dir, "setup.py")
         sed(setup_file, "{{package-name}}", extension)
         sed(setup_file, "{{version}}", config.new_version)
-        sed(setup_file, "{{data - files}}", re.escape("('share/jupyter/labextensions', 'dist/labextensions', '**')"))
+        sed(setup_file, "{{data - files}}", re.escape("('share/jupyter/labextensions', 'build/labextensions', '**')"))
         sed(setup_file, "{{install - requires}}", f"'elyra-server=={config.new_version}',")
         sed(setup_file, "{{description}}", f"'{extensions[extension].description}'")
 
@@ -202,6 +190,7 @@ def prepare_extensions_release() -> None:
 
         # build extension
         check_run(["python", "setup.py", "bdist_wheel", "sdist"], cwd=extension_source_dir)
+
         print(
             f'Copying : {_source(extension_source_dir + "/dist/" + extension + "-" + config.new_version + ".tar.gz")} to {config.elevo_depend_files}'
         )
@@ -241,7 +230,7 @@ def initialize_config(args=None) -> SimpleNamespace:
         "work_dir": os.path.join(os.getcwd()),
         "source_dir": os.path.join(os.getcwd()),
         "new_version": args.version,
-        "elevo_depend_files": os.path.join("/nfs/projects1/shared-tools/elevo-dependfiles"),
+        "elevo_depend_files": os.path.join(os.getcwd() + "/dist"),
     }
 
     global config
@@ -266,7 +255,7 @@ def print_help() -> str:
     return """create_integra_release.py [ prepare ] --version VERSION
 
     DESCRIPTION
-    Creates Integra release based on git commit hash or from HEAD.
+    Creates foresight release based on git commit hash or from HEAD.
 
     create-release.py prepare --version 3.11.0.dev0
     This will install/build-sever and prepare server/extension distributions.
@@ -319,4 +308,3 @@ def main(args=None):
 
 if __name__ == "__main__":
     main()
-

@@ -1,9 +1,9 @@
 <!--
 {% comment %}
 This program is an unpublished work fully protected by the United States
-copyright laws and is considered a trade secret belonging to Attala Systems Corporation.
+copyright laws and is considered a trade secret belonging to Elevo Corporation.
 To the extent that this work may be considered "published", the following notice applies
-"(C) 2020, 2021, Attala Systems Corporation"
+"(C) 2020, 2023, Elevo Corporation"
 
 Any unauthorized use, reproduction, distribution, display, modification,
 or disclosure of this program is strictly prohibited.
@@ -24,7 +24,7 @@ limitations under the License.
 {% endcomment %}
 -->
 
-# Instructions to build integra/elyra jupyter distributions
+# Instructions to build foresight/elyra jupyter distributions
 
 ## One-time setup
 
@@ -73,20 +73,14 @@ conda create -n <env-name> python==3.7.9
 
 ## Commands done once per build
 
-   - run the create_integra_release.py python script to get the integra distribution files
+   - run the create_foresight_release.py python script to build the foresight dependency files
      ```
      conda activate <env-name>
      cd elyra
-     python create_integra_release.py prepare --version 3.11.0.dev0
+     python create_foresight_release.py prepare --version 3.15.0.dev0
      ```
 
-     Warning: Doing this will overwrite the Elyra distribution files on in
-     `/nfs/projects1/shared-tools/elevo-dependfiles/elyra*` for everyone!
-     Update the target location in file `create_integra_release.py` to
-     avoid that.
-     
-     Also note that building Elyra modifies a lot of files that are checked
-     into git. If you made any changes that you want to commit, then do that
-     before running the build command above to avoid mixing your changes with
-     those made by the build.
-     
+     Note: 
+     All distributable files will be created in dist folder. Please copy
+     the  *.whl files and *extension* files to foresight location for validation 
+     with foresight product

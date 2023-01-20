@@ -6,7 +6,7 @@ requires = [
 
 [project]
 name="elyra"
-description="Elyra provides AI Centric extensions to JupyterLab"
+description="The foresight package provides common core libraries and functions that are required by Elyra's individual extensions. Note: Installing this package alone will not enable the use of Elyra. Please install the 'elyra' package instead. e.g. pip install elyra[all]"
 maintainers = [
     {name = "Elyra Maintainers"},
 ]
@@ -114,6 +114,7 @@ jupyter-elyra = "elyra.elyra_app:launch_instance"
 runtimes = "elyra.metadata.schemaspaces:Runtimes"
 runtimes-images = "elyra.metadata.schemaspaces:RuntimeImages"
 code-snippets = "elyra.metadata.schemaspaces:CodeSnippets"
+templates = "elyra.metadata.schemaspaces:Templates"
 component-catalogs = "elyra.metadata.schemaspaces:ComponentCatalogs"
 metadata-tests = "elyra.tests.metadata.test_utils:MetadataTestSchemaspace"
 
@@ -121,6 +122,7 @@ metadata-tests = "elyra.tests.metadata.test_utils:MetadataTestSchemaspace"
 runtimes = "elyra.metadata.schemasproviders:RuntimesSchemas"
 runtimes-images = "elyra.metadata.schemasproviders:RuntimeImagesSchemas"
 code-snippets = "elyra.metadata.schemasproviders:CodeSnippetsSchemas"
+templates = "elyra.metadata.schemasproviders:TemplatesSchemas"
 component-catalogs = "elyra.metadata.schemasproviders:ComponentCatalogsSchemas"
 airflow-provider-package-catalog-schema = "elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_package_schema_provider:AirflowProviderPackageSchemasProvider"
 airflow-package-catalog-schema = "elyra.pipeline.airflow.package_catalog_connector.airflow_package_schema_provider:AirflowPackageSchemasProvider"
