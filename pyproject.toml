@@ -172,6 +172,7 @@ ignore-vcs = true
 # Specify which files to include and exclude in source distribution
 [tool.hatch.build.targets.sdist]
 include = [
+    "build/labextensions",
     "elyra",
     "etc/config/components/*.json",
     "etc/config/components/kfp*/.yaml",
@@ -180,7 +181,6 @@ include = [
     "etc/config/metadata/runtime-images/*.json",
     "etc/config/metadata/component-registries/*.json",
     "etc/config/settings/*.json",
-    "build/labextensions",
 ]
 exclude = [
     "*.ipynb",
