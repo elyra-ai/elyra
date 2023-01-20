@@ -1268,13 +1268,12 @@
     seedrandom "^3.0.5"
     uuid "^8.3.0"
 
-"@elyra/pipeline-editor@1.12.0":
+"@elyra/pipeline-editor@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/0bba514b/@elyra/pipeline-editor":
   version "1.12.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-editor/-/pipeline-editor-1.12.0.tgz#aa6da0000f0faa94bbc61496772c088ec5ec4d1a"
-  integrity sha512-4EIQnsSlP9Ee0JfCKDQAmLfO9yMIuETOKbXYockZDYFNDW1K9hNd1achcjbvWdVuIg9H+14I6mdGy46dtzkVOg==
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/0bba514b/@elyra/pipeline-editor#a2a21147c0a81546bd9d948c5b256314b2898bf0"
   dependencies:
     "@elyra/canvas" "^12.23.2"
-    "@elyra/pipeline-services" "^1.12.0"
+    "@elyra/pipeline-services" "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/0bba514b/@elyra/pipeline-services"
     "@rjsf/core" "^4.2.3"
     "@rjsf/utils" "^5.0.0-beta.2"
     "@rjsf/validator-ajv6" "^5.0.0-beta.2"
@@ -1295,10 +1294,9 @@
   resolved "https://registry.yarnpkg.com/@elyra/pipeline-schemas/-/pipeline-schemas-3.0.63.tgz#c6a6f9c0bc2215793d78fb90dd5e0b3c46044c7c"
   integrity sha512-p2pNeDmMzRawqFYljv1JAg0HbYlQ57cgMMmO3Slc5IQnKNSa08al5/rtthI04iORWOGi2cF5TNeu2IdjTk0JiA==
 
-"@elyra/pipeline-services@1.12.0", "@elyra/pipeline-services@^1.12.0":
+"@elyra/pipeline-services@https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/0bba514b/@elyra/pipeline-services":
   version "1.12.0"
-  resolved "https://registry.yarnpkg.com/@elyra/pipeline-services/-/pipeline-services-1.12.0.tgz#f726304fc62aba734451fe48272b33385e0481e8"
-  integrity sha512-4a5IHba6CczCGNIHlK0kfA6QWq0F5BLeNV2Jw1XiH1MQWZqAtoDrIIZgj44WprpTnboyo2UhDRNXzvXm4JGWlg==
+  resolved "https://pkg.csb.dev/elyra-ai/pipeline-editor/commit/0bba514b/@elyra/pipeline-services#3065c10731bff811c2d8976fe461c826fcf82609"
   dependencies:
     immer "^9.0.7"
     jsonc-parser "^3.0.0"
@@ -12619,7 +12617,7 @@ json5@^1.0.1:
   dependencies:
     minimist "^1.2.0"
 
-jsonc-parser@3.2.0, jsonc-parser@^3.0.0:
+jsonc-parser@3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.2.0.tgz#31ff3f4c2b9793f89c67212627c51c6394f88e76"
   integrity sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w==
