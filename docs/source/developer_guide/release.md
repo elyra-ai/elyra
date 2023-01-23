@@ -97,6 +97,13 @@ Currently, these packages are:
 Before you begin creating a new Elyra release, verify if there is a need to release any of these packages, and if
 necessary, update Elyra to use the new release.
 
+Elyra supports both `podman` (OCI) and `docker` as container runtimes to build our container images. `docker` is 
+configured as the default container runtime. If using `podman`, ensure the following environmental variables are set prior to running the release script:
+```bash
+CONTAINER_EXEC=podman
+CONTAINER_OUTPUT_OPTION="--format docker"
+```
+
 ## Elyra release process overview
 
 Building an Elyra release consists of the following steps:
