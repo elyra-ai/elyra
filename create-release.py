@@ -77,7 +77,7 @@ def dependency_exists(command) -> bool:
 def sed(file: str, pattern: str, replace: str) -> None:
     """Perform regex substitution on a given file"""
     try:
-        if sys.platform == "linux" or "linux2":
+        if sys.platform in ["linux", "linux2"]:
             check_run(["sed", "-i", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
         elif sys.platform == "darwin":
             check_run(["sed", "-i", "", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
