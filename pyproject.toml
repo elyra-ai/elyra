@@ -152,10 +152,14 @@ universal = true
 path = "elyra/_version.py"
 
 [tool.hatch.build]
+include = [
+    "elyra/*",
+]
 ignore-vcs = true
 
 # Include data files with dist
 [tool.hatch.build.targets.wheel.shared-data]
+"build/labextensions" = "share/jupyter/labextensions"
 "etc/config/jupyter_notebook_config.d" = "etc/jupyter/jupyter_notebook_config.d"
 "etc/config/jupyter_server_config.d" = "etc/jupyter/jupyter_server_config.d"
 "etc/config/settings" = "etc/jupyter/labconfig"
@@ -164,7 +168,6 @@ ignore-vcs = true
 "etc/config/components" = "share/jupyter/components"
 "etc/config/components/kfp" = "share/jupyter/components/kfp/"
 "etc/config/components/airflow" = "share/jupyter/components/airflow/"
-"build/labextensions" = "share/jupyter/labextensions"
 
 # Specify which files to include and exclude in source distribution
 [tool.hatch.build.targets.sdist]
