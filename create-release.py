@@ -77,7 +77,12 @@ def dependency_exists(command) -> bool:
 def sed(file: str, pattern: str, replace: str) -> None:
     """Perform regex substitution on a given file"""
     try:
-        check_run(["sed", "-i", "", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
+        if sys.platform == "linux" or "linux2":
+            check_run(["sed", "-i", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
+        elif sys.platform == "darwin":
+            check_run(["sed", "-i", "", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
+        else:  # windows, other
+            raise RuntimeError(f"Current operating system not supported for release publishing: {sys.platform}: ")
     except Exception as ex:
         raise RuntimeError(f"Error processing updated to file {file}: ") from ex
 
