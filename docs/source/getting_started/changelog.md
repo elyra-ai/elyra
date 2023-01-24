@@ -2,6 +2,22 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.14.2rc0 - 01/24/2023
+
+- Update release script for linux environments - [#3086](https://github.com/elyra-ai/elyra/pull/3086)
+- Fix oneOf file selection - [#3065](https://github.com/elyra-ai/elyra/pull/3065)
+- Support using podman as container runtime - [#3082](https://github.com/elyra-ai/elyra/pull/3082)
+- Repackage data files into elyra-server distribution - [#3081](https://github.com/elyra-ai/elyra/pull/3081)
+- Fix negative parameter behavior - [#3062](https://github.com/elyra-ai/elyra/pull/3062)
+- Fix write_error function implementation in handlers - [#3080](https://github.com/elyra-ai/elyra/pull/3080)
+- Update factory image tags to use SHA256 hashes - [#3075](https://github.com/elyra-ai/elyra/pull/3075)
+- Bump json5 from 1.0.1 to 1.0.2 - [#3068](https://github.com/elyra-ai/elyra/pull/3068)
+- Update package to include all-optional-dependencies subpackage - [#3067](https://github.com/elyra-ai/elyra/pull/3067)
+- Decrease jupyter_core floor, cap nbclient for 3.7 - [#3071](https://github.com/elyra-ai/elyra/pull/3071)
+- Disable test due to inconsistent setup in CI - [#3073](https://github.com/elyra-ai/elyra/pull/3073)
+- Remove unnecessary caps in dependencies for kfp-related packages - [#3076](https://github.com/elyra-ai/elyra/pull/3076)
+- Add link to new blog post to documentation - [#3064](https://github.com/elyra-ai/elyra/pull/3064)
+
 ## Release 3.14.1 - 12/14/2022
 
 - Remove jupyter-server-terminal cap and fix release script - [#3057](https://github.com/elyra-ai/elyra/pull/3057)
