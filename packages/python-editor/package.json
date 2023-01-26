@@ -1,6 +1,6 @@
 {
   "name": "@elyra/python-editor-extension",
-  "version": "3.14.2-rc.1",
+  "version": "3.15.0-dev",
   "description": "JupyterLab extension - Run python scripts using a kernel runtime",
   "keywords": [
     "jupyter",
@@ -43,8 +43,8 @@
     "unlink:dev": "yarn unlink @jupyterlab/builder"
   },
   "dependencies": {
-    "@elyra/script-editor": "3.14.2-rc.1",
-    "@elyra/ui-components": "3.14.2-rc.1",
+    "@elyra/script-editor": "3.15.0-dev",
+    "@elyra/ui-components": "3.15.0-dev",
     "@jupyterlab/application": "^3.4.6",
     "@jupyterlab/apputils": "^3.4.6",
     "@jupyterlab/codeeditor": "^3.4.6",
