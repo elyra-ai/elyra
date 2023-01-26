@@ -48,7 +48,7 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
           return undefined;
         }
         const required =
-          param.required === true && !param.default_value?.value
+          param.required === true && param.default_value?.value === ''
             ? true
             : undefined;
         let type = 'text';
