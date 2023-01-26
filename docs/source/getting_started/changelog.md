@@ -2,6 +2,10 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.14.2rc1 - 01/26/2023
+
+- Fix int parameter default zero bug - [#3090](https://github.com/elyra-ai/elyra/pull/3090)
+
 ## Release 3.14.2rc0 - 01/24/2023
 
 - Update release script for linux environments - [#3086](https://github.com/elyra-ai/elyra/pull/3086)
