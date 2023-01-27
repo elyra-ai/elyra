@@ -729,9 +729,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
             )
             # - load the generic component definition template
-            generic_component_template = Environment(
-                loader=PackageLoader("elyra", "templates/kubeflow/v1")
-            ).get_template("generic_component_definition_template.jinja2")
+            template_env = Environment(loader=PackageLoader("elyra", "templates/kubeflow/v1"))
+            generic_component_template = template_env.get_template("generic_component_definition_template.jinja2")
+            # Add filter that escapes the " character in strings
+            template_env.filters["string_delimiter_safe"] = lambda string: re.sub('"', '\\\\\\\\"', string)
             # Determine whether we are executing in a CRI-O runtime environment
             is_crio_runtime = os.getenv("CRIO_RUNTIME", "False").lower() == "true"
 
