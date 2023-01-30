@@ -18,8 +18,8 @@ on:
   push: # all branches
   pull_request: # all branches
   schedule:
-    # once a day at 3 am (UTC) (7 pm (PST))
-    - cron:  '0 3 * * *'
+    # once a day at 3 am (PST) (10 am (UTC))
+    - cron:  '0 10 * * *'
 
 env:
   FORCE_COLOR: true
