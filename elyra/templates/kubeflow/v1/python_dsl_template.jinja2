@@ -26,7 +26,7 @@ factory_{{ hash | python_safe }} = kfp.components.load_component_from_text(compo
 def generated_pipeline(
 {% if pipeline_parameters %}
 {% for parameter in pipeline_parameters %}
-    {{ parameter.name }}{% if parameter.input_type.type_hint %}: {{ parameter.input_type.type_hint }} = {% else %}={% endif %}{{ parameter|param_val_to_python_var }},
+    {{ parameter.name }}{% if parameter.input_type.type_hint %}: {{ parameter.input_type.type_hint }}{% endif %} = {{ parameter|param_val_to_python_var }},
 {% endfor %}
 {% endif %}
 ):
