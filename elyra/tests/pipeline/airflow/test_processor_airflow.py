@@ -100,7 +100,6 @@ def sample_image_metadata():
 
 @pytest.fixture
 def parsed_ordered_dict(monkeypatch, processor, parsed_pipeline, sample_metadata, sample_image_metadata):
-
     mocked_runtime = Metadata(
         name="test-metadata", display_name="test", schema_name="airflow", metadata=sample_metadata["metadata"]
     )
@@ -134,7 +133,6 @@ def test_fail_processor_type(processor):
 
 @pytest.mark.parametrize("parsed_pipeline", [PIPELINE_FILE_COMPLEX], indirect=True)
 def test_pipeline_process(monkeypatch, processor, parsed_pipeline, sample_metadata):
-
     mocked_runtime = Metadata(
         name="test-metadata", display_name="test", schema_name="airflow", metadata=sample_metadata["metadata"]
     )

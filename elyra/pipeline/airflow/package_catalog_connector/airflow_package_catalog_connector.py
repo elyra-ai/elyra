@@ -44,7 +44,6 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
     REQUEST_TIMEOUT = 30
 
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
-
         """
         Returns a list containing an entry for each Apache Airflow operator that was
         detected in the specified Apache Airflow wheel archive.

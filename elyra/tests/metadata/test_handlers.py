@@ -271,7 +271,6 @@ async def test_invalid_update(jp_fetch, schemaspace_location):
 
 
 async def test_update_fields(jp_fetch, schemaspace_location):
-
     # Create an instance, then update with a new field
     create_json_file(schemaspace_location, "update_fields.json", valid_metadata_json)
     valid = copy.deepcopy(valid_metadata_json)

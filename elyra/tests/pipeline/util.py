@@ -77,7 +77,6 @@ class NodeBase(object):
         self.dependencies = ["node_util/*"]
 
     def get_operation(self) -> GenericOperation:
-
         env_vars = []
         if self.fail:  # NODE_FILENAME is required, so skip if triggering failure
             if "NODE_FILENAME" in os.environ:  # remove entry if present
@@ -126,7 +125,6 @@ class NotebookNode(NodeBase):
         image_name: Optional[str] = None,
         fail: Optional[bool] = False,
     ):
-
         super().__init__(name, num_outputs=num_outputs, input_nodes=input_nodes, image_name=image_name, fail=fail)
         self.classifier = "execute-notebook-node"
         self.filename = f"{self.name}.ipynb"
@@ -141,7 +139,6 @@ class PythonNode(NodeBase):
         image_name: Optional[str] = None,
         fail: Optional[bool] = False,
     ):
-
         super().__init__(name, num_outputs=num_outputs, input_nodes=input_nodes, image_name=image_name, fail=fail)
         self.classifier = "execute-python-node"
         self.filename = f"{self.name}.py"

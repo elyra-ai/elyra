@@ -78,5 +78,4 @@ class TestOperator(BaseOperator):
         *args,
         **kwargs,
     ) -> None:
-
         super().__init__(*args, **kwargs)

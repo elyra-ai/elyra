@@ -365,7 +365,6 @@ class ComponentCacheHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def put(self):
-
         # Validate the body
         cache_refresh = self.get_json_body()
         if "action" not in cache_refresh or cache_refresh["action"] != "refresh":
@@ -389,7 +388,6 @@ class ComponentCacheCatalogHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def put(self, catalog):
-
         # Validate the body
         cache_refresh = self.get_json_body()
         if "action" not in cache_refresh or cache_refresh["action"] != "refresh":

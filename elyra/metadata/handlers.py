@@ -51,7 +51,6 @@ class MetadataHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def post(self, schemaspace):
-
         schemaspace = url_unescape(schemaspace)
         parent = self.settings.get("elyra")
         try:
@@ -233,7 +232,6 @@ class SchemaspaceHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self):
-
         try:
             schema_manager = SchemaManager.instance()
             schemaspaces = schema_manager.get_schemaspace_names()
@@ -256,7 +254,6 @@ class SchemaspaceResourceHandler(HttpErrorMixin, APIHandler):
 
     @web.authenticated
     async def get(self, schemaspace):
-
         try:
             schema_manager = SchemaManager.instance()
             schemaspace = schema_manager.get_schemaspace(schemaspace)

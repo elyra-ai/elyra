@@ -116,13 +116,11 @@ class LocalPipelineProcessor(PipelineProcessor):
 
 
 class LocalPipelineProcessorResponse(PipelineProcessorResponse):
-
     _type = RuntimeProcessorType.LOCAL
     _name = "local"
 
 
 class OperationProcessor(ABC):
-
     _operation_name: str = None
 
     def __init__(self):
@@ -146,7 +144,6 @@ class OperationProcessor(ABC):
 
 
 class FileOperationProcessor(OperationProcessor):
-
     MAX_ERROR_LEN: int = 80
 
     def __init__(self, root_dir: str):
@@ -245,7 +242,6 @@ class NotebookOperationProcessor(FileOperationProcessor):
 
 
 class ScriptOperationProcessor(FileOperationProcessor):
-
     _script_type: str = None
 
     def get_argv(self, filepath) -> List[str]:

@@ -46,7 +46,6 @@ class AirflowProviderPackageCatalogConnector(ComponentCatalogConnector):
     REQUEST_TIMEOUT = 30
 
     def get_catalog_entries(self, catalog_metadata: Dict[str, Any]) -> List[Dict[str, Any]]:
-
         """
         Download the user-defined Apache Airflow provider package and search for Python
         scripts that contain one or more operator definitions.
