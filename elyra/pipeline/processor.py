@@ -196,7 +196,6 @@ class PipelineProcessorManager(SingletonConfigurable):
 
 
 class PipelineProcessorResponse:
-
     _type: RuntimeProcessorType = None
     _name: str = None
 
@@ -258,7 +257,6 @@ class RuntimePipelineProcessorResponse(PipelineProcessorResponse):
 
 
 class PipelineProcessor(LoggingConfigurable):  # ABC
-
     _type: RuntimeProcessorType = None
     _name: str = None
 

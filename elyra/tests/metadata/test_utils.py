@@ -479,7 +479,6 @@ class MetadataTestSchemasProvider(SchemasProvider):
                 schema_json = json.load(f)
 
                 if json_file == "metadata-test.json":  # Apply filtering
-
                     # Update multipleOf from 7 to 6 and and value 'added' to enum-valued property
                     multiple_of: int = schema_json["properties"]["metadata"]["properties"]["integer_multiple_test"][
                         "multipleOf"

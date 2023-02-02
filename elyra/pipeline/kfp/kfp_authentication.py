@@ -408,7 +408,6 @@ class DEXStaticPasswordAuthenticator(AbstractAuthenticator):
             )
 
         with requests.Session() as s:
-
             request_history = []
 
             ################
@@ -534,7 +533,6 @@ class DEXLDAPAuthenticator(AbstractAuthenticator):
             )
 
         with requests.Session() as s:
-
             request_history = []
 
             ################
@@ -741,7 +739,6 @@ class DEXLegacyAuthenticator(AbstractAuthenticator):
         # If KF redirected to '/dex/auth/...
         # try to authenticate using the provided credentials
         if "dex/auth" in resp.url:
-
             if _empty_or_whitespaces_only(username) or _empty_or_whitespaces_only(password):
                 raise AuthenticationError(
                     f"Kubeflow server at {kf_endpoint} is secured: "

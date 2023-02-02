@@ -74,7 +74,6 @@ class RuntimesSchemas(ElyraSchemasProvider):
     """Returns schemas relative to Runtimes schemaspace only for THIS provider."""
 
     def get_schemas(self) -> List[Dict]:
-
         kfp_schema_present = False
         airflow_schema_present = False
         # determine if both airflow and kfp are needed and note if kfp is needed for later

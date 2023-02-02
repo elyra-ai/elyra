@@ -49,7 +49,6 @@ os.environ["METADATA_TESTING"] = "1"  # Enable metadata-tests schemaspace
 
 # ########################## MetadataManager Tests ###########################
 def test_manager_add_invalid(tests_manager):
-
     with pytest.raises(ValueError):
         MetadataManager(schemaspace="invalid")
 
@@ -379,7 +378,6 @@ def test_manager_rollback_delete(tests_manager):
 
 
 def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_location, shared_location, schemaspace_location):
-
     # fetch initial instances, only factory data should be present
     metadata_list = tests_hierarchy_manager.get_all()
     assert len(metadata_list) == 3
@@ -467,7 +465,6 @@ def test_manager_hierarchy_fetch(tests_hierarchy_manager, factory_location, shar
 
 
 def test_manager_hierarchy_create(tests_hierarchy_manager, schemaspace_location):
-
     # Note, this is really more of an update test (replace = True), since you cannot "create" an
     # instance if it already exists - which, in this case, it exists in the factory area
 
@@ -516,7 +513,6 @@ def test_manager_hierarchy_create(tests_hierarchy_manager, schemaspace_location)
 
 
 def test_manager_hierarchy_update(tests_hierarchy_manager, factory_location, shared_location, schemaspace_location):
-
     # Create a copy of existing factory instance and ensure its in the user area
     byo_2 = tests_hierarchy_manager.get("byo_2")
     assert byo_2.resource.startswith(str(factory_location))
@@ -547,7 +543,6 @@ def test_manager_hierarchy_update(tests_hierarchy_manager, factory_location, sha
 
 
 def test_manager_update(tests_hierarchy_manager, schemaspace_location):
-
     # Create some metadata, then attempt to update it with a known schema violation
     # and ensure the previous copy still exists...
 
@@ -577,7 +572,6 @@ def test_manager_update(tests_hierarchy_manager, schemaspace_location):
 
 
 def test_manager_default_value(tests_hierarchy_manager, schemaspace_location):
-
     # Create some metadata, then attempt to update it with a known schema violation
     # and ensure the previous copy still exists...
 
@@ -604,7 +598,6 @@ def test_manager_default_value(tests_hierarchy_manager, schemaspace_location):
 
 
 def test_manager_bad_update(tests_hierarchy_manager, schemaspace_location):
-
     # Create some metadata, then attempt to update it with a known schema violation
     # and ensure the previous copy still exists...
 
@@ -640,7 +633,6 @@ def test_manager_bad_update(tests_hierarchy_manager, schemaspace_location):
 
 
 def test_manager_hierarchy_remove(tests_hierarchy_manager, factory_location, shared_location, schemaspace_location):
-
     # Create additional instances in shared and user areas
     byo_2 = byo_metadata_json
     byo_2["display_name"] = "shared"

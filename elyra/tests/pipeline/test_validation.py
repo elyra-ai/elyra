@@ -1154,7 +1154,6 @@ async def test_pipeline_invalid_kfp_inputpath_missing_connection(
 async def test_pipeline_aa_parent_node_missing_xcom_push(
     validation_manager, load_pipeline, catalog_instance, component_cache
 ):
-
     invalid_node_id = "b863d458-21b5-4a46-8420-5a814b7bd525"
     invalid_parent_id = "f16f95e0-192c-4b1c-b42d-310da7a6c0e9"
 

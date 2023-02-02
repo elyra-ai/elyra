@@ -244,7 +244,6 @@ class CacheUpdateWorker(Thread):
         catalog: ComponentCatalogMetadata,
         action: Optional[str] = None,
     ):
-
         super().__init__()
 
         self.daemon = True

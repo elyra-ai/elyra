@@ -349,7 +349,6 @@ def test_env_list_to_dict_function():
 
 
 def test_validate_resource_values():
-
     component_parameters = {
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
         "cpu": "4",
@@ -373,7 +372,6 @@ def test_validate_resource_values():
 
 
 def test_validate_resource_values_as_none():
-
     component_parameters = {
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
         "runtime_image": "tensorflow/tensorflow:latest",
@@ -393,7 +391,6 @@ def test_validate_resource_values_as_none():
 
 
 def test_validate_gpu_accepts_zero_as_value():
-
     component_parameters = {
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
         "cpu": "4",
