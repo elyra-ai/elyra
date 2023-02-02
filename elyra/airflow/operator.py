@@ -91,7 +91,6 @@ class BootscriptBuilder(object):
 
     @property
     def container_cmd(self):
-
         common_curl_options = "--fail -H 'Cache-Control: no-cache'"
 
         self.arguments = [

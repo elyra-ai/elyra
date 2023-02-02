@@ -53,7 +53,6 @@ DEFAULT_TEMPLATE_FILES_PATH = os.path.join(os.path.dirname(__file__), "templates
 
 
 class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
-
     # The name of the extension.
     name = "elyra"
     version = __version__

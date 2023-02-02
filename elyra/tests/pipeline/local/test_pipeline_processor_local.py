@@ -65,7 +65,6 @@ def test_pipeline_execution_order_in_simple_pipeline():
 
 
 def test_pipeline_get_envs():
-
     # Ensure pipeline operation env lists are properly converted to dictionaries.
 
     pipeline_json = _read_pipeline_resource("resources/sample_pipelines/pipeline_dependency_complex.json")

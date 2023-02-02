@@ -246,7 +246,6 @@ def test_create_from_file(script_runner, mock_data_dir, option_style):
 
 @pytest.mark.parametrize("option_style", ["equals", "sans-equals", "missing"])
 def test_create_from_json(script_runner, mock_data_dir, option_style):
-
     content = json.dumps(valid_metadata_json)
 
     argv: List[str] = [
@@ -377,7 +376,6 @@ def test_install_and_replace(script_runner, mock_data_dir):
 
 @pytest.mark.parametrize("complex_keyword", ["defs", "oneOf", "allOf"])
 def test_install_and_replace_complex(script_runner, mock_data_dir, complex_keyword):
-
     # create and use deep copies of the global one_of_json and one_of_json
     # to avoid side effects
     one_of_json_cp = json.loads(json.dumps(one_of_json))
@@ -678,7 +676,6 @@ def test_create_existing(script_runner, mock_data_dir):
 
 
 def test_create_complex(script_runner, mock_data_dir):
-
     complex_keyword = "defs"
     name: str = f"test-complex-{complex_keyword}".lower()
 
@@ -842,7 +839,6 @@ def test_update_simple(script_runner, mock_data_dir):
 
 @pytest.mark.parametrize("complex_keyword", ["defs", "oneOf", "allOf"])
 def test_update_complex(script_runner, mock_data_dir, complex_keyword):
-
     # create and use deep copies of the global one_of_json and one_of_json
     # to avoid side effects
     one_of_json_cp = json.loads(json.dumps(one_of_json))

@@ -18,8 +18,8 @@ on:
   push: # all branches
   pull_request: # all branches
   schedule:
-    # once a day at 3 am (UTC) (7 pm (PST))
-    - cron:  '0 3 * * *'
+    # once a day at 3 am (PST) (10 am (UTC))
+    - cron:  '0 10 * * *'
 
 env:
   FORCE_COLOR: true
@@ -29,11 +29,11 @@ jobs:
     name: Prepare Cache
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "*"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             node_modules
@@ -47,7 +47,7 @@ jobs:
     name: Lint Server
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Lint
         run: make lint-server
 
@@ -56,11 +56,11 @@ jobs:
     needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "*"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             node_modules
@@ -80,8 +80,8 @@ jobs:
       matrix:
         python-version: [3.7, 3.8, 3.9, "3.10", "3.11"]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install
@@ -107,14 +107,14 @@ jobs:
     needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "*"
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: "*"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             node_modules
@@ -135,14 +135,14 @@ jobs:
     needs: prepare-yarn-cache
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "*"
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: "*"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             node_modules
@@ -161,7 +161,7 @@ jobs:
       - name: Cypress
         run: make test-integration
       - name: Collect logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           path: |
@@ -174,7 +174,7 @@ jobs:
     name: Test documentation build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build
         run: make docs
 
@@ -185,7 +185,7 @@ jobs:
       matrix:
         python-version: [3.7, 3.8, 3.9, "3.10", "3.11"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Validate image environment
         run: make PYTHON_VERSION=${{ matrix.python-version }} elyra-image-env
 
@@ -194,6 +194,6 @@ jobs:
     name: Validate Images
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Validate runtime images
         run: make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images
