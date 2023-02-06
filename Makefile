@@ -356,7 +356,6 @@ validate-runtime-image: # Validate that runtime image meets minimum criteria
 			if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
 				echo "WARNING: Container image $$image requires Python 3.8 or greater for latest generic component dependency installation" ; \
 				fail=1; \
-			fi; \
 			elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
 				echo "=> Checking notebook execution..." ; \
 				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
