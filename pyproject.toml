@@ -11,7 +11,7 @@ maintainers = [
     {name = "Elyra Maintainers"},
 ]
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "autopep8>=1.5.0",
     "click>=8",  # elyra-ai/elyra#2579
@@ -32,7 +32,6 @@ dependencies = [
     "MarkupSafe>=2.1",
     "minio>=7.0.0",
     "nbclient>=0.5.1",
-    "nbclient>=0.5.1,<=0.7.0;python_version=='3.7'",  # nbclient > 0.7 requires jupyter_core >= 4.12 which doesn't exist in conda for 3.7
     "nbconvert>=6.5.1",
     "nbdime~=3.1",  # Cap from jupyterlab-git
     "nbformat>=5.1.2",
@@ -61,7 +60,6 @@ classifiers = [
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -237,7 +235,7 @@ import-order-style = "google"
 line-length = 120
 
 # Python versions that should be supported by the produced output
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+target-version = ['py38', 'py39', 'py310', 'py311']
 
 # Migrate configurations from pytest.ini
 [tool.pytest.ini_options]

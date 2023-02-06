@@ -95,7 +95,7 @@ For detailed information refer to the [installation documentation](https://elyra
 
 ### Prerequisites :
 * [Node.js 16+](https://nodejs.org/en/)
-* [Python 3.7+](https://www.python.org/downloads/)
+* [Python 3.8+](https://www.python.org/downloads/)
 * [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (optional)
 
 ### Install current release (for JupyterLab 3.x)

@@ -1082,11 +1082,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             f"https://raw.githubusercontent.com/{elyra_github_org}/"
             f"elyra/{elyra_github_branch}/etc/generic/requirements-elyra.txt",
         )
-        elyra_requirements_url_py37 = os.getenv(
-            "elyra_requirements_url_py37",
-            f"https://raw.githubusercontent.com/{elyra_github_org}/"
-            f"elyra/{elyra_github_branch}/etc/generic/requirements-elyra-py37.txt",
-        )
 
         if is_crio_runtime:
             container_work_dir = CRIO_VOL_WORKDIR_PATH
@@ -1108,8 +1103,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             f"curl {common_curl_options} -L {elyra_bootstrap_script_url} --output bootstrapper.py",
             f"echo 'Downloading {elyra_requirements_url}' && "
             f"curl {common_curl_options} -L {elyra_requirements_url} --output requirements-elyra.txt",
-            f"echo 'Downloading {elyra_requirements_url_py37}' && "
-            f"curl {common_curl_options} -L {elyra_requirements_url_py37} --output requirements-elyra-py37.txt",
         ]
 
         if is_crio_runtime:

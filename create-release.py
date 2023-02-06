@@ -248,11 +248,6 @@ def update_version_to_release() -> None:
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            r"elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt",
-            rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
-        )
-        sed(
-            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/main/etc/generic/requirements-elyra.txt",
             rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
         )
@@ -367,11 +362,6 @@ def update_version_to_dev() -> None:
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             rf"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
             r"elyra-ai/elyra/main/elyra/airflow/bootstrapper.py",
-        )
-        sed(
-            _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
-            rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra-py37.txt",
-            r"elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt",
         )
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),

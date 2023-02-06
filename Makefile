@@ -212,15 +212,9 @@ release: yarn-install build-ui build-server ## Build wheel file for release
 elyra-image-env: ## Creates a conda env consisting of the dependencies used in images
 	conda env remove -y -n $(ELYRA_IMAGE_ENV)
 	conda create -y -n $(ELYRA_IMAGE_ENV) python=$(PYTHON_VERSION) --channel conda-forge
-	if [ "$(PYTHON_VERSION)" == "3.7" ]; then \
-		$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
-		$(PYTHON_PIP) install -r etc/generic/requirements-elyra-py37.txt && \
-		conda deactivate; \
-	else \
-		$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
-		$(PYTHON_PIP) install -r etc/generic/requirements-elyra.txt && \
-		conda deactivate; \
-	fi
+	$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
+	$(PYTHON_PIP) install -r etc/generic/requirements-elyra.txt && \
+	conda deactivate;
 
 ## Test targets
 
@@ -361,14 +355,8 @@ validate-runtime-image: # Validate that runtime image meets minimum criteria
 			IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2` ; \
 			if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
 				echo "WARNING: Container image $$image requires Python 3.8 or greater for latest generic component dependency installation" ; \
-				echo "=> Checking notebook execution..." ; \
-				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra-py37.txt && \
-							   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
-							   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
-				if [ $$? -ne 0 ]; then \
-					echo "ERROR: Container image $$image does not meet Python requirements criteria in requirements-elyra-py37.txt" ; \
-					fail=1; \
-				fi; \
+				fail=1; \
+			fi; \
 			elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
 				echo "=> Checking notebook execution..." ; \
 				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
