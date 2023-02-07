@@ -53,17 +53,14 @@ During pipeline execution in the Kubeflow Pipelines or Apache Airflow environmen
     https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/kfp/pip.conf
     https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/kfp/bootstrapper.py
     https://raw.githubusercontent.com/elyra-ai/elyra/main/elyra/airflow/bootstrapper.py
-    https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra-py37.txt
     https://raw.githubusercontent.com/elyra-ai/elyra/main/etc/generic/requirements-elyra.txt
   ```
   In air-gapped environments you must store a copy of these files in a location that is accessible via an anonymous HTTP `GET` request and configure the following environment variables _in the environment where JupyterLab is running_:
     - For Kubeflow Pipelines:
         - `ELYRA_PIP_CONFIG_URL` (URL of `.../etc/kfp/pip.conf`)
         - `ELYRA_BOOTSTRAP_SCRIPT_URL` (URL of `.../elyra/kfp/bootstrapper.py`)
-        - `ELYRA_REQUIREMENTS_URL_PY37` (URL of `.../etc/generic/requirements-elyra-py37.txt`)
         - `ELYRA_REQUIREMENTS_URL` (URL of `.../etc/generic/requirements-elyra.txt`)
     - For Apache Airflow:
         - `ELYRA_BOOTSTRAP_SCRIPT_URL` (URL of `.../elyra/airflow/bootstrapper.py`)
-        - `ELYRA_REQUIREMENTS_URL_PY37` (URL of `.../etc/generic/requirements-elyra-py37.txt`)
         - `ELYRA_REQUIREMENTS_URL` (URL of `.../etc/generic/requirements-elyra.txt`)     
 - **S3-compatible cloud storage for [generic components](../user_guide/pipeline-components.html#generic-components)**: When processing pipeline nodes that are implemented using [generic components](../user_guide/pipeline-components.html#generic-components), Elyra downloads the pipeline artifacts that were uploaded when the pipeline was exported or submitted.

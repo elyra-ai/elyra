@@ -15,7 +15,7 @@
           "app_data": {
             "label": "Run notebook using papermill",
             "component_parameters": {
-              "runtime_image": "python:3.7",
+              "runtime_image": "python:3.8",
               "component_source": "/Users/akchin/opt/anaconda3/envs/test-package/lib/python3.8/site-packages/elyra/pipeline/resources/kfp/run_notebook_using_papermill/component.yaml",
               "component_source_type": "filename",
               "notebook": {
