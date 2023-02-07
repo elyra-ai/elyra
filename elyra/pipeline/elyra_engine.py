@@ -73,7 +73,7 @@ class ElyraEngine(NBClientEngine):
             stderr_file=stderr_file,
         )
 
-        kernel_kwargs = {"env": kwargs.get("kernel_env")}
+        kernel_kwargs = {"env": kwargs.get("kernel_env", {})}
         # Only include kernel_name and set path if GatewayKernelManager will be used
         kernel_manager_class = final_kwargs.get("kernel_manager_class")
         if kernel_manager_class == "jupyter_server.gateway.managers.GatewayKernelManager":
