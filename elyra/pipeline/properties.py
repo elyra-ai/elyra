@@ -1269,10 +1269,13 @@ class PipelineParameter(ElyraPropertyListItem):
         self.selected_type = default_value.get("type") if isinstance(default_value, dict) else None
 
         # Assign default value, if given
-        self.default_value = default_value.get("value") if isinstance(default_value, dict) else None
+        self.default_value = None
+        if isinstance(default_value, dict):
+            if default_value.get("value") not in [None, ""]:
+                self.default_value = default_value.get("value")
 
         # Assign value, if set; use default_value if not
-        self.value = value if value is not None else self.default_value
+        self.value = value if value not in [None, ""] else self.default_value
 
     def get_value_for_dict_entry(self) -> Union[str, Dict[str, Any]]:
         """
