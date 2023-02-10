@@ -554,13 +554,17 @@ class OpUtil(object):
                         "editable package. This may conflict with the required version: "
                         f"{ver} . Skipping..."
                     )
-                elif "git+" in current_packages[package]:
+                    continue
+                try:
+                    version.parse(current_packages[package])
+                except version.InvalidVersion:
                     logger.warning(
                         f"WARNING: Source package '{package}' found already installed from "
                         f"{current_packages[package]}. This may conflict with the required "
                         f"version: {ver} . Skipping..."
                     )
-                elif version.parse(ver) > version.parse(current_packages[package]):
+                    continue
+                if version.parse(ver) > version.parse(current_packages[package]):
                     logger.info(f"Updating {package} package from version {current_packages[package]} to {ver}...")
                     to_install_list.append(f"{package}=={ver}")
                 elif version.parse(ver) < version.parse(current_packages[package]):
