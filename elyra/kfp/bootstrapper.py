@@ -556,18 +556,18 @@ class OpUtil(object):
                     )
                     continue
                 try:
-                    version.parse(current_packages[package])
-                except version.InvalidVersion:
+                    version.Version(current_packages[package])
+                except version.InvalidVersion:  # current version is not PEP-440 compliant
                     logger.warning(
                         f"WARNING: Source package '{package}' found already installed from "
                         f"{current_packages[package]}. This may conflict with the required "
                         f"version: {ver} . Skipping..."
                     )
                     continue
-                if version.parse(ver) > version.parse(current_packages[package]):
+                if version.Version(ver) > version.Version(current_packages[package]):
                     logger.info(f"Updating {package} package from version {current_packages[package]} to {ver}...")
                     to_install_list.append(f"{package}=={ver}")
-                elif version.parse(ver) < version.parse(current_packages[package]):
+                elif version.Version(ver) < version.Version(current_packages[package]):
                     logger.info(
                         f"Newer {package} package with version {current_packages[package]} "
                         f"already installed. Skipping..."
