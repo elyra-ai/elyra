@@ -26,8 +26,6 @@ The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/us
 
 JupyterLab dependencies:
  - Elyra >= 2.0.0 requires JupyterLab 3.x
- - Elyra < 2.0.0 requires JupyterLab 2.x
- - Elyra == 0.10.x requires JupyterLab 1.x
 
 The instructions below are installing the latest release.
 

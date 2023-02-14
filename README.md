@@ -150,22 +150,6 @@ Installation instructions and JupyterLab support vary by release. Note that a Ju
     ```
 </details>
 
-<details>
-  <summary>Elyra 1.0 < 2.0 (JupyterLab 2.x)</summary>
-
-  - Install from PyPI
-
-    ```bash
-    pip3 install --upgrade "elyra<2.0.0" && jupyter lab build
-    ```
-
-  - Install from conda-forge
-
-    ```bash
-    conda install -c conda-forge "elyra<2.0.0" && jupyter lab build
-    ```
-</details>
-
 ### Verify Installation 
 
 Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.
