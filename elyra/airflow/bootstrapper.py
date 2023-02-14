@@ -343,21 +343,20 @@ class OpUtil(object):
                         "editable package. This may conflict with the required version: "
                         f"{ver} . Skipping..."
                     )
-                elif "git+" in current_packages[package]:
+                    continue
+                try:
+                    version.Version(current_packages[package])
+                except version.InvalidVersion:  # current version is not PEP-440 compliant
                     logger.warning(
                         f"WARNING: Source package '{package}' found already installed from "
                         f"{current_packages[package]}. This may conflict with the required "
                         f"version: {ver} . Skipping..."
                     )
-                elif isinstance(version.parse(current_packages[package]), version.LegacyVersion):
-                    logger.warning(
-                        f"WARNING: Package '{package}' found with unsupported Legacy version "
-                        f"scheme {current_packages[package]} already installed. Skipping..."
-                    )
-                elif version.parse(ver) > version.parse(current_packages[package]):
+                    continue
+                if version.Version(ver) > version.Version(current_packages[package]):
                     logger.info(f"Updating {package} package from version {current_packages[package]} to {ver}...")
                     to_install_list.append(f"{package}=={ver}")
-                elif version.parse(ver) < version.parse(current_packages[package]):
+                elif version.Version(ver) < version.Version(current_packages[package]):
                     logger.info(
                         f"Newer {package} package with version {current_packages[package]} "
                         f"already installed. Skipping..."
