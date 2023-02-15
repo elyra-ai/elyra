@@ -3,8 +3,10 @@
 ## Supported Versions
 
 | Version | Supported          |
-| ------- | ------------------ |
-| 3.x   | :white_check_mark: |
+|---------|--------------------|
+| 1.x     | :x:   EOL          |
+| 2.x     | :x:   EOL          |
+| 3.x     | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
