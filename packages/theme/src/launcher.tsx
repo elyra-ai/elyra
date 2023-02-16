@@ -132,8 +132,8 @@ export class Launcher extends JupyterlabLauncher {
 
     const knownCategories = [
       this._translator.__('Notebook'),
-      this._translator.__('Console'),
       ELYRA_CATEGORY,
+      //this._translator.__('Console'),
       this._translator.__('Other')
     ];
 

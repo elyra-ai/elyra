@@ -15,9 +15,9 @@
  */
 
 import {
-  elyraIcon,
-  viewIcon,
-  helpIcon,
+  elevoIcon,
+  explorerIcon,
+  docIcon,
   whatsNewIcon
 } from '@elyra/ui-components';
 import {
@@ -74,7 +74,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
     while (widget !== undefined) {
       if (widget.id === 'jp-MainLogo') {
-        elyraIcon.element({
+        elevoIcon.element({
           container: widget.node,
           justify: 'center',
           margin: '2px 5px 2px 5px',
@@ -161,7 +161,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
     commands.addCommand(CommandIDs.openHelp, {
       label: 'Documentation',
-      icon: helpIcon,
+      icon: docIcon,
       execute: (args: any) => {
         const hubPrefix = paths.urls.hubPrefix;
         if (hubPrefix !== null && hubPrefix !== undefined) {
@@ -181,8 +181,8 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     });
 
     commands.addCommand(CommandIDs.view, {
-      label: 'Foresight Explorer',
-      icon: viewIcon,
+      label: 'Explorer',
+      icon: explorerIcon,
       execute: (args: any) => {
         const hubPrefix = paths.urls.hubPrefix;
         if (hubPrefix !== null && hubPrefix !== undefined) {

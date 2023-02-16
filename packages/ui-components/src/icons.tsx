@@ -21,8 +21,11 @@ import elyraSvg from '../style/icons/codait-piebrainlogo-jupyter-color.svg';
 import codeSnippetSvg from '../style/icons/code-snippet.svg';
 import containerSvg from '../style/icons/container.svg';
 import dragDropSvg from '../style/icons/dragdrop.svg';
+import elevoSvg from '../style/icons/elevo-jupyter-color.svg';
 import errorIconSvg from '../style/icons/error.svg';
 import exportPipelineSvg from '../style/icons/export-pipeline.svg';
+import docIconSvg from '../style/icons/foresight-doc.svg';
+import explorerIconSvg from '../style/icons/foresight-explorer.svg';
 import helpIconSvg from '../style/icons/help.svg';
 import importSvg from '../style/icons/import.svg';
 import pipelineComponentSvg from '../style/icons/pipeline-components.svg';
@@ -42,6 +45,14 @@ export const importIcon = new LabIcon({
   name: 'elyra:import',
   svgstr: importSvg
 });
+export const docIcon = new LabIcon({
+  name: 'elyra:docIcon',
+  svgstr: docIconSvg
+});
+export const explorerIcon = new LabIcon({
+  name: 'elyra:explorerIcon',
+  svgstr: explorerIconSvg
+});
 export const codeSnippetIcon = new LabIcon({
   name: 'elyra:code-snippet',
   svgstr: codeSnippetSvg
@@ -55,6 +66,7 @@ export const dragDropIcon = new LabIcon({
   svgstr: dragDropSvg
 });
 export const elyraIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elyraSvg });
+export const elevoIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elevoSvg });
 export const pipelineIcon = new LabIcon({
   name: 'elyra:pipeline',
   svgstr: pipelineSvg
