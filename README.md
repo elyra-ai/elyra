@@ -27,7 +27,7 @@ limitations under the License.
 
 # Elyra
 
-For Elevo-specific information, see file [integra_install_readme.md](integra_install_readme.md).
+For Elevo-specific information, see file [foresight_readme.md](foresight_readme.md).
 
 Elyra is a set of AI-centric extensions to JupyterLab Notebooks.
 
