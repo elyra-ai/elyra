@@ -2,6 +2,21 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.14.3 - 02/21/2023
+
+- Bump kfp-tekton to 1.6.2 to pick up kfp 1.8.19 - [#3113](https://github.com/elyra-ai/elyra/pull/3113)
+- Remove references to Jupyterlab 1.x and 2.x from documentation - [#3112](https://github.com/elyra-ai/elyra/pull/3112)
+- Bump ipython from 8.3.0 to 8.10.0 in /etc/generic - [#3108](https://github.com/elyra-ai/elyra/pull/3108)
+- Skip version check for incompatible version strings in `bootstrapper.py` - [#3106](https://github.com/elyra-ai/elyra/pull/3106)
+- Ensure env stanza is an empty dict if no seed value is given - [#3103](https://github.com/elyra-ai/elyra/pull/3103)
+- Remove references to Python 3.7 - [#3101](https://github.com/elyra-ai/elyra/pull/3101)
+- Fix KFP code generation issues for pipeline parameters - [#3093](https://github.com/elyra-ai/elyra/pull/3093)
+- Bump http-cache-semantics from 4.1.0 to 4.1.1 - [#3099](https://github.com/elyra-ai/elyra/pull/3099)
+- Remove Python v3.7 from github workflow test matrix - [#3098](https://github.com/elyra-ai/elyra/pull/3098)
+- Update function format to conform to black v23 linting - [#3097](https://github.com/elyra-ai/elyra/pull/3097)
+- Update github workflows to use v3/v4 actions - [#3095](https://github.com/elyra-ai/elyra/pull/3095)
+- Update supported kubeflow version info in docs - [#3094](https://github.com/elyra-ai/elyra/pull/3094)
+
 ## Release 3.14.2 - 01/26/2023
 
 
