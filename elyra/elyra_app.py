@@ -60,7 +60,14 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     extension_url = "/lab"
     load_other_extensions = True
 
-    classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentCatalogConnector, ComponentCache]
+    classes = [
+        FileMetadataCache,
+        MetadataManager,
+        PipelineProcessorRegistry,
+        PipelineProcessor,
+        ComponentCatalogConnector,
+        ComponentCache,
+    ]
 
     # Local path to static files directory.
     static_paths = [

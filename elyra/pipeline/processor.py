@@ -32,6 +32,8 @@ from typing import Union
 import entrypoints
 from minio.error import S3Error
 from traitlets.config import Bool
+from traitlets.config import default
+from traitlets.config import List as ListTrait
 from traitlets.config import LoggingConfigurable
 from traitlets.config import SingletonConfigurable
 from traitlets.config import Unicode
@@ -61,10 +63,27 @@ elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
 
 
 class PipelineProcessorRegistry(SingletonConfigurable):
-    _processors: Dict[str, PipelineProcessor] = {}
+    _processors: Dict[str, PipelineProcessor]
+
+    # Runtimes
+    runtimes_env = "ELYRA_PROCESSOR_RUNTIMES"
+    runtimes = ListTrait(
+        default_value=None,
+        config=True,
+        allow_none=True,
+        help="""The runtimes to use during this Elyra instance.  (env ELYRA_PROCESSOR_RUNTIMES)""",
+    )
+
+    @default("runtimes")
+    def _runtimes_default(self) -> Optional[List[str]]:
+        env_value = os.getenv(self.runtimes_env)
+        if env_value:
+            return env_value.replace(" ", "").split(",")
+        return None
 
     def __init__(self, **kwargs):
         root_dir: Optional[str] = kwargs.pop("root_dir", None)
+        self._processors = {}
         super().__init__(**kwargs)
         self.root_dir = get_expanded_path(root_dir)
         # Register all known processors based on entrypoint configuration
@@ -72,10 +91,14 @@ class PipelineProcessorRegistry(SingletonConfigurable):
             try:
                 # instantiate an actual instance of the processor
                 processor_instance = processor.load()(root_dir=self.root_dir, parent=kwargs.get("parent"))
-                self.log.info(
-                    f"Registering {processor.name} processor '{processor.module_name}.{processor.object_name}'..."
-                )
-                self.add_processor(processor_instance)
+                if not self.runtimes or processor.name in self.runtimes:
+                    self._add_processor(processor_instance)
+                else:
+                    self.log.info(
+                        f"Although runtime '{processor.name}' is installed, it is not in the set of "
+                        f"runtimes configured via '--PipelineProcessorRegistry.runtimes' and will not "
+                        f"be available."
+                    )
             except Exception as err:
                 # log and ignore initialization errors
                 self.log.error(
@@ -83,9 +106,12 @@ class PipelineProcessorRegistry(SingletonConfigurable):
                     f'"{processor.module_name}.{processor.object_name}" - {err}'
                 )
 
-    def add_processor(self, processor):
-        self.log.debug(f"Registering {processor.type.value} runtime processor '{processor.name}'")
-        self._processors[processor.name] = processor
+    def _add_processor(self, processor_instance):
+        self.log.info(
+            f"Registering {processor_instance.name} processor "
+            f"'{processor_instance.__class__.__module__}.{processor_instance.__class__.__name__}'..."
+        )
+        self._processors[processor_instance.name] = processor_instance
 
     def get_processor(self, processor_name: str):
         if self.is_valid_processor(processor_name):
