@@ -285,6 +285,7 @@ def test_process_dictionary_value_function(processor: KfpPipelineProcessor):
 
 @pytest.fixture
 def processor_registry(monkeypatch, expected_runtimes) -> PipelineProcessorRegistry:
+    PipelineProcessorRegistry.clear_instance()
     if expected_runtimes:
         monkeypatch.setenv("ELYRA_PROCESSOR_RUNTIMES", ",".join(expected_runtimes))
     ppr = PipelineProcessorRegistry.instance()
