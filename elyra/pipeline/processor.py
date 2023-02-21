@@ -82,10 +82,10 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         return None
 
     def __init__(self, **kwargs):
-        root_dir: Optional[str] = kwargs.pop("root_dir", None)
-        self._processors = {}
         super().__init__(**kwargs)
+        root_dir: Optional[str] = kwargs.pop("root_dir", None)
         self.root_dir = get_expanded_path(root_dir)
+        self._processors = {}
         # Register all known processors based on entrypoint configuration
         for processor in entrypoints.get_group_all("elyra.pipeline.processors"):
             try:
