@@ -156,9 +156,15 @@ class PipelineEditorWidget extends ReactWidget {
     this.refreshPaletteSignal = options.refreshPaletteSignal;
     this.context = options.context;
     this.settings = options.settings;
+    this.context.model.contentChanged.connect(() => {
+      this.update();
+    });
   }
 
   render(): any {
+    if (this.context.model.toJSON() === null) {
+      return <div className="elyra-loader"></div>;
+    }
     return (
       <PipelineWrapper
         context={this.context}
@@ -197,7 +203,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 }) => {
   const ref = useRef<any>(null);
   const [loading, setLoading] = useState(true);
-  const [pipeline, setPipeline] = useState<any>(null);
+  const [pipeline, setPipeline] = useState<any>(context.model.toJSON());
   const [panelOpen, setPanelOpen] = React.useState(false);
 
   const type: string | undefined =
