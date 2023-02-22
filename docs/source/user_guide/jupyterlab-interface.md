@@ -24,7 +24,7 @@ Many of these tasks can also be accomplished using the [Elyra command line inter
 
 ### Launcher
 
-Elyra adds a new category to the JupyterLab launcher, providing access to the Visual Pipeline Editor, the [Python editor](enhanced-script-support.html#python-script-execution-support), the [R editor](enhanced-script-support.html#r-script-execution-support), and the [Elyra documentation](https://elyra.readthedocs.io/en/latest/).
+Elyra adds a new category to the JupyterLab launcher, providing access to the [Visual Pipeline Editor](#visual-pipeline-editor), the [Python editor](enhanced-script-support.html#python-script-execution-support), the [R editor](enhanced-script-support.html#r-script-execution-support), and the [Elyra documentation](https://elyra.readthedocs.io/en/latest/).
 
 ![Elyra category in JupyterLab launcher](../images/user_guide/jupyterlab-interface/launcher.png)
 
@@ -44,7 +44,7 @@ The canvas is the main work area, where you [assemble the pipeline by adding nod
 
 The properties panel is used to configure pipeline properties and node properties.
 
-You can customize the pipeline editor behavior by opening the settings link in the empty editor window or by navigating in the [JupyterLab menu bar](https://jupyterlab.readthedocs.io/en/stable/user/interface.html#menu-bar) to  `Settings > Advanced Settings Editor` and searching for `elyra`.
+Refer to the [_Configuring the pipeline editor_ topic](pipeline-editor-configuration.md) to learn about customizing the editor. 
 
 ### Metadata management sidebars
 
