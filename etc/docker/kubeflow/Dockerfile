@@ -39,6 +39,10 @@ RUN python3 -m pip install --upgrade pip
 # Install Elyra
 RUN python3 -m pip install --quiet --no-cache-dir "$ELYRA_PACKAGE""$ELYRA_EXTRAS"
 
+# Create and customize Elyra config file to enable only KFP runtime
+RUN jupyter elyra --generate-config
+RUN sed -i -e "s/# c.PipelineProcessorRegistry.runtimes = \[\]/c.PipelineProcessorRegistry.runtimes = \['kfp'\]/g" $(jupyter --config-dir)/jupyter_elyra_config.py    
+
 # Cleanup
 USER root
 RUN rm -f README.md ${ELYRA_PACKAGE}
