@@ -114,45 +114,45 @@ describe('Pipeline Editor tests', () => {
   //   closePipelineEditor();
   // });
 
-  // it('should block unsupported files', () => {
-  //   cy.createPipeline({ emptyPipeline });
-  //   cy.dragAndDropFileToPipeline('invalid.txt');
+  it('should block unsupported files', () => {
+    cy.createPipeline({ emptyPipeline });
+    cy.dragAndDropFileToPipeline('invalid.txt');
 
-  //   // check for unsupported files dialog message
-  //   cy.findByText(/unsupported file/i).should('be.visible');
+    // check for unsupported files dialog message
+    cy.findByText(/unsupported file/i).should('be.visible');
 
-  //   // dismiss dialog
-  //   cy.contains('OK').click();
-  // });
+    // dismiss dialog
+    cy.contains('OK').click();
+  });
 
-  // it('populated editor should have enabled buttons', () => {
-  //   cy.createPipeline({ emptyPipeline });
+  it('populated editor should have enabled buttons', () => {
+    cy.createPipeline({ emptyPipeline });
 
-  //   cy.checkTabMenuOptions('Pipeline');
+    cy.checkTabMenuOptions('Pipeline');
 
-  //   cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
-  //   cy.addFileToPipeline('helloworld.py'); // add Python Script
-  //   cy.addFileToPipeline('helloworld.r'); // add R Script
+    cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
+    cy.addFileToPipeline('helloworld.py'); // add Python Script
+    cy.addFileToPipeline('helloworld.r'); // add R Script
 
-  //   // check buttons
-  //   const disabledButtons = [/redo/i, /cut/i, /copy/i, /paste/i, /delete/i];
-  //   checkDisabledToolbarButtons(disabledButtons);
+    // check buttons
+    const disabledButtons = [/redo/i, /cut/i, /copy/i, /paste/i, /delete/i];
+    checkDisabledToolbarButtons(disabledButtons);
 
-  //   const enabledButtons = [
-  //     /run pipeline/i,
-  //     /save pipeline/i,
-  //     /export pipeline/i,
-  //     /clear/i,
-  //     /open runtimes/i,
-  //     /open runtime images/i,
-  //     /open component catalogs/i,
-  //     /undo/i,
-  //     /add comment/i,
-  //     /arrange horizontally/i,
-  //     /arrange vertically/i
-  //   ];
-  //   checkEnabledToolbarButtons(enabledButtons);
-  // });
+    const enabledButtons = [
+      /run pipeline/i,
+      /save pipeline/i,
+      /export pipeline/i,
+      /clear/i,
+      /open runtimes/i,
+      /open runtime images/i,
+      /open component catalogs/i,
+      /undo/i,
+      /add comment/i,
+      /arrange horizontally/i,
+      /arrange vertically/i
+    ];
+    checkEnabledToolbarButtons(enabledButtons);
+  });
 
   it('matches complex pipeline snapshot', () => {
     cy.bootstrapFile('pipelines/consumer.ipynb');
