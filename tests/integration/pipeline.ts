@@ -219,7 +219,7 @@ describe('Pipeline Editor tests', () => {
       });
 
       // consumer props
-      cy.findByText('consumer.ipynb').click();
+      cy.findByText('consumer.ipynb').click({ force: true });
       cy.get('#root_component_parameters_runtime_image').within(() => {
         cy.get('select[id="root_component_parameters_runtime_image"]').select(
           'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8'
