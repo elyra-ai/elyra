@@ -156,8 +156,12 @@ class PipelineEditorWidget extends ReactWidget {
     this.refreshPaletteSignal = options.refreshPaletteSignal;
     this.context = options.context;
     this.settings = options.settings;
+    let nullPipeline = this.context.model.toJSON() === null;
     this.context.model.contentChanged.connect(() => {
-      this.update();
+      if (nullPipeline) {
+        nullPipeline = false;
+        this.update();
+      }
     });
   }
 
