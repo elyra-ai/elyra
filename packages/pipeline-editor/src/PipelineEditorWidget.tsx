@@ -657,13 +657,22 @@ const PipelineWrapper: React.FC<IProps> = ({
       );
 
       // TODO: Parallelize this
-      const runtimes = await PipelineService.getRuntimes().catch(error =>
-        RequestErrors.serverError(error)
-      );
+      const runtimeTypes = await PipelineService.getRuntimeTypes();
+      const runtimes = await PipelineService.getRuntimes()
+        .then(runtimeList => {
+          return runtimeList.filter((runtime: any) => {
+            return (
+              !runtime.metadata.runtime_enabled &&
+              !!runtimeTypes.find(
+                (r: any) => runtime.metadata.runtime_type === r.id
+              )
+            );
+          });
+        })
+        .catch(error => RequestErrors.serverError(error));
       const schema = await PipelineService.getRuntimesSchema().catch(error =>
         RequestErrors.serverError(error)
       );
-      const runtimeTypes = await PipelineService.getRuntimeTypes();
 
       const runtimeData = createRuntimeData({
         schema,
