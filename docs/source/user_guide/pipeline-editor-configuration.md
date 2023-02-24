@@ -24,15 +24,15 @@ The pipeline editor supports three runtimes: Kubeflow Pipelines, Apache Airflow,
 
 ![Pipeline editor tiles in the JupyterLab launcher](../images/user_guide/pipeline-editor-configuration/pipeline-editor-tiles-in-jupyterlab-launcher.png)
 
-If you are planning to use only one runtime to execute pipelines, you can disable the other runtimes and hide their launcher tiles.
+If you are planning to use only a subset of the supported runtimes to execute pipelines, you can enable them selectively.
 
-#### Disabling runtimes
+#### Enabling specific runtimes
 
-Runtimes can be disabled by overriding the Elyra default configuration. 
+When you explicitly enable one or more runtimes the other runtimes are disabled. You enable runtimes by overriding the Elyra default configuration. 
 
 ##### Override default using command line parameters
 
-To disable one or more runtimes, launch JupyterLab with the Elyra-specific `--PipelineProcessorRegistry.runtimes` parameter:
+To enable one or more runtimes, launch JupyterLab with the Elyra-specific `--PipelineProcessorRegistry.runtimes` parameter:
 
 ```
 $ jupyter lab --PipelineProcessorRegistry.runtimes=<runtime>
@@ -47,7 +47,6 @@ $ jupyter lab --PipelineProcessorRegistry.runtimes=kfp
 ```
 
 ![Kubeflow Pipelines editor tile in the JupyterLab launcher](../images/user_guide/pipeline-editor-configuration/pipeline-editor-kfp-only-in-jupyterlab-launcher.png)
-
 
 To enable support for more than one runtime, specify the parameter multiple times.
 
