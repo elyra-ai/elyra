@@ -136,12 +136,25 @@ class PipelineProcessorRegistry(SingletonConfigurable):
 
         # Build set of active runtime types, then build list of resources instances
         runtime_types: Set[RuntimeProcessorType] = set()
+        enabled_runtimes: Set[RuntimeProcessorType] = set()  # Track which runtimes are enabled
         for name, processor in self._processors.items():
             runtime_types.add(processor.type)
+            enabled_runtimes.add(processor.type)
+
+        # Unconditionally include "generic" resources since, to this point, all non-local runtimes
+        # also support generic components, so we need their resources on the frontend, despite the
+        # fact that the "local runtime" may not be enabled.  When it is not enabled, it won't be in
+        # the runtime_types list, so, in that case, we add it, but not mark it as an enabled runtime.
+        if RuntimeProcessorType.LOCAL not in runtime_types:
+            runtime_types.add(RuntimeProcessorType.LOCAL)
 
         resources: List[RuntimeTypeResources] = list()
         for runtime_type in runtime_types:
-            resources.append(RuntimeTypeResources.get_instance_by_type(runtime_type))
+            resources.append(
+                RuntimeTypeResources.get_instance_by_type(
+                    runtime_type, runtime_enabled=(runtime_type in enabled_runtimes)
+                )
+            )
 
         return resources
 
