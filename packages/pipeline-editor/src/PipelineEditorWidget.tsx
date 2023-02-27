@@ -250,18 +250,21 @@ const PipelineWrapper: React.FC<IProps> = ({
   useEffect(() => {
     if (paletteError) {
       RequestErrors.serverError(paletteError);
+      shell.currentWidget?.close();
     }
   }, [paletteError]);
 
   useEffect(() => {
     if (runtimeImagesError) {
       RequestErrors.serverError(runtimeImagesError);
+      shell.currentWidget?.close();
     }
   }, [runtimeImagesError]);
 
   useEffect(() => {
     if (runtimesSchemaError) {
       RequestErrors.serverError(runtimesSchemaError);
+      shell.currentWidget?.close();
     }
   }, [runtimesSchemaError]);
 
