@@ -44,7 +44,7 @@ from elyra.pipeline.handlers import PipelineSchedulerHandler
 from elyra.pipeline.handlers import PipelineValidationHandler
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorManager
-from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.registry import PipelineProcessorRegistry
 from elyra.pipeline.validation import PipelineValidationManager
 
 
