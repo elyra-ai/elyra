@@ -252,21 +252,21 @@ const PipelineWrapper: React.FC<IProps> = ({
       RequestErrors.serverError(paletteError);
       shell.currentWidget?.close();
     }
-  }, [paletteError]);
+  }, [paletteError, shell.currentWidget]);
 
   useEffect(() => {
     if (runtimeImagesError) {
       RequestErrors.serverError(runtimeImagesError);
       shell.currentWidget?.close();
     }
-  }, [runtimeImagesError]);
+  }, [runtimeImagesError, shell.currentWidget]);
 
   useEffect(() => {
     if (runtimesSchemaError) {
       RequestErrors.serverError(runtimesSchemaError);
       shell.currentWidget?.close();
     }
-  }, [runtimesSchemaError]);
+  }, [runtimesSchemaError, shell.currentWidget]);
 
   const contextRef = useRef(context);
   useEffect(() => {
