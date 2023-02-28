@@ -61,6 +61,7 @@ const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
 ]);
 
 export interface IRuntimeType {
+  runtime_enabled: boolean;
   id: string;
   display_name: string;
   icon: string;

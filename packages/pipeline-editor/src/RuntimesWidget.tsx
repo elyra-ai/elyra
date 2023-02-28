@@ -21,11 +21,15 @@ import {
   IMetadataDisplayProps,
   IMetadataDisplayState
 } from '@elyra/metadata-common';
-import { IDictionary } from '@elyra/services';
+import { IDictionary, MetadataService } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import React from 'react';
 
-import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
+import {
+  IRuntimeType,
+  PipelineService,
+  RUNTIMES_SCHEMASPACE
+} from './PipelineService';
 
 const RUNTIMES_METADATA_CLASS = 'elyra-metadata-runtimes';
 
@@ -133,6 +137,8 @@ class RuntimesDisplay extends MetadataDisplay<
  * A widget for displaying runtimes.
  */
 export class RuntimesWidget extends MetadataWidget {
+  runtimeTypes: IRuntimeType[] = [];
+
   constructor(props: IMetadataWidgetProps) {
     super(props);
   }
@@ -141,6 +147,40 @@ export class RuntimesWidget extends MetadataWidget {
     return await PipelineService.getRuntimes().catch(error =>
       RequestErrors.serverError(error)
     );
+  }
+
+  async getSchemas(): Promise<void> {
+    try {
+      const schemas = await MetadataService.getSchema(this.props.schemaspace);
+      this.runtimeTypes = await PipelineService.getRuntimeTypes();
+      const sortedSchema = schemas.sort((a: any, b: any) =>
+        a.title.localeCompare(b.title)
+      );
+      this.schemas = sortedSchema.filter((schema: any) => {
+        return !!this.runtimeTypes.find(
+          r => r.id === schema.runtime_type && r.runtime_enabled
+        );
+      });
+      if (this.schemas?.length ?? 0 > 1) {
+        for (const schema of this.schemas ?? []) {
+          this.props.app.contextMenu.addItem({
+            selector: `#${this.props.schemaspace} .elyra-metadataHeader-addButton`,
+            command: 'elyra-metadata-editor:open',
+            args: {
+              onSave: this.updateMetadata,
+              schemaspace: this.props.schemaspace,
+              schema: schema.name,
+              title: schema.title,
+              titleContext: this.props.titleContext,
+              appendToTitle: this.props.appendToTitle
+            } as any
+          });
+        }
+      }
+      this.update();
+    } catch (error) {
+      RequestErrors.serverError(error);
+    }
   }
 
   private getSchemaTitle = (metadata: IMetadata): string => {
@@ -177,9 +217,13 @@ export class RuntimesWidget extends MetadataWidget {
       );
     }
 
+    const filteredMetadata = metadata.filter(m => {
+      return !!this.runtimeTypes.find(r => m.metadata?.runtime_type === r.id);
+    });
+
     return (
       <RuntimesDisplay
-        metadata={metadata}
+        metadata={filteredMetadata}
         updateMetadata={this.updateMetadata}
         openMetadataEditor={this.openMetadataEditor}
         schemaspace={RUNTIMES_SCHEMASPACE}

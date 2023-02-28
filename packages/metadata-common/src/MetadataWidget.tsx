@@ -366,6 +366,7 @@ export class MetadataWidget extends ReactWidget {
     this.renderSignal = new Signal<this, any>(this);
     this.titleContext = props.titleContext;
     this.fetchMetadata = this.fetchMetadata.bind(this);
+    this.getSchemas = this.getSchemas.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
     this.refreshMetadata = this.refreshMetadata.bind(this);
     this.openMetadataEditor = this.openMetadataEditor.bind(this);
