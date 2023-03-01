@@ -124,7 +124,7 @@ def update_version_to_release() -> None:
         sed(_source("README.md"), r"elyra:dev ", f"elyra:{new_version} ")
         if config.rc is None and config.beta is None:
             # Update the stable version Binder link
-            sed(_source("README.md"), r"/v[0-9].[0-9].[0-9]?", f"/v{new_version}?")
+            sed(_source("README.md"), r"/v[0-9]\+\.[0-9]\+\.[0-9]\+", f"/v{new_version}?")
         sed(_source("etc/docker/kubeflow/README.md"), r"kf-notebook:dev", f"kf-notebook:{new_version}")
         sed(_source("docs/source/getting_started/installation.md"), r"elyra:dev ", f"elyra:{new_version} ")
         sed(_source("docs/source/getting_started/installation.md"), r"/v[0-9].[0-9].[0-9]?", f"/v{new_version}?")

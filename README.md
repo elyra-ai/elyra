@@ -53,7 +53,7 @@ You can try out some of Elyra features using the [My Binder](https://mybinder.re
 
 Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
 
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v3.10.0?urlpath=lab/tree/binder-demo) (Latest stable version - see the [releases page](https://github.com/elyra-ai/elyra/releases) for a new features summary)
+- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v3.14.3?urlpath=lab/tree/binder-demo) (Latest stable version - see the [releases page](https://github.com/elyra-ai/elyra/releases) for a new features summary)
 - [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/main?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
 
 #### Using container images
