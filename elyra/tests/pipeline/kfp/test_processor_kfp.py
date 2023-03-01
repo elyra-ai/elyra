@@ -902,7 +902,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
     monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
 
-    compiled_argo_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml")
+    compiled_argo_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml").name
     compiled_argo_output_file_name = str(compiled_argo_output_file.absolute())
 
     # generate Python DSL for the Argo workflow engine
@@ -1381,7 +1381,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
 
     # Test begins here
 
-    compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml")
+    compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml").name
     compiled_output_file_name = str(compiled_output_file.absolute())
 
     # generate Python DSL
