@@ -63,8 +63,7 @@ class PipelineProcessorRegistry(SingletonConfigurable):
                 else:
                     self.log.info(
                         f"Although runtime '{processor.name}' is installed, it is not in the set of "
-                        f"runtimes configured via '--PipelineProcessorRegistry.runtimes' and will not "
-                        f"be available."
+                        f"configured runtimes {self.runtimes} and will not be available."
                     )
             except Exception as err:
                 # log and ignore initialization errors
