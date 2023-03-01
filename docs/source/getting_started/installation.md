@@ -21,7 +21,7 @@ The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/us
 
 ### Prerequisites
 
-* [Node.js 16+](https://nodejs.org/en/)
+* [Node.js 18+](https://nodejs.org/en/)
 * [Python 3.8+](https://www.python.org/downloads/) (or later)
 
 JupyterLab dependencies:
