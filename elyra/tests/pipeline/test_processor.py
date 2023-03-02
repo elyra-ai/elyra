@@ -20,8 +20,8 @@ import pytest
 
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.pipeline import GenericOperation
-from elyra.pipeline.processor import PipelineProcessorRegistry
 from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.registry import PipelineProcessorRegistry
 
 
 # ---------------------------------------------------
