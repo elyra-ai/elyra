@@ -48,14 +48,6 @@ The [Elyra Getting Started Guide](https://elyra.readthedocs.io/en/latest/getting
 
 ## Try Elyra
 
-#### Using Binder
-You can try out some of Elyra features using the [My Binder](https://mybinder.readthedocs.io/en/latest/) service.
-
-Click on a link below to try Elyra, on a sandbox environment, without having to install anything.
-
-- [![Launch latest stable version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/v3.10.0?urlpath=lab/tree/binder-demo) (Latest stable version - see the [releases page](https://github.com/elyra-ai/elyra/releases) for a new features summary)
-- [![Launch latest development version](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/elyra-ai/elyra/main?urlpath=lab/tree/binder-demo) (Development version - expect longer image load time due to just-in-time build)
-
 #### Using container images
 
 You can also try Elyra by running one of the container images from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) or [quay.io](https://quay.io/repository/elyra/elyra?tab=tags):

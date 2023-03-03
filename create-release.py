@@ -122,12 +122,8 @@ def update_version_to_release() -> None:
         # Update docker related tags
         sed(_source("Makefile"), r"^TAG:=dev", f"TAG:={new_version}")
         sed(_source("README.md"), r"elyra:dev ", f"elyra:{new_version} ")
-        if config.rc is None and config.beta is None:
-            # Update the stable version Binder link
-            sed(_source("README.md"), r"/v[0-9].[0-9].[0-9]?", f"/v{new_version}?")
         sed(_source("etc/docker/kubeflow/README.md"), r"kf-notebook:dev", f"kf-notebook:{new_version}")
         sed(_source("docs/source/getting_started/installation.md"), r"elyra:dev ", f"elyra:{new_version} ")
-        sed(_source("docs/source/getting_started/installation.md"), r"/v[0-9].[0-9].[0-9]?", f"/v{new_version}?")
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), r"main", f"{config.tag}")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), r"dev", f"{new_version}")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), r"main", f"{new_version}")
@@ -280,11 +276,7 @@ def update_version_to_dev() -> None:
         sed(_source("Makefile"), rf"^TAG:={new_version}", "TAG:=dev")
         sed(_source("README.md"), rf"elyra:{new_version} ", "elyra:dev ")
         sed(_source("etc/docker/kubeflow/README.md"), rf"kf-notebook:{new_version}", "kf-notebook:dev")
-        # this does not goes back to dev
-        # sed(source('README.md'), rf"/v[0-9].[0-9].[0-9]", "/v{dev_version}")
         sed(_source("docs/source/getting_started/installation.md"), rf"elyra:{new_version} ", "elyra:dev ")
-        # this does not goes back to dev
-        # sed(source('docs/source/getting_started/installation.md'), rf"/v[0-9].[0-9].[0-9]", "/v{dev_version}")
         sed(_source("docs/source/recipes/configure-airflow-as-a-runtime.md"), rf"{config.tag}", "main")
         sed(_source("docs/source/recipes/deploying-elyra-in-a-jupyterhub-environment.md"), rf"{new_version}", "dev")
         sed(_source("docs/source/recipes/using-elyra-with-kubeflow-notebook-server.md"), rf"{new_version}", "main")

@@ -31,8 +31,6 @@ The main features include:
 * [Language Server Protocol integration](#language-server-protocol-integration)
 * [Version control using git integration](#version-control-using-git-integration)
 
-You can try out some of these features using the getting started tour on [Binder](https://github.com/elyra-ai/elyra#using-binder) without having to install anything.
-
 #### AI Pipelines visual editor
 
 Building an AI pipeline for a model is hard, breaking down and modularizing a pipeline is harder.
