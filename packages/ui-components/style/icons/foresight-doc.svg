@@ -1,5 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <polygon class="jp-icon3 jp-icon-selectable" fill="#000000" points="17 22 17 14 13 14 13 16 15 16 15 22 12 22 12 24 20 24 20 22 17 22"/>
-  <path class="jp-icon3 jp-icon-selectable" fill="#000000" d="M16,8a1.5,1.5,0,1,0,1.5,1.5A1.5,1.5,0,0,0,16,8Z"/>
-  <path class="jp-icon3 jp-icon-selectable" fill="#000000" d="M26,28H6a2.0023,2.0023,0,0,1-2-2V6A2.0023,2.0023,0,0,1,6,4H26a2.0023,2.0023,0,0,1,2,2V26A2.0023,2.0023,0,0,1,26,28ZM6,6V26H26V6Z"/>
+<svg width="6.799mm" height="8.4667mm" version="1.1" viewBox="0 0 6.799 8.4667" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <clipPath id="clip0-85">
+   <rect x="44" y="39" width="40" height="50"/>
+  </clipPath>
+  <clipPath id="clip1-1">
+   <rect x="47" y="45" width="34" height="38"/>
+  </clipPath>
+  <clipPath id="clip2-2">
+   <rect x="47" y="45" width="34" height="38"/>
+  </clipPath>
+  <clipPath id="clip3-3">
+   <rect x="47" y="45" width="34" height="38"/>
+  </clipPath>
+  <clipPath id="clip4-3">
+   <rect x="46" y="44" width="39" height="40"/>
+  </clipPath>
+ </defs>
+ <g transform="translate(-50.931 -64.462)">
+  <g transform="matrix(.17205 0 0 .17205 43.278 57.616)" clip-path="url(#clip0-85)">
+   <g clip-path="url(#clip1-1)">
+    <g clip-path="url(#clip2-2)">
+     <g clip-path="url(#clip3-3)">
+      <g clip-path="url(#clip4-3)">
+       <path transform="matrix(1.029 0 0 1 36.639 37.291)" d="m22.68 24.308-12.259 6.2642v-14.716l16.236-8.147 16.644 8.134v21.51l-16.523 8.2185-13.318-6.5113 12.973-6.5675 1.6169 3.1938-9.7632 4.9426-0.0224-3.2048 9.2935 4.5434-1.5832 0.0054 14.74-7.3315-0.9928 1.6026v-19.284l1.004 1.6081-14.844-7.2541 1.5886-0.0083-14.457 7.2541 0.9872-1.5998v10.688l-2.6043-1.5938 9.6548-4.9334zm-4.0371-3.9671 8.0042-0.07-4.7465 6.4454zm5.3836 11.363 8.0044-0.0399-4.7707 6.4275z" fill="#2f528f"/>
+       <path transform="matrix(1.029 0 0 -1 47.902 72.441)" d="m0.80045-1.6009 22.954 11.477-1.6009 3.2018-22.954-11.477zm22.153 9.0756 4.8026 6.4036h-8.0045z" fill="#265396"/>
+       <path transform="matrix(1.029 0 0 1 36.639 37.291)" d="m10.507 36.769-0.0188-2.5571 2.1398 1.4003z" fill="#265396" fill-rule="evenodd" stroke="#265396" stroke-miterlimit="8" stroke-width=".82609"/>
+      </g>
+     </g>
+    </g>
+   </g>
+   <path d="m45.5 50.1 7.6-9.6h30.4v48h-38z" fill="none" fill-rule="evenodd" stroke="#2f528f" stroke-miterlimit="8" stroke-width="1.3333"/>
+   <path d="m52.684 48.142-6.6772 0.7571 5.9201-7.4344z" fill="none" fill-rule="evenodd" stroke="#2f528f" stroke-miterlimit="8" stroke-width="1.3333"/>
+  </g>
+ </g>
 </svg>

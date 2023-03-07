@@ -1,1 +1,35 @@
-<svg fill="currentColor" id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><style>.cls-1{fill:none;}</style></defs><title>view</title><path d="M30.94,15.66A16.69,16.69,0,0,0,16,5,16.69,16.69,0,0,0,1.06,15.66a1,1,0,0,0,0,.68A16.69,16.69,0,0,0,16,27,16.69,16.69,0,0,0,30.94,16.34,1,1,0,0,0,30.94,15.66ZM16,25c-5.3,0-10.9-3.93-12.93-9C5.1,10.93,10.7,7,16,7s10.9,3.93,12.93,9C26.9,21.07,21.3,25,16,25Z" transform="translate(0 0)"/><path d="M16,10a6,6,0,1,0,6,6A6,6,0,0,0,16,10Zm0,10a4,4,0,1,1,4-4A4,4,0,0,1,16,20Z" transform="translate(0 0)"/><rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" class="cls-1" width="32" height="32"/></svg>
+<svg width="6.1648mm" height="8.4667mm" version="1.1" viewBox="0 0 6.1648 8.4667" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <clipPath id="clip0-1">
+   <rect x="31" y="31" width="33" height="46"/>
+  </clipPath>
+  <clipPath id="clip1-2">
+   <rect x="31" y="31" width="33" height="39"/>
+  </clipPath>
+  <clipPath id="clip2">
+   <rect x="31" y="31" width="33" height="39"/>
+  </clipPath>
+  <clipPath id="clip3-7">
+   <rect x="31" y="31" width="33" height="39"/>
+  </clipPath>
+  <clipPath id="clip4-6">
+   <rect x="30" y="30" width="38" height="41"/>
+  </clipPath>
+ </defs>
+ <g transform="translate(-53.47 -65.656)">
+  <g transform="matrix(.18681 0 0 .18681 47.679 59.865)" clip-path="url(#clip0-1)">
+   <g clip-path="url(#clip1-2)">
+    <g clip-path="url(#clip2)">
+     <g clip-path="url(#clip3-7)">
+      <g clip-path="url(#clip4-6)">
+       <path transform="matrix(1 0 0 1.0277 20.944 23.088)" d="m22.65 24.276-12.243 6.256v-14.697l16.215-8.1362 16.622 8.1232v21.482l-16.502 8.2078-13.301-6.5028 12.956-6.5589 1.6148 3.1896-9.7504 4.9362-0.0223-3.2007 9.2813 4.5375-1.5811 0.0054 14.721-7.3219-0.9914 1.6005v-19.259l1.0026 1.606-14.824-7.2446 1.5865-0.0083-14.438 7.2445 0.9859-1.5976v10.674l-2.6009-1.5918 9.6421-4.9269zm-4.0317-3.9618 7.9936-0.0699-4.7402 6.4368zm5.3765 11.348 7.9938-0.0399-4.7643 6.4191z" fill="#2f528f"/>
+       <path transform="matrix(1 0 0 -1.0277 31.875 59.163)" d="m0.7994-1.5988 22.924 11.462-1.5988 3.1976-22.924-11.462zm22.124 9.0637 4.7963 6.3951h-7.994z" fill="#265396"/>
+       <path transform="matrix(1 0 0 1.0277 20.944 23.088)" d="m10.493 36.72-0.0188-2.5538 2.137 1.3984z" fill="#265396" fill-rule="evenodd" stroke="#265396" stroke-miterlimit="8" stroke-width=".825"/>
+      </g>
+     </g>
+    </g>
+   </g>
+   <path d="m55.672 67.013 2.9261-1.427c0.3833-0.187 1.6361 1.593 2.7981 3.9758 1.162 2.3827 1.7933 4.4658 1.4099 4.6527l-2.9261 1.4271c-0.3833 0.1869-1.6361-1.5931-2.7981-3.9758s-1.7933-4.4659-1.4099-4.6528z" fill="#265396" fill-rule="evenodd" stroke="#265396" stroke-miterlimit="8" stroke-width="1.3333"/>
+  </g>
+ </g>
+</svg>
