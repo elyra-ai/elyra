@@ -86,7 +86,7 @@ Refer to the [installation documentation](https://elyra.readthedocs.io/en/stable
 For detailed information refer to the [installation documentation](https://elyra.readthedocs.io/en/stable/getting_started/installation.html).
 
 ### Prerequisites :
-* [Node.js 16+](https://nodejs.org/en/)
+* [Node.js 18+](https://nodejs.org/en/)
 * [Python 3.8+](https://www.python.org/downloads/)
 * [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (optional)
 
