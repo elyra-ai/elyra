@@ -403,11 +403,12 @@ export class MetadataWidget extends ReactWidget {
     }
   }
 
-  addMetadata(schema: string): void {
+  addMetadata(schema: string, titleContext?: string): void {
     this.openMetadataEditor({
       onSave: this.updateMetadata,
       schemaspace: this.props.schemaspace,
-      schema: schema
+      schema: schema,
+      titleContext
     });
   }
 
@@ -521,7 +522,11 @@ export class MetadataWidget extends ReactWidget {
               className={`${METADATA_HEADER_BUTTON_CLASS} elyra-metadataHeader-addButton`}
               onClick={
                 singleSchema
-                  ? (): void => this.addMetadata(this.schemas?.[0].name)
+                  ? (): void =>
+                      this.addMetadata(
+                        this.schemas?.[0].name,
+                        this.titleContext
+                      )
                   : (event: any): void => {
                       this.props.app.contextMenu.open(event);
                     }
