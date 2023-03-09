@@ -89,7 +89,7 @@ def test_ExistingBearerTokenAuthenticator_authenticate_valid_input():
     dummy_runtime_config_name = "bearer_runtime_config"
     dummy_token = "sha256~pl3as3l3tm31n"
     token = ExistingBearerTokenAuthenticator().authenticate(dummy_kfp_endpoint, dummy_runtime_config_name, dummy_token)
-    assert token is not None
+    assert token == dummy_token
 
 
 def test_ExistingBearerTokenAuthenticator_authenticate_invalid_input():
