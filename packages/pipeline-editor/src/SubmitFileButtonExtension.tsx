@@ -60,9 +60,21 @@ export class SubmitFileButtonExtension<
     const env = await ContentParser.getEnvVars(context.path).catch(error =>
       RequestErrors.serverError(error)
     );
-    const runtimes = await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
+    const runtimeTypes: any = await PipelineService.getRuntimeTypes().catch(
+      error => RequestErrors.serverError(error)
     );
+    const runtimes = await PipelineService.getRuntimes()
+      .then(runtimeList => {
+        return runtimeList.filter((runtime: any) => {
+          return (
+            !runtime.metadata.runtime_enabled &&
+            !!runtimeTypes.find(
+              (r: any) => runtime.metadata.runtime_type === r.id
+            )
+          );
+        });
+      })
+      .catch(error => RequestErrors.serverError(error));
     const images = await PipelineService.getRuntimeImages().catch(error =>
       RequestErrors.serverError(error)
     );

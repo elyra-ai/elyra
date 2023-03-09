@@ -23,14 +23,14 @@ import {
   IMetadataDisplayState,
   IMetadataActionButton
 } from '@elyra/metadata-common';
-import { IDictionary } from '@elyra/services';
+import { IDictionary, MetadataService } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { LabIcon, refreshIcon } from '@jupyterlab/ui-components';
 
 import React from 'react';
 
-import { PipelineService } from './PipelineService';
+import { IRuntimeType, PipelineService } from './PipelineService';
 
 export const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 
@@ -124,12 +124,50 @@ export interface IComponentCatalogsWidgetProps extends IMetadataWidgetProps {
 export class ComponentCatalogsWidget extends MetadataWidget {
   refreshButtonTooltip: string;
   refreshCallback?: () => void;
+  runtimeTypes: IRuntimeType[] = [];
 
   constructor(props: IComponentCatalogsWidgetProps) {
     super(props);
     this.refreshCallback = props.refreshCallback;
     this.refreshButtonTooltip =
       'Refresh list and reload components from all catalogs';
+  }
+
+  async getSchemas(): Promise<void> {
+    try {
+      const schemas = await MetadataService.getSchema(this.props.schemaspace);
+      this.runtimeTypes = await PipelineService.getRuntimeTypes();
+      const sortedSchema = schemas.sort((a: any, b: any) =>
+        a.title.localeCompare(b.title)
+      );
+      this.schemas = sortedSchema.filter((schema: any) => {
+        return !!this.runtimeTypes.find(
+          r =>
+            schema.properties?.metadata?.properties?.runtime_type?.enum?.includes(
+              r.id
+            ) && r.runtime_enabled
+        );
+      });
+      if (this.schemas?.length ?? 0 > 1) {
+        for (const schema of this.schemas ?? []) {
+          this.props.app.contextMenu.addItem({
+            selector: `#${this.props.schemaspace} .elyra-metadataHeader-addButton`,
+            command: 'elyra-metadata-editor:open',
+            args: {
+              onSave: this.updateMetadata,
+              schemaspace: this.props.schemaspace,
+              schema: schema.name,
+              title: schema.title,
+              titleContext: this.props.titleContext,
+              appendToTitle: this.props.appendToTitle
+            } as any
+          });
+        }
+      }
+      this.update();
+    } catch (error) {
+      RequestErrors.serverError(error);
+    }
   }
 
   // wrapper function that refreshes the palette after calling updateMetadata
@@ -161,9 +199,13 @@ export class ComponentCatalogsWidget extends MetadataWidget {
       );
     }
 
+    const filteredMetadata = metadata.filter(m => {
+      return !!this.runtimeTypes.find(r => m.metadata?.runtime_type === r.id);
+    });
+
     return (
       <ComponentCatalogsDisplay
-        metadata={metadata}
+        metadata={filteredMetadata}
         updateMetadata={this.updateMetadataAndRefresh}
         openMetadataEditor={this.openMetadataEditor}
         schemaspace={COMPONENT_CATALOGS_SCHEMASPACE}

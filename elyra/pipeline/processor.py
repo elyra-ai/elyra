@@ -26,10 +26,8 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Set
 from typing import Union
 
-import entrypoints
 from minio.error import S3Error
 from traitlets.config import Bool
 from traitlets.config import LoggingConfigurable
@@ -51,6 +49,7 @@ from elyra.pipeline.properties import KubernetesLabel
 from elyra.pipeline.properties import KubernetesSecret
 from elyra.pipeline.properties import KubernetesToleration
 from elyra.pipeline.properties import VolumeMount
+from elyra.pipeline.registry import PipelineProcessorRegistry
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.util.archive import create_temp_archive
@@ -58,66 +57,6 @@ from elyra.util.cos import CosClient
 from elyra.util.path import get_expanded_path
 
 elyra_log_pipeline_info = os.getenv("ELYRA_LOG_PIPELINE_INFO", True)
-
-
-class PipelineProcessorRegistry(SingletonConfigurable):
-    _processors: Dict[str, PipelineProcessor] = {}
-
-    def __init__(self, **kwargs):
-        root_dir: Optional[str] = kwargs.pop("root_dir", None)
-        super().__init__(**kwargs)
-        self.root_dir = get_expanded_path(root_dir)
-        # Register all known processors based on entrypoint configuration
-        for processor in entrypoints.get_group_all("elyra.pipeline.processors"):
-            try:
-                # instantiate an actual instance of the processor
-                processor_instance = processor.load()(root_dir=self.root_dir, parent=kwargs.get("parent"))
-                self.log.info(
-                    f"Registering {processor.name} processor '{processor.module_name}.{processor.object_name}'..."
-                )
-                self.add_processor(processor_instance)
-            except Exception as err:
-                # log and ignore initialization errors
-                self.log.error(
-                    f"Error registering {processor.name} processor "
-                    f'"{processor.module_name}.{processor.object_name}" - {err}'
-                )
-
-    def add_processor(self, processor):
-        self.log.debug(f"Registering {processor.type.value} runtime processor '{processor.name}'")
-        self._processors[processor.name] = processor
-
-    def get_processor(self, processor_name: str):
-        if self.is_valid_processor(processor_name):
-            return self._processors[processor_name]
-        else:
-            raise RuntimeError(f"Could not find pipeline processor '{processor_name}'")
-
-    def get_all_processors(self) -> List[PipelineProcessor]:
-        return list(self._processors.values())
-
-    def is_valid_processor(self, processor_name: str) -> bool:
-        return processor_name in self._processors.keys()
-
-    def is_valid_runtime_type(self, runtime_type_name: str) -> bool:
-        for processor in self._processors.values():
-            if processor.type.name == runtime_type_name.upper():
-                return True
-        return False
-
-    def get_runtime_types_resources(self) -> List[RuntimeTypeResources]:
-        """Returns the set of resource instances for each active runtime type"""
-
-        # Build set of active runtime types, then build list of resources instances
-        runtime_types: Set[RuntimeProcessorType] = set()
-        for name, processor in self._processors.items():
-            runtime_types.add(processor.type)
-
-        resources: List[RuntimeTypeResources] = list()
-        for runtime_type in runtime_types:
-            resources.append(RuntimeTypeResources.get_instance_by_type(runtime_type))
-
-        return resources
 
 
 class PipelineProcessorManager(SingletonConfigurable):

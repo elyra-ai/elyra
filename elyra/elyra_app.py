@@ -44,7 +44,7 @@ from elyra.pipeline.handlers import PipelineSchedulerHandler
 from elyra.pipeline.handlers import PipelineValidationHandler
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.processor import PipelineProcessorManager
-from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.registry import PipelineProcessorRegistry
 from elyra.pipeline.validation import PipelineValidationManager
 
 
@@ -60,7 +60,14 @@ class ElyraApp(ExtensionAppJinjaMixin, ExtensionApp):
     extension_url = "/lab"
     load_other_extensions = True
 
-    classes = [FileMetadataCache, MetadataManager, PipelineProcessor, ComponentCatalogConnector, ComponentCache]
+    classes = [
+        FileMetadataCache,
+        MetadataManager,
+        PipelineProcessorRegistry,
+        PipelineProcessor,
+        ComponentCatalogConnector,
+        ComponentCache,
+    ]
 
     # Local path to static files directory.
     static_paths = [

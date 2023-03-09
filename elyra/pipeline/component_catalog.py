@@ -44,6 +44,7 @@ from elyra.pipeline.component import Component
 from elyra.pipeline.component import ComponentParser
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
 from elyra.pipeline.properties import ComponentProperty
+from elyra.pipeline.registry import PipelineProcessorRegistry
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 BLOCKING_TIMEOUT = 0.5
@@ -451,7 +452,7 @@ class ComponentCache(SingletonConfigurable):
         """
         self._insert_request(self.update_queue, catalog, action)
 
-    def _insert_request(self, queue: Queue, catalog: Metadata, action: str):
+    def _insert_request(self, queue: Queue, catalog: ComponentCatalogMetadata, action: str):
         """
         If running as a server process, the request is submitted to the desired queue, otherwise
         it is posted to the manifest where the server process (if running) can detect the manifest
@@ -462,6 +463,10 @@ class ComponentCache(SingletonConfigurable):
         instead, raise NotImplementedError in such cases, but we may want the ability to refresh
         the entire component cache from a CLI utility and the current implementation would allow that.
         """
+        # Ensure referenced runtime is available
+        if not PipelineProcessorRegistry.instance().is_valid_runtime_type(catalog.runtime_type.name):
+            return
+
         if self.is_server_process:
             queue.put((catalog, action))
         else:
@@ -574,6 +579,10 @@ class ComponentCache(SingletonConfigurable):
         :returns: a dictionary of component id to Component object for all read/parsed components
         """
         components: Dict[str, Component] = {}
+
+        # Ensure referenced runtime is available
+        if not PipelineProcessorRegistry.instance().is_valid_runtime_type(catalog.runtime_type.name):
+            return components
 
         # Assign component parser based on the runtime platform type
         parser = ComponentParser.create_instance(platform=catalog.runtime_type)

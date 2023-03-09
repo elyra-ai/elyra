@@ -35,7 +35,7 @@ from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline_constants import PIPELINE_PARAMETERS
 from elyra.pipeline.pipeline_definition import PipelineDefinition
 from elyra.pipeline.processor import PipelineProcessorManager
-from elyra.pipeline.processor import PipelineProcessorRegistry
+from elyra.pipeline.registry import PipelineProcessorRegistry
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.pipeline.runtime_type import RuntimeTypeResources
 from elyra.pipeline.validation import PipelineValidationManager

@@ -21,6 +21,7 @@ import pytest
 from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.properties import ElyraProperty
+from elyra.pipeline.registry import PipelineProcessorRegistry
 
 
 # ---------------------------------------------------
@@ -280,3 +281,31 @@ def test_process_dictionary_value_function(processor: KfpPipelineProcessor):
 
     dict_as_str = "{'key1': {key2: 2}, 'key3': ['elem1', 'elem2']}"
     assert processor._process_dictionary_value(dict_as_str) == dict_as_str
+
+
+@pytest.fixture
+def processor_registry(monkeypatch, expected_runtimes) -> PipelineProcessorRegistry:
+    PipelineProcessorRegistry.clear_instance()
+    if expected_runtimes:
+        monkeypatch.setenv("ELYRA_PROCESSOR_RUNTIMES", ",".join(expected_runtimes))
+    ppr = PipelineProcessorRegistry.instance()
+    yield ppr
+    PipelineProcessorRegistry.clear_instance()
+
+
+@pytest.mark.parametrize(
+    "expected_runtimes",
+    [
+        ["local"],
+        ["airflow", "kfp"],
+        ["local", "airflow"],
+        None,
+    ],
+)
+def test_processor_registry_filtering(expected_runtimes, processor_registry):
+    if expected_runtimes is None:
+        expected_runtimes = ["local", "kfp", "airflow"]
+    runtimes = processor_registry.get_all_processors()
+    assert len(runtimes) == len(expected_runtimes)
+    for runtime in runtimes:
+        assert runtime.name in expected_runtimes

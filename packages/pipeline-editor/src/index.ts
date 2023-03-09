@@ -280,7 +280,8 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     PipelineService.getRuntimeTypes()
       .then(async types => {
-        const promises = types.map(async t => {
+        const filteredTypes = types.filter(t => t.runtime_enabled);
+        const promises = filteredTypes.map(async t => {
           return {
             ...t,
             icon: await createRemoteIcon({

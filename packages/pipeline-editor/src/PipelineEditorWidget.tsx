@@ -156,9 +156,19 @@ class PipelineEditorWidget extends ReactWidget {
     this.refreshPaletteSignal = options.refreshPaletteSignal;
     this.context = options.context;
     this.settings = options.settings;
+    let nullPipeline = this.context.model.toJSON() === null;
+    this.context.model.contentChanged.connect(() => {
+      if (nullPipeline) {
+        nullPipeline = false;
+        this.update();
+      }
+    });
   }
 
   render(): any {
+    if (this.context.model.toJSON() === null) {
+      return <div className="elyra-loader"></div>;
+    }
     return (
       <PipelineWrapper
         context={this.context}
@@ -197,7 +207,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 }) => {
   const ref = useRef<any>(null);
   const [loading, setLoading] = useState(true);
-  const [pipeline, setPipeline] = useState<any>(null);
+  const [pipeline, setPipeline] = useState<any>(context.model.toJSON());
   const [panelOpen, setPanelOpen] = React.useState(false);
 
   const type: string | undefined =
@@ -240,20 +250,23 @@ const PipelineWrapper: React.FC<IProps> = ({
   useEffect(() => {
     if (paletteError) {
       RequestErrors.serverError(paletteError);
+      shell.currentWidget?.close();
     }
-  }, [paletteError]);
+  }, [paletteError, shell.currentWidget]);
 
   useEffect(() => {
     if (runtimeImagesError) {
       RequestErrors.serverError(runtimeImagesError);
+      shell.currentWidget?.close();
     }
-  }, [runtimeImagesError]);
+  }, [runtimeImagesError, shell.currentWidget]);
 
   useEffect(() => {
     if (runtimesSchemaError) {
       RequestErrors.serverError(runtimesSchemaError);
+      shell.currentWidget?.close();
     }
-  }, [runtimesSchemaError]);
+  }, [runtimesSchemaError, shell.currentWidget]);
 
   const contextRef = useRef(context);
   useEffect(() => {
@@ -647,13 +660,22 @@ const PipelineWrapper: React.FC<IProps> = ({
       );
 
       // TODO: Parallelize this
-      const runtimes = await PipelineService.getRuntimes().catch(error =>
-        RequestErrors.serverError(error)
-      );
+      const runtimeTypes = await PipelineService.getRuntimeTypes();
+      const runtimes = await PipelineService.getRuntimes()
+        .then(runtimeList => {
+          return runtimeList.filter((runtime: any) => {
+            return (
+              !runtime.metadata.runtime_enabled &&
+              !!runtimeTypes.find(
+                (r: any) => runtime.metadata.runtime_type === r.id
+              )
+            );
+          });
+        })
+        .catch(error => RequestErrors.serverError(error));
       const schema = await PipelineService.getRuntimesSchema().catch(error =>
         RequestErrors.serverError(error)
       );
-      const runtimeTypes = await PipelineService.getRuntimeTypes();
 
       const runtimeData = createRuntimeData({
         schema,

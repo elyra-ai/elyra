@@ -18,6 +18,7 @@ from enum import unique
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Optional
 
 
 @unique
@@ -65,17 +66,23 @@ class RuntimeTypeResources(object):
     type: RuntimeProcessorType
     icon_endpoint: str
     export_file_types: List[Dict[str, str]]
+    runtime_enabled: bool
+
+    def __init__(self, runtime_enabled: Optional[bool] = True):
+        self.runtime_enabled = runtime_enabled
 
     @classmethod
-    def get_instance_by_type(cls, runtime_type: RuntimeProcessorType) -> "RuntimeTypeResources":
+    def get_instance_by_type(
+        cls, runtime_type: RuntimeProcessorType, runtime_enabled: Optional[bool] = True
+    ) -> "RuntimeTypeResources":
         if runtime_type == RuntimeProcessorType.KUBEFLOW_PIPELINES:
-            return KubeflowPipelinesResources()
+            return KubeflowPipelinesResources(runtime_enabled=runtime_enabled)
         if runtime_type == RuntimeProcessorType.APACHE_AIRFLOW:
-            return ApacheAirflowResources()
+            return ApacheAirflowResources(runtime_enabled=runtime_enabled)
         if runtime_type == RuntimeProcessorType.ARGO:
-            return ArgoResources()
+            return ArgoResources(runtime_enabled=runtime_enabled)
         if runtime_type == RuntimeProcessorType.LOCAL:
-            return LocalResources()
+            return LocalResources(runtime_enabled=runtime_enabled)
         raise ValueError(f"Runtime type {runtime_type} is not recognized.")
 
     @property
@@ -92,6 +99,7 @@ class RuntimeTypeResources(object):
             display_name=self.display_name,
             icon=self.icon_endpoint,
             export_file_types=self.export_file_types,
+            runtime_enabled=self.runtime_enabled,
         )
         return d
 

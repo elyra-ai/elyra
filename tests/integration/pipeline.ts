@@ -14,6 +14,28 @@
  * limitations under the License.
  */
 
+const emptyPipeline = `{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}`;
+
 describe('Pipeline Editor tests', () => {
   beforeEach(() => {
     cy.deleteFile('generic-test.yaml'); // previously exported pipeline
@@ -93,7 +115,7 @@ describe('Pipeline Editor tests', () => {
   // });
 
   it('should block unsupported files', () => {
-    cy.createPipeline();
+    cy.createPipeline({ emptyPipeline });
     cy.dragAndDropFileToPipeline('invalid.txt');
 
     // check for unsupported files dialog message
@@ -104,7 +126,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('populated editor should have enabled buttons', () => {
-    cy.createPipeline();
+    cy.createPipeline({ emptyPipeline });
 
     cy.checkTabMenuOptions('Pipeline');
 
@@ -142,7 +164,10 @@ describe('Pipeline Editor tests', () => {
 
     // Do this all manually because our command doesn't support directories yet
     cy.openDirectory('pipelines');
-    cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
+    cy.writeFile(
+      'build/cypress-tests/pipelines/complex.pipeline',
+      emptyPipeline
+    );
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
     // wait an additional 300ms for the list of items to settle
@@ -268,7 +293,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('matches empty pipeline snapshot', () => {
-    cy.createPipeline({ name: 'empty.pipeline' });
+    cy.createPipeline({ name: 'empty.pipeline', emptyPipeline });
 
     cy.addFileToPipeline('helloworld.ipynb');
 
@@ -283,7 +308,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('matches simple pipeline snapshot', () => {
-    cy.createPipeline({ name: 'simple.pipeline' });
+    cy.createPipeline({ name: 'simple.pipeline', emptyPipeline });
 
     cy.addFileToPipeline('helloworld.ipynb');
 
@@ -314,7 +339,10 @@ describe('Pipeline Editor tests', () => {
     // Open a pipeline in a subfolder
     cy.bootstrapFile('pipelines/producer.ipynb');
     cy.openDirectory('pipelines');
-    cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
+    cy.writeFile(
+      'build/cypress-tests/pipelines/complex.pipeline',
+      emptyPipeline
+    );
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
     cy.wait(300);
@@ -348,7 +376,10 @@ describe('Pipeline Editor tests', () => {
     // Open a pipeline in a subfolder
     cy.bootstrapFile('pipelines/producer.ipynb');
     cy.openDirectory('pipelines');
-    cy.writeFile('build/cypress-tests/pipelines/complex.pipeline', '');
+    cy.writeFile(
+      'build/cypress-tests/pipelines/complex.pipeline',
+      emptyPipeline
+    );
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
     cy.wait(300);
@@ -364,7 +395,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('should save runtime configuration', () => {
-    cy.createPipeline();
+    cy.createPipeline({ emptyPipeline });
 
     // Create kfp runtime configuration
     cy.createRuntimeConfig({ type: 'kfp' });
@@ -391,7 +422,7 @@ describe('Pipeline Editor tests', () => {
 
   // TODO: Investigate CI failures commented below
   // it('should run pipeline after adding runtime image', () => {
-  //   cy.createPipeline();
+  //   cy.createPipeline({ emptyPipeline });
 
   //   cy.addFileToPipeline('helloworld.ipynb'); // add Notebook
 
@@ -651,7 +682,7 @@ describe('Pipeline Editor tests', () => {
   it('kfp pipeline should display custom components', () => {
     cy.createExampleComponentCatalog({ type: 'kfp' });
 
-    cy.createPipeline({ type: 'kfp' });
+    cy.createPipeline({ type: 'kfp', emptyPipeline });
     cy.get('.palette-flyout-category[value="examples"]').click();
 
     const kfpCustomComponents = [
@@ -667,7 +698,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('kfp pipeline should display expected export options', () => {
-    cy.createPipeline({ type: 'kfp' });
+    cy.createPipeline({ type: 'kfp', emptyPipeline });
     cy.savePipeline();
 
     cy.installRuntimeConfig({ type: 'kfp' });
@@ -682,7 +713,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('airflow pipeline should display expected export options', () => {
-    cy.createPipeline({ type: 'airflow' });
+    cy.createPipeline({ type: 'airflow', emptyPipeline });
     cy.savePipeline();
 
     cy.installRuntimeConfig({ type: 'airflow' });
@@ -706,7 +737,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('exporting generic pipeline with invalid runtime config should produce request error', () => {
-    cy.createPipeline();
+    cy.createPipeline({ emptyPipeline });
     cy.savePipeline();
 
     cy.installRuntimeConfig();
@@ -722,7 +753,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('generic pipeline should display expected export options', () => {
-    cy.createPipeline();
+    cy.createPipeline({ emptyPipeline });
     cy.savePipeline();
 
     // Test Airflow export options
@@ -753,7 +784,7 @@ describe('Pipeline Editor tests', () => {
   });
 
   it('generic pipeline toolbar should display expected runtime', () => {
-    cy.createPipeline();
+    cy.createPipeline({ emptyPipeline });
     cy.get('.toolbar-icon-label').contains(/runtime: generic/i);
   });
 

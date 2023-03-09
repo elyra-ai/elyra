@@ -135,34 +135,37 @@ Cypress.Commands.add('deleteFile', (name: string): void => {
   });
 });
 
-Cypress.Commands.add('createPipeline', ({ name, type } = {}): void => {
-  if (name === undefined) {
-    switch (type) {
-      case 'kfp':
-        cy.get(
-          '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]'
-        ).click();
-        break;
-      case 'airflow':
-        cy.get(
-          '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]'
-        ).click();
-        break;
-      default:
-        cy.get(
-          '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
-        ).click();
-        break;
+Cypress.Commands.add(
+  'createPipeline',
+  ({ name, type, emptyPipeline } = {}): void => {
+    if (name === undefined) {
+      switch (type) {
+        case 'kfp':
+          cy.get(
+            '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]'
+          ).click();
+          break;
+        case 'airflow':
+          cy.get(
+            '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]'
+          ).click();
+          break;
+        default:
+          cy.get(
+            '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
+          ).click();
+          break;
+      }
+    } else {
+      cy.writeFile(`build/cypress-tests/${name}`, emptyPipeline ?? '');
+      cy.openFile(name);
     }
-  } else {
-    cy.writeFile(`build/cypress-tests/${name}`, '');
-    cy.openFile(name);
-  }
 
-  cy.get('.common-canvas-drop-div');
-  // wait an additional 300ms for the list of items to settle
-  cy.wait(300);
-});
+    cy.get('.common-canvas-drop-div');
+    // wait an additional 300ms for the list of items to settle
+    cy.wait(300);
+  }
+);
 
 Cypress.Commands.add('openDirectory', (name: string): void => {
   cy.findByRole('listitem', {
