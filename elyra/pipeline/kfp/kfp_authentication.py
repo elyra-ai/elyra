@@ -325,7 +325,7 @@ class AbstractAuthenticator(ABC):
     _type = None  # unique authenticator id
 
     @abstractmethod
-    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[SupportedAuthProviders]:
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[Any]:
         """
         Attempt to authenticate with the specified Kubeflow endpoint. The caller
         expects the implementing method to behave as follows:
@@ -352,7 +352,7 @@ class NoAuthenticationAuthenticator(AbstractAuthenticator):
 
     _type = SupportedAuthProviders.NO_AUTHENTICATION
 
-    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[SupportedAuthProviders]:
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[str]:
         """
         Confirms that the specified kf_endpoint can be accessed
         without authentication.
@@ -789,7 +789,7 @@ class ExistingBearerTokenAuthenticator(AbstractAuthenticator):
 
     _type = SupportedAuthProviders.EXISTING_BEARER_TOKEN
 
-    def authenticate(self, kf_endpoint: str, runtime_config_name: str, token: str) -> Optional[str]:
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str, token: str = None) -> Optional[str]:
         """
         Authenticate using static bearer token. Authentication ensures that the token
         is a string that is not None/empty/whitespaces only.
