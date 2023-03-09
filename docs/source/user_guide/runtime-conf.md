@@ -239,18 +239,19 @@ Authentication type Elyra uses to gain access to Kubeflow Pipelines. This settin
 - No authentication (`NO_AUTHENTICATION`).
 - Kubernetes service account token (`KUBERNETES_SERVICE_ACCOUNT_TOKEN`). This authentication type is only supported if Elyra runs as a pod in Kubernetes, e.g. as a Kubeflow notebook server. You must configure a service account token in Kubernetes, as outlined [here](https://www.kubeflow.org/docs/components/pipelines/sdk/connect-api/#multi-user-mode).
 - DEX configured for static password authentication (`DEX_STATIC_PASSWORDS`). This authentication requires a username and a password.
-- DEX configured for LDAP authentication (`DEX_LDAP`). This authentication requires a username and a  password.
+- DEX configured for LDAP authentication (`DEX_LDAP`). This authentication requires a username and a password.
+- User-provided token (`EXISTING_BEARER_TOKEN`).  Authentication is performed by passing the provided static token value to the Kubeflow server. This authentication requires a password/token.
 - DEX (`DEX_LEGACY`). Use this type only if none of the other authentication types applies or if your Kubeflow deployment is not configured for any other listed type. This authentication requires a username and a password.
 
 ##### Kubeflow Pipelines API endpoint username (api_username)
 
-A username is required for most authentication types. Refer to the Kubeflow authentication type setting for details.
+A username is required for most authentication types. Refer to the [Kubeflow authentication type setting](#kubeflow-authentication-type-auth-type) for details.
 
 Example: `user@example.com`
 
 ##### Kubeflow Pipelines API endpoint password (api_password)
 
-A password is required for most authentication types. Refer to the Kubeflow authentication type setting for details.
+A password or token is required for most authentication types. Refer to the [Kubeflow authentication type setting](#kubeflow-authentication-type-auth-type) for details.
 
 Example: `mypassword`
 
