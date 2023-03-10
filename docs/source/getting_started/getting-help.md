@@ -29,13 +29,13 @@ If you encounter a problem or have suggestions for improvements please [open an 
 
 ### Join the weekly community meeting
 
-The Elyra community meeting is held [online](https://ibm.webex.com/meet/akchin) every Thursday at [9AM Pacific](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&) (excluding holidays). Notes for the current and previous community calls can be found [here](https://hackmd.io/SgvSqrWWR2248mCw2BZ5gg?both).
+The Elyra community meeting is held [online](https://ibm.webex.com/meet/akchin) every Thursday at [9am Pacific](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&) (excluding holidays). Notes for the current and previous community calls can be found [here](https://hackmd.io/SgvSqrWWR2248mCw2BZ5gg?both).
 
-### Join the daily development meetings
+### Join the development meetings
 
-Join us for our daily scrum (except Thursdays) to discuss development items you're working on or have questions about. Everyone is welcome and participation is optional.
+Join us for our scrum to discuss development items you're working on or have questions about. Everyone is welcome and participation is optional.
 
-The daily dev meetings are held [online](https://ibm.webex.com/meet/akchin) every Monday, Tuesday, Wednesday, and Friday at [8:30AM Pacific](https://www.thetimezoneconverter.com/?t=8%3A30%20am&tz=San%20Francisco&) (excluding holidays).
+The dev meetings are held [online](https://ibm.webex.com/meet/akchin) every Tuesday [9:00am Pacific](https://www.thetimezoneconverter.com/?t=9%3A00%20am&tz=San%20Francisco&) (excluding holidays).
 
 ### Elyra chat room
-You can reach many Elyra contributors in the [Elyra community on gitter](https://gitter.im/elyra-ai/community).
+You can reach many Elyra contributors in the [Elyra community on gitter](https://gitter.im/elyra-ai/community) or [on Slack](https://join.slack.com/t/elyra-ai/shared_invite/zt-1r0hxdgz5-X8WFqCvHv5R0U8opD4kpqA).
