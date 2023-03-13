@@ -86,7 +86,7 @@ test = [
     "kfp-tekton"
 ]
 kfp-tekton = [
-    "kfp-tekton>=1.6.2"  # requires kfp >= 1.8.19, which contains fix for Jupyterlab
+    "kfp-tekton>=1.5.2"  # requires kfp >= 1.8.19, which contains fix for Jupyterlab
 ]
 kfp-examples = [
     "elyra-examples-kfp-catalog"
@@ -96,7 +96,7 @@ gitlab = [
 ]
 # The following is a collection of "non-test" extra dependencies from above.
 all = [
-    "kfp-tekton>=1.6.2",
+    "kfp-tekton>=1.5.2",
     "elyra-examples-kfp-catalog",
     "python-gitlab",
 ]
