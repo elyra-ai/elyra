@@ -1,0 +1,9 @@
+{
+  "display_name": "Tensorflow 2.8.0",
+  "metadata": {
+    "description": "TensorFlow 2.8",
+    "image_name": "tensorflow/tensorflow@sha256:7c01f75d58fadc2cd1109d5baac1925ed131e05925d840b1b49363c794d1c4db",
+    "tags": ["tensorflow"]
+  },
+  "schema_name": "runtime-image"
+}

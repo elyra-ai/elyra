@@ -1,0 +1,9 @@
+{
+  "display_name": "Tensorflow 2.8.0 with GPU",
+  "metadata": {
+    "description": "TensorFlow 2.8 (with GPU support)",
+    "image_name": "tensorflow/tensorflow@sha256:1e03623e335aac1610b1a3cfa6a96cf10156acb095287f9d6031df3980148663",
+    "tags": ["gpu", "tensorflow"]
+  },
+  "schema_name": "runtime-image"
+}

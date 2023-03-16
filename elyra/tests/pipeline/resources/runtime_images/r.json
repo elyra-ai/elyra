@@ -1,0 +1,9 @@
+{
+  "display_name": "R Script",
+  "metadata": {
+    "description": "R Script",
+    "image_name": "jupyter/r-notebook@sha256:08b7c3a1be31deac36cd9d65db6f6a4d58dc0cba32087101f3166d093c1a9c82",
+    "tags": ["R"]
+  },
+  "schema_name": "runtime-image"
+}

@@ -1,0 +1,9 @@
+{
+  "display_name": "Anaconda (2021.11) with Python 3.x",
+  "metadata": {
+    "description": "Anaconda 2021.11",
+    "image_name": "continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8",
+    "tags": ["anaconda"]
+  },
+  "schema_name": "runtime-image"
+}

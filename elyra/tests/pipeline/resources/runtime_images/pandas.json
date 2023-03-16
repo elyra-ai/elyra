@@ -1,0 +1,9 @@
+{
+  "display_name": "Pandas 1.4.1",
+  "metadata": {
+    "description": "Pandas 1.4.1",
+    "image_name": "amancevice/pandas@sha256:f74bef70689b19d3cd610ef67227fce1c9a6ed8fa950ac2aff39ce72310d5520",
+    "tags": ["pandas"]
+  },
+  "schema_name": "runtime-image"
+}
