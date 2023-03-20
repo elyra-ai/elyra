@@ -316,7 +316,7 @@ publish-container-images: publish-elyra-image publish-kf-notebook-image ## Publi
 validate-runtime-images: # Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
 	$(PYTHON_PIP) install jq ; \
-	for file in `find etc/config/metadata/runtime-images -name "*.json"` ; do \
+	for file in `find etc/config/metadata/runtime-images -name "*.json" 2> /dev/null` ; do \
 		image=`cat $$file | jq -e -r '.metadata.image_name'` ; \
 		if [ $$? -ne 0 ]; then \
 			echo ERROR: $$file does not define the image_name property ; \
