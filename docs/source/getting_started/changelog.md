@@ -2,6 +2,19 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.15.0rc0 - 03/28/2023
+
+- Add support for static bearer token authentication for KFP - [#3124](https://github.com/elyra-ai/elyra/pull/3124)
+- Bump @sideway/formula from 3.0.0 to 3.0.1 - [#3127](https://github.com/elyra-ai/elyra/pull/3127)
+- Determine which kernel to use prior to notebook execution - [#3135](https://github.com/elyra-ai/elyra/pull/3135)
+- Bump webpack from 5.74.0 to 5.76.0 - [#3128](https://github.com/elyra-ai/elyra/pull/3128)
+- Lower floor for kfp-tekton dependency - [#3125](https://github.com/elyra-ai/elyra/pull/3125)
+- Update community resources - [#3123](https://github.com/elyra-ai/elyra/pull/3123)
+- Filter available runtimes based on configuration setting - [#3114](https://github.com/elyra-ai/elyra/pull/3114)
+- Require Node.js 18+ in preparation for version 16 EOL - [#3118](https://github.com/elyra-ai/elyra/pull/3118)
+- Hide binder links and references - [#3119](https://github.com/elyra-ai/elyra/pull/3119)
+- Fix test artifact output location bugs - [#3117](https://github.com/elyra-ai/elyra/pull/3117)
+
 ## Release 3.14.3 - 02/21/2023
 
 - Bump kfp-tekton to 1.6.2 to pick up kfp 1.8.19 - [#3113](https://github.com/elyra-ai/elyra/pull/3113)
