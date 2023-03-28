@@ -70,6 +70,8 @@ class SupportedAuthProviders(Enum):
     # Supports multiple authentication mechanisms
     # (See DEXLegacyAuthenticator implementation)
     DEX_LEGACY = "DEX (legacy)"
+    # Supports authentication that relies on a static bearer token value
+    EXISTING_BEARER_TOKEN = "Token authentication"
 
     @staticmethod
     def get_default_provider() -> "SupportedAuthProviders":
@@ -272,7 +274,6 @@ class KFPAuthenticator:
                 )
                 if auth_info.get("cookies") is not None:
                     auth_info["kf_secured"] = True
-
             elif auth_type == SupportedAuthProviders.DEX_LDAP:
                 # DEX/LDAP authentication; the authenticator returns
                 # a cookie value
@@ -286,6 +287,12 @@ class KFPAuthenticator:
                 # a ServiceAccountTokenVolumeCredentials
                 auth_info["credentials"] = K8sServiceAccountTokenAuthenticator().authenticate(
                     kf_url, runtime_config_name
+                )
+                auth_info["kf_secured"] = True
+            elif auth_type == SupportedAuthProviders.EXISTING_BEARER_TOKEN:
+                # the authenticator returns a bearer token
+                auth_info["existing_token"] = ExistingBearerTokenAuthenticator().authenticate(
+                    kf_url, runtime_config_name, token=auth_parm_2
                 )
                 auth_info["kf_secured"] = True
             else:
@@ -318,7 +325,7 @@ class AbstractAuthenticator(ABC):
     _type = None  # unique authenticator id
 
     @abstractmethod
-    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[SupportedAuthProviders]:
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[Any]:
         """
         Attempt to authenticate with the specified Kubeflow endpoint. The caller
         expects the implementing method to behave as follows:
@@ -345,7 +352,7 @@ class NoAuthenticationAuthenticator(AbstractAuthenticator):
 
     _type = SupportedAuthProviders.NO_AUTHENTICATION
 
-    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[SupportedAuthProviders]:
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str) -> Optional[str]:
         """
         Confirms that the specified kf_endpoint can be accessed
         without authentication.
@@ -773,3 +780,38 @@ class DEXLegacyAuthenticator(AbstractAuthenticator):
 
         # The endpoint is not secured.
         return None
+
+
+class ExistingBearerTokenAuthenticator(AbstractAuthenticator):
+    """
+    This authenticator uses a user-provided bearer token value for authentication.
+    """
+
+    _type = SupportedAuthProviders.EXISTING_BEARER_TOKEN
+
+    def authenticate(self, kf_endpoint: str, runtime_config_name: str, token: str = None) -> Optional[str]:
+        """
+        Authenticate using static bearer token. Authentication ensures that the token
+        is a string that is not None/empty/whitespaces only.
+
+        :param kf_endpoint: Kubeflow API endpoint to verify
+        :type kf_endpoint: str
+        :param runtime_config_name: Runtime configuration name where kf_endpoint is specified
+        :type runtime_config_name: str
+        :param token: Bearer token to be used for authentication
+        :type password: str
+        :raises AuthenticationError: Authentication failed due to the specified error.
+        :return: A bearer token value
+        """
+
+        # This code can be removed after the kfp runtime schema enforces that the values
+        # for password/token are valid
+        if _empty_or_whitespaces_only(token):
+            raise AuthenticationError(
+                f"A token/password is required to perform this type of authentication. "
+                f"Update runtime configuration '{runtime_config_name}' and try again.",
+                provider=self._type,
+            )
+
+        # Return the bearer token
+        return token
