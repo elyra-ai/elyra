@@ -2,6 +2,9 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
+## Release 3.15.0 - 03/28/2023
+
+
 ## Release 3.15.0rc0 - 03/28/2023
 
 - Add support for static bearer token authentication for KFP - [#3124](https://github.com/elyra-ai/elyra/pull/3124)
