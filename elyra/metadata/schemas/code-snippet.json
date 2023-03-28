@@ -8,7 +8,7 @@
   "uihints": {
     "title": "Code Snippets",
     "icon": "elyra:code-snippet",
-    "reference_url": "https://elyra.readthedocs.io/en/latest/user_guide/code-snippets.html"
+    "reference_url": "https://elyra.readthedocs.io/en/v3.15.0/user_guide/code-snippets.html"
   },
   "properties": {
     "schema_name": {
