@@ -65,15 +65,15 @@ class SchemaspaceList(SchemaspaceBase):
 
     json_flag = Flag("--json", name="json", description="List complete instances as JSON", default_value=False)
 
-    valid_only_flag = Flag(
-        "--valid-only",
-        name="valid-only",
-        description="Only list valid instances (default includes invalid instances)",
+    include_invalid_flag = Flag(
+        "--include-invalid",
+        name="include-invalid",
+        description="Include invalid instances (default displays only valid instances)",
         default_value=False,
     )
 
     # 'List' flags
-    options = [json_flag, valid_only_flag]
+    options = [json_flag, include_invalid_flag]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -82,9 +82,8 @@ class SchemaspaceList(SchemaspaceBase):
     def start(self):
         super().start()  # process options
 
-        include_invalid = not self.valid_only_flag.value
         try:
-            metadata_instances = self.metadata_manager.get_all(include_invalid=include_invalid)
+            metadata_instances = self.metadata_manager.get_all(include_invalid=self.include_invalid_flag.value)
         except MetadataNotFoundError:
             metadata_instances = None
 
@@ -97,11 +96,11 @@ class SchemaspaceList(SchemaspaceBase):
                 print(f"No metadata instances found for {self.schemaspace}")
                 return
 
-            validity_clause = "includes invalid" if include_invalid else "valid only"
-            print(f"Available metadata instances for {self.schemaspace} ({validity_clause}):")
+            validity_clause = " (includes invalid)" if self.include_invalid_flag.value else ""
+            print(f"Available metadata instances for {self.schemaspace}{validity_clause}:")
 
             sorted_instances = sorted(metadata_instances, key=lambda inst: (inst.schema_name, inst.name))
-            # pad to width of longest instance
+            # pad to width of the longest instance
             max_schema_name_len = len("Schema")
             max_name_len = len("Instance")
             max_resource_len = len("Resource")
