@@ -382,6 +382,7 @@ class ComponentCatalogConnector(LoggingConfigurable):
                             f"with identifying information {catalog_entry_data}. "
                             f"The connector does not implement method 'get_entry_data'."
                         )
+                        catalog_entry_q.task_done()
                         continue
 
                     # Ignore this entry if no definition content is returned
