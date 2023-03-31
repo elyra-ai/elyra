@@ -82,7 +82,7 @@ async def test_modify_component_catalogs(component_cache, metadata_manager_with_
         res: CompletedProcess = run(
             [
                 "elyra-metadata",
-                "install",
+                "create",
                 "component-catalogs",
                 f"--schema_name={registry_instance.schema_name}",
                 f"--json={registry_instance.to_json()}",
@@ -157,7 +157,7 @@ async def test_directory_based_component_catalog(component_cache, metadata_manag
         res: CompletedProcess = run(
             [
                 "elyra-metadata",
-                "install",
+                "create",
                 "component-catalogs",
                 f"--schema_name={registry_instance.schema_name}",
                 f"--json={registry_instance.to_json()}",
