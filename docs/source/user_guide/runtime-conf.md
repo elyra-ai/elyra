@@ -95,7 +95,7 @@ $ elyra-metadata list runtimes
 The output lists for each runtime the name and the name of the associated JSON formatted metadata file, which is stored in the JupyterLab data directory in the `metadata/runtimes` subdirectory.
 
 ```
-Available metadata instances for runtimes (includes invalid):
+Available metadata instances for runtimes:
 
 Schema   Instance  Resource  
 ------   --------  -------- 

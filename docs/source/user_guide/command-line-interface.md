@@ -45,7 +45,7 @@ By default the `list` command displays the results in a user-friendly format.
 
 ```
 $ elyra-metadata list runtime-images
-Available metadata instances for runtime-images (includes invalid):
+Available metadata instances for runtime-images:
 
 Schema          Instance    Resource
 ------          --------    --------

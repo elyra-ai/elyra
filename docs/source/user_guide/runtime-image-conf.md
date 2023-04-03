@@ -94,7 +94,7 @@ To list runtime image configurations:
 ```bash
 $ elyra-metadata list runtime-images
 
-Available metadata instances for runtime-images (includes invalid):
+Available metadata instances for runtime-images:
 
 Schema          Instance               Resource                                                                                                       
 ------          --------               --------                                                                                                       
