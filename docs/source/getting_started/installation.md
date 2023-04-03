@@ -1,4 +1,4 @@
-  <!--
+<!--
 {% comment %}
 Copyright 2018-2022 Elyra Authors
 
@@ -25,23 +25,23 @@ The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/us
 * [Python 3.8+](https://www.python.org/downloads/) (or later)
 
 JupyterLab dependencies:
+ - Elyra >= 4.0.0 requires JupyterLab 4.x
  - Elyra >= 2.0.0 requires JupyterLab 3.x
 
 The instructions below are installing the latest release.
 
 ### Packaging
 
-Prior to version 3.1, the `elyra` package included all dependencies. Subsequent releases allow for selective dependency installation:
+You can install elyra with all optional dependencies or with specific dependencies:
 
 - `elyra` - install the Elyra core features
 - `elyra[all]` - install core features and all dependencies
 - `elyra[kfp-tekton]` - install the Elyra core features and support for [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton)
 - `elyra[gitlab]` - install the Elyra core features and GitLab support for Apache Airflow pipelines
-- `elyra[kfp-examples]` - install the Elyra core features and [Kubeflow Pipelines custom component examples](https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector)
 
 ### pip
 
-If you use `pip`, install Elyra with:
+If you use `pip`, install Elyra together with all dependencies with:
 
 ```bash
 pip3 install --upgrade "elyra[all]"
@@ -59,12 +59,6 @@ If desired, you can install these Elyra extensions independently:
 
    ```bash
    pip3 install --upgrade elyra-code-snippet-extension
-   ```
-
-- [Code Viewer](https://pypi.org/project/elyra-code-viewer-extension/)
-
-   ```bash
-   pip3 install --upgrade elyra-code-viewer-extension
    ```
 
 - [Python Editor](https://pypi.org/project/elyra-python-editor-extension/)
@@ -93,10 +87,7 @@ If you use `conda`, install Elyra with:
 conda install -c conda-forge "elyra[all]"
 ```
 
-**NOTE:**
-The Elyra packaging process was changed in version 3.1.0. The [Kubeflow Pipelines on Tekton](https://github.com/kubeflow/kfp-tekton) dependency [is no longer installed by default](https://github.com/elyra-ai/elyra/pull/2043). To install this dependency, you must specify `elyra[all]` or `elyra[kfp-tekton]`.
-
-You can also install the Pipeline editor, Code Snippet, Code Viewer, or Script editor extensions individually:
+You can also install the Pipeline editor, Code Snippet, or Script editor extensions individually:
 
 ```bash
 conda install -c conda-forge elyra-pipeline-editor-extension
@@ -107,10 +98,6 @@ conda install -c conda-forge elyra-code-snippet-extension
 ```
 
 ```bash
-conda install -c conda-forge elyra-code-viewer-extension
-```
-
-```bash
 conda install -c conda-forge elyra-python-editor-extension
 ```
 
@@ -118,7 +105,9 @@ conda install -c conda-forge elyra-python-editor-extension
 conda install -c conda-forge elyra-r-editor-extension
 ```
 
-**NOTE:** The R Editor extension is not yet available on `conda-forge` or `pip` package manager.
+```bash
+conda install -c conda-forge elyra-scala-editor-extension
+```
 
 ### Build from source
 
