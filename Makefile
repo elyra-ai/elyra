@@ -20,7 +20,7 @@
 .PHONY: build-dependencies dev-dependencies yarn-install build-ui package-ui package-ui-dev
 .PHONY: build-server install-server-package install-server
 .PHONY: install install-all install-dev install-examples install-gitlab-dependency check-install watch release
-.PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
+.PHONY: test-dependencies pytest test-server test-ui-unit integration-test-resources test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
 .PHONY: container-images publish-container-images validate-runtime-image validate-runtime-images
@@ -229,10 +229,13 @@ test-server: test-dependencies pytest # Run python unit tests
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
 
-test-integration: # Run frontend cypress integration tests
+integration-test-resources:
+	elyra-metadata install runtime-images --file elyra/tests/pipeline/resources/runtime_images/anaconda.json
+
+test-integration: integration-test-resources # Run frontend cypress integration tests
 	yarn test:integration
 
-test-integration-debug: # Open cypress integration test debugger
+test-integration-debug: integration-test-resources# Open cypress integration test debugger
 	yarn test:integration:debug
 
 test-ui: lint-ui test-ui-unit test-integration # Run frontend tests
@@ -313,7 +316,7 @@ publish-container-images: publish-elyra-image publish-kf-notebook-image ## Publi
 validate-runtime-images: # Validates delivered runtime-images meet minimum criteria
 	@required_commands=$(REQUIRED_RUNTIME_IMAGE_COMMANDS) ; \
 	$(PYTHON_PIP) install jq ; \
-	for file in `find etc/config/metadata/runtime-images -name "*.json"` ; do \
+	for file in `find etc/config/metadata/runtime-images -name "*.json" 2> /dev/null` ; do \
 		image=`cat $$file | jq -e -r '.metadata.image_name'` ; \
 		if [ $$? -ne 0 ]; then \
 			echo ERROR: $$file does not define the image_name property ; \
