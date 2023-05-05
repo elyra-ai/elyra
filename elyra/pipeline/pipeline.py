@@ -249,6 +249,7 @@ class GenericOperation(Operation):
                 gpu: number of gpus requested to run the operation
                 parameters: a list of names of pipeline parameters that should be passed to this operation
                 gpu_vendor: gpu resource type, eg. nvidia.com/gpu, amd.com/gpu etc.
+                parallel_count: operation parallel count to run parallelfor steps.
         Entries for other (non-built-in) component types are a function of the respective component.
 
         :param elyra_props: dictionary of property key:value pairs that are owned by Elyra
@@ -276,6 +277,7 @@ class GenericOperation(Operation):
         self._component_props["memory"] = component_props.get("memory")
         self._component_props["gpu"] = component_props.get("gpu")
         self._component_props["gpu_vendor"] = component_props.get("gpu_vendor")
+        self._component_props["parallel_count"] = component_props.get("parallel_count")
         self._component_props["parameters"] = component_props.get(PIPELINE_PARAMETERS, [])
 
         if not elyra_props:
@@ -331,6 +333,10 @@ class GenericOperation(Operation):
     @property
     def gpu_vendor(self) -> Optional[str]:
         return self._component_props.get("gpu_vendor")
+
+    @property
+    def parallel_count(self) -> Optional[str]:
+        return self._component_props.get("parallel_count")
 
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):

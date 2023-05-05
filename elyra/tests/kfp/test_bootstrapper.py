@@ -192,6 +192,21 @@ def test_main_method(monkeypatch, s3_setup, tmpdir):
     main_method_setup_execution(monkeypatch, s3_setup, tmpdir, argument_dict)
 
 
+def test_main_method_with_parallel_count(monkeypatch, s3_setup, tmpdir):
+    argument_dict = {
+        "cos-endpoint": "http://" + MINIO_HOST_PORT,
+        "cos-bucket": "test-bucket",
+        "cos-directory": "test-directory",
+        "cos-dependencies-archive": "test-archive.tgz",
+        "filepath": os.path.join(RESOURCES_DIR, "test-notebookA.ipynb"),
+        "inputs": "test-file.txt;test,file.txt",
+        "outputs": "test-file/test-file-copy.txt;test-file/test,file/test,file-copy.txt",
+        "user-volume-path": None,
+        "parallel_count": 2,
+    }
+    main_method_setup_execution(monkeypatch, s3_setup, tmpdir, argument_dict)
+
+
 def test_main_method_with_wildcard_outputs(monkeypatch, s3_setup, tmpdir):
     argument_dict = {
         "cos-endpoint": "http://" + MINIO_HOST_PORT,
