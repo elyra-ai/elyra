@@ -352,7 +352,7 @@ validate-runtime-image: # Validate that runtime image meets minimum criteria
 			continue; \
 		fi; \
 		if [ $$cmd == "python3" ]; then \
-			IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm --entrypoint /bin/bash $$image "$$cmd --version" | cut -d' ' -f2 | cut -d'.' -f2` ; \
+			IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm --entrypoint /bin/bash $$image -c "$$cmd --version" | cut -d' ' -f2 | cut -d'.' -f2` ; \
 			if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
 				echo "WARNING: Container image $$image requires Python 3.8 or greater for latest generic component dependency installation" ; \
 				fail=1; \
