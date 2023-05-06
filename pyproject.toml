@@ -48,6 +48,8 @@ dependencies = [
     "watchdog>=2.1.3",
     "websocket-client",
     "yaspin",
+    # see: https://stackoverflow.com/questions/76175487/sudden-importerror-cannot-import-name-appengine-from-requests-packages-urlli
+    "appengine-python-standard",
     "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
     "pygithub",
     "black>=22.8.0",
