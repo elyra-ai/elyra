@@ -109,7 +109,7 @@ $ elyra-metadata list code-snippets
 The output lists for each code snippet the name and the name of the associated JSON formatted metadata file, which is stored in the JupyterLab data directory in the `metadata/code-snippets` subdirectory.
 
 ```
-Available metadata instances for code-snippets (includes invalid):
+Available metadata instances for code-snippets:
 
 Schema   	Instance		Resource  
 ---------   	--------		--------

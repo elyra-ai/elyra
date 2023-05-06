@@ -996,7 +996,7 @@ def test_list_instances(script_runner, mock_data_dir):
     resource = metadata_manager.create("another2", another)
     assert resource is not None
 
-    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE)
+    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--include-invalid")
     assert ret.success
     lines = ret.stdout.split("\n")
     assert len(lines) == 9  # always 5 more than the actual runtime count
@@ -1014,13 +1014,13 @@ def test_list_instances(script_runner, mock_data_dir):
     # Remove the '2' runtimes and reconfirm smaller set
     metadata_manager.remove("valid2")
     metadata_manager.remove("another2")
-    # Include two additional invalid files as well - one for uri failure, andother missing display_name
+    # Include two additional invalid files as well - one for uri failure, another missing display_name
     metadata_dir = os.path.join(mock_data_dir, "metadata", METADATA_TEST_SCHEMASPACE)
     create_json_file(metadata_dir, "invalid.json", invalid_metadata_json)
     create_json_file(metadata_dir, "no_display_name.json", invalid_no_display_name_json)
     create_json_file(metadata_dir, "invalid_schema_name.json", invalid_schema_name_json)
 
-    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE)
+    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--include-invalid")
     assert ret.success
     lines = ret.stdout.split("\n")
     assert len(lines) == 10  # always 5 more than the actual runtime count
@@ -1036,11 +1036,11 @@ def test_list_instances(script_runner, mock_data_dir):
     assert line_elements[4][3] == "**INVALID**"
     assert line_elements[4][4] == "(SchemaNotFoundError)"
 
-    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--valid-only")
+    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE)
     assert ret.success
     lines = ret.stdout.split("\n")
     assert len(lines) == 7  # always 5 more than the actual runtime count
-    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE} (valid only):"
+    assert lines[0] == f"Available metadata instances for {METADATA_TEST_SCHEMASPACE}:"
     line_elements = [line.split() for line in lines[4:6]]
     assert line_elements[0][1] == "another"
     assert line_elements[1][1] == "valid"
@@ -1066,7 +1066,7 @@ def test_list_json_instances(script_runner, mock_data_dir):
     resource = metadata_manager.create("another2", another)
     assert resource is not None
 
-    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--json")
+    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--json", "--include-invalid")
     assert ret.success
     # Consume results
     results = json.loads(ret.stdout)
@@ -1076,20 +1076,22 @@ def test_list_json_instances(script_runner, mock_data_dir):
     metadata_manager.remove("valid2")
     metadata_manager.remove("another2")
 
-    # Include two additional invalid files as well - one for uri failure, andother missing display_name
+    # Include two additional invalid files as well - one for uri failure, another missing display_name
     metadata_dir = os.path.join(mock_data_dir, "metadata", METADATA_TEST_SCHEMASPACE)
     create_json_file(metadata_dir, "invalid.json", invalid_metadata_json)
     create_json_file(metadata_dir, "no_display_name.json", invalid_no_display_name_json)
 
+    # Ensure invalids are NOT listed
     ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--json")
     assert ret.success
     results = json.loads(ret.stdout)
-    assert len(results) == 4
+    assert len(results) == 2
 
-    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--json", "--valid-only")
+    # Ensure invalids ARE listed
+    ret = script_runner.run("elyra-metadata", "list", METADATA_TEST_SCHEMASPACE, "--json", "--include-invalid")
     assert ret.success
     results = json.loads(ret.stdout)
-    assert len(results) == 2
+    assert len(results) == 4
 
 
 def test_remove_help(script_runner):
