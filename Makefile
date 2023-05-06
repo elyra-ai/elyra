@@ -345,20 +345,20 @@ validate-runtime-image: # Validate that runtime image meets minimum criteria
 	fi; \
 	for cmd in $$required_commands ; do \
         echo "=> Checking container image $$image for $$cmd..." ; \
-		docker run --rm $$image which $$cmd > /dev/null 2>&1 ; \
+		docker run --rm --entrypoint /bin/bash $$image -c "which $$cmd" > /dev/null 2>&1 ; \
 		if [ $$? -ne 0 ]; then \
 			echo "ERROR: Container image $$image does not meet criteria for command: $$cmd" ; \
 			fail=1; \
 			continue; \
 		fi; \
 		if [ $$cmd == "python3" ]; then \
-			IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm $$image $$cmd --version | cut -d' ' -f2 | cut -d'.' -f2` ; \
+			IMAGE_PYTHON3_MINOR_VERSION=`docker run --rm --entrypoint /bin/bash $$image "$$cmd --version" | cut -d' ' -f2 | cut -d'.' -f2` ; \
 			if [[ $$IMAGE_PYTHON3_MINOR_VERSION -lt 8 ]]; then \
 				echo "WARNING: Container image $$image requires Python 3.8 or greater for latest generic component dependency installation" ; \
 				fail=1; \
 			elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
 				echo "=> Checking notebook execution..." ; \
-				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm $$image /bin/bash -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
+				docker run -v $$(pwd)/etc/generic:/opt/elyra/ --rm --entrypoint /bin/bash $$image -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
 							   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
 							   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
 				if [ $$? -ne 0 ]; then \
