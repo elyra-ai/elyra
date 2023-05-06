@@ -2,7 +2,7 @@
   "display_name": "Pytorch 1.12 with CUDA-runtime",
   "metadata": {
     "description": "PyTorch 1.12 (with GPU support)",
-    "image_name": "pytorch/pytorch@sha256:0bc0971dc8ae319af610d493aced87df46255c9508a8b9e9bc365f11a56e7b75",
+    "image_name": "nvcr.io/nvidia/pytorch@sha256:b6080b287f79ba34c392730566a8903361453c15c3b3beff032d11a05e08f7c3",
     "tags": ["gpu", "pytorch"]
   },
   "schema_name": "runtime-image"
