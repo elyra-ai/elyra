@@ -180,7 +180,7 @@ To list component catalog entries:
 ```bash
 $ elyra-metadata list component-catalogs
 
-Available metadata instances for component-catalogs (includes invalid):
+Available metadata instances for component-catalogs:
 
 Schema               Instance                            Resource
 ------               --------                            --------
@@ -283,7 +283,7 @@ $ elyra-metadata list component-registries
 ```
 In this example, there are three user-defined instances.
 ```bash
-Available metadata instances for component-registries (includes invalid):
+Available metadata instances for component-registries:
 
 Schema               Instance            Resource
 ------               --------            --------
@@ -314,7 +314,7 @@ The following component-registries instances were migrated: ['myoperators', 'air
 Once migrated, these entries should appear in the set of component catalogs.  This can be confirmed by listing the component-catalogs instances:
 ```bash
 $ elyra-metadata list component-catalogs
-Available metadata instances for component-catalogs (includes invalid):
+Available metadata instances for component-catalogs:
 
 Schema                    Instance                            Resource                                                                                                         
 ------                    --------                            --------                                                                                                             
