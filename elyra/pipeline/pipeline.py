@@ -336,7 +336,7 @@ class GenericOperation(Operation):
 
     @property
     def parallel_count(self) -> Optional[str]:
-        return self._component_props.get("parallel_count")
+        return self._component_props.get("parallel_count", 1)
 
     def __eq__(self, other: GenericOperation) -> bool:
         if isinstance(self, other.__class__):

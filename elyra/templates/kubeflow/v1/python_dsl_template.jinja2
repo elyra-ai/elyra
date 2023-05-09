@@ -34,10 +34,12 @@ def generated_pipeline(
     {% set task_name = "task_" + workflow_task.escaped_task_id %}
     # Task for node '{{ workflow_task.name }}'
     {% set parallel_indent = 0 %}
-{%  if workflow_task.task_modifiers.parallel_count > 1 %}
+{%  if 'parallel_count' in workflow_task.task_modifiers and workflow_task.task_modifiers.parallel_count is not none %}
+{%    if workflow_task.task_modifiers.parallel_count > 1 %}
     {% set parallel_indent = 4 %}
     parallel_count = {{workflow_task.task_modifiers.parallel_count}}
     with kfp.dsl.ParallelFor(list(range(parallel_count))) as rank:
+{%    endif %}
 {%  endif %}
 
 {%  filter indent(width=parallel_indent) %}
@@ -81,9 +83,11 @@ def generated_pipeline(
 {%    for env_var_name, env_var_value in workflow_task.task_modifiers.env_variables.items() %}
     {{ task_name }}.add_env_variable(V1EnvVar(name="{{ env_var_name }}", value="{{ env_var_value | string_delimiter_safe }}"))
 {%    endfor %}
-{%    if workflow_task.task_modifiers.parallel_count > 1 %}
+{%    if 'parallel_count' in workflow_task.task_modifiers and workflow_task.task_modifiers.parallel_count is not none %}
+{%      if workflow_task.task_modifiers.parallel_count > 1 %}
     {{ task_name }}.add_env_variable(V1EnvVar(name="NRANKS", value=str(parallel_count)))
     {{ task_name }}.add_env_variable(V1EnvVar(name="RANK", value=str(rank)))
+{%      endif %}
 {%    endif %}
 {%    if workflow_engine == "argo" %}
     {{ task_name }}.add_env_variable(V1EnvVar(
