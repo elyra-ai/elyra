@@ -1429,7 +1429,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
             # ignore custom nodes
             continue
         template_name = sanitize_label_value(op.name)
-        template_name = template_name.replace("_", "-") # kubernetes does this replace
+        template_name = template_name.replace("_", "-")  # kubernetes does this replace
         template_index = template_index + 1
         # compare outputs
         if len(op.outputs) > 0:
