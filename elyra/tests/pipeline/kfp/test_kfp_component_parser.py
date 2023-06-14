@@ -32,7 +32,7 @@ from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.catalog_connector import UrlComponentCatalogConnector
 from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.component_metadata import ComponentCatalogMetadata
-from elyra.pipeline.kfp.component_parser_kfp import KfpComponentParser
+from elyra.pipeline.kfp.kfp_component_parser import KfpComponentParser
 from elyra.pipeline.runtime_type import RuntimeProcessorType
 
 COMPONENT_CATALOG_DIRECTORY = os.path.join(jupyter_core.paths.ENV_JUPYTER_PATH[0], "components")
