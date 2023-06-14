@@ -136,7 +136,7 @@ airflow-package-catalog-schema = "elyra.pipeline.airflow.package_catalog_connect
 metadata-tests = "elyra.tests.metadata.test_utils:MetadataTestSchemasProvider"
 
 [project.entry-points."elyra.pipeline.processors"]
-local = "elyra.pipeline.local.processor_local:LocalPipelineProcessor"
+local = "elyra.pipeline.local.local_processor:LocalPipelineProcessor"
 airflow = "elyra.pipeline.airflow.airflow_processor:AirflowPipelineProcessor"
 kfp = "elyra.pipeline.kfp.kfp_processor:KfpPipelineProcessor"
 
