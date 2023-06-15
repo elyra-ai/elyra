@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2018-2022 Elyra Authors
+# Copyright 2018-2023 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
