@@ -4,7 +4,11 @@ A summary of new feature highlights is located on the [GitHub release page](http
 
 ## Release 4.0.0
 
-- Add functionality to select resource limits from the GUI [#3202](https://github.com/elyra-ai/elyra/pull/3202)
+- Add support for JupyterLab 4.x - [#3201](https://github.com/elyra-ai/elyra/pull/3201)
+- Add functionality to select resource limits from the GUI - [#3202](https://github.com/elyra-ai/elyra/pull/3202)
+- Separate KFP and Airflow libraries during build step, making kfp dependency optional for non-KFP runtime users - [#3248](https://github.com/elyra-ai/elyra/pull/3248)
+- KFP and Airflow runtime generic components logging during execution and S3 file put for run log output file made configurable - [#3227](https://github.com/elyra-ai/elyra/pull/3227) 
+- Generic pipelines and generic components runtime support changed to Airflow >= 2.7.0. Airflow 1.x no longer supported - [#3167](https://github.com/elyra-ai/elyra/pull/3167)
 
 ## Release 3.15.0 - 03/28/2023
 

@@ -40,6 +40,8 @@ See the [Kubeflow Pipelines documentation](https://www.kubeflow.org/docs/compone
 ### Apache Airflow components
 
 #### Requirements
+Apache Airflow components are currently only supported for Airflow < 2 and in Elyra < 4.
+Elyra 4 starts with generic components support (R, Python, ipynb Notebooks), not (yet) for custom components, for Airflow >= 2.7.0.
 
 ##### Configure fully qualified package names for custom operator classes
 

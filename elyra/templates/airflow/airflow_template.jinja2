@@ -1,15 +1,15 @@
 from airflow import DAG
-from airflow.utils.dates import days_ago
+import pendulum
 
 args = {
     'project_id' : '{{ pipeline_name }}',
 }
 
 dag = DAG(
-    '{{ pipeline_name }}',
+    dag_id='{{ pipeline_name }}',
     default_args=args,
-    schedule_interval='@once',
-    start_date=days_ago(1),
+    schedule='@once',
+    start_date=pendulum.today('UTC').add(days=-1),
     description="""
 {{ pipeline_description|replace("\"\"\"", "\\\"\\\"\\\"") }}
     """,
@@ -22,10 +22,9 @@ dag = DAG(
 {{import_statement}}
 {% endfor %}
 {% else %}
-from airflow.kubernetes.secret import Secret
-from airflow.contrib.kubernetes.volume import Volume
-from airflow.contrib.kubernetes.volume_mount import VolumeMount
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.providers.cncf.kubernetes.secret import Secret
+from kubernetes.client import models as k8s
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 {% endif %}
 
 {% if operation.operator_source %}# Operator source: {{ operation.operator_source }}{% endif %}
@@ -48,23 +47,27 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                             task_id='{{ operation.notebook|regex_replace }}',
                                                             env_vars={{ operation.pipeline_envs }},
         {% if operation.cpu_request or operation.mem_request or operation.cpu_limit or operation.memory_limit or operation.gpu_limit %}
-                                                            resources = {
-            {% if operation.cpu_request %}
-                                                                       'request_cpu': '{{ operation.cpu_request }}',
-            {% endif %}
-            {% if operation.mem_request %}
-                                                                       'request_memory': '{{ operation.mem_request }}G',
-            {% endif %}
-            {% if operation.cpu_limit %}
-                                                                       'limit_cpu': '{{ operation.cpu_limit }}',
-            {% endif %}
-            {% if operation.memory_limit %}
-                                                                       'limit_memory': '{{ operation.memory_limit }}G',
-            {% endif %}
-            {% if operation.gpu_limit %}
-                                                                       'limit_gpu': '{{ operation.gpu_limit }}',
-            {% endif %}
-                                                            },
+                                                            container_resources=k8s.V1ResourceRequirements(
+                                                                requests={
+                                                                    {% if operation.cpu_request %}
+                                                                        'cpu': '{{ operation.cpu_request }}',
+                                                                    {% endif %}
+                                                                    {% if operation.mem_request %}
+                                                                        'memory': '{{ operation.mem_request }}G',
+                                                                    {% endif %}
+                                                                },
+                                                                limits={
+                                                                    {% if operation.cpu_limit %}
+                                                                        'cpu': '{{ operation.cpu_limit }}',
+                                                                    {% endif %}
+                                                                    {% if operation.memory_limit %}
+                                                                        'memory': '{{ operation.memory_limit }}G',
+                                                                    {% endif %}
+                                                                    {% if operation.gpu_limit %}
+                                                                        '{{ operation.gpu_vendor }}': '{{ operation.gpu_limit }}',
+                                                                    {% endif %}
+                                                                }
+                                                            ),
         {% endif %}
                                                             volumes=[{{ processor.render_volumes(operation.elyra_props) }}],
                                                             volume_mounts=[{{ processor.render_mounts(operation.elyra_props) }}],
@@ -73,7 +76,7 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                             labels={{ processor.render_labels(operation.elyra_props) }},
                                                             tolerations=[{{ processor.render_tolerations(operation.elyra_props) }}],
                                                             in_cluster={{ in_cluster }},
-                                                            config_file="{{ kube_config_path }}",
+                                                            config_file={% if kube_config_path is string %}"{{ kube_config_path }}"{% else %}{{ kube_config_path }}{% endif %},
 {% endif %}
                                                             dag=dag)
     {% if operation.image_pull_policy %}
