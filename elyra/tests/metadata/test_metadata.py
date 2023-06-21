@@ -704,7 +704,7 @@ def test_validation_performance():
     print(
         f"\nMemory: {diff:,} kb, Start: {memory_start.rss / 1024 / 1024:,.3f} mb, "
         f"End: {memory_end.rss / 1024 / 1024:,.3f} mb., "
-        f"Elapsed time: {t1-t0:.3f}s over {iterations} iterations."
+        f"Elapsed time: {t1 - t0:.3f}s over {iterations} iterations."
     )
 
 

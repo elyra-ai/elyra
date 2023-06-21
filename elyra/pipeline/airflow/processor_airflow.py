@@ -345,6 +345,7 @@ be fully qualified (i.e., prefixed with their package names).
                     "cpu_limit": operation.cpu_limit,
                     "memory_limit": operation.memory_limit,
                     "gpu_limit": operation.gpu,
+                    "gpu_vendor": operation.gpu_vendor,
                     "operator_source": operation.filename,
                 }
 
@@ -598,13 +599,23 @@ be fully qualified (i.e., prefixed with their package names).
         str_to_render = ""
         for v in elyra_properties.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
-                Volume(name="{v.pvc_name}", configs={{"persistentVolumeClaim": {{"claimName": "{v.pvc_name}"}}}}),"""
+                k8s.V1Volume(
+                    name="{v.pvc_name}",
+                    persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
+                        claim_name="{v.pvc_name}",
+                    ),
+                ),"""
         # set custom shared memory size
         shm = elyra_properties.get(pipeline_constants.KUBERNETES_SHARED_MEM_SIZE)
         if shm is not None and shm.size:
-            config = f"""configs={{"emptyDir": {{"medium": "Memory", "sizeLimit": "{shm.size}{shm.units}"}}}}"""
             str_to_render += f"""
-                Volume(name="shm", {config}),"""
+                k8s.V1Volume(
+                    name="shm",
+                    empty_dir=k8s.V1EmptyDirVolumeSource(
+                        medium="Memory",
+                        size_limit="{shm.size}{shm.units}",
+                    ),
+                ),"""
         return dedent(str_to_render)
 
     def render_mounts(self, elyra_properties: Dict[str, ElyraProperty]) -> str:
@@ -615,8 +626,12 @@ be fully qualified (i.e., prefixed with their package names).
         str_to_render = ""
         for v in elyra_properties.get(pipeline_constants.MOUNTED_VOLUMES, []):
             str_to_render += f"""
-                 VolumeMount(name="{v.pvc_name}", mount_path="{v.path}",
-                 sub_path="{v.sub_path}", read_only={v.read_only}),"""
+                k8s.V1VolumeMount(
+                    name="{v.pvc_name}",
+                    mount_path="{v.path}",
+                    sub_path="{v.sub_path}",
+                    read_only={v.read_only},
+                ),"""
         return dedent(str_to_render)
 
     def render_secrets(self, elyra_properties: Dict[str, ElyraProperty], cos_secret: Optional[str]) -> str:
