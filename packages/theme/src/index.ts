@@ -215,13 +215,13 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
     model.add({
       command: CommandIDs.openHelp,
-      category: 'Foresight',
+      category: 'Aizen Foresight',
       rank: 10
     });
 
     model.add({
       command: CommandIDs.view,
-      category: 'Foresight',
+      category: 'Aizen Foresight',
       rank: 11
     });
 

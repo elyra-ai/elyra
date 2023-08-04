@@ -1,36 +1,83 @@
-<svg width="6.799mm" height="8.4667mm" version="1.1" viewBox="0 0 6.799 8.4667" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
- <defs>
-  <clipPath id="clip0-85">
-   <rect x="44" y="39" width="40" height="50"/>
-  </clipPath>
-  <clipPath id="clip1-1">
-   <rect x="47" y="45" width="34" height="38"/>
-  </clipPath>
-  <clipPath id="clip2-2">
-   <rect x="47" y="45" width="34" height="38"/>
-  </clipPath>
-  <clipPath id="clip3-3">
-   <rect x="47" y="45" width="34" height="38"/>
-  </clipPath>
-  <clipPath id="clip4-3">
-   <rect x="46" y="44" width="39" height="40"/>
-  </clipPath>
- </defs>
- <g transform="translate(-50.931 -64.462)">
-  <g transform="matrix(.17205 0 0 .17205 43.278 57.616)" clip-path="url(#clip0-85)">
-   <g clip-path="url(#clip1-1)">
-    <g clip-path="url(#clip2-2)">
-     <g clip-path="url(#clip3-3)">
-      <g clip-path="url(#clip4-3)">
-       <path transform="matrix(1.029 0 0 1 36.639 37.291)" d="m22.68 24.308-12.259 6.2642v-14.716l16.236-8.147 16.644 8.134v21.51l-16.523 8.2185-13.318-6.5113 12.973-6.5675 1.6169 3.1938-9.7632 4.9426-0.0224-3.2048 9.2935 4.5434-1.5832 0.0054 14.74-7.3315-0.9928 1.6026v-19.284l1.004 1.6081-14.844-7.2541 1.5886-0.0083-14.457 7.2541 0.9872-1.5998v10.688l-2.6043-1.5938 9.6548-4.9334zm-4.0371-3.9671 8.0042-0.07-4.7465 6.4454zm5.3836 11.363 8.0044-0.0399-4.7707 6.4275z" fill="#2f528f"/>
-       <path transform="matrix(1.029 0 0 -1 47.902 72.441)" d="m0.80045-1.6009 22.954 11.477-1.6009 3.2018-22.954-11.477zm22.153 9.0756 4.8026 6.4036h-8.0045z" fill="#265396"/>
-       <path transform="matrix(1.029 0 0 1 36.639 37.291)" d="m10.507 36.769-0.0188-2.5571 2.1398 1.4003z" fill="#265396" fill-rule="evenodd" stroke="#265396" stroke-miterlimit="8" stroke-width=".82609"/>
-      </g>
-     </g>
-    </g>
-   </g>
-   <path d="m45.5 50.1 7.6-9.6h30.4v48h-38z" fill="none" fill-rule="evenodd" stroke="#2f528f" stroke-miterlimit="8" stroke-width="1.3333"/>
-   <path d="m52.684 48.142-6.6772 0.7571 5.9201-7.4344z" fill="none" fill-rule="evenodd" stroke="#2f528f" stroke-miterlimit="8" stroke-width="1.3333"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="8.6561079mm"
+   height="8.6981277mm"
+   viewBox="0 0 8.6561079 8.6981277"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="AIZEN SVG Logo 32 32.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.79464085"
+     inkscape:cx="395.96285"
+     inkscape:cy="132.25313"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1366"
+     inkscape:window-height="697"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-0.2348285,-0.52463007)">
+    <image
+       width="8.4191828"
+       height="8.4600525"
+       preserveAspectRatio="none"
+       style="image-rendering:optimizeQuality"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAM4AAADPCAYAAAC9Q+5hAAAAAXNSR0IArs4c6QAAAARnQU1BAACx
+jwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAMvSURBVHhe7d2xURtBGIBR4RYoBNMBJZCQOyVT
+A0Q0oIzUOQkl0AGmEGqw0YgZO93vGK8OvZdApkPSN7ti/tWdbZhn+/z747dud+U1nODbx09ggHAg
+EA4EwoFAOBAIBwLhQCAcCIQDgXAgEA4EwoFAOBAIBwLhQCAcCIQDgXAgEA4EwoFAOBAIBwLhQCAc
+CIQDgXAgEA4EwoFAOBAIBwLhQODeKnuz7lMz8f44FzcPix/79fH2ZN8/VhwIhAOBcCAQDgTCgUA4
+EAgHAuFAIBwIhAOBcCAQDgTCgUA4EDhWsDdxvH8WxwqWseJAYMXZO8EVh2WsOBAIBwLhQCAcCIQD
+gXAgEA4EwoFAOBAIBwLhQCAcCIQDgXAgEA4EwoHgKA5fbb//XHyQbPfrR/9bHGRjkBUHAivO3sQV
+5+3ucvljn5jz+5fp71srDgTCgUA4EAgHAuFAIBwIhAOBcCAQDgTCgcDIzWRGbsYZuYGVEg4EwoFg
+lZ8LvhKfccb5jAMAAAAAAAAAzHV2yiP9UBm5gUA4ENiqvfuM52AW2+Q5hPNOOHOs+UjFUYVzcfOw
++FpeH2+Hr0U4cwhHONN8WjhP18ufg+unoWtZczj+OQCBcCAQDgTCgUA4EAgHAuFAIBwIhAOBcCA4
+qjknIzfjjNzMYcWBQDgQ2KpxYKs2RDgcTAhnzWzVIBAOBMKBQDgQCAcC4UAgHAiEA4FwIBAOBMKB
+QDgQCAcC09EczJyOXuFk9mmHs31e/oLtrvpzOPvx/yWcIbZqEAgHAuFAIBwIhAOBcCAQDgTCgUA4
+EAgHAuFAIBwIhAOBcCAQDgT/9QzD0XEe5y+3+RginKW+SjgMsVWDQDgQCAcC4UAgHAiEA4FwIBAO
+BMKBQDgQCAcC4UBgyHOpLzDk+XZ3ufg6zu9fTuq9ZMWBQDgQCAcC4UAgHAiEA4FwIBAOBMKBQDgQ
+CAcC4UAgHAiEA4FwIBAOBL7pfiZ3K1gtKw4EwoFAOBAIBwLhQCAcCIQDgXAgEA4EwoFAOBAIBwLh
+QCAcCIQDgXAgEA4EwoFAOBAIBwLhQCAcCIQDgXAgEA4EwoFAOBAIBwLhwLDN5g82TMF5VndzNgAA
+AABJRU5ErkJggg==
+"
+       id="image20"
+       x="0.2348285"
+       y="0.52463007" />
   </g>
- </g>
 </svg>
