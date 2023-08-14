@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  elevoIcon,
-  explorerIcon,
-  docIcon,
-  whatsNewIcon
-} from '@elyra/ui-components';
+import { elevoIcon, explorerIcon, docIcon } from '@elyra/ui-components';
 import {
   ILabShell,
   JupyterFrontEnd,
@@ -45,8 +40,8 @@ const ELYRA_THEME_NAMESPACE = 'elyra-theme-extension';
 const CommandIDs = {
   create: 'launcher:create',
   openHelp: 'elyra:open-help',
-  releases: 'elyra:releases',
-  view: 'elyra:view'
+  mlflow: 'elyra:mlflow',
+  explorer: 'elyra:explorer'
 };
 
 /**
@@ -180,7 +175,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       }
     });
 
-    commands.addCommand(CommandIDs.view, {
+    commands.addCommand(CommandIDs.explorer, {
       label: 'Explorer',
       icon: explorerIcon,
       execute: (args: any) => {
@@ -201,8 +196,25 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       }
     });
 
-    commands.addCommand(CommandIDs.releases, {
-      label: "What's new in latest",
+    commands.addCommand(CommandIDs.mlflow, {
+      label: 'Mlflow',
+      icon: explorerIcon,
+      execute: (args: any) => {
+        const hubPrefix = paths.urls.hubPrefix;
+        if (hubPrefix !== null && hubPrefix !== undefined) {
+          window.open(window.location.origin + '/mlflow/');
+        } else {
+          window.open(
+            window.location.origin +
+              paths.urls.base +
+              'user-redirect/proxy/foresight-mlflow-service:5000/'
+          );
+        }
+      }
+    });
+
+    /*    commands.addCommand(CommandIDs.releases, {
+      label: "What's new in latest ",
       caption: "What's new in this release",
       icon: whatsNewIcon,
       execute: (args: any) => {
@@ -211,7 +223,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
           '_blank'
         );
       }
-    });
+      }); */
 
     model.add({
       command: CommandIDs.openHelp,
@@ -220,16 +232,24 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     });
 
     model.add({
-      command: CommandIDs.view,
+      command: CommandIDs.explorer,
       category: 'Aizen Foresight',
       rank: 11
     });
 
     model.add({
-      command: CommandIDs.releases,
-      category: 'Elyra',
+      command: CommandIDs.mlflow,
+      category: 'Aizen Foresight',
       rank: 12
     });
+
+    /*
+    model.add({
+      command: CommandIDs.releases,
+      category: 'Aizen Foresight',
+      rank: 13
+    });
+    */
 
     return model;
   }
