@@ -309,7 +309,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # Create an instance id that will be used to store
                 # the pipelines' dependencies, if applicable
-                pipeline_instance_id = f"{pipeline_name}-{timestamp}"
+                pipeline_instance_id = ""
+
+                # Use environment variable to set version as suffix instead of timestamp
+                if os.environ.get("KFP_SUFFIX_USE_VERSION") == "true":
+                    # Version is determined by the count of existing pipeline versions
+                    version = client.list_pipeline_versions(pipeline_id=pipeline_id).total_size
+                    pipeline_instance_id = f"{pipeline_name}-v{version}"
+                else:
+                    pipeline_instance_id = f"{pipeline_name}-{timestamp}"
 
                 # Generate Python DSL from workflow
                 pipeline_dsl = self._generate_pipeline_dsl(
