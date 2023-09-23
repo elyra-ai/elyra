@@ -32,8 +32,8 @@ master_doc = "index"
 # -- Project information -----------------------------------------------------
 
 project = "Elyra"
-copyright = "2022, Elyra Team"
-author = "Elyra Team"
+copyright = "2023, Elyra Authors"
+author = "Elyra Authors"
 
 _version_py = os.path.join("..", "..", "elyra", "_version.py")
 version_ns = {}
