@@ -1,6 +1,7 @@
 elyra-examples-kfp-catalog
 git-python
 importlib-resources
+PyGithub==1.58.1 # Github actions with Python 3.11 is having newer versions causing test failures
 pytest>=5.4.1
 pytest-console-scripts
 pytest_jupyter
