@@ -18,4 +18,8 @@ limitations under the License.
 
 # Deploying Open Data Hub with Elyra
 
-Follow the [instructions in the _Quick Install Guide_](http://opendatahub.io/docs/getting-started/quick-installation.html) to deploy Open Data Hub and Elyra on the OpenShift Container Platform.
+Follow the instructions in the _Quick Install Guide_ to deploy Open Data Hub Operator
+[V1](https://opendatahub.io/docs/quick-installation/) or
+[V2](https://opendatahub.io/docs/quick-installation-new-operator/)
+
+Once the OpenDataHub is setup, refer following [documentation](https://opendatahub.io/docs/working-on-data-science-projects/#working-with-data-science-pipelines_ds-pipelines) to use Elyra in Open Data Hub Workbenches on the OpenShift Container Platform.
