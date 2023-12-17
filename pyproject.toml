@@ -25,11 +25,10 @@ dependencies = [
     "jupyter-events>=0.7.0",
     "jupyter-packaging>=0.12.3",
     "jupyter_server>=2.7.3",
-    "jupyterlab>=3.6.5,<4.0",  # comment out to use local jupyterlab
-    "jupyterlab-lsp<=4.3.0",  # comment out to use local jupyterlab, also less than 4.3.0 for Jupyterlab < 4 compatibility
-    "jupyterlab-git<=0.44.0",  # Jupyterlab < 4 compatibility
-    "jupyterlab_pygments<0.3.0", # Jupyterlab < 4 compatibility
-    "jupyter-resource-usage>=0.5.1,<1",
+    "jupyterlab>=4.0,<4.3",  # comment out to use local jupyterlab
+    "jupyterlab-lsp~=5.0.1",  # comment out to use local jupyterlab
+    "jupyterlab-git~=0.50.0",  # Avoid breaking 1.x changes
+    "jupyter-resource-usage~=1.1.0",
     "MarkupSafe>=2.1",
     "minio>=7.0.0,!=7.2.1",
     "nbclient>=0.5.1",
