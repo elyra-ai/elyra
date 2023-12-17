@@ -18,9 +18,9 @@ module.exports = {
   plugins: ['cypress', 'mocha'],
   env: {
     'cypress/globals': true,
-    node: true
+    node: true,
   },
   rules: {
-    'mocha/no-exclusive-tests': 'warn'
-  }
+    'mocha/no-exclusive-tests': 'warn',
+  },
 };

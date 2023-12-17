@@ -16,7 +16,7 @@
 import {
   IRuntimeComponent,
   GENERIC_CATEGORY_ID,
-  sortPalette
+  sortPalette,
 } from '../pipeline-hooks';
 
 const GENERIC_CATEGORY = {
@@ -24,7 +24,7 @@ const GENERIC_CATEGORY = {
   image: 'string',
   id: GENERIC_CATEGORY_ID,
   description: 'string',
-  node_types: []
+  node_types: [],
 };
 
 type Category = IRuntimeComponent;
@@ -32,14 +32,14 @@ type Component = Category['node_types'][0];
 
 const createMockCategory = (
   name: string,
-  components: Component[] = []
+  components: Component[] = [],
 ): Category => {
   return {
     label: name,
     image: 'string',
     id: 'string',
     description: 'string',
-    node_types: components
+    node_types: components,
   };
 };
 
@@ -52,7 +52,7 @@ const createMockComponent = (name: string): Component => {
     type: 'execution_node',
     inputs: [],
     outputs: [],
-    app_data: {}
+    app_data: {},
   };
 };
 
@@ -69,15 +69,15 @@ describe('sortPalette', () => {
       categories: [
         createMockCategory('a'),
         createMockCategory('c'),
-        createMockCategory('b')
-      ]
+        createMockCategory('b'),
+      ],
     };
     const expected = {
       categories: [
         createMockCategory('a'),
         createMockCategory('b'),
-        createMockCategory('c')
-      ]
+        createMockCategory('c'),
+      ],
     };
     sortPalette(palette);
     expect(palette).toStrictEqual(expected);
@@ -89,18 +89,18 @@ describe('sortPalette', () => {
         createMockCategory('a', [
           createMockComponent('c'),
           createMockComponent('a'),
-          createMockComponent('b')
-        ])
-      ]
+          createMockComponent('b'),
+        ]),
+      ],
     };
     const expected = {
       categories: [
         createMockCategory('a', [
           createMockComponent('a'),
           createMockComponent('b'),
-          createMockComponent('c')
-        ])
-      ]
+          createMockComponent('c'),
+        ]),
+      ],
     };
     sortPalette(palette);
     expect(palette).toStrictEqual(expected);
@@ -114,8 +114,8 @@ describe('sortPalette', () => {
         createMockCategory('c20'),
         createMockCategory('c100'),
         createMockCategory('c1'),
-        createMockCategory('c10')
-      ]
+        createMockCategory('c10'),
+      ],
     };
     const expected = {
       categories: [
@@ -124,8 +124,8 @@ describe('sortPalette', () => {
         createMockCategory('c10'),
         createMockCategory('c20'),
         createMockCategory('c100'),
-        createMockCategory('c200')
-      ]
+        createMockCategory('c200'),
+      ],
     };
     sortPalette(palette);
     expect(palette).toStrictEqual(expected);
@@ -140,9 +140,9 @@ describe('sortPalette', () => {
           createMockComponent('c20'),
           createMockComponent('c100'),
           createMockComponent('c1'),
-          createMockComponent('c10')
-        ])
-      ]
+          createMockComponent('c10'),
+        ]),
+      ],
     };
     const expected = {
       categories: [
@@ -152,9 +152,9 @@ describe('sortPalette', () => {
           createMockComponent('c10'),
           createMockComponent('c20'),
           createMockComponent('c100'),
-          createMockComponent('c200')
-        ])
-      ]
+          createMockComponent('c200'),
+        ]),
+      ],
     };
     sortPalette(palette);
     expect(palette).toStrictEqual(expected);
@@ -166,16 +166,16 @@ describe('sortPalette', () => {
         GENERIC_CATEGORY,
         createMockCategory('a'),
         createMockCategory('c'),
-        createMockCategory('b')
-      ]
+        createMockCategory('b'),
+      ],
     };
     const expected = {
       categories: [
         GENERIC_CATEGORY,
         createMockCategory('a'),
         createMockCategory('b'),
-        createMockCategory('c')
-      ]
+        createMockCategory('c'),
+      ],
     };
     sortPalette(palette);
     expect(palette).toStrictEqual(expected);

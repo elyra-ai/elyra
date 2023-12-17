@@ -17,7 +17,7 @@ import { IDragEvent } from '@lumino/dragdrop';
 import React, { useCallback, useEffect, useRef } from 'react';
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   interface HTMLElementEventMap {
     'lm-dragenter': IDragEvent;
     'lm-dragleave': IDragEvent;
@@ -64,7 +64,7 @@ export const useDropzone = (props: IProps): IReturn => {
           break;
       }
     },
-    [props]
+    [props],
   );
 
   useEffect(() => {
@@ -84,8 +84,8 @@ export const useDropzone = (props: IProps): IReturn => {
 
   return {
     getRootProps: (): IRootProps => ({
-      ref: rootRef
-    })
+      ref: rootRef,
+    }),
   };
 };
 

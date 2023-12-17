@@ -33,8 +33,8 @@ const getSnapshotPath = (test: any): string => {
   }
 
   const filename = names
-    .filter(x => x)
-    .map(x => kebabCase(x))
+    .filter((x) => x)
+    .map((x) => kebabCase(x))
     .reverse()
     .join('/');
 
@@ -51,12 +51,12 @@ const getSnapshotPath = (test: any): string => {
   return `${snapshotsFolder}/${filename}.${index}.snap`;
 };
 
-Cypress.Commands.add('matchesSnapshot', { prevSubject: true }, value => {
+Cypress.Commands.add('matchesSnapshot', { prevSubject: true }, (value) => {
   const test = (Cypress as any).mocha.getRunner().suite.ctx.test;
 
   const path = getSnapshotPath(test);
 
-  cy.task<ISnapshotResults>('matchesSnapshot', { path, value }).then(res => {
+  cy.task<ISnapshotResults>('matchesSnapshot', { path, value }).then((res) => {
     if (res.status === 'fail') {
       const error = new Error(res.message);
       error.name = res.name;

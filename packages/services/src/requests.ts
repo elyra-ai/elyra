@@ -41,12 +41,12 @@ export class RequestHandler {
    */
   static async makeGetRequest<T = any>(
     requestPath: string,
-    longRequestDialog?: Dialog<any>
+    longRequestDialog?: Dialog<any>,
   ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'GET' },
-      longRequestDialog
+      longRequestDialog,
     );
   }
 
@@ -73,12 +73,12 @@ export class RequestHandler {
   static async makePostRequest<T = any>(
     requestPath: string,
     requestBody: any,
-    longRequestDialog?: Dialog<any>
+    longRequestDialog?: Dialog<any>,
   ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'POST', body: requestBody },
-      longRequestDialog
+      longRequestDialog,
     );
   }
 
@@ -105,12 +105,12 @@ export class RequestHandler {
   static async makePutRequest<T = any>(
     requestPath: string,
     requestBody: any,
-    longRequestDialog?: Dialog<any>
+    longRequestDialog?: Dialog<any>,
   ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'PUT', body: requestBody },
-      longRequestDialog
+      longRequestDialog,
     );
   }
 
@@ -133,12 +133,12 @@ export class RequestHandler {
    */
   static async makeDeleteRequest<T = any>(
     requestPath: string,
-    longRequestDialog?: Dialog<any>
+    longRequestDialog?: Dialog<any>,
   ): Promise<T> {
     return this.makeServerRequest(
       requestPath,
       { method: 'DELETE' },
-      longRequestDialog
+      longRequestDialog,
     );
   }
 
@@ -170,7 +170,7 @@ export class RequestHandler {
   static async makeServerRequest<T = any>(
     requestPath: string,
     options: RequestInit & { type?: 'blob' | 'json' | 'text' },
-    longRequestDialog?: Dialog<any>
+    longRequestDialog?: Dialog<any>,
   ): Promise<T> {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are in the extension installed by this package
@@ -214,14 +214,14 @@ export class RequestHandler {
               } else {
                 return reject(reason);
               }
-            }
+            },
           );
         },
         // something unexpected went wrong with the request
         (reason: any) => {
           console.error(reason);
           return reject(reason);
-        }
+        },
       );
     });
 

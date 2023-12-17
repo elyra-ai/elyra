@@ -1,7 +1,6 @@
 {
   "version": "4.0.0-dev",
   "npmClient": "yarn",
-  "useWorkspaces": true,
   "command": {
     "publish": {
       "ignoreChanges": ["ignored-file", "*.md"],

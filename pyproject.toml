@@ -33,7 +33,7 @@ dependencies = [
     "minio>=7.0.0,!=7.2.1",
     "nbclient>=0.5.1",
     "nbconvert==7.1.0",
-    "nbdime~=3.2.1",  # Cap from jupyterlab-git
+    "nbdime~=4.0.1",  # Cap from jupyterlab-git
     "nbformat>=5.1.2",
     "networkx>=2.5.1",
     "papermill>=2.3.4",

@@ -51,13 +51,13 @@ enum ContentType {
   notebook = 'execute-notebook-node',
   python = 'execute-python-node',
   r = 'execute-r-node',
-  other = 'other'
+  other = 'other',
 }
 
 const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
   ['.py', ContentType.python],
   ['.ipynb', ContentType.notebook],
-  ['.r', ContentType.r]
+  ['.r', ContentType.r],
 ]);
 
 export interface IRuntimeType {
@@ -74,7 +74,7 @@ export class PipelineService {
    */
   static async getRuntimeTypes(): Promise<IRuntimeType[]> {
     const res = await RequestHandler.makeGetRequest(
-      'elyra/pipeline/runtimes/types'
+      'elyra/pipeline/runtimes/types',
     );
     return res.runtime_types.sort((a: any, b: any) => a.id.localeCompare(b.id));
   }
@@ -92,7 +92,7 @@ export class PipelineService {
    * Returns a list of runtime schema
    */
   static async getRuntimesSchema(showError = true): Promise<any> {
-    return MetadataService.getSchema(RUNTIMES_SCHEMASPACE).then(schema => {
+    return MetadataService.getSchema(RUNTIMES_SCHEMASPACE).then((schema) => {
       if (showError && Object.keys(schema).length === 0) {
         return RequestErrors.noMetadataError('schema');
       }
@@ -110,7 +110,7 @@ export class PipelineService {
       let runtimeImages = await MetadataService.getMetadata('runtime-images');
 
       runtimeImages = runtimeImages.sort(
-        (a: any, b: any) => 0 - (a.name > b.name ? -1 : 1)
+        (a: any, b: any) => 0 - (a.name > b.name ? -1 : 1),
       );
 
       if (Object.keys(runtimeImages).length === 0) {
@@ -131,10 +131,10 @@ export class PipelineService {
 
   static async getComponentDef(
     type = 'local',
-    componentID: string
+    componentID: string,
   ): Promise<IComponentDef> {
     return await RequestHandler.makeGetRequest<IComponentDef>(
-      `elyra/pipeline/components/${type}/${componentID}`
+      `elyra/pipeline/components/${type}/${componentID}`,
     );
   }
 
@@ -147,7 +147,7 @@ export class PipelineService {
   static async refreshComponentsCache(catalogName?: string): Promise<void> {
     return await RequestHandler.makePutRequest(
       `elyra/pipeline/components/cache${catalogName ? '/' + catalogName : ''}`,
-      JSON.stringify({ action: 'refresh' })
+      JSON.stringify({ action: 'refresh' }),
     );
   }
 
@@ -156,12 +156,12 @@ export class PipelineService {
    */
   static getWaitDialog(
     title = 'Making server request...',
-    body = 'This may take some time'
+    body = 'This may take some time',
   ): Dialog<any> {
     return new Dialog({
       title: title,
       body: body,
-      buttons: [Dialog.okButton()]
+      buttons: [Dialog.okButton()],
     });
   }
 
@@ -173,13 +173,13 @@ export class PipelineService {
    */
   static async submitPipeline(
     pipeline: any,
-    runtimeName: string
+    runtimeName: string,
   ): Promise<any> {
     return RequestHandler.makePostRequest(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
-      this.getWaitDialog('Packaging and submitting pipeline ...')
-    ).then(response => {
+      this.getWaitDialog('Packaging and submitting pipeline ...'),
+    ).then((response) => {
       let dialogTitle;
       let dialogBody;
       if (response['run_url']) {
@@ -236,7 +236,7 @@ export class PipelineService {
       return showDialog({
         title: dialogTitle,
         body: dialogBody,
-        buttons: [Dialog.okButton()]
+        buttons: [Dialog.okButton()],
       });
     });
   }
@@ -254,10 +254,10 @@ export class PipelineService {
     pipeline: any,
     pipeline_export_format: string,
     pipeline_export_path: string,
-    overwrite: boolean
+    overwrite: boolean,
   ): Promise<any> {
     console.log(
-      'Exporting pipeline to [' + pipeline_export_format + '] format'
+      'Exporting pipeline to [' + pipeline_export_format + '] format',
     );
 
     console.log('Overwriting existing file: ' + overwrite);
@@ -266,18 +266,18 @@ export class PipelineService {
       pipeline: pipeline,
       export_format: pipeline_export_format,
       export_path: pipeline_export_path,
-      overwrite: overwrite
+      overwrite: overwrite,
     };
 
     return RequestHandler.makePostRequest(
       'elyra/pipeline/export',
       JSON.stringify(body),
-      this.getWaitDialog('Generating pipeline artifacts ...')
-    ).then(response => {
+      this.getWaitDialog('Generating pipeline artifacts ...'),
+    ).then((response) => {
       return showDialog({
         title: 'Pipeline export succeeded',
         body: <p>Exported file: {response['export_path']} </p>,
-        buttons: [Dialog.okButton()]
+        buttons: [Dialog.okButton()],
       });
     });
   }
@@ -304,23 +304,23 @@ export class PipelineService {
 
   static getPipelineRelativeNodePath(
     pipelinePath: string,
-    nodePath: string
+    nodePath: string,
   ): string {
     const relativePath: string = PathExt.relative(
       PathExt.dirname(pipelinePath),
-      nodePath
+      nodePath,
     );
     return relativePath;
   }
 
   static getWorkspaceRelativeNodePath(
     pipelinePath: string,
-    nodePath: string
+    nodePath: string,
   ): string {
     // since resolve returns an "absolute" path we need to strip off the leading '/'
     const workspacePath: string = PathExt.resolve(
       PathExt.dirname(pipelinePath),
-      nodePath
+      nodePath,
     );
     return workspacePath;
   }
@@ -328,31 +328,29 @@ export class PipelineService {
   static setNodePathsRelativeToWorkspace(
     pipeline: any,
     paletteNodes: any[],
-    pipelinePath: string
+    pipelinePath: string,
   ): any {
     for (const node of pipeline.nodes) {
-      const nodeDef = paletteNodes.find(n => {
+      const nodeDef = paletteNodes.find((n) => {
         return n.op === node.op;
       });
       const parameters =
         nodeDef.app_data.properties.properties.component_parameters.properties;
       for (const param in parameters) {
         if (parameters[param].uihints?.['ui:widget'] === 'file') {
-          node.app_data.component_parameters[
-            param
-          ] = this.getWorkspaceRelativeNodePath(
-            pipelinePath,
-            node.app_data.component_parameters[param]
-          );
+          node.app_data.component_parameters[param] =
+            this.getWorkspaceRelativeNodePath(
+              pipelinePath,
+              node.app_data.component_parameters[param],
+            );
         } else if (
           node.app_data.component_parameters[param]?.widget === 'file'
         ) {
-          node.app_data.component_parameters[
-            param
-          ].value = this.getWorkspaceRelativeNodePath(
-            pipelinePath,
-            node.app_data.component_parameters[param].value
-          );
+          node.app_data.component_parameters[param].value =
+            this.getWorkspaceRelativeNodePath(
+              pipelinePath,
+              node.app_data.component_parameters[param].value,
+            );
         }
       }
     }

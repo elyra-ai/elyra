@@ -25,13 +25,13 @@ import {
   MetadataCommonService,
   MetadataDisplay,
   MetadataWidget,
-  METADATA_ITEM
+  METADATA_ITEM,
 } from '@elyra/metadata-common';
 import {
   ExpandableComponent,
   importIcon,
   RequestErrors,
-  trashIcon
+  trashIcon,
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -47,7 +47,7 @@ import {
   copyIcon,
   editIcon,
   pasteIcon,
-  LabIcon
+  LabIcon,
 } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
@@ -60,7 +60,7 @@ import React from 'react';
 import {
   CodeSnippetService,
   CODE_SNIPPET_SCHEMASPACE,
-  CODE_SNIPPET_SCHEMA
+  CODE_SNIPPET_SCHEMA,
 } from './CodeSnippetService';
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
@@ -130,7 +130,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         snippetLanguage.toLowerCase() !== 'markdown'
       ) {
         fileEditor.replaceSelection?.(
-          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet)
+          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet),
         );
       } else if (editorLanguage) {
         this.verifyLanguageAndInsert(snippet, editorLanguage, fileEditor);
@@ -150,20 +150,20 @@ class CodeSnippetDisplay extends MetadataDisplay<
       const notebookCellEditor = notebookCell.editor;
 
       if (notebookCell instanceof CodeCell) {
-        const kernelInfo = await notebookWidget.sessionContext.session?.kernel
-          ?.info;
+        const kernelInfo =
+          await notebookWidget.sessionContext.session?.kernel?.info;
         const kernelLanguage: string = kernelInfo?.language_info.name || '';
         this.verifyLanguageAndInsert(
           snippet,
           kernelLanguage,
-          notebookCellEditor
+          notebookCellEditor,
         );
       } else if (
         notebookCell instanceof MarkdownCell &&
         snippetLanguage.toLowerCase() !== 'markdown'
       ) {
         notebookCellEditor.replaceSelection?.(
-          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet)
+          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet),
         );
       } else {
         notebookCellEditor.replaceSelection?.(codeSnippet);
@@ -180,14 +180,14 @@ class CodeSnippetDisplay extends MetadataDisplay<
 
   // Verify if a given widget is a FileEditor
   private isFileEditor = (
-    widget: Widget
+    widget: Widget,
   ): widget is DocumentWidget<FileEditor> => {
     return (widget as DocumentWidget).content instanceof FileEditor;
   };
 
   // Return the language of the editor or empty string
   private getEditorLanguage = (
-    widget: DocumentWidget<FileEditor>
+    widget: DocumentWidget<FileEditor>,
   ): string | undefined => {
     const editorLanguage =
       widget.context.sessionContext.kernelPreference.language;
@@ -203,7 +203,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
   private verifyLanguageAndInsert = async (
     snippet: IMetadata,
     editorLanguage: string,
-    editor: CodeEditor.IEditor
+    editor: CodeEditor.IEditor,
   ): Promise<void> => {
     const codeSnippet: string = snippet.metadata.code.join('\n');
     const snippetLanguage = snippet.metadata.language;
@@ -213,7 +213,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     ) {
       const result = await this.showWarnDialog(
         editorLanguage,
-        snippet.display_name
+        snippet.display_name,
       );
       if (result.button.accept) {
         editor.replaceSelection?.(codeSnippet);
@@ -227,12 +227,12 @@ class CodeSnippetDisplay extends MetadataDisplay<
   // Display warning dialog when inserting a code snippet incompatible with editor's language
   private showWarnDialog = async (
     editorLanguage: string,
-    snippetName: string
+    snippetName: string,
   ): Promise<Dialog.IResult<string>> => {
     return showDialog({
       title: 'Warning',
       body: `Code snippet "${snippetName}" is incompatible with ${editorLanguage}. Continue?`,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     });
   };
 
@@ -241,14 +241,14 @@ class CodeSnippetDisplay extends MetadataDisplay<
     return showDialog({
       title: 'Error',
       body: errMsg,
-      buttons: [Dialog.okButton()]
+      buttons: [Dialog.okButton()],
     });
   };
 
   // Initial setup to handle dragging a code snippet
   private handleDragSnippet(
     event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    metadata: IMetadata
+    metadata: IMetadata,
   ): void {
     const { button } = event;
 
@@ -260,7 +260,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     this._dragData = {
       pressX: event.clientX,
       pressY: event.clientY,
-      dragImage: null
+      dragImage: null,
     };
 
     const mouseUpListener = (event: MouseEvent): void => {
@@ -273,7 +273,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     const target = event.target as HTMLElement;
     target.addEventListener('mouseup', mouseUpListener, {
       once: true,
-      capture: true
+      capture: true,
     });
     target.addEventListener('mousemove', mouseMoveListener, true);
 
@@ -284,7 +284,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
   private _evtMouseUp(
     event: MouseEvent,
     metadata: IMetadata,
-    mouseMoveListener: (event: MouseEvent) => void
+    mouseMoveListener: (event: MouseEvent) => void,
   ): void {
     event.preventDefault();
     event.stopPropagation();
@@ -297,7 +297,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     event: MouseEvent,
     metadata: IMetadata,
     mouseMoveListener: (event: MouseEvent) => void,
-    mouseUpListener: (event: MouseEvent) => void
+    mouseUpListener: (event: MouseEvent) => void,
   ): void {
     event.preventDefault();
     event.stopPropagation();
@@ -310,7 +310,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         data.pressX,
         data.pressY,
         event.clientX,
-        event.clientY
+        event.clientY,
       )
     ) {
       // Create drag image
@@ -328,7 +328,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         data.dragImage,
         metadata,
         event.clientX,
-        event.clientY
+        event.clientY,
       );
     }
   }
@@ -346,7 +346,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     prevX: number,
     prevY: number,
     nextX: number,
-    nextY: number
+    nextY: number,
   ): boolean {
     const dx = Math.abs(nextX - prevX);
     const dy = Math.abs(nextY - prevY);
@@ -357,7 +357,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     dragImage: HTMLElement,
     metadata: IMetadata,
     clientX: number,
-    clientY: number
+    clientY: number,
   ): Promise<void> {
     const contentFactory = new NotebookModel.ContentFactory({});
     const language = metadata.metadata.language;
@@ -373,7 +373,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       dragImage: dragImage,
       supportedActions: 'copy-move',
       proposedAction: 'copy',
-      source: this
+      source: this,
     });
 
     const selected: nbformat.ICell[] = [model.toJSON()];
@@ -394,14 +394,14 @@ class CodeSnippetDisplay extends MetadataDisplay<
         feedback: 'Copied!',
         onClick: (): void => {
           Clipboard.copyToSystem(metadata.metadata.code.join('\n'));
-        }
+        },
       },
       {
         title: 'Insert',
         icon: importIcon,
         onClick: (): void => {
           this.insertCodeSnippet(metadata);
-        }
+        },
       },
       {
         title: 'Edit',
@@ -411,9 +411,9 @@ class CodeSnippetDisplay extends MetadataDisplay<
             onSave: this.props.updateMetadata,
             schemaspace: CODE_SNIPPET_SCHEMASPACE,
             schema: CODE_SNIPPET_SCHEMA,
-            name: metadata.name
+            name: metadata.name,
           });
-        }
+        },
       },
       {
         title: 'Duplicate',
@@ -422,13 +422,13 @@ class CodeSnippetDisplay extends MetadataDisplay<
           MetadataCommonService.duplicateMetadataInstance(
             CODE_SNIPPET_SCHEMASPACE,
             metadata,
-            this.props.metadata
+            this.props.metadata,
           )
             .then((response: any): void => {
               this.props.updateMetadata();
             })
-            .catch(error => RequestErrors.serverError(error));
-        }
+            .catch((error) => RequestErrors.serverError(error));
+        },
       },
       {
         title: 'Delete',
@@ -446,16 +446,16 @@ class CodeSnippetDisplay extends MetadataDisplay<
                       value.id ===
                       `${METADATA_EDITOR_ID}:${CODE_SNIPPET_SCHEMASPACE}:${CODE_SNIPPET_SCHEMA}:${metadata.name}`
                     );
-                  }
+                  },
                 );
                 if (editorWidget) {
                   editorWidget.dispose();
                 }
               }
             })
-            .catch(error => RequestErrors.serverError(error));
-        }
-      }
+            .catch((error) => RequestErrors.serverError(error));
+        },
+      },
     ];
   };
 
@@ -465,7 +465,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
 
   sortMetadata(): void {
     this.props.metadata.sort((a, b) =>
-      this.getDisplayName(a).localeCompare(this.getDisplayName(b))
+      this.getDisplayName(a).localeCompare(this.getDisplayName(b)),
     );
   }
 
@@ -509,16 +509,15 @@ class CodeSnippetDisplay extends MetadataDisplay<
   };
 
   createPreviewEditors = (): void => {
-    const editorFactory = this.props.editorServices.factoryService
-      .newInlineEditor;
-    const getMimeTypeByLanguage = this.props.editorServices.mimeTypeService
-      .getMimeTypeByLanguage;
+    const editorFactory =
+      this.props.editorServices.factoryService.newInlineEditor;
+    const getMimeTypeByLanguage =
+      this.props.editorServices.mimeTypeService.getMimeTypeByLanguage;
     this.props.metadata.map((codeSnippet: IMetadata) => {
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
-        this.editors[
-          codeSnippet.name
-        ].model.value.text = codeSnippet.metadata.code.join('\n');
+        this.editors[codeSnippet.name].model.value.text =
+          codeSnippet.metadata.code.join('\n');
       } else {
         // Add new snippets
         const snippetElement = document.getElementById(codeSnippet.name);
@@ -532,9 +531,9 @@ class CodeSnippetDisplay extends MetadataDisplay<
             value: codeSnippet.metadata.code.join('\n'),
             mimeType: getMimeTypeByLanguage({
               name: codeSnippet.metadata.language,
-              codemirror_mode: codeSnippet.metadata.language
-            })
-          })
+              codemirror_mode: codeSnippet.metadata.language,
+            }),
+          }),
         });
       }
     });
@@ -579,8 +578,8 @@ export class CodeSnippetWidget extends MetadataWidget {
 
   // Request code snippets from server
   async fetchMetadata(): Promise<any> {
-    return CodeSnippetService.findAll().catch(error =>
-      RequestErrors.serverError(error)
+    return CodeSnippetService.findAll().catch((error) =>
+      RequestErrors.serverError(error),
     );
   }
 

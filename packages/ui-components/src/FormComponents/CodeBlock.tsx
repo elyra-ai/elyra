@@ -18,7 +18,7 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import { Field } from '@rjsf/core';
 import * as React from 'react';
 
-export const CodeBlock: Field = props => {
+export const CodeBlock: Field = (props) => {
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 
@@ -39,9 +39,9 @@ export const CodeBlock: Field = props => {
             (props.schema.default as string[])?.join('\n'),
           mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
             name: props.formContext.language,
-            codemirror_mode: props.formContext.language
-          })
-        })
+            codemirror_mode: props.formContext.language,
+          }),
+        }),
       });
       editorRef.current?.model.value.changed.connect(handleChange);
     }
@@ -58,12 +58,11 @@ export const CodeBlock: Field = props => {
 
   React.useEffect(() => {
     if (editorRef.current !== undefined) {
-      editorRef.current.model.mimeType = servicesRef.current.mimeTypeService.getMimeTypeByLanguage(
-        {
+      editorRef.current.model.mimeType =
+        servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
           name: props.formContext.language,
-          codemirror_mode: props.formContext.language
-        }
-      );
+          codemirror_mode: props.formContext.language,
+        });
     }
   }, [props.formContext.language]);
 
