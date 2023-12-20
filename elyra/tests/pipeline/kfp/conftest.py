@@ -177,7 +177,14 @@ def metadata_dependencies(metadata_managers, request):
     # Create a Pipeline object from the pipeline file, applying the customization
     # options
     customization_options = {}
-    for supported_option in ["with_cos_object_prefix", "resources_cpu", "resources_gpu", "resources_memory"]:
+    for supported_option in [
+        "with_cos_object_prefix",
+        "resources_cpu",
+        "resources_cpu_limit",
+        "resources_gpu",
+        "resources_memory",
+        "resources_memory_limit",
+    ]:
         customization_options[supported_option] = request.param.get(supported_option)
     pipeline_object = get_pipeline_object(
         pipeline_filename=request.param["pipeline_file"],
@@ -361,6 +368,8 @@ def get_pipeline_object(
       - "resources_cpu" (number, applied to all generic nodes)
       - "resources_gpu" (number, applied to all generic nodes)
       - "resources_memory" (number, applied to all generic nodes)
+      - "resources_cpu_limit" (number, applied to all generic nodes)
+      - "resources_memory_limit" (number, applied to all generic nodes)
     """
     assert pipeline_filename is not None, "A pipeline filename is required."
 
@@ -409,6 +418,10 @@ def get_pipeline_object(
                     node["app_data"]["component_parameters"]["cpu"] = customization_options["resources_cpu"]
                 else:
                     node["app_data"]["component_parameters"].pop("cpu", None)
+                if customization_options.get("resources_cpu_limit") is not None:
+                    node["app_data"]["component_parameters"]["cpu_limit"] = customization_options["resources_cpu_limit"]
+                else:
+                    node["app_data"]["component_parameters"].pop("cpu_limit", None)
                 if customization_options.get("resources_gpu") is not None:
                     node["app_data"]["component_parameters"]["gpu"] = customization_options["resources_gpu"]
                 else:
@@ -417,6 +430,12 @@ def get_pipeline_object(
                     node["app_data"]["component_parameters"]["memory"] = customization_options["resources_memory"]
                 else:
                     node["app_data"]["component_parameters"].pop("memory", None)
+                if customization_options.get("resources_memory_limit") is not None:
+                    node["app_data"]["component_parameters"]["memory_limit"] = customization_options[
+                        "resources_memory_limit"
+                    ]
+                else:
+                    node["app_data"]["component_parameters"].pop("memory_limit", None)
 
     # Parse JSON and return Pipeline instance
     return PipelineParser().parse(pipeline_json=pipeline_json)

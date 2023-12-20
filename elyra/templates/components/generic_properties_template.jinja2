@@ -37,14 +37,26 @@
         },
         "cpu": {
           "type": "integer",
-          "title": "CPU",
-          "description": "For CPU-intensive workloads, you can choose more than 1 CPU (e.g. 1.5).",
+          "title": "CPU request",
+          "description": "For CPU-intensive workloads, you can request more than 1 CPU (e.g. 1.5, this is optional).",
+          "minimum": 0
+        },
+        "cpu_limit": {
+          "type": "integer",
+          "title": "CPU limit",
+          "description": "The maximum CPU that can be allocated to this node. This should be equal or higher than the request",
           "minimum": 0
         },
         "memory": {
           "type": "integer",
-          "title": "RAM(GB)",
-          "description": "The total amount of RAM specified.",
+          "title": "RAM request (GB)",
+          "description": "The total amount of RAM requested (optional).",
+          "minimum": 0
+        },
+        "memory_limit": {
+          "type": "integer",
+          "title": "RAM limit (GB)",
+          "description": "The maximum amount of RAM allowed. This should be equal or higher than the request",
           "minimum": 0
         },
         "gpu": {

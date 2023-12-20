@@ -128,8 +128,10 @@ export class SubmitFileButtonExtension<
       runtime_config,
       framework,
       cpu,
+      cpu_limit,
       gpu,
       memory,
+      memory_limit,
       dependency_include,
       dependencies,
       ...envObject
@@ -145,8 +147,10 @@ export class SubmitFileButtonExtension<
       dependency_include ? dependencies.split(',') : undefined,
       envObject,
       cpu,
+      cpu_limit,
       gpu,
-      memory
+      memory,
+      memory_limit
     );
 
     PipelineService.submitPipeline(

@@ -494,6 +494,40 @@ def test_fail_creating_operation_with_negative_cpu_resources():
         )
 
 
+def test_fail_creating_operation_with_more_requests_than_limit_cpu():
+    component_parameters = {
+        "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
+        "cpu": "4",
+        "cpu_limit": "2",
+        "runtime_image": "tensorflow/tensorflow:latest",
+    }
+    with pytest.raises(ValueError):
+        GenericOperation(
+            id="test-id",
+            type="execution-node",
+            classifier="execute-notebook-node",
+            name="test",
+            component_props=component_parameters,
+        )
+
+
+def test_fail_creating_operation_with_more_requests_than_limit_memory():
+    component_parameters = {
+        "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",
+        "memory": "4",
+        "memory_limit": "2",
+        "runtime_image": "tensorflow/tensorflow:latest",
+    }
+    with pytest.raises(ValueError):
+        GenericOperation(
+            id="test-id",
+            type="execution-node",
+            classifier="execute-notebook-node",
+            name="test",
+            component_props=component_parameters,
+        )
+
+
 def test_fail_creating_operation_with_0_memory_resources():
     component_parameters = {
         "filename": "elyra/pipeline/tests/resources/archive/test.ipynb",

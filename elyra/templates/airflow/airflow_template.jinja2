@@ -47,13 +47,19 @@ op_{{ operation.id|regex_replace }} = KubernetesPodOperator(name='{{ operation.n
                                                             arguments=["{{ operation.argument_list }}"],
                                                             task_id='{{ operation.notebook|regex_replace }}',
                                                             env_vars={{ operation.pipeline_envs }},
-        {% if operation.cpu_request or operation.mem_request or operation.gpu_limit %}
+        {% if operation.cpu_request or operation.mem_request or operation.cpu_limit or operation.memory_limit or operation.gpu_limit %}
                                                             resources = {
             {% if operation.cpu_request %}
                                                                        'request_cpu': '{{ operation.cpu_request }}',
             {% endif %}
             {% if operation.mem_request %}
                                                                        'request_memory': '{{ operation.mem_request }}G',
+            {% endif %}
+            {% if operation.cpu_limit %}
+                                                                       'limit_cpu': '{{ operation.cpu_limit }}',
+            {% endif %}
+            {% if operation.memory_limit %}
+                                                                       'limit_memory': '{{ operation.memory_limit }}G',
             {% endif %}
             {% if operation.gpu_limit %}
                                                                        'limit_gpu': '{{ operation.gpu_limit }}',

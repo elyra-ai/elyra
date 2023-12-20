@@ -246,6 +246,8 @@ class GenericOperation(Operation):
                 outputs: List of files produced by this operation to be included in a child operation(s)
                 cpu: number of cpus requested to run the operation
                 memory: amount of memory requested to run the operation (in Gi)
+                cpu_limit: limit of number of cpus to run the operation
+                memory_limit: limit of amount of memory to run the operation (in Gi)
                 gpu: number of gpus requested to run the operation
                 parameters: a list of names of pipeline parameters that should be passed to this operation
                 gpu_vendor: gpu resource type, eg. nvidia.com/gpu, amd.com/gpu etc.
@@ -261,11 +263,29 @@ class GenericOperation(Operation):
         if not component_props.get("runtime_image"):
             raise ValueError("Invalid pipeline operation: Missing field 'operation runtime image'.")
         if component_props.get("cpu") and not self._validate_range(component_props.get("cpu"), min_value=1):
-            raise ValueError("Invalid pipeline operation: CPU must be a positive value or None")
+            raise ValueError("Invalid pipeline operation: CPU request must be a positive value or None")
+        if component_props.get("cpu_limit") and not self._validate_range(component_props.get("cpu_limit"), min_value=1):
+            raise ValueError("Invalid pipeline operation: CPU limit must be a positive value or None")
         if component_props.get("gpu") and not self._validate_range(component_props.get("gpu"), min_value=0):
             raise ValueError("Invalid pipeline operation: GPU must be a positive value or None")
         if component_props.get("memory") and not self._validate_range(component_props.get("memory"), min_value=1):
-            raise ValueError("Invalid pipeline operation: Memory must be a positive value or None")
+            raise ValueError("Invalid pipeline operation: Memory request must be a positive value or None")
+        if component_props.get("memory_limit") and not self._validate_range(
+            component_props.get("memory_limit"), min_value=1
+        ):
+            raise ValueError("Invalid pipeline operation: Memory limit must be a positive value or None")
+        if (
+            component_props.get("memory_limit")
+            and component_props.get("memory")
+            and component_props.get("memory_limit") < component_props.get("memory")
+        ):
+            raise ValueError("Invalid pipeline operation: Memory limit must be equal or larger than memory request")
+        if (
+            component_props.get("cpu_limit")
+            and component_props.get("cpu")
+            and component_props.get("cpu_limit") < component_props.get("cpu")
+        ):
+            raise ValueError("Invalid pipeline operation: CPU limit must be equal or larger than CPU request")
 
         # Re-build object to include default values
         self._component_props["filename"] = component_props.get("filename")
@@ -273,7 +293,9 @@ class GenericOperation(Operation):
         self._component_props["dependencies"] = Operation._scrub_list(component_props.get("dependencies", []))
         self._component_props["include_subdirectories"] = component_props.get("include_subdirectories", False)
         self._component_props["cpu"] = component_props.get("cpu")
+        self._component_props["cpu_limit"] = component_props.get("cpu_limit")
         self._component_props["memory"] = component_props.get("memory")
+        self._component_props["memory_limit"] = component_props.get("memory_limit")
         self._component_props["gpu"] = component_props.get("gpu")
         self._component_props["gpu_vendor"] = component_props.get("gpu_vendor")
         self._component_props["parameters"] = component_props.get(PIPELINE_PARAMETERS, [])
@@ -317,8 +339,16 @@ class GenericOperation(Operation):
         return self._component_props.get("cpu")
 
     @property
+    def cpu_limit(self) -> Optional[str]:
+        return self._component_props.get("cpu_limit")
+
+    @property
     def memory(self) -> Optional[str]:
         return self._component_props.get("memory")
+
+    @property
+    def memory_limit(self) -> Optional[str]:
+        return self._component_props.get("memory_limit")
 
     @property
     def gpu(self) -> Optional[str]:

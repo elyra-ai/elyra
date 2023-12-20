@@ -864,6 +864,8 @@ input.elyra-Dialog-checkbox.jp-mod-styled {
 
 div#root_component_parameters_cpu,
 div#root_component_parameters_memory,
+div#root_component_parameters_cpu_limit,
+div#root_component_parameters_memory_limit,
 div#root_component_parameters_gpu,
 div#root_component_parameters_gpu_vendor {
   width: 50%;
@@ -871,13 +873,17 @@ div#root_component_parameters_gpu_vendor {
 
 input#root_component_parameters_cpu,
 input#root_component_parameters_memory,
+input#root_component_parameters_cpu_limit,
+input#root_component_parameters_memory_limit,
 input#root_component_parameters_gpu,
 input#root_component_parameters_gpu_vendor {
   width: 100%;
 }
 
 #cpu,
+#cpu_limit,
 #gpu,
+#memory_limit,
 #memory {
   position: absolute;
   vertical-align: baseline;
