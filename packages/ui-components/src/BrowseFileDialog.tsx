@@ -143,13 +143,11 @@ class BrowseFileDialog
   }
 
   getValue(): any {
-    const itemsIter = this.directoryListing.selectedItems();
     const selected = [];
-    let item = null;
 
-    while ((item = itemsIter.next()) !== undefined) {
+    for (const item of this.directoryListing.selectedItems()) {
       if (this.includeDir || item.type !== 'directory') {
-        selected.push(item);
+        selected.push(item.path);
       }
     }
 

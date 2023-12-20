@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IDragEvent } from '@lumino/dragdrop';
+import { Drag } from '@lumino/dragdrop';
 import React, { useCallback, useEffect, useRef } from 'react';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   interface HTMLElementEventMap {
-    'lm-dragenter': IDragEvent;
-    'lm-dragleave': IDragEvent;
-    'lm-dragover': IDragEvent;
-    'lm-drop': IDragEvent;
+    'lm-dragenter': Drag.Event;
+    'lm-dragleave': Drag.Event;
+    'lm-dragover': Drag.Event;
+    'lm-drop': Drag.Event;
   }
 }
 
@@ -31,10 +31,10 @@ interface IRootProps {
 }
 
 interface IProps {
-  onDragEnter?: (e: IDragEvent) => any;
-  onDragLeave?: (e: IDragEvent) => any;
-  onDragOver?: (e: IDragEvent) => any;
-  onDrop?: (e: IDragEvent) => any;
+  onDragEnter?: (e: Drag.Event) => any;
+  onDragLeave?: (e: Drag.Event) => any;
+  onDragOver?: (e: Drag.Event) => any;
+  onDrop?: (e: Drag.Event) => any;
 }
 
 interface IReturn {
@@ -45,7 +45,7 @@ export const useDropzone = (props: IProps): IReturn => {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const handleEvent = useCallback(
-    (e: IDragEvent): void => {
+    (e: Drag.Event): void => {
       e.preventDefault();
       e.stopPropagation();
       switch (e.type) {

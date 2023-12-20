@@ -100,7 +100,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     this._kernelSelectionChanged = new Signal<this, string>(this);
 
     // Add icon to main tab
-    this.title.icon = this.getIcon();
+    this.title.icon = this.model.getIcon();
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
@@ -325,14 +325,14 @@ export abstract class ScriptEditor extends DocumentWidget<
       this.createScrollButtons(this.scrollingWidget);
       this.dockPanel?.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
-      const outputTab = this.dockPanel?.tabBars().next();
+      const outputTab = this.dockPanel?.tabBars().next().value;
       if (outputTab !== undefined) {
         outputTab.id = 'tab-ScriptEditor-output';
         if (outputTab.currentTitle !== null) {
           outputTab.currentTitle.label = 'Console Output';
           outputTab.currentTitle.closable = true;
         }
-        outputTab.disposed.connect((sender, args) => {
+        outputTab.disposed.connect(() => {
           this.interruptRun();
           this.clearOutputArea();
         }, this);
