@@ -1,6 +1,6 @@
 {
   "name": "@elyra/theme-extension",
-  "version": "3.16.0-dev",
+  "version": "4.0.0-dev",
   "description": "JupyterLab extension - Elyra theme",
   "keywords": [
     "jupyter",
@@ -43,7 +43,7 @@
     "unlink:dev": "yarn unlink @jupyterlab/builder"
   },
   "dependencies": {
-    "@elyra/ui-components": "3.16.0-dev",
+    "@elyra/ui-components": "4.0.0-dev",
     "@jupyterlab/application": "^3.4.6",
     "@jupyterlab/apputils": "^3.4.6",
     "@jupyterlab/builder": "^3.4.6",

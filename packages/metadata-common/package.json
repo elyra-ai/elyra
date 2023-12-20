@@ -1,6 +1,6 @@
 {
   "name": "@elyra/metadata-common",
-  "version": "3.16.0-dev",
+  "version": "4.0.0-dev",
   "description": "JupyterLab - Widgets for interacting with metadata",
   "keywords": [
     "jupyter",
@@ -33,8 +33,8 @@
     "lab:uninstall": "jupyter labextension unlink --no-build"
   },
   "dependencies": {
-    "@elyra/services": "3.16.0-dev",
-    "@elyra/ui-components": "3.16.0-dev",
+    "@elyra/services": "4.0.0-dev",
+    "@elyra/ui-components": "4.0.0-dev",
     "@jupyterlab/application": "^3.4.6",
     "@jupyterlab/apputils": "^3.4.6",
     "@jupyterlab/codeeditor": "^3.4.6",
