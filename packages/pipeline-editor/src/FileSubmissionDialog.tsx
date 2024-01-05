@@ -38,7 +38,7 @@ const EnvForm: React.FC<{ env: string[] }> = ({ env }) => {
         <br />
         {Utils.chunkArray(env, 4).map((col, i) => (
           <div key={i}>
-            {col.map(envVar => (
+            {col.map((envVar) => (
               <div key={envVar}>
                 <label htmlFor={envVar}>{envVar}:</label>
                 <br />
@@ -63,12 +63,12 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
   env,
   images,
   dependencyFileExtension,
-  runtimeData
+  runtimeData,
 }) => {
   const [includeDependency, setIncludeDependency] = React.useState(true);
 
   const handleToggle = (): void => {
-    setIncludeDependency(prev => !prev);
+    setIncludeDependency((prev) => !prev);
   };
 
   return (

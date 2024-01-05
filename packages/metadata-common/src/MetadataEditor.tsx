@@ -75,7 +75,7 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
   allTags,
   componentRegistry,
   getDefaultChoices,
-  titleContext
+  titleContext,
 }: IMetadataEditorComponentProps) => {
   const [invalidForm, setInvalidForm] = React.useState(name === undefined);
 
@@ -96,7 +96,7 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
     const newMetadata: any = {
       schema_name: schemaName,
       display_name: metadata?.['_noCategory']?.['display_name'],
-      metadata: flattenFormData(metadata)
+      metadata: flattenFormData(metadata),
     };
 
     if (!name) {
@@ -106,19 +106,19 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
           onSave();
           close();
         })
-        .catch(error => RequestErrors.serverError(error));
+        .catch((error) => RequestErrors.serverError(error));
     } else {
       MetadataService.putMetadata(
         schemaspace,
         name,
-        JSON.stringify(newMetadata)
+        JSON.stringify(newMetadata),
       )
         .then((response: any): void => {
           setDirty(false);
           onSave();
           close();
         })
-        .catch(error => RequestErrors.serverError(error));
+        .catch((error) => RequestErrors.serverError(error));
     }
   };
 
@@ -146,7 +146,7 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
    * Triggers save and close on pressing enter key (outside of a text area)
    */
   const onKeyPress: React.KeyboardEventHandler = (
-    event: React.KeyboardEvent
+    event: React.KeyboardEvent,
   ) => {
     const targetElement = event.nativeEvent.target as HTMLElement;
     if (event.key === 'Enter' && targetElement?.tagName !== 'TEXTAREA') {

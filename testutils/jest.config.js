@@ -20,15 +20,19 @@ const upstream = func('jupyterlab_go_to_definition', __dirname);
 const reuseFromUpstream = [
   'setupFilesAfterEnv',
   'setupFiles',
-  'moduleFileExtensions'
+  'moduleFileExtensions',
 ];
 
 const esModules = [
+  '@microsoft',
+  '@jupyter/react-components',
+  '@jupyter/web-components',
+  'exenv-es6',
   'lib0',
   'y\\-protocols',
   'y\\-websocket',
   'yjs',
-  '(@jupyterlab/.*)/'
+  '(@jupyterlab/.*)/',
 ].join('|');
 
 const local = {
@@ -38,13 +42,13 @@ const local = {
   transform: {
     '\\.(ts|tsx)?$': 'ts-jest',
     '\\.(js|jsx)?$': '../../testutils/transform.js',
-    '\\.svg$': 'jest-raw-loader'
+    '\\.svg$': 'jest-raw-loader',
   },
   transformIgnorePatterns: [`/node_modules/(?!${esModules}).+`],
   moduleNameMapper: {
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
-    '\\.(gif|ttf|eot)$': '@jupyterlab/testutils/lib/jest-file-mock.js'
-  }
+    '\\.(gif|ttf|eot)$': '@jupyterlab/testutils/lib/jest-file-mock.js',
+  },
 };
 
 for (const option of reuseFromUpstream) {

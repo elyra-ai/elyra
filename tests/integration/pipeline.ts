@@ -70,18 +70,18 @@ describe('Pipeline Editor tests', () => {
 
     // delete runtime configurations used for testing
     cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
-      failOnNonZeroExit: false
+      failOnNonZeroExit: false,
     });
     cy.exec('elyra-metadata remove runtimes --name=airflow_test_runtime', {
-      failOnNonZeroExit: false
+      failOnNonZeroExit: false,
     });
 
     // delete example catalogs used for testing
     cy.exec(
       'elyra-metadata remove component-catalogs --name=example_components',
       {
-        failOnNonZeroExit: false
-      }
+        failOnNonZeroExit: false,
+      },
     );
   });
 
@@ -149,7 +149,7 @@ describe('Pipeline Editor tests', () => {
       /undo/i,
       /add comment/i,
       /arrange horizontally/i,
-      /arrange vertically/i
+      /arrange vertically/i,
     ];
     checkEnabledToolbarButtons(enabledButtons);
   });
@@ -166,7 +166,7 @@ describe('Pipeline Editor tests', () => {
     cy.openDirectory('pipelines');
     cy.writeFile(
       'build/cypress-tests/pipelines/complex.pipeline',
-      emptyPipeline
+      emptyPipeline,
     );
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
@@ -204,17 +204,17 @@ describe('Pipeline Editor tests', () => {
       cy.get('#root_component_parameters_outputs').within(() => {
         cy.findByRole('button', { name: /add/i }).click();
         cy.get('input[id="root_component_parameters_outputs_0"]').type(
-          'output-1.csv'
+          'output-1.csv',
         );
 
         cy.findByRole('button', { name: /add/i }).click();
         cy.get('input[id="root_component_parameters_outputs_1"]').type(
-          'output-2.csv'
+          'output-2.csv',
         );
       });
       cy.get('#root_component_parameters_runtime_image').within(() => {
         cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8'
+          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8',
         );
       });
 
@@ -222,7 +222,7 @@ describe('Pipeline Editor tests', () => {
       cy.findByText('consumer.ipynb').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
         cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8'
+          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8',
         );
       });
 
@@ -230,7 +230,7 @@ describe('Pipeline Editor tests', () => {
       cy.findByText('setup.py').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
         cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8'
+          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8',
         );
       });
       cy.get('#root_component_parameters_dependencies').within(() => {
@@ -250,18 +250,18 @@ describe('Pipeline Editor tests', () => {
       cy.findByText('create-source-files.py').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
         cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8'
+          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8',
         );
       });
       cy.get('#root_component_parameters_outputs').within(() => {
         cy.findByRole('button', { name: /add/i }).click();
         cy.get('input[id="root_component_parameters_outputs_0"]').type(
-          'input-1.csv'
+          'input-1.csv',
         );
 
         cy.findByRole('button', { name: /add/i }).click();
         cy.get('input[id="root_component_parameters_outputs_1"]').type(
-          'input-2.csv'
+          'input-2.csv',
         );
       });
 
@@ -269,18 +269,18 @@ describe('Pipeline Editor tests', () => {
       cy.findByText('producer-script.py').click();
       cy.get('#root_component_parameters_runtime_image').within(() => {
         cy.get('select[id="root_component_parameters_runtime_image"]').select(
-          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8'
+          'continuumio/anaconda3@sha256:a2816acd3acda208d92e0bf6c11eb41fda9009ea20f24e123dbf84bb4bd4c4b8',
         );
       });
       cy.get('#root_component_parameters_outputs').within(() => {
         cy.findByRole('button', { name: /add/i }).click();
         cy.get('input[id="root_component_parameters_outputs_0"]').type(
-          'output-3.csv'
+          'output-3.csv',
         );
 
         cy.findByRole('button', { name: /add/i }).click();
         cy.get('input[id="root_component_parameters_outputs_1"]').type(
-          'output-4.csv'
+          'output-4.csv',
         );
       });
     });
@@ -288,7 +288,7 @@ describe('Pipeline Editor tests', () => {
     cy.savePipeline();
 
     cy.readFile(
-      'build/cypress-tests/pipelines/complex.pipeline'
+      'build/cypress-tests/pipelines/complex.pipeline',
     ).matchesSnapshot();
   });
 
@@ -341,7 +341,7 @@ describe('Pipeline Editor tests', () => {
     cy.openDirectory('pipelines');
     cy.writeFile(
       'build/cypress-tests/pipelines/complex.pipeline',
-      emptyPipeline
+      emptyPipeline,
     );
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
@@ -378,7 +378,7 @@ describe('Pipeline Editor tests', () => {
     cy.openDirectory('pipelines');
     cy.writeFile(
       'build/cypress-tests/pipelines/complex.pipeline',
-      emptyPipeline
+      emptyPipeline,
     );
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
@@ -524,7 +524,7 @@ describe('Pipeline Editor tests', () => {
 
     // validate job was executed successfully, this can take a while in ci
     cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
-      'be.visible'
+      'be.visible',
     );
 
     cy.readFile('build/cypress-tests/generic-test.yaml');
@@ -558,7 +558,7 @@ describe('Pipeline Editor tests', () => {
 
     // validate job was executed successfully, this can take a while in ci
     cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
-      'be.visible'
+      'be.visible',
     );
 
     cy.readFile('build/cypress-tests/generic-test.py');
@@ -596,7 +596,7 @@ describe('Pipeline Editor tests', () => {
 
     // validate job was executed successfully, this can take a while in ci
     cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
-      'be.visible'
+      'be.visible',
     );
 
     cy.readFile('build/cypress-tests/helloworld.py');
@@ -633,7 +633,7 @@ describe('Pipeline Editor tests', () => {
 
     // validate job was executed successfully, this can take a while in ci
     cy.findByText(/pipeline export succeeded/i, { timeout: 30000 }).should(
-      'be.visible'
+      'be.visible',
     );
 
     cy.readFile('build/cypress-tests/generic-test-custom.yaml');
@@ -655,10 +655,10 @@ describe('Pipeline Editor tests', () => {
       cy.get('#root_component_parameters_env_vars').within(() => {
         cy.findByRole('button', { name: /add/i }).click();
         cy.get('input[id="root_component_parameters_env_vars_0_env_var"]').type(
-          'BAD'
+          'BAD',
         );
         cy.get('input[id="root_component_parameters_env_vars_0_value"]').type(
-          'two'
+          'two',
         );
       });
 
@@ -689,10 +689,10 @@ describe('Pipeline Editor tests', () => {
       'elyra-kfp-examples-catalog\\:61e6f4141f65', // run notebook using papermill
       'elyra-kfp-examples-catalog\\:737915b826e9', // filter text
       'elyra-kfp-examples-catalog\\:a08014f9252f', // download data
-      'elyra-kfp-examples-catalog\\:d68ec7fcdf46' // calculate data hash
+      'elyra-kfp-examples-catalog\\:d68ec7fcdf46', // calculate data hash
     ];
 
-    kfpCustomComponents.forEach(component => {
+    kfpCustomComponents.forEach((component) => {
       cy.get(`#${component}`).should('exist');
     });
   });

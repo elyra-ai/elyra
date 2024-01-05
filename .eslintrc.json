@@ -11,9 +11,16 @@
   "rules": {
     "react/prop-types": "off",
     "func-style": "error",
-    "@typescript-eslint/interface-name-prefix": [
+    "@typescript-eslint/naming-convention": [
       "error",
-      { "prefixWithI": "always" }
+      {
+        "selector": "interface",
+        "format": ["PascalCase"],
+        "custom": {
+          "regex": "^I[A-Z]",
+          "match": true
+        }
+      }
     ],
     "@typescript-eslint/no-unused-vars": ["warn", { "args": "none" }],
     "@typescript-eslint/no-use-before-define": "off",

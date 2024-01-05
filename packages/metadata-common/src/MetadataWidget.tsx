@@ -19,7 +19,7 @@ import {
   ExpandableComponent,
   JSONComponent,
   RequestErrors,
-  trashIcon
+  trashIcon,
 } from '@elyra/ui-components';
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
@@ -27,14 +27,14 @@ import {
   Dialog,
   ReactWidget,
   showDialog,
-  UseSignal
+  UseSignal,
 } from '@jupyterlab/apputils';
 import {
   addIcon,
   copyIcon,
   editIcon,
   LabIcon,
-  refreshIcon
+  refreshIcon,
 } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
@@ -54,7 +54,7 @@ const METADATA_HEADER_BUTTON_CLASS = 'elyra-metadataHeader-button';
 const METADATA_JSON_CLASS = 'jp-RenderedJSON CodeMirror cm-s-jupyter';
 
 const commands = {
-  OPEN_METADATA_EDITOR: 'elyra-metadata-editor:open'
+  OPEN_METADATA_EDITOR: 'elyra-metadata-editor:open',
 };
 
 export interface IMetadata {
@@ -102,7 +102,7 @@ export interface IMetadataDisplayState {
  */
 export class MetadataDisplay<
   T extends IMetadataDisplayProps,
-  U extends IMetadataDisplayState
+  // U extends IMetadataDisplayState,
 > extends React.Component<T, IMetadataDisplayState> {
   constructor(props: T) {
     super(props);
@@ -111,7 +111,7 @@ export class MetadataDisplay<
       searchValue: '',
       filterTags: [],
       matchesSearch: this.matchesSearch.bind(this),
-      matchesTags: this.matchesTags.bind(this)
+      matchesTags: this.matchesTags.bind(this),
     };
   }
 
@@ -120,14 +120,14 @@ export class MetadataDisplay<
       title: `Delete ${
         this.props.labelName ? this.props.labelName(metadata) : ''
       } ${this.props.titleContext || ''} '${metadata.display_name}'?`,
-      buttons: [Dialog.cancelButton(), Dialog.okButton()]
+      buttons: [Dialog.cancelButton(), Dialog.okButton()],
     }).then((result: any) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
         MetadataService.deleteMetadata(
           this.props.schemaspace,
-          metadata.name
-        ).catch(error => RequestErrors.serverError(error));
+          metadata.name,
+        ).catch((error) => RequestErrors.serverError(error));
       }
     });
   };
@@ -142,9 +142,9 @@ export class MetadataDisplay<
             onSave: this.props.updateMetadata,
             schemaspace: this.props.schemaspace,
             schema: metadata.schema_name,
-            name: metadata.name
+            name: metadata.name,
           });
-        }
+        },
       },
       {
         title: 'Duplicate',
@@ -153,13 +153,13 @@ export class MetadataDisplay<
           MetadataCommonService.duplicateMetadataInstance(
             this.props.schemaspace,
             metadata,
-            this.props.metadata
+            this.props.metadata,
           )
             .then((response: any): void => {
               this.props.updateMetadata();
             })
-            .catch(error => RequestErrors.serverError(error));
-        }
+            .catch((error) => RequestErrors.serverError(error));
+        },
       },
       {
         title: 'Delete',
@@ -168,8 +168,8 @@ export class MetadataDisplay<
           this.deleteMetadata(metadata).then((response: any): void => {
             this.props.updateMetadata();
           });
-        }
-      }
+        },
+      },
     ];
   }
 
@@ -214,7 +214,7 @@ export class MetadataDisplay<
    */
   sortMetadata(): void {
     this.props.metadata.sort((a, b) =>
-      a.display_name.localeCompare(b.display_name)
+      a.display_name.localeCompare(b.display_name),
     );
   }
 
@@ -228,13 +228,13 @@ export class MetadataDisplay<
             .toLowerCase()
             .includes(searchValue.toLowerCase())
         );
-      }
+      },
     );
 
     // filter with tags
     if (filterTags.length !== 0) {
-      filteredMetadata = filteredMetadata.filter(metadata => {
-        return filterTags.some(tag => {
+      filteredMetadata = filteredMetadata.filter((metadata) => {
+        return filterTags.some((tag) => {
           if (metadata.metadata.tags) {
             return metadata.metadata.tags.includes(tag);
           }
@@ -246,7 +246,7 @@ export class MetadataDisplay<
     this.setState({
       metadata: filteredMetadata,
       searchValue: searchValue,
-      filterTags: filterTags
+      filterTags: filterTags,
     });
   };
 
@@ -286,7 +286,7 @@ export class MetadataDisplay<
 
   static getDerivedStateFromProps(
     props: IMetadataDisplayProps,
-    state: IMetadataDisplayState
+    state: IMetadataDisplayState,
   ): IMetadataDisplayState {
     if (state.searchValue === '' && state.filterTags.length === 0) {
       return {
@@ -294,7 +294,7 @@ export class MetadataDisplay<
         searchValue: '',
         filterTags: [],
         matchesSearch: state.matchesSearch,
-        matchesTags: state.matchesTags
+        matchesTags: state.matchesTags,
       };
     }
 
@@ -303,16 +303,16 @@ export class MetadataDisplay<
       const searchValue = state.searchValue.toLowerCase().trim();
 
       const newMetadata = props.metadata.filter(
-        metadata =>
+        (metadata) =>
           state.matchesSearch(searchValue, metadata) &&
-          state.matchesTags(filterTags, metadata)
+          state.matchesTags(filterTags, metadata),
       );
       return {
         metadata: newMetadata,
         searchValue: state.searchValue,
         filterTags: state.filterTags,
         matchesSearch: state.matchesSearch,
-        matchesTags: state.matchesTags
+        matchesTags: state.matchesTags,
       };
     }
     return state;
@@ -392,8 +392,8 @@ export class MetadataWidget extends ReactWidget {
               schema: schema.name,
               title: schema.title,
               titleContext: this.props.titleContext,
-              appendToTitle: this.props.appendToTitle
-            } as any
+              appendToTitle: this.props.appendToTitle,
+            } as any,
           });
         }
       }
@@ -408,7 +408,7 @@ export class MetadataWidget extends ReactWidget {
       onSave: this.updateMetadata,
       schemaspace: this.props.schemaspace,
       schema: schema,
-      titleContext
+      titleContext,
     });
   }
 
@@ -525,7 +525,7 @@ export class MetadataWidget extends ReactWidget {
                   ? (): void =>
                       this.addMetadata(
                         this.schemas?.[0].name,
-                        this.titleContext
+                        this.titleContext,
                       )
                   : (event: any): void => {
                       this.props.app.contextMenu.open(event);

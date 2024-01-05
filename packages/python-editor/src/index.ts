@@ -19,14 +19,14 @@ import { ScriptEditorWidgetFactory, ScriptEditor } from '@elyra/script-editor';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
-  ILayoutRestorer
+  ILayoutRestorer,
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
   IDocumentWidget,
   DocumentRegistry,
-  DocumentWidget
+  DocumentWidget,
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
@@ -46,7 +46,7 @@ const PYTHON_EDITOR_NAMESPACE = 'elyra-python-editor-extension';
 const commandIDs = {
   createNewPythonEditor: 'script-editor:create-new-python-editor',
   openDocManager: 'docmanager:open',
-  newDocManager: 'docmanager:new-untitled'
+  newDocManager: 'docmanager:new-untitled',
 };
 
 /**
@@ -60,7 +60,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     IEditorTracker,
     ICommandPalette,
     ISettingRegistry,
-    IFileBrowserFactory
+    IFileBrowserFactory,
   ],
   optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
@@ -72,7 +72,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
-    launcher: ILauncher | null
+    launcher: ILauncher | null,
   ) => {
     console.log('Elyra - python-editor extension is activated!');
 
@@ -81,14 +81,14 @@ const extension: JupyterFrontEndPlugin<void> = {
       factoryOptions: {
         name: PYTHON_FACTORY,
         fileTypes: [PYTHON],
-        defaultFor: [PYTHON]
+        defaultFor: [PYTHON],
       },
       instanceCreator: (
         options: DocumentWidget.IOptions<
           FileEditor,
           DocumentRegistry.ICodeModel
-        >
-      ): ScriptEditor => new PythonEditor(options)
+        >,
+      ): ScriptEditor => new PythonEditor(options),
     });
 
     app.docRegistry.addFileType({
@@ -97,7 +97,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       extensions: ['.py'],
       pattern: '.*\\.py$',
       mimeTypes: ['text/x-python'],
-      icon: pythonIcon
+      icon: pythonIcon,
     });
 
     const { restored } = app;
@@ -106,7 +106,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Track PythonEditor widget on page refresh
      */
     const tracker = new WidgetTracker<ScriptEditor>({
-      namespace: PYTHON_EDITOR_NAMESPACE
+      namespace: PYTHON_EDITOR_NAMESPACE,
     });
 
     let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
@@ -115,11 +115,11 @@ const extension: JupyterFrontEndPlugin<void> = {
       // Handle state restoration
       void restorer.restore(tracker, {
         command: commandIDs.openDocManager,
-        args: widget => ({
+        args: (widget) => ({
           path: widget.context.path,
-          factory: PYTHON_FACTORY
+          factory: PYTHON_FACTORY,
         }),
-        name: widget => widget.context.path
+        name: (widget) => widget.context.path,
       });
     }
 
@@ -129,7 +129,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
         ...CodeEditor.defaultConfig,
-        ...(settings.get('editorConfig').composite as JSONObject)
+        ...(settings.get('editorConfig').composite as JSONObject),
       };
 
       // Trigger a refresh of the rendered commands
@@ -140,7 +140,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
      */
     const updateTracker = (): void => {
-      tracker.forEach(widget => {
+      tracker.forEach((widget) => {
         updateWidget(widget);
       });
     };
@@ -151,7 +151,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
-          widget
+          widget,
         );
       }
 
@@ -165,7 +165,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
     Promise.all([
       settingRegistry.load('@jupyterlab/fileeditor-extension:plugin'),
-      restored
+      restored,
     ])
       .then(([settings]) => {
         updateSettings(settings);
@@ -206,7 +206,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       launcher.add({
         command: commandIDs.createNewPythonEditor,
         category: 'Elyra',
-        rank: 4
+        rank: 4,
       });
     }
 
@@ -214,7 +214,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       // Add new python editor creation to the file menu
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewPythonEditor, args: { isMenu: true } }],
-        92
+        92,
       );
     }
 
@@ -224,34 +224,34 @@ const extension: JupyterFrontEndPlugin<void> = {
         .execute(commandIDs.newDocManager, {
           path: cwd,
           type: 'file',
-          ext: '.py'
+          ext: '.py',
         })
-        .then(model => {
+        .then((model) => {
           return app.commands.execute(commandIDs.openDocManager, {
             path: model.path,
-            factory: PYTHON_FACTORY
+            factory: PYTHON_FACTORY,
           });
         });
     };
 
     // Add a command to create new Python editor
     app.commands.addCommand(commandIDs.createNewPythonEditor, {
-      label: args =>
+      label: (args) =>
         args['isPalette'] ? 'New Python Editor' : 'Python Editor',
       caption: 'Create a new Python Editor',
-      icon: args => (args['isPalette'] ? undefined : pythonIcon),
-      execute: args => {
+      icon: (args) => (args['isPalette'] ? undefined : pythonIcon),
+      execute: (args) => {
         const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
         return createNew(cwd as string);
-      }
+      },
     });
 
     palette.addItem({
       command: commandIDs.createNewPythonEditor,
       args: { isPalette: true },
-      category: 'Elyra'
+      category: 'Elyra',
     });
-  }
+  },
 };
 
 export default extension;
