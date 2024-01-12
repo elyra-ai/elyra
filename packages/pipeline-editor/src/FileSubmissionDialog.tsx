@@ -86,12 +86,23 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
       <br />
       <div className="elyra-resourcesWrapper">
         <div className="elyra-resourceInput">
-          <label htmlFor="cpu"> CPU:</label>
+          <label htmlFor="cpu"> CPU request:</label>
           <div className="elyra-resourceInputDescription" id="cpu-description">
-            For CPU-intensive workloads, you can choose more than 1 CPU (e.g.
-            1.5).
+            For CPU-intensive workloads, you can request more than 1 CPU (e.g.
+            1.5, this is optional).
           </div>
           <input id="cpu" type="number" name="cpu" />
+        </div>
+        <div className="elyra-resourceInput">
+          <label htmlFor="cpu_limit"> CPU limit:</label>
+          <div
+            className="elyra-resourceInputDescription"
+            id="cpu-limit-description"
+          >
+            The maximum CPU that can be allocated to this node. This should be
+            equal or higher than the request
+          </div>
+          <input id="cpu_limit" type="number" name="cpu_limit" />
         </div>
         <div className="elyra-resourceInput">
           <label htmlFor="gpu"> GPU:</label>
@@ -102,14 +113,25 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
           <input id="gpu" type="number" name="gpu" />
         </div>
         <div className="elyra-resourceInput">
-          <label htmlFor="memory"> RAM (GB):</label>
+          <label htmlFor="memory"> RAM request (GB):</label>
           <div
             className="elyra-resourceInputDescription"
             id="memory-description"
           >
-            The total amount of RAM specified.
+            The total amount of RAM requested (optional).
           </div>
           <input id="memory" type="number" name="memory" />
+        </div>
+        <div className="elyra-resourceInput">
+          <label htmlFor="memory_limit"> RAM limit (GB):</label>
+          <div
+            className="elyra-resourceInputDescription"
+            id="memory-limit-description"
+          >
+            The maximum amount of RAM allowed. This should be equal or higher
+            than the request
+          </div>
+          <input id="memory_limit" type="number" name="memory_limit" />
         </div>
       </div>
       <br />

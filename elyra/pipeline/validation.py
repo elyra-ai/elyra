@@ -431,7 +431,13 @@ class PipelineValidationManager(SingletonConfigurable):
         # If not running locally, we check resource and image name
         if pipeline_runtime != "local":
             self._validate_container_image_name(node.id, node_label, image_name, response=response)
-            for resource_name in ["cpu", "gpu", "memory"]:
+            for resource_name in [
+                "cpu",
+                "gpu",
+                "memory",
+                "cpu_limit",
+                "memory_limit",
+            ]:
                 resource_value = node.get_component_parameter(resource_name)
                 if resource_value:
                     self._validate_resource_value(
@@ -638,7 +644,7 @@ class PipelineValidationManager(SingletonConfigurable):
         Validates the value for hardware resources requested
         :param node_id: the unique ID of the node
         :param node_label: the given node name or user customized name/label of the node
-        :param resource_name: the name of the resource e.g. cpu, gpu. memory
+        :param resource_name: the name of the resource e.g. cpu, cpu_limit, gpu, memory, memory_limit
         :param resource_value: the value of the resource
         :param response: ValidationResponse containing the issue list to be updated
         """

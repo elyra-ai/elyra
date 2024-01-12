@@ -342,6 +342,8 @@ be fully qualified (i.e., prefixed with their package names).
                     "image_pull_policy": image_pull_policy,
                     "cpu_request": operation.cpu,
                     "mem_request": operation.memory,
+                    "cpu_limit": operation.cpu_limit,
+                    "memory_limit": operation.memory_limit,
                     "gpu_limit": operation.gpu,
                     "operator_source": operation.filename,
                 }

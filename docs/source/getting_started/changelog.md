@@ -2,8 +2,11 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
-## Release 3.15.0 - 03/28/2023
+## Release 4.0.0
 
+- Add functionality to select resource limits from the GUI [#3202](https://github.com/elyra-ai/elyra/pull/3202)
+
+## Release 3.15.0 - 03/28/2023
 
 ## Release 3.15.0rc0 - 03/28/2023
 

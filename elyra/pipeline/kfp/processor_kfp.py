@@ -843,6 +843,11 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     "size": operation.memory,
                     "units": "G",
                 }
+                workflow_task["task_modifiers"]["cpu_limit"] = operation.cpu_limit
+                workflow_task["task_modifiers"]["memory_limit"] = {
+                    "size": operation.memory_limit,
+                    "units": "G",
+                }
                 gpu_vendor = "nvidia.com/gpu"
                 if operation.gpu_vendor:
                     gpu_vendor = operation.gpu_vendor

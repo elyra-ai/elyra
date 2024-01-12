@@ -943,7 +943,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
 
     op = list(pipeline.operations.values())[0]
 
-    if op.gpu or op.cpu or op.memory:
+    if op.gpu or op.cpu or op.memory or op.cpu_limit or op.memory_limit:
         assert node_template["container"].get("resources") is not None
         if op.gpu:
             assert node_template["container"]["resources"]["limits"]["nvidia.com/gpu"] == str(op.gpu)
@@ -951,6 +951,10 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
             assert node_template["container"]["resources"]["requests"]["cpu"] == str(op.cpu)
         if op.memory:
             assert node_template["container"]["resources"]["requests"]["memory"] == f"{op.memory}G"
+        if op.cpu_limit:
+            assert node_template["container"]["resources"]["limits"]["cpu"] == str(op.cpu_limit)
+        if op.memory_limit:
+            assert node_template["container"]["resources"]["limits"]["memory"] == f"{op.memory_limit}G"
 
 
 @pytest.fixture(autouse=False)

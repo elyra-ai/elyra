@@ -777,8 +777,14 @@ const PipelineWrapper: React.FC<IProps> = ({
         if (node.app_data.component_parameters.cpu === null) {
           delete node.app_data.component_parameters.cpu;
         }
+        if (node.app_data.component_parameters.cpu_limit === null) {
+          delete node.app_data.component_parameters.cpu_limit;
+        }
         if (node.app_data.component_parameters.memory === null) {
           delete node.app_data.component_parameters.memory;
+        }
+        if (node.app_data.component_parameters.memory_limit === null) {
+          delete node.app_data.component_parameters.memory_limit;
         }
         if (node.app_data.component_parameters.gpu === null) {
           delete node.app_data.component_parameters.gpu;

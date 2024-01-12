@@ -37,8 +37,10 @@ export default class Utils {
     dependencies: string[] | undefined,
     envObject: { [key: string]: string },
     cpu?: number,
+    cpu_limit?: number,
     gpu?: number,
-    memory?: number
+    memory?: number,
+    memory_limit?: number
   ): any {
     const generated_uuid = uuid4();
 
@@ -71,8 +73,10 @@ export default class Utils {
                   env_vars: envVars,
                   dependencies,
                   cpu,
+                  cpu_limit,
                   gpu,
                   memory,
+                  memory_limit,
                   include_subdirectories: false
                 },
                 ui_data: {
