@@ -147,7 +147,7 @@ byo_metadata_json = {
     "metadata": {"required_test": "required_value"},
 }
 
-# Used in test_install_and_replace_complex to test --file option
+# Used in test_update_complex to test --file option
 one_of_json = {
     "schema_name": "metadata-test",
     "display_name": "oneOf Testing",
@@ -157,7 +157,7 @@ one_of_json = {
     },
 }
 
-# Used in test_install_and_replace_complex to test --allOf_test option (i.e., ovp option)
+# Used in test_update_complex to test --allOf_test option (i.e., ovp option)
 all_of_json = {
     "obj1_prop1": "allOf-test-val1",
     "obj1_prop2": "allOf-test-val2",
@@ -239,7 +239,7 @@ class PropertyTester(object):
         # First test
         ret = script_runner.run(
             "elyra-metadata",
-            "install",
+            "create",
             METADATA_TEST_SCHEMASPACE,
             "--schema_name=metadata-test",
             "--name=" + self.name,
@@ -255,7 +255,7 @@ class PropertyTester(object):
         # Second test
         ret = script_runner.run(
             "elyra-metadata",
-            "install",
+            "create",
             METADATA_TEST_SCHEMASPACE,
             "--schema_name=metadata-test",
             "--name=" + self.name,

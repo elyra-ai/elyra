@@ -19,7 +19,6 @@ import sys
 from typing import Dict
 from typing import List
 
-from deprecation import deprecated
 from jsonschema import ValidationError
 
 from elyra.metadata.error import MetadataExistsError, MetadataNotFoundError
@@ -387,235 +386,6 @@ class SchemaspaceUpdate(SchemaspaceCreate):
     update_mode = True
 
 
-class SchemaspaceInstall(SchemaspaceBase):
-    """DEPRECATED (removed in v4.0):
-    Handles the 'install' subcommand functionality for a specific schemaspace.
-    """
-
-    # Known options, others will be derived from schema based on schema_name...
-
-    replace_flag = Flag("--replace", name="replace", description="Replace an existing instance", default_value=False)
-    name_option = CliOption("--name", name="name", description="The name of the metadata instance to install")
-    file_option = FileOption(
-        "--file",
-        name="file",
-        description="The filename containing the metadata instance to install. "
-        "Can be used to bypass individual property arguments.",
-    )
-    json_option = JSONOption(
-        "--json",
-        name="json",
-        description="The JSON string containing the metadata instance to install. "
-        "Can be used to bypass individual property arguments.",
-    )
-    # 'Install' options
-    options: List[Option] = [replace_flag, file_option, json_option]  # defer name option until after schema
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.complex_properties: List[str] = []
-        self.metadata_manager = MetadataManager(schemaspace=self.schemaspace)
-        # First, process the schema_name option so we can then load the appropriate schema
-        # file to build the schema-based options.  If help is requested, give it to them.
-
-        # As an added benefit, if the schemaspace has one schema, got ahead and default that value.
-        # If multiple, add the list so proper messaging can be applied.  As a result, we need to
-        # to build the option here since this is where we have access to the schemas.
-        schema_list = list(self.schemas.keys())
-        if len(schema_list) == 1:
-            self.schema_name_option = CliOption(
-                "--schema_name",
-                name="schema_name",
-                default_value=schema_list[0],
-                description="The schema_name of the metadata instance to " f"install (defaults to '{schema_list[0]}')",
-                required=True,
-            )
-        else:
-            enum = schema_list
-            self.schema_name_option = CliOption(
-                "--schema_name",
-                name="schema_name",
-                enum=enum,
-                description="The schema_name of the metadata instance to install.  " f"Must be one of: {enum}",
-                required=True,
-            )
-
-        self.options.extend([self.schema_name_option, self.name_option])
-
-        # Since we need to know if the replace option is in use prior to normal option processing,
-        # go ahead and check for its existence on the command-line and process if present.
-        if self.replace_flag.cli_option in self.argv_mappings.keys():
-            self.process_cli_option(self.replace_flag)
-
-        # Determine if --json, --file, or --replace are in use and relax required properties if so.
-        bulk_metadata = self._process_json_based_options()
-        relax_required = bulk_metadata or self.replace_flag.value
-
-        # This needs to occur following json-based options since they may add it as an option
-        self.process_cli_option(self.schema_name_option, check_help=True)
-
-        # Schema appears to be a valid name, convert its properties to options and continue
-        schema = self.schemas[self.schema_name_option.value]
-
-        # Convert schema properties to options, gathering complex property names
-        schema_options = self._schema_to_options(schema, relax_required)
-        self.options.extend(schema_options)
-
-    def start(self):
-        super().start()  # process options
-
-        # Get known options, then gather display_name and build metadata dict.
-        name = self.name_option.value
-        schema_name = self.schema_name_option.value
-        display_name = None
-
-        metadata = {}
-        # Walk the options looking for SchemaProperty instances. Any MetadataSchemaProperty instances go
-        # into the metadata dict.  Note that we process JSONBasedOptions (--json or --file) prior to
-        # MetadataSchemaProperty types since the former will set the base metadata stanza and individual
-        # values can be used to override the former's content (like BYO authentication OVPs, for example).
-        for option in self.options:
-            if isinstance(option, MetadataSchemaProperty):
-                # skip adding any non required properties that have no value (unless its a null type).
-                if not option.required and not option.value and option.type != "null":
-                    continue
-                metadata[option.name] = option.value
-            elif isinstance(option, SchemaProperty):
-                if option.name == "display_name":  # Be sure we have a display_name
-                    display_name = option.value
-                    continue
-            elif isinstance(option, JSONBasedOption):
-                metadata.update(option.metadata)
-
-        if display_name is None and self.replace_flag.value is False:  # Only require on create
-            self.log_and_exit(f"Could not determine display_name from schema '{schema_name}'")
-
-        ex_msg = None
-        new_instance = None
-        try:
-            if self.replace_flag.value:  # if replacing, fetch the instance so it can be updated
-                updated_instance = self.metadata_manager.get(name)
-                updated_instance.schema_name = schema_name
-                if display_name:
-                    updated_instance.display_name = display_name
-                updated_instance.metadata.update(metadata)
-                new_instance = self.metadata_manager.update(name, updated_instance)
-            else:  # create a new instance
-                instance = Metadata(schema_name=schema_name, name=name, display_name=display_name, metadata=metadata)
-                new_instance = self.metadata_manager.create(name, instance)
-        except Exception as ex:
-            ex_msg = str(ex)
-
-        if new_instance:
-            print(
-                f"Metadata instance '{new_instance.name}' for schema '{schema_name}' has been written "
-                f"to: {new_instance.resource}"
-            )
-        else:
-            if ex_msg:
-                self.log_and_exit(
-                    f"The following exception occurred saving metadata instance "
-                    f"for schema '{schema_name}': {ex_msg}",
-                    display_help=False,
-                )
-            else:
-                self.log_and_exit(
-                    f"A failure occurred saving metadata instance '{name}' for " f"schema '{schema_name}'.",
-                    display_help=False,
-                )
-
-    def _process_json_based_options(self) -> bool:
-        """Process the file and json options to see if they have values (and those values can be loaded as JSON)
-        Then check payloads for schema_name, display_name and derive name options and add to argv mappings
-        if currently not specified.
-
-        If either option is set, indicate that the metadata stanza should be skipped (return True)
-        """
-        bulk_metadata = False
-
-        self.process_cli_option(self.file_option, check_help=True)
-        self.process_cli_option(self.json_option, check_help=True)
-
-        # if both are set, raise error
-        if self.json_option.value is not None and self.file_option.value is not None:
-            self.log_and_exit("At most one of '--json' or '--file' can be set at a time.", display_help=True)
-        elif self.json_option.value is not None:
-            bulk_metadata = True
-            self.json_option.transfer_names_to_argvs(self.argv, self.argv_mappings)
-        elif self.file_option.value is not None:
-            bulk_metadata = True
-            self.file_option.transfer_names_to_argvs(self.argv, self.argv_mappings)
-
-        # else, neither is set so metadata stanza will be considered
-        return bulk_metadata
-
-    def _schema_to_options(self, schema: Dict, relax_required: bool = False) -> List[Option]:
-        """Takes a JSON schema and builds a list of SchemaProperty instances corresponding to each
-        property in the schema.  There are two sections of properties, one that includes
-        schema_name and display_name and another within the metadata container - which
-        will be separated by class type - SchemaProperty vs. MetadataSchemaProperty.
-
-        If relax_required is true, a --json or --file option is in use and the primary metadata
-        comes from those options OR the --replace option is in use, in which case the primary
-        metadata comes from the existing instance (being replaced).  In such cases, skip setting
-        required values since most will come from the JSON-based option or already be present
-        (in the case of replace).  This allows CLI-specified metadata properties to override the
-        primary metadata (either in the JSON options or from the existing instance).
-        """
-        options = {}
-        properties = schema["properties"]
-        for name, value in properties.items():
-            if name == "schema_name":  # already have this option, skip
-                continue
-            if name != "metadata":
-                options[name] = SchemaProperty(name, value)
-            else:  # convert first-level metadata properties to options...
-                metadata_properties = properties["metadata"]["properties"]
-                for md_name, md_value in metadata_properties.items():
-                    msp = MetadataSchemaProperty(md_name, md_value)
-                    # skip if this property was not specified on the command line and its a replace/bulk op
-                    if msp.cli_option not in self.argv_mappings and relax_required:
-                        continue
-                    if msp.unsupported_meta_props:  # if this option includes complex meta-props, note that.
-                        self.complex_properties.append(md_name)
-                    options[md_name] = msp
-
-        # Now set required-ness on MetadataProperties, but only when creation is using fine-grained property options
-        if not relax_required:
-            required_props = properties["metadata"].get("required")
-            for required in required_props:
-                options.get(required).required = True
-
-        # ...  and top-level (schema) Properties if we're not replacing (updating)
-        if self.replace_flag.value is False:
-            required_props = set(schema.get("required")) - {"schema_name", "metadata"}  # skip schema_name & metadata
-            for required in required_props:
-                options.get(required).required = True
-        return list(options.values())
-
-    def print_help(self):
-        super().print_help()
-        # If we gathered any complex properties, go ahead and note how behaviors might be affected, etc.
-        if self.complex_properties:
-            print(
-                f"Note: The following properties in this schema contain JSON keywords that are not supported "
-                f"by the tooling: {self.complex_properties}."
-            )
-            print(
-                "This can impact the tool's ability to derive context from the schema, including a property's "
-                "type, description, or behaviors included in complex types like 'oneOf'."
-            )
-            print(
-                "It is recommended that options corresponding to these properties be set after understanding "
-                "the schema or indirectly using `--file` or `--json` options."
-            )
-            print(
-                'If the property is of type "object" it can be set using a file containing only that property\'s '
-                "JSON."
-            )
-            print(f"The following are considered unsupported keywords: {SchemaProperty.unsupported_keywords}")
-
-
 class SchemaspaceMigrate(SchemaspaceBase):
     """Handles the 'migrate' subcommand functionality for a specific schemaspace."""
 
@@ -908,9 +678,6 @@ class List(SubcommandBase):
     subcommand_description = "List installed metadata for {schemaspace}."
     schemaspace_base_class = SchemaspaceList
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
 
 class Remove(SubcommandBase):
     """Removes a metadata instance from a given schemaspace."""
@@ -918,21 +685,6 @@ class Remove(SubcommandBase):
     description = "Remove a metadata instance from a given schemaspace."
     subcommand_description = "Remove a metadata instance from schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceRemove
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-
-@deprecated(deprecated_in="3.7.0", removed_in="4.0", details="Use Create or Update instead")
-class Install(SubcommandBase):
-    """DEPRECATED. Installs a metadata instance into a given schemaspace."""
-
-    description = "DEPRECATED. Install a metadata instance into a given schemaspace. Use 'create' or 'update' instead."
-    subcommand_description = "DEPRECATED. Install a metadata instance into schemaspace '{schemaspace}'."
-    schemaspace_base_class = SchemaspaceInstall
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
 
 class Create(SubcommandBase):
@@ -942,9 +694,6 @@ class Create(SubcommandBase):
     subcommand_description = "Create a metadata instance in schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceCreate
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
 
 class Update(SubcommandBase):
     """Updates a metadata instance in a given schemaspace."""
@@ -952,9 +701,6 @@ class Update(SubcommandBase):
     description = "Update a metadata instance in a given schemaspace."
     subcommand_description = "Update a metadata instance in schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceUpdate
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
 
 class Migrate(SubcommandBase):
@@ -964,9 +710,6 @@ class Migrate(SubcommandBase):
     subcommand_description = "Migrate metadata instance in schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceMigrate
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
 
 class Export(SubcommandBase):
     """Exports metadata instances in a given schemaspace."""
@@ -975,9 +718,6 @@ class Export(SubcommandBase):
     subcommand_description = "Export installed metadata in schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceExport
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
 
 class Import(SubcommandBase):
     """Imports metadata instances into a given schemaspace."""
@@ -985,9 +725,6 @@ class Import(SubcommandBase):
     description = "Import metadata instances into a given schemaspace."
     subcommand_description = "Import metadata instances into schemaspace '{schemaspace}'."
     schemaspace_base_class = SchemaspaceImport
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
 
 class MetadataApp(AppBase):
@@ -1000,7 +737,6 @@ class MetadataApp(AppBase):
         "list": (List, List.description.splitlines()[0]),
         "create": (Create, Create.description.splitlines()[0]),
         "update": (Update, Update.description.splitlines()[0]),
-        "install": (Install, Install.description.splitlines()[0]),
         "remove": (Remove, Remove.description.splitlines()[0]),
         "migrate": (Migrate, Migrate.description.splitlines()[0]),
         "export": (Export, Export.description.splitlines()[0]),
