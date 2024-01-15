@@ -161,7 +161,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             #
             # Identify Python scripts that define classes that extend the
-            # airflow.models.BaseOperator class
+            # BaseOperator abstract class in module airflow.models.baseoperator
             #
             scripts_with_operator_class: List[str] = []  # Python scripts that contain operator definitions
             extends_baseoperator: List[str] = []  # Classes that extend BaseOperator
@@ -188,7 +188,10 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                         elif isinstance(node, ast.ImportFrom):
                             node_module = node.module
                             for name in node.names:
-                                if "airflow.models" == node_module and name.name == "BaseOperator":
+                                if (
+                                    node_module in ["airflow.models", "airflow.models.baseoperator"]
+                                    and name.name == "BaseOperator"
+                                ):
                                     imported_operator_classes.append(name.name)
                         elif isinstance(node, ast.ClassDef):
                             # determine whether this class extends the BaseOperator class
