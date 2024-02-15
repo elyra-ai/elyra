@@ -862,25 +862,25 @@ def initialize_config(args=None) -> SimpleNamespace:
         "source_dir": os.path.join(os.getcwd(), DEFAULT_BUILD_DIR, "elyra"),
         "old_version": elyra._version.__version__,
         "old_npm_version": f"{v['major']}.{v['minor']}.{v['patch']}-dev",
-        "new_version": args.version
-        if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta))
-        else f"{args.version}rc{args.rc}"
-        if args.rc
-        else f"{args.version}b{args.beta}",
-        "new_npm_version": args.version
-        if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta))
-        else f"{args.version}-rc.{args.rc}"
-        if args.rc
-        else f"{args.version}-beta.{args.beta}",
+        "new_version": (
+            args.version
+            if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta))
+            else f"{args.version}rc{args.rc}" if args.rc else f"{args.version}b{args.beta}"
+        ),
+        "new_npm_version": (
+            args.version
+            if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta))
+            else f"{args.version}-rc.{args.rc}" if args.rc else f"{args.version}-beta.{args.beta}"
+        ),
         "rc": args.rc,
         "beta": args.beta,
         "dev_version": f"{args.dev_version}.dev0",
         "dev_npm_version": f"{args.dev_version}-dev",
-        "tag": f"v{args.version}"
-        if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta))
-        else f"v{args.version}rc{args.rc}"
-        if args.rc
-        else f"v{args.version}b{args.beta}",
+        "tag": (
+            f"v{args.version}"
+            if (not args.rc or not str.isdigit(args.rc)) and (not args.beta or not str.isdigit(args.beta))
+            else f"v{args.version}rc{args.rc}" if args.rc else f"v{args.version}b{args.beta}"
+        ),
         "pre_release": True if (args.rc or args.beta) else False,
     }
 

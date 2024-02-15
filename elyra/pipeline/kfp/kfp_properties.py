@@ -40,7 +40,7 @@ class KfpPropertyInputType(PropertyInputType):
         # "GCRPath": {"type_hint": "GCRPath", "json_type": "string", "default_value": "", "placeholder": "gcr.io/"},
         # "GCPRegion": {"type_hint": "GCPRegion", "json_type": "string", "default_value": ""},
         # "GCPProjectID": {"type_hint": "GCPProjectID", "json_type": "string", "default_value": ""},
-        "CustomString": {"json_type": "string", "type_title": "String-valued parameter of arbitrary type"}
+        "CustomString": {"json_type": "string", "type_title": "String-valued parameter of arbitrary type"},
         # "List": {"type_hint": "list", "json_type": "array", "default_value": []},  # not yet supported by frontend
         # "Dict": {"type_hint": "dict", "json_type": "object", "default_value": {}},  # not yet supported by frontend
     }
