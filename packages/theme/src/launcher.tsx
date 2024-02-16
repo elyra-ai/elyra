@@ -24,7 +24,7 @@ import {
 import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import { ArrayIterator, each, IIterator } from '@lumino/algorithm';
+import {each } from '@lumino/algorithm';
 
 import * as React from 'react';
 
@@ -43,7 +43,7 @@ export class LauncherModel extends JupyterLauncherModel {
   /**
    * Return an iterator of launcher items, but remove unnecessary items.
    */
-  items(): IIterator<ILauncher.IItemOptions> {
+  *items(): IterableIterator<ILauncher.IItemOptions> {
     const items: ILauncher.IItemOptions[] = [];
 
     let pyEditorInstalled = false;
@@ -58,7 +58,7 @@ export class LauncherModel extends JupyterLauncherModel {
     });
 
     if (!pyEditorInstalled && !rEditorInstalled) {
-      return new ArrayIterator(this.itemsList);
+      yield* (this.itemsList);
     }
 
     // Dont add tiles for new py and r files if their script editor is installed
@@ -74,7 +74,7 @@ export class LauncherModel extends JupyterLauncherModel {
       }
     });
 
-    return new ArrayIterator(items);
+    yield* (items);
   }
 }
 

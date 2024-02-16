@@ -2449,7 +2449,7 @@ __metadata:
     "@jupyterlab/launcher": ^4.0.6
     "@jupyterlab/mainmenu": ^4.0.6
     "@jupyterlab/ui-components": ^4.0.6
-    "@lumino/algorithm": "*"
+    "@lumino/algorithm": 2.0.1
     "@types/react": ^18.0.26
     "@types/react-dom": ^18.0.9
     react: ^18.2.0
@@ -4501,7 +4501,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lumino/algorithm@npm:*, @lumino/algorithm@npm:^2.0.1":
+"@lumino/algorithm@npm:*, @lumino/algorithm@npm:2.0.1, @lumino/algorithm@npm:^2.0.1":
   version: 2.0.1
   resolution: "@lumino/algorithm@npm:2.0.1"
   checksum: cbf7fcf6ee6b785ea502cdfddc53d61f9d353dcb9659343511d5cd4b4030be2ff2ca4c08daec42f84417ab0318a3d9972a17319fa5231693e109ab112dcf8000
