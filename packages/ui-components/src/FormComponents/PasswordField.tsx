@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Field } from '@rjsf/core';
+import  Field  from '@rjsf/core';
 import React from 'react';
 
 import { viewIcon, viewOffIcon } from '..';
@@ -21,7 +21,7 @@ import { viewIcon, viewOffIcon } from '..';
 /**
  * React component to edit and display password fields. Adds a button to hide / show text input.
  */
-export const PasswordField: Field = (props) => {
+export const PasswordField: React.FC = (props : any) => {
   const { StringField } = props.registry.fields;
   const [showPassword, setShowPassword] = React.useState(false);
 

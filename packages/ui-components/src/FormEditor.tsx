@@ -20,7 +20,8 @@ import { IFormRendererRegistry } from '@jupyterlab/ui-components';
 
 import {
   ArrayFieldTemplateProps,
-  FieldTemplateProps
+  FieldTemplateProps,
+  RegistryFieldsType
 } from '@rjsf/utils';
 
 import Form, {
@@ -167,7 +168,6 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       uiSchema[category][field].classNames = `elyra-formEditor-form-${field}`;
     }
   }
-
   return (
     <Form
       schema={schema}
@@ -179,7 +179,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         languageOptions: languageOptions,
         trans: translator,
       }}
-      fields= {componentRegistry?.renderers}
+      fields = { (componentRegistry?.renderers )} 
       ArrayFieldTemplate={ArrayTemplate}
       FieldTemplate={CustomFieldTemplate}
       uiSchema={uiSchema}
