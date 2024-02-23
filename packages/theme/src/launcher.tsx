@@ -24,7 +24,7 @@ import {
 import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import {each } from '@lumino/algorithm';
+import { each } from '@lumino/algorithm';
 
 import * as React from 'react';
 
@@ -58,7 +58,7 @@ export class LauncherModel extends JupyterLauncherModel {
     });
 
     if (!pyEditorInstalled && !rEditorInstalled) {
-      yield* (this.itemsList);
+      yield* this.itemsList;
     }
 
     // Dont add tiles for new py and r files if their script editor is installed
@@ -74,7 +74,7 @@ export class LauncherModel extends JupyterLauncherModel {
       }
     });
 
-    yield* (items);
+    yield* items;
   }
 }
 

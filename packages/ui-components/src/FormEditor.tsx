@@ -16,12 +16,18 @@
 
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { IFormComponentRegistry } from '@jupyterlab/ui-components';
-import Form, {
+import { IFormRendererRegistry } from '@jupyterlab/ui-components';
+
+import {
   ArrayFieldTemplateProps,
-  FieldTemplateProps,
-  IChangeEvent,
+  FieldTemplateProps
+} from '@rjsf/utils';
+
+import Form, {
+  IChangeEvent
 } from '@rjsf/core';
+
+
 import * as React from 'react';
 
 /**
@@ -51,7 +57,7 @@ interface IFormEditorProps {
   /**
    * Registry to retrieve custom renderers.
    */
-  componentRegistry?: IFormComponentRegistry;
+  componentRegistry?: IFormRendererRegistry;
 
   /**
    * Metadata that already exists (if there is any)
@@ -173,7 +179,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         languageOptions: languageOptions,
         trans: translator,
       }}
-      fields={componentRegistry?.renderers}
+      fields= {componentRegistry?.renderers}
       ArrayFieldTemplate={ArrayTemplate}
       FieldTemplate={CustomFieldTemplate}
       uiSchema={uiSchema}

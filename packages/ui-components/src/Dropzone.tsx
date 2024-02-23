@@ -35,13 +35,20 @@ interface IProps {
   onDragLeave?: (e: Drag.Event) => any;
   onDragOver?: (e: Drag.Event) => any;
   onDrop?: (e: Drag.Event) => any;
+  children?: React.ReactNode;
 }
+
+interface IPropsWithChildren extends IProps {
+  children?: React.ReactNode;
+}
+
+
 
 interface IReturn {
   getRootProps: () => IRootProps;
 }
 
-export const useDropzone = (props: IProps): IReturn => {
+export const useDropzone = (props: IPropsWithChildren): IReturn => {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const handleEvent = useCallback(
@@ -89,8 +96,9 @@ export const useDropzone = (props: IProps): IReturn => {
   };
 };
 
+
 export const Dropzone: React.FC<IProps> = ({ children, ...rest }) => {
-  const { getRootProps } = useDropzone(rest);
+  const { getRootProps } = useDropzone({ ...rest, children });
 
   return (
     <div style={{ height: '100%' }} {...getRootProps()}>
