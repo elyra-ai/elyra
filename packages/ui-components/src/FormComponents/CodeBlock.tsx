@@ -18,8 +18,7 @@ import { CodeEditor } from '@jupyterlab/codeeditor';
 import Field from '@rjsf/core';
 import * as React from 'react';
 
-
-export const CodeBlock: Field = (props : any) => {
+export const CodeBlock: Field = (props) => {
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 

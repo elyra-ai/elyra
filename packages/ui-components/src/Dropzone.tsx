@@ -42,8 +42,6 @@ interface IPropsWithChildren extends IProps {
   children?: React.ReactNode;
 }
 
-
-
 interface IReturn {
   getRootProps: () => IRootProps;
 }
@@ -95,7 +93,6 @@ export const useDropzone = (props: IPropsWithChildren): IReturn => {
     }),
   };
 };
-
 
 export const Dropzone: React.FC<IProps> = ({ children, ...rest }) => {
   const { getRootProps } = useDropzone({ ...rest, children });

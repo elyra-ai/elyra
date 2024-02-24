@@ -59,7 +59,12 @@ export const JSONComponent: React.FC<IProps> = ({ json }) => (
     }}
     invertTheme={false}
     hideRoot={true}
-    getItemString={(type : any, data : any, itemType : any, itemString : any): any =>
+    getItemString={(
+      type: string,
+      data: string,
+      itemType: string,
+      itemString: string,
+    ): any =>
       Array.isArray(data) ? (
         // Always display array type and the number of items i.e. "[] 2 items".
         <span>
@@ -72,10 +77,10 @@ export const JSONComponent: React.FC<IProps> = ({ json }) => (
         null! // Upstream typings don't accept null, but it should be ok
       )
     }
-    labelRenderer={([label, type] : [any, any]): any => {
+    labelRenderer={([label, type]: [string, any]): any => {
       return <span className="cm-keyword">{`${label}: `}</span>;
     }}
-    valueRenderer={(raw : any): any => {
+    valueRenderer={(raw: any): any => {
       let className = 'cm-string';
       if (typeof raw === 'number') {
         className = 'cm-number';

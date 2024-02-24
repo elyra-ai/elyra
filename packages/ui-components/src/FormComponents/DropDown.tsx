@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import  Field from '@rjsf/core';
+import Field from '@rjsf/core';
 
 import * as React from 'react';
 
@@ -36,7 +36,7 @@ interface DropDownProps {
   id: string;
 }
 
-export const DropDown: React.FC<DropDownProps>  = (props : any) => {
+export const DropDown: React.FC<DropDownProps> = (props: any) => {
   const {
     defaultValue,
     formContext,

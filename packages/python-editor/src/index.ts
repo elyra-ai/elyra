@@ -28,7 +28,7 @@ import {
   DocumentRegistry,
   DocumentWidget,
 } from '@jupyterlab/docregistry';
-import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { IFileBrowserFactory, IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
@@ -38,6 +38,7 @@ import { pythonIcon } from '@jupyterlab/ui-components';
 import { JSONObject } from '@lumino/coreutils';
 
 import { PythonEditor } from './PythonEditor';
+// import { default } from '../../../tests/plugins/index';
 
 const PYTHON_FACTORY = 'Python Editor';
 const PYTHON = 'python';
@@ -47,6 +48,40 @@ const commandIDs = {
   createNewPythonEditor: 'script-editor:create-new-python-editor',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled',
+};
+
+interface IMyCodeEditorConfig {
+  autoClosingBrackets: boolean;
+  codeFolding: boolean;
+  fontFamily: string | null;
+  fontSize: number | null;
+  handlePaste: boolean;
+  insertSpaces: boolean;
+  lineHeight: number | null;
+  lineNumbers: boolean;
+  lineWrap: 'off' | 'on' | 'wordWrapColumn' | 'bounded';
+  matchBrackets: boolean;
+  readOnly: boolean;
+  rulers: Array<number>;
+  tabSize: number;
+  wordWrapColumn: number;
+}
+
+const defaultConfig: IMyCodeEditorConfig = {
+  fontFamily: null,
+  fontSize: null,
+  lineHeight: null,
+  lineNumbers: false,
+  lineWrap: 'on',
+  wordWrapColumn: 80,
+  readOnly: false,
+  tabSize: 4,
+  insertSpaces: true,
+  matchBrackets: true,
+  autoClosingBrackets: true,
+  handlePaste: true,
+  rulers: [],
+  codeFolding: false,
 };
 
 /**
@@ -69,7 +104,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     editorTracker: IEditorTracker,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
-    browserFactory: IFileBrowserFactory,
+    browserFactory: IDefaultFileBrowser,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
     launcher: ILauncher | null,
@@ -109,7 +144,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       namespace: PYTHON_EDITOR_NAMESPACE,
     });
 
-    let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
+    let config: IMyCodeEditorConfig = { ...defaultConfig };
 
     if (restorer) {
       // Handle state restoration
@@ -128,7 +163,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
-        ...CodeEditor.defaultConfig,
+        ...defaultConfig,
         ...(settings.get('editorConfig').composite as JSONObject),
       };
 
@@ -157,7 +192,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
       const editor = widget.content.editor;
       Object.keys(config).forEach((keyStr: string) => {
-        const key = keyStr as keyof CodeEditor.IConfig;
+        const key = keyStr as keyof IMyCodeEditorConfig;
         editor.setOption(key, config[key]);
       });
     };
@@ -182,7 +217,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     app.docRegistry.addWidgetFactory(factory);
 
-    factory.widgetCreated.connect((sender, widget) => {
+    factory.widgetCreated.connect((sender: any, widget) => {
       void tracker.add(widget);
 
       // Notify the widget tracker if restore data needs to update
@@ -241,7 +276,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       caption: 'Create a new Python Editor',
       icon: (args) => (args['isPalette'] ? undefined : pythonIcon),
       execute: (args) => {
-        const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
+        const cwd = args['cwd'] || browserFactory.model.path;
         return createNew(cwd as string);
       },
     });
