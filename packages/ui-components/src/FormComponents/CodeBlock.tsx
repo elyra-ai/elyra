@@ -15,10 +15,9 @@
  */
 
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import Field from '@rjsf/core';
 import * as React from 'react';
 
-export const CodeBlock: Field = (props) => {
+export const CodeBlock: any = (props: any) => {
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 
@@ -34,7 +33,7 @@ export const CodeBlock: Field = (props) => {
       editorRef.current = servicesRef.current.factoryService.newInlineEditor({
         host: codeBlockRef.current,
         model: new CodeEditor.Model({
-          value:
+          sharedModel:
             props.formData?.join('\n') ??
             (props.schema.default as string[])?.join('\n'),
           mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
@@ -43,11 +42,11 @@ export const CodeBlock: Field = (props) => {
           }),
         }),
       });
-      editorRef.current?.model.value.changed.connect(handleChange);
+      editorRef.current?.model.sharedModel.changed.connect(handleChange);
     }
 
     return (): void => {
-      editorRef.current?.model.value.changed.disconnect(handleChange);
+      editorRef.current?.model.sharedModel.changed.disconnect(handleChange);
     };
     // NOTE: The parent component is unstable so props change frequently causing
     // new editors to be created unnecessarily. This effect on mount should only
