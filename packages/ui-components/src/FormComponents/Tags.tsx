@@ -15,7 +15,6 @@
  */
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { checkIcon, addIcon } from '@jupyterlab/ui-components';
-import Field from '@rjsf/core';
 
 import React from 'react';
 
@@ -205,7 +204,7 @@ export const Tags: React.FC<ITagProps> = ({
   );
 };
 
-export const TagsField: Field = (props) => {
+export const TagsField: any = (props: any) => {
   const errors = [];
   if (Object.keys(props.errorSchema).length > 0) {
     for (const i in props.errorSchema) {
