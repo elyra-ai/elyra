@@ -28,7 +28,10 @@ import {
   DocumentRegistry,
   DocumentWidget,
 } from '@jupyterlab/docregistry';
-import { IFileBrowserFactory, IDefaultFileBrowser } from '@jupyterlab/filebrowser';
+import {
+  IFileBrowserFactory,
+  IDefaultFileBrowser,
+} from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
@@ -38,6 +41,7 @@ import { pythonIcon } from '@jupyterlab/ui-components';
 import { JSONObject } from '@lumino/coreutils';
 
 import { PythonEditor } from './PythonEditor';
+import IDisposable from '@lumino/signaling'
 // import { default } from '../../../tests/plugins/index';
 
 const PYTHON_FACTORY = 'Python Editor';
@@ -217,7 +221,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     app.docRegistry.addWidgetFactory(factory);
 
-    factory.widgetCreated.connect((sender: any, widget) => {
+    factory.widgetCreated.connect((sender: any, widget: any) => {
       void tracker.add(widget);
 
       // Notify the widget tracker if restore data needs to update

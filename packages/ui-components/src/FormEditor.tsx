@@ -18,13 +18,12 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormRendererRegistry } from '@jupyterlab/ui-components';
 
+import Form, { IChangeEvent } from '@rjsf/core';
 import {
   ArrayFieldTemplateProps,
   FieldTemplateProps,
   RegistryFieldsType,
 } from '@rjsf/utils';
-
-import Form, { IChangeEvent } from '@rjsf/core';
 
 import * as React from 'react';
 
