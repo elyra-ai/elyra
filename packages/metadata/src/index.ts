@@ -35,7 +35,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import {
   textEditorIcon,
   LabIcon,
-  IFormComponentRegistry,
+  IFormRendererRegistry,
 } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
@@ -59,7 +59,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     ICommandPalette,
     IEditorServices,
     ILabStatus,
-    IFormComponentRegistry,
+    IFormRendererRegistry,
     ITranslator,
   ],
   activate: async (
@@ -67,7 +67,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     editorServices: IEditorServices,
     status: ILabStatus,
-    componentRegistry: IFormComponentRegistry,
+    componentRegistry: IFormRendererRegistry,
     translator: ITranslator,
   ) => {
     console.log('Elyra - metadata extension is activated!');

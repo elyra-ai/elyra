@@ -21,8 +21,7 @@ import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { IFormComponentRegistry } from '@jupyterlab/ui-components';
-
+import { IFormRendererRegistry } from '@jupyterlab/ui-components'
 import { find } from '@lumino/algorithm';
 import { Message } from '@lumino/messaging';
 
@@ -74,7 +73,7 @@ export interface IMetadataEditorProps {
   /**
    * Component registry to use custom field renderers.
    */
-  componentRegistry?: IFormComponentRegistry;
+  componentRegistry?: IFormRendererRegistry;
 
   /**
    * String used to make the title of the editor more readable
