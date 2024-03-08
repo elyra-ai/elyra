@@ -19,7 +19,7 @@ limitations under the License.
 # Contributing
 
 Welcome to Elyra! If you are interested in contributing to the [Elyra code repo](README.md)
-then checkout the [Contributor's Guide](https://github.com/elyra-ai/community/blob/main/contributing.md) and 
+then checkout the [Contributor's Guide](https://github.com/elyra-ai/community/blob/main/CONTRIBUTING.md) and 
 the [Code of Conduct](https://github.com/elyra-ai/community/blob/main/CODE_OF_CONDUCT.md). 
 
 The [Elyra community repo](https://github.com/elyra-ai/community) contains information on how the community
