@@ -19,11 +19,14 @@ import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormRendererRegistry } from '@jupyterlab/ui-components';
 
 import Form, { IChangeEvent } from '@rjsf/core';
+import Field from "@rjsf/core";
 import {
   ArrayFieldTemplateProps,
   FieldTemplateProps,
-  RegistryFieldsType,
+  RegistryFieldsType
 } from '@rjsf/utils';
+import { ErrorListProps, ObjectFieldTemplateProps, RJSFSchema } from "@rjsf/utils";
+import validator from "@rjsf/validator-ajv8";
 
 import * as React from 'react';
 
@@ -76,7 +79,7 @@ interface IFormEditorProps {
  * React component that allows for custom add / remove buttons in the array
  * field component.
  */
-const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = (props) => {
+const CustomArrayTemplate: React.FC<ArrayFieldTemplateProps> = (props) => {
   return (
     <div className={props.className}>
       {props.items.map((item) => {
@@ -142,7 +145,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   schema,
   onChange,
   editorServices,
-  componentRegistry,
+  // componentRegistry,
   translator,
   originalData,
   allTags,
@@ -164,6 +167,13 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
       uiSchema[category][field].classNames = `elyra-formEditor-form-${field}`;
     }
   }
+
+
+  const templates: any = {
+    ArrayFieldTemplate: CustomArrayTemplate,
+    FieldTemplate: CustomFieldTemplate
+  };
+
   return (
     <Form
       schema={schema}
@@ -175,9 +185,10 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         languageOptions: languageOptions,
         trans: translator,
       }}
-      fields={componentRegistry?.renderers}
-      ArrayFieldTemplate={ArrayTemplate}
-      FieldTemplate={CustomFieldTemplate}
+      // fields={componentRegistry}
+      // FieldTemplate={(props : any) => <CustomFieldTemplate {...props} fields={props.registry.fields} />}
+      validator={validator}
+      fields={templates}
       uiSchema={uiSchema}
       onChange={(e: IChangeEvent<any>): void => {
         setFormData(e.formData);
