@@ -109,7 +109,8 @@ const extension: JupyterFrontEndPlugin<void> = {
       namespace: SCALA_EDITOR_NAMESPACE,
     });
 
-    let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
+    //no default config so we set it to an empty object
+    let config: CodeEditor.IOptions['config'] = {};
 
     if (restorer) {
       // Handle state restoration
@@ -126,15 +127,15 @@ const extension: JupyterFrontEndPlugin<void> = {
     /**
      * Update the setting values. Adapted from fileeditor-extension.
      */
+    
+    //replaced default Config 
     const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
-        ...CodeEditor.defaultConfig,
         ...(settings.get('editorConfig').composite as JSONObject),
       };
-
-      // Trigger a refresh of the rendered commands
       app.commands.notifyCommandChanged();
     };
+    
 
     /**
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
@@ -150,17 +151,20 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
-        (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
-          widget,
-        );
+        (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(widget);
       }
-
+    
       const editor = widget.content.editor;
-      Object.keys(config).forEach((keyStr: string) => {
-        const key = keyStr as keyof CodeEditor.IConfig;
-        editor.setOption(key, config[key]);
+      const editorConfigOptions = config || {}; 
+      
+      Object.keys(editorConfigOptions).forEach((key) => {
+        const optionValue = editorConfigOptions[key];
+        if (optionValue !== undefined) {
+          editor.setOption(key, optionValue);
+        }
       });
     };
+    
 
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
     Promise.all([
@@ -241,10 +245,13 @@ const extension: JupyterFrontEndPlugin<void> = {
       caption: 'Create a new Scala Editor',
       icon: (args) => (args['isPalette'] ? undefined : scalaIcon),
       execute: (args) => {
-        const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
-        return createNew(cwd as string);
+        //Use file browser's current path instead of defaultBrowser.model.path
+        const fileBrowser = browserFactory.createFileBrowser('myFileBrowser');
+        const cwd = args['cwd'] ? String(args['cwd']) : fileBrowser.model.path;
+        return createNew(cwd);
       },
     });
+    
 
     palette.addItem({
       command: commandIDs.createNewScalaEditor,

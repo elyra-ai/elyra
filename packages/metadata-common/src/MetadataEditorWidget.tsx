@@ -21,7 +21,7 @@ import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { IFormRendererRegistry } from '@jupyterlab/ui-components'
+import { IFormRendererRegistry } from '@jupyterlab/ui-components';
 import { find } from '@lumino/algorithm';
 import { Message } from '@lumino/messaging';
 

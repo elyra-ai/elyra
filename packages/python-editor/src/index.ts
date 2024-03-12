@@ -40,8 +40,9 @@ import { pythonIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
 
+import IDisposable from '@lumino/signaling';
+
 import { PythonEditor } from './PythonEditor';
-import IDisposable from '@lumino/signaling'
 // import { default } from '../../../tests/plugins/index';
 
 const PYTHON_FACTORY = 'Python Editor';
