@@ -52,6 +52,8 @@ dependencies = [
     "yaspin",
     # see: https://stackoverflow.com/questions/76175487/sudden-importerror-cannot-import-name-appengine-from-requests-packages-urlli
     "appengine-python-standard",
+    "kfp>=2.0.0",
+    "kfp-kubernetes>=1.1.0",
     "pygithub",
     "black>=22.8.0",
 ]
@@ -86,30 +88,12 @@ test = [
     "pytest_virtualenv",
     "requests-mock",
     "requests-unixsocket",
-    "kfp-tekton"
-]
-airflow = [
-
-]
-airflow-gitlab = [
-    "python-gitlab"
-]
-kfp = [
-    "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
-    "typing-extensions>=3.10,<5",  # Cap from kfp
-    "mistune<3.1.0",
-]
-kfp-tekton = [
-    "kfp-tekton>=1.5.2",  # requires kfp >= 1.8.19, which contains fix for Jupyterlab
-    "mistune<3.1.0",
 ]
 kfp-examples = [
     "elyra-examples-kfp-catalog",
 ]
 # The following is a collection of "non-test" extra dependencies from above.
 all = [
-    "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
-    "kfp-tekton>=1.5.2",
     "elyra-examples-kfp-catalog",
     "python-gitlab",
     "typing-extensions>=3.10,<5",  # Cap from kfp
