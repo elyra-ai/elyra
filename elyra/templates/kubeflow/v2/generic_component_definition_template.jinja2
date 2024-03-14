@@ -1,0 +1,24 @@
+name: Run a file
+description: Run a Jupyter notebook or Python/R script
+{% if task_parameters %}
+inputs:
+{%- for parameter in task_parameters %}
+- {name: {{ parameter.name }}, type: {{ parameter.input_type.component_input_type }}{% if parameter.description %}, description: "{{ parameter.description | string_delimiter_safe}}"{% endif %}{% if parameter.default_value is not none %}, default: {% if parameter.selected_type == 'String' %} "{{ parameter.default_value|string_delimiter_safe }}"{% else %}{{ parameter.default_value }}{% endif %}{% endif %}, optional: {{ (not parameter.required)|tojson }}}
+{%- endfor %}
+{% endif %}
+implementation:
+  container:
+    image: {{ container_image }}
+    command: [sh, -c]
+    args:
+    - |
+      {%- for parameter in task_parameters %}
+      {{ parameter.name }}="${{ loop.index0 }}"
+      {%- endfor %}
+      {%- for command in command_args %}
+      sh -c "{{command}}"
+      {%- endfor %}
+
+    {%- for parameter in task_parameters %}
+    - {inputValue: {{ parameter.name }}}
+    {%- endfor %}
