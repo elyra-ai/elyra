@@ -36,18 +36,17 @@ interface DropDownProps {
   id: string;
 }
 
-export const DropDown: React.FC<DropDownProps> = (props: any) => {
-  const {
-    defaultValue,
-    formContext,
-    schema,
-    name,
-    required,
-    onChange,
-    placeholder,
-    formData,
-    id,
-  } = props;
+export const DropDown: React.FC<DropDownProps> = ({
+  defaultValue,
+  formContext,
+  schema,
+  name,
+  required,
+  onChange,
+  placeholder,
+  formData,
+  id,
+}) => {
   const label = schema.title ?? name;
   const [current, setValue] = React.useState(formData ?? defaultValue);
 

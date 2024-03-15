@@ -36,6 +36,7 @@ import {
   textEditorIcon,
   LabIcon,
   IFormRendererRegistry,
+  IFormRenderer
 } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
@@ -72,10 +73,10 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     console.log('Elyra - metadata extension is activated!');
 
-    componentRegistry.addRenderer('code', CodeBlock);
-    componentRegistry.addRenderer('tags', TagsField);
-    componentRegistry.addRenderer('dropdown', DropDown);
-    componentRegistry.addRenderer('password', PasswordField);
+    componentRegistry.addRenderer('code', CodeBlock as unknown as IFormRenderer);
+    componentRegistry.addRenderer('tags', TagsField as unknown as IFormRenderer);
+    componentRegistry.addRenderer('dropdown', DropDown as unknown as IFormRenderer);
+    componentRegistry.addRenderer('password', PasswordField as unknown as IFormRenderer);
 
     const openMetadataEditor = (args: {
       schema: string;

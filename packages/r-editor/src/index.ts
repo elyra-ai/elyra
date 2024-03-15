@@ -132,7 +132,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       };
       app.commands.notifyCommandChanged();
     };
-    
 
     /**
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
@@ -148,12 +147,14 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
-        (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(widget);
+        (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
+          widget,
+        );
       }
-    
+
       const editor = widget.content.editor;
-      const editorConfigOptions = config || {}; 
-      
+      const editorConfigOptions = config || {};
+
       Object.keys(editorConfigOptions).forEach((key) => {
         const optionValue = editorConfigOptions[key];
         if (optionValue !== undefined) {

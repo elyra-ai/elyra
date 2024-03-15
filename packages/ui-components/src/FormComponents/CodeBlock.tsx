@@ -17,7 +17,20 @@
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import * as React from 'react';
 
-export const CodeBlock: any = (props: any) => {
+interface CodeBlockProps {
+  formContext: {
+    editorServices: any; 
+    language: string;
+  };
+  formData?: any;
+  schema: {
+    default?: string[];
+  };
+  onChange: (newData: string[]) => void;
+}
+
+
+export const CodeBlock: React.FC<CodeBlockProps> = (props: CodeBlockProps) => {
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 

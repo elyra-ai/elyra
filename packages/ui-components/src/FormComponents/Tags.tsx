@@ -204,7 +204,17 @@ export const Tags: React.FC<ITagProps> = ({
   );
 };
 
-export const TagsField: any = (props: any) => {
+interface TagsFieldProps {
+  errorSchema: Record<string, any>;
+  formData?: string[];
+  formContext: {
+    allTags?: string[];
+    updateAllTags?: (tags: string[]) => void;
+  };
+  onChange: (selectedTags: string[]) => void;
+}
+
+export const TagsField: React.FC<TagsFieldProps> = (props: TagsFieldProps) => {
   const errors = [];
   if (Object.keys(props.errorSchema).length > 0) {
     for (const i in props.errorSchema) {
