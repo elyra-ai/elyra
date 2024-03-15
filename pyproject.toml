@@ -35,7 +35,7 @@ dependencies = [
     "minio>=7.0.0,!=7.2.1",
     "nbclient>=0.10.0",
     "nbconvert>=6.5.1",
-    "nbdime~=4.0.1",  # Cap from jupyterlab-git
+    "nbdime~=3.2.1",  # Cap from jupyterlab-git
     "nbformat>=5.1.2",
     "networkx>=2.5.1",
     "papermill>=2.3.4",
@@ -52,8 +52,8 @@ dependencies = [
     "yaspin",
     # see: https://stackoverflow.com/questions/76175487/sudden-importerror-cannot-import-name-appengine-from-requests-packages-urlli
     "appengine-python-standard",
-    "kfp>=2.0.0",
-    "kfp-kubernetes>=1.1.0",
+    "kfp>=2.0.0", # Cap kfp for protobuff compatibility
+    "kfp-kubernetes>=1.0.0",
     "pygithub",
     "black>=22.8.0",
 ]
