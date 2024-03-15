@@ -39,19 +39,11 @@ from jinja2 import PackageLoader
 from kfp import Client as ArgoClient
 from kfp import compiler as kfp_argo_compiler
 from kfp import components as components
-from kfp.dsl import PipelineConf
-from kfp.dsl import RUN_ID_PLACEHOLDER
 from kubernetes import client as k8s_client
 from traitlets import default
 from traitlets import Unicode
 
-try:
-    from kfp_tekton import compiler as kfp_tekton_compiler
-    from kfp_tekton import TektonClient
-except ImportError:
-    # We may not have kfp-tekton available and that's okay!
-    kfp_tekton_compiler = None
-    TektonClient = None
+RUN_ID_PLACEHOLDER = "random-placeholder"
 
 from elyra._version import __version__
 from elyra.metadata.schemaspaces import RuntimeImages
@@ -80,6 +72,8 @@ from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 from elyra.util.path import get_absolute_path
+
+from elyra.pipeline.kfp.PipelineConf import PipelineConf
 
 
 @unique
@@ -113,8 +107,6 @@ CRIO_VOL_DEF_MEDIUM = ""
 CRIO_VOL_MOUNT_PATH = "/opt/app-root/src"
 CRIO_VOL_WORKDIR_PATH = f"{CRIO_VOL_MOUNT_PATH}/jupyter-work-dir"
 CRIO_VOL_PYTHON_PATH = f"{CRIO_VOL_WORKDIR_PATH}/python3"
-
-
 class KfpPipelineProcessor(RuntimePipelineProcessor):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     _name = "kfp"
@@ -173,11 +165,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         api_password = runtime_configuration.metadata.get("api_password")
         user_namespace = runtime_configuration.metadata.get("user_namespace")
         workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_configuration.metadata.get("engine", "argo"))
-        if workflow_engine == WorkflowEngineType.TEKTON and not TektonClient:
-            raise ValueError(
-                "Python package `kfp-tekton` is not installed. "
-                "Please install using `elyra[kfp-tekton]` to use Tekton engine."
-            )
 
         # unpack Cloud Object Storage configs
         cos_endpoint = runtime_configuration.metadata["cos_endpoint"]
@@ -206,22 +193,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         # Create Kubeflow Client
         #############
         try:
-            if workflow_engine == WorkflowEngineType.TEKTON:
-                client = TektonClient(
-                    host=api_endpoint,
-                    cookies=auth_info.get("cookies", None),
-                    credentials=auth_info.get("credentials", None),
-                    existing_token=auth_info.get("existing_token", None),
-                    namespace=user_namespace,
-                )
-            else:
-                client = ArgoClient(
-                    host=api_endpoint,
-                    cookies=auth_info.get("cookies", None),
-                    credentials=auth_info.get("credentials", None),
-                    existing_token=auth_info.get("existing_token", None),
-                    namespace=user_namespace,
-                )
+            client = ArgoClient(
+                host=api_endpoint,
+                cookies=auth_info.get("cookies", None),
+                credentials=auth_info.get("credentials", None),
+                existing_token=auth_info.get("existing_token", None),
+                namespace=user_namespace,
+            )
         except Exception as ex:
             # a common cause of these errors is forgetting to include `/pipeline` or including it with an 's'
             api_endpoint_obj = urlsplit(api_endpoint)
@@ -275,7 +253,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         with tempfile.TemporaryDirectory() as temp_dir:
             self.log.debug(f"Created temporary directory at: {temp_dir}")
-            pipeline_path = os.path.join(temp_dir, f"{pipeline_name}.tar.gz")
+            pipeline_path = os.path.join(temp_dir, f"{pipeline_name}.yaml")
 
             #############
             # Get Pipeline ID
@@ -351,11 +329,15 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     )
 
                     # extract the ID of the pipeline we created
-                    pipeline_id = kfp_pipeline.id
+                    pipeline_id = kfp_pipeline.pipeline_id
 
                     # the initial "pipeline version" has the same id as the pipeline itself
-                    version_id = pipeline_id
-
+                    version_details = client.list_pipeline_versions(pipeline_id=pipeline_id)
+                    version_list = version_details.pipeline_versions
+                    if isinstance(version_list, list):
+                        version_id = version_list[0].pipeline_version_id
+                    else:
+                        version_id = None
                 # CASE 2: pipeline already exists
                 else:
                     # upload the "pipeline version"
@@ -366,7 +348,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     )
 
                     # extract the id of the "pipeline version" that was created
-                    version_id = kfp_pipeline.id
+                    version_id = kfp_pipeline.pipeline_version_id
 
             except Exception as ex:
                 # a common cause of these errors is forgetting to include `/pipeline` or including it with an 's'
@@ -416,7 +398,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # create pipeline run (or specified pipeline version)
                 run = client.run_pipeline(
-                    experiment_id=experiment.id, job_name=job_name, pipeline_id=pipeline_id, version_id=version_id
+                    experiment_id=experiment.experiment_id, job_name=job_name, pipeline_id=pipeline_id, version_id=version_id
                 )
 
             except Exception as ex:
@@ -435,7 +417,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             self.log_pipeline_info(
                 pipeline_name,
-                f"pipeline submitted: {public_api_endpoint}/#/runs/details/{run.id}",
+                f"pipeline submitted: {public_api_endpoint}/#/runs/details/{run.run_id}",
                 duration=time.time() - t0,
             )
 
@@ -450,8 +432,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             object_storage_path = None
 
         return KfpPipelineProcessorResponse(
-            run_id=run.id,
-            run_url=f"{public_api_endpoint}/#/runs/details/{run.id}",
+            run_id=run.run_id,
+            run_url=f"{public_api_endpoint}/#/runs/details/{run.run_id}",
             object_storage_url=object_storage_url,
             object_storage_path=object_storage_path,
         )
@@ -494,8 +476,6 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         )
 
         workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_configuration.metadata.get("engine", "argo"))
-        if workflow_engine == WorkflowEngineType.TEKTON and not TektonClient:
-            raise ValueError("kfp-tekton not installed. Please install using elyra[kfp-tekton] to use Tekton engine.")
 
         if Path(absolute_pipeline_export_path).exists() and not overwrite:
             raise ValueError("File " + absolute_pipeline_export_path + " already exists.")
@@ -565,7 +545,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             code_generation_options = {}
 
         # Load Kubeflow Pipelines Python DSL template
-        loader = PackageLoader("elyra", "templates/kubeflow/v1")
+        loader = PackageLoader("elyra", "templates/kubeflow/v2")
         template_env = Environment(loader=loader)
         # Add filter that produces a Python-safe variable name
         template_env.filters["python_safe"] = lambda x: re.sub(r"[" + re.escape(string.punctuation) + "\\s]", "_", x)
@@ -668,12 +648,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # in the generated Python DSL "generated_pipeline"
                 pipeline_function = getattr(mod, "generated_pipeline")
                 # compile the DSL
-                if workflow_engine == WorkflowEngineType.TEKTON:
-                    kfp_tekton_compiler.TektonCompiler().compile(
-                        pipeline_function, output_file, pipeline_conf=pipeline_conf
-                    )
-                else:
-                    kfp_argo_compiler.Compiler().compile(pipeline_function, output_file, pipeline_conf=pipeline_conf)
+                kfp_argo_compiler.Compiler().compile(pipeline_function, output_file)
             except Exception as ex:
                 raise RuntimeError(
                     f"Failed to compile pipeline with workflow_engine '{workflow_engine.value}' to '{output_file}'"
@@ -729,7 +704,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 pipeline.pipeline_properties.get(pipeline_constants.COS_OBJECT_PREFIX), pipeline_instance_id
             )
             # - load the generic component definition template
-            template_env = Environment(loader=PackageLoader("elyra", "templates/kubeflow/v1"))
+            template_env = Environment(loader=PackageLoader("elyra", "templates/kubeflow/v2"))
             generic_component_template = template_env.get_template("generic_component_definition_template.jinja2")
             # Add filter that escapes the " character in strings
             template_env.filters["string_delimiter_safe"] = lambda string: re.sub('"', '\\\\\\\\"', string)
