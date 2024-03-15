@@ -26,14 +26,14 @@ dependencies = [
     "jupyter-packaging>=0.10",
     "jupyter_server>=1.7.0",
     "jupyterlab>=3.4.6,<4.0",  # comment out to use local jupyterlab
-    "jupyterlab-lsp>=3.8.0",  # comment out to use local jupyterlab
-    "jupyterlab-git~=0.32",  # Avoid breaking 1.x changes
+    "jupyterlab-lsp<=4.2.0",  # comment out to use local jupyterlab
+    "jupyterlab-git<=0.44.0",  # Avoid breaking 1.x changes
     "jupyter-resource-usage>=0.5.1,<1",
     "MarkupSafe>=2.1",
     "minio>=7.0.0,!=7.2.1",
     "nbclient>=0.5.1",
     "nbconvert>=6.5.1",
-    "nbdime~=3.1",  # Cap from jupyterlab-git
+    "nbdime~=3.2.1",  # Cap from jupyterlab-git
     "nbformat>=5.1.2",
     "networkx>=2.5.1",
     "papermill>=2.3.4",
@@ -50,8 +50,8 @@ dependencies = [
     "yaspin",
     # see: https://stackoverflow.com/questions/76175487/sudden-importerror-cannot-import-name-appengine-from-requests-packages-urlli
     "appengine-python-standard",
-    "kfp>=2.0.0",
-    "kfp-kubernetes>=1.1.0",
+    "kfp>=2.0.0", # Cap kfp for protobuff compatibility
+    "kfp-kubernetes>=1.0.0",
     "pygithub",
     "black>=22.8.0",
 ]
