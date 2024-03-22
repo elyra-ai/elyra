@@ -31,7 +31,7 @@ import {
 } from '@jupyterlab/application';
 import { ICommandPalette, WidgetTracker } from '@jupyterlab/apputils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
-import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
@@ -85,7 +85,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   requires: [
     ICommandPalette,
     ILauncher,
-    IDefaultFileBrowser,
+    IFileBrowserFactory,
     ILayoutRestorer,
     IMainMenu,
     ISettingRegistry,
@@ -94,7 +94,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     launcher: ILauncher,
-    browserFactory: IDefaultFileBrowser,
+    browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer,
     menu: IMainMenu,
     registry: ISettingRegistry,
@@ -224,7 +224,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         app.commands
           .execute(commandIDs.newDocManager, {
             type: 'file',
-            path: browserFactory.model.path,
+            path: browserFactory.defaultBrowser.model.path,
             ext: '.pipeline',
           })
           .then(async (model) => {

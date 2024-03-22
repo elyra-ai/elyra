@@ -62,8 +62,10 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
 /**
  * A React Component for displaying the runtimes list.
  */
-
-class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
+class RuntimesDisplay extends MetadataDisplay<
+  IRuntimesDisplayProps,
+  IMetadataDisplayState
+> {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     let apiEndpoint = addTrailingSlash(metadata.metadata.api_endpoint);
     let cosEndpoint = addTrailingSlash(metadata.metadata.cos_endpoint);

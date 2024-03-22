@@ -55,7 +55,10 @@ const getLinkFromImageName = (imageName: string): string => {
 /**
  * A React Component for displaying the runtime images list.
  */
-class RuntimeImagesDisplay extends MetadataDisplay<IMetadataDisplayProps> {
+class RuntimeImagesDisplay extends MetadataDisplay<
+  IMetadataDisplayProps,
+  IMetadataDisplayState
+> {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     return (
       <div>

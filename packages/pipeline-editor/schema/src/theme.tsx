@@ -25,11 +25,7 @@ import {
 } from '@jupyterlab/ui-components';
 import * as React from 'react';
 
-interface SvgIconProps {
-  children: React.ReactNode;
-}
-
-const SvgIcon: React.FC<SvgIconProps> = ({ children }) => {
+const SvgIcon: React.FC = ({ children }): any => {
   return (
     <svg
       width="16"
