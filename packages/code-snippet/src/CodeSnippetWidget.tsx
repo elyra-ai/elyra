@@ -97,8 +97,8 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
  * A React Component for code-snippets display list.
  */
 class CodeSnippetDisplay extends MetadataDisplay<
-  ICodeSnippetDisplayProps,
-  IMetadataDisplayState
+  ICodeSnippetDisplayProps
+//,IMetadataDisplayState
 > {
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
 
@@ -138,7 +138,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
         fileEditor.replaceSelection?.(codeSnippet);
       }
     } else if (widget instanceof NotebookPanel) {
-      const notebookWidget = widget as NotebookPanel;
+      const notebookWidget: NotebookPanel = widget as NotebookPanel;
       const notebookCell = (notebookWidget.content as Notebook).activeCell;
       const notebookCellIndex = (notebookWidget.content as Notebook)
         .activeCellIndex;
@@ -146,36 +146,43 @@ class CodeSnippetDisplay extends MetadataDisplay<
       if (notebookCell === null) {
         return;
       }
-
       const notebookCellEditor = notebookCell.editor;
+      if (notebookCellEditor !== null) {
+        if (notebookCell instanceof CodeCell) {
+          const kernelInfo =
+            await notebookWidget.sessionContext.session?.kernel?.info;
+          const kernelLanguage: string = kernelInfo?.language_info.name || '';
+          this.verifyLanguageAndInsert(
+            snippet,
+            kernelLanguage,
+            notebookCellEditor,
+          );
+        } else if (
+          notebookCell instanceof MarkdownCell &&
+          snippetLanguage.toLowerCase() !== 'markdown'
+        ) {
+          notebookCellEditor.replaceSelection?.(
+            this.addMarkdownCodeBlock(snippetLanguage, codeSnippet),
+          );
+        } else {
+          notebookCellEditor.replaceSelection?.(codeSnippet);
+        }
+        const placeholder = {};
+        const cell = new NotebookPanel.ContentFactory({
+          editorFactory: this.props.editorServices.factoryService.newInlineEditor,
+        }).createCodeCell(placeholder as CodeCell.IOptions);
 
-      if (notebookCell instanceof CodeCell) {
-        const kernelInfo =
-          await notebookWidget.sessionContext.session?.kernel?.info;
-        const kernelLanguage: string = kernelInfo?.language_info.name || '';
-        this.verifyLanguageAndInsert(
-          snippet,
-          kernelLanguage,
-          notebookCellEditor,
-        );
-      } else if (
-        notebookCell instanceof MarkdownCell &&
-        snippetLanguage.toLowerCase() !== 'markdown'
-      ) {
-        notebookCellEditor.replaceSelection?.(
-          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet),
-        );
+        if (cell === undefined) {
+          return;
+        }
+        notebookWidget.model?.sharedModel.insertCells(notebookCellIndex + 1, cell);
       } else {
-        notebookCellEditor.replaceSelection?.(codeSnippet);
+        this.showErrDialog('notebookCellEditor have to be not null');
       }
-      const cell = notebookWidget.model?.contentFactory.createCodeCell({});
-      if (cell === undefined) {
-        return;
-      }
-      notebookWidget.model?.cells.insert(notebookCellIndex + 1, cell);
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
+
   };
 
   // Verify if a given widget is a FileEditor
@@ -359,12 +366,21 @@ class CodeSnippetDisplay extends MetadataDisplay<
     clientX: number,
     clientY: number,
   ): Promise<void> {
-    const contentFactory = new NotebookModel.ContentFactory({});
+
+    const placeholder: any = {};
+
+    const Factory = new NotebookPanel.ContentFactory({
+      editorFactory: this.props.editorServices.factoryService.newInlineEditor,
+    });
+    const codeCell = Factory.createCodeCell(placeholder);
+    
+    const markdownCell = Factory.createMarkdownCell({placeholder});
+                
     const language = metadata.metadata.language;
     const model =
       language.toLowerCase() !== 'markdown'
-        ? contentFactory.createCodeCell({})
-        : contentFactory.createMarkdownCell({});
+        ? codeCell
+        : markdownCell;
     const content = metadata.metadata.code.join('\n');
     model.value.text = content;
 

@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Field} from '@rjsf/utils';
+import { Field } from '@rjsf/utils';
 import React from 'react';
 
 import { viewIcon, viewOffIcon } from '..';
 
 interface IPassFieldProps {
-  
   registry: any;
   uiSchema: any;
 }

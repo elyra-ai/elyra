@@ -19,7 +19,7 @@ import * as React from 'react';
 
 interface CodeBlockProps {
   formContext: {
-    editorServices: any; 
+    editorServices: any;
     language: string;
   };
   formData?: any;
@@ -28,7 +28,6 @@ interface CodeBlockProps {
   };
   onChange: (newData: string[]) => void;
 }
-
 
 export const CodeBlock: React.FC<CodeBlockProps> = (props: CodeBlockProps) => {
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
