@@ -36,13 +36,13 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
+import { CodeCell, MarkdownCell, ICodeCellModel, Cell } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import * as nbformat from '@jupyterlab/nbformat';
-import { Notebook, NotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import { Notebook, NotebookModel, NotebookPanel, NotebookActions } from '@jupyterlab/notebook';
 import {
   copyIcon,
   editIcon,
@@ -56,6 +56,7 @@ import { Drag } from '@lumino/dragdrop';
 import { Widget } from '@lumino/widgets';
 
 import React from 'react';
+import { CodeBlock } from '../../ui-components/src/FormComponents/CodeBlock';
 
 import {
   CodeSnippetService,
@@ -146,7 +147,9 @@ class CodeSnippetDisplay extends MetadataDisplay<
       if (notebookCell === null) {
         return;
       }
+
       const notebookCellEditor = notebookCell.editor;
+
       if (notebookCellEditor !== null) {
         if (notebookCell instanceof CodeCell) {
           const kernelInfo =
@@ -167,15 +170,28 @@ class CodeSnippetDisplay extends MetadataDisplay<
         } else {
           notebookCellEditor.replaceSelection?.(codeSnippet);
         }
-        const placeholder = {};
-        const cell = new NotebookPanel.ContentFactory({
-          editorFactory: this.props.editorServices.factoryService.newInlineEditor,
-        }).createCodeCell(placeholder as CodeCell.IOptions);
 
-        if (cell === undefined) {
-          return;
-        }
-        notebookWidget.model?.sharedModel.insertCells(notebookCellIndex + 1, cell);
+        const notebookContent = notebookWidget.content;
+        const activeCellIndex = notebookContent.activeCellIndex ?? -1;
+    
+        const contentFactory = new NotebookPanel.ContentFactory({
+          editorFactory: this.props.editorServices.factoryService.newInlineEditor,
+        });
+
+        const options: CodeCell.IOptions = {
+          model: notebookContent.activeCell?.model as ICodeCellModel,
+          rendermime: notebookContent.rendermime,
+          contentFactory: contentFactory,
+        };
+    
+        const codeCell = contentFactory.createCodeCell(options);
+
+        // Insert the new code cell into the notebook at the specified index
+        widget.content.model?.sharedModel.insertCell(activeCellIndex, codeCell);
+
+        // Update the active cell index to the newly inserted cell
+        notebookWidget.content.activeCellIndex = activeCellIndex + 1;
+
       } else {
         this.showErrDialog('notebookCellEditor have to be not null');
       }
@@ -373,9 +389,9 @@ class CodeSnippetDisplay extends MetadataDisplay<
       editorFactory: this.props.editorServices.factoryService.newInlineEditor,
     });
     const codeCell = Factory.createCodeCell(placeholder);
-    
-    const markdownCell = Factory.createMarkdownCell({placeholder});
-                
+
+    const markdownCell = Factory.createMarkdownCell({ placeholder });
+
     const language = metadata.metadata.language;
     const model =
       language.toLowerCase() !== 'markdown'
