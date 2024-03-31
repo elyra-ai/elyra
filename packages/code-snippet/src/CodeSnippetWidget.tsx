@@ -194,7 +194,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
           contentFactory: contentFactory,
         };
 
-        const codeCell: Partial<nbformat.ICodeCell> = contentFactory.createCodeCell(options);
+        const codeCell: any = contentFactory.createCodeCell(options);
         codeCell.cell_type = "code";
         //insert the new code cell into the notebook at the specified index
 
@@ -449,7 +449,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       source: this,
     });
 
-    const selected: nbformat.ICell[] = [model.toJSON()];
+    const selected: nbformat.ICell[] = [model.model.toJSON()];
     this._drag.mimeData.setData(JUPYTER_CELL_MIME, selected);
     this._drag.mimeData.setData('text/plain', content);
 
@@ -589,8 +589,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
     this.props.metadata.map((codeSnippet: IMetadata) => {
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
-        this.editors[codeSnippet.name].model.value.text =
-          codeSnippet.metadata.code.join('\n');
+        this.editors[codeSnippet.name].model.selections.has( 
+          codeSnippet.metadata.code.join('\n'));
       } else {
         // Add new snippets
         const snippetElement = document.getElementById(codeSnippet.name);
