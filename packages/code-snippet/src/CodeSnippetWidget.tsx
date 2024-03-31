@@ -36,7 +36,7 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell, ICodeCellModel, Cell } from '@jupyterlab/cells';
+import { CodeCell, MarkdownCell, ICodeCellModel, IMarkdownCellModel, RawCell } from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
@@ -57,6 +57,7 @@ import { Widget } from '@lumino/widgets';
 
 import React from 'react';
 import { CodeBlock } from '../../ui-components/src/FormComponents/CodeBlock';
+import { MarkdownDocument } from '@jupyterlab/markdownviewer';
 
 import {
   CodeSnippetService,
@@ -173,23 +174,35 @@ class CodeSnippetDisplay extends MetadataDisplay<
 
         const notebookContent = notebookWidget.content;
         const activeCellIndex = notebookContent.activeCellIndex ?? -1;
-    
+
         const contentFactory = new NotebookPanel.ContentFactory({
           editorFactory: this.props.editorServices.factoryService.newInlineEditor,
         });
+
+        /*
+          interface CodeCellCreatorOption {
+          model: ICodeCellModel | undefined; 
+          rendermime: RenderMimeRegistry; 
+          contentFactory: any; 
+          cell_type: string;
+        }
+        */
 
         const options: CodeCell.IOptions = {
           model: notebookContent.activeCell?.model as ICodeCellModel,
           rendermime: notebookContent.rendermime,
           contentFactory: contentFactory,
         };
-    
-        const codeCell = contentFactory.createCodeCell(options);
 
-        // Insert the new code cell into the notebook at the specified index
-        widget.content.model?.sharedModel.insertCell(activeCellIndex, codeCell);
+        const codeCell: Partial<nbformat.ICodeCell> = contentFactory.createCodeCell(options);
+        codeCell.cell_type = "code";
+        //insert the new code cell into the notebook at the specified index
 
-        // Update the active cell index to the newly inserted cell
+        // codeCell: CodeCell
+        // codeCell: SharedCell.Cell
+        widget.content.model?.sharedModel.insertCell(activeCellIndex, codeCell as Partial<nbformat.ICodeCell> & { cell_type: string; });
+
+        //update the active cell index to the newly inserted cell
         notebookWidget.content.activeCellIndex = activeCellIndex + 1;
 
       } else {
@@ -382,24 +395,52 @@ class CodeSnippetDisplay extends MetadataDisplay<
     clientX: number,
     clientY: number,
   ): Promise<void> {
+    const widget: NotebookPanel = this.props.getCurrentWidget() as NotebookPanel;
 
-    const placeholder: any = {};
 
-    const Factory = new NotebookPanel.ContentFactory({
+    const notebookContent = widget.content;
+    const activeCellIndex = notebookContent.activeCellIndex ?? -1;
+
+    const contentFactory = new NotebookPanel.ContentFactory({
       editorFactory: this.props.editorServices.factoryService.newInlineEditor,
     });
-    const codeCell = Factory.createCodeCell(placeholder);
 
-    const markdownCell = Factory.createMarkdownCell({ placeholder });
+    const options: CodeCell.IOptions = {
+      model: notebookContent.activeCell?.model as ICodeCellModel,
+      rendermime: notebookContent.rendermime,
+      contentFactory: contentFactory,
+    };
+
+    const options2: MarkdownCell.IOptions = {
+      model: notebookContent.activeCell?.model as IMarkdownCellModel,
+      rendermime: notebookContent.rendermime,
+      contentFactory: contentFactory,
+    }
+
+    const codeCell = contentFactory.createCodeCell(options);
+
+
+    const markdownCell = contentFactory.createMarkdownCell(options2);
 
     const language = metadata.metadata.language;
     const model =
       language.toLowerCase() !== 'markdown'
         ? codeCell
         : markdownCell;
-    const content = metadata.metadata.code.join('\n');
-    model.value.text = content;
 
+    const content = metadata.metadata.code.join('\n');
+
+    if (language.toLowerCase() !== 'markdown') {
+      if (model.model.type === 'code') {
+        (model.model as ICodeCellModel).value.text = content;
+      } else {
+      }
+    } else {
+      if (model.model.type === 'markdown') {
+        (model.model as IMarkdownCellModel).value.text = content;
+      } else {
+      }
+    }
     this._drag = new Drag({
       mimeData: new MimeData(),
       dragImage: dragImage,
