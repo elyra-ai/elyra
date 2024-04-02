@@ -432,15 +432,19 @@ class CodeSnippetDisplay extends MetadataDisplay<
 
     if (language.toLowerCase() !== 'markdown') {
       if (model.model.type === 'code') {
-        (model.model as ICodeCellModel).value.text = content;
+        (model.model as ICodeCellModel).sharedModel.setSource(content);
       } else {
-      }
-    } else {
-      if (model.model.type === 'markdown') {
-        (model.model as IMarkdownCellModel).value.text = content;
-      } else {
+        // Handle other cases if needed
       }
     }
+    if (language.toLowerCase() === 'markdown') {
+      if (model.model.type === 'markdown') {
+        (model.model as IMarkdownCellModel).sharedModel.setSource(content);
+      } else {
+        // Handle other cases if needed
+      }
+    }
+
     this._drag = new Drag({
       mimeData: new MimeData(),
       dragImage: dragImage,
@@ -569,7 +573,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
           tooltip={metadata.metadata.description}
           actionButtons={this.actionButtons(metadata)}
           onExpand={(): void => {
-            this.editors[metadata.name].refresh();
+            this.editors[metadata.name].redo();
           }}
           onMouseDown={(event: any): void => {
             this.handleDragSnippet(event, metadata);
@@ -589,7 +593,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
     this.props.metadata.map((codeSnippet: IMetadata) => {
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
-        this.editors[codeSnippet.name].model.selections.has( 
+        this.editors[codeSnippet.name].model.selections.has(
           codeSnippet.metadata.code.join('\n'));
       } else {
         // Add new snippets
@@ -597,17 +601,18 @@ class CodeSnippetDisplay extends MetadataDisplay<
         if (snippetElement === null) {
           return;
         }
+
         this.editors[codeSnippet.name] = editorFactory({
           config: { readOnly: true },
           host: snippetElement,
           model: new CodeEditor.Model({
-            value: codeSnippet.metadata.code.join('\n'),
             mimeType: getMimeTypeByLanguage({
+              value: codeSnippet.metadata.code.join('\n'),
               name: codeSnippet.metadata.language,
               codemirror_mode: codeSnippet.metadata.language,
             }),
           }),
-        });
+        });        
       }
     });
   };
