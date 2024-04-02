@@ -101,6 +101,15 @@ export const commandIDs = {
   openViewer: 'elyra-code-viewer:open',
 };
 
+interface ExtendedThemeProviderProps extends React.ComponentProps<typeof ThemeProvider> {
+  children: any,
+}
+
+//extend ThemeProvider to accept the same props as original but with children prop as one of them.
+const ExtendedThemeProvider: React.FC<ExtendedThemeProviderProps> = ({ children, ...props }) => {
+  return <ThemeProvider {...props}>{children}</ThemeProvider>;
+};
+
 const getAllPaletteNodes = (palette: any): any[] => {
   if (palette.categories === undefined) {
     return [];
@@ -1140,7 +1149,7 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ExtendedThemeProvider theme={theme}>z
       <ToastContainer
         position="bottom-center"
         autoClose={30000}
@@ -1178,7 +1187,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           )}
         </PipelineEditor>
       </Dropzone>
-    </ThemeProvider>
+    </ExtendedThemeProvider>
   );
 };
 
