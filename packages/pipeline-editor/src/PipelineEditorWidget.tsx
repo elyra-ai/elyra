@@ -101,12 +101,12 @@ export const commandIDs = {
   openViewer: 'elyra-code-viewer:open',
 };
 
-interface ExtendedThemeProviderProps extends React.ComponentProps<typeof ThemeProvider> {
+interface IExtendedThemeProviderProps extends React.ComponentProps<typeof ThemeProvider> {
   children: any,
 }
 
 //extend ThemeProvider to accept the same props as original but with children prop as one of them.
-const ExtendedThemeProvider: React.FC<ExtendedThemeProviderProps> = ({ children, ...props }) => {
+const ExtendedThemeProvider: React.FC<IExtendedThemeProviderProps> = ({ children, ...props }) => {
   return <ThemeProvider {...props}>{children}</ThemeProvider>;
 };
 
