@@ -20,7 +20,7 @@ import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
-interface DropDownProps {
+interface IDropDownProps {
   defaultValue: string;
   formContext: {
     languageOptions: string[];
@@ -36,7 +36,7 @@ interface DropDownProps {
   id: string;
 }
 
-export const DropDown: React.FC<DropDownProps> = ({
+export const DropDown: React.FC<IDropDownProps> = ({
   defaultValue,
   formContext,
   schema,
