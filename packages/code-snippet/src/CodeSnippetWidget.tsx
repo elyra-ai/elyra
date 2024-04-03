@@ -20,7 +20,7 @@ import {
   IMetadata,
   IMetadataActionButton,
   IMetadataDisplayProps,
-  IMetadataDisplayState,
+  //IMetadataDisplayState,
   IMetadataWidgetProps,
   MetadataCommonService,
   MetadataDisplay,
@@ -36,13 +36,13 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell, ICodeCellModel, IMarkdownCellModel, RawCell } from '@jupyterlab/cells';
+import { CodeCell, MarkdownCell, ICodeCellModel, IMarkdownCellModel, /*RawCell*/} from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import * as nbformat from '@jupyterlab/nbformat';
-import { Notebook, NotebookModel, NotebookPanel, NotebookActions } from '@jupyterlab/notebook';
+import { Notebook, /*NotebookModel,*/ NotebookPanel /*,NotebookActions*/ } from '@jupyterlab/notebook';
 import {
   copyIcon,
   editIcon,
@@ -56,8 +56,8 @@ import { Drag } from '@lumino/dragdrop';
 import { Widget } from '@lumino/widgets';
 
 import React from 'react';
-import { CodeBlock } from '../../ui-components/src/FormComponents/CodeBlock';
-import { MarkdownDocument } from '@jupyterlab/markdownviewer';
+//import { CodeBlock } from '../../ui-components/src/FormComponents/CodeBlock';
+//import { MarkdownDocument } from '@jupyterlab/markdownviewer';
 
 import {
   CodeSnippetService,
@@ -142,8 +142,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
     } else if (widget instanceof NotebookPanel) {
       const notebookWidget: NotebookPanel = widget as NotebookPanel;
       const notebookCell = (notebookWidget.content as Notebook).activeCell;
-      const notebookCellIndex = (notebookWidget.content as Notebook)
-        .activeCellIndex;
+      //const notebookCellIndex = (notebookWidget.content as Notebook)
+        //.activeCellIndex;
 
       if (notebookCell === null) {
         return;
@@ -399,7 +399,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
 
 
     const notebookContent = widget.content;
-    const activeCellIndex = notebookContent.activeCellIndex ?? -1;
+    //const activeCellIndex = notebookContent.activeCellIndex ?? -1;
 
     const contentFactory = new NotebookPanel.ContentFactory({
       editorFactory: this.props.editorServices.factoryService.newInlineEditor,

@@ -22,7 +22,7 @@ import {
   ILayoutRestorer,
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+import { /*CodeEditor,*/ IEditorServices } from '@jupyterlab/codeeditor';
 import {
   IDocumentWidget,
   DocumentRegistry,
@@ -40,7 +40,7 @@ import { pythonIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
 
-import IDisposable from '@lumino/signaling';
+//import IDisposable from '@lumino/signaling';
 
 import { PythonEditor } from './PythonEditor';
 // import { default } from '../../../tests/plugins/index';

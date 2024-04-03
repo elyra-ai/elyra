@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Field from '@rjsf/core';
+//import Field from '@rjsf/core';
 
 import * as React from 'react';
 

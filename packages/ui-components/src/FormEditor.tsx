@@ -19,17 +19,19 @@ import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormRendererRegistry } from '@jupyterlab/ui-components';
 
 import Form, { IChangeEvent } from '@rjsf/core';
-import Field from '@rjsf/core';
+//import Field from '@rjsf/core';
 import {
   ArrayFieldTemplateProps,
   FieldTemplateProps,
-  RegistryFieldsType,
+  //RegistryFieldsType,
 } from '@rjsf/utils';
+/*
 import {
   ErrorListProps,
   ObjectFieldTemplateProps,
   RJSFSchema,
 } from '@rjsf/utils';
+*/
 import validator from '@rjsf/validator-ajv8';
 
 import * as React from 'react';
