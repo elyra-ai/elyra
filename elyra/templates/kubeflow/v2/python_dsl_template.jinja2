@@ -4,6 +4,89 @@
 import kfp
 from kubernetes.client import *
 from kubernetes.client.models import *
+from kfp.kubernetes import secret, volume
+
+from typing import Optional
+
+# ------------------------------------------------------------------
+# kfp-kubernetes 1.1.0 is misisng these function, explicity using them,
+# TODO: remove these function once a new release of kfp-kubernetes is made.
+# ------------------------------------------------------------------
+
+from google.protobuf import json_format
+from kfp.dsl import PipelineTask
+from kfp.kubernetes import common
+from kfp.kubernetes import kubernetes_executor_config_pb2 as pb
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+def add_toleration(
+    task: PipelineTask,
+    key: Optional[str] = None,
+    operator: Optional[Literal["Equal", "Exists"]] = None,
+    value: Optional[str] = None,
+    effect: Optional[Literal["NoExecute", "NoSchedule", "PreferNoSchedule"]] = None,
+    toleration_seconds: Optional[int] = None,
+):
+
+    msg = common.get_existing_kubernetes_config_as_message(task)
+    msg.tolerations.append(
+        pb.Toleration(
+            key=key,
+            operator=operator,
+            value=value,
+            effect=effect,
+            toleration_seconds=toleration_seconds,
+        )
+    )
+    task.platform_config["kubernetes"] = json_format.MessageToDict(msg)
+
+    return task
+
+
+def add_pod_label(
+    task: PipelineTask,
+    label_key: str,
+    label_value: str,
+) -> PipelineTask:
+
+    msg = common.get_existing_kubernetes_config_as_message(task)
+    msg.pod_metadata.labels.update({label_key: label_value})
+    task.platform_config['kubernetes'] = json_format.MessageToDict(msg)
+
+    return task
+
+
+def add_pod_annotation(
+    task: PipelineTask,
+    annotation_key: str,
+    annotation_value: str,
+) -> PipelineTask:
+
+    msg = common.get_existing_kubernetes_config_as_message(task)
+    msg.pod_metadata.annotations.update({annotation_key: annotation_value})
+    task.platform_config['kubernetes'] = json_format.MessageToDict(msg)
+
+    return task
+
+def set_image_pull_policy(task: PipelineTask, policy: str) -> PipelineTask:
+
+    if policy not in ['Always', 'Never', 'IfNotPresent']:
+        raise ValueError(
+            'Invalid imagePullPolicy. Must be one of `Always`, `Never`, `IfNotPresent`.'
+        )
+    msg = common.get_existing_kubernetes_config_as_message(task)
+    msg.image_pull_policy = policy
+    task.platform_config['kubernetes'] = json_format.MessageToDict(msg)
+
+    return task
+
+# ------------------------------------------------------------------
+# end of missing functions
+# ------------------------------------------------------------------
 
 {# Load statements for custom components                            -#}
 {# component_hash = """<TEXT>"""                                  -#}
@@ -46,26 +129,29 @@ def generated_pipeline(
 {%  endfor %}
     )
 {%  if workflow_task.task_modifiers.image_pull_policy %}
-    {{ task_name }}.container.set_image_pull_policy("{{ workflow_task.task_modifiers.image_pull_policy }}")
+    set_image_pull_policy({{ task_name }}, "{{ workflow_task.task_modifiers.image_pull_policy }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.object_storage_secret %}
-    {{ task_name }}.apply(kfp.aws.use_aws_secret("{{ workflow_task.task_modifiers.object_storage_secret }}"))
+    secret.use_secret_as_env({{ task_name }}, "{{ workflow_task.task_modifiers.object_storage_secret }}", { "AWS_ACCESS_KEY_ID": "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY": "AWS_SECRET_ACCESS_KEY" })
 {%  endif %}
     {{ task_name }}.set_display_name("{{ workflow_task.name | string_delimiter_safe }}")
+{%  if workflow_task.doc %}
+    add_pod_annotation({{ task_name }}, "elyra/node-user-doc","""{{ workflow_task.doc| string_delimiter_safe }}""")
+{%  endif %}
 {%  if workflow_task.task_modifiers.cpu_request %}
-    {{ task_name }}.container.set_cpu_request(cpu="{{ workflow_task.task_modifiers.cpu_request }}")
+    {{ task_name }}.set_cpu_request(cpu="{{ workflow_task.task_modifiers.cpu_request }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.mem_request and workflow_task.task_modifiers.mem_request.size %}
-    {{ task_name }}.container.set_memory_request(memory="{{ workflow_task.task_modifiers.mem_request.size }}{{ workflow_task.task_modifiers.mem_request.units }}")
+    {{ task_name }}.set_memory_request(memory="{{ workflow_task.task_modifiers.mem_request.size }}{{ workflow_task.task_modifiers.mem_request.units }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.cpu_limit %}
-    {{ task_name }}.container.set_cpu_limit(cpu="{{ workflow_task.task_modifiers.cpu_limit }}")
+    {{ task_name }}.set_cpu_limit(cpu="{{ workflow_task.task_modifiers.cpu_limit }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.memory_limit and workflow_task.task_modifiers.memory_limit.size %}
-    {{ task_name }}.container.set_memory_limit(memory="{{ workflow_task.task_modifiers.memory_limit.size }}{{ workflow_task.task_modifiers.memory_limit.units }}")
+    {{ task_name }}.set_memory_limit(memory="{{ workflow_task.task_modifiers.memory_limit.size }}{{ workflow_task.task_modifiers.memory_limit.units }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.gpu_limit and workflow_task.task_modifiers.gpu_limit.size %}
-    {{ task_name }}.container.add_resource_limit(resource_name="{{ workflow_task.task_modifiers.gpu_limit.vendor }}", value="{{ workflow_task.task_modifiers.gpu_limit.size }}")
+    {{ task_name }}.set_gpu_limit("{{ workflow_task.task_modifiers.gpu_limit.size }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.env_variables %}
 {%    for env_var_name, env_var_value in workflow_task.task_modifiers.env_variables.items() %}
@@ -73,45 +159,35 @@ def generated_pipeline(
 {%    endfor %}
 {%  endif %}
 {%  if workflow_task.task_modifiers.set_run_name %}
-{%   if workflow_engine == "tekton" %}
-    {{ task_name }}.set_env_variable(name="ELYRA_RUN_NAME", value=V1ObjectFieldSelector(field_path="metadata.annotations['pipelines.kubeflow.org/run_name']"))
-{%   else %}
     {{ task_name }}.set_env_variable(name="ELYRA_RUN_NAME", value="{{ workflow_task.task_modifiers.set_run_name }}")
-{%   endif %}
 {%  endif %}
 {%  if workflow_task.task_modifiers.disable_node_caching %}
     {{ task_name }}.execution_options.caching_strategy.max_cache_staleness = "P0D"
 {%  endif %}
+{%  if workflow_task.task_modifiers.pod_labels %}
+{%    for pod_label_key, pod_label_value in workflow_task.task_modifiers.pod_labels.items() %}
+    add_pod_label({{ task_name }}, "{{ pod_label_key }}", "{{ pod_label_value }}")
+{%    endfor %}
+{%  endif %}
+{%  if workflow_task.task_modifiers.pod_annotations %}
+{%    for pod_annotation_key, pod_annotation_value in workflow_task.task_modifiers.pod_annotations.items() %}
+    add_pod_annotation({{ task_name }}, "{{ pod_annotation_key }}" , """{{ pod_annotation_value | string_delimiter_safe }}""")
+{%    endfor %}
+{%  endif %}
 {%  if workflow_task.task_modifiers.kubernetes_secrets %}
 {%    for env_var, secret_dict in workflow_task.task_modifiers.kubernetes_secrets.items() %}
-    {{ task_name }}.container.set_env_variable(
-            name="{{ env_var }}",
-            value=V1EnvVarSource(secret_key_ref=V1SecretKeySelector(name="{{ secret_dict.name }}", key="{{ secret_dict.key }}")),
-        )
+    secret.use_secret_as_env({{ task_name }}, "{{ secret_dict.name }}", { "{{ secret_dict.key }}" : "{{ env_var }}" })
 {%    endfor %}
 {%  endif %}
 {%  if workflow_task.task_modifiers.kubernetes_volumes %}
 {%    for volume_path, volume_dict in workflow_task.task_modifiers.kubernetes_volumes.items() %}
-    {{ task_name }}.add_volume(
-        V1Volume(
-            name="{{ volume_dict.pvc_name}}",
-            persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name="{{ volume_dict.pvc_name }}",),
-        ))
-    {{ task_name }}.container.add_volume_mount(
-        V1VolumeMount(
-            mount_path="{{ volume_path }}",
-            name="{{ volume_dict.pvc_name }}",
-{%      if volume_dict.sub_path %}            
-            sub_path="{{ volume_dict.sub_path }}",
-{%      endif %}
-            read_only={{ volume_dict.read_only }},
-        ))
+    volume.mount_pvc({{ task_name }}, "{{ volume_dict.pvc_name }}", "{{ volume_path }}")
 {%    endfor %}
 {%  endif %}
 {%  if workflow_task.task_modifiers.kubernetes_tolerations %}
 {%    for toleration_dict in workflow_task.task_modifiers.kubernetes_tolerations.values() %}
-    {{ task_name }}.add_toleration(
-        V1Toleration(
+    add_toleration(
+        {{ task_name }},
 {%      if toleration_dict.effect %}
             effect="{{ toleration_dict.effect }}",
 {%      else %}
@@ -122,28 +198,9 @@ def generated_pipeline(
 {%      else %}
             key=None,
 {%      endif %}
-            operator="{{ toleration_dict.operator }}",
-{%      if toleration_dict.value %}
-            value="{{ toleration_dict.value | string_delimiter_safe }}",
-{%      else %}
-            value=None,
-{%      endif %}
-        ))
+        operator="{{ toleration_dict.operator }}",
+    )
 {%    endfor %}
-{%  endif %}
-{%  if workflow_task.task_modifiers.kubernetes_shared_mem_size %}
-    {{ task_name }}.add_volume(V1Volume(
-            name="shm",
-            empty_dir=V1EmptyDirVolumeSource(medium="Memory", size_limit="{{ workflow_task.task_modifiers.kubernetes_shared_mem_size.size }}{{ workflow_task.task_modifiers.kubernetes_shared_mem_size.units }}"),
-        ))
-    {{ task_name }}.container.add_volume_mount(V1VolumeMount(mount_path="/dev/shm", name="shm"))
-{%  endif %}
-{%  if workflow_task.task_modifiers.crio_runtime %}
-    {{ task_name }}.add_volume(V1Volume(
-            name="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_name }}",
-            empty_dir=V1EmptyDirVolumeSource(medium="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_medium }}", size_limit="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_size }}"),
-        ))
-    {{ task_name }}.container.add_volume_mount(V1VolumeMount(mount_path="{{ workflow_task.task_modifiers.crio_runtime.emptydir_mount_path }}", name="{{ workflow_task.task_modifiers.crio_runtime.emptydir_volume_name }}"))
 {%  endif %}
 {#  declare upstream dependencies -#}
 {%  if workflow_task.upstream_workflow_task_ids %}
@@ -155,13 +212,7 @@ def generated_pipeline(
 
 if __name__ == "__main__":
     from pathlib import Path
-{% if workflow_engine.lower() ==  "tekton" %}
-    from kfp_tekton import compiler
-
-    compiler.TektonCompiler().compile(
-{% else %}
     kfp.compiler.Compiler().compile(
-{% endif %}
         pipeline_func=generated_pipeline,
         package_path=Path(__file__).with_suffix(".yaml").name,
     )
