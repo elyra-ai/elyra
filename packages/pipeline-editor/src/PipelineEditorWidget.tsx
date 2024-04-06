@@ -48,7 +48,7 @@ import {
   DocumentWidget,
   Context,
 } from '@jupyterlab/docregistry';
-import {IDefaultFileBrowser} from '@jupyterlab/filebrowser';
+import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import 'carbon-components/css/carbon-components.min.css';
@@ -101,12 +101,16 @@ export const commandIDs = {
   openViewer: 'elyra-code-viewer:open',
 };
 
-interface IExtendedThemeProviderProps extends React.ComponentProps<typeof ThemeProvider> {
-  children: any,
+interface IExtendedThemeProviderProps
+  extends React.ComponentProps<typeof ThemeProvider> {
+  children: any;
 }
 
 //extend ThemeProvider to accept the same props as original but with children prop as one of them.
-const ExtendedThemeProvider: React.FC<IExtendedThemeProviderProps> = ({ children, ...props }) => {
+const ExtendedThemeProvider: React.FC<IExtendedThemeProviderProps> = ({
+  children,
+  ...props
+}) => {
   return <ThemeProvider {...props}>{children}</ThemeProvider>;
 };
 
@@ -442,7 +446,7 @@ const PipelineWrapper: React.FC<IProps> = ({
               } else {
                 showDialog({
                   title: 'Pipeline migration failed!',
-                  body: <p> { (migrationError as Error)?.message || '' } </p>,
+                  body: <p> {(migrationError as Error)?.message || ''} </p>,
                   buttons: [Dialog.okButton()],
                 }).then(() => {
                   shell.currentWidget?.close();
@@ -473,36 +477,30 @@ const PipelineWrapper: React.FC<IProps> = ({
       args.filename ?? '',
     );
     if (args.propertyID.includes('dependencies')) {
-      const res = await showBrowseFileDialog(
-        browserFactory.model.manager,
-        {
-          multiselect: true,
-          includeDir: true,
-          rootPath: PathExt.dirname(filename),
-          filter: (model: any): boolean => {
-            return model.path !== filename;
-          },
+      const res = await showBrowseFileDialog(browserFactory.model.manager, {
+        multiselect: true,
+        includeDir: true,
+        rootPath: PathExt.dirname(filename),
+        filter: (model: any): boolean => {
+          return model.path !== filename;
         },
-      );
+      });
 
       if (res.button.accept && res.value.length) {
         return res.value.map((v: any) => v.path);
       }
     } else {
-      const res = await showBrowseFileDialog(
-        browserFactory.model.manager,
-        {
-          startPath: PathExt.dirname(filename),
-          filter: (model: any): boolean => {
-            if (args.filters?.File === undefined) {
-              return true;
-            }
+      const res = await showBrowseFileDialog(browserFactory.model.manager, {
+        startPath: PathExt.dirname(filename),
+        filter: (model: any): boolean => {
+          if (args.filters?.File === undefined) {
+            return true;
+          }
 
-            const ext = PathExt.extname(model.path);
-            return args.filters.File.includes(ext);
-          },
+          const ext = PathExt.extname(model.path);
+          return args.filters.File.includes(ext);
         },
-      );
+      });
 
       if (res.button.accept && res.value.length) {
         const file = PipelineService.getPipelineRelativeNodePath(
@@ -1149,7 +1147,8 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   return (
-    <ExtendedThemeProvider theme={theme}>z
+    <ExtendedThemeProvider theme={theme}>
+      z
       <ToastContainer
         position="bottom-center"
         autoClose={30000}

@@ -36,13 +36,21 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell, ICodeCellModel, IMarkdownCellModel, /*RawCell*/} from '@jupyterlab/cells';
+import {
+  CodeCell,
+  MarkdownCell,
+  ICodeCellModel,
+  IMarkdownCellModel /*RawCell*/,
+} from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import * as nbformat from '@jupyterlab/nbformat';
-import { Notebook, /*NotebookModel,*/ NotebookPanel /*,NotebookActions*/ } from '@jupyterlab/notebook';
+import {
+  Notebook,
+  /*NotebookModel,*/ NotebookPanel /*,NotebookActions*/,
+} from '@jupyterlab/notebook';
 import {
   copyIcon,
   editIcon,
@@ -98,10 +106,8 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
 /**
  * A React Component for code-snippets display list.
  */
-class CodeSnippetDisplay extends MetadataDisplay<
-  ICodeSnippetDisplayProps
-//,IMetadataDisplayState
-> {
+class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
+  //,IMetadataDisplayState
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
 
   constructor(props: ICodeSnippetDisplayProps) {
@@ -143,7 +149,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       const notebookWidget: NotebookPanel = widget as NotebookPanel;
       const notebookCell = (notebookWidget.content as Notebook).activeCell;
       //const notebookCellIndex = (notebookWidget.content as Notebook)
-        //.activeCellIndex;
+      //.activeCellIndex;
 
       if (notebookCell === null) {
         return;
@@ -176,7 +182,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
         const activeCellIndex = notebookContent.activeCellIndex ?? -1;
 
         const contentFactory = new NotebookPanel.ContentFactory({
-          editorFactory: this.props.editorServices.factoryService.newInlineEditor,
+          editorFactory:
+            this.props.editorServices.factoryService.newInlineEditor,
         });
 
         /*
@@ -195,23 +202,24 @@ class CodeSnippetDisplay extends MetadataDisplay<
         };
 
         const codeCell: any = contentFactory.createCodeCell(options);
-        codeCell.cell_type = "code";
+        codeCell.cell_type = 'code';
         //insert the new code cell into the notebook at the specified index
 
         // codeCell: CodeCell
         // codeCell: SharedCell.Cell
-        widget.content.model?.sharedModel.insertCell(activeCellIndex, codeCell as Partial<nbformat.ICodeCell> & { cell_type: string; });
+        widget.content.model?.sharedModel.insertCell(
+          activeCellIndex,
+          codeCell as Partial<nbformat.ICodeCell> & { cell_type: string },
+        );
 
         //update the active cell index to the newly inserted cell
         notebookWidget.content.activeCellIndex = activeCellIndex + 1;
-
       } else {
         this.showErrDialog('notebookCellEditor have to be not null');
       }
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
-
   };
 
   // Verify if a given widget is a FileEditor
@@ -395,8 +403,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
     clientX: number,
     clientY: number,
   ): Promise<void> {
-    const widget: NotebookPanel = this.props.getCurrentWidget() as NotebookPanel;
-
+    const widget: NotebookPanel =
+      this.props.getCurrentWidget() as NotebookPanel;
 
     const notebookContent = widget.content;
     //const activeCellIndex = notebookContent.activeCellIndex ?? -1;
@@ -415,18 +423,15 @@ class CodeSnippetDisplay extends MetadataDisplay<
       model: notebookContent.activeCell?.model as IMarkdownCellModel,
       rendermime: notebookContent.rendermime,
       contentFactory: contentFactory,
-    }
+    };
 
     const codeCell = contentFactory.createCodeCell(options);
-
 
     const markdownCell = contentFactory.createMarkdownCell(options2);
 
     const language = metadata.metadata.language;
     const model =
-      language.toLowerCase() !== 'markdown'
-        ? codeCell
-        : markdownCell;
+      language.toLowerCase() !== 'markdown' ? codeCell : markdownCell;
 
     const content = metadata.metadata.code.join('\n');
 
@@ -594,7 +599,8 @@ class CodeSnippetDisplay extends MetadataDisplay<
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
         this.editors[codeSnippet.name].model.selections.has(
-          codeSnippet.metadata.code.join('\n'));
+          codeSnippet.metadata.code.join('\n'),
+        );
       } else {
         // Add new snippets
         const snippetElement = document.getElementById(codeSnippet.name);
@@ -612,7 +618,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
               codemirror_mode: codeSnippet.metadata.language,
             }),
           }),
-        });        
+        });
       }
     });
   };

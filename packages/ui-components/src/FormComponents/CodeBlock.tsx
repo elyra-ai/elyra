@@ -29,7 +29,9 @@ interface ICodeBlockProps {
   onChange: (newData: string[]) => void;
 }
 
-export const CodeBlock: React.FC<ICodeBlockProps> = (props: ICodeBlockProps) => {
+export const CodeBlock: React.FC<ICodeBlockProps> = (
+  props: ICodeBlockProps,
+) => {
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 

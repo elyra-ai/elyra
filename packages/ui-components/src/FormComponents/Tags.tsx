@@ -214,7 +214,9 @@ interface ITagsFieldProps {
   onChange: (selectedTags: string[]) => void;
 }
 
-export const TagsField: React.FC<ITagsFieldProps> = (props: ITagsFieldProps) => {
+export const TagsField: React.FC<ITagsFieldProps> = (
+  props: ITagsFieldProps,
+) => {
   const errors = [];
   if (Object.keys(props.errorSchema).length > 0) {
     for (const i in props.errorSchema) {

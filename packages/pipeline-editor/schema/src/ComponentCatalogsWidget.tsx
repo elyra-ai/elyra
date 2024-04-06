@@ -57,7 +57,12 @@ class ComponentCatalogsDisplay extends MetadataDisplay<IMetadataDisplayProps> {
             .then((response: any): void => {
               this.props.updateMetadata();
             })
-            .catch((error) => console.error("An error occurred while refreshing components from catalog:", error));
+            .catch((error) =>
+              console.error(
+                'An error occurred while refreshing components from catalog:',
+                error,
+              ),
+            );
         },
       },
       ...super.actionButtons(metadata),
