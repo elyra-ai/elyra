@@ -72,18 +72,6 @@ def add_pod_annotation(
 
     return task
 
-def set_image_pull_policy(task: PipelineTask, policy: str) -> PipelineTask:
-
-    if policy not in ['Always', 'Never', 'IfNotPresent']:
-        raise ValueError(
-            'Invalid imagePullPolicy. Must be one of `Always`, `Never`, `IfNotPresent`.'
-        )
-    msg = common.get_existing_kubernetes_config_as_message(task)
-    msg.image_pull_policy = policy
-    task.platform_config['kubernetes'] = json_format.MessageToDict(msg)
-
-    return task
-
 # ------------------------------------------------------------------
 # end of missing functions
 # ------------------------------------------------------------------
@@ -128,9 +116,6 @@ def generated_pipeline(
 {%     endif %}
 {%  endfor %}
     )
-{%  if workflow_task.task_modifiers.image_pull_policy %}
-    set_image_pull_policy({{ task_name }}, "{{ workflow_task.task_modifiers.image_pull_policy }}")
-{%  endif %}
 {%  if workflow_task.task_modifiers.object_storage_secret %}
     secret.use_secret_as_env({{ task_name }}, "{{ workflow_task.task_modifiers.object_storage_secret }}", { "AWS_ACCESS_KEY_ID": "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY": "AWS_SECRET_ACCESS_KEY" })
 {%  endif %}
