@@ -23,29 +23,6 @@ try:
 except ImportError:
     from typing_extensions import Literal
 
-def add_toleration(
-    task: PipelineTask,
-    key: Optional[str] = None,
-    operator: Optional[Literal["Equal", "Exists"]] = None,
-    value: Optional[str] = None,
-    effect: Optional[Literal["NoExecute", "NoSchedule", "PreferNoSchedule"]] = None,
-    toleration_seconds: Optional[int] = None,
-):
-
-    msg = common.get_existing_kubernetes_config_as_message(task)
-    msg.tolerations.append(
-        pb.Toleration(
-            key=key,
-            operator=operator,
-            value=value,
-            effect=effect,
-            toleration_seconds=toleration_seconds,
-        )
-    )
-    task.platform_config["kubernetes"] = json_format.MessageToDict(msg)
-
-    return task
-
 
 def add_pod_label(
     task: PipelineTask,
@@ -170,22 +147,6 @@ def generated_pipeline(
 {%    endfor %}
 {%  endif %}
 {%  if workflow_task.task_modifiers.kubernetes_tolerations %}
-{%    for toleration_dict in workflow_task.task_modifiers.kubernetes_tolerations.values() %}
-    add_toleration(
-        {{ task_name }},
-{%      if toleration_dict.effect %}
-            effect="{{ toleration_dict.effect }}",
-{%      else %}
-            effect=None,
-{%      endif %}
-{%      if toleration_dict.key %}
-            key="{{ toleration_dict.key }}",
-{%      else %}
-            key=None,
-{%      endif %}
-        operator="{{ toleration_dict.operator }}",
-    )
-{%    endfor %}
 {%  endif %}
 {#  declare upstream dependencies -#}
 {%  if workflow_task.upstream_workflow_task_ids %}
