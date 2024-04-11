@@ -26,18 +26,18 @@ dependencies = [
     "jupyter-packaging>=0.12.3",
     "jupyter_server>=2.7.3",
     "jupyterlab>=4.0,<4.3",  # comment out to use local jupyterlab
-    "jupyterlab-lsp~=5.0.1",  # comment out to use local jupyterlab
-    "jupyterlab-git~=0.50.0",  # Avoid breaking 1.x changes
-    "jupyter-resource-usage~=1.1.0",
+    "jupyterlab-lsp~=5.1.0",  # comment out to use local jupyterlab
+    "jupyterlab-git~=0.50.2",  # Avoid breaking 1.x changes
+    "jupyter-resource-usage~=1.0.2",
     "MarkupSafe>=2.1",
     "minio>=7.0.0,!=7.2.1",
-    "nbclient>=0.5.1",
-    "nbconvert==7.1.0",
+    "nbclient>=0.10.0",
+    "nbconvert>=6.5.1",
     "nbdime~=4.0.1",  # Cap from jupyterlab-git
     "nbformat>=5.1.2",
     "networkx>=2.5.1",
     "papermill>=2.3.4",
-    "python-lsp-server[all]>=1.1.0",
+    "python-lsp-server[all]>=1.11.0",
     "pyyaml>=5.3.1",
     "requests>=2.31",
     "rfc3986-validator>=0.1.1",
