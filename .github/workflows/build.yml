@@ -30,9 +30,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: "*"
+
+      - name: Enable Corepack
+        run: npm install -g corepack && corepack enable
+
       - uses: actions/cache@v3
         with:
           path: |
@@ -40,13 +46,14 @@ jobs:
             */*/node_modules
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+
       - name: Install
         run: |
-          corepack prepare yarn@3.5.0 --activate
           yarn set version 3.5.0
           yarn --version
           yarn install && tsc -v
           # --frozen-lockfile
+
 
   lint-server:
     name: Lint Server
