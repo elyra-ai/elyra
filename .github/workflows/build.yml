@@ -32,8 +32,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "*" 
-      - run: npm install -g yarn@3.5.0
+          node-version: '*' 
+      - run: npm install -g yarn
       - uses: actions/cache@v3
         with:
           path: |
@@ -46,7 +46,6 @@ jobs:
           yarn --version
           yarn install && tsc -v
           # --frozen-lockfile
-
   lint-server:
     name: Lint Server
     runs-on: ubuntu-latest
