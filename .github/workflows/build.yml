@@ -32,7 +32,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "*"
+          node-version: "*" 
+      - run: npm install -g yarn@3.5.0
       - uses: actions/cache@v3
         with:
           path: |
@@ -42,8 +43,6 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install
         run: |
-          corepack prepare yarn@3.5.0 --activate
-          yarn set version 3.5.0
           yarn --version
           yarn install && tsc -v
           # --frozen-lockfile
