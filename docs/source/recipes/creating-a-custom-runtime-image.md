@@ -90,6 +90,11 @@ The [Elyra `Makefile`](https://github.com/elyra-ai/elyra/blob/main/Makefile) inc
    ```bash
    $ make validate-runtime-image image=my-runtime-image
    ```
+   If using `podman`, ensure the following environmental variables are set prior to running the release script:
+```bash
+    CONTAINER_EXEC=podman
+    CONTAINER_OUTPUT_OPTION="--format docker"
+```
 
    If no problems were detected the output should look as follows:
 
