@@ -484,7 +484,15 @@ class PythonFileOp(FileOpBase):
                 self.set_parameters_in_env()
 
             with open(python_script_output, "w") as log_file:
-                subprocess.run(run_args, stdout=log_file, stderr=subprocess.STDOUT, check=True)
+                print("Processing file:", python_script)
+                try:
+                    result = subprocess.run(run_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
+                    output = result.stdout.decode('utf-8')
+                    logger.info(f"Output: {output}")
+                    logger.info(f"Return code: {result.returncode}")
+                except subprocess.CalledProcessError as e:
+                    logger.error("Output: %s", e.output.decode("utf-8"))
+                    logger.error("Return code: %s", e.returncode)
 
             duration = time.time() - t0
             OpUtil.log_operation_info("python script execution completed", duration)
@@ -518,7 +526,15 @@ class RFileOp(FileOpBase):
                 self.set_parameters_in_env()
 
             with open(r_script_output, "w") as log_file:
-                subprocess.run(run_args, stdout=log_file, stderr=subprocess.STDOUT, check=True)
+                print("Processing file:", r_script)
+                try:
+                    result = subprocess.run(run_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
+                    output = result.stdout.decode('utf-8')
+                    logger.info(f"Output: {output}")
+                    logger.info(f"Return code: {result.returncode}")
+                except subprocess.CalledProcessError as e:
+                    logger.error("Output: %s", e.output.decode("utf-8"))
+                    logger.error("Return code: %s", e.returncode)
 
             duration = time.time() - t0
             OpUtil.log_operation_info("R script execution completed", duration)

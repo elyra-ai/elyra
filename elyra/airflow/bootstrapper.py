@@ -328,8 +328,19 @@ class PythonFileOp(FileOpBase):
                 f"executing python script using " f"'python3 {python_script}' to '{python_script_output}'"
             )
             t0 = time.time()
+
+            run_args = ["python3", python_script]
+
             with open(python_script_output, "w") as log_file:
-                subprocess.run(["python3", python_script], stdout=log_file, stderr=subprocess.STDOUT, check=True)
+                print("Processing file:", python_script)
+                try:
+                    result = subprocess.run(run_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
+                    output = result.stdout.decode('utf-8')
+                    logger.info(f"Output: {output}")
+                    logger.info(f"Return code: {result.returncode}")
+                except subprocess.CalledProcessError as e:
+                    logger.error("Output: %s", e.output.decode("utf-8"))
+                    logger.error("Return code: %s", e.returncode)
 
             duration = time.time() - t0
             OpUtil.log_operation_info("python script execution completed", duration)
@@ -357,8 +368,19 @@ class RFileOp(FileOpBase):
         try:
             OpUtil.log_operation_info(f"executing R script using " f"'Rscript {r_script}' to '{r_script_output}'")
             t0 = time.time()
+
+            run_args = ["Rscript", r_script]
+
             with open(r_script_output, "w") as log_file:
-                subprocess.run(["Rscript", r_script], stdout=log_file, stderr=subprocess.STDOUT, check=True)
+                print("Processing file:", r_script)
+                try:
+                    result = subprocess.run(run_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
+                    output = result.stdout.decode('utf-8')
+                    logger.info(f"Output: {output}")
+                    logger.info(f"Return code: {result.returncode}")
+                except subprocess.CalledProcessError as e:
+                    logger.error("Output: %s", e.output.decode("utf-8"))
+                    logger.error("Return code: %s", e.returncode)
 
             duration = time.time() - t0
             OpUtil.log_operation_info("R script execution completed", duration)
