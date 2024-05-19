@@ -265,6 +265,9 @@ class Pipeline(AppDataBase):
         if parameter_class is None:
             return None  # runtime type does not support parameters, skip
 
+        if not ElyraProperty.subclass_exists_for_property(parameter_class.property_id):
+            ElyraProperty.build_property_map()
+
         # Convert pipeline parameters to runtime-specific instances
         converted_value = ElyraProperty.create_instance(parameter_class.property_id, self.pipeline_parameters)
         if converted_value is not None:
