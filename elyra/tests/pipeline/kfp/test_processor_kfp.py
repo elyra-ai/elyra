@@ -735,7 +735,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
 
     # Verify component definition information (see generic_component_definition_template.jinja2)
     #  - property 'name'
-    assert node_template["name"] == "run-a-file"
+    assert node_template["name"] == sanitize_label_value(op.name)
     #  - property 'implementation.container.command'
     assert node_template["container"]["command"] == ["sh", "-c"]
     #  - property 'implementation.container.args'
@@ -1420,11 +1420,9 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
     assert len(compiled_spec["spec"]["templates"]) >= 3
     template_specs = {}
     for node_template in compiled_spec["spec"]["templates"]:
-        if node_template["name"] == compiled_spec["spec"]["entrypoint"] or not node_template["name"].startswith(
-            "run-a-file"
-        ):
+        if node_template["name"] == compiled_spec["spec"]["entrypoint"]:
             continue
-        template_specs[node_template["name"]] = node_template
+        template_specs[sanitize_label_value(node_template["name"])] = node_template
 
     # Iterate through sorted operations and verify that their inputs
     # and outputs are properly represented in their respective template
@@ -1434,10 +1432,8 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
         if not op.is_generic:
             # ignore custom nodes
             continue
-        if template_index == 1:
-            template_name = "run-a-file"
-        else:
-            template_name = f"run-a-file-{template_index}"
+        template_name = sanitize_label_value(op.name)
+        template_name = template_name.replace("_", "-")  # kubernetes does this replace
         template_index = template_index + 1
         # compare outputs
         if len(op.outputs) > 0:
