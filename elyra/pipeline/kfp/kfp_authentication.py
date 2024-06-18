@@ -27,9 +27,9 @@ from typing import Optional
 from typing import Tuple
 from urllib.parse import urlsplit
 
-from kfp.auth import KF_PIPELINES_SA_TOKEN_ENV
-from kfp.auth import KF_PIPELINES_SA_TOKEN_PATH
-from kfp.auth import ServiceAccountTokenVolumeCredentials
+from kfp.client import KF_PIPELINES_SA_TOKEN_ENV
+from kfp.client import KF_PIPELINES_SA_TOKEN_PATH
+from kfp.client import ServiceAccountTokenVolumeCredentials
 import requests
 
 

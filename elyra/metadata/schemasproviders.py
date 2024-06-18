@@ -23,12 +23,6 @@ from typing import List
 import entrypoints
 from traitlets import log  # noqa H306
 
-try:
-    from kfp_tekton import TektonClient
-except ImportError:
-    # We may not have kfp-tekton available and that's okay!
-    TektonClient = None
-
 from elyra.metadata.schema import SchemasProvider
 from elyra.metadata.schemaspaces import CodeSnippets
 from elyra.metadata.schemaspaces import ComponentCatalogs
@@ -93,16 +87,12 @@ class RuntimesSchemas(ElyraSchemasProvider):
                 )
 
         if kfp_schema_present:  # Update the kfp engine enum to reflect current packages...
-            # If TektonClient package is missing, navigate to the engine property
-            # and remove 'tekton' entry if present and return updated result.
-            if not TektonClient:
-                # locate the schema and update the enum
-                for schema in runtime_schemas:
-                    if schema["name"] == "kfp":
-                        engine_enum: list = schema["properties"]["metadata"]["properties"]["engine"]["enum"]
-                        if "Tekton" in engine_enum:
-                            engine_enum.remove("Tekton")
-                            schema["properties"]["metadata"]["properties"]["engine"]["enum"] = engine_enum
+            for schema in runtime_schemas:
+                if schema["name"] == "kfp":
+                    engine_enum: list = schema["properties"]["metadata"]["properties"]["engine"]["enum"]
+                    if "Tekton" in engine_enum:
+                        engine_enum.remove("Tekton")
+                        schema["properties"]["metadata"]["properties"]["engine"]["enum"] = engine_enum
 
             # For KFP schemas replace placeholders:
             # - properties.metadata.properties.auth_type.enum ({AUTH_PROVIDER_PLACEHOLDERS})
