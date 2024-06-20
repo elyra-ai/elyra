@@ -213,6 +213,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                     credentials=auth_info.get("credentials", None),
                     existing_token=auth_info.get("existing_token", None),
                     namespace=user_namespace,
+                    ssl_ca_cert=auth_info.get("ssl_ca_cert", None),
                 )
             else:
                 client = ArgoClient(
