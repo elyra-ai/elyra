@@ -221,6 +221,9 @@ The KubeFlow Pipelines API endpoint you want to utilize. This setting is require
 
 Example: `https://kubernetes-service.domain.com/pipeline`
 
+*Note*: In setups where the Kubeflow Pipeline server is secured with a custom certificate, users can specify this certificate path by setting the environment variable `KF_PIPELINES_SSL_SA_CERT` in the jupyter environment. This variable directs the Kubeflow Pipelines SDK client to use the provided certificate for accessing the Kubeflow Pipeline server. For more information, see the [ssl_ca_cert](https://kubeflow-pipelines.readthedocs.io/en/stable/source/client.html#kfp.client.Client.__init__.ssl_ca_cert) attribute in the `kfp` SDK documentation.  
+Ex: `KF_PIPELINES_SSL_SA_CERT:/path/to/certs`
+
 
 ##### Public Kubeflow Pipelines API endpoint (public_api_endpoint)
 
