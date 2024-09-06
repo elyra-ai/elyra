@@ -14,6 +14,10 @@
 # limitations under the License.
 #
 version: 2
+build:
+  os: "ubuntu-22.04"
+  tools:
+    python: "mambaforge-22.9"
 sphinx:
   configuration: docs/source/conf.py
 python:
