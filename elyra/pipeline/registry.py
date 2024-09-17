@@ -57,8 +57,8 @@ class PipelineProcessorRegistry(SingletonConfigurable):
         for processor in entrypoints.get_group_all("elyra.pipeline.processors"):
             try:
                 # instantiate an actual instance of the processor
-                processor_instance = processor.load()(root_dir=self.root_dir, parent=kwargs.get("parent"))
                 if not self.runtimes or processor.name in self.runtimes:
+                    processor_instance = processor.load()(root_dir=self.root_dir, parent=kwargs.get("parent"))
                     self._add_processor(processor_instance)
                 else:
                     self.log.info(
