@@ -135,6 +135,10 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
         </div>
       </div>
       <br />
+
+      <label htmlFor="parallel_count"> Parallel Count:</label>
+      <input id="parallel_count" type="number" name="parallel_count" />
+
       <input
         type="checkbox"
         className="elyra-Dialog-checkbox"
