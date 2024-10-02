@@ -17,9 +17,9 @@
 .PHONY: help purge uninstall clean
 .PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
-.PHONY: build-dependencies dev-dependencies yarn-install build-ui package-ui package-ui-dev
+.PHONY: build-dependencies dev-dependencies yarn-install build-ui-prod build-ui-dev package-ui-prod package-ui-dev
 .PHONY: build-server install-server-package install-server
-.PHONY: install install-all install-dev install-examples install-gitlab-dependency check-install watch release
+.PHONY: install-prod install-dev install-all-prod install-all-dev install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
 .PHONY: elyra-image elyra-image-env publish-elyra-image kf-notebook-image publish-kf-notebook-image
@@ -148,12 +148,15 @@ dev-dependencies:
 yarn-install:
 	yarn install
 
-build-ui: # Build packages
+build-ui-prod: ## Build UI packages for production
+	yarn lerna run build:prod --stream
+
+build-ui-dev: ## Build UI packages for development
 	yarn lerna run build --stream
 
-package-ui: build-dependencies yarn-install lint-ui build-ui
+package-ui-prod: build-dependencies yarn-install lint-ui build-ui-prod ## Package UI for production
 
-package-ui-dev: dev-dependencies yarn-install dev-link lint-ui build-ui
+package-ui-dev: dev-dependencies yarn-install dev-link lint-ui build-ui-dev ## Package UI for development
 
 build-server: # Build backend
 	$(PYTHON) -m build
@@ -166,11 +169,13 @@ install-server-package: uninstall-server-package
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 
-install: package-ui install-server check-install ## Build and install
+install-prod: package-ui-prod install-server check-install ## Build and install for production
 
-install-all: package-ui install-server install-examples install-gitlab-dependency check-install ## Build and install, including examples
+install-dev: package-ui-dev install-server check-install ## Build and install for development
 
-install-dev: package-ui-dev install-server install-examples install-gitlab-dependency check-install
+install-all-prod: package-ui-prod install-server install-examples install-gitlab-dependency check-install ## Build and install for production, including examples
+
+install-all-dev: package-ui-dev install-server install-examples install-gitlab-dependency check-install ## Build and install for development, including examples
 
 install-examples: ## Install example pipeline components
 	# install Kubeflow Pipelines example components
@@ -189,7 +194,7 @@ check-install:
 watch: ## Watch packages. For use alongside jupyter lab --watch
 	yarn lerna run watch --parallel
 
-release: yarn-install build-ui build-server ## Build wheel file for release
+release: yarn-install build-ui-prod build-server ## Build wheel file for release
 
 
 elyra-image-env: ## Creates a conda env consisting of the dependencies used in images

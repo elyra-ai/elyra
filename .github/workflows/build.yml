@@ -143,7 +143,7 @@ jobs:
         run: |
           make build-dependencies
           make yarn-install
-          make build-ui
+          make build-ui-prod
       - name: Install
         run: make install-server
       - name: Test
@@ -177,7 +177,7 @@ jobs:
         run: |
           make build-dependencies
           make yarn-install
-          make build-ui
+          make build-ui-prod
       - name: Install
         run: |
           make install-server
@@ -249,7 +249,7 @@ jobs:
           yarn --version
       - name: Build
         run: |
-          make clean install
+          make install-prod
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

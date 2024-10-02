@@ -16,7 +16,7 @@ limitations under the License.
 {% endcomment %}
 -->
 ## Development Workflow
-This section describes the steps necessary to build Elyra in a development environment. 
+This section describes the steps necessary to build Elyra in a development environment.
 
 #### Requirements
 
@@ -60,10 +60,10 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     ```
     conda install -y -c conda-forge/label/main nodejs
     ```
-* Verify node is installed correctly 
+* Verify node is installed correctly
 
     ```
-    node --version 
+    node --version
     ```
 
 * Install Yarn
@@ -71,18 +71,18 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
     ```
     conda install -y -c conda-forge/label/main yarn
     ```
-* Verify yarn is installed correctly 
+* Verify yarn is installed correctly
 
     ```
-    yarn --version 
+    yarn --version
     ```
 
-* Install GNU Make 
+* Install GNU Make
 
-    Refer to the following link for installation instructions: 
+    Refer to the following link for installation instructions:
     [GNU Make](https://www.gnu.org/software/make/)
 
-    To verify the installation, run `make`. 
+    To verify the installation, run `make`.
     If you have yet to [set up the repository](#setting-up-your-development-environment), you should see a message like the following:
     ```
     make: *** No targets specified and no makefile found.  Stop.
@@ -103,7 +103,7 @@ Download and install a [Python 3 version of Miniconda](https://docs.conda.io/en/
 ### Building
 Elyra is divided in two parts, a collection of Jupyter Notebook backend extensions,
 and their respective JupyterLab UI extensions. Our JupyterLab extensions are located in our `packages`
-directory. 
+directory.
 
 #### Build & Installation
 
@@ -114,14 +114,21 @@ Issuing a `make` command with no task specified will provide a list of the curre
 ```bash
 $ make
 
+build-ui-dev                   Build UI packages for development
+build-ui-prod                  Build UI packages for production
 clean                          Make a clean source tree and uninstall extensions
 container-images               Build all container images
 docs                           Build docs
-install-all                    Build and install, including examples
+elyra-image-env                Creates a conda env consisting of the dependencies used in images
+install-all-dev                Build and install for development, including examples
+install-all-prod               Build and install for production, including examples
+install-dev                    Build and install for development
 install-examples               Install example pipeline components
+install-prod                   Build and install for production
 install-server                 Build and install backend
-install                        Build and install
 lint                           Run linters
+package-ui-dev                 Package UI for development
+package-ui-prod                Package UI for production
 publish-container-images       Publish all container images
 release                        Build wheel file for release
 test                           Run all tests (backend, frontend and cypress integration tests)
@@ -131,7 +138,7 @@ watch                          Watch packages. For use alongside jupyter lab --w
 You can build and install all Elyra packages with:
 
 ```bash
-make clean install
+make clean install-prod
 ```
 
 You can check that the notebook server extension was successfully installed with:
@@ -144,7 +151,7 @@ You can check that the JupyterLab extension was successfully installed with:
 jupyter labextension list
 ```
 
-> NOTE: 
+> NOTE:
 When switching between Elyra major versions, it is recommended to clean your JupyterLab environment before a build.
 The `clean-jupyterlab` removes your JupyterLab packages and completely deletes your Jupyter workspace.
 Make sure to backup any important data in your environment before running the script.
@@ -204,14 +211,14 @@ make elyra-image
 By default, the command above will build a container image (development) with the changes that exist in your local branch.
 
 
-Production:  
+Production:
 From main branch:
 ```bash
 make elyra-image TAG=3.7.0
 ```
 or after checking out a git tag e.g. `git checkout tags/v3.7.0`
 ```bash
-make elyra-image 
+make elyra-image
 ```
 In order to build from a particular release (production), you can pass a `TAG` parameter to the make command
 or you can checkout the respective tagged release and omit the `TAG` parameter.
@@ -268,4 +275,4 @@ The test results can be accessed from the pull request or the _actions_ tab. If 
   ![Open workflow summary](../images/developer_guide/development-workflow/open-workflow-summary.png)
 1. Locate the 'Artifacts' section. If present, it should contain a download link.
   ![Locate artifacts](../images/developer_guide/development-workflow/locate-artifacts.png)
-1. Download the archive, extract it, and review the artifacts. 
+1. Download the archive, extract it, and review the artifacts.
