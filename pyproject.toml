@@ -86,6 +86,12 @@ test = [
     "requests-unixsocket",
     "kfp-tekton"
 ]
+airflow = [
+
+]
+airflow-gitlab = [
+    "python-gitlab"
+]
 kfp = [
     "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
     "typing-extensions>=3.10,<5",  # Cap from kfp
@@ -95,9 +101,6 @@ kfp-tekton = [
 ]
 kfp-examples = [
     "elyra-examples-kfp-catalog"
-]
-gitlab = [
-    "python-gitlab"
 ]
 # The following is a collection of "non-test" extra dependencies from above.
 all = [
