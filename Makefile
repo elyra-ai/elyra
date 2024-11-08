@@ -189,7 +189,7 @@ install-all: package-ui install-server install-examples install-gitlab-dependenc
 
 install-dev: package-ui-dev install-server install-examples install-gitlab-dependency check-install
 
-install-examples: ## Install example pipeline components 
+install-examples: ## Install example pipeline components
 	# install Kubeflow Pipelines example components
 	# -> https://github.com/elyra-ai/examples/tree/main/component-catalog-connectors/kfp-example-components-connector
 	- $(PYTHON_PIP) install --upgrade elyra-examples-kfp-catalog
@@ -210,7 +210,7 @@ release: yarn-install build-ui build-server ## Build wheel file for release
 
 
 elyra-image-env: ## Creates a conda env consisting of the dependencies used in images
-	conda env remove -y -n $(ELYRA_IMAGE_ENV)
+	- conda env remove -y -n $(ELYRA_IMAGE_ENV)
 	conda create -y -n $(ELYRA_IMAGE_ENV) python=$(PYTHON_VERSION) --channel conda-forge
 	$(CONDA_ACTIVATE) $(ELYRA_IMAGE_ENV) && \
 	$(PYTHON_PIP) install -r etc/generic/requirements-elyra.txt && \
