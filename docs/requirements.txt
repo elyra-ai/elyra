@@ -1,6 +1,7 @@
 sphinx>=1.8
 sphinx_rtd_theme
 recommonmark>=0.6.0
+sphinxcontrib-googleanalytics>=0.4
 sphinx-markdown-tables>=0.0.16
 sphinx-version-warning
 markdown>=3.4.1
