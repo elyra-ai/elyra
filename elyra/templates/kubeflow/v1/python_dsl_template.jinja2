@@ -33,6 +33,16 @@ def generated_pipeline(
 {% for workflow_task in workflow_tasks.values() %}
     {% set task_name = "task_" + workflow_task.escaped_task_id %}
     # Task for node '{{ workflow_task.name }}'
+    {% set parallel_indent = 0 %}
+{%  if 'parallel_count' in workflow_task.task_modifiers and workflow_task.task_modifiers.parallel_count is not none %}
+{%    if workflow_task.task_modifiers.parallel_count > 1 %}
+    {% set parallel_indent = 4 %}
+    parallel_count = {{workflow_task.task_modifiers.parallel_count}}
+    with kfp.dsl.ParallelFor(list(range(parallel_count))) as rank:
+{%    endif %}
+{%  endif %}
+
+{%  filter indent(width=parallel_indent) %}
     {{ task_name }} = factory_{{ workflow_task.component_definition_hash | python_safe }}(
 {%  for task_input_name, task_input_spec in workflow_task.task_inputs.items() %}
 {%     if task_input_spec.task_output_reference %}
@@ -79,6 +89,46 @@ def generated_pipeline(
 {%    for env_var_name, env_var_value in workflow_task.task_modifiers.env_variables.items() %}
     {{ task_name }}.add_env_variable(V1EnvVar(name="{{ env_var_name }}", value="{{ env_var_value | string_delimiter_safe }}"))
 {%    endfor %}
+{%    if 'parallel_count' in workflow_task.task_modifiers and workflow_task.task_modifiers.parallel_count is not none %}
+{%      if workflow_task.task_modifiers.parallel_count > 1 %}
+    {{ task_name }}.add_env_variable(V1EnvVar(name="NRANKS", value=str(parallel_count)))
+    {{ task_name }}.add_env_variable(V1EnvVar(name="RANK", value=str(rank)))
+{%      endif %}
+{%    endif %}
+{%    if workflow_engine == "argo" %}
+    {{ task_name }}.add_env_variable(V1EnvVar(
+        name="WORKFLOW_ID",
+        value_from=V1EnvVarSource(
+            field_ref=V1ObjectFieldSelector(
+                api_version="v1", field_path="metadata.labels['workflows.argoproj.io/workflow']"
+            )
+        ),
+    ))
+    {{ task_name }}.add_env_variable(V1EnvVar(
+        name="KFP_NAMESPACE",
+        value_from=V1EnvVarSource(
+            field_ref=V1ObjectFieldSelector(api_version="v1", field_path="metadata.namespace")
+        ),
+    ))
+    {{ task_name }}.add_env_variable(V1EnvVar(
+        name="KFP_POD_NAME",
+        value_from=V1EnvVarSource(
+            field_ref=V1ObjectFieldSelector(api_version="v1", field_path="metadata.name")
+        ),
+    ))
+    {{ task_name }}.add_env_variable(V1EnvVar(
+        name="KFP_POD_UID",
+        value_from=V1EnvVarSource(
+            field_ref=V1ObjectFieldSelector(api_version="v1", field_path="metadata.uid")
+        ),
+    ))
+    {{ task_name }}.add_env_variable(V1EnvVar(
+        name="KFP_RUN_ID",
+        value_from=V1EnvVarSource(
+            field_ref=V1ObjectFieldSelector(api_version="v1", field_path="metadata.labels['pipeline/runid']")
+        ),
+    ))
+{%    endif %}
 {%  endif %}
 {%  if workflow_task.task_modifiers.set_run_name %}
 {%   if workflow_engine == "tekton" %}
@@ -169,6 +219,8 @@ def generated_pipeline(
     {{ task_name }}.after(task_{{ upstream_workflow_task_id | python_safe }})
 {%    endfor %}
 {%  endif %}
+{%  endfilter %}
+
 {% endfor %}
 
 if __name__ == "__main__":

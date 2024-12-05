@@ -73,6 +73,13 @@
             "ui:placeholder": "nvidia.com/gpu"
           }
         },
+        "parallel_count": {
+          "type": "integer",
+          "title": "ParallelCount",
+          "description": "Each component can be run as parallel step, set this >1 to do parallelfor-like operation.",
+          "minimum": 1,
+          "default": 1
+        },
         "pipeline_parameters": {
           "type": "array",
           "title": "Pipeline Parameters",

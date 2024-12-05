@@ -795,6 +795,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 }
 
                 component_definition = generic_component_template.render(
+                    op_name=sanitize_label_value(operation.name),
                     container_image=operation.runtime_image,
                     task_parameters=task_parameters,
                     command_args=self._compose_container_command_args(
@@ -853,6 +854,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 if operation.gpu_vendor:
                     gpu_vendor = operation.gpu_vendor
                 workflow_task["task_modifiers"]["gpu_limit"] = {"size": operation.gpu, "vendor": gpu_vendor}
+                workflow_task["task_modifiers"]["parallel_count"] = operation.parallel_count
 
                 if is_crio_runtime:
                     # Attach empty dir volume
@@ -886,6 +888,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 )
                 # Pipeline node name
                 workflow_task["task_modifiers"]["pod_labels"]["elyra/node-name"] = sanitize_label_value(operation.name)
+                # Original operation name for runtime lookups
+                workflow_task["task_modifiers"]["env_variables"]["ELYRA_OP_NAME"] = operation.name
 
                 # Add non-identifying metadata
                 if workflow_task["task_modifiers"].get("pod_annotations") is None:

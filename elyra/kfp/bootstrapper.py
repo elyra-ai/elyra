@@ -55,6 +55,79 @@ pipeline_name = None  # global used in formatted logging
 operation_name = None  # global used in formatted logging
 
 
+def set_dist_train_config(rank, nranks, step_name, port=9888):
+    """
+    Set distributed training envs for general uses.
+    For Tensorflow: TF_CONFIG is configured.
+    For Pytorch: MASTER_ADDR and MASTER_PORT is configured.
+    For general use cases: NRANKS and RANK is configured.
+
+    TODO: this function is Argo specific, should add Tekton support.
+    """
+    from kubernetes import client, config
+
+    wf_id = os.getenv("WORKFLOW_ID")
+    ns = os.getenv("KFP_NAMESPACE")
+    if not wf_id or not ns:
+        raise ValueError("WORKFLOW_ID and KFP_NAMESPACE env must be set in the workflow pod!")
+
+    config.load_incluster_config()
+    api = client.CustomObjectsApi()
+
+    worker_started = 0
+    while worker_started != nranks:
+        resource = api.get_namespaced_custom_object(
+            group="argoproj.io",
+            version="v1alpha1",
+            name=wf_id,
+            namespace=ns,
+            plural="workflows",
+        )
+        if not resource.get("status"):
+            time.sleep(2)
+            continue
+        if not resource["status"].get("nodes"):
+            time.sleep(2)
+            continue
+
+        nodes = resource["status"]["nodes"]
+        workers_spec = []
+        for nk in nodes:
+            node_info = nodes[nk]
+            OpUtil.log_operation_info(
+                "kfpdist: searching for {}, curr node: {}, templateName: {}, type: {}".format(
+                    step_name, nk, node_info["templateName"], node_info["type"]
+                )
+            )
+            if node_info["templateName"] == step_name and node_info["type"] == "Pod":
+                podid = node_info["id"]
+                for input_param in node_info["inputs"]["parameters"]:
+                    if input_param["name"].find("loop-item") >= 0:
+                        # FIXME: argo parameter with "loop-item" is the rank.
+                        curr_rank = int(input_param["value"])
+                        break
+                v1 = client.CoreV1Api()
+                podinfo = v1.read_namespaced_pod(podid, ns)
+                if podinfo.status.pod_ip:
+                    workers_spec.append((curr_rank, "%s:%d" % (podinfo.status.pod_ip, port)))
+        worker_started = len(workers_spec)
+        time.sleep(2)
+
+    workers_spec.sort(key=lambda item: item[0])
+    workers_spec_list = [i[1] for i in workers_spec]
+    # set TF_CONFIG env for tf dist train
+    os.environ["TF_CONFIG"] = json.dumps(
+        {"cluster": {"worker": workers_spec_list}, "task": {"type": "worker", "index": rank}}
+    )
+    OpUtil.log_operation_info("Setting TF_CONFIG: %s" % os.environ["TF_CONFIG"])
+    os.environ["MASTER_ADDR"] = workers_spec[0][1].split(":")[0]
+    os.environ["MASTER_PORT"] = workers_spec[0][1].split(":")[1]
+    OpUtil.log_operation_info(
+        "Setting MASTER_ADDR: {}, MASTER_PORT: {}".format(os.environ["MASTER_ADDR"], os.environ["MASTER_PORT"])
+    )
+    OpUtil.log_operation_info("Setting RANK: {}, NRANKS: {}".format(os.environ["RANK"], os.environ["NRANKS"]))
+
+
 class FileOpBase(ABC):
     """Abstract base class for file-based operations"""
 
@@ -766,6 +839,22 @@ def main():
     )
     # Setup packages and gather arguments
     input_params = OpUtil.parse_arguments(sys.argv[1:])
+
+    if os.getenv("RANK"):
+        op_name = os.getenv("ELYRA_OP_NAME")
+        if not op_name:
+            raise ValueError(
+                "env ELYRA_OP_NAME is not set. please check whether elyra version is matching bootstrapper.py"
+            )
+
+        # FIXME: operation name will be updated by kfp, replace these chars for matching.
+        op_name = op_name.replace("_", "-")
+        rank = int(os.getenv("RANK"))
+        nranks = int(os.getenv("NRANKS"))
+        if not nranks:
+            raise ValueError("rank argument setted but no NRANKS env found!")
+        set_dist_train_config(rank, nranks, op_name, port=9888)
+
     OpUtil.log_operation_info("starting operation")
     t0 = time.time()
     # must be commented out in airgapped images if packages from

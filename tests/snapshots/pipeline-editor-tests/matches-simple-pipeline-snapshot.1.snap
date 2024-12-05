@@ -37,6 +37,7 @@ Object {
               "kubernetes_tolerations": Array [],
               "mounted_volumes": Array [],
               "outputs": Array [],
+              "parallel_count": 1,
             },
             "label": "",
             "ui_data": Object {
