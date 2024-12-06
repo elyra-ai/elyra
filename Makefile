@@ -156,7 +156,7 @@ build-ui-dev: ## Build UI packages for development
 
 package-ui-prod: build-dependencies yarn-install lint-ui build-ui-prod ## Package UI for production
 
-package-ui-dev: dev-dependencies yarn-install dev-link lint-ui build-ui-dev ## Package UI for development
+package-ui-dev: build-dependencies dev-dependencies yarn-install dev-link lint-ui build-ui-dev ## Package UI for development
 
 build-server: # Build backend
 	$(PYTHON) -m build
