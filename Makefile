@@ -210,7 +210,7 @@ test-dependencies:
 	@$(PYTHON_PIP) install -q -r test_requirements.txt
 
 pytest:
-	$(PYTHON) -m pytest -v --durations=0 --durations-min=60 elyra
+	$(PYTHON) -m pytest -v --durations=0 --durations-min=60 elyra --cov --cov-report=xml
 
 test-server: test-dependencies pytest # Run python unit tests
 
