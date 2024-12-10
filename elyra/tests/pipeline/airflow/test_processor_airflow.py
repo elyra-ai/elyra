@@ -195,7 +195,7 @@ def test_create_file(monkeypatch, processor, parsed_pipeline, parsed_ordered_dic
         with open(response) as f:
             file_as_lines = f.read().splitlines()
 
-        assert "from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator" in file_as_lines
+        assert "from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator" in file_as_lines
 
         # Check DAG project name
         for i in range(len(file_as_lines)):
