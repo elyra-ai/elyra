@@ -227,8 +227,8 @@ class ComponentParser(LoggingConfigurable):  # ABC
     component_platform: RuntimeProcessorType = None
     _file_types: List[str] = None
     _parser_class_map: Dict[str, str] = {
-        "APACHE_AIRFLOW": "elyra.pipeline.airflow.component_parser_airflow:AirflowComponentParser",
-        "KUBEFLOW_PIPELINES": "elyra.pipeline.kfp.component_parser_kfp:KfpComponentParser",
+        "APACHE_AIRFLOW": "elyra.pipeline.airflow.airflow_component_parser:AirflowComponentParser",
+        "KUBEFLOW_PIPELINES": "elyra.pipeline.kfp.kfp_component_parser:KfpComponentParser",
     }
 
     @classmethod
