@@ -1,8 +1,8 @@
 {
-  "display_name": "Tensorflow 2.8.0 with GPU",
+  "display_name": "Tensorflow 2.18.0 with GPU",
   "metadata": {
-    "description": "TensorFlow 2.8 (with GPU support)",
-    "image_name": "tensorflow/tensorflow@sha256:1e03623e335aac1610b1a3cfa6a96cf10156acb095287f9d6031df3980148663",
+    "description": "TensorFlow 2.18.0 (with GPU and Python 3.11)",
+    "image_name": "tensorflow/tensorflow:2.18.0-gpu",
     "tags": ["gpu", "tensorflow"]
   },
   "schema_name": "runtime-image"
