@@ -63,7 +63,7 @@ export const FileSubmissionDialog: React.FC<IProps> = ({
   env,
   images,
   dependencyFileExtension,
-  runtimeData,
+  runtimeData
 }) => {
   const [includeDependency, setIncludeDependency] = React.useState(true);
 

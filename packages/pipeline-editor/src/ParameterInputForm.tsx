@@ -31,14 +31,14 @@ export interface IParameterProps {
 }
 
 export const ParameterInputForm: React.FC<IParameterProps> = ({
-  parameters,
+  parameters
 }) => {
   return parameters && parameters.length > 0 ? (
     <div>
       <label
         style={{
           fontWeight: '600',
-          fontSize: 'var(--jp-content-font-size1)',
+          fontSize: 'var(--jp-content-font-size1)'
         }}
       >
         Parameters
@@ -94,9 +94,9 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
                       left: `-${
                         Math.min(
                           param.name.length,
-                          Math.min(DIALOG_WIDTH, param.description.length),
+                          Math.min(DIALOG_WIDTH, param.description.length)
                         ) - 4
-                      }ch`,
+                      }ch`
                     }}
                     className={'field-description'}
                   >

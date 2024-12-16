@@ -18,7 +18,7 @@ import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
   ABCWidgetFactory,
   DocumentRegistry,
-  DocumentWidget,
+  DocumentWidget
 } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 
@@ -45,7 +45,7 @@ export class ScriptEditorWidgetFactory extends ABCWidgetFactory<
    * Create a new widget given a context.
    */
   protected createNewWidget(
-    context: DocumentRegistry.CodeContext,
+    context: DocumentRegistry.CodeContext
   ): ScriptEditor {
     const newDocumentEditor = this._services.factoryService.newDocumentEditor;
     const factory: CodeEditor.Factory = (options) => {
@@ -54,7 +54,7 @@ export class ScriptEditorWidgetFactory extends ABCWidgetFactory<
     const content = new FileEditor({
       factory,
       context,
-      mimeTypeService: this._services.mimeTypeService,
+      mimeTypeService: this._services.mimeTypeService
     });
 
     return this.options.instanceCreator({ content, context });
@@ -85,7 +85,7 @@ export namespace ScriptEditorWidgetFactory {
      * The function that creates ScriptEditor instances.
      */
     instanceCreator: (
-      options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
+      options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
     ) => ScriptEditor;
   }
 }

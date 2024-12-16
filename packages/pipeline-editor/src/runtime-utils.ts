@@ -34,7 +34,7 @@ export interface IRuntimeData {
 export const createRuntimeData = ({
   runtimes,
   schema,
-  allowLocal,
+  allowLocal
 }: {
   runtimes: IRuntime[];
   schema: ISchema[];
@@ -55,9 +55,9 @@ export const createRuntimeData = ({
           id: r.name,
           displayName: r.display_name,
           processor: {
-            id: r.schema_name,
-          },
-        })),
+            id: r.schema_name
+          }
+        }))
     });
   }
   return { platforms, allowLocal: !!allowLocal };
@@ -77,7 +77,7 @@ export interface IConfigDetails {
 
 export const getConfigDetails = (
   runtimeData: IRuntimeData,
-  configId: string,
+  configId: string
 ): IConfigDetails | undefined => {
   for (const platform of runtimeData.platforms) {
     for (const config of platform.configs) {
@@ -87,11 +87,11 @@ export const getConfigDetails = (
           displayName: config.displayName,
           platform: {
             id: platform.id,
-            displayName: platform.displayName,
+            displayName: platform.displayName
           },
           processor: {
-            id: config.processor.id,
-          },
+            id: config.processor.id
+          }
         };
       }
     }

@@ -29,20 +29,20 @@ interface IProps {
 const RuntimeConfigSelect: React.FC<IProps> = ({
   runtimeData: { platforms, allowLocal },
   pipelineType,
-  children,
+  children
 }) => {
   const filteredPlatforms = platforms.filter((p) => p.configs.length > 0);
   if (allowLocal) {
     filteredPlatforms.unshift({
       id: RUN_LOCALLY_ID,
       displayName: 'Run in-place locally',
-      configs: [],
+      configs: []
     });
   }
 
   // NOTE: platform is only selectable if pipelineType is undefined
   const [platform, setPlatform] = React.useState(
-    pipelineType ?? filteredPlatforms[0]?.id,
+    pipelineType ?? filteredPlatforms[0]?.id
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {

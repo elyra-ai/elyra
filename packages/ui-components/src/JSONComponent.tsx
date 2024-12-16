@@ -36,7 +36,7 @@ const theme = {
   base0C: 'invalid',
   base0D: 'invalid',
   base0E: 'invalid',
-  base0F: 'invalid',
+  base0F: 'invalid'
 };
 
 interface IProps {
@@ -55,7 +55,7 @@ export const JSONComponent: React.FC<IProps> = ({ json }) => (
       extend: theme,
       valueLabel: 'cm-variable',
       valueText: 'cm-string',
-      nestedNodeItemString: 'cm-comment',
+      nestedNodeItemString: 'cm-comment'
     }}
     invertTheme={false}
     hideRoot={true}
@@ -63,7 +63,7 @@ export const JSONComponent: React.FC<IProps> = ({ json }) => (
       type: string,
       data: string,
       itemType: string,
-      itemString: string,
+      itemString: string
     ): any =>
       Array.isArray(data) ? (
         // Always display array type and the number of items i.e. "[] 2 items".

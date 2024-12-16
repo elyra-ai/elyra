@@ -38,7 +38,7 @@ import Utils from './utils';
 
 export class SubmitFileButtonExtension<
   T extends DocumentWidget,
-  U extends DocumentRegistry.IModel,
+  U extends DocumentRegistry.IModel
 > implements DocumentRegistry.IWidgetExtension<T, U>
 {
   showWidget = async (document: T): Promise<void> => {
@@ -49,8 +49,8 @@ export class SubmitFileButtonExtension<
           'This file contains unsaved changes. To run the file as pipeline the changes need to be saved.',
         buttons: [
           Dialog.cancelButton(),
-          Dialog.okButton({ label: 'Save and Submit' }),
-        ],
+          Dialog.okButton({ label: 'Save and Submit' })
+        ]
       });
       if (dialogResult.button.accept === false) {
         return;
@@ -59,10 +59,10 @@ export class SubmitFileButtonExtension<
     }
 
     const env = await ContentParser.getEnvVars(context.path).catch((error) =>
-      RequestErrors.serverError(error),
+      RequestErrors.serverError(error)
     );
     const runtimeTypes: any = await PipelineService.getRuntimeTypes().catch(
-      (error) => RequestErrors.serverError(error),
+      (error) => RequestErrors.serverError(error)
     );
     const runtimes = await PipelineService.getRuntimes()
       .then((runtimeList) => {
@@ -70,17 +70,17 @@ export class SubmitFileButtonExtension<
           return (
             !runtime.metadata.runtime_enabled &&
             !!runtimeTypes.find(
-              (r: any) => runtime.metadata.runtime_type === r.id,
+              (r: any) => runtime.metadata.runtime_type === r.id
             )
           );
         });
       })
       .catch((error) => RequestErrors.serverError(error));
     const images = await PipelineService.getRuntimeImages().catch((error) =>
-      RequestErrors.serverError(error),
+      RequestErrors.serverError(error)
     );
     const schema = await PipelineService.getRuntimesSchema().catch((error) =>
-      RequestErrors.serverError(error),
+      RequestErrors.serverError(error)
     );
 
     const runtimeData = createRuntimeData({ schema, runtimes });
@@ -88,13 +88,13 @@ export class SubmitFileButtonExtension<
     if (!runtimeData.platforms.find((p) => p.configs.length > 0)) {
       const res = await RequestErrors.noMetadataError(
         'runtime',
-        `run file as pipeline.`,
+        `run file as pipeline.`
       );
 
       if (res.button.label.includes(RUNTIMES_SCHEMASPACE)) {
         // Open the runtimes widget
         Utils.getLabShell(document).activateById(
-          `elyra-metadata:${RUNTIMES_SCHEMASPACE}`,
+          `elyra-metadata:${RUNTIMES_SCHEMASPACE}`
         );
       }
       return;
@@ -113,9 +113,9 @@ export class SubmitFileButtonExtension<
           dependencyFileExtension={dependencyFileExtension}
           images={images}
           runtimeData={runtimeData}
-        />,
+        />
       ),
-      buttons: [Dialog.cancelButton(), Dialog.okButton()],
+      buttons: [Dialog.cancelButton(), Dialog.okButton()]
     };
 
     const dialogResult = await showFormDialog(dialogOptions);
@@ -156,7 +156,7 @@ export class SubmitFileButtonExtension<
 
     PipelineService.submitPipeline(
       pipeline,
-      configDetails?.platform.displayName ?? '',
+      configDetails?.platform.displayName ?? ''
     ).catch((error) => RequestErrors.serverError(error));
   };
 
@@ -165,7 +165,7 @@ export class SubmitFileButtonExtension<
     const submitFileButton = new ToolbarButton({
       label: 'Run as Pipeline',
       onClick: (): any => this.showWidget(editor),
-      tooltip: 'Run file as batch',
+      tooltip: 'Run file as batch'
     });
 
     // Add the toolbar button to the editor

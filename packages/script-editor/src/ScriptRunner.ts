@@ -20,8 +20,16 @@ import {
   KernelManager,
   KernelSpecManager,
   Session,
-  SessionManager,
+  SessionManager
 } from '@jupyterlab/services';
+import {
+  IDisplayDataMsg,
+  IErrorMsg,
+  IExecuteResultMsg,
+  IIOPubMessage,
+  IStatusMsg,
+  IStreamMsg
+} from '@jupyterlab/services/lib/kernel/messages';
 
 const KERNEL_ERROR_MSG =
   'Could not run script because no supporting kernel is defined.';
@@ -51,7 +59,7 @@ export class ScriptRunner {
     this.kernelSpecManager = new KernelSpecManager();
     this.kernelManager = new KernelManager();
     this.sessionManager = new SessionManager({
-      kernelManager: this.kernelManager,
+      kernelManager: this.kernelManager
     });
     this.sessionConnection = null;
   }
@@ -61,7 +69,7 @@ export class ScriptRunner {
     return showDialog({
       title: 'Error',
       body: errorMsg,
-      buttons: [Dialog.okButton()],
+      buttons: [Dialog.okButton()]
     });
   };
 
@@ -72,7 +80,7 @@ export class ScriptRunner {
     kernelName: string | null,
     contextPath: string,
     code: string,
-    handleKernelMsg: (msgOutput: any) => void,
+    handleKernelMsg: (msgOutput: any) => void
   ): Promise<any> => {
     if (!kernelName) {
       this.disableButton(true);
@@ -93,28 +101,29 @@ export class ScriptRunner {
 
     const future = this.sessionConnection.kernel.requestExecute({ code });
 
-    future.onIOPub = (msg: any): void => {
+    future.onIOPub = (msg: IIOPubMessage): void => {
+      const msgType = msg.header.msg_type;
       const msgOutput: any = {};
 
-      if (msg.msg_type === 'error') {
+      if (msgType === 'error') {
+        const errorMsg = msg as IErrorMsg;
         msgOutput.error = {
-          type: msg.content.ename,
-          output: msg.content.evalue,
+          type: errorMsg.content.ename,
+          output: errorMsg.content.evalue
         };
-      } else if (
-        msg.msg_type === 'execute_result' ||
-        msg.msg_type === 'display_data'
-      ) {
-        if ('text/plain' in msg.content.data) {
-          msgOutput.output = msg.content.data['text/plain'];
+      } else if (msgType === 'execute_result' || msgType === 'display_data') {
+        const resultMsg = msg as IExecuteResultMsg | IDisplayDataMsg;
+        if ('text/plain' in resultMsg.content.data) {
+          msgOutput.output = resultMsg.content.data['text/plain'];
         } else {
-          // ignore
-          console.log('Ignoring received message ' + msg);
+          console.log('Ignoring received message ' + JSON.stringify(msg));
         }
-      } else if (msg.msg_type === 'stream') {
-        msgOutput.output = msg.content.text;
-      } else if (msg.msg_type === 'status') {
-        msgOutput.status = msg.content.execution_state;
+      } else if (msgType === 'stream') {
+        const streamMsg = msg as IStreamMsg;
+        msgOutput.output = streamMsg.content.text;
+      } else if (msgType === 'status') {
+        const statusMsg = msg as IStatusMsg;
+        msgOutput.status = statusMsg.content.execution_state;
       } else {
         // ignore other message types
       }
@@ -139,15 +148,15 @@ export class ScriptRunner {
    */
   startSession = async (
     kernelName: string,
-    contextPath: string,
+    contextPath: string
   ): Promise<void> => {
     const options: Session.ISessionOptions = {
       kernel: {
-        name: kernelName,
+        name: kernelName
       },
       path: contextPath,
       type: 'file',
-      name: contextPath,
+      name: contextPath
     };
 
     if (!this.sessionConnection || !this.sessionConnection.kernel) {

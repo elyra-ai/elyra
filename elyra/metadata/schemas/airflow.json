@@ -107,7 +107,7 @@
           "description": "Token that has permission to push to the DAG repository",
           "type": "string",
           "uihints": {
-            "ui:field": "password",
+            "ui:field": "@elyra/metadata-extension:plugin.password",
             "category": "Apache Airflow"
           }
         },
@@ -161,7 +161,7 @@
           "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
           "type": "string",
           "uihints": {
-            "ui:field": "password",
+            "ui:field": "@elyra/metadata-extension:plugin.password",
             "category": "Cloud Object Storage"
           }
         },
@@ -179,7 +179,7 @@
           "type": "string",
           "minLength": 8,
           "uihints": {
-            "ui:field": "password",
+            "ui:field": "@elyra/metadata-extension:plugin.password",
             "category": "Cloud Object Storage"
           }
         },
@@ -193,7 +193,7 @@
             "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
           },
           "uihints": {
-            "ui:field": "tags"
+            "ui:field": "@elyra/metadata-extension:plugin.tags"
           }
         }
       },

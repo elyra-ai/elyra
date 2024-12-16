@@ -62,6 +62,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *,cover
+**/coverage/
 
 # Translations
 *.mo
@@ -92,3 +93,5 @@ node_modules
 .vscode/
 
 .yarn/
+
+labextensions/**/labextension/*

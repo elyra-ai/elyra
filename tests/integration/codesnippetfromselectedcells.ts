@@ -14,64 +14,59 @@
  * limitations under the License.
  */
 
-const cellSelector =
-  'div.CodeMirror-lines[role="presentation"] > div[role="presentation"]';
-
 describe('Code snippet from cells tests', () => {
   beforeEach(() => {
     cy.resetJupyterLab();
 
     // Create new python notebook
     cy.get(
-      '.jp-LauncherCard[data-category="Notebook"][title="Python 3 (ipykernel)"]',
+      '.jp-LauncherCard[data-category="Notebook"][title="Python 3 (ipykernel)"]'
     ).click();
 
     cy.wait(2000);
   });
 
   it('test empty cell', () => {
-    cy.get(cellSelector).first().rightclick();
+    cy.get('.jp-Notebook', { timeout: 10000 }).should('have.length', 1);
+    cy.get('.jp-Cell').first().rightclick();
 
     cy.wait(2000);
 
     cy.get(
-      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]',
-    ).should('have.class', 'p-mod-disabled');
+      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
+    ).should('have.class', 'lm-mod-disabled');
   });
 
   it('test 1 cell', () => {
-    // Create new cell
-    cy.get(
-      '.jp-NotebookPanel-toolbar > div:nth-child(2) > button:nth-child(1)',
-    ).click();
-
-    cy.wait(2000);
-
     populateCells();
 
-    cy.get(cellSelector).first().rightclick({
-      force: true,
-    });
+    cy.get('.jp-Notebook', { timeout: 10000 }).should('have.length', 1);
+    cy.get('.jp-Cell').first().rightclick();
 
     cy.wait(2000);
 
     cy.get(
-      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]',
+      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
     ).click();
 
     cy.wait(2000);
 
     // Verify snippet editor contents
-    cy.get('span[role="presentation"]:visible').should(
-      'have.text',
-      'print("test")',
+    cy.get('.elyra-metadataEditor .cm-editor .cm-content .cm-line').then(
+      (lines) => {
+        const content = [...lines]
+          .map((line) => line.innerText)
+          .join('\n')
+          .trim();
+        expect(content).to.equal('print("test")');
+      }
     );
   });
 
   it('test 2 cells', () => {
     // Create new cells
     cy.get(
-      '.jp-NotebookPanel-toolbar > div:nth-child(2) > button:nth-child(1)',
+      '.jp-NotebookPanel-toolbar > div:nth-child(2) > jp-button:nth-child(1)'
     ).click();
 
     cy.wait(2000);
@@ -80,31 +75,38 @@ describe('Code snippet from cells tests', () => {
 
     // Select all cells
     cy.get(
-      ':nth-child(1) > .jp-Cell-inputWrapper > .jp-InputArea > .jp-InputPrompt',
+      ':nth-child(1) > .jp-Cell-inputWrapper > .jp-InputArea > .jp-InputPrompt'
     )
       .first()
       .click({
-        shiftKey: true,
+        shiftKey: true
       });
 
-    cy.get('div.lm-Widget.p-Widget.jp-InputPrompt.jp-InputArea-prompt:visible')
+    cy.get('div.lm-Widget.lm-Widget.jp-InputPrompt.jp-InputArea-prompt:visible')
       .first()
       .rightclick({
-        force: true,
+        force: true
       });
 
     cy.wait(2000);
 
     cy.get(
-      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]',
+      'li.lm-Menu-item[data-command="codesnippet:save-as-snippet"]'
     ).click();
 
     cy.wait(2000);
 
     // Verify snippet editor contents
-    cy.get(
-      '.elyra-form-code > .CodeMirror > .CodeMirror-scroll span[role="presentation"]:contains("test")',
-    ).should('have.length', 2);
+    cy.get('.elyra-metadataEditor .cm-editor .cm-content .cm-line').then(
+      (lines) => {
+        const content = [...lines]
+          .map((line) => line.innerText)
+          .join('\n')
+          .trim();
+        const occurrences = (content.match(/print\("test"\)/g) || []).length;
+        expect(occurrences).to.equal(2);
+      }
+    );
   });
 });
 
@@ -114,8 +116,12 @@ describe('Code snippet from cells tests', () => {
 
 // Populate cells
 const populateCells = (): void => {
-  cy.get('span[role="presentation"]').each((cell) => {
-    cy.get(cell).type('print("test")');
-    cy.dismissAssistant('notebook');
+  cy.get('.jp-Cell').each(($cell) => {
+    cy.wrap($cell).click();
+    cy.wrap($cell).should('have.class', 'jp-mod-selected');
+    cy.wrap($cell)
+      .find('.jp-InputArea')
+      .click()
+      .type('print("test")', { delay: 100 });
   });
 };

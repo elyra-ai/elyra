@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-.PHONY: help purge uninstall-src uninstall clean
+.PHONY: help purge uninstall clean
 .PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
 .PHONY: build-dependencies dev-dependencies yarn-install build-ui package-ui package-ui-dev
@@ -35,7 +35,7 @@ CONTAINER_OUTPUT_OPTION?=--output=type=docker
 # Python execs
 PYTHON?=python3
 PYTHON_PIP=$(PYTHON) -m pip
-PYTHON_VERSION?=3.9
+PYTHON_VERSION?=3.11
 
 CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate
 
@@ -75,24 +75,7 @@ purge:
 	rm -rf $$(find . -name .pytest_cache)
 	rm -rf $(yarn cache dir)
 
-uninstall-src: # Uninstalls source extensions if they're still installed
-	- jupyter labextension unlink --no-build @elyra/services
-	- jupyter labextension unlink --no-build @elyra/ui-components
-	- jupyter labextension unlink --no-build @elyra/metadata-common
-	- jupyter labextension unlink --no-build @elyra/script-editor
-	- jupyter labextension uninstall --no-build @elyra/theme-extension
-	- jupyter labextension uninstall --no-build @elyra/code-snippet-extension
-	- jupyter labextension uninstall --no-build @elyra/metadata-extension
-	- jupyter labextension uninstall --no-build @elyra/pipeline-editor-extension
-	- jupyter labextension uninstall --no-build @elyra/python-editor-extension
-	- jupyter labextension uninstall --no-build @elyra/r-editor-extension
-	- jupyter labextension uninstall --no-build @elyra/scala-editor-extension
-	- jupyter labextension uninstall --no-build @elyra/code-viewer-extension
-	- jupyter labextension uninstall --no-build @elyra/script-debugger-extension
-	- jupyter labextension unlink --no-build @elyra/pipeline-services
-	- jupyter labextension unlink --no-build @elyra/pipeline-editor
-
-uninstall: uninstall-src
+uninstall:
 	$(PYTHON_PIP) uninstall -y jupyterlab-git
 	$(PYTHON_PIP) uninstall -y nbdime
 	$(PYTHON_PIP) uninstall -y jupyter-lsp
@@ -179,7 +162,7 @@ uninstall-server-package:
 	@$(PYTHON_PIP) uninstall elyra -y
 
 install-server-package: uninstall-server-package
-	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")[kfp-tekton]"
+	$(PYTHON_PIP) install --upgrade --upgrade-strategy $(UPGRADE_STRATEGY) "$(shell find dist -name "elyra-*-py3-none-any.whl")"
 
 install-server: build-dependencies lint-server build-server install-server-package ## Build and install backend
 

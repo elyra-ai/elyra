@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 /* global module, require */
-module.exports = require('../../testutils/jest.config');
+module.exports = require('../../testutils/jest.config.js');

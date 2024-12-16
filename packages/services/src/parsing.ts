@@ -37,7 +37,7 @@ export class ContentParser {
   static async getEnvVars(file_path: string): Promise<any> {
     try {
       const response = await RequestHandler.makeGetRequest(
-        ELYRA_FILE_PARSER_API_ENDPOINT + file_path,
+        ELYRA_FILE_PARSER_API_ENDPOINT + file_path
       );
       // Only return environment var names (not values)
       return Object.keys(response.env_vars);

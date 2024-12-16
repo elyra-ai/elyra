@@ -13,30 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//import { Field } from '@rjsf/utils';
+import { FieldProps } from '@rjsf/utils';
+
 import React from 'react';
 
 import { viewIcon, viewOffIcon } from '..';
 
-interface IPassFieldProps {
-  registry: any;
-  uiSchema: any;
-}
-
 /**
  * React component to edit and display password fields. Adds a button to hide / show text input.
  */
-export const PasswordField: React.FC<IPassFieldProps> = (props: any) => {
-  const { StringField } = props.registry.fields;
+export const PasswordField: React.FC<FieldProps> = (props: FieldProps) => {
+  const {
+    idSchema,
+    uiSchema,
+    registry: {
+      fields: { StringField }
+    }
+  } = props;
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
     <div className="elyra-passwordField">
       <StringField
         {...props}
+        idSchema={idSchema}
         uiSchema={{
-          ...props.uiSchema,
-          'ui:widget': showPassword ? undefined : 'password',
+          ...uiSchema,
+          'ui:widget': showPassword ? undefined : 'password'
         }}
       />
       <button

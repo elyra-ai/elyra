@@ -19,7 +19,7 @@ import { elyraIcon } from '@elyra/ui-components';
 import {
   Launcher as JupyterlabLauncher,
   LauncherModel as JupyterLauncherModel,
-  ILauncher,
+  ILauncher
 } from '@jupyterlab/launcher';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
@@ -36,7 +36,7 @@ const ELYRA_CATEGORY = 'Elyra';
 const CommandIDs = {
   newFile: 'fileeditor:create-new',
   createNewPythonEditor: 'script-editor:create-new-python-editor',
-  createNewREditor: 'script-editor:create-new-r-editor',
+  createNewREditor: 'script-editor:create-new-r-editor'
 };
 
 export class LauncherModel extends JupyterLauncherModel {
@@ -89,7 +89,7 @@ export class Launcher extends JupyterlabLauncher {
 
   private replaceCategoryIcon(
     category: React.ReactElement,
-    icon: LabIcon,
+    icon: LabIcon
   ): React.ReactElement {
     const children = React.Children.map(category.props.children, (child) => {
       if (child.props.className === 'jp-Launcher-sectionHeader') {
@@ -101,7 +101,7 @@ export class Launcher extends JupyterlabLauncher {
             } else {
               return grandchild;
             }
-          },
+          }
         );
 
         return React.cloneElement(child, child.props, grandchildren);
@@ -134,7 +134,7 @@ export class Launcher extends JupyterlabLauncher {
       this._translator.__('Notebook'),
       this._translator.__('Console'),
       ELYRA_CATEGORY,
-      this._translator.__('Other'),
+      this._translator.__('Other')
     ];
 
     // Assemble the final ordered list of categories

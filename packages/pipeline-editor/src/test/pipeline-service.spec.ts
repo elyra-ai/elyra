@@ -37,10 +37,10 @@ describe('@elyra/pipeline-editor', () => {
         const expected_runtime_ids = [
           'APACHE_AIRFLOW',
           'KUBEFLOW_PIPELINES',
-          'LOCAL',
+          'LOCAL'
         ];
         expect(
-          runtime_types.map((runtime_type) => runtime_type.id),
+          runtime_types.map((runtime_type) => runtime_type.id)
         ).toStrictEqual(expected_runtime_ids);
       });
     });

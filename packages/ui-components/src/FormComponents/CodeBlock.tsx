@@ -15,48 +15,40 @@
  */
 
 import { CodeEditor } from '@jupyterlab/codeeditor';
+import { FieldProps } from '@rjsf/utils';
 import * as React from 'react';
 
-interface ICodeBlockProps {
-  formContext: {
-    editorServices: any;
-    language: string;
-  };
-  formData?: any;
-  schema: {
-    default?: string[];
-  };
-  onChange: (newData: string[]) => void;
-}
-
-export const CodeBlock: React.FC<ICodeBlockProps> = (
-  props: ICodeBlockProps,
-) => {
+export const CodeBlock: React.FC<FieldProps> = (props: FieldProps) => {
+  const { formData, formContext, onChange, schema } = props;
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 
   // `editorServices` should never change so make it a ref.
-  const servicesRef = React.useRef(props.formContext.editorServices);
+  const servicesRef = React.useRef(formContext.editorServices);
 
   React.useEffect(() => {
-    const handleChange = (args: any): void => {
-      props.onChange(args.text.split('\n'));
+    const handleChange = (): void => {
+      const source = editorRef.current?.model.sharedModel.getSource();
+      onChange(source ? source.split('\n') : undefined);
     };
 
     if (codeBlockRef.current !== null) {
-      editorRef.current = servicesRef.current.factoryService.newInlineEditor({
+      const content =
+        formData?.join('\n') ?? (schema.default as string[])?.join('\n');
+      const mimeType =
+        servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
+          name: formContext.language,
+          codemirror_mode: formContext.language
+        });
+      const newEditor = servicesRef.current.factoryService.newInlineEditor({
         host: codeBlockRef.current,
-        model: new CodeEditor.Model({
-          sharedModel:
-            props.formData?.join('\n') ??
-            (props.schema.default as string[])?.join('\n'),
-          mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
-            name: props.formContext.language,
-            codemirror_mode: props.formContext.language,
-          }),
-        }),
+        model: new CodeEditor.Model({ mimeType })
       });
-      editorRef.current?.model.sharedModel.changed.connect(handleChange);
+      if (content) {
+        newEditor.model.sharedModel.setSource(content);
+      }
+      newEditor.model.sharedModel.changed.connect(handleChange);
+      editorRef.current = newEditor;
     }
 
     return (): void => {
@@ -73,11 +65,11 @@ export const CodeBlock: React.FC<ICodeBlockProps> = (
     if (editorRef.current !== undefined) {
       editorRef.current.model.mimeType =
         servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
-          name: props.formContext.language,
-          codemirror_mode: props.formContext.language,
+          name: formContext.language,
+          codemirror_mode: formContext.language
         });
     }
-  }, [props.formContext.language]);
+  }, [formContext.language]);
 
   return <div ref={codeBlockRef} className="elyra-form-code" />;
 };

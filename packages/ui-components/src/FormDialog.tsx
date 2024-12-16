@@ -35,7 +35,7 @@ const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
  */
 export const showFormDialog = async (
   options: Partial<Dialog.IOptions<any>>,
-  formValidationFunction?: (dialog: Dialog<any>) => void,
+  formValidationFunction?: (dialog: Dialog<any>) => void
 ): Promise<Dialog.IResult<any>> => {
   const dialogBody = options.body;
   const dialog = new Dialog(options);
@@ -63,12 +63,12 @@ export const showFormDialog = async (
 
             if (elementTagName === 'select' || element.type === 'number') {
               element.addEventListener('change', (event: Event) =>
-                validateDialogButton(),
+                validateDialogButton()
               );
             }
             if (['input', 'textarea'].includes(elementTagName)) {
               element.addEventListener('keyup', (event: Event) =>
-                validateDialogButton(),
+                validateDialogButton()
               );
             }
 
@@ -78,7 +78,7 @@ export const showFormDialog = async (
 
       preventDefaultDialogHandler(
         () => isFormValid(fieldsToBeValidated),
-        dialog,
+        dialog
       );
       validateDialogButton();
     }
@@ -96,7 +96,7 @@ export const enableButton = (button: HTMLButtonElement): void => {
 
 const getDefaultButton = (
   options: Partial<Dialog.IOptions<any>>,
-  node: HTMLElement,
+  node: HTMLElement
 ): HTMLButtonElement => {
   const defaultButtonIndex =
     options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
@@ -109,7 +109,7 @@ const getDefaultButton = (
 // Prevent user from bypassing validation upon pressing the 'Enter' key
 const preventDefaultDialogHandler = (
   isFormValidFn: () => boolean,
-  dialog: Dialog<any>,
+  dialog: Dialog<any>
 ): void => {
   const dialogHandleEvent = dialog.handleEvent;
   dialog.handleEvent = (event: Event): void => {

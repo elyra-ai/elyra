@@ -78,7 +78,7 @@ export class RequestErrors {
         ) : (
           <p>{defaultBody}</p>
         ),
-      buttons: [Dialog.okButton()],
+      buttons: [Dialog.okButton()]
     });
   }
 
@@ -95,7 +95,7 @@ export class RequestErrors {
           Endpoint <code>{endpoint}</code> not found.
         </p>
       ),
-      buttons: [Dialog.okButton()],
+      buttons: [Dialog.okButton()]
     });
   }
 
@@ -114,7 +114,7 @@ export class RequestErrors {
   static noMetadataError(
     schemaspace: string,
     action?: string,
-    schemaName?: string,
+    schemaName?: string
   ): Promise<Dialog.IResult<any>> {
     return showDialog({
       title: action ? `Cannot ${action}` : 'Error retrieving metadata',
@@ -130,7 +130,7 @@ export class RequestErrors {
       buttons:
         schemaspace === 'runtime'
           ? [Dialog.cancelButton(), Dialog.okButton({ label: `Open runtimes` })]
-          : [Dialog.okButton()],
+          : [Dialog.okButton()]
     });
   }
 }

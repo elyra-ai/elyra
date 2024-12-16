@@ -19,7 +19,7 @@ import '../style/index.css';
 import {
   caretDownIcon,
   caretRightIcon,
-  LabIcon,
+  LabIcon
 } from '@jupyterlab/ui-components';
 import * as React from 'react';
 
@@ -68,7 +68,7 @@ export const ExpandableComponent: React.FC<IExpandableComponentProps> = ({
   onExpand,
   onBeforeExpand,
   onMouseDown,
-  children,
+  children
 }) => {
   const [expanded, setExpandedValue] = React.useState(false);
 

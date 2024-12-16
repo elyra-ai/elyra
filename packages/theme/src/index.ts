@@ -18,7 +18,7 @@ import { elyraIcon, helpIcon, whatsNewIcon } from '@elyra/ui-components';
 import {
   ILabShell,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin,
+  JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -40,7 +40,7 @@ const ELYRA_THEME_NAMESPACE = 'elyra-theme-extension';
 const CommandIDs = {
   create: 'launcher:create',
   openHelp: 'elyra:open-help',
-  releases: 'elyra:releases',
+  releases: 'elyra:releases'
 };
 
 export interface IProps {
@@ -61,13 +61,13 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
     translator: ITranslator,
     labShell: ILabShell,
     mainMenu: IMainMenu,
-    palette: ICommandPalette | null,
+    palette: ICommandPalette | null
   ): ILauncher => {
     console.log('Elyra - theme extension is activated!');
 
     // Find the MainLogo widget in the shell and replace it with the Elyra Logo
     const widgets = app.shell.widgets('top');
-    const next = widgets.next();
+    let next = widgets.next();
 
     while (!next.done) {
       const widget = next.value;
@@ -85,13 +85,14 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
           justify: 'center',
           margin: '2px 5px 2px 5px',
           height: 'auto',
-          width: '20px',
+          width: '20px'
         };
 
         elyraIcon.element(propsWithJustify);
 
         break;
       }
+      next = widgets.next();
     }
 
     // Use custom Elyra launcher
@@ -113,7 +114,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
           cwd,
           callback,
           commands,
-          translator,
+          translator
         });
 
         launcher.model = model;
@@ -128,7 +129,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
 
         shell.add(main, 'main', {
           activate: args['activate'] as boolean,
-          ref: args['ref'] as string,
+          ref: args['ref'] as string
         });
 
         labShell.layoutModified.connect(() => {
@@ -137,13 +138,13 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
         }, main);
 
         return main;
-      },
+      }
     });
 
     if (palette) {
       palette.addItem({
         command: CommandIDs.create,
-        category: trans.__('Launcher'),
+        category: trans.__('Launcher')
       });
     }
 
@@ -158,11 +159,11 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
           if (commands.hasCommand('filebrowser:create-main-launcher')) {
             // If a file browser is defined connect the launcher to it
             return commands.execute('filebrowser:create-main-launcher', {
-              ref,
+              ref
             });
           }
           return commands.execute(CommandIDs.create, { ref });
-        },
+        }
       );
     }
 
@@ -171,7 +172,7 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       icon: helpIcon,
       execute: (args: any) => {
         window.open('https://elyra.readthedocs.io/en/latest/', '_blank');
-      },
+      }
     });
 
     commands.addCommand(CommandIDs.releases, {
@@ -181,25 +182,25 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
       execute: (args: any) => {
         window.open(
           'https://github.com/elyra-ai/elyra/releases/latest/',
-          '_blank',
+          '_blank'
         );
-      },
+      }
     });
 
     model.add({
       command: CommandIDs.openHelp,
       category: 'Elyra',
-      rank: 10,
+      rank: 10
     });
 
     model.add({
       command: CommandIDs.releases,
       category: 'Elyra',
-      rank: 11,
+      rank: 11
     });
 
     return model;
-  },
+  }
 };
 
 /**

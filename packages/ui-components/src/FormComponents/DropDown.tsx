@@ -14,39 +14,24 @@
  * limitations under the License.
  */
 
-//import Field from '@rjsf/core';
+import { FieldProps } from '@rjsf/utils';
 
 import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
-interface IDropDownProps {
-  defaultValue: string;
-  formContext: {
-    languageOptions: string[];
-  };
-  schema: {
-    title?: string;
-  };
-  name: string;
-  required: boolean;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  formData: string;
-  id: string;
-}
-
-export const DropDown: React.FC<IDropDownProps> = ({
-  defaultValue,
-  formContext,
-  schema,
-  name,
-  required,
-  onChange,
-  placeholder,
-  formData,
-  id,
-}) => {
+export const DropDown: React.FC<FieldProps> = (props: FieldProps) => {
+  const {
+    defaultValue,
+    formContext,
+    schema,
+    name,
+    required,
+    onChange,
+    placeholder,
+    formData,
+    id
+  } = props;
   const label = schema.title ?? name;
   const [current, setValue] = React.useState(formData ?? defaultValue);
 

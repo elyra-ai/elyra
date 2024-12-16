@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Component source location: https://raw.githubusercontent.com/kubeflow/pipelines/master/components/sample/Shell_script/component.yaml
+# Component source location: https://raw.githubusercontent.com/kubeflow/pipelines/sdk-2.8.0/components/contrib/sample/Shell_script/component.yaml
 # Component details: Takes a text file and a regex pattern filter to produce a filtered text file
-name: Filter text
+name: Filter text using shell and grep
 inputs:
-- {name: Text, optional: false, description: 'Path to file to be filtered'}
-- {name: Pattern, optional: true, default: '.*', description: 'Regex pattern'}
+- {name: Text, type: String}
+- {name: Pattern, default: '.*', type: String}
 outputs:
-- {name: Filtered text}
+- {name: Filtered text, type: String}
 metadata:
   annotations:
     author: Alexey Volkov <alexey.volkov@ark-kun.com>
+    canonical_location: 'https://raw.githubusercontent.com/Ark-kun/pipeline_components/master/components/sample/Shell_script/component.yaml'
 implementation:
   container:
     image: alpine
@@ -34,8 +35,5 @@ implementation:
       pattern=$1
       filtered_text_path=$2
       mkdir -p "$(dirname "$filtered_text_path")"
-      
+
       grep "$pattern" < "$text_path" > "$filtered_text_path"
-    - {inputPath: Text}
-    - {inputValue: Pattern}
-    - {outputPath: Filtered text}

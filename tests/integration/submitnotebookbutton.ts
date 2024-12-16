@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 describe('Submit Notebook Button tests', () => {
-  beforeEach(() => {
+  before(() => {
     cy.deleteFile('*.ipynb');
 
     cy.bootstrapFile('helloworld.ipynb');
+  });
 
+  beforeEach(() => {
     cy.resetJupyterLab();
   });
 
-  afterEach(() => {
+  after(() => {
     cy.deleteFile('*.ipynb');
-
-    // Delete runtime configuration used for testing
-    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
-      failOnNonZeroExit: false,
-    });
   });
 
   it('check Submit Notebook button exists', () => {
@@ -53,6 +50,11 @@ describe('Submit Notebook Button tests', () => {
 
     // Dismiss  dialog
     cy.findByRole('button', { name: /cancel/i }).click();
+
+    // Delete runtime configuration used for testing
+    cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
+      failOnNonZeroExit: false
+    });
   });
 });
 
@@ -62,7 +64,7 @@ describe('Submit Notebook Button tests', () => {
 
 const openNewNotebookFile = (): void => {
   cy.get(
-    '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible',
+    '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible'
   )
     .first()
     .click();

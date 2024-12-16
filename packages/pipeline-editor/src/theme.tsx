@@ -21,7 +21,7 @@ import {
   editIcon,
   folderIcon,
   LabIcon,
-  paletteIcon,
+  paletteIcon
 } from '@jupyterlab/ui-components';
 import * as React from 'react';
 
@@ -54,24 +54,24 @@ const theme: any = {
     primary: {
       main: 'var(--jp-inverse-layout-color4)',
       hover: 'transparent',
-      contrastText: 'var(--jp-layout-color1)',
+      contrastText: 'var(--jp-layout-color1)'
     },
     secondary: {
       main: 'transparent',
-      contrastText: 'var(--jp-content-font-color1)',
+      contrastText: 'var(--jp-content-font-color1)'
     },
     error: {
       main: 'var(--jp-error-color0)',
-      contrastText: 'var(--jp-icon-contrast-color3)',
+      contrastText: 'var(--jp-icon-contrast-color3)'
     },
     errorMessage: {
       main: 'var(--jp-error-color1)',
       contrastText: 'rgba(255, 255, 255, 0.9)',
-      errorBorder: 'var(--jp-error-color0)',
+      errorBorder: 'var(--jp-error-color0)'
     },
     icon: {
       primary: 'var(--jp-ui-font-color0)',
-      secondary: 'var(--jp-ui-font-color0)',
+      secondary: 'var(--jp-ui-font-color0)'
     },
     text: {
       primary: 'var(--jp-content-font-color0)',
@@ -81,26 +81,26 @@ const theme: any = {
       disabled: 'var(--jp-content-font-color3)',
       link: 'var(--jp-content-link-color)',
       error: 'var(--jp-error-color0)',
-      icon: 'var(--jp-inverse-layout-color2)',
+      icon: 'var(--jp-inverse-layout-color2)'
     },
     background: {
       default: 'var(--jp-layout-color1)',
       secondary: 'var(--jp-border-color2)',
-      input: 'transparent',
+      input: 'transparent'
     },
     highlight: {
       border: 'transparent',
       hover: 'var(--jp-content-font-color0)',
-      focus: 'transparent',
-    },
+      focus: 'transparent'
+    }
   },
   shape: {
-    borderRadius: '4px',
+    borderRadius: '4px'
   },
   typography: {
     fontFamily: 'var(--jp-ui-font-family)',
     fontWeight: 'normal',
-    fontSize: 'var(--jp-content-font-size1)',
+    fontSize: 'var(--jp-content-font-size1)'
   },
   overrides: {
     deleteIcon: LabIcon.resolveReact({ icon: trashIcon }),
@@ -118,8 +118,8 @@ const theme: any = {
         <path d="M14.431 3.323l-8.47 10-.79-.036-3.35-4.77.818-.574 2.978 4.24 8.051-9.506.764.646z" />
       </SvgIcon>
     ),
-    chevronDownIcon: LabIcon.resolveReact({ icon: caretDownEmptyIcon }),
-  },
+    chevronDownIcon: LabIcon.resolveReact({ icon: caretDownEmptyIcon })
+  }
 };
 
 export { theme };

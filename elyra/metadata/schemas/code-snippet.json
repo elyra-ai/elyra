@@ -42,7 +42,7 @@
             "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
           },
           "uihints": {
-            "ui:field": "tags"
+            "ui:field": "@elyra/metadata-extension:plugin.tags"
           }
         },
         "language": {
@@ -50,7 +50,7 @@
           "description": "Code snippet implementation language",
           "type": "string",
           "uihints": {
-            "ui:field": "dropdown",
+            "ui:field": "@elyra/metadata-extension:plugin.dropdown",
             "default_choices": ["Python", "Java", "R", "Scala", "Markdown"],
             "category": "Source"
           },
@@ -64,7 +64,7 @@
             "type": "string"
           },
           "uihints": {
-            "ui:field": "code",
+            "ui:field": "@elyra/metadata-extension:plugin.code",
             "category": "Source"
           }
         }

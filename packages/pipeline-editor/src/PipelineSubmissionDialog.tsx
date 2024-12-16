@@ -31,7 +31,7 @@ export const PipelineSubmissionDialog: React.FC<IProps> = ({
   name,
   runtimeData,
   pipelineType,
-  parameters,
+  parameters
 }) => {
   return (
     <form className="elyra-dialog-form">

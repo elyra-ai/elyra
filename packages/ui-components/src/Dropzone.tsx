@@ -69,7 +69,7 @@ export const useDropzone = (props: IPropsWithChildren): IReturn => {
           break;
       }
     },
-    [props],
+    [props]
   );
 
   useEffect(() => {
@@ -89,8 +89,8 @@ export const useDropzone = (props: IPropsWithChildren): IReturn => {
 
   return {
     getRootProps: (): IRootProps => ({
-      ref: rootRef,
-    }),
+      ref: rootRef
+    })
   };
 };
 

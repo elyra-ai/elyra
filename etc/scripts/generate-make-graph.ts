@@ -63,7 +63,7 @@ make.stdout.on('data', (data: Buffer) => {
       graph.push({
         type: 'target',
         name,
-        depth: depthString.length / 2,
+        depth: depthString.length / 2
       });
       continue;
     }
@@ -79,7 +79,7 @@ make.stdout.on('data', (data: Buffer) => {
       depth = depthString.length / 2;
       graph.push({
         type: 'end',
-        depth,
+        depth
       });
       depth = undefined;
       continue;
@@ -89,7 +89,7 @@ make.stdout.on('data', (data: Buffer) => {
       graph.push({
         type: 'code',
         value: msg.toString(),
-        depth,
+        depth
       });
       continue;
     }
@@ -107,7 +107,7 @@ const printGraph = (): void => {
       const spacer = ' '.repeat(cellWidth - g.name.length - 2);
       console.log(`${padLeft}┌${bar}┐${padRight}`);
       console.log(
-        `${padLeft}│ ${chalk.cyan.bold(g.name)}${spacer} |${padRight}`,
+        `${padLeft}│ ${chalk.cyan.bold(g.name)}${spacer} |${padRight}`
       );
       continue;
     }

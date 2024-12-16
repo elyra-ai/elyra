@@ -17,7 +17,6 @@
 import fs from 'fs';
 
 import { diffStringsUnified } from 'jest-diff';
-import { utils } from 'jest-snapshot';
 
 const createSnapshot = (value: any): string => {
   let obj = value;
@@ -28,12 +27,9 @@ const createSnapshot = (value: any): string => {
     // no-op
   }
 
-  const serializedObj = utils.serialize(obj);
-
-  // replace UUIDs with something generic
-  return serializedObj.replace(
+  return JSON.stringify(obj, null, 2).replace(
     /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi,
-    'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
   );
 };
 
@@ -76,13 +72,13 @@ export const register = (on: any, _config: any): void => {
             bColor: noColor,
             changeColor: noColor,
             commonColor: noColor,
-            patchColor: noColor,
+            patchColor: noColor
           });
 
           return {
             status: 'fail',
             name: 'Snapshot Match Error',
-            message: `Value does not match stored snapshot:\n${diff}`,
+            message: `Value does not match stored snapshot:\n${diff}`
           };
         }
 
@@ -93,12 +89,12 @@ export const register = (on: any, _config: any): void => {
         return {
           status: 'fail',
           name: 'Snapshot Not Found',
-          message: `${path} does not exist.`,
+          message: `${path} does not exist.`
         };
       }
 
       fs.writeFileSync(path, newSnap);
       return { status: 'new' };
-    },
+    }
   });
 };

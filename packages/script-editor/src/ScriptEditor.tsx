@@ -14,35 +14,36 @@
  * limitations under the License.
  */
 
-import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
+import { Dialog, ToolbarButton, showDialog } from '@jupyterlab/apputils';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { ScrollingWidget } from '@jupyterlab/logconsole';
 import {
   OutputArea,
   OutputAreaModel,
-  OutputPrompt,
+  OutputPrompt
 } from '@jupyterlab/outputarea';
 import {
   RenderMimeRegistry,
-  standardRendererFactories as initialFactories,
+  standardRendererFactories as initialFactories
 } from '@jupyterlab/rendermime';
 import {
+  DockPanelSvg,
+  LabIcon,
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
-  DockPanelSvg,
   runIcon,
   saveIcon,
-  stopIcon,
-  LabIcon,
+  stopIcon
 } from '@jupyterlab/ui-components';
 
-import { Signal, ISignal } from '@lumino/signaling';
+import { ISignal, Signal } from '@lumino/signaling';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 
 import React, { RefObject } from 'react';
 
-import { KernelDropdown, ISelect } from './KernelDropdown';
+import { ISelect, KernelDropdown } from './KernelDropdown';
 import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
@@ -69,7 +70,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   private dockPanel?: DockPanelSvg;
   private outputAreaWidget?: OutputArea;
   private scrollingWidget?: ScrollingWidget<OutputArea>;
-  private model: any;
+  private model: CodeEditor.IModel;
   private emptyOutput: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
@@ -79,13 +80,13 @@ export abstract class ScriptEditor extends DocumentWidget<
   protected runButton: ToolbarButton;
   protected defaultKernel: string | null;
   abstract getLanguage(): string;
-  abstract getIcon(): LabIcon | string;
+  abstract getIcon(): LabIcon;
 
   /**
    * Construct a new editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
   ) {
     super(options);
     this.addClass(SCRIPT_EDITOR_CLASS);
@@ -99,14 +100,13 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.kernelName = null;
     this._kernelSelectionChanged = new Signal<this, string>(this);
 
-    // Add icon to main tab
-    this.title.icon = this.model.getIcon();
+    this.title.icon = this.getIcon();
 
     // Add toolbar widgets
     const saveButton = new ToolbarButton({
       icon: saveIcon,
       onClick: this.saveFile,
-      tooltip: 'Save file contents',
+      tooltip: 'Save file contents'
     });
 
     const runButton = new ToolbarButton({
@@ -114,13 +114,13 @@ export abstract class ScriptEditor extends DocumentWidget<
       icon: runIcon,
       onClick: this.runScript,
       tooltip: 'Run',
-      enabled: !this.runDisabled,
+      enabled: !this.runDisabled
     });
 
     const interruptButton = new ToolbarButton({
       icon: stopIcon,
       onClick: this.interruptRun,
-      tooltip: 'Interrupt the kernel',
+      tooltip: 'Interrupt the kernel'
     });
 
     // Populate toolbar with button widgets
@@ -170,15 +170,15 @@ export abstract class ScriptEditor extends DocumentWidget<
           kernelSpecs,
           this.defaultKernel,
           this.kernelSelectorRef,
-          this.handleKernelSelectionUpdate,
-        ),
+          this.handleKernelSelectionUpdate
+        )
       );
     }
     this._kernelSelectionChanged.emit(this.kernelSelection);
   };
 
   private handleKernelSelectionUpdate = async (
-    selectedKernel: string,
+    selectedKernel: string
   ): Promise<void> => {
     if (selectedKernel === this.kernelName) {
       return;
@@ -203,7 +203,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     const renderMimeRegistry = new RenderMimeRegistry({ initialFactories });
     this.outputAreaWidget = new OutputArea({
       rendermime: renderMimeRegistry,
-      model,
+      model
     });
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
 
@@ -224,8 +224,8 @@ export abstract class ScriptEditor extends DocumentWidget<
       await this.runner.runScript(
         this.kernelName,
         this.context.path,
-        this.model.value.text,
-        this.handleKernelMsg,
+        this.model.sharedModel.getSource(),
+        this.handleKernelMsg
       );
     }
   };
@@ -273,7 +273,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   };
 
   private createScrollButtons = (
-    scrollingWidget: ScrollingWidget<OutputArea>,
+    scrollingWidget: ScrollingWidget<OutputArea>
   ): void => {
     const scrollUpButton = document.createElement('button');
     const scrollDownButton = document.createElement('button');
@@ -288,12 +288,12 @@ export abstract class ScriptEditor extends DocumentWidget<
     caretUpEmptyThinIcon.element({
       container: scrollUpButton,
       elementPosition: 'center',
-      title: 'Top',
+      title: 'Top'
     });
     caretDownEmptyThinIcon.element({
       container: scrollDownButton,
       elementPosition: 'center',
-      title: 'Bottom',
+      title: 'Bottom'
     });
     this.dockPanel?.node.appendChild(scrollUpButton);
     this.dockPanel?.node.appendChild(scrollDownButton);
@@ -320,7 +320,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     if (this.dockPanel?.isEmpty) {
       // Add a tab to dockPanel
       this.scrollingWidget = new ScrollingWidget({
-        content: this.outputAreaWidget,
+        content: this.outputAreaWidget
       });
       this.createScrollButtons(this.scrollingWidget);
       this.dockPanel?.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
@@ -342,7 +342,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     const options = {
       name: 'stdout',
       output_type: 'stream',
-      text: ['Waiting for kernel to start...'],
+      text: ['Waiting for kernel to start...']
     };
     this.outputAreaWidget.model.add(options);
     this.updatePromptText(' ');
@@ -371,7 +371,7 @@ export abstract class ScriptEditor extends DocumentWidget<
       const options = {
         name: 'stdout',
         output_type: 'stream',
-        text: [output],
+        text: [output]
       };
       // Stream output doesn't instantiate correctly without an initial output string
       if (this.emptyOutput) {
@@ -433,11 +433,11 @@ export abstract class ScriptEditor extends DocumentWidget<
    * Function: Saves file editor content.
    */
   private saveFile = async (): Promise<any> => {
-    if (this.model.readOnly) {
+    if (this.context.model.readOnly) {
       return showDialog({
         title: 'Cannot Save',
         body: 'Document is read-only',
-        buttons: [Dialog.okButton()],
+        buttons: [Dialog.okButton()]
       });
     }
     void this.context.save().then(() => {

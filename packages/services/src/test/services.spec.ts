@@ -28,8 +28,8 @@ const codeSnippetMetadata = {
   name: 'tester',
   metadata: {
     language: 'Python',
-    code: ['hello_world'],
-  },
+    code: ['hello_world']
+  }
 };
 
 beforeAll(async () => {
@@ -47,7 +47,7 @@ describe('@elyra/services', () => {
         const schemaResponse = await MetadataService.getSchema('code-snippets');
         expect(schemaResponse[0]).toHaveProperty(
           'properties.schema_name.description',
-          'The schema associated with this instance',
+          'The schema associated with this instance'
         );
       });
     });
@@ -81,14 +81,14 @@ describe('@elyra/services', () => {
         expect(
           await MetadataService.postMetadata(
             'code-snippets',
-            JSON.stringify(codeSnippetMetadata),
-          ),
+            JSON.stringify(codeSnippetMetadata)
+          )
         ).toMatchObject(codeSnippetMetadata);
       });
 
       it('should get the correct metadata instance', async () => {
         expect(
-          await MetadataService.getMetadata('code-snippets'),
+          await MetadataService.getMetadata('code-snippets')
         ).toContainEqual(codeSnippetMetadata);
       });
 
@@ -98,8 +98,8 @@ describe('@elyra/services', () => {
           await MetadataService.putMetadata(
             'code-snippets',
             'tester',
-            JSON.stringify(codeSnippetMetadata),
-          ),
+            JSON.stringify(codeSnippetMetadata)
+          )
         ).toHaveProperty('metadata.code', ['testing']);
       });
 
@@ -115,15 +115,15 @@ describe('@elyra/services', () => {
     describe('#makeGetRequest', () => {
       it('should make get request', async () => {
         const schemaResponse = await RequestHandler.makeGetRequest(
-          '/elyra/schema/code-snippets',
+          '/elyra/schema/code-snippets'
         );
         expect(schemaResponse).toHaveProperty('code-snippets');
         expect(schemaResponse['code-snippets'].length).toBeGreaterThanOrEqual(
-          1,
+          1
         );
         expect(schemaResponse['code-snippets'][0]).toHaveProperty(
           'properties.schema_name.description',
-          'The schema associated with this instance',
+          'The schema associated with this instance'
         );
       });
     });
@@ -132,8 +132,8 @@ describe('@elyra/services', () => {
         expect(
           await RequestHandler.makePostRequest(
             '/elyra/metadata/code-snippets',
-            JSON.stringify(codeSnippetMetadata),
-          ),
+            JSON.stringify(codeSnippetMetadata)
+          )
         ).toMatchObject(codeSnippetMetadata);
       });
     });
@@ -143,18 +143,18 @@ describe('@elyra/services', () => {
         expect(
           await RequestHandler.makePutRequest(
             '/elyra/metadata/code-snippets/tester',
-            JSON.stringify(codeSnippetMetadata),
-          ),
+            JSON.stringify(codeSnippetMetadata)
+          )
         ).toHaveProperty('metadata.language', 'R');
       });
     });
     describe('#makeDeleteRequest', () => {
       it('should make delete request', async () => {
         await RequestHandler.makeDeleteRequest(
-          '/elyra/metadata/code-snippets/tester',
+          '/elyra/metadata/code-snippets/tester'
         );
         expect(
-          await RequestHandler.makeGetRequest('elyra/metadata/code-snippets'),
+          await RequestHandler.makeGetRequest('elyra/metadata/code-snippets')
         ).toMatchObject({ 'code-snippets': [] });
       });
     });

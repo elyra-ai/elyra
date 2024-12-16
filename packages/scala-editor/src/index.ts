@@ -20,14 +20,14 @@ import { scalaIcon } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
-  ILayoutRestorer,
+  ILayoutRestorer
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
   IDocumentWidget,
   DocumentRegistry,
-  DocumentWidget,
+  DocumentWidget
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
@@ -46,7 +46,7 @@ const SCALA_EDITOR_NAMESPACE = 'elyra-scala-editor-extension';
 const commandIDs = {
   createNewScalaEditor: 'script-editor:create-new-scala-editor',
   openDocManager: 'docmanager:open',
-  newDocManager: 'docmanager:new-untitled',
+  newDocManager: 'docmanager:new-untitled'
 };
 
 /**
@@ -60,7 +60,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     IEditorTracker,
     ICommandPalette,
     ISettingRegistry,
-    IFileBrowserFactory,
+    IFileBrowserFactory
   ],
   optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
@@ -72,7 +72,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
-    launcher: ILauncher | null,
+    launcher: ILauncher | null
   ) => {
     console.log('Elyra - scala-editor extension is activated!');
 
@@ -81,14 +81,14 @@ const extension: JupyterFrontEndPlugin<void> = {
       factoryOptions: {
         name: SCALA_FACTORY,
         fileTypes: [SCALA],
-        defaultFor: [SCALA],
+        defaultFor: [SCALA]
       },
       instanceCreator: (
         options: DocumentWidget.IOptions<
           FileEditor,
           DocumentRegistry.ICodeModel
-        >,
-      ): ScriptEditor => new ScalaEditor(options),
+        >
+      ): ScriptEditor => new ScalaEditor(options)
     });
 
     app.docRegistry.addFileType({
@@ -97,7 +97,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       extensions: ['.scala'],
       pattern: '.*\\.scala$',
       mimeTypes: ['text/x-scala'],
-      icon: scalaIcon,
+      icon: scalaIcon
     });
 
     const { restored } = app;
@@ -106,7 +106,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Track ScalaEditor widget on page refresh
      */
     const tracker = new WidgetTracker<ScriptEditor>({
-      namespace: SCALA_EDITOR_NAMESPACE,
+      namespace: SCALA_EDITOR_NAMESPACE
     });
 
     //no default config so we set it to an empty object
@@ -118,9 +118,9 @@ const extension: JupyterFrontEndPlugin<void> = {
         command: commandIDs.openDocManager,
         args: (widget) => ({
           path: widget.context.path,
-          factory: SCALA_FACTORY,
+          factory: SCALA_FACTORY
         }),
-        name: (widget) => widget.context.path,
+        name: (widget) => widget.context.path
       });
     }
 
@@ -131,7 +131,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     //replaced default Config
     const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
-        ...(settings.get('editorConfig').composite as JSONObject),
+        ...(settings.get('editorConfig').composite as JSONObject)
       };
       app.commands.notifyCommandChanged();
     };
@@ -151,7 +151,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
-          widget,
+          widget
         );
       }
 
@@ -169,7 +169,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
     Promise.all([
       settingRegistry.load('@jupyterlab/fileeditor-extension:plugin'),
-      restored,
+      restored
     ])
       .then(([settings]) => {
         updateSettings(settings);
@@ -210,7 +210,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       launcher.add({
         command: commandIDs.createNewScalaEditor,
         category: 'Elyra',
-        rank: 4,
+        rank: 4
       });
     }
 
@@ -218,7 +218,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       // Add new scala editor creation to the file menu
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewScalaEditor, args: { isMenu: true } }],
-        92,
+        92
       );
     }
 
@@ -228,12 +228,12 @@ const extension: JupyterFrontEndPlugin<void> = {
         .execute(commandIDs.newDocManager, {
           path: cwd,
           type: 'file',
-          ext: '.scala',
+          ext: '.scala'
         })
         .then((model) => {
           return app.commands.execute(commandIDs.openDocManager, {
             path: model.path,
-            factory: SCALA_FACTORY,
+            factory: SCALA_FACTORY
           });
         });
     };
@@ -249,15 +249,15 @@ const extension: JupyterFrontEndPlugin<void> = {
         const fileBrowser = browserFactory.createFileBrowser('myFileBrowser');
         const cwd = args['cwd'] ? String(args['cwd']) : fileBrowser.model.path;
         return createNew(cwd);
-      },
+      }
     });
 
     palette.addItem({
       command: commandIDs.createNewScalaEditor,
       args: { isPalette: true },
-      category: 'Elyra',
+      category: 'Elyra'
     });
-  },
+  }
 };
 
 export default extension;

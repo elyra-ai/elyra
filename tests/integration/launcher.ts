@@ -25,29 +25,29 @@ describe('Elyra launcher is in use', () => {
     // });
     // Jupyter notebook default kernel is available
     cy.get(
-      '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible',
+      '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible'
     );
     // Generic Pipeline editor extension is available
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]:visible',
+      '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]:visible'
     );
     // Two specific runtime pipeline editor extension is available
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]:visible',
+      '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]:visible'
     );
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]:visible',
+      '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]:visible'
     );
     // Script editor extension is available
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python Editor"]:visible',
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new Python Editor"]:visible'
     );
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R Editor"]:visible',
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R Editor"]:visible'
     );
     // Documentation link is available
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Documentation"]:visible',
+      '.jp-LauncherCard[data-category="Elyra"][title="Documentation"]:visible'
     );
     cy.findByText(/what's new/i).should('be.visible');
   });

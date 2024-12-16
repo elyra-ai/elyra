@@ -21,7 +21,7 @@ import {
   MetadataDisplay,
   IMetadataDisplayProps,
   //IMetadataDisplayState,
-  IMetadataActionButton,
+  IMetadataActionButton
 } from '@elyra/metadata-common';
 import { IDictionary, MetadataService } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
@@ -60,12 +60,12 @@ class ComponentCatalogsDisplay extends MetadataDisplay<IMetadataDisplayProps> {
             .catch((error) =>
               console.error(
                 'An error occurred while refreshing components from catalog:',
-                error,
-              ),
+                error
+              )
             );
-        },
+        }
       },
-      ...super.actionButtons(metadata),
+      ...super.actionButtons(metadata)
     ];
   }
 
@@ -141,14 +141,14 @@ export class ComponentCatalogsWidget extends MetadataWidget {
       const schemas = await MetadataService.getSchema(this.props.schemaspace);
       this.runtimeTypes = await PipelineService.getRuntimeTypes();
       const sortedSchema = schemas.sort((a: any, b: any) =>
-        a.title.localeCompare(b.title),
+        a.title.localeCompare(b.title)
       );
       this.schemas = sortedSchema.filter((schema: any) => {
         return !!this.runtimeTypes.find(
           (r) =>
             schema.properties?.metadata?.properties?.runtime_type?.enum?.includes(
-              r.id,
-            ) && r.runtime_enabled,
+              r.id
+            ) && r.runtime_enabled
         );
       });
       if (this.schemas?.length ?? 0 > 1) {
@@ -162,8 +162,8 @@ export class ComponentCatalogsWidget extends MetadataWidget {
               schema: schema.name,
               title: schema.title,
               titleContext: this.props.titleContext,
-              appendToTitle: this.props.appendToTitle,
-            } as any,
+              appendToTitle: this.props.appendToTitle
+            } as any
           });
         }
       }

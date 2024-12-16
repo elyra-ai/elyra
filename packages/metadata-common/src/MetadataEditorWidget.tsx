@@ -121,7 +121,7 @@ export class MetadataEditorWidget extends ReactWidget {
       // Load all schema and all metadata in schemaspace.
       const allSchema = await MetadataService.getSchema(this.props.schemaspace);
       const allMetadata = (this.allMetadata = await MetadataService.getMetadata(
-        this.props.schemaspace,
+        this.props.schemaspace
       ));
 
       // Loads all tags to display as options in the editor.
@@ -130,7 +130,7 @@ export class MetadataEditorWidget extends ReactWidget {
           acc.push(
             ...metadata.metadata.tags.filter((tag: string) => {
               return !acc.includes(tag);
-            }),
+            })
           );
         }
         return acc;
@@ -152,7 +152,7 @@ export class MetadataEditorWidget extends ReactWidget {
         if (properties[prop].const !== undefined) {
           properties[prop].default = properties[prop].const;
           properties[prop].uihints = {
-            'ui:readonly': true,
+            'ui:readonly': true
           };
         }
       }
@@ -169,13 +169,13 @@ export class MetadataEditorWidget extends ReactWidget {
             display_name: {
               title: this.props.translator.__('Display Name'),
               description: this.props.translator.__(
-                'Name used to identify an instance of metadata.',
+                'Name used to identify an instance of metadata.'
               ),
-              type: 'string',
-            },
+              type: 'string'
+            }
           },
-          required: ['display_name'],
-        },
+          required: ['display_name']
+        }
       };
 
       // Adds required fields to the wrapper required fields.
@@ -198,7 +198,7 @@ export class MetadataEditorWidget extends ReactWidget {
           schemaPropertiesByCategory[category] = {
             type: 'object',
             properties: {},
-            required: [],
+            required: []
           };
         }
         if (schema.properties.metadata.required?.includes(schemaProperty)) {
@@ -236,7 +236,7 @@ export class MetadataEditorWidget extends ReactWidget {
 
     if (!isFocused) {
       const input = document.querySelector(
-        `.${this.widgetClass} .display_nameField input`,
+        `.${this.widgetClass} .display_nameField input`
       ) as HTMLInputElement;
       if (input) {
         input.focus();
@@ -278,7 +278,7 @@ export class MetadataEditorWidget extends ReactWidget {
       showDialog({
         title: this.props.translator.__('Close without saving?'),
         body: <p>Metadata has unsaved changes, close without saving?</p>,
-        buttons: [Dialog.cancelButton(), Dialog.okButton()],
+        buttons: [Dialog.cancelButton(), Dialog.okButton()]
       }).then((response: any): void => {
         if (response.button.accept) {
           this.dispose();

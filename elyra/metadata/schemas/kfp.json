@@ -106,7 +106,7 @@
           "description": "Password or token to be used for authentication. This property is required for all authentication types, except NO_AUTHENTICATION and KUBERNETES_SERVICE_ACCOUNT_TOKEN.",
           "type": "string",
           "uihints": {
-            "ui:field": "password",
+            "ui:field": "@elyra/metadata-extension:plugin.password",
             "category": "Kubeflow Pipelines"
           }
         },
@@ -160,7 +160,7 @@
           "description": "Kubernetes secret that's defined in the specified user namespace, containing the Cloud Object Storage username and password. This property is required for authentication type KUBERNETES_SECRET.",
           "type": "string",
           "uihints": {
-            "ui:field": "password",
+            "ui:field": "@elyra/metadata-extension:plugin.password",
             "category": "Cloud Object Storage"
           }
         },
@@ -178,7 +178,7 @@
           "type": "string",
           "minLength": 8,
           "uihints": {
-            "ui:field": "password",
+            "ui:field": "@elyra/metadata-extension:plugin.password",
             "category": "Cloud Object Storage"
           }
         },
@@ -192,7 +192,7 @@
             "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
           },
           "uihints": {
-            "ui:field": "tags"
+            "ui:field": "@elyra/metadata-extension:plugin.tags"
           }
         }
       },

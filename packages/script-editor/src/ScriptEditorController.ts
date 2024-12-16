@@ -37,7 +37,7 @@ export class ScriptEditorController {
    * Get available kernel specs by language.
    */
   getKernelSpecsByLanguage = async (
-    language: string,
+    language: string
   ): Promise<KernelSpec.ISpecModels | null> => {
     const specs = await this.getKernelSpecs();
     Object.entries(specs?.kernelspecs ?? [])
@@ -51,7 +51,7 @@ export class ScriptEditorController {
    * Get kernel specs by name.
    */
   getKernelSpecsByName = async (
-    kernelName: string,
+    kernelName: string
   ): Promise<KernelSpec.ISpecModels | null> => {
     const specs = await this.getKernelSpecs();
     Object.entries(specs?.kernelspecs ?? [])

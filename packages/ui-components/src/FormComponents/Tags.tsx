@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { Dialog, showDialog } from '@jupyterlab/apputils';
-import { checkIcon, addIcon } from '@jupyterlab/ui-components';
+import { addIcon, checkIcon } from '@jupyterlab/ui-components';
+import { FieldProps } from '@rjsf/utils';
 
 import React from 'react';
 
@@ -35,10 +36,10 @@ const FORM_EDITOR_INPUT_TAG = 'elyra-inputTag';
 export const Tags: React.FC<ITagProps> = ({
   selectedTags,
   tags,
-  handleChange,
+  handleChange
 }) => {
   const [selected, setSelectedTags] = React.useState<string[]>(
-    selectedTags ?? [],
+    selectedTags ?? []
   );
   const [allTags, setTags] = React.useState<string[]>(tags ?? []);
   const [addingNewTag, setAddingNewTag] = React.useState<boolean>(false);
@@ -48,7 +49,7 @@ export const Tags: React.FC<ITagProps> = ({
   }, [selected, allTags, handleChange]);
 
   const handleClick = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): void => {
     const target = event.currentTarget as HTMLElement;
     const clickedTag = target.innerText;
@@ -73,7 +74,7 @@ export const Tags: React.FC<ITagProps> = ({
   };
 
   const addTagOnKeyDown = async (
-    event: React.KeyboardEvent<HTMLInputElement>,
+    event: React.KeyboardEvent<HTMLInputElement>
   ): Promise<void> => {
     const inputElement = event.target as HTMLInputElement;
 
@@ -83,7 +84,7 @@ export const Tags: React.FC<ITagProps> = ({
         event.preventDefault();
         await showDialog({
           title: 'A tag with this label already exists.',
-          buttons: [Dialog.okButton()],
+          buttons: [Dialog.okButton()]
         });
         return;
       }
@@ -111,16 +112,16 @@ export const Tags: React.FC<ITagProps> = ({
   const inputBox =
     addingNewTag === true ? (
       <ul
-        className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
+        className={`${FORM_EDITOR_TAG} jp-CellTags-Tag jp-CellTags-Unapplied`}
         key={'editor-new-tag'}
       >
         <input
           className={`${FORM_EDITOR_INPUT_TAG}`}
           onClick={(
-            event: React.MouseEvent<HTMLInputElement, MouseEvent>,
+            event: React.MouseEvent<HTMLInputElement, MouseEvent>
           ): void => addTagOnClick(event)}
           onKeyDown={async (
-            event: React.KeyboardEvent<HTMLInputElement>,
+            event: React.KeyboardEvent<HTMLInputElement>
           ): Promise<void> => {
             await addTagOnKeyDown(event);
           }}
@@ -133,7 +134,7 @@ export const Tags: React.FC<ITagProps> = ({
     ) : (
       <button
         onClick={(): void => setAddingNewTag(true)}
-        className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
+        className={`${FORM_EDITOR_TAG} jp-CellTags-Tag jp-CellTags-Unapplied`}
       >
         Add Tag
         <addIcon.react
@@ -156,7 +157,7 @@ export const Tags: React.FC<ITagProps> = ({
                 return (
                   <button
                     onClick={handleClick}
-                    className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
+                    className={`${FORM_EDITOR_TAG} jp-CellTags-Tag jp-CellTags-Unapplied`}
                     id={`editor-${tag}-${index}`}
                     key={`editor-${tag}-${index}`}
                   >
@@ -169,7 +170,7 @@ export const Tags: React.FC<ITagProps> = ({
                 return (
                   <button
                     onClick={handleClick}
-                    className={`${FORM_EDITOR_TAG} tag applied-tag`}
+                    className={`${FORM_EDITOR_TAG} jp-CellTags-Tag jp-CellTags-Applied`}
                     id={`editor-${tag}-${index}`}
                     key={`editor-${tag}-${index}`}
                   >
@@ -188,7 +189,7 @@ export const Tags: React.FC<ITagProps> = ({
                 return (
                   <button
                     onClick={handleClick}
-                    className={`${FORM_EDITOR_TAG} tag unapplied-tag`}
+                    className={`${FORM_EDITOR_TAG} jp-CellTags-Tag jp-CellTags-Unapplied`}
                     id={`editor-${tag}-${index}`}
                     key={`editor-${tag}-${index}`}
                   >
@@ -196,7 +197,7 @@ export const Tags: React.FC<ITagProps> = ({
                   </button>
                 );
               }
-            })(),
+            })()
           )
         : null}
       {inputBox}
@@ -204,21 +205,10 @@ export const Tags: React.FC<ITagProps> = ({
   );
 };
 
-interface ITagsFieldProps {
-  errorSchema: Record<string, any>;
-  formData?: string[];
-  formContext: {
-    allTags?: string[];
-    updateAllTags?: (tags: string[]) => void;
-  };
-  onChange: (selectedTags: string[]) => void;
-}
-
-export const TagsField: React.FC<ITagsFieldProps> = (
-  props: ITagsFieldProps,
-) => {
+export const TagsField: React.FC<FieldProps> = (props: FieldProps) => {
   const errors = [];
-  if (Object.keys(props.errorSchema).length > 0) {
+  const errorSchema = props.errorSchema ?? {};
+  if (Object.keys(errorSchema).length > 0) {
     for (const i in props.errorSchema) {
       for (const err of (props.errorSchema[i] as any)['__errors']) {
         errors.push(<li className="text-danger">{err}</li>);
@@ -235,7 +225,7 @@ export const TagsField: React.FC<ITagsFieldProps> = (
           props.formContext.updateAllTags?.(allTags);
         }}
       />
-      {Object.keys(props.errorSchema).length > 0 ? (
+      {Object.keys(errorSchema).length > 0 ? (
         <ul className="error-detail bs-callout bs-callout-info">{errors}</ul>
       ) : undefined}
     </div>

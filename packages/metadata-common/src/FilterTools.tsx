@@ -61,7 +61,7 @@ export class FilterTools extends React.Component<
   componentDidMount(): void {
     this.setState({
       selectedTags: [],
-      searchValue: '',
+      searchValue: ''
     });
   }
 
@@ -70,14 +70,14 @@ export class FilterTools extends React.Component<
       this.setState((state) => ({
         selectedTags: state.selectedTags
           .filter((tag) => this.props.tags.includes(tag))
-          .sort(),
+          .sort()
       }));
     }
   }
 
   createFilterBox(): void {
     const filterOption = document.querySelector(
-      `#${this.props.schemaspace} .${FILTER_OPTION}`,
+      `#${this.props.schemaspace} .${FILTER_OPTION}`
     );
 
     filterOption?.classList.toggle('idle');
@@ -109,7 +109,7 @@ export class FilterTools extends React.Component<
   renderAppliedTag(tag: string, index: string): JSX.Element {
     return (
       <button
-        className={`${FILTER_TAG} tag applied-tag`}
+        className={`${FILTER_TAG} jp-CellTags-Tag jp-CellTags-Applied`}
         id={'filter' + '-' + tag + '-' + index}
         key={'filter' + '-' + tag + '-' + index}
         title={tag}
@@ -132,7 +132,7 @@ export class FilterTools extends React.Component<
   renderUnappliedTag(tag: string, index: string): JSX.Element {
     return (
       <button
-        className={`${FILTER_TAG} tag unapplied-tag`}
+        className={`${FILTER_TAG} jp-CellTags-Tag jp-CellTags-Unapplied`}
         id={'filter' + '-' + tag + '-' + index}
         key={'filter' + '-' + tag + '-' + index}
         title={tag}
@@ -149,27 +149,23 @@ export class FilterTools extends React.Component<
 
     this.setState(
       (state) => ({
-        selectedTags: this.updateTagsCss(
-          target,
-          state.selectedTags,
-          clickedTag,
-        ),
+        selectedTags: this.updateTagsCss(target, state.selectedTags, clickedTag)
       }),
-      this.filterMetadata,
+      this.filterMetadata
     );
   }
 
   updateTagsCss(
     target: HTMLElement,
     currentTags: string[],
-    clickedTag: string,
+    clickedTag: string
   ): string[] {
-    if (target.classList.contains('unapplied-tag')) {
-      target.classList.replace('unapplied-tag', 'applied-tag');
+    if (target.classList.contains('jp-CellTags-Unapplied')) {
+      target.classList.replace('jp-CellTags-Unapplied', 'jp-CellTags-Applied');
 
       currentTags.splice(-1, 0, clickedTag);
-    } else if (target.classList.contains('applied-tag')) {
-      target.classList.replace('applied-tag', 'unapplied-tag');
+    } else if (target.classList.contains('jp-CellTags-Applied')) {
+      target.classList.replace('jp-CellTags-Applied', 'jp-CellTags-Unapplied');
 
       const idx = currentTags.indexOf(clickedTag);
       currentTags.splice(idx, 1);
@@ -187,7 +183,7 @@ export class FilterTools extends React.Component<
       ?.classList.contains('idle');
     this.props.onFilter(
       this.state.searchValue,
-      isTagFilterOpen ? [] : this.state.selectedTags,
+      isTagFilterOpen ? [] : this.state.selectedTags
     );
   }
 

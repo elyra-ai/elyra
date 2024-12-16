@@ -20,14 +20,14 @@ import { rIcon } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
-  ILayoutRestorer,
+  ILayoutRestorer
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import {
   IDocumentWidget,
   DocumentRegistry,
-  DocumentWidget,
+  DocumentWidget
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
@@ -46,7 +46,7 @@ const R_EDITOR_NAMESPACE = 'elyra-r-script-editor-extension';
 const commandIDs = {
   createNewREditor: 'script-editor:create-new-r-editor',
   openDocManager: 'docmanager:open',
-  newDocManager: 'docmanager:new-untitled',
+  newDocManager: 'docmanager:new-untitled'
 };
 
 /**
@@ -60,7 +60,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     IEditorTracker,
     ICommandPalette,
     ISettingRegistry,
-    IFileBrowserFactory,
+    IFileBrowserFactory
   ],
   optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
@@ -72,7 +72,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     browserFactory: IFileBrowserFactory,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
-    launcher: ILauncher | null,
+    launcher: ILauncher | null
   ) => {
     console.log('Elyra - r-editor extension is activated!');
 
@@ -81,14 +81,14 @@ const extension: JupyterFrontEndPlugin<void> = {
       factoryOptions: {
         name: R_FACTORY,
         fileTypes: [R],
-        defaultFor: [R],
+        defaultFor: [R]
       },
       instanceCreator: (
         options: DocumentWidget.IOptions<
           FileEditor,
           DocumentRegistry.ICodeModel
-        >,
-      ): ScriptEditor => new REditor(options),
+        >
+      ): ScriptEditor => new REditor(options)
     });
 
     app.docRegistry.addFileType({
@@ -97,7 +97,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       extensions: ['.r'],
       pattern: '.*\\.r$',
       mimeTypes: ['text/x-rsrc'],
-      icon: rIcon,
+      icon: rIcon
     });
 
     const { restored } = app;
@@ -106,7 +106,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Track REditor widget on page refresh
      */
     const tracker = new WidgetTracker<ScriptEditor>({
-      namespace: R_EDITOR_NAMESPACE,
+      namespace: R_EDITOR_NAMESPACE
     });
 
     let config: CodeEditor.IOptions['config'] = {};
@@ -117,9 +117,9 @@ const extension: JupyterFrontEndPlugin<void> = {
         command: commandIDs.openDocManager,
         args: (widget) => ({
           path: widget.context.path,
-          factory: R_FACTORY,
+          factory: R_FACTORY
         }),
-        name: (widget) => widget.context.path,
+        name: (widget) => widget.context.path
       });
     }
 
@@ -128,7 +128,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
-        ...(settings.get('editorConfig').composite as JSONObject),
+        ...(settings.get('editorConfig').composite as JSONObject)
       };
       app.commands.notifyCommandChanged();
     };
@@ -148,7 +148,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const updateWidget = (widget: ScriptEditor): void => {
       if (!editorTracker.has(widget)) {
         (editorTracker as WidgetTracker<IDocumentWidget<FileEditor>>).add(
-          widget,
+          widget
         );
       }
 
@@ -166,7 +166,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Fetch the initial state of the settings. Adapted from fileeditor-extension.
     Promise.all([
       settingRegistry.load('@jupyterlab/fileeditor-extension:plugin'),
-      restored,
+      restored
     ])
       .then(([settings]) => {
         updateSettings(settings);
@@ -207,7 +207,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       launcher.add({
         command: commandIDs.createNewREditor,
         category: 'Elyra',
-        rank: 5,
+        rank: 5
       });
     }
 
@@ -215,7 +215,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       // Add new r file creation to the file menu
       menu.fileMenu.newMenu.addGroup(
         [{ command: commandIDs.createNewREditor, args: { isMenu: true } }],
-        93,
+        93
       );
     }
 
@@ -225,12 +225,12 @@ const extension: JupyterFrontEndPlugin<void> = {
         .execute(commandIDs.newDocManager, {
           path: cwd,
           type: 'file',
-          ext: '.r',
+          ext: '.r'
         })
         .then((model) => {
           return app.commands.execute(commandIDs.openDocManager, {
             path: model.path,
-            factory: R_FACTORY,
+            factory: R_FACTORY
           });
         });
     };
@@ -245,15 +245,15 @@ const extension: JupyterFrontEndPlugin<void> = {
         const fileBrowser = browserFactory.createFileBrowser('myFileBrowser');
         const cwd = args['cwd'] ? String(args['cwd']) : fileBrowser.model.path;
         return createNew(cwd);
-      },
+      }
     });
 
     palette.addItem({
       command: commandIDs.createNewREditor,
       args: { isPalette: true },
-      category: 'Elyra',
+      category: 'Elyra'
     });
-  },
+  }
 };
 
 export default extension;

@@ -21,11 +21,11 @@ import { codeSnippetIcon } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
-  ILayoutRestorer,
+  ILayoutRestorer
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { Cell } from '@jupyterlab/cells';
-import { IEditorServices } from '@jupyterlab/codeeditor';
+import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { MarkdownDocument } from '@jupyterlab/markdownviewer';
@@ -34,14 +34,14 @@ import { Widget } from '@lumino/widgets';
 
 import {
   CODE_SNIPPET_SCHEMASPACE,
-  CODE_SNIPPET_SCHEMA,
+  CODE_SNIPPET_SCHEMA
 } from './CodeSnippetService';
 import { CodeSnippetWidget } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
 
 const commandIDs = {
-  saveAsSnippet: 'codesnippet:save-as-snippet',
+  saveAsSnippet: 'codesnippet:save-as-snippet'
 };
 
 /**
@@ -55,7 +55,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     restorer: ILayoutRestorer,
-    editorServices: IEditorServices,
+    editorServices: IEditorServices
   ) => {
     console.log('Elyra - code-snippet extension is activated!');
 
@@ -71,7 +71,8 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       icon: codeSnippetIcon,
       getCurrentWidget,
       editorServices,
-      titleContext: 'code snippet',
+      titleContext: '',
+      addLabel: 'code snippet'
     });
     const codeSnippetWidgetId = `elyra-metadata:${CODE_SNIPPET_SCHEMASPACE}`;
     codeSnippetWidget.id = codeSnippetWidgetId;
@@ -126,7 +127,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
             schemaspace: CODE_SNIPPET_SCHEMASPACE,
             schema: CODE_SNIPPET_SCHEMA,
             code: selection.split('\n'),
-            onSave: codeSnippetWidget.updateMetadata,
+            onSave: codeSnippetWidget.updateMetadata
           });
         } else {
           const selectedCells = getSelectedCellContents();
@@ -136,37 +137,38 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
             schemaspace: CODE_SNIPPET_SCHEMASPACE,
             schema: CODE_SNIPPET_SCHEMA,
             code: code,
-            onSave: codeSnippetWidget.updateMetadata,
+            onSave: codeSnippetWidget.updateMetadata
           });
         }
-      },
+      }
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-Cell',
+      selector: '.jp-Cell'
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-FileEditor',
+      selector: '.jp-FileEditor'
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-MarkdownViewer',
+      selector: '.jp-MarkdownViewer'
     });
 
     const getTextSelection = (
-      editor: any,
-      markdownPreview?: boolean,
+      editor: CodeEditor.IEditor,
+      markdownPreview?: boolean
     ): string => {
       const selectionObj = editor.getSelection();
       const start = editor.getOffsetAt(selectionObj.start);
       const end = editor.getOffsetAt(selectionObj.end);
-      const selection = editor.model.value.text.substring(start, end);
+      const source = editor.model.sharedModel.getSource();
+      const selection = source.substring(start, end);
 
-      if (!selection && editor.model.value.text) {
+      if (!selection && source) {
         // Allow selections from a rendered notebook cell
         return document.getSelection()?.toString() ?? '';
       }
@@ -196,22 +198,24 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       return selectedCells;
     };
 
-    const isFileEditor = (currentWidget: any): boolean => {
+    const isFileEditor = (currentWidget: Widget | null): boolean => {
       return (
         currentWidget instanceof DocumentWidget &&
         (currentWidget as DocumentWidget).content instanceof FileEditor
       );
     };
 
-    const isNotebookEditor = (currentWidget: any): boolean => {
+    const isNotebookEditor = (currentWidget: Widget | null): boolean => {
       return currentWidget instanceof NotebookPanel;
     };
 
-    const isMarkdownDocument = (currentWidget: any): boolean => {
+    const isMarkdownDocument = (currentWidget: Widget | null): boolean => {
       return currentWidget instanceof MarkdownDocument;
     };
 
-    const getEditor = (currentWidget: any): any => {
+    const getEditor = (
+      currentWidget: Widget | null
+    ): CodeEditor.IEditor | null | undefined => {
       if (isFileEditor(currentWidget)) {
         const documentWidget = currentWidget as DocumentWidget;
         return (documentWidget.content as FileEditor).editor;
@@ -220,8 +224,9 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         const notebookCell = (notebookWidget.content as Notebook).activeCell;
         return notebookCell?.editor;
       }
+      return undefined;
     };
-  },
+  }
 };
 
 export default code_snippet_extension;

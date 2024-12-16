@@ -16,16 +16,15 @@
 
 import { ReactWidget } from '@jupyterlab/apputils';
 import { KernelSpec } from '@jupyterlab/services';
+import { HTMLSelect } from '@jupyterlab/ui-components';
 
 import React, {
   forwardRef,
   useImperativeHandle,
   useState,
   useMemo,
-  RefObject,
+  RefObject
 } from 'react';
-
-const KERNEL_SELECT_CLASS = 'elyra-ScriptEditor-KernelSelector';
 
 export interface ISelect {
   getSelection: () => string;
@@ -51,7 +50,7 @@ const DropDown = forwardRef<ISelect, IProps>(
     // the change events there as well, but I know this isn't always possible
     // alongside jupyter.
     useImperativeHandle(select, () => ({
-      getSelection: (): string => selection,
+      getSelection: (): string => selection
     }));
 
     const kernelOptions = !Object.keys(kernelspecs).length ? (
@@ -73,15 +72,11 @@ const DropDown = forwardRef<ISelect, IProps>(
     };
 
     return (
-      <select
-        className={KERNEL_SELECT_CLASS}
-        onChange={handleSelection}
-        value={selection}
-      >
+      <HTMLSelect onChange={handleSelection} value={selection}>
         {kernelOptions}
-      </select>
+      </HTMLSelect>
     );
-  },
+  }
 );
 
 /**
@@ -97,7 +92,7 @@ export class KernelDropdown extends ReactWidget {
     private specs: KernelSpec.ISpecModels,
     private defaultKernel: string | null,
     private ref: RefObject<ISelect>,
-    callback: (selectedKernel: string) => void,
+    callback: (selectedKernel: string) => void
   ) {
     super();
     this.callback = callback;

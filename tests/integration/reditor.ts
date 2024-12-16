@@ -49,15 +49,15 @@ describe('R Editor tests', () => {
     cy.findByRole('menuitem', { name: /file/i }).click();
     cy.findByText(/^new$/i).click();
     cy.get(
-      '[data-command="script-editor:create-new-r-editor"] svg[data-icon="elyra:rIcon"]',
+      '[data-command="script-editor:create-new-r-editor"] svg[data-icon="elyra:rIcon"]'
     );
 
     // Check r icons from launcher & file explorer
     cy.get(
-      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R Editor"] svg[data-icon="elyra:rIcon"]',
+      '.jp-LauncherCard[data-category="Elyra"][title="Create a new R Editor"] svg[data-icon="elyra:rIcon"]'
     ).click();
     cy.get(
-      '#filebrowser [title*="Name: untitled1.r"] svg[data-icon="elyra:rIcon"]',
+      '#filebrowser [title*="Name: untitled1.r"] svg[data-icon="elyra:rIcon"]'
     );
     cy.closeTab(-1);
   });
@@ -67,7 +67,7 @@ describe('R Editor tests', () => {
     cy.findByText(/^new$/i).click();
 
     cy.get(
-      '[data-command="script-editor:create-new-r-editor"] > .lm-Menu-itemLabel',
+      '[data-command="script-editor:create-new-r-editor"] > .lm-Menu-itemLabel'
     ).click();
   });
 

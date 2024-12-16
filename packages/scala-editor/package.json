@@ -25,7 +25,7 @@
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "scripts": {
-    "build": "jlpm run build:lib && jlpm run build:labextension:dev",
+    "build": "echo Skip the build until the extension is migrated to JL4",
     "build:prod": "jlpm run build:lib && jlpm run build:labextension",
     "build:lib": "tsc",
     "build:labextension": "jupyter labextension build .",

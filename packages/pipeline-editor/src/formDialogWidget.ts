@@ -19,7 +19,7 @@ import { MessageLoop } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
 
 export const formDialogWidget = (
-  dialogComponent: JSX.Element,
+  dialogComponent: JSX.Element
 ): Dialog.IBodyWidget<any> => {
   const widget = ReactWidget.create(dialogComponent) as Dialog.IBodyWidget<any>;
 
@@ -31,7 +31,7 @@ export const formDialogWidget = (
     const form = widget.node.querySelector('form');
     const formValues: { [key: string]: any } = {};
     for (const element of Object.values(
-      form?.elements ?? [],
+      form?.elements ?? []
     ) as HTMLInputElement[]) {
       switch (element.type) {
         case 'checkbox':

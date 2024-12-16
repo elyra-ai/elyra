@@ -39,80 +39,80 @@ import whatsNewSvg from '../style/icons/whats-new.svg';
 
 export const importIcon = new LabIcon({
   name: 'elyra:import',
-  svgstr: importSvg,
+  svgstr: importSvg
 });
 export const codeSnippetIcon = new LabIcon({
   name: 'elyra:code-snippet',
-  svgstr: codeSnippetSvg,
+  svgstr: codeSnippetSvg
 });
 export const dragDropIcon = new LabIcon({
   name: 'elyra:dragdrop',
-  svgstr: dragDropSvg,
+  svgstr: dragDropSvg
 });
 export const elyraIcon = new LabIcon({ name: 'elyra:elyra', svgstr: elyraSvg });
 export const pipelineIcon = new LabIcon({
   name: 'elyra:pipeline',
-  svgstr: pipelineSvg,
+  svgstr: pipelineSvg
 });
 export const componentCatalogIcon = new LabIcon({
   name: 'elyra:pipeline-components',
-  svgstr: pipelineComponentSvg,
+  svgstr: pipelineComponentSvg
 });
 export const errorIcon = new LabIcon({
   name: 'elyra:errorIcon',
-  svgstr: errorIconSvg,
+  svgstr: errorIconSvg
 });
 export const clearPipelineIcon = new LabIcon({
   name: 'elyra:clear-pipeline',
-  svgstr: clearPipelineSvg,
+  svgstr: clearPipelineSvg
 });
 export const exportPipelineIcon = new LabIcon({
   name: 'elyra:export-pipeline',
-  svgstr: exportPipelineSvg,
+  svgstr: exportPipelineSvg
 });
 export const savePipelineIcon = new LabIcon({
   name: 'elyra:save-pipeline',
-  svgstr: savePipelineSvg,
+  svgstr: savePipelineSvg
 });
 export const runtimesIcon = new LabIcon({
   name: 'elyra:runtimes',
-  svgstr: runtimesSvg,
+  svgstr: runtimesSvg
 });
 export const containerIcon = new LabIcon({
   name: 'elyra:container',
-  svgstr: containerSvg,
+  svgstr: containerSvg
 });
 export const trashIcon = new LabIcon({
   name: 'elyra:trashIcon',
-  svgstr: trashIconSvg,
+  svgstr: trashIconSvg
 });
 export const helpIcon = new LabIcon({
   name: 'elyra:helpIcon',
-  svgstr: helpIconSvg,
+  svgstr: helpIconSvg
 });
 export const tagIcon = new LabIcon({
   name: 'elyra:tagIcon',
-  svgstr: tagIconSvg,
+  svgstr: tagIconSvg
 });
 export const rIcon = new LabIcon({
   name: 'elyra:rIcon',
-  svgstr: rIconSvg,
+  svgstr: rIconSvg
 });
 export const scalaIcon = new LabIcon({
   name: 'elyra:scalaIcon',
-  svgstr: scalaIconSvg,
+  svgstr: scalaIconSvg
 });
 export const viewIcon = new LabIcon({
   name: 'elyra:view',
-  svgstr: viewIconSvg,
+  svgstr: viewIconSvg
 });
 export const viewOffIcon = new LabIcon({
   name: 'elyra:viewOff',
-  svgstr: viewOffIconSvg,
+  svgstr: viewOffIconSvg
 });
 export const whatsNewIcon = new LabIcon({
   name: 'elyra:whats-new',
-  svgstr: whatsNewSvg,
+  svgstr: whatsNewSvg
 });
 
 /**
@@ -128,7 +128,7 @@ export class IconUtil {
   static colorize(
     icon: LabIcon,
     fillColor?: string,
-    strokeColor?: string,
+    strokeColor?: string
   ): LabIcon {
     const iconName = `${icon.name}${fillColor ? ':' + fillColor : ''}${
       strokeColor ? ':' + strokeColor : ''
@@ -143,21 +143,21 @@ export class IconUtil {
     if (fillColor) {
       svgstr = svgstr.replace(
         /fill="(?:(?!none).)+?"/gi,
-        `fill="${fillColor}"`,
+        `fill="${fillColor}"`
       );
     }
     if (strokeColor) {
       svgstr = svgstr.replace(
         /stroke="(?:(?!none).)+?"/gi,
-        `stroke="${strokeColor}"`,
+        `stroke="${strokeColor}"`
       );
     }
 
     const coloredIcon = LabIcon.resolve({
       icon: {
         name: iconName,
-        svgstr: svgstr,
-      },
+        svgstr: svgstr
+      }
     });
 
     this.colorizedIcons[iconName] = coloredIcon;

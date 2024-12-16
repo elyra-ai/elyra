@@ -59,7 +59,7 @@ export const PipelineExportDialog: React.FC<IProps> = ({
   runtimeTypeInfo,
   pipelineType,
   exportName,
-  parameters,
+  parameters
 }) => {
   return (
     <form className="elyra-dialog-form">

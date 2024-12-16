@@ -28,7 +28,7 @@ export interface IEmptyGenericPipelineProps {
 }
 
 export const EmptyGenericPipeline: React.FC<IEmptyGenericPipelineProps> = ({
-  onOpenSettings,
+  onOpenSettings
 }) => {
   return (
     <div>

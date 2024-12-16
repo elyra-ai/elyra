@@ -91,7 +91,7 @@
               }
             },
             "label": "",
-            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/web/Download/component.yaml",
+            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/sdk-2.8.0/components/contrib/web/Download/component-sdk-v2.yaml",
             "ui_data": {
               "label": "Download data",
               "image": "/static/elyra/kubeflow.svg",
@@ -148,7 +148,7 @@
               }
             },
             "label": "",
-            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/1.6.0/components/basics/Calculate_hash/component.yaml",
+            "component_source": "https://raw.githubusercontent.com/kubeflow/pipelines/sdk-2.8.0/components/contrib/basics/Calculate_hash/component.yaml",
             "ui_data": {
               "label": "Calculate data hash",
               "image": "/static/elyra/kubeflow.svg",

@@ -35,7 +35,7 @@ export class MetadataService {
    */
   static async getMetadata(schemaspace: string): Promise<any> {
     return RequestHandler.makeGetRequest(
-      ELYRA_METADATA_API_ENDPOINT + schemaspace,
+      ELYRA_METADATA_API_ENDPOINT + schemaspace
     ).then((metadataResponse) => metadataResponse[schemaspace]);
   }
 
@@ -50,11 +50,11 @@ export class MetadataService {
    */
   static async postMetadata(
     schemaspace: string,
-    requestBody: any,
+    requestBody: any
   ): Promise<any> {
     return RequestHandler.makePostRequest(
       ELYRA_METADATA_API_ENDPOINT + schemaspace,
-      requestBody,
+      requestBody
     );
   }
 
@@ -71,11 +71,11 @@ export class MetadataService {
   static async putMetadata(
     schemaspace: string,
     name: string,
-    requestBody: any,
+    requestBody: any
   ): Promise<any> {
     return RequestHandler.makePutRequest(
       `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`,
-      requestBody,
+      requestBody
     );
   }
 
@@ -89,7 +89,7 @@ export class MetadataService {
    */
   static async deleteMetadata(schemaspace: string, name: string): Promise<any> {
     return RequestHandler.makeDeleteRequest(
-      `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`,
+      `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`
     );
   }
 
@@ -110,7 +110,7 @@ export class MetadataService {
     }
 
     return RequestHandler.makeGetRequest(
-      ELYRA_SCHEMA_API_ENDPOINT + schemaspace,
+      ELYRA_SCHEMA_API_ENDPOINT + schemaspace
     ).then((schemaResponse) => {
       if (schemaResponse[schemaspace]) {
         this.schemaCache[schemaspace] = schemaResponse[schemaspace];
@@ -129,7 +129,7 @@ export class MetadataService {
   static async getAllSchema(): Promise<any> {
     try {
       const schemaspaces = await RequestHandler.makeGetRequest(
-        ELYRA_SCHEMASPACE_API_ENDPOINT,
+        ELYRA_SCHEMASPACE_API_ENDPOINT
       );
       const schemas = [];
 

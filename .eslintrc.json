@@ -73,5 +73,17 @@
     "react": {
       "version": "detect"
     }
-  }
+  },
+  "ignorePatterns": [
+    "packages/pipeline-editor/elyra_pipeline_editor_extension/*",
+    "packages/theme/elyra_theme_extension/*",
+    "packages/script-debugger/elyra_script_debugger_extension/*",
+    "packages/script-editor/elyra_script_editor/*",
+    "packages/code-snippet/elyra_code_snippet_extension/*",
+    "packages/metadata/elyra_metadata_extension/*",
+    "packages/metadata-common/elyra_metadata_common/*",
+    "packages/python-editor/elyra_python_editor_extension/*",
+    "packages/services/elyra_services/*",
+    "packages/ui-components/elyra_ui_components/*"
+  ]
 }

@@ -96,7 +96,7 @@
           "type": "string",
           "enum": ["elyra", "rocks"],
           "uihints": {
-            "ui:field": "dropdown",
+            "ui:field": "@elyra/metadata-extension:plugin.dropdown",
             "default_choices": ["elyra"]
           }
         },
@@ -108,7 +108,7 @@
           "maxItems": 10,
           "uniqueItems": true,
           "uihints": {
-            "ui:field": "code"
+            "ui:field": "@elyra/metadata-extension:plugin.code"
           }
         },
         "object_test": {
