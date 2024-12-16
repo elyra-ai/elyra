@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2023 Elyra Authors
+# Copyright 2018-2025 Elyra Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ master_doc = "index"
 # -- Project information -----------------------------------------------------
 
 project = "Elyra"
-copyright = "2023, Elyra Authors"
+copyright = "2025, Elyra Authors"
 author = "Elyra Authors"
 
 _version_py = os.path.join("..", "..", "elyra", "_version.py")
