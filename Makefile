@@ -49,7 +49,7 @@ KF_NOTEBOOK_IMAGE=elyra/kf-notebook:$(TAG)
 KF_NOTEBOOK_IMAGE_LATEST=elyra/kf-notebook:latest
 
 # Contains the set of commands required to be used by elyra
-REQUIRED_RUNTIME_IMAGE_COMMANDS?="curl python3"
+REQUIRED_RUNTIME_IMAGE_COMMANDS?="python3"
 REMOVE_RUNTIME_IMAGE?=0  # Invoke `make REMOVE_RUNTIME_IMAGE=1 validate-runtime-images` to have images removed after validation
 UPGRADE_STRATEGY?=only-if-needed
 
@@ -359,7 +359,7 @@ validate-runtime-image: # Validate that runtime image meets minimum criteria
 			elif [[ $$IMAGE_PYTHON3_MINOR_VERSION -ge 8 ]]; then \
 				echo "=> Checking notebook execution..." ; \
 				$(CONTAINER_EXEC) run -v $$(pwd)/etc/generic:/opt/elyra/ --rm --entrypoint /bin/bash $$image -c "python3 -m pip install -r /opt/elyra/requirements-elyra.txt && \
-							   curl https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb --output simple_execute.ipynb && \
+							   python3 -c 'import urllib.request; urllib.request.urlretrieve(\"https://raw.githubusercontent.com/nteract/papermill/main/papermill/tests/notebooks/simple_execute.ipynb\", \"simple_execute.ipynb\")' && \
 							   python3 -m papermill simple_execute.ipynb output.ipynb > /dev/null" ; \
 				if [ $$? -ne 0 ]; then \
 					echo "ERROR: Image $$image does not meet Python requirements criteria in requirements-elyra.txt" ; \
