@@ -20,19 +20,19 @@ import React from 'react';
 export const unknownError = (message: string): any => ({
   title: 'Load pipeline failed!',
   body: message,
-  buttons: [Dialog.okButton()]
+  buttons: [Dialog.okButton()],
 });
 
 export const elyraOutOfDate = {
   title: 'Load pipeline failed!',
   body: `This pipeline corresponds to a more recent version of Elyra and cannot be used until Elyra has been upgraded.`,
-  buttons: [Dialog.okButton()]
+  buttons: [Dialog.okButton()],
 };
 
 export const unsupportedVersion = {
   title: 'Load pipeline failed!',
   body: 'This pipeline has an unrecognizable version.',
-  buttons: [Dialog.okButton()]
+  buttons: [Dialog.okButton()],
 };
 
 export const pipelineOutOfDate = {
@@ -52,17 +52,17 @@ export const pipelineOutOfDate = {
       Proceed with migration?
     </p>
   ),
-  buttons: [Dialog.cancelButton(), Dialog.okButton()]
+  buttons: [Dialog.cancelButton(), Dialog.okButton()],
 };
 
 export const unsupportedFile = {
   title: 'Unsupported File(s)',
   body: 'Only supported files have been added to the pipeline.',
-  buttons: [Dialog.okButton()]
+  buttons: [Dialog.okButton()],
 };
 
 export const clearPipeline = {
   title: 'Clear Pipeline',
   body: 'Are you sure you want to clear the pipeline?',
-  buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })]
+  buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Clear' })],
 };

@@ -18,7 +18,7 @@ import { ScriptEditor } from '@elyra/script-editor';
 import {
   ILabShell,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { Debugger, IDebugger } from '@jupyterlab/debugger';
 import { IEditorTracker } from '@jupyterlab/fileeditor';
@@ -39,20 +39,20 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     debug: IDebugger,
     editorTracker: IEditorTracker,
-    labShell: ILabShell | null
+    labShell: ILabShell | null,
   ) => {
     console.log('Elyra - script-debugger extension is activated!');
 
     const handler = new Debugger.Handler({
       type: 'file',
       shell: app.shell,
-      service: debug
+      service: debug,
     });
 
     const activeSessions: { [id: string]: Session.ISessionConnection } = {};
     const kernelManager = new KernelManager();
     const sessionManager = new SessionManager({
-      kernelManager: kernelManager
+      kernelManager: kernelManager,
     });
 
     const updateDebugger = async (widget: ScriptEditor): Promise<void> => {
@@ -97,7 +97,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         }
       } catch (error) {
         console.warn(
-          'Exception: session connection = ' + JSON.stringify(error)
+          'Exception: session connection = ' + JSON.stringify(error),
         );
       }
     };
@@ -139,15 +139,15 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
 
     const startSession = async (
       kernelSelection: string,
-      path: string
+      path: string,
     ): Promise<Session.ISessionConnection | null> => {
       const options: Session.ISessionOptions = {
         kernel: {
-          name: kernelSelection
+          name: kernelSelection,
         },
         path: path,
         type: 'file',
-        name: path
+        name: path,
       };
       let sessionConnection = null;
       try {
@@ -164,7 +164,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
 
     const updateKernel = async (
       sessionConnection: Session.ISessionConnection,
-      kernelSelection: string
+      kernelSelection: string,
     ): Promise<void> => {
       try {
         const prev = sessionConnection.kernel?.name;
@@ -176,7 +176,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         console.warn('Exception: change kernel = ' + JSON.stringify(error));
       }
     };
-  }
+  },
 };
 
 export default scriptEditorDebuggerExtension;

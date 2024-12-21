@@ -20,7 +20,7 @@ import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
-export const DropDown: Field = props => {
+export const DropDown: Field = (props) => {
   const {
     defaultValue,
     formContext,
@@ -30,7 +30,7 @@ export const DropDown: Field = props => {
     onChange,
     placeholder,
     formData,
-    id
+    id,
   } = props;
   const label = schema.title ?? name;
   const [current, setValue] = React.useState(formData ?? defaultValue);

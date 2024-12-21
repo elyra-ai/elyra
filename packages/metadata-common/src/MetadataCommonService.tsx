@@ -32,7 +32,7 @@ export class MetadataCommonService {
   static duplicateMetadataInstance(
     schemaSpace: string,
     metadataInstance: IMetadata,
-    existingInstances: IMetadata[]
+    existingInstances: IMetadata[],
   ): Promise<boolean> {
     // iterate through the list of currently defined
     // instance names and find the next available one
@@ -46,7 +46,7 @@ export class MetadataCommonService {
 
     while (
       existingInstances.find(
-        element => element.display_name === `${base_name}-Copy${count}`
+        (element) => element.display_name === `${base_name}-Copy${count}`,
       ) !== undefined
     ) {
       count += 1;
@@ -58,7 +58,7 @@ export class MetadataCommonService {
     delete duplicated_metadata.name;
     return MetadataService.postMetadata(
       schemaSpace,
-      JSON.stringify(duplicated_metadata)
+      JSON.stringify(duplicated_metadata),
     );
   }
 }

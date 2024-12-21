@@ -27,7 +27,7 @@ describe('Submit Notebook Button tests', () => {
 
     // Delete runtime configuration used for testing
     cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
-      failOnNonZeroExit: false
+      failOnNonZeroExit: false,
     });
   });
 
@@ -62,7 +62,7 @@ describe('Submit Notebook Button tests', () => {
 
 const openNewNotebookFile = (): void => {
   cy.get(
-    '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible'
+    '.jp-LauncherCard[data-category="Notebook"][title*="Python 3"]:visible',
   )
     .first()
     .click();

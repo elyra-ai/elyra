@@ -45,7 +45,7 @@ Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
 
   cy.exec(
     type === 'kfp' ? kfpRuntimeInstallCommand : airflowRuntimeInstallCommand,
-    { failOnNonZeroExit: false }
+    { failOnNonZeroExit: false },
   );
 });
 
@@ -64,11 +64,11 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
 
   if (type === 'kfp') {
     cy.findByLabelText(/kubeflow .* endpoint\*/i).type(
-      'https://kubernetes-service.ibm.com/pipeline'
+      'https://kubernetes-service.ibm.com/pipeline',
     );
   } else {
     cy.findByLabelText(/airflow .* endpoint/i).type(
-      'https://kubernetes-service.ibm.com/pipeline'
+      'https://kubernetes-service.ibm.com/pipeline',
     );
     cy.findByLabelText(/github .* repository\*/i).type('akchinstc/test-repo');
     cy.findByLabelText(/github .* branch/i).type('main');
@@ -76,12 +76,12 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
     // Check the default value is displayed on github api endpoint field
     cy.findByLabelText(/github .* endpoint/i).should(
       'have.value',
-      'https://api.github.com'
+      'https://api.github.com',
     );
   }
 
   cy.findByLabelText('Cloud Object Storage Endpoint*').type(
-    'http://0.0.0.0:9000'
+    'http://0.0.0.0:9000',
   );
 
   if (type !== 'invalid') {
@@ -101,12 +101,12 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
 });
 
 Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
-  cy.on('fail', e => {
+  cy.on('fail', (e) => {
     console.error(
-      `Example catalog connectors do not appear to be installed.\n${e}`
+      `Example catalog connectors do not appear to be installed.\n${e}`,
     );
     throw new Error(
-      `Example catalog connectors do not appear to be installed.\n${e}`
+      `Example catalog connectors do not appear to be installed.\n${e}`,
     );
   });
 
@@ -115,11 +115,11 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
 
   if (type === 'kfp') {
     cy.findByRole('menuitem', {
-      name: /new kubeflow pipelines example components catalog/i
+      name: /new kubeflow pipelines example components catalog/i,
     }).click();
   } else {
     cy.findByRole('menuitem', {
-      name: /new apache airflow example components catalog/i
+      name: /new apache airflow example components catalog/i,
     }).click();
   }
 
@@ -131,7 +131,7 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
 
 Cypress.Commands.add('deleteFile', (name: string): void => {
   cy.exec(`find build/cypress-tests/ -name "${name}" -delete`, {
-    failOnNonZeroExit: false
+    failOnNonZeroExit: false,
   });
 });
 
@@ -142,17 +142,17 @@ Cypress.Commands.add(
       switch (type) {
         case 'kfp':
           cy.get(
-            '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]'
+            '.jp-LauncherCard[data-category="Elyra"][title="Kubeflow Pipelines Pipeline Editor"]',
           ).click();
           break;
         case 'airflow':
           cy.get(
-            '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]'
+            '.jp-LauncherCard[data-category="Elyra"][title="Apache Airflow Pipeline Editor"]',
           ).click();
           break;
         default:
           cy.get(
-            '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]'
+            '.jp-LauncherCard[data-category="Elyra"][title="Generic Pipeline Editor"]',
           ).click();
           break;
       }
@@ -164,25 +164,25 @@ Cypress.Commands.add(
     cy.get('.common-canvas-drop-div');
     // wait an additional 300ms for the list of items to settle
     cy.wait(300);
-  }
+  },
 );
 
 Cypress.Commands.add('openDirectory', (name: string): void => {
   cy.findByRole('listitem', {
-    name: (n, _el) => n.includes(name)
+    name: (n, _el) => n.includes(name),
   }).dblclick();
 });
 
 Cypress.Commands.add('addFileToPipeline', (name: string): void => {
   cy.findByRole('listitem', {
-    name: (n, _el) => n.includes(name)
+    name: (n, _el) => n.includes(name),
   }).rightclick();
   cy.findByRole('menuitem', { name: /add file to pipeline/i }).click();
 });
 
 Cypress.Commands.add('dragAndDropFileToPipeline', (name: string): void => {
   const dragItem = cy.findByRole('listitem', {
-    name: (n, _el) => n.includes(name)
+    name: (n, _el) => n.includes(name),
   });
 
   dragItem.trigger('mousedown', { button: 0 });
@@ -203,7 +203,7 @@ Cypress.Commands.add('savePipeline', (): void => {
 Cypress.Commands.add('openFile', (name: string): void => {
   cy.findByRole('listitem', {
     name: (n, _el) => n.includes(name),
-    timeout: 50000
+    timeout: 50000,
   }).dblclick();
 });
 
@@ -217,28 +217,26 @@ Cypress.Commands.add('resetJupyterLab', (): void => {
   // open jupyterlab with a clean workspace
   cy.visit('?token=test&reset');
   cy.findByRole('tab', { name: /file browser/i, timeout: 25000 }).should(
-    'exist'
+    'exist',
   );
 });
 
 Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
   cy.findByRole('tab', { name: /\.pipeline/i }).rightclick();
   cy.findAllByRole('menuitem', { name: new RegExp(fileType, 'i') }).should(
-    'exist'
+    'exist',
   );
   //dismiss menu
   cy.get('[aria-label="Canvas"]').click({ force: true });
 });
 
 Cypress.Commands.add('closeTab', (index: number): void => {
-  cy.get('.lm-TabBar-tabCloseIcon:visible')
-    .eq(index)
-    .click();
+  cy.get('.lm-TabBar-tabCloseIcon:visible').eq(index).click();
 });
 
 Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
   cy.get(
-    `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`
+    `.jp-LauncherCard[data-category="Elyra"][title="Create a new ${language} Editor"]:visible`,
   ).click();
 });
 
@@ -267,41 +265,41 @@ Cypress.Commands.add('checkScriptEditorToolbarContent', (): void => {
 Cypress.Commands.add('checkRightClickTabContent', (fileType: string): void => {
   // Open right-click context menu
   cy.get('.lm-TabBar-tab[data-type="document-title"]').rightclick({
-    force: true
+    force: true,
   });
 
   // Check contents of each menu item
   cy.get('[data-command="application:close"] > .lm-Menu-itemLabel').contains(
-    'Close Tab'
+    'Close Tab',
   );
   cy.get(
-    '[data-command="application:close-other-tabs"] > .lm-Menu-itemLabel'
+    '[data-command="application:close-other-tabs"] > .lm-Menu-itemLabel',
   ).contains('Close All Other Tabs');
   cy.get(
-    '[data-command="application:close-right-tabs"] > .lm-Menu-itemLabel'
+    '[data-command="application:close-right-tabs"] > .lm-Menu-itemLabel',
   ).contains('Close Tabs to Right');
   cy.get(
-    '[data-command="filemenu:create-console"] > .lm-Menu-itemLabel'
+    '[data-command="filemenu:create-console"] > .lm-Menu-itemLabel',
   ).contains('Create Console for Editor');
   cy.get('[data-command="docmanager:rename"] > .lm-Menu-itemLabel').contains(
-    `Rename ${fileType} File…`
+    `Rename ${fileType} File…`,
   );
   cy.get('[data-command="docmanager:delete"] > .lm-Menu-itemLabel').contains(
-    `Delete ${fileType} File`
+    `Delete ${fileType} File`,
   );
   cy.get('[data-command="docmanager:clone"] > .lm-Menu-itemLabel').contains(
-    `New View for ${fileType} File`
+    `New View for ${fileType} File`,
   );
   cy.get(
-    '[data-command="docmanager:show-in-file-browser"] > .lm-Menu-itemLabel'
+    '[data-command="docmanager:show-in-file-browser"] > .lm-Menu-itemLabel',
   ).contains('Show in File Browser');
   cy.get(
-    '[data-command="__internal:context-menu-info"] > .lm-Menu-itemLabel'
+    '[data-command="__internal:context-menu-info"] > .lm-Menu-itemLabel',
   ).contains('Shift+Right Click for Browser Menu');
 
   // Dismiss menu
   cy.get(
-    '[data-command="docmanager:show-in-file-browser"] > .lm-Menu-itemLabel'
+    '[data-command="docmanager:show-in-file-browser"] > .lm-Menu-itemLabel',
   ).click();
 });
 
@@ -310,13 +308,13 @@ Cypress.Commands.add(
   (fileExtension: string): void => {
     cy.openHelloWorld(fileExtension);
     // Ensure that the file contents are as expected
-    cy.get('span[role="presentation"]').should($span => {
+    cy.get('span[role="presentation"]').should(($span) => {
       expect($span.get(0).innerText).to.eq('print("Hello Elyra")');
     });
 
     // Close the file editor
     cy.closeTab(-1);
-  }
+  },
 );
 
 // Open helloworld.* using file -> open from path
@@ -331,13 +329,11 @@ Cypress.Commands.add('openHelloWorld', (fileExtension: string): void => {
 
 // Dismiss LSP code assistant box if visible
 Cypress.Commands.add('dismissAssistant', (fileType: string): void => {
-  cy.get('body').then($body => {
+  cy.get('body').then(($body) => {
     if ($body.find('.lsp-completer').length > 0) {
       // Dismiss code assistant box
       const selector = fileType === 'notebook' ? 'body' : '.CodeMirror-lines';
-      cy.get(selector)
-        .first()
-        .type('{esc}');
+      cy.get(selector).first().type('{esc}');
     }
   });
 });
