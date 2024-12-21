@@ -27,7 +27,7 @@ describe('Python Editor tests', () => {
 
     // Delete runtime configuration used for testing
     cy.exec('elyra-metadata remove runtimes --name=kfp_test_runtime', {
-      failOnNonZeroExit: false
+      failOnNonZeroExit: false,
     });
   });
 
@@ -54,7 +54,7 @@ describe('Python Editor tests', () => {
     cy.findByText(/^new$/i).click();
 
     cy.get(
-      '[data-command="script-editor:create-new-python-editor"] > .lm-Menu-itemLabel'
+      '[data-command="script-editor:create-new-python-editor"] > .lm-Menu-itemLabel',
     ).click();
   });
 
@@ -113,7 +113,7 @@ describe('Python Editor tests', () => {
     clickRunButton();
     cy.get('[id=tab-ScriptEditor-output]').should(
       'have.text',
-      'Console Output'
+      'Console Output',
     );
     cy.get('button[title="Top"]').should('be.visible');
     cy.get('button[title="Bottom"]').should('be.visible');

@@ -38,7 +38,7 @@ describe('Script debugger tests', () => {
       openFile(TESTFILE);
       checkDefaultKernelSelection();
       checkDebuggerButtonEnabled(true);
-    }
+    },
   );
 
   it(
@@ -50,7 +50,7 @@ describe('Script debugger tests', () => {
       checkDebuggerButtonEnabled(true);
       cy.reload();
       checkDebuggerButtonEnabled(true);
-    }
+    },
   );
 
   it(
@@ -64,7 +64,7 @@ describe('Script debugger tests', () => {
       // Reopen editor
       openFile(TESTFILE);
       checkDebuggerButtonEnabled(true);
-    }
+    },
   );
 
   it(
@@ -73,11 +73,11 @@ describe('Script debugger tests', () => {
     () => {
       cy.createNewScriptEditor('R');
       cy.get(
-        '.elyra-ScriptEditor .jp-Toolbar select > option[value*=python]'
+        '.elyra-ScriptEditor .jp-Toolbar select > option[value*=python]',
       ).should('not.exist');
       checkDebuggerButtonEnabled(false);
       cy.deleteFile('untitled.r');
-    }
+    },
   );
 });
 
@@ -91,7 +91,7 @@ const checkDefaultKernelSelection = (): void => {
 
 const checkDebuggerButtonEnabled = (enabled: boolean): void => {
   const buttonElem = cy.get(
-    'button.jp-DebuggerBugButton[title="Enable Debugger"]'
+    'button.jp-DebuggerBugButton[title="Enable Debugger"]',
   );
 
   enabled

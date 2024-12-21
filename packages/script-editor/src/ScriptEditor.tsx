@@ -21,11 +21,11 @@ import { ScrollingWidget } from '@jupyterlab/logconsole';
 import {
   OutputArea,
   OutputAreaModel,
-  OutputPrompt
+  OutputPrompt,
 } from '@jupyterlab/outputarea';
 import {
   RenderMimeRegistry,
-  standardRendererFactories as initialFactories
+  standardRendererFactories as initialFactories,
 } from '@jupyterlab/rendermime';
 import {
   caretDownEmptyThinIcon,
@@ -34,7 +34,7 @@ import {
   runIcon,
   saveIcon,
   stopIcon,
-  LabIcon
+  LabIcon,
 } from '@jupyterlab/ui-components';
 
 import { Signal, ISignal } from '@lumino/signaling';
@@ -85,7 +85,7 @@ export abstract class ScriptEditor extends DocumentWidget<
    * Construct a new editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
   ) {
     super(options);
     this.addClass(SCRIPT_EDITOR_CLASS);
@@ -106,7 +106,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     const saveButton = new ToolbarButton({
       icon: saveIcon,
       onClick: this.saveFile,
-      tooltip: 'Save file contents'
+      tooltip: 'Save file contents',
     });
 
     const runButton = new ToolbarButton({
@@ -114,13 +114,13 @@ export abstract class ScriptEditor extends DocumentWidget<
       icon: runIcon,
       onClick: this.runScript,
       tooltip: 'Run',
-      enabled: !this.runDisabled
+      enabled: !this.runDisabled,
     });
 
     const interruptButton = new ToolbarButton({
       icon: stopIcon,
       onClick: this.interruptRun,
-      tooltip: 'Interrupt the kernel'
+      tooltip: 'Interrupt the kernel',
     });
 
     // Populate toolbar with button widgets
@@ -156,9 +156,8 @@ export abstract class ScriptEditor extends DocumentWidget<
    */
   protected initializeKernelSpecs = async (): Promise<void> => {
     const language = this.getLanguage();
-    const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
-      language
-    );
+    const kernelSpecs =
+      await this.controller.getKernelSpecsByLanguage(language);
     this.defaultKernel = await this.controller.getDefaultKernel(language);
     this.kernelName = this.defaultKernel;
     this.kernelSelectorRef = React.createRef<ISelect>();
@@ -171,15 +170,15 @@ export abstract class ScriptEditor extends DocumentWidget<
           kernelSpecs,
           this.defaultKernel,
           this.kernelSelectorRef,
-          this.handleKernelSelectionUpdate
-        )
+          this.handleKernelSelectionUpdate,
+        ),
       );
     }
     this._kernelSelectionChanged.emit(this.kernelSelection);
   };
 
   private handleKernelSelectionUpdate = async (
-    selectedKernel: string
+    selectedKernel: string,
   ): Promise<void> => {
     if (selectedKernel === this.kernelName) {
       return;
@@ -204,7 +203,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     const renderMimeRegistry = new RenderMimeRegistry({ initialFactories });
     this.outputAreaWidget = new OutputArea({
       rendermime: renderMimeRegistry,
-      model
+      model,
     });
     this.outputAreaWidget.addClass(OUTPUT_AREA_CLASS);
 
@@ -226,7 +225,7 @@ export abstract class ScriptEditor extends DocumentWidget<
         this.kernelName,
         this.context.path,
         this.model.value.text,
-        this.handleKernelMsg
+        this.handleKernelMsg,
       );
     }
   };
@@ -274,27 +273,27 @@ export abstract class ScriptEditor extends DocumentWidget<
   };
 
   private createScrollButtons = (
-    scrollingWidget: ScrollingWidget<OutputArea>
+    scrollingWidget: ScrollingWidget<OutputArea>,
   ): void => {
     const scrollUpButton = document.createElement('button');
     const scrollDownButton = document.createElement('button');
     scrollUpButton.className = 'elyra-ScriptEditor-scrollTop';
     scrollDownButton.className = 'elyra-ScriptEditor-scrollBottom';
-    scrollUpButton.onclick = function(): void {
+    scrollUpButton.onclick = function (): void {
       scrollingWidget.node.scrollTop = 0;
     };
-    scrollDownButton.onclick = function(): void {
+    scrollDownButton.onclick = function (): void {
       scrollingWidget.node.scrollTop = scrollingWidget.node.scrollHeight;
     };
     caretUpEmptyThinIcon.element({
       container: scrollUpButton,
       elementPosition: 'center',
-      title: 'Top'
+      title: 'Top',
     });
     caretDownEmptyThinIcon.element({
       container: scrollDownButton,
       elementPosition: 'center',
-      title: 'Bottom'
+      title: 'Bottom',
     });
     this.dockPanel?.node.appendChild(scrollUpButton);
     this.dockPanel?.node.appendChild(scrollDownButton);
@@ -321,7 +320,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     if (this.dockPanel?.isEmpty) {
       // Add a tab to dockPanel
       this.scrollingWidget = new ScrollingWidget({
-        content: this.outputAreaWidget
+        content: this.outputAreaWidget,
       });
       this.createScrollButtons(this.scrollingWidget);
       this.dockPanel?.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
@@ -343,7 +342,7 @@ export abstract class ScriptEditor extends DocumentWidget<
     const options = {
       name: 'stdout',
       output_type: 'stream',
-      text: ['Waiting for kernel to start...']
+      text: ['Waiting for kernel to start...'],
     };
     this.outputAreaWidget.model.add(options);
     this.updatePromptText(' ');
@@ -372,7 +371,7 @@ export abstract class ScriptEditor extends DocumentWidget<
       const options = {
         name: 'stdout',
         output_type: 'stream',
-        text: [output]
+        text: [output],
       };
       // Stream output doesn't instantiate correctly without an initial output string
       if (this.emptyOutput) {
@@ -438,7 +437,7 @@ export abstract class ScriptEditor extends DocumentWidget<
       return showDialog({
         title: 'Cannot Save',
         body: 'Document is read-only',
-        buttons: [Dialog.okButton()]
+        buttons: [Dialog.okButton()],
       });
     }
     void this.context.save().then(() => {

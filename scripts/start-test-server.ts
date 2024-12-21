@@ -32,7 +32,7 @@ const docker = spawn('docker', [
   '9000:9000',
   'minio/minio',
   'server',
-  '/data'
+  '/data',
 ]);
 
 const logDir = path.join(__dirname, '..', 'build', 'cypress-tests');

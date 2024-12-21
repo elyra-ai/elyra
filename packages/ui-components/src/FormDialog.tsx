@@ -35,14 +35,16 @@ const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
  */
 export const showFormDialog = async (
   options: Partial<Dialog.IOptions<any>>,
-  formValidationFunction?: (dialog: Dialog<any>) => void
+  formValidationFunction?: (dialog: Dialog<any>) => void,
 ): Promise<Dialog.IResult<any>> => {
   const dialogBody = options.body;
   const dialog = new Dialog(options);
 
   // Get dialog default action button
   const defaultButton = getDefaultButton(options, dialog.node);
-  defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+  if (defaultButton) {
+    defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
+  }
 
   if (formValidationFunction) {
     formValidationFunction(dialog);
@@ -63,12 +65,12 @@ export const showFormDialog = async (
 
             if (elementTagName === 'select' || element.type === 'number') {
               element.addEventListener('change', (event: Event) =>
-                validateDialogButton()
+                validateDialogButton(),
               );
             }
             if (['input', 'textarea'].includes(elementTagName)) {
               element.addEventListener('keyup', (event: Event) =>
-                validateDialogButton()
+                validateDialogButton(),
               );
             }
 
@@ -78,7 +80,7 @@ export const showFormDialog = async (
 
       preventDefaultDialogHandler(
         () => isFormValid(fieldsToBeValidated),
-        dialog
+        dialog,
       );
       validateDialogButton();
     }
@@ -96,19 +98,18 @@ export const enableButton = (button: HTMLButtonElement): void => {
 
 const getDefaultButton = (
   options: Partial<Dialog.IOptions<any>>,
-  node: HTMLElement
-): HTMLButtonElement => {
+  node: HTMLElement,
+): HTMLButtonElement | null => {
   const defaultButtonIndex =
     options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
-  return node
-    .querySelector('.jp-Dialog-footer')
-    ?.getElementsByTagName('button')[defaultButtonIndex]!;
+  const footer = node.querySelector('.jp-Dialog-footer');
+  return footer?.getElementsByTagName('button')[defaultButtonIndex] || null;
 };
 
 // Prevent user from bypassing validation upon pressing the 'Enter' key
 const preventDefaultDialogHandler = (
   isFormValidFn: () => boolean,
-  dialog: Dialog<any>
+  dialog: Dialog<any>,
 ): void => {
   const dialogHandleEvent = dialog.handleEvent;
   dialog.handleEvent = (event: Event): void => {

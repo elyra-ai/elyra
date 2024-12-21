@@ -33,7 +33,7 @@ describe('LSP', () => {
 
     //check for lsp item on status bar
     cy.get('.lsp-statusbar-item ').find(
-      '[title="Fully connected & initialized (1 virtual document)"]'
+      '[title="Fully connected & initialized (1 virtual document)"]',
     );
   });
 });

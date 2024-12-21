@@ -40,14 +40,14 @@ export default class Utils {
     cpu_limit?: number,
     gpu?: number,
     memory?: number,
-    memory_limit?: number
+    memory_limit?: number,
   ): any {
     const generated_uuid = uuid4();
 
     const artifactName = PathExt.basename(filename, PathExt.extname(filename));
 
     const envVars = Object.entries(envObject).map(
-      ([key, val]) => `${key}=${val}`
+      ([key, val]) => `${key}=${val}`,
     );
 
     return {
@@ -77,13 +77,13 @@ export default class Utils {
                   gpu,
                   memory,
                   memory_limit,
-                  include_subdirectories: false
+                  include_subdirectories: false,
                 },
                 ui_data: {
-                  label: PathExt.basename(filename)
-                }
-              }
-            }
+                  label: PathExt.basename(filename),
+                },
+              },
+            },
           ],
           app_data: {
             name: artifactName,
@@ -91,15 +91,15 @@ export default class Utils {
             version: PIPELINE_CURRENT_VERSION,
             source: PathExt.basename(filename),
             properties: {
-              name: 'generic'
+              name: 'generic',
             },
             ui_data: {
-              comments: []
-            }
-          }
-        }
+              comments: [],
+            },
+          },
+        },
       ],
-      schemas: []
+      schemas: [],
     };
   }
 
@@ -112,7 +112,7 @@ export default class Utils {
    */
   static chunkArray<T>(arr: T[], n: number): T[][] {
     return Array.from(Array(Math.ceil(arr.length / n)), (_, i) =>
-      arr.slice(i * n, i * n + n)
+      arr.slice(i * n, i * n + n),
     );
   }
 

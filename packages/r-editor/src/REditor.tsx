@@ -23,7 +23,7 @@ export class REditor extends ScriptEditor {
    * Construct a new R Editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
   ) {
     super(options);
   }

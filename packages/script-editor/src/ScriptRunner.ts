@@ -20,7 +20,7 @@ import {
   KernelManager,
   KernelSpecManager,
   Session,
-  SessionManager
+  SessionManager,
 } from '@jupyterlab/services';
 
 const KERNEL_ERROR_MSG =
@@ -51,7 +51,7 @@ export class ScriptRunner {
     this.kernelSpecManager = new KernelSpecManager();
     this.kernelManager = new KernelManager();
     this.sessionManager = new SessionManager({
-      kernelManager: this.kernelManager
+      kernelManager: this.kernelManager,
     });
     this.sessionConnection = null;
   }
@@ -61,7 +61,7 @@ export class ScriptRunner {
     return showDialog({
       title: 'Error',
       body: errorMsg,
-      buttons: [Dialog.okButton()]
+      buttons: [Dialog.okButton()],
     });
   };
 
@@ -72,7 +72,7 @@ export class ScriptRunner {
     kernelName: string | null,
     contextPath: string,
     code: string,
-    handleKernelMsg: (msgOutput: any) => void
+    handleKernelMsg: (msgOutput: any) => void,
   ): Promise<any> => {
     if (!kernelName) {
       this.disableButton(true);
@@ -99,7 +99,7 @@ export class ScriptRunner {
       if (msg.msg_type === 'error') {
         msgOutput.error = {
           type: msg.content.ename,
-          output: msg.content.evalue
+          output: msg.content.evalue,
         };
       } else if (
         msg.msg_type === 'execute_result' ||
@@ -139,15 +139,15 @@ export class ScriptRunner {
    */
   startSession = async (
     kernelName: string,
-    contextPath: string
+    contextPath: string,
   ): Promise<void> => {
     const options: Session.ISessionOptions = {
       kernel: {
-        name: kernelName
+        name: kernelName,
       },
       path: contextPath,
       type: 'file',
-      name: contextPath
+      name: contextPath,
     };
 
     if (!this.sessionConnection || !this.sessionConnection.kernel) {

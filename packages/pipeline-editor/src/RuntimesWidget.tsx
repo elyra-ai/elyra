@@ -19,7 +19,7 @@ import {
   IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps,
-  IMetadataDisplayState
+  IMetadataDisplayState,
 } from '@elyra/metadata-common';
 import { IDictionary, MetadataService } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
@@ -28,7 +28,7 @@ import React from 'react';
 import {
   IRuntimeType,
   PipelineService,
-  RUNTIMES_SCHEMASPACE
+  RUNTIMES_SCHEMASPACE,
 } from './PipelineService';
 
 const RUNTIMES_METADATA_CLASS = 'elyra-metadata-runtimes';
@@ -144,8 +144,8 @@ export class RuntimesWidget extends MetadataWidget {
   }
 
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes().catch(error =>
-      RequestErrors.serverError(error)
+    return await PipelineService.getRuntimes().catch((error) =>
+      RequestErrors.serverError(error),
     );
   }
 
@@ -154,11 +154,11 @@ export class RuntimesWidget extends MetadataWidget {
       const schemas = await MetadataService.getSchema(this.props.schemaspace);
       this.runtimeTypes = await PipelineService.getRuntimeTypes();
       const sortedSchema = schemas.sort((a: any, b: any) =>
-        a.title.localeCompare(b.title)
+        a.title.localeCompare(b.title),
       );
       this.schemas = sortedSchema.filter((schema: any) => {
         return !!this.runtimeTypes.find(
-          r => r.id === schema.runtime_type && r.runtime_enabled
+          (r) => r.id === schema.runtime_type && r.runtime_enabled,
         );
       });
       if (this.schemas?.length ?? 0 > 1) {
@@ -172,8 +172,8 @@ export class RuntimesWidget extends MetadataWidget {
               schema: schema.name,
               title: schema.title,
               titleContext: this.props.titleContext,
-              appendToTitle: this.props.appendToTitle
-            } as any
+              appendToTitle: this.props.appendToTitle,
+            } as any,
           });
         }
       }
@@ -200,7 +200,7 @@ export class RuntimesWidget extends MetadataWidget {
       onSave: this.updateMetadata,
       schemaspace: this.props.schemaspace,
       schema: schema,
-      titleContext: titleContext
+      titleContext: titleContext,
     });
   }
 
@@ -217,8 +217,8 @@ export class RuntimesWidget extends MetadataWidget {
       );
     }
 
-    const filteredMetadata = metadata.filter(m => {
-      return !!this.runtimeTypes.find(r => m.metadata?.runtime_type === r.id);
+    const filteredMetadata = metadata.filter((m) => {
+      return !!this.runtimeTypes.find((r) => m.metadata?.runtime_type === r.id);
     });
 
     return (

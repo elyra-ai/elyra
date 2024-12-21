@@ -44,7 +44,7 @@ describe('@elyra/script-editor', () => {
       it('should get Python kernel specs', async () => {
         const kernelSpecs = await controller.getKernelSpecsByLanguage(language);
         Object.entries(kernelSpecs?.kernelspecs ?? []).forEach(([, value]) =>
-          expect(value?.language).toContain(language)
+          expect(value?.language).toContain(language),
         );
       });
     });
@@ -79,7 +79,7 @@ describe('@elyra/script-editor', () => {
         if (session) {
           expect(session.id).toEqual(runner.sessionConnection?.id);
           expect(runner.sessionConnection?.kernel?.connectionStatus).toEqual(
-            'connecting'
+            'connecting',
           );
         }
         runner.shutdownSession();

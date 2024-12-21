@@ -27,7 +27,7 @@ export class CodeViewerWidget extends Widget {
 
     const editorWidget = new CodeEditorWrapper({
       factory: options.factory,
-      model: options.model
+      model: options.model,
     });
     this.editor = editorWidget.editor;
     this.editor.setOption('readOnly', true);
@@ -37,11 +37,11 @@ export class CodeViewerWidget extends Widget {
   }
 
   static getCodeViewer(
-    options: CodeViewerWidget.INoModelOptions
+    options: CodeViewerWidget.INoModelOptions,
   ): CodeViewerWidget {
     const model = new CodeEditor.Model({
       value: options.content,
-      mimeType: options.mimeType
+      mimeType: options.mimeType,
     });
     return new CodeViewerWidget({ factory: options.factory, model });
   }

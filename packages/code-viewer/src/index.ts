@@ -17,7 +17,7 @@
 import {
   ILayoutRestorer,
   JupyterFrontEnd,
-  JupyterFrontEndPlugin
+  JupyterFrontEndPlugin,
 } from '@jupyterlab/application';
 import { MainAreaWidget, WidgetTracker } from '@jupyterlab/apputils';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
@@ -32,7 +32,7 @@ const ELYRA_CODE_VIEWER_NAMESPACE = 'elyra-code-viewer-extension';
  * The command IDs used by the code-viewer plugin.
  */
 const CommandIDs = {
-  openViewer: 'elyra-code-viewer:open'
+  openViewer: 'elyra-code-viewer:open',
 };
 
 /**
@@ -46,25 +46,25 @@ const extension: JupyterFrontEndPlugin<void> = {
   activate: (
     app: JupyterFrontEnd,
     editorServices: IEditorServices,
-    restorer: ILayoutRestorer
+    restorer: ILayoutRestorer,
   ) => {
     console.log('Elyra - code-viewer extension is activated!');
 
     const tracker = new WidgetTracker<MainAreaWidget<CodeViewerWidget>>({
-      namespace: ELYRA_CODE_VIEWER_NAMESPACE
+      namespace: ELYRA_CODE_VIEWER_NAMESPACE,
     });
 
     // Handle state restoration
     if (restorer) {
       void restorer.restore(tracker, {
         command: CommandIDs.openViewer,
-        args: widget => ({
+        args: (widget) => ({
           content: widget.content.getContent(),
           label: widget.content.title.label,
           mimeType: widget.content.getMimeType(),
-          widgetId: widget.content.id
+          widgetId: widget.content.id,
         }),
-        name: widget => widget.content.id
+        name: (widget) => widget.content.id,
       });
     }
 
@@ -76,7 +76,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       widgetId?: string;
     }): Promise<CodeViewerWidget> => {
       const func = editorServices.factoryService.newDocumentEditor;
-      const factory: CodeEditor.Factory = options => {
+      const factory: CodeEditor.Factory = (options) => {
         return func(options);
       };
 
@@ -84,20 +84,20 @@ const extension: JupyterFrontEndPlugin<void> = {
       let mimetype = args.mimeType;
       if (!mimetype && args.extension) {
         mimetype = editorServices.mimeTypeService.getMimeTypeByFilePath(
-          `temp.${args.extension.replace(/\\.$/, '')}`
+          `temp.${args.extension.replace(/\\.$/, '')}`,
         );
       }
 
       const widget = CodeViewerWidget.getCodeViewer({
         factory,
         content: args.content,
-        mimeType: mimetype
+        mimeType: mimetype,
       });
       widget.title.label = args.label || 'Code Viewer';
       widget.title.caption = widget.title.label;
 
       // Get the fileType based on the mimetype to determine the icon
-      const fileType = toArray(app.docRegistry.fileTypes()).find(fileType => {
+      const fileType = toArray(app.docRegistry.fileTypes()).find((fileType) => {
         return mimetype ? fileType.mimeTypes.includes(mimetype) : undefined;
       });
       widget.title.icon = fileType?.icon ?? textEditorIcon;
@@ -114,9 +114,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.commands.addCommand(CommandIDs.openViewer, {
       execute: (args: any) => {
         return openCodeViewer(args);
-      }
+      },
     });
-  }
+  },
 };
 
 export default extension;
