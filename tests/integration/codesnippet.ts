@@ -25,7 +25,7 @@ describe('Code Snippet tests', () => {
   afterEach(() => {
     // delete code-snippet used for testing
     cy.exec(`elyra-metadata remove code-snippets --name=${snippetName}`, {
-      failOnNonZeroExit: false
+      failOnNonZeroExit: false,
     });
   });
 
@@ -34,7 +34,7 @@ describe('Code Snippet tests', () => {
     cy.get('.elyra-metadata .elyra-metadataHeader').contains('Code Snippets');
     // and code-snippet create new button is visible
     cy.findByRole('button', { name: /create new code snippet/i }).should(
-      'be.visible'
+      'be.visible',
     );
   });
 
@@ -136,7 +136,7 @@ describe('Code Snippet tests', () => {
       'Insert',
       'Edit',
       'Duplicate',
-      'Delete'
+      'Delete',
     ];
 
     // Check expected buttons to be visible
@@ -343,7 +343,7 @@ const createInvalidCodeSnippet = (snippetName: string): any => {
 
 const populateCodeSnippetFields = (
   snippetName: string,
-  language?: string
+  language?: string,
 ): any => {
   clickCreateNewSnippetButton();
 
@@ -355,13 +355,13 @@ const populateCodeSnippetFields = (
 
   // Add snippet code
   cy.get('.CodeMirror .CodeMirror-scroll:visible').type(
-    'print("Code Snippet Test")'
+    'print("Code Snippet Test")',
   );
 };
 
 const createValidCodeSnippet = (
   snippetName: string,
-  language?: string
+  language?: string,
 ): any => {
   populateCodeSnippetFields(snippetName, language);
 
@@ -400,7 +400,7 @@ const duplicateSnippet = (snippetName: string): void => {
 
 const getActionButtonsElement = (snippetName: string): any => {
   const actionButtonsElement = getSnippetByName(snippetName).find(
-    '.elyra-expandableContainer-action-buttons'
+    '.elyra-expandableContainer-action-buttons',
   );
 
   return actionButtonsElement;
@@ -416,7 +416,7 @@ const insert = (snippetName: string): void => {
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
   cy.get('.elyra-formEditor')
     .find('.elyra-form-DropDown-item option')
-    .then(list => Cypress._.map(list, 'value'))
+    .then((list) => Cypress._.map(list, 'value'))
     .should('include', lang);
   cy.get('.elyra-formEditor')
     .find('.elyra-formEditor-form-language input')

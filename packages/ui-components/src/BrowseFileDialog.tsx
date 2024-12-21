@@ -19,7 +19,7 @@ import { IDocumentManager } from '@jupyterlab/docmanager';
 import {
   BreadCrumbs,
   DirListing,
-  FilterFileBrowserModel
+  FilterFileBrowserModel,
 } from '@jupyterlab/filebrowser';
 import { Widget, PanelLayout } from '@lumino/widgets';
 
@@ -60,7 +60,7 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
     // if 'rootPath' is defined prevent navigating to it's parent/grandparent directories
     if (localPath && this.rootPath && localPath.indexOf(this.rootPath) === 0) {
       const breadcrumbs = document.querySelectorAll(
-        '.elyra-browseFileDialog .jp-BreadCrumbs > span[title]'
+        '.elyra-browseFileDialog .jp-BreadCrumbs > span[title]',
       );
 
       breadcrumbs.forEach((crumb: Element): void => {
@@ -83,8 +83,10 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
 /**
  * Browse file widget for dialog body
  */
-class BrowseFileDialog extends Widget
-  implements Dialog.IBodyWidget<IBrowseFileDialogOptions> {
+class BrowseFileDialog
+  extends Widget
+  implements Dialog.IBodyWidget<IBrowseFileDialogOptions>
+{
   directoryListing: DirListing;
   breadCrumbs: BreadCrumbs;
   dirListingHandleEvent: (event: Event) => void;
@@ -98,13 +100,13 @@ class BrowseFileDialog extends Widget
 
     this.model = new FilterFileBrowserModel({
       manager: props.manager,
-      filter: props.filter
+      filter: props.filter,
     });
 
     const layout = (this.layout = new PanelLayout());
 
     this.directoryListing = new DirListing({
-      model: this.model
+      model: this.model,
     });
 
     this.acceptFileOnDblClick = props.acceptFileOnDblClick;
@@ -117,7 +119,7 @@ class BrowseFileDialog extends Widget
 
     this.breadCrumbs = new BrowseFileDialogBreadcrumbs({
       model: this.model,
-      rootPath: props.rootPath
+      rootPath: props.rootPath,
     });
 
     layout.addWidget(this.breadCrumbs);
@@ -176,7 +178,7 @@ class BrowseFileDialog extends Widget
         break;
       case 'dblclick': {
         const clickedItem = this.directoryListing.modelForClick(
-          event as MouseEvent
+          event as MouseEvent,
         );
         if (clickedItem?.type === 'directory') {
           this.dirListingHandleEvent.call(this.directoryListing, event);
@@ -185,7 +187,7 @@ class BrowseFileDialog extends Widget
           event.stopPropagation();
           if (this.acceptFileOnDblClick) {
             const okButton = document.querySelector(
-              `.${BROWSE_FILE_OPEN_CLASS} .jp-mod-accept`
+              `.${BROWSE_FILE_OPEN_CLASS} .jp-mod-accept`,
             );
             if (okButton) {
               (okButton as HTMLButtonElement).click();
@@ -203,7 +205,7 @@ class BrowseFileDialog extends Widget
 
 export const showBrowseFileDialog = async (
   manager: IDocumentManager,
-  options: IBrowseFileDialogOptions
+  options: IBrowseFileDialogOptions,
 ): Promise<Dialog.IResult<any>> => {
   const browseFileDialogBody = await BrowseFileDialog.init({
     manager: manager,
@@ -214,16 +216,16 @@ export const showBrowseFileDialog = async (
     startPath: options.startPath,
     acceptFileOnDblClick: Object.prototype.hasOwnProperty.call(
       options,
-      'acceptFileOnDblClick'
+      'acceptFileOnDblClick',
     )
       ? options.acceptFileOnDblClick
-      : true
+      : true,
   });
 
   const dialog = new Dialog({
     title: 'Select a file',
     body: browseFileDialogBody,
-    buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Select' })]
+    buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Select' })],
   });
 
   dialog.addClass(BROWSE_FILE_CLASS);

@@ -20,7 +20,7 @@ import { IFormComponentRegistry } from '@jupyterlab/ui-components';
 import Form, {
   ArrayFieldTemplateProps,
   FieldTemplateProps,
-  IChangeEvent
+  IChangeEvent,
 } from '@rjsf/core';
 import * as React from 'react';
 
@@ -73,10 +73,10 @@ interface IFormEditorProps {
  * React component that allows for custom add / remove buttons in the array
  * field component.
  */
-const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
+const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = (props) => {
   return (
     <div className={props.className}>
-      {props.items.map(item => {
+      {props.items.map((item) => {
         return (
           <div key={item.key} className={item.className}>
             {item.children}
@@ -102,7 +102,7 @@ const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
   );
 };
 
-const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
+const CustomFieldTemplate: React.FC<FieldTemplateProps> = (props) => {
   return (
     <div className={props.classNames}>
       {props.schema.title !== undefined && props.schema.title !== ' ' ? (
@@ -123,9 +123,7 @@ const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
             </div>
           )}
         </div>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
       {props.children}
       {props.errors}
     </div>
@@ -145,7 +143,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
   translator,
   originalData,
   allTags,
-  languageOptions
+  languageOptions,
 }) => {
   const [formData, setFormData] = React.useState(originalData ?? ({} as any));
 
@@ -153,7 +151,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
    * Generate the rjsf uiSchema from uihints in the elyra metadata schema.
    */
   const uiSchema: any = {
-    classNames: 'elyra-formEditor'
+    classNames: 'elyra-formEditor',
   };
   for (const category in schema?.properties) {
     const properties = schema.properties[category];
@@ -173,7 +171,7 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         language: formData?.['Source']?.language ?? '',
         allTags: allTags,
         languageOptions: languageOptions,
-        trans: translator
+        trans: translator,
       }}
       fields={componentRegistry?.renderers}
       ArrayFieldTemplate={ArrayTemplate}

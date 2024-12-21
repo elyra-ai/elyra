@@ -20,7 +20,7 @@ import {
   IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps,
-  IMetadataDisplayState
+  IMetadataDisplayState,
 } from '@elyra/metadata-common';
 import { IDictionary } from '@elyra/services';
 

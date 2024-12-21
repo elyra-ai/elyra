@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 declare namespace Cypress {
-  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Chainable {
     matchesSnapshot(): Chainable<void>;
   }
 
-  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   interface ResolvedConfigOptions {
     snapshotsFolder: string;
   }

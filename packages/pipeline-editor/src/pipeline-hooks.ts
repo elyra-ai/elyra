@@ -47,7 +47,7 @@ const metadataFetcher = async <T>(key: string): Promise<T> => {
 export const useRuntimeImages = (): IReturn<IRuntimeImagesResponse> => {
   const { data, error } = useSWR<IRuntimeImagesResponse>(
     'runtime-images',
-    metadataFetcher
+    metadataFetcher,
   );
 
   data?.sort((a, b) => 0 - (a.name > b.name ? -1 : 1));
@@ -139,8 +139,8 @@ export const sortPalette = (palette: {
   for (const components of palette.categories) {
     components.node_types.sort((a, b) =>
       a.label.localeCompare(b.label, undefined, {
-        numeric: true
-      })
+        numeric: true,
+      }),
     );
   }
 };
@@ -149,37 +149,36 @@ export const sortPalette = (palette: {
 const NodeIcons: Map<string, string> = new Map([
   ['execute-notebook-node', 'static/elyra/notebook.svg'],
   ['execute-python-node', 'static/elyra/python.svg'],
-  ['execute-r-node', 'static/elyra/r-logo.svg']
+  ['execute-r-node', 'static/elyra/r-logo.svg'],
 ]);
 
 // TODO: We should decouple components and properties to support lazy loading.
 // TODO: type this
 export const componentFetcher = async (type: string): Promise<any> => {
-  const palettePromise = RequestHandler.makeGetRequest<
-    IRuntimeComponentsResponse
-  >(`elyra/pipeline/components/${type}`);
+  const palettePromise =
+    RequestHandler.makeGetRequest<IRuntimeComponentsResponse>(
+      `elyra/pipeline/components/${type}`,
+    );
 
-  const pipelinePropertiesPromise = RequestHandler.makeGetRequest<
-    IComponentPropertiesResponse
-  >(`elyra/pipeline/${type}/properties`);
+  const pipelinePropertiesPromise =
+    RequestHandler.makeGetRequest<IComponentPropertiesResponse>(
+      `elyra/pipeline/${type}/properties`,
+    );
 
-  const pipelineParametersPromise = RequestHandler.makeGetRequest<
-    IComponentPropertiesResponse
-  >(`elyra/pipeline/${type}/parameters`);
+  const pipelineParametersPromise =
+    RequestHandler.makeGetRequest<IComponentPropertiesResponse>(
+      `elyra/pipeline/${type}/parameters`,
+    );
 
   const typesPromise = PipelineService.getRuntimeTypes();
 
-  const [
-    palette,
-    pipelineProperties,
-    pipelineParameters,
-    types
-  ] = await Promise.all([
-    palettePromise,
-    pipelinePropertiesPromise,
-    pipelineParametersPromise,
-    typesPromise
-  ]);
+  const [palette, pipelineProperties, pipelineParameters, types] =
+    await Promise.all([
+      palettePromise,
+      pipelinePropertiesPromise,
+      pipelineParametersPromise,
+      typesPromise,
+    ]);
 
   palette.properties = pipelineProperties;
   palette.parameters = pipelineParameters;
@@ -192,13 +191,14 @@ export const componentFetcher = async (type: string): Promise<any> => {
     }
   }
 
-  const propertiesPromises = componentList.map(async componentID => {
-    const res = await RequestHandler.makeGetRequest<
-      IComponentPropertiesResponse
-    >(`elyra/pipeline/components/${type}/${componentID}/properties`);
+  const propertiesPromises = componentList.map(async (componentID) => {
+    const res =
+      await RequestHandler.makeGetRequest<IComponentPropertiesResponse>(
+        `elyra/pipeline/components/${type}/${componentID}/properties`,
+      );
     return {
       id: componentID,
-      properties: res
+      properties: res,
     };
   });
 
@@ -215,8 +215,9 @@ export const componentFetcher = async (type: string): Promise<any> => {
 
     const type = types.find((t: any) => t.id === category_runtime_type);
     const baseUrl = ServerConnection.makeSettings().baseUrl;
-    const defaultIcon = URLExt.parse(URLExt.join(baseUrl, type?.icon || ''))
-      .pathname;
+    const defaultIcon = URLExt.parse(
+      URLExt.join(baseUrl, type?.icon || ''),
+    ).pathname;
 
     category.image = defaultIcon;
 
@@ -232,7 +233,7 @@ export const componentFetcher = async (type: string): Promise<any> => {
       node.app_data.image = nodeIcon;
       node.app_data.ui_data.image = nodeIcon;
 
-      const prop = properties.find(p => p.id === node.id);
+      const prop = properties.find((p) => p.id === node.id);
       node.app_data.properties = prop?.properties;
     }
   }
@@ -244,13 +245,13 @@ export const componentFetcher = async (type: string): Promise<any> => {
 
 const updateRuntimeImages = (
   properties: any,
-  runtimeImages: IRuntimeImage[] | undefined
+  runtimeImages: IRuntimeImage[] | undefined,
 ): void => {
   const runtimeImageProperties =
     properties?.properties?.component_parameters?.properties?.runtime_image ??
     properties?.properties?.pipeline_defaults?.properties?.runtime_image;
 
-  const imageNames = (runtimeImages ?? []).map(i => i.metadata.image_name);
+  const imageNames = (runtimeImages ?? []).map((i) => i.metadata.image_name);
 
   const displayNames: { [key: string]: string } = {};
 
@@ -260,7 +261,7 @@ const updateRuntimeImages = (
 
   if (runtimeImageProperties) {
     runtimeImageProperties.enumNames = (runtimeImages ?? []).map(
-      i => i.display_name
+      (i) => i.display_name,
     );
     runtimeImageProperties.enum = imageNames;
   }
@@ -269,10 +270,11 @@ const updateRuntimeImages = (
 export const usePalette = (type = 'local'): IReturn<any> => {
   const { data: runtimeImages, error: runtimeError } = useRuntimeImages();
 
-  const { data: palette, error: paletteError, mutate: mutate } = useSWR(
-    type,
-    componentFetcher
-  );
+  const {
+    data: palette,
+    error: paletteError,
+    mutate: mutate,
+  } = useSWR(type, componentFetcher);
 
   let updatedPalette;
   if (palette !== undefined) {
@@ -290,6 +292,6 @@ export const usePalette = (type = 'local'): IReturn<any> => {
   return {
     data: updatedPalette,
     error: runtimeError ?? paletteError,
-    mutate: mutate
+    mutate: mutate,
   };
 };

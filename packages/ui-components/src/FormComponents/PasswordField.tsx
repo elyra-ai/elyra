@@ -21,7 +21,7 @@ import { viewIcon, viewOffIcon } from '..';
 /**
  * React component to edit and display password fields. Adds a button to hide / show text input.
  */
-export const PasswordField: Field = props => {
+export const PasswordField: Field = (props) => {
   const { StringField } = props.registry.fields;
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -31,7 +31,7 @@ export const PasswordField: Field = props => {
         {...props}
         uiSchema={{
           ...props.uiSchema,
-          'ui:widget': showPassword ? undefined : 'password'
+          'ui:widget': showPassword ? undefined : 'password',
         }}
       />
       <button

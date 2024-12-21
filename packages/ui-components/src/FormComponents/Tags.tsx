@@ -36,10 +36,10 @@ const FORM_EDITOR_INPUT_TAG = 'elyra-inputTag';
 export const Tags: React.FC<ITagProps> = ({
   selectedTags,
   tags,
-  handleChange
+  handleChange,
 }) => {
   const [selected, setSelectedTags] = React.useState<string[]>(
-    selectedTags ?? []
+    selectedTags ?? [],
   );
   const [allTags, setTags] = React.useState<string[]>(tags ?? []);
   const [addingNewTag, setAddingNewTag] = React.useState<boolean>(false);
@@ -49,7 +49,7 @@ export const Tags: React.FC<ITagProps> = ({
   }, [selected, allTags, handleChange]);
 
   const handleClick = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ): void => {
     const target = event.currentTarget as HTMLElement;
     const clickedTag = target.innerText;
@@ -74,7 +74,7 @@ export const Tags: React.FC<ITagProps> = ({
   };
 
   const addTagOnKeyDown = async (
-    event: React.KeyboardEvent<HTMLInputElement>
+    event: React.KeyboardEvent<HTMLInputElement>,
   ): Promise<void> => {
     const inputElement = event.target as HTMLInputElement;
 
@@ -84,7 +84,7 @@ export const Tags: React.FC<ITagProps> = ({
         event.preventDefault();
         await showDialog({
           title: 'A tag with this label already exists.',
-          buttons: [Dialog.okButton()]
+          buttons: [Dialog.okButton()],
         });
         return;
       }
@@ -118,10 +118,10 @@ export const Tags: React.FC<ITagProps> = ({
         <input
           className={`${FORM_EDITOR_INPUT_TAG}`}
           onClick={(
-            event: React.MouseEvent<HTMLInputElement, MouseEvent>
+            event: React.MouseEvent<HTMLInputElement, MouseEvent>,
           ): void => addTagOnClick(event)}
           onKeyDown={async (
-            event: React.KeyboardEvent<HTMLInputElement>
+            event: React.KeyboardEvent<HTMLInputElement>,
           ): Promise<void> => {
             await addTagOnKeyDown(event);
           }}
@@ -197,7 +197,7 @@ export const Tags: React.FC<ITagProps> = ({
                   </button>
                 );
               }
-            })()
+            })(),
           )
         : null}
       {inputBox}
@@ -205,7 +205,7 @@ export const Tags: React.FC<ITagProps> = ({
   );
 };
 
-export const TagsField: Field = props => {
+export const TagsField: Field = (props) => {
   const errors = [];
   if (Object.keys(props.errorSchema).length > 0) {
     for (const i in props.errorSchema) {
@@ -226,9 +226,7 @@ export const TagsField: Field = props => {
       />
       {Object.keys(props.errorSchema).length > 0 ? (
         <ul className="error-detail bs-callout bs-callout-info">{errors}</ul>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
     </div>
   );
 };

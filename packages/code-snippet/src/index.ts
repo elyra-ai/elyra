@@ -21,7 +21,7 @@ import { codeSnippetIcon } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin,
-  ILayoutRestorer
+  ILayoutRestorer,
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { Cell } from '@jupyterlab/cells';
@@ -34,14 +34,14 @@ import { Widget } from '@lumino/widgets';
 
 import {
   CODE_SNIPPET_SCHEMASPACE,
-  CODE_SNIPPET_SCHEMA
+  CODE_SNIPPET_SCHEMA,
 } from './CodeSnippetService';
 import { CodeSnippetWidget } from './CodeSnippetWidget';
 
 const CODE_SNIPPET_EXTENSION_ID = 'elyra-code-snippet-extension';
 
 const commandIDs = {
-  saveAsSnippet: 'codesnippet:save-as-snippet'
+  saveAsSnippet: 'codesnippet:save-as-snippet',
 };
 
 /**
@@ -55,7 +55,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     palette: ICommandPalette,
     restorer: ILayoutRestorer,
-    editorServices: IEditorServices
+    editorServices: IEditorServices,
   ) => {
     console.log('Elyra - code-snippet extension is activated!');
 
@@ -71,7 +71,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       icon: codeSnippetIcon,
       getCurrentWidget,
       editorServices,
-      titleContext: 'code snippet'
+      titleContext: 'code snippet',
     });
     const codeSnippetWidgetId = `elyra-metadata:${CODE_SNIPPET_SCHEMASPACE}`;
     codeSnippetWidget.id = codeSnippetWidgetId;
@@ -126,7 +126,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
             schemaspace: CODE_SNIPPET_SCHEMASPACE,
             schema: CODE_SNIPPET_SCHEMA,
             code: selection.split('\n'),
-            onSave: codeSnippetWidget.updateMetadata
+            onSave: codeSnippetWidget.updateMetadata,
           });
         } else {
           const selectedCells = getSelectedCellContents();
@@ -136,30 +136,30 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
             schemaspace: CODE_SNIPPET_SCHEMASPACE,
             schema: CODE_SNIPPET_SCHEMA,
             code: code,
-            onSave: codeSnippetWidget.updateMetadata
+            onSave: codeSnippetWidget.updateMetadata,
           });
         }
-      }
+      },
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-Cell'
+      selector: '.jp-Cell',
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-FileEditor'
+      selector: '.jp-FileEditor',
     });
 
     app.contextMenu.addItem({
       command: commandIDs.saveAsSnippet,
-      selector: '.jp-MarkdownViewer'
+      selector: '.jp-MarkdownViewer',
     });
 
     const getTextSelection = (
       editor: any,
-      markdownPreview?: boolean
+      markdownPreview?: boolean,
     ): string => {
       const selectionObj = editor.getSelection();
       const start = editor.getOffsetAt(selectionObj.start);
@@ -221,7 +221,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         return notebookCell?.editor;
       }
     };
-  }
+  },
 };
 
 export default code_snippet_extension;

@@ -25,7 +25,7 @@ export class ScalaEditor extends ScriptEditor {
    * Construct a new Scala Editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
   ) {
     super(options);
   }

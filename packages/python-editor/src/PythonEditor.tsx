@@ -24,7 +24,7 @@ export class PythonEditor extends ScriptEditor {
    * Construct a new Python Editor widget.
    */
   constructor(
-    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>
+    options: DocumentWidget.IOptions<FileEditor, DocumentRegistry.ICodeModel>,
   ) {
     super(options);
   }

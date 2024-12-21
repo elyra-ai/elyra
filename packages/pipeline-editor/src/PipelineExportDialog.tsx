@@ -37,7 +37,7 @@ const FileTypeSelect: React.FC<IFileTypeSelectProps> = ({ fileTypes }) => {
         className="elyra-form-export-filetype"
         data-form-required
       >
-        {fileTypes.map(f => (
+        {fileTypes.map((f) => (
           <option key={f.id} value={f.id}>
             {f.display_name}
           </option>
@@ -59,7 +59,7 @@ export const PipelineExportDialog: React.FC<IProps> = ({
   runtimeTypeInfo,
   pipelineType,
   exportName,
-  parameters
+  parameters,
 }) => {
   return (
     <form className="elyra-dialog-form">
@@ -68,7 +68,7 @@ export const PipelineExportDialog: React.FC<IProps> = ({
         pipelineType={pipelineType}
       >
         {(platform): JSX.Element => {
-          const info = runtimeTypeInfo.find(i => i.id === platform);
+          const info = runtimeTypeInfo.find((i) => i.id === platform);
           return <FileTypeSelect fileTypes={info?.export_file_types ?? []} />;
         }}
       </RuntimeConfigSelect>

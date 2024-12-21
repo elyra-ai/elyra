@@ -22,7 +22,7 @@ import React, {
   useImperativeHandle,
   useState,
   useMemo,
-  RefObject
+  RefObject,
 } from 'react';
 
 const KERNEL_SELECT_CLASS = 'elyra-ScriptEditor-KernelSelector';
@@ -51,7 +51,7 @@ const DropDown = forwardRef<ISelect, IProps>(
     // the change events there as well, but I know this isn't always possible
     // alongside jupyter.
     useImperativeHandle(select, () => ({
-      getSelection: (): string => selection
+      getSelection: (): string => selection,
     }));
 
     const kernelOptions = !Object.keys(kernelspecs).length ? (
@@ -81,7 +81,7 @@ const DropDown = forwardRef<ISelect, IProps>(
         {kernelOptions}
       </select>
     );
-  }
+  },
 );
 
 /**
@@ -97,7 +97,7 @@ export class KernelDropdown extends ReactWidget {
     private specs: KernelSpec.ISpecModels,
     private defaultKernel: string | null,
     private ref: RefObject<ISelect>,
-    callback: (selectedKernel: string) => void
+    callback: (selectedKernel: string) => void,
   ) {
     super();
     this.callback = callback;
