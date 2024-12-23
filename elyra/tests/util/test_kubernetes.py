@@ -87,7 +87,7 @@ def test_is_valid_label_key_invalid_input():
     assert not is_valid_label_key(key="/n")  # prefix too short
     assert not is_valid_label_key(key="p/")  # name too short
     assert not is_valid_label_key(key="a" * 254)  # name too long
-    assert not is_valid_label_key(key=f"d/{'b'*64}")  # name too long
+    assert not is_valid_label_key(key=f"d/{'b' * 64}")  # name too long
     # test first character violations (not alphanum)
     assert not is_valid_label_key(key="-a")
     assert not is_valid_label_key(key=".b")
@@ -116,7 +116,7 @@ def test_is_valid_label_key_valid_input():
     assert is_valid_label_key(key="p/n")
     assert is_valid_label_key(key="prefix/you.2")
     assert is_valid_label_key(key="how.sad/to-see")
-    assert is_valid_label_key(key=f"{'d'*253}/{'n'*63}")
+    assert is_valid_label_key(key=f"{'d' * 253}/{'n' * 63}")
 
 
 def test_is_valid_label_value_invalid_input():
@@ -175,7 +175,7 @@ def test_is_valid_annotation_key_invalid_input():
     assert not is_valid_annotation_key(key="/n")  # prefix too short
     assert not is_valid_annotation_key(key="p/")  # name too short
     assert not is_valid_annotation_key(key="a" * 254)  # name too long
-    assert not is_valid_annotation_key(key=f"d/{'b'*64}")  # name too long
+    assert not is_valid_annotation_key(key=f"d/{'b' * 64}")  # name too long
     # test first character violations (not alphanum)
     assert not is_valid_annotation_key(key="-a")
     assert not is_valid_annotation_key(key=".b")
@@ -204,7 +204,7 @@ def test_is_valid_annotation_key_valid_input():
     assert is_valid_annotation_key(key="p/n")
     assert is_valid_annotation_key(key="prefix/you.2")
     assert is_valid_annotation_key(key="how.sad/to-see")
-    assert is_valid_annotation_key(key=f"{'d'*253}/{'n'*63}")
+    assert is_valid_annotation_key(key=f"{'d' * 253}/{'n' * 63}")
 
 
 def test_is_valid_annotation_value_invalid_input():
