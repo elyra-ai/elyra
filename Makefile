@@ -18,7 +18,7 @@
 .PHONY: lint-dependencies lint-server black-format prettier-check-ui eslint-check-ui prettier-ui eslint-ui lint-ui lint
 .PHONY: dev-link dev-unlink
 .PHONY: build-dependencies dev-dependencies yarn-install build-ui package-ui package-ui-dev
-.PHONY: build-server install-server-package install-server
+.PHONY: build-server buiid-lockfile install-server-package install-server
 .PHONY: install install-all install-dev install-examples install-gitlab-dependency check-install watch release
 .PHONY: test-dependencies pytest test-server test-ui-unit test-integration test-integration-debug test-ui test
 .PHONY: docs-dependencies docs
@@ -63,7 +63,7 @@ help:
 ## Clean targets
 
 purge:
-	rm -rf build *.egg-info yarn-error.log
+	rm -rf build *.egg-info requirements.txt yarn-error.log
 	rm -rf node_modules lib dist
 	rm -rf $$(find packages -name node_modules -type d -maxdepth 2)
 	rm -rf $$(find packages -name dist -type d)
@@ -175,6 +175,9 @@ package-ui-dev: dev-dependencies yarn-install dev-link lint-ui build-ui
 build-server: # Build backend
 	$(PYTHON) -m build
 
+build-lockfile: # Build requirements.txt
+	pip-compile --generate-hashes pyproject.toml
+
 uninstall-server-package:
 	@$(PYTHON_PIP) uninstall elyra -y
 
@@ -207,7 +210,6 @@ watch: ## Watch packages. For use alongside jupyter lab --watch
 	yarn lerna run watch --parallel
 
 release: yarn-install build-ui build-server ## Build wheel file for release
-
 
 elyra-image-env: ## Creates a conda env consisting of the dependencies used in images
 	- conda env remove -y -n $(ELYRA_IMAGE_ENV)

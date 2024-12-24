@@ -13,7 +13,7 @@ maintainers = [
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-    "autopep8>=1.5.0",
+    "autopep8>=1.5.0,<1.7.0",  # Cap from python-lsp-server
     "click>=8",  # elyra-ai/elyra#2579
     "colorama",
     "deprecation",
