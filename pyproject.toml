@@ -171,10 +171,13 @@ ignore-vcs = true
 # Include data files with dist
 [tool.hatch.build.targets.wheel.shared-data]
 "labextensions/elyra_code_snippet_extension/labextension" = "share/jupyter/labextensions/@elyra/code-snippet-extension"
+"labextensions/elyra_code_viewer_extension/labextension" = "share/jupyter/labextensions/@elyra/code-viewer-extension"
 "labextensions/elyra_metadata_common/labextension" = "share/jupyter/labextensions/@elyra/metadata-common"
 "labextensions/elyra_metadata_extension/labextension" = "share/jupyter/labextensions/@elyra/metadata-extension"
 "labextensions/elyra_pipeline_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/pipeline-editor-extension"
 "labextensions/elyra_python_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/python-editor-extension"
+"labextensions/elyra_r_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/r-editor-extension"
+"labextensions/elyra_scala_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/scala-editor-extension"
 "labextensions/elyra_script_debugger_extension/labextension" = "share/jupyter/labextensions/@elyra/script-debugger-extension"
 "labextensions/elyra_script_editor/labextension" = "share/jupyter/labextensions/@elyra/script-editor"
 "labextensions/elyra_services/labextension" = "share/jupyter/labextensions/@elyra/services"
@@ -193,10 +196,13 @@ ignore-vcs = true
 [tool.hatch.build.targets.sdist]
 artifacts = [
     "labextensions/elyra_code_snippet_extension/labextension",
+    "labextensions/elyra_code_viewer_extension/labextension",
     "labextensions/elyra_metadata_common/labextension",
     "labextensions/elyra_metadata_extension/labextension",
     "labextensions/elyra_pipeline_editor_extension/labextension",
     "labextensions/elyra_python_editor_extension/labextension",
+    "labextensions/elyra_r_editor_extension/labextension",
+    "labextensions/elyra_scala_editor_extension/labextension",
     "labextensions/elyra_script_debugger_extension/labextension",
     "labextensions/elyra_script_editor/labextension",
     "labextensions/elyra_services/labextension",
