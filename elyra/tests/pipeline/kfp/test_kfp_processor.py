@@ -28,15 +28,15 @@ import yaml
 
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.component import Component
+from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_DEF_MEDIUM
+from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_DEF_NAME
+from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_DEF_SIZE
+from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_MOUNT_PATH
+from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_PYTHON_PATH
+from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_WORKDIR_PATH
+from elyra.pipeline.kfp.kfp_processor import KfpPipelineProcessor
+from elyra.pipeline.kfp.kfp_processor import WorkflowEngineType
 from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
-from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_MEDIUM
-from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_NAME
-from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_DEF_SIZE
-from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_MOUNT_PATH
-from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_PYTHON_PATH
-from elyra.pipeline.kfp.processor_kfp import CRIO_VOL_WORKDIR_PATH
-from elyra.pipeline.kfp.processor_kfp import KfpPipelineProcessor
-from elyra.pipeline.kfp.processor_kfp import WorkflowEngineType
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline

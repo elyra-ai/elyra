@@ -29,7 +29,7 @@ from elyra.metadata.metadata import Metadata
 from elyra.metadata.schemaspaces import RuntimeImages
 from elyra.metadata.schemaspaces import Runtimes
 from elyra.metadata.storage import FileMetadataStore
-from elyra.pipeline.kfp.processor_kfp import WorkflowEngineType
+from elyra.pipeline.kfp.kfp_processor import WorkflowEngineType
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX

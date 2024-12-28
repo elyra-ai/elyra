@@ -18,7 +18,7 @@ import os
 import nbformat
 import pytest
 
-from elyra.pipeline.local.processor_local import LocalPipelineProcessor
+from elyra.pipeline.local.local_processor import LocalPipelineProcessor
 from elyra.pipeline.parser import PipelineParser
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.tests.pipeline.util import _read_pipeline_resource
