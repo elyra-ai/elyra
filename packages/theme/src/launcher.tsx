@@ -24,7 +24,7 @@ import {
 import { TranslationBundle } from '@jupyterlab/translation';
 import { LabIcon } from '@jupyterlab/ui-components';
 
-import { ArrayIterator, each, IIterator } from '@lumino/algorithm';
+import { each } from '@lumino/algorithm';
 
 import * as React from 'react';
 
@@ -43,13 +43,13 @@ export class LauncherModel extends JupyterLauncherModel {
   /**
    * Return an iterator of launcher items, but remove unnecessary items.
    */
-  items(): IIterator<ILauncher.IItemOptions> {
+  *items(): IterableIterator<ILauncher.IItemOptions> {
     const items: ILauncher.IItemOptions[] = [];
 
     let pyEditorInstalled = false;
     let rEditorInstalled = false;
 
-    this.itemsList.forEach(item => {
+    this.itemsList.forEach((item) => {
       if (item.command === CommandIDs.createNewPythonEditor) {
         pyEditorInstalled = true;
       } else if (item.command === CommandIDs.createNewREditor) {
@@ -58,11 +58,11 @@ export class LauncherModel extends JupyterLauncherModel {
     });
 
     if (!pyEditorInstalled && !rEditorInstalled) {
-      return new ArrayIterator(this.itemsList);
+      yield* this.itemsList;
     }
 
     // Dont add tiles for new py and r files if their script editor is installed
-    this.itemsList.forEach(item => {
+    this.itemsList.forEach((item) => {
       if (
         !(
           item.command === CommandIDs.newFile &&
@@ -74,7 +74,7 @@ export class LauncherModel extends JupyterLauncherModel {
       }
     });
 
-    return new ArrayIterator(items);
+    yield* items;
   }
 }
 
@@ -91,11 +91,11 @@ export class Launcher extends JupyterlabLauncher {
     category: React.ReactElement,
     icon: LabIcon
   ): React.ReactElement {
-    const children = React.Children.map(category.props.children, child => {
+    const children = React.Children.map(category.props.children, (child) => {
       if (child.props.className === 'jp-Launcher-sectionHeader') {
         const grandchildren = React.Children.map(
           child.props.children,
-          grandchild => {
+          (grandchild) => {
             if (grandchild.props.className !== 'jp-Launcher-sectionTitle') {
               return <icon.react stylesheet="launcherSection" />;
             } else {
@@ -140,7 +140,7 @@ export class Launcher extends JupyterlabLauncher {
     // Assemble the final ordered list of categories
     // based on knownCategories.
     each(knownCategories, (category, index) => {
-      React.Children.forEach(launcherCategories, cat => {
+      React.Children.forEach(launcherCategories, (cat) => {
         if (cat.key === category) {
           if (cat.key === ELYRA_CATEGORY) {
             cat = this.replaceCategoryIcon(cat, elyraIcon);

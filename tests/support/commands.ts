@@ -16,6 +16,8 @@
 
 import '@testing-library/cypress/add-commands';
 
+import 'cypress-real-events/support';
+
 import './../utils/snapshots/add-commands';
 
 Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
@@ -101,7 +103,7 @@ Cypress.Commands.add('createRuntimeConfig', ({ type } = {}): void => {
 });
 
 Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
-  cy.on('fail', e => {
+  cy.on('fail', (e) => {
     console.error(
       `Example catalog connectors do not appear to be installed.\n${e}`
     );
@@ -180,18 +182,14 @@ Cypress.Commands.add('addFileToPipeline', (name: string): void => {
   cy.findByRole('menuitem', { name: /add file to pipeline/i }).click();
 });
 
-Cypress.Commands.add('dragAndDropFileToPipeline', (name: string): void => {
-  const dragItem = cy.findByRole('listitem', {
+Cypress.Commands.add('dragAndDropFileToPipeline', (name: string) => {
+  cy.findByRole('listitem', {
     name: (n, _el) => n.includes(name)
-  });
+  }).realMouseDown();
 
-  dragItem.trigger('mousedown', { button: 0 });
-
-  // drop item into canvas
   cy.get('.d3-svg-background')
-    .trigger('mousemove')
-    .trigger('mouseup', { button: 0, force: true })
-    .wait(100);
+    .realMouseMove(50, 50, { position: 'center' })
+    .realMouseUp();
 });
 
 Cypress.Commands.add('savePipeline', (): void => {
@@ -231,9 +229,7 @@ Cypress.Commands.add('checkTabMenuOptions', (fileType: string): void => {
 });
 
 Cypress.Commands.add('closeTab', (index: number): void => {
-  cy.get('.lm-TabBar-tabCloseIcon:visible')
-    .eq(index)
-    .click();
+  cy.get('.lm-TabBar-tabCloseIcon:visible').eq(index).click();
 });
 
 Cypress.Commands.add('createNewScriptEditor', (language: string): void => {
@@ -246,15 +242,15 @@ Cypress.Commands.add('checkScriptEditorToolbarContent', (): void => {
   cy.get('.elyra-ScriptEditor .jp-Toolbar');
 
   // check save button exists and icon
-  cy.get('button[title="Save file contents"]');
+  cy.get('jp-button[title="Save file contents"]');
   cy.get('svg[data-icon="ui-components:save"]');
 
   // check run button exists and icon
-  cy.get('button[title="Run"]');
+  cy.get('jp-button[title="Run"]');
   cy.get('svg[data-icon="ui-components:run"]');
 
   // check interrupt kernel button exists and icon
-  cy.get('button[title="Interrupt the kernel"]');
+  cy.get('jp-button[title="Interrupt the kernel"]');
   cy.get('svg[data-icon="ui-components:stop"]');
 
   // check select kernel dropdown exists
@@ -310,8 +306,12 @@ Cypress.Commands.add(
   (fileExtension: string): void => {
     cy.openHelloWorld(fileExtension);
     // Ensure that the file contents are as expected
-    cy.get('span[role="presentation"]').should($span => {
-      expect($span.get(0).innerText).to.eq('print("Hello Elyra")');
+    cy.get('.cm-line').then((lines) => {
+      const content = [...lines]
+        .map((line) => line.innerText)
+        .join('\n')
+        .trim();
+      expect(content).to.equal('print("Hello Elyra")');
     });
 
     // Close the file editor
@@ -325,19 +325,20 @@ Cypress.Commands.add('openHelloWorld', (fileExtension: string): void => {
   cy.findByText(/^open from path$/i).click({ force: true });
 
   // Search for helloworld file and open
-  cy.get('input#jp-dialog-input-id').type(`/helloworld.${fileExtension}`);
-  cy.get('.p-Panel .jp-mod-accept').click();
+  cy.get('input#jp-dialog-input-id')
+    .clear()
+    .type(`/helloworld.${fileExtension}`)
+    .should('have.value', `/helloworld.${fileExtension}`);
+  cy.get('.lm-Panel .jp-mod-accept').click();
 });
 
 // Dismiss LSP code assistant box if visible
 Cypress.Commands.add('dismissAssistant', (fileType: string): void => {
-  cy.get('body').then($body => {
+  cy.get('body').then(($body) => {
     if ($body.find('.lsp-completer').length > 0) {
       // Dismiss code assistant box
       const selector = fileType === 'notebook' ? 'body' : '.CodeMirror-lines';
-      cy.get(selector)
-        .first()
-        .type('{esc}');
+      cy.get(selector).first().type('{esc}');
     }
   });
 });

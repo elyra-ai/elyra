@@ -1,25 +1,25 @@
-Object {
+{
   "doc_type": "pipeline",
-  "id": "elyra-auto-generated-pipeline",
+  "version": "3.0",
   "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
-  "pipelines": Array [
-    Object {
-      "app_data": Object {
-        "properties": Object {
-          "name": "empty",
-          "runtime": "Generic",
-        },
-        "ui_data": Object {
-          "comments": Array [],
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [],
+      "app_data": {
+        "ui_data": {
+          "comments": []
         },
         "version": 8,
+        "properties": {
+          "name": "empty",
+          "runtime": "Generic"
+        }
       },
-      "id": "primary",
-      "nodes": Array [],
-      "runtime_ref": "",
-    },
+      "runtime_ref": ""
+    }
   ],
-  "primary_pipeline": "primary",
-  "schemas": Array [],
-  "version": "3.0",
+  "schemas": []
 }

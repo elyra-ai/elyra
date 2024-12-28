@@ -66,9 +66,8 @@ describe('@elyra/services', () => {
     });
     describe('metadata requests', () => {
       beforeAll(async () => {
-        const existingSnippets = await MetadataService.getMetadata(
-          'code-snippets'
-        );
+        const existingSnippets =
+          await MetadataService.getMetadata('code-snippets');
         if (
           existingSnippets.find((snippet: any) => {
             return snippet.name === 'tester';

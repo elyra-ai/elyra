@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { ToolbarButton, showDialog, Dialog } from '@jupyterlab/apputils';
+import { Dialog, ToolbarButton, showDialog } from '@jupyterlab/apputils';
+import { CodeEditor } from '@jupyterlab/codeeditor';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { ScrollingWidget } from '@jupyterlab/logconsole';
@@ -28,21 +29,21 @@ import {
   standardRendererFactories as initialFactories
 } from '@jupyterlab/rendermime';
 import {
+  DockPanelSvg,
+  LabIcon,
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
-  DockPanelSvg,
   runIcon,
   saveIcon,
-  stopIcon,
-  LabIcon
+  stopIcon
 } from '@jupyterlab/ui-components';
 
-import { Signal, ISignal } from '@lumino/signaling';
+import { ISignal, Signal } from '@lumino/signaling';
 import { BoxLayout, PanelLayout, Widget } from '@lumino/widgets';
 
 import React, { RefObject } from 'react';
 
-import { KernelDropdown, ISelect } from './KernelDropdown';
+import { ISelect, KernelDropdown } from './KernelDropdown';
 import { ScriptEditorController } from './ScriptEditorController';
 import { ScriptRunner } from './ScriptRunner';
 
@@ -69,7 +70,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   private dockPanel?: DockPanelSvg;
   private outputAreaWidget?: OutputArea;
   private scrollingWidget?: ScrollingWidget<OutputArea>;
-  private model: any;
+  private model: CodeEditor.IModel;
   private emptyOutput: boolean;
   private kernelSelectorRef: RefObject<ISelect> | null;
   private controller: ScriptEditorController;
@@ -79,7 +80,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   protected runButton: ToolbarButton;
   protected defaultKernel: string | null;
   abstract getLanguage(): string;
-  abstract getIcon(): LabIcon | string;
+  abstract getIcon(): LabIcon;
 
   /**
    * Construct a new editor widget.
@@ -99,7 +100,6 @@ export abstract class ScriptEditor extends DocumentWidget<
     this.kernelName = null;
     this._kernelSelectionChanged = new Signal<this, string>(this);
 
-    // Add icon to main tab
     this.title.icon = this.getIcon();
 
     // Add toolbar widgets
@@ -156,9 +156,8 @@ export abstract class ScriptEditor extends DocumentWidget<
    */
   protected initializeKernelSpecs = async (): Promise<void> => {
     const language = this.getLanguage();
-    const kernelSpecs = await this.controller.getKernelSpecsByLanguage(
-      language
-    );
+    const kernelSpecs =
+      await this.controller.getKernelSpecsByLanguage(language);
     this.defaultKernel = await this.controller.getDefaultKernel(language);
     this.kernelName = this.defaultKernel;
     this.kernelSelectorRef = React.createRef<ISelect>();
@@ -225,7 +224,7 @@ export abstract class ScriptEditor extends DocumentWidget<
       await this.runner.runScript(
         this.kernelName,
         this.context.path,
-        this.model.value.text,
+        this.model.sharedModel.getSource(),
         this.handleKernelMsg
       );
     }
@@ -280,10 +279,10 @@ export abstract class ScriptEditor extends DocumentWidget<
     const scrollDownButton = document.createElement('button');
     scrollUpButton.className = 'elyra-ScriptEditor-scrollTop';
     scrollDownButton.className = 'elyra-ScriptEditor-scrollBottom';
-    scrollUpButton.onclick = function(): void {
+    scrollUpButton.onclick = function (): void {
       scrollingWidget.node.scrollTop = 0;
     };
-    scrollDownButton.onclick = function(): void {
+    scrollDownButton.onclick = function (): void {
       scrollingWidget.node.scrollTop = scrollingWidget.node.scrollHeight;
     };
     caretUpEmptyThinIcon.element({
@@ -326,14 +325,14 @@ export abstract class ScriptEditor extends DocumentWidget<
       this.createScrollButtons(this.scrollingWidget);
       this.dockPanel?.addWidget(this.scrollingWidget, { mode: 'split-bottom' });
 
-      const outputTab = this.dockPanel?.tabBars().next();
+      const outputTab = this.dockPanel?.tabBars().next().value;
       if (outputTab !== undefined) {
         outputTab.id = 'tab-ScriptEditor-output';
         if (outputTab.currentTitle !== null) {
           outputTab.currentTitle.label = 'Console Output';
           outputTab.currentTitle.closable = true;
         }
-        outputTab.disposed.connect((sender, args) => {
+        outputTab.disposed.connect(() => {
           this.interruptRun();
           this.clearOutputArea();
         }, this);
@@ -434,7 +433,7 @@ export abstract class ScriptEditor extends DocumentWidget<
    * Function: Saves file editor content.
    */
   private saveFile = async (): Promise<any> => {
-    if (this.model.readOnly) {
+    if (this.context.model.readOnly) {
       return showDialog({
         title: 'Cannot Save',
         body: 'Document is read-only',

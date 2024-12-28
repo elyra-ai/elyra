@@ -46,7 +46,7 @@ export class MetadataCommonService {
 
     while (
       existingInstances.find(
-        element => element.display_name === `${base_name}-Copy${count}`
+        (element) => element.display_name === `${base_name}-Copy${count}`
       ) !== undefined
     ) {
       count += 1;

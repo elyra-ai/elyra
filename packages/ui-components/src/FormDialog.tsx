@@ -100,6 +100,7 @@ const getDefaultButton = (
 ): HTMLButtonElement => {
   const defaultButtonIndex =
     options.defaultButton ?? (options.buttons?.length ?? 0) - 1;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
   return node
     .querySelector('.jp-Dialog-footer')
     ?.getElementsByTagName('button')[defaultButtonIndex]!;

@@ -41,8 +41,8 @@ export class ScriptEditorController {
   ): Promise<KernelSpec.ISpecModels | null> => {
     const specs = await this.getKernelSpecs();
     Object.entries(specs?.kernelspecs ?? [])
-      .filter(entry => entry[1]?.language.includes(language) === false)
-      .forEach(entry => delete specs?.kernelspecs[entry[0]]);
+      .filter((entry) => entry[1]?.language.includes(language) === false)
+      .forEach((entry) => delete specs?.kernelspecs[entry[0]]);
 
     return specs;
   };
@@ -55,8 +55,8 @@ export class ScriptEditorController {
   ): Promise<KernelSpec.ISpecModels | null> => {
     const specs = await this.getKernelSpecs();
     Object.entries(specs?.kernelspecs ?? [])
-      .filter(entry => entry[1]?.name?.includes(kernelName) === false)
-      .forEach(entry => delete specs?.kernelspecs[entry[0]]);
+      .filter((entry) => entry[1]?.name?.includes(kernelName) === false)
+      .forEach((entry) => delete specs?.kernelspecs[entry[0]]);
 
     return specs;
   };
@@ -66,7 +66,8 @@ export class ScriptEditorController {
    * or the name of the first kernel from the list of kernelspecs.
    */
   getDefaultKernel = async (language: string): Promise<string> => {
-    const kernelSpecs: KernelSpec.ISpecModels | null = await this.getKernelSpecs();
+    const kernelSpecs: KernelSpec.ISpecModels | null =
+      await this.getKernelSpecs();
     if (!kernelSpecs) {
       return '';
     }

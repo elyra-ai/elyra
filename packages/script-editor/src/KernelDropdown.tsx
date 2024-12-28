@@ -16,6 +16,7 @@
 
 import { ReactWidget } from '@jupyterlab/apputils';
 import { KernelSpec } from '@jupyterlab/services';
+import { HTMLSelect } from '@jupyterlab/ui-components';
 
 import React, {
   forwardRef,
@@ -24,8 +25,6 @@ import React, {
   useMemo,
   RefObject
 } from 'react';
-
-const KERNEL_SELECT_CLASS = 'elyra-ScriptEditor-KernelSelector';
 
 export interface ISelect {
   getSelection: () => string;
@@ -73,13 +72,9 @@ const DropDown = forwardRef<ISelect, IProps>(
     };
 
     return (
-      <select
-        className={KERNEL_SELECT_CLASS}
-        onChange={handleSelection}
-        value={selection}
-      >
+      <HTMLSelect onChange={handleSelection} value={selection}>
         {kernelOptions}
-      </select>
+      </HTMLSelect>
     );
   }
 );

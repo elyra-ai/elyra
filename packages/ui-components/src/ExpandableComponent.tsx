@@ -55,6 +55,7 @@ export interface IExpandableComponentProps {
   onExpand?: (isExpanded: boolean) => any;
   onBeforeExpand?: (isExpanded: boolean) => any;
   onMouseDown?: (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => any;
+  children?: React.ReactNode;
 }
 
 /**

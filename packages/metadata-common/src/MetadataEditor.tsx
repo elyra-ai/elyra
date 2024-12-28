@@ -106,7 +106,7 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
           onSave();
           close();
         })
-        .catch(error => RequestErrors.serverError(error));
+        .catch((error) => RequestErrors.serverError(error));
     } else {
       MetadataService.putMetadata(
         schemaspace,
@@ -118,7 +118,7 @@ export const MetadataEditor: React.FC<IMetadataEditorComponentProps> = ({
           onSave();
           close();
         })
-        .catch(error => RequestErrors.serverError(error));
+        .catch((error) => RequestErrors.serverError(error));
     }
   };
 

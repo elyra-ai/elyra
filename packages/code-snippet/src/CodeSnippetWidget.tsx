@@ -20,7 +20,7 @@ import {
   IMetadata,
   IMetadataActionButton,
   IMetadataDisplayProps,
-  IMetadataDisplayState,
+  //IMetadataDisplayState,
   IMetadataWidgetProps,
   MetadataCommonService,
   MetadataDisplay,
@@ -36,13 +36,22 @@ import {
 
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Clipboard, Dialog, showDialog } from '@jupyterlab/apputils';
-import { CodeCell, MarkdownCell } from '@jupyterlab/cells';
+import {
+  CodeCell,
+  MarkdownCell,
+  ICodeCellModel,
+  IMarkdownCellModel /*RawCell*/
+} from '@jupyterlab/cells';
 import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+import { EditorLanguageRegistry } from '@jupyterlab/codemirror';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import * as nbformat from '@jupyterlab/nbformat';
-import { Notebook, NotebookModel, NotebookPanel } from '@jupyterlab/notebook';
+import {
+  Notebook,
+  /*NotebookModel,*/ NotebookPanel /*,NotebookActions*/
+} from '@jupyterlab/notebook';
 import {
   copyIcon,
   editIcon,
@@ -56,6 +65,8 @@ import { Drag } from '@lumino/dragdrop';
 import { Widget } from '@lumino/widgets';
 
 import React from 'react';
+//import { CodeBlock } from '../../ui-components/src/FormComponents/CodeBlock';
+//import { MarkdownDocument } from '@jupyterlab/markdownviewer';
 
 import {
   CodeSnippetService,
@@ -96,10 +107,8 @@ interface ICodeSnippetDisplayProps extends IMetadataDisplayProps {
 /**
  * A React Component for code-snippets display list.
  */
-class CodeSnippetDisplay extends MetadataDisplay<
-  ICodeSnippetDisplayProps,
-  IMetadataDisplayState
-> {
+class CodeSnippetDisplay extends MetadataDisplay<ICodeSnippetDisplayProps> {
+  //,IMetadataDisplayState
   editors: { [codeSnippetId: string]: CodeEditor.IEditor } = {};
 
   constructor(props: ICodeSnippetDisplayProps) {
@@ -138,10 +147,10 @@ class CodeSnippetDisplay extends MetadataDisplay<
         fileEditor.replaceSelection?.(codeSnippet);
       }
     } else if (widget instanceof NotebookPanel) {
-      const notebookWidget = widget as NotebookPanel;
+      const notebookWidget: NotebookPanel = widget as NotebookPanel;
       const notebookCell = (notebookWidget.content as Notebook).activeCell;
-      const notebookCellIndex = (notebookWidget.content as Notebook)
-        .activeCellIndex;
+      //const notebookCellIndex = (notebookWidget.content as Notebook)
+      //.activeCellIndex;
 
       if (notebookCell === null) {
         return;
@@ -149,30 +158,66 @@ class CodeSnippetDisplay extends MetadataDisplay<
 
       const notebookCellEditor = notebookCell.editor;
 
-      if (notebookCell instanceof CodeCell) {
-        const kernelInfo = await notebookWidget.sessionContext.session?.kernel
-          ?.info;
-        const kernelLanguage: string = kernelInfo?.language_info.name || '';
-        this.verifyLanguageAndInsert(
-          snippet,
-          kernelLanguage,
-          notebookCellEditor
+      if (notebookCellEditor !== null) {
+        if (notebookCell instanceof CodeCell) {
+          const kernelInfo =
+            await notebookWidget.sessionContext.session?.kernel?.info;
+          const kernelLanguage: string = kernelInfo?.language_info.name || '';
+          this.verifyLanguageAndInsert(
+            snippet,
+            kernelLanguage,
+            notebookCellEditor
+          );
+        } else if (
+          notebookCell instanceof MarkdownCell &&
+          snippetLanguage.toLowerCase() !== 'markdown'
+        ) {
+          notebookCellEditor.replaceSelection?.(
+            this.addMarkdownCodeBlock(snippetLanguage, codeSnippet)
+          );
+        } else {
+          notebookCellEditor.replaceSelection?.(codeSnippet);
+        }
+
+        const notebookContent = notebookWidget.content;
+        const activeCellIndex = notebookContent.activeCellIndex ?? -1;
+
+        const contentFactory = new NotebookPanel.ContentFactory({
+          editorFactory:
+            this.props.editorServices.factoryService.newInlineEditor
+        });
+
+        /*
+          interface CodeCellCreatorOption {
+          model: ICodeCellModel | undefined;
+          rendermime: RenderMimeRegistry;
+          contentFactory: any;
+          cell_type: string;
+        }
+        */
+
+        const options: CodeCell.IOptions = {
+          model: notebookContent.activeCell?.model as ICodeCellModel,
+          rendermime: notebookContent.rendermime,
+          contentFactory: contentFactory
+        };
+
+        const codeCell: any = contentFactory.createCodeCell(options);
+        codeCell.cell_type = 'code';
+        //insert the new code cell into the notebook at the specified index
+
+        // codeCell: CodeCell
+        // codeCell: SharedCell.Cell
+        widget.content.model?.sharedModel.insertCell(
+          activeCellIndex,
+          codeCell as Partial<nbformat.ICodeCell> & { cell_type: string }
         );
-      } else if (
-        notebookCell instanceof MarkdownCell &&
-        snippetLanguage.toLowerCase() !== 'markdown'
-      ) {
-        notebookCellEditor.replaceSelection?.(
-          this.addMarkdownCodeBlock(snippetLanguage, codeSnippet)
-        );
+
+        //update the active cell index to the newly inserted cell
+        notebookWidget.content.activeCellIndex = activeCellIndex + 1;
       } else {
-        notebookCellEditor.replaceSelection?.(codeSnippet);
+        this.showErrDialog('notebookCellEditor have to be not null');
       }
-      const cell = notebookWidget.model?.contentFactory.createCodeCell({});
-      if (cell === undefined) {
-        return;
-      }
-      notebookWidget.model?.cells.insert(notebookCellIndex + 1, cell);
     } else {
       this.showErrDialog('Code snippet insert failed: Unsupported widget');
     }
@@ -189,9 +234,10 @@ class CodeSnippetDisplay extends MetadataDisplay<
   private getEditorLanguage = (
     widget: DocumentWidget<FileEditor>
   ): string | undefined => {
-    const editorLanguage =
-      widget.context.sessionContext.kernelPreference.language;
-    return editorLanguage === 'null' ? '' : editorLanguage;
+    const editorLanguage = EditorLanguageRegistry.getDefaultLanguages().find(
+      (language) => language.mime.includes(widget.content.model.mimeType)
+    );
+    return editorLanguage?.displayName ?? '';
   };
 
   // Return the given code wrapped in a markdown code block
@@ -359,14 +405,52 @@ class CodeSnippetDisplay extends MetadataDisplay<
     clientX: number,
     clientY: number
   ): Promise<void> {
-    const contentFactory = new NotebookModel.ContentFactory({});
+    const widget: NotebookPanel =
+      this.props.getCurrentWidget() as NotebookPanel;
+
+    const notebookContent = widget.content;
+    //const activeCellIndex = notebookContent.activeCellIndex ?? -1;
+
+    const contentFactory = new NotebookPanel.ContentFactory({
+      editorFactory: this.props.editorServices.factoryService.newInlineEditor
+    });
+
+    const options: CodeCell.IOptions = {
+      model: notebookContent.activeCell?.model as ICodeCellModel,
+      rendermime: notebookContent.rendermime,
+      contentFactory: contentFactory
+    };
+
+    const options2: MarkdownCell.IOptions = {
+      model: notebookContent.activeCell?.model as IMarkdownCellModel,
+      rendermime: notebookContent.rendermime,
+      contentFactory: contentFactory
+    };
+
+    const codeCell = contentFactory.createCodeCell(options);
+
+    const markdownCell = contentFactory.createMarkdownCell(options2);
+
     const language = metadata.metadata.language;
     const model =
-      language.toLowerCase() !== 'markdown'
-        ? contentFactory.createCodeCell({})
-        : contentFactory.createMarkdownCell({});
+      language.toLowerCase() !== 'markdown' ? codeCell : markdownCell;
+
     const content = metadata.metadata.code.join('\n');
-    model.value.text = content;
+
+    if (language.toLowerCase() !== 'markdown') {
+      if (model.model.type === 'code') {
+        (model.model as ICodeCellModel).sharedModel.setSource(content);
+      } else {
+        // Handle other cases if needed
+      }
+    }
+    if (language.toLowerCase() === 'markdown') {
+      if (model.model.type === 'markdown') {
+        (model.model as IMarkdownCellModel).sharedModel.setSource(content);
+      } else {
+        // Handle other cases if needed
+      }
+    }
 
     this._drag = new Drag({
       mimeData: new MimeData(),
@@ -376,7 +460,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
       source: this
     });
 
-    const selected: nbformat.ICell[] = [model.toJSON()];
+    const selected: nbformat.ICell[] = [model.model.toJSON()];
     this._drag.mimeData.setData(JUPYTER_CELL_MIME, selected);
     this._drag.mimeData.setData('text/plain', content);
 
@@ -427,7 +511,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
             .then((response: any): void => {
               this.props.updateMetadata();
             })
-            .catch(error => RequestErrors.serverError(error));
+            .catch((error) => RequestErrors.serverError(error));
         }
       },
       {
@@ -453,7 +537,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
                 }
               }
             })
-            .catch(error => RequestErrors.serverError(error));
+            .catch((error) => RequestErrors.serverError(error));
         }
       }
     ];
@@ -496,7 +580,7 @@ class CodeSnippetDisplay extends MetadataDisplay<
           tooltip={metadata.metadata.description}
           actionButtons={this.actionButtons(metadata)}
           onExpand={(): void => {
-            this.editors[metadata.name].refresh();
+            this.editors[metadata.name].redo();
           }}
           onMouseDown={(event: any): void => {
             this.handleDragSnippet(event, metadata);
@@ -509,33 +593,35 @@ class CodeSnippetDisplay extends MetadataDisplay<
   };
 
   createPreviewEditors = (): void => {
-    const editorFactory = this.props.editorServices.factoryService
-      .newInlineEditor;
-    const getMimeTypeByLanguage = this.props.editorServices.mimeTypeService
-      .getMimeTypeByLanguage;
+    const editorFactory =
+      this.props.editorServices.factoryService.newInlineEditor;
     this.props.metadata.map((codeSnippet: IMetadata) => {
+      const content = codeSnippet.metadata.code.join('\n');
+
       if (codeSnippet.name in this.editors) {
         // Make sure code is up to date
-        this.editors[
-          codeSnippet.name
-        ].model.value.text = codeSnippet.metadata.code.join('\n');
+        this.editors[codeSnippet.name].model.sharedModel.setSource(content);
       } else {
         // Add new snippets
         const snippetElement = document.getElementById(codeSnippet.name);
         if (snippetElement === null) {
           return;
         }
-        this.editors[codeSnippet.name] = editorFactory({
+
+        const mimeType =
+          this.props.editorServices.mimeTypeService.getMimeTypeByLanguage({
+            value: codeSnippet.metadata.code.join('\n'),
+            name: codeSnippet.metadata.language,
+            codemirror_mode: codeSnippet.metadata.language
+          });
+
+        const newEditor = editorFactory({
           config: { readOnly: true },
           host: snippetElement,
-          model: new CodeEditor.Model({
-            value: codeSnippet.metadata.code.join('\n'),
-            mimeType: getMimeTypeByLanguage({
-              name: codeSnippet.metadata.language,
-              codemirror_mode: codeSnippet.metadata.language
-            })
-          })
+          model: new CodeEditor.Model({ mimeType })
         });
+        newEditor.model.sharedModel.setSource(content);
+        this.editors[codeSnippet.name] = newEditor;
       }
     });
   };
@@ -579,7 +665,7 @@ export class CodeSnippetWidget extends MetadataWidget {
 
   // Request code snippets from server
   async fetchMetadata(): Promise<any> {
-    return CodeSnippetService.findAll().catch(error =>
+    return CodeSnippetService.findAll().catch((error) =>
       RequestErrors.serverError(error)
     );
   }

@@ -31,7 +31,7 @@ const RuntimeConfigSelect: React.FC<IProps> = ({
   pipelineType,
   children
 }) => {
-  const filteredPlatforms = platforms.filter(p => p.configs.length > 0);
+  const filteredPlatforms = platforms.filter((p) => p.configs.length > 0);
   if (allowLocal) {
     filteredPlatforms.unshift({
       id: RUN_LOCALLY_ID,
@@ -49,7 +49,8 @@ const RuntimeConfigSelect: React.FC<IProps> = ({
     setPlatform(e.target.value);
   };
 
-  const configs = filteredPlatforms.find(p => p.id === platform)?.configs ?? [];
+  const configs =
+    filteredPlatforms.find((p) => p.id === platform)?.configs ?? [];
   configs.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
   return (
@@ -65,7 +66,7 @@ const RuntimeConfigSelect: React.FC<IProps> = ({
             value={platform}
             onChange={handleChange}
           >
-            {filteredPlatforms.map(p => (
+            {filteredPlatforms.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.displayName}
               </option>
@@ -83,7 +84,7 @@ const RuntimeConfigSelect: React.FC<IProps> = ({
           name="runtime_config"
           className="elyra-form-runtime-config"
         >
-          {configs.map(c => (
+          {configs.map((c) => (
             <option key={c.id} value={c.id}>
               {c.displayName}
             </option>

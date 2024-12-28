@@ -74,21 +74,3 @@ button.elyra-ScriptEditor-scrollBottom:hover {
 .jp-Document .jp-Toolbar.elyra-ScriptEditor-Toolbar {
   justify-content: flex-start;
 }
-
-/* TODO: fix selector not beig picked up */
-/* fix border style in safari */
-.elyra-ScriptEditor-KernelSelector select {
-  background-color: initial;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  color: var(--jp-ui-font-color0);
-  display: block;
-  font-size: var(--jp-ui-font-size1);
-  height: 24px;
-  line-height: 14px;
-  padding: 0 25px 0 10px;
-  text-align: left;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-}

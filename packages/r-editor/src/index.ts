@@ -109,17 +109,17 @@ const extension: JupyterFrontEndPlugin<void> = {
       namespace: R_EDITOR_NAMESPACE
     });
 
-    let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
+    let config: CodeEditor.IOptions['config'] = {};
 
     if (restorer) {
       // Handle state restoration
       void restorer.restore(tracker, {
         command: commandIDs.openDocManager,
-        args: widget => ({
+        args: (widget) => ({
           path: widget.context.path,
           factory: R_FACTORY
         }),
-        name: widget => widget.context.path
+        name: (widget) => widget.context.path
       });
     }
 
@@ -128,11 +128,8 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
-        ...CodeEditor.defaultConfig,
         ...(settings.get('editorConfig').composite as JSONObject)
       };
-
-      // Trigger a refresh of the rendered commands
       app.commands.notifyCommandChanged();
     };
 
@@ -140,7 +137,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
      */
     const updateTracker = (): void => {
-      tracker.forEach(widget => {
+      tracker.forEach((widget) => {
         updateWidget(widget);
       });
     };
@@ -156,9 +153,13 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
 
       const editor = widget.content.editor;
-      Object.keys(config).forEach((keyStr: string) => {
-        const key = keyStr as keyof CodeEditor.IConfig;
-        editor.setOption(key, config[key]);
+      const editorConfigOptions = config || {};
+
+      Object.keys(editorConfigOptions).forEach((key) => {
+        const optionValue = editorConfigOptions[key];
+        if (optionValue !== undefined) {
+          editor.setOption(key, optionValue);
+        }
       });
     };
 
@@ -226,7 +227,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           type: 'file',
           ext: '.r'
         })
-        .then(model => {
+        .then((model) => {
           return app.commands.execute(commandIDs.openDocManager, {
             path: model.path,
             factory: R_FACTORY
@@ -236,12 +237,14 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Add a command to create new R editor
     app.commands.addCommand(commandIDs.createNewREditor, {
-      label: args => (args['isPalette'] ? 'New R Editor' : 'R Editor'),
+      label: (args) => (args['isPalette'] ? 'New R Editor' : 'R Editor'),
       caption: 'Create a new R Editor',
-      icon: args => (args['isPalette'] ? undefined : rIcon),
-      execute: args => {
-        const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
-        return createNew(cwd as string);
+      icon: (args) => (args['isPalette'] ? undefined : rIcon),
+      execute: (args) => {
+        //Use file browser's current path instead of defaultBrowser.model.path
+        const fileBrowser = browserFactory.createFileBrowser('myFileBrowser');
+        const cwd = args['cwd'] ? String(args['cwd']) : fileBrowser.model.path;
+        return createNew(cwd);
       }
     });
 

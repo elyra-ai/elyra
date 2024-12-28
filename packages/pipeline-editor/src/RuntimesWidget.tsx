@@ -18,8 +18,8 @@ import {
   IMetadataWidgetProps,
   IMetadata,
   MetadataDisplay,
-  IMetadataDisplayProps,
-  IMetadataDisplayState
+  IMetadataDisplayProps
+  //IMetadataDisplayState,
 } from '@elyra/metadata-common';
 import { IDictionary, MetadataService } from '@elyra/services';
 import { RequestErrors } from '@elyra/ui-components';
@@ -62,10 +62,8 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
 /**
  * A React Component for displaying the runtimes list.
  */
-class RuntimesDisplay extends MetadataDisplay<
-  IRuntimesDisplayProps,
-  IMetadataDisplayState
-> {
+
+class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     let apiEndpoint = addTrailingSlash(metadata.metadata.api_endpoint);
     let cosEndpoint = addTrailingSlash(metadata.metadata.cos_endpoint);
@@ -144,7 +142,7 @@ export class RuntimesWidget extends MetadataWidget {
   }
 
   async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes().catch(error =>
+    return await PipelineService.getRuntimes().catch((error) =>
       RequestErrors.serverError(error)
     );
   }
@@ -158,7 +156,7 @@ export class RuntimesWidget extends MetadataWidget {
       );
       this.schemas = sortedSchema.filter((schema: any) => {
         return !!this.runtimeTypes.find(
-          r => r.id === schema.runtime_type && r.runtime_enabled
+          (r) => r.id === schema.runtime_type && r.runtime_enabled
         );
       });
       if (this.schemas?.length ?? 0 > 1) {
@@ -217,8 +215,8 @@ export class RuntimesWidget extends MetadataWidget {
       );
     }
 
-    const filteredMetadata = metadata.filter(m => {
-      return !!this.runtimeTypes.find(r => m.metadata?.runtime_type === r.id);
+    const filteredMetadata = metadata.filter((m) => {
+      return !!this.runtimeTypes.find((r) => m.metadata?.runtime_type === r.id);
     });
 
     return (

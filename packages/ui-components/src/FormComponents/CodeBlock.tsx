@@ -15,39 +15,44 @@
  */
 
 import { CodeEditor } from '@jupyterlab/codeeditor';
-import { Field } from '@rjsf/core';
+import { FieldProps } from '@rjsf/utils';
 import * as React from 'react';
 
-export const CodeBlock: Field = props => {
+export const CodeBlock: React.FC<FieldProps> = (props: FieldProps) => {
+  const { formData, formContext, onChange, schema } = props;
   const codeBlockRef = React.useRef<HTMLDivElement>(null);
   const editorRef = React.useRef<CodeEditor.IEditor>();
 
   // `editorServices` should never change so make it a ref.
-  const servicesRef = React.useRef(props.formContext.editorServices);
+  const servicesRef = React.useRef(formContext.editorServices);
 
   React.useEffect(() => {
-    const handleChange = (args: any): void => {
-      props.onChange(args.text.split('\n'));
+    const handleChange = (): void => {
+      const source = editorRef.current?.model.sharedModel.getSource();
+      onChange(source ? source.split('\n') : undefined);
     };
 
     if (codeBlockRef.current !== null) {
-      editorRef.current = servicesRef.current.factoryService.newInlineEditor({
+      const content =
+        formData?.join('\n') ?? (schema.default as string[])?.join('\n');
+      const mimeType =
+        servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
+          name: formContext.language,
+          codemirror_mode: formContext.language
+        });
+      const newEditor = servicesRef.current.factoryService.newInlineEditor({
         host: codeBlockRef.current,
-        model: new CodeEditor.Model({
-          value:
-            props.formData?.join('\n') ??
-            (props.schema.default as string[])?.join('\n'),
-          mimeType: servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
-            name: props.formContext.language,
-            codemirror_mode: props.formContext.language
-          })
-        })
+        model: new CodeEditor.Model({ mimeType })
       });
-      editorRef.current?.model.value.changed.connect(handleChange);
+      if (content) {
+        newEditor.model.sharedModel.setSource(content);
+      }
+      newEditor.model.sharedModel.changed.connect(handleChange);
+      editorRef.current = newEditor;
     }
 
     return (): void => {
-      editorRef.current?.model.value.changed.disconnect(handleChange);
+      editorRef.current?.model.sharedModel.changed.disconnect(handleChange);
     };
     // NOTE: The parent component is unstable so props change frequently causing
     // new editors to be created unnecessarily. This effect on mount should only
@@ -58,14 +63,13 @@ export const CodeBlock: Field = props => {
 
   React.useEffect(() => {
     if (editorRef.current !== undefined) {
-      editorRef.current.model.mimeType = servicesRef.current.mimeTypeService.getMimeTypeByLanguage(
-        {
-          name: props.formContext.language,
-          codemirror_mode: props.formContext.language
-        }
-      );
+      editorRef.current.model.mimeType =
+        servicesRef.current.mimeTypeService.getMimeTypeByLanguage({
+          name: formContext.language,
+          codemirror_mode: formContext.language
+        });
     }
-  }, [props.formContext.language]);
+  }, [formContext.language]);
 
   return <div ref={codeBlockRef} className="elyra-form-code" />;
 };

@@ -40,7 +40,7 @@ describe('@elyra/pipeline-editor', () => {
           'LOCAL'
         ];
         expect(
-          runtime_types.map(runtime_type => runtime_type.id)
+          runtime_types.map((runtime_type) => runtime_type.id)
         ).toStrictEqual(expected_runtime_ids);
       });
     });

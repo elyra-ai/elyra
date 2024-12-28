@@ -42,7 +42,7 @@
             "pattern": "^[^ \t]+([ \t]+[^ \t]+)*$"
           },
           "uihints": {
-            "ui:field": "tags"
+            "ui:field": "@elyra/metadata-extension:plugin.tags"
           }
         },
         "image_name": {
@@ -72,7 +72,7 @@
           "maxLength": 253,
           "uihints": {
             "category": "Source",
-            "ui:field": "password"
+            "ui:field": "@elyra/metadata-extension:plugin.password"
           }
         }
       },

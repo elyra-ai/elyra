@@ -25,7 +25,7 @@ import {
 } from '@jupyterlab/application';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { Cell } from '@jupyterlab/cells';
-import { IEditorServices } from '@jupyterlab/codeeditor';
+import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
 import { DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
 import { MarkdownDocument } from '@jupyterlab/markdownviewer';
@@ -71,7 +71,8 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       icon: codeSnippetIcon,
       getCurrentWidget,
       editorServices,
-      titleContext: 'code snippet'
+      titleContext: '',
+      addLabel: 'code snippet'
     });
     const codeSnippetWidgetId = `elyra-metadata:${CODE_SNIPPET_SCHEMASPACE}`;
     codeSnippetWidget.id = codeSnippetWidgetId;
@@ -158,15 +159,16 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
     });
 
     const getTextSelection = (
-      editor: any,
+      editor: CodeEditor.IEditor,
       markdownPreview?: boolean
     ): string => {
       const selectionObj = editor.getSelection();
       const start = editor.getOffsetAt(selectionObj.start);
       const end = editor.getOffsetAt(selectionObj.end);
-      const selection = editor.model.value.text.substring(start, end);
+      const source = editor.model.sharedModel.getSource();
+      const selection = source.substring(start, end);
 
-      if (!selection && editor.model.value.text) {
+      if (!selection && source) {
         // Allow selections from a rendered notebook cell
         return document.getSelection()?.toString() ?? '';
       }
@@ -196,22 +198,24 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
       return selectedCells;
     };
 
-    const isFileEditor = (currentWidget: any): boolean => {
+    const isFileEditor = (currentWidget: Widget | null): boolean => {
       return (
         currentWidget instanceof DocumentWidget &&
         (currentWidget as DocumentWidget).content instanceof FileEditor
       );
     };
 
-    const isNotebookEditor = (currentWidget: any): boolean => {
+    const isNotebookEditor = (currentWidget: Widget | null): boolean => {
       return currentWidget instanceof NotebookPanel;
     };
 
-    const isMarkdownDocument = (currentWidget: any): boolean => {
+    const isMarkdownDocument = (currentWidget: Widget | null): boolean => {
       return currentWidget instanceof MarkdownDocument;
     };
 
-    const getEditor = (currentWidget: any): any => {
+    const getEditor = (
+      currentWidget: Widget | null
+    ): CodeEditor.IEditor | null | undefined => {
       if (isFileEditor(currentWidget)) {
         const documentWidget = currentWidget as DocumentWidget;
         return (documentWidget.content as FileEditor).editor;
@@ -220,6 +224,7 @@ export const code_snippet_extension: JupyterFrontEndPlugin<void> = {
         const notebookCell = (notebookWidget.content as Notebook).activeCell;
         return notebookCell?.editor;
       }
+      return undefined;
     };
   }
 };

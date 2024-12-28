@@ -1,6 +1,6 @@
 {
   "name": "@elyra/ui-components",
-  "version": "3.16.0-dev",
+  "version": "4.0.0-dev",
   "description": "JupyterLab - UI components for use in elyra",
   "keywords": [
     "jupyter",
@@ -24,32 +24,52 @@
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "scripts": {
-    "build": "tsc",
-    "clean": "rimraf lib",
-    "dist": "npm pack .",
-    "prepare": "npm run build",
-    "watch": "tsc -w",
-    "lab:install": "jupyter labextension link --no-build",
-    "lab:uninstall": "jupyter labextension unlink --no-build"
+    "build": "jlpm build:lib && jlpm build:labextension:dev",
+    "build:prod": "jlpm clean && jlpm build:lib:prod && jlpm build:labextension",
+    "build:labextension": "jupyter labextension build .",
+    "build:labextension:dev": "jupyter labextension build --development True .",
+    "build:lib": "tsc --sourceMap",
+    "build:lib:prod": "tsc",
+    "clean": "jlpm clean:lib",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:lintcache": "rimraf .eslintcache .stylelintcache",
+    "clean:labextension": "rimraf ../../../../labextensions/elyra_ui_components/labextension ../../../../labextensions/elyra_ui_components/_version.py",
+    "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
+    "eslint": "jlpm eslint:check --fix",
+    "eslint:check": "eslint . --cache --ext .ts,.tsx",
+    "install:extension": "jlpm build",
+    "lint": "jlpm stylelint && jlpm prettier && jlpm eslint",
+    "lint:check": "jlpm stylelint:check && jlpm prettier:check && jlpm eslint:check",
+    "prettier": "jlpm prettier:base --write --list-different",
+    "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
+    "prettier:check": "jlpm prettier:base --check",
+    "stylelint": "jlpm stylelint:check --fix",
+    "stylelint:check": "stylelint --cache \"style/**/*.css\"",
+    "test": "jest --coverage --passWithNoTests",
+    "watch": "run-p watch:src watch:labextension",
+    "watch:src": "tsc -w --sourceMap",
+    "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyterlab/apputils": "^3.4.6",
-    "@jupyterlab/ui-components": "^3.4.6",
-    "@rjsf/core": "^3.1.0",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
+    "@jupyterlab/apputils": "^4.2.5",
+    "@jupyterlab/builder": "^4.2.5",
+    "@jupyterlab/ui-components": "^4.2.5",
+    "@rjsf/core": "^5.21.0",
+    "@rjsf/utils": "^5.21.0",
+    "@rjsf/validator-ajv8": "^5.21.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.0.9",
     "react-json-tree": "^0.11.2"
   },
   "devDependencies": {
-    "@types/react-json-tree": "^0.6.11",
-    "rimraf": "^3.0.2",
-    "typescript": "~4.1.3"
+    "rimraf": "~5.0.5",
+    "typescript": "~5.1.6"
   },
   "publishConfig": {
     "access": "public"
   },
   "jupyterlab": {
     "extension": false,
-    "outputDir": "../../build/labextensions/@elyra/ui-components"
+    "outputDir": "../../labextensions/elyra_ui_components/labextension"
   }
 }

@@ -205,6 +205,9 @@ describe('Code Snippet tests', () => {
   });
 
   it('should fail to insert a code snippet into unsupported widget', () => {
+    // Give time for the Launcher tab to load
+    cy.wait(2000);
+
     createValidCodeSnippet(snippetName);
 
     // Insert snippet into launcher widget
@@ -217,6 +220,9 @@ describe('Code Snippet tests', () => {
   });
 
   it('should insert a python code snippet into python editor', () => {
+    // Give time for the Launcher tab to load
+    cy.wait(2000);
+
     createValidCodeSnippet(snippetName);
 
     // Open blank python file
@@ -228,11 +234,14 @@ describe('Code Snippet tests', () => {
     insert(snippetName);
 
     // Check if editor has the new code
-    cy.get('.CodeMirror:visible');
-    cy.get('span.cm-string').contains(/test/i);
+    cy.get('.cm-editor:visible');
+    cy.get('.cm-editor .cm-content .cm-line').contains(/test/i);
   });
 
   it('should fail to insert a java code snippet into python editor', () => {
+    // Give time for the Launcher tab to load
+    cy.wait(2000);
+
     createValidCodeSnippet(snippetName, 'Java');
 
     // Open blank python file
@@ -249,8 +258,8 @@ describe('Code Snippet tests', () => {
     cy.findByRole('button', { name: /cancel/i }).click();
 
     // Check it did not insert the code
-    cy.get('.CodeMirror:visible');
-    cy.get('span.cm-string').should('not.exist');
+    cy.get('.cm-editor:visible');
+    cy.get('.cm-editor .cm-content .cm-line').should('not.contain', /test/i);
   });
 
   // DEV NOTE: Uncomment the tests below to run them locally
@@ -354,9 +363,10 @@ const populateCodeSnippetFields = (
   editSnippetLanguage(snippetName, language ?? 'Python');
 
   // Add snippet code
-  cy.get('.CodeMirror .CodeMirror-scroll:visible').type(
-    'print("Code Snippet Test")'
-  );
+  cy.get('.elyra-metadataEditor-new .cm-content[contenteditable="true"]')
+    .first()
+    .click({ force: true })
+    .type('print("Code Snippet Test")', { delay: 100 });
 };
 
 const createValidCodeSnippet = (
@@ -416,7 +426,7 @@ const insert = (snippetName: string): void => {
 const editSnippetLanguage = (snippetName: string, lang: string): void => {
   cy.get('.elyra-formEditor')
     .find('.elyra-form-DropDown-item option')
-    .then(list => Cypress._.map(list, 'value'))
+    .then((list) => Cypress._.map(list, 'value'))
     .should('include', lang);
   cy.get('.elyra-formEditor')
     .find('.elyra-formEditor-form-language input')

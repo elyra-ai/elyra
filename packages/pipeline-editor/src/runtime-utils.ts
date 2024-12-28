@@ -42,7 +42,7 @@ export const createRuntimeData = ({
 }): IRuntimeData => {
   const platforms: IRuntimeData['platforms'] = [];
   for (const s of schema) {
-    const found = platforms.find(p => p.id === s.runtime_type);
+    const found = platforms.find((p) => p.id === s.runtime_type);
     if (found) {
       continue;
     }
@@ -50,8 +50,8 @@ export const createRuntimeData = ({
       id: s.runtime_type,
       displayName: s.title,
       configs: runtimes
-        .filter(r => r.metadata.runtime_type === s.runtime_type)
-        .map(r => ({
+        .filter((r) => r.metadata.runtime_type === s.runtime_type)
+        .map((r) => ({
           id: r.name,
           displayName: r.display_name,
           processor: {

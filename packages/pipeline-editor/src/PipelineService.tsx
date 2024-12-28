@@ -92,7 +92,7 @@ export class PipelineService {
    * Returns a list of runtime schema
    */
   static async getRuntimesSchema(showError = true): Promise<any> {
-    return MetadataService.getSchema(RUNTIMES_SCHEMASPACE).then(schema => {
+    return MetadataService.getSchema(RUNTIMES_SCHEMASPACE).then((schema) => {
       if (showError && Object.keys(schema).length === 0) {
         return RequestErrors.noMetadataError('schema');
       }
@@ -179,7 +179,7 @@ export class PipelineService {
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
       this.getWaitDialog('Packaging and submitting pipeline ...')
-    ).then(response => {
+    ).then((response) => {
       let dialogTitle;
       let dialogBody;
       if (response['run_url']) {
@@ -273,7 +273,7 @@ export class PipelineService {
       'elyra/pipeline/export',
       JSON.stringify(body),
       this.getWaitDialog('Generating pipeline artifacts ...')
-    ).then(response => {
+    ).then((response) => {
       return showDialog({
         title: 'Pipeline export succeeded',
         body: <p>Exported file: {response['export_path']} </p>,
@@ -331,28 +331,26 @@ export class PipelineService {
     pipelinePath: string
   ): any {
     for (const node of pipeline.nodes) {
-      const nodeDef = paletteNodes.find(n => {
+      const nodeDef = paletteNodes.find((n) => {
         return n.op === node.op;
       });
       const parameters =
         nodeDef.app_data.properties.properties.component_parameters.properties;
       for (const param in parameters) {
         if (parameters[param].uihints?.['ui:widget'] === 'file') {
-          node.app_data.component_parameters[
-            param
-          ] = this.getWorkspaceRelativeNodePath(
-            pipelinePath,
-            node.app_data.component_parameters[param]
-          );
+          node.app_data.component_parameters[param] =
+            this.getWorkspaceRelativeNodePath(
+              pipelinePath,
+              node.app_data.component_parameters[param]
+            );
         } else if (
           node.app_data.component_parameters[param]?.widget === 'file'
         ) {
-          node.app_data.component_parameters[
-            param
-          ].value = this.getWorkspaceRelativeNodePath(
-            pipelinePath,
-            node.app_data.component_parameters[param].value
-          );
+          node.app_data.component_parameters[param].value =
+            this.getWorkspaceRelativeNodePath(
+              pipelinePath,
+              node.app_data.component_parameters[param].value
+            );
         }
       }
     }

@@ -20,7 +20,7 @@ import {
   IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps,
-  IMetadataDisplayState,
+  //IMetadataDisplayState,
   IMetadataActionButton
 } from '@elyra/metadata-common';
 import { IDictionary, MetadataService } from '@elyra/services';
@@ -46,10 +46,7 @@ const handleError = (error: any): void => {
 /**
  * A React Component for displaying the component catalogs list.
  */
-class ComponentCatalogsDisplay extends MetadataDisplay<
-  IMetadataDisplayProps,
-  IMetadataDisplayState
-> {
+class ComponentCatalogsDisplay extends MetadataDisplay<IMetadataDisplayProps> {
   actionButtons(metadata: IMetadata): IMetadataActionButton[] {
     return [
       {
@@ -60,13 +57,19 @@ class ComponentCatalogsDisplay extends MetadataDisplay<
             .then((response: any): void => {
               this.props.updateMetadata();
             })
-            .catch(error => handleError(error));
+            .catch((error) =>
+              console.error(
+                'An error occurred while refreshing components from catalog:',
+                error
+              )
+            );
         }
       },
       ...super.actionButtons(metadata)
     ];
   }
-  // render catalog entries
+
+  //render catalog entries
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     let category_output = <li key="No category">No category</li>;
     if (metadata.metadata.categories) {
@@ -142,7 +145,7 @@ export class ComponentCatalogsWidget extends MetadataWidget {
       );
       this.schemas = sortedSchema.filter((schema: any) => {
         return !!this.runtimeTypes.find(
-          r =>
+          (r) =>
             schema.properties?.metadata?.properties?.runtime_type?.enum?.includes(
               r.id
             ) && r.runtime_enabled
@@ -183,7 +186,7 @@ export class ComponentCatalogsWidget extends MetadataWidget {
       .then((response: any): void => {
         this.updateMetadataAndRefresh();
       })
-      .catch(error => handleError(error));
+      .catch((error) => handleError(error));
   }
 
   renderDisplay(metadata: IMetadata[]): React.ReactElement {
@@ -199,8 +202,8 @@ export class ComponentCatalogsWidget extends MetadataWidget {
       );
     }
 
-    const filteredMetadata = metadata.filter(m => {
-      return !!this.runtimeTypes.find(r => m.metadata?.runtime_type === r.id);
+    const filteredMetadata = metadata.filter((m) => {
+      return !!this.runtimeTypes.find((r) => m.metadata?.runtime_type === r.id);
     });
 
     return (

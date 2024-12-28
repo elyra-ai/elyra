@@ -48,7 +48,7 @@ export class ScriptEditorWidgetFactory extends ABCWidgetFactory<
     context: DocumentRegistry.CodeContext
   ): ScriptEditor {
     const newDocumentEditor = this._services.factoryService.newDocumentEditor;
-    const factory: CodeEditor.Factory = options => {
+    const factory: CodeEditor.Factory = (options) => {
       return newDocumentEditor(options);
     };
     const content = new FileEditor({

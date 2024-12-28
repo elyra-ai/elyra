@@ -58,13 +58,13 @@ const extension: JupyterFrontEndPlugin<void> = {
     if (restorer) {
       void restorer.restore(tracker, {
         command: CommandIDs.openViewer,
-        args: widget => ({
+        args: (widget) => ({
           content: widget.content.getContent(),
           label: widget.content.title.label,
           mimeType: widget.content.getMimeType(),
           widgetId: widget.content.id
         }),
-        name: widget => widget.content.id
+        name: (widget) => widget.content.id
       });
     }
 
@@ -76,7 +76,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       widgetId?: string;
     }): Promise<CodeViewerWidget> => {
       const func = editorServices.factoryService.newDocumentEditor;
-      const factory: CodeEditor.Factory = options => {
+      const factory: CodeEditor.Factory = (options) => {
         return func(options);
       };
 
@@ -97,7 +97,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       widget.title.caption = widget.title.label;
 
       // Get the fileType based on the mimetype to determine the icon
-      const fileType = toArray(app.docRegistry.fileTypes()).find(fileType => {
+      const fileType = toArray(app.docRegistry.fileTypes()).find((fileType) => {
         return mimetype ? fileType.mimeTypes.includes(mimetype) : undefined;
       });
       widget.title.icon = fileType?.icon ?? textEditorIcon;

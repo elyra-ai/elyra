@@ -43,7 +43,7 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
       >
         Parameters
       </label>
-      {parameters.map(param => {
+      {parameters.map((param) => {
         if (!param.name) {
           return undefined;
         }
@@ -91,10 +91,12 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
                   <p
                     style={{
                       transform: `translate(0px, -10%)`,
-                      left: `-${Math.min(
-                        param.name.length,
-                        Math.min(DIALOG_WIDTH, param.description.length)
-                      ) - 4}ch`
+                      left: `-${
+                        Math.min(
+                          param.name.length,
+                          Math.min(DIALOG_WIDTH, param.description.length)
+                        ) - 4
+                      }ch`
                     }}
                     className={'field-description'}
                   >

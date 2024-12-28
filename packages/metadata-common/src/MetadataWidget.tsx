@@ -101,8 +101,8 @@ export interface IMetadataDisplayState {
  * A React Component for displaying a list of metadata
  */
 export class MetadataDisplay<
-  T extends IMetadataDisplayProps,
-  U extends IMetadataDisplayState
+  T extends IMetadataDisplayProps
+  // U extends IMetadataDisplayState,
 > extends React.Component<T, IMetadataDisplayState> {
   constructor(props: T) {
     super(props);
@@ -127,7 +127,7 @@ export class MetadataDisplay<
         MetadataService.deleteMetadata(
           this.props.schemaspace,
           metadata.name
-        ).catch(error => RequestErrors.serverError(error));
+        ).catch((error) => RequestErrors.serverError(error));
       }
     });
   };
@@ -158,7 +158,7 @@ export class MetadataDisplay<
             .then((response: any): void => {
               this.props.updateMetadata();
             })
-            .catch(error => RequestErrors.serverError(error));
+            .catch((error) => RequestErrors.serverError(error));
         }
       },
       {
@@ -233,8 +233,8 @@ export class MetadataDisplay<
 
     // filter with tags
     if (filterTags.length !== 0) {
-      filteredMetadata = filteredMetadata.filter(metadata => {
-        return filterTags.some(tag => {
+      filteredMetadata = filteredMetadata.filter((metadata) => {
+        return filterTags.some((tag) => {
           if (metadata.metadata.tags) {
             return metadata.metadata.tags.includes(tag);
           }
@@ -303,7 +303,7 @@ export class MetadataDisplay<
       const searchValue = state.searchValue.toLowerCase().trim();
 
       const newMetadata = props.metadata.filter(
-        metadata =>
+        (metadata) =>
           state.matchesSearch(searchValue, metadata) &&
           state.matchesTags(filterTags, metadata)
       );
@@ -346,6 +346,7 @@ export interface IMetadataWidgetProps {
   icon: LabIcon;
   titleContext?: string;
   appendToTitle?: boolean;
+  addLabel?: string;
 }
 
 /**
@@ -356,6 +357,7 @@ export class MetadataWidget extends ReactWidget {
   props: IMetadataWidgetProps;
   schemas?: IDictionary<any>[];
   titleContext?: string;
+  addLabel?: string;
   refreshButtonTooltip?: string;
 
   constructor(props: IMetadataWidgetProps) {
@@ -365,6 +367,7 @@ export class MetadataWidget extends ReactWidget {
     this.props = props;
     this.renderSignal = new Signal<this, any>(this);
     this.titleContext = props.titleContext;
+    this.addLabel = props.addLabel;
     this.fetchMetadata = this.fetchMetadata.bind(this);
     this.getSchemas = this.getSchemas.bind(this);
     this.updateMetadata = this.updateMetadata.bind(this);
@@ -392,6 +395,7 @@ export class MetadataWidget extends ReactWidget {
               schema: schema.name,
               title: schema.title,
               titleContext: this.props.titleContext,
+              addLabel: this.props.addLabel,
               appendToTitle: this.props.appendToTitle
             } as any
           });
@@ -531,7 +535,7 @@ export class MetadataWidget extends ReactWidget {
                       this.props.app.contextMenu.open(event);
                     }
               }
-              title={`Create new ${this.titleContext}`}
+              title={`Create new ${this.addLabel}`}
             >
               <addIcon.react tag="span" elementPosition="center" width="16px" />
             </button>

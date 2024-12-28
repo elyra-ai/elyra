@@ -13,44 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* global module, require, __dirname */
-const func = require('@jupyterlab/testutils/lib/jest-config');
-const upstream = func('jupyterlab_go_to_definition', __dirname);
-
-const reuseFromUpstream = [
-  'setupFilesAfterEnv',
-  'setupFiles',
-  'moduleFileExtensions'
-];
+/* global module */
 
 const esModules = [
+  '@microsoft',
+  '@jupyter/react-components',
+  '@jupyter/web-components',
+  '@jupyter/ydoc',
+  'exenv-es6',
   'lib0',
+  '@rjsf',
+  'nanoid',
   'y\\-protocols',
   'y\\-websocket',
   'yjs',
   '(@jupyterlab/.*)/'
 ].join('|');
 
-const local = {
-  globals: { 'ts-jest': { tsConfig: 'tsconfig.json' } },
-  // eslint-disable-next-line no-useless-escape
-  testRegex: `.*\.spec\.tsx?$`,
-  transform: {
-    '\\.(ts|tsx)?$': 'ts-jest',
-    '\\.(js|jsx)?$': '../../testutils/transform.js',
-    '\\.svg$': 'jest-raw-loader'
-  },
+module.exports = {
+  automock: false,
+  testEnvironment: 'jsdom',
+  testRegex: `.*.spec.tsx?$`,
   transformIgnorePatterns: [`/node_modules/(?!${esModules}).+`],
+  transform: {
+    '^.+\\.(j|t)sx?$': [
+      'ts-jest',
+      {
+        tsConfig: '../../tests/tsconfig.json'
+      }
+    ],
+    '\\.svg$': '@glen/jest-raw-loader'
+  },
+  moduleFileExtensions: [
+    'cjs',
+    'js',
+    'json',
+    'jsx',
+    'mjs',
+    'node',
+    'ts',
+    'tsx'
+  ],
   moduleNameMapper: {
     '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
     '\\.(gif|ttf|eot)$': '@jupyterlab/testutils/lib/jest-file-mock.js'
-  }
+  },
+  setupFilesAfterEnv: ['../../testutils/jest.setup.js'],
+  setupFiles: ['@jupyterlab/testing/lib/jest-shim.js']
 };
-
-for (const option of reuseFromUpstream) {
-  local[option] = upstream[option];
-}
-
-local['setupFilesAfterEnv'] = ['../../testutils/jest.setup.js'];
-
-module.exports = local;

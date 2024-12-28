@@ -18,11 +18,11 @@ import { MetadataWidget, MetadataEditorWidget } from '@elyra/metadata-common';
 import { MetadataService } from '@elyra/services';
 
 import {
-  DropDown,
   RequestErrors,
+  PasswordField,
   CodeBlock,
   TagsField,
-  PasswordField
+  DropDown
 } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
@@ -35,7 +35,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import {
   textEditorIcon,
   LabIcon,
-  IFormComponentRegistry
+  IFormRendererRegistry
 } from '@jupyterlab/ui-components';
 
 import { find } from '@lumino/algorithm';
@@ -43,6 +43,7 @@ import { Widget } from '@lumino/widgets';
 
 const METADATA_EDITOR_ID = 'elyra-metadata-editor';
 const METADATA_WIDGET_ID = 'elyra-metadata';
+const METADATA_EXTENSION_ID = '@elyra/metadata-extension';
 
 const commandIDs = {
   openMetadata: 'elyra-metadata:open',
@@ -59,7 +60,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     ICommandPalette,
     IEditorServices,
     ILabStatus,
-    IFormComponentRegistry,
+    IFormRendererRegistry,
     ITranslator
   ],
   activate: async (
@@ -67,15 +68,31 @@ const extension: JupyterFrontEndPlugin<void> = {
     palette: ICommandPalette,
     editorServices: IEditorServices,
     status: ILabStatus,
-    componentRegistry: IFormComponentRegistry,
+    componentRegistry: IFormRendererRegistry,
     translator: ITranslator
   ) => {
     console.log('Elyra - metadata extension is activated!');
 
-    componentRegistry.addRenderer('code', CodeBlock);
-    componentRegistry.addRenderer('tags', TagsField);
-    componentRegistry.addRenderer('dropdown', DropDown);
-    componentRegistry.addRenderer('password', PasswordField);
+    componentRegistry.addRenderer(`${METADATA_EXTENSION_ID}:plugin.code`, {
+      fieldRenderer: (props) => {
+        return CodeBlock(props);
+      }
+    });
+    componentRegistry.addRenderer(`${METADATA_EXTENSION_ID}:plugin.tags`, {
+      fieldRenderer: (props) => {
+        return TagsField(props);
+      }
+    });
+    componentRegistry.addRenderer(`${METADATA_EXTENSION_ID}:plugin.dropdown`, {
+      fieldRenderer: (props) => {
+        return DropDown(props);
+      }
+    });
+    componentRegistry.addRenderer(`${METADATA_EXTENSION_ID}:plugin.password`, {
+      fieldRenderer: (props) => {
+        return PasswordField(props);
+      }
+    });
 
     const openMetadataEditor = (args: {
       schema: string;
@@ -136,6 +153,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       display_name: string;
       schemaspace: string;
       icon: string;
+      addLabel?: string;
     }): void => {
       const labIcon = LabIcon.resolve({ icon: args.icon });
       const widgetId = `${METADATA_WIDGET_ID}:${args.schemaspace}`;
@@ -143,14 +161,15 @@ const extension: JupyterFrontEndPlugin<void> = {
         app,
         display_name: args.display_name,
         schemaspace: args.schemaspace,
-        icon: labIcon
+        icon: labIcon,
+        addLabel: args.addLabel
       });
       metadataWidget.id = widgetId;
       metadataWidget.title.icon = labIcon;
       metadataWidget.title.caption = args.display_name;
 
       if (
-        find(app.shell.widgets('left'), value => value.id === widgetId) ===
+        find(app.shell.widgets('left'), (value) => value.id === widgetId) ===
         undefined
       ) {
         app.shell.add(metadataWidget, 'left', { rank: 1000 });
@@ -172,9 +191,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     const closeTabCommand: string = commandIDs.closeTabCommand;
     app.commands.addCommand(closeTabCommand, {
       label: 'Close Tab',
-      execute: args => {
+      execute: (args) => {
         const contextNode: HTMLElement | undefined = app.contextMenuHitTest(
-          node => !!node.dataset.id
+          (node) => !!node.dataset.id
         );
         if (contextNode) {
           const id = contextNode.dataset['id']!;

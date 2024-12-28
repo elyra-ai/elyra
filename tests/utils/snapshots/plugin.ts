@@ -17,7 +17,6 @@
 import fs from 'fs';
 
 import { diffStringsUnified } from 'jest-diff';
-import { utils } from 'jest-snapshot';
 
 const createSnapshot = (value: any): string => {
   let obj = value;
@@ -28,10 +27,7 @@ const createSnapshot = (value: any): string => {
     // no-op
   }
 
-  const serializedObj = utils.serialize(obj);
-
-  // replace UUIDs with something generic
-  return serializedObj.replace(
+  return JSON.stringify(obj, null, 2).replace(
     /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi,
     'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
   );

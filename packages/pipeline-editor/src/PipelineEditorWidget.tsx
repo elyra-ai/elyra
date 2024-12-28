@@ -48,7 +48,8 @@ import {
   DocumentWidget,
   Context
 } from '@jupyterlab/docregistry';
-import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
+import { Contents } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 import 'carbon-components/css/carbon-components.min.css';
@@ -57,7 +58,13 @@ import { toArray } from '@lumino/algorithm';
 import { IDragEvent } from '@lumino/dragdrop';
 import { Signal } from '@lumino/signaling';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -86,6 +93,8 @@ import {
 } from './runtime-utils';
 import { theme } from './theme';
 
+import { getEmptyPipelineJson } from './index';
+
 const PIPELINE_CLASS = 'elyra-PipelineEditor';
 
 export const commandIDs = {
@@ -99,6 +108,19 @@ export const commandIDs = {
   addFileToPipeline: 'pipeline-editor:add-node',
   refreshPalette: 'pipeline-editor:refresh-palette',
   openViewer: 'elyra-code-viewer:open'
+};
+
+interface IExtendedThemeProviderProps
+  extends React.ComponentProps<typeof ThemeProvider> {
+  children: any;
+}
+
+//extend ThemeProvider to accept the same props as original but with children prop as one of them.
+const ExtendedThemeProvider: React.FC<IExtendedThemeProviderProps> = ({
+  children,
+  ...props
+}) => {
+  return <ThemeProvider {...props}>{children}</ThemeProvider>;
 };
 
 const getAllPaletteNodes = (palette: any): any[] => {
@@ -139,16 +161,17 @@ const getDisplayName = (
 };
 
 class PipelineEditorWidget extends ReactWidget {
-  browserFactory: IFileBrowserFactory;
+  browserFactory: IDefaultFileBrowser;
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<this, any>;
   refreshPaletteSignal: Signal<this, any>;
   context: Context;
   settings: ISettingRegistry.ISettings;
+  defaultRuntimeType: string;
 
   constructor(options: any) {
-    super(options);
+    super();
     this.browserFactory = options.browserFactory;
     this.shell = options.shell;
     this.commands = options.commands;
@@ -156,11 +179,19 @@ class PipelineEditorWidget extends ReactWidget {
     this.refreshPaletteSignal = options.refreshPaletteSignal;
     this.context = options.context;
     this.settings = options.settings;
+    this.defaultRuntimeType = options.defaultRuntimeType;
     let nullPipeline = this.context.model.toJSON() === null;
+
     this.context.model.contentChanged.connect(() => {
       if (nullPipeline) {
         nullPipeline = false;
         this.update();
+      }
+    });
+    this.context.fileChanged.connect(() => {
+      if (this.context.model.toJSON() === null) {
+        const pipelineJson = getEmptyPipelineJson(this.defaultRuntimeType);
+        this.context.model.fromString(JSON.stringify(pipelineJson));
       }
     });
   }
@@ -186,7 +217,7 @@ class PipelineEditorWidget extends ReactWidget {
 
 interface IProps {
   context: DocumentRegistry.Context;
-  browserFactory: IFileBrowserFactory;
+  browserFactory: IDefaultFileBrowser;
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<PipelineEditorWidget, any>;
@@ -213,21 +244,49 @@ const PipelineWrapper: React.FC<IProps> = ({
   const type: string | undefined =
     pipeline?.pipelines?.[0]?.app_data?.runtime_type;
 
-  const {
-    data: runtimesSchema,
-    error: runtimesSchemaError
-  } = useRuntimesSchema();
+  const { data: runtimesSchema, error: runtimesSchemaError } =
+    useRuntimesSchema();
 
   const doubleClickToOpenProperties =
     settings?.composite['doubleClickToOpenProperties'] ?? true;
 
   const runtimeDisplayName = getDisplayName(runtimesSchema, type) ?? 'Generic';
 
+  const filePersistedRuntimeImages = useMemo(() => {
+    const images = [];
+    const pipelineDefaultRuntimeImage =
+      pipeline?.pipelines?.[0]?.app_data?.properties?.pipeline_defaults
+        ?.runtime_image;
+    if (pipelineDefaultRuntimeImage?.length > 0) {
+      images.push(pipelineDefaultRuntimeImage);
+    }
+    const nodes = pipeline?.pipelines?.[0]?.nodes;
+    if (nodes?.length > 0) {
+      for (const node of nodes) {
+        const nodeRuntimeImage =
+          node?.app_data?.component_parameters?.runtime_image;
+        if (nodeRuntimeImage?.length > 0) {
+          images.push(nodeRuntimeImage);
+        }
+      }
+    }
+
+    return images.map((imageName) => {
+      return {
+        name: imageName,
+        display_name: imageName,
+        metadata: {
+          image_name: imageName
+        }
+      };
+    });
+  }, [pipeline]);
+
   const {
     data: palette,
     error: paletteError,
     mutate: mutatePalette
-  } = usePalette(type);
+  } = usePalette(type, filePersistedRuntimeImages);
 
   useEffect(() => {
     const handleMutateSignal = (): void => {
@@ -301,7 +360,8 @@ const PipelineWrapper: React.FC<IProps> = ({
           PathExt.extname(pipeline_path)
         );
         pipelineJson.pipelines[0].app_data.properties.name = pipeline_name;
-        pipelineJson.pipelines[0].app_data.properties.runtime = runtimeDisplayName;
+        pipelineJson.pipelines[0].app_data.properties.runtime =
+          runtimeDisplayName;
       }
       setPipeline(pipelineJson);
       setLoading(false);
@@ -327,13 +387,17 @@ const PipelineWrapper: React.FC<IProps> = ({
         } else if (Array.isArray(data[key])) {
           const newArray = [];
           for (const i in data[key]) {
-            if (typeof data[key][i] === 'object') {
-              removeNullValues(data[key][i], true);
-              if (Object.keys(data[key][i]).length > 0) {
-                newArray.push(data[key][i]);
+            const item = data[key][i];
+            if (item === undefined || item === null || item === '') {
+              continue;
+            }
+            if (typeof item === 'object') {
+              removeNullValues(item, true);
+              if (Object.keys(item).length > 0) {
+                newArray.push(item);
               }
-            } else if (data[key][i] !== null && data[key][i] !== '') {
-              newArray.push(data[key][i]);
+            } else {
+              newArray.push(item);
             }
           }
           data[key] = newArray;
@@ -384,21 +448,22 @@ const PipelineWrapper: React.FC<IProps> = ({
             </p>
           ),
           buttons: [Dialog.cancelButton(), Dialog.okButton()]
-        }).then(async result => {
+        }).then(async (result) => {
           isDialogAlreadyShowing.current = false;
           if (result.button.accept) {
             // proceed with migration
             console.log('migrating pipeline');
             const pipelineJSON: any = contextRef.current.model.toJSON();
             try {
-              const migratedPipeline = migrate(pipelineJSON, pipeline => {
+              const migratedPipeline = migrate(pipelineJSON, (pipeline) => {
                 // function for updating to relative paths in v2
                 // uses location of filename as expected in v1
                 for (const node of pipeline.nodes) {
-                  node.app_data.filename = PipelineService.getPipelineRelativeNodePath(
-                    contextRef.current.path,
-                    node.app_data.filename
-                  );
+                  node.app_data.filename =
+                    PipelineService.getPipelineRelativeNodePath(
+                      contextRef.current.path,
+                      node.app_data.filename
+                    );
                 }
                 return pipeline;
               });
@@ -433,7 +498,7 @@ const PipelineWrapper: React.FC<IProps> = ({
               } else {
                 showDialog({
                   title: 'Pipeline migration failed!',
-                  body: <p> {migrationError?.message || ''} </p>,
+                  body: <p> {(migrationError as Error)?.message || ''} </p>,
                   buttons: [Dialog.okButton()]
                 }).then(() => {
                   shell.currentWidget?.close();
@@ -459,46 +524,45 @@ const PipelineWrapper: React.FC<IProps> = ({
   );
 
   const onFileRequested = async (args: any): Promise<string[] | undefined> => {
-    const filename = PipelineService.getWorkspaceRelativeNodePath(
-      contextRef.current.path,
-      args.filename ?? ''
-    );
-    if (args.propertyID.includes('dependencies')) {
-      const res = await showBrowseFileDialog(
-        browserFactory.defaultBrowser.model.manager,
-        {
-          multiselect: true,
-          includeDir: true,
-          rootPath: PathExt.dirname(filename),
-          filter: (model: any): boolean => {
-            return model.path !== filename;
-          }
+    const pipelineFilePath = contextRef.current.path;
+    const contextFilePath = args.filename
+      ? PipelineService.getWorkspaceRelativeNodePath(
+          pipelineFilePath,
+          args.filename
+        )
+      : pipelineFilePath;
+    const contextFolderPath = PathExt.dirname(contextFilePath);
+
+    if (args.propertyID?.includes('dependencies')) {
+      const res = await showBrowseFileDialog(browserFactory.model.manager, {
+        multiselect: true,
+        includeDir: true,
+        rootPath: contextFolderPath,
+        filter: (model: any): boolean => {
+          return model.path !== pipelineFilePath;
         }
-      );
+      });
 
       if (res.button.accept && res.value.length) {
-        return res.value.map((v: any) => v.path);
+        return res.value;
       }
     } else {
-      const res = await showBrowseFileDialog(
-        browserFactory.defaultBrowser.model.manager,
-        {
-          startPath: PathExt.dirname(filename),
-          filter: (model: any): boolean => {
-            if (args.filters?.File === undefined) {
-              return true;
-            }
-
-            const ext = PathExt.extname(model.path);
-            return args.filters.File.includes(ext);
+      const res = await showBrowseFileDialog(browserFactory.model.manager, {
+        startPath: contextFolderPath,
+        filter: (model: Contents.IModel): boolean => {
+          if (args.filters?.File === undefined || model.type === 'directory') {
+            return true;
           }
+
+          const ext = PathExt.extname(model.path);
+          return args.filters.File.includes(ext);
         }
-      );
+      });
 
       if (res.button.accept && res.value.length) {
         const file = PipelineService.getPipelineRelativeNodePath(
           contextRef.current.path,
-          res.value[0].path
+          res.value[0]
         );
         return [file];
       }
@@ -585,9 +649,9 @@ const PipelineWrapper: React.FC<IProps> = ({
         });
       }
       return PipelineService.getComponentDef(type, componentId)
-        .then(res => {
+        .then((res) => {
           const nodeDef = getAllPaletteNodes(palette).find(
-            n => n.id === componentId
+            (n) => n.id === componentId
           );
           commands.execute(commandIDs.openViewer, {
             content: res.content,
@@ -595,7 +659,7 @@ const PipelineWrapper: React.FC<IProps> = ({
             label: nodeDef?.label ?? componentId
           });
         })
-        .catch(e => RequestErrors.serverError(e));
+        .catch((e) => RequestErrors.serverError(e));
     },
     [commands, palette, type]
   );
@@ -605,7 +669,9 @@ const PipelineWrapper: React.FC<IProps> = ({
       const node = pipeline.pipelines[0].nodes.find(
         (node: any) => node.id === data.selectedObjectIds[i]
       );
-      const nodeDef = getAllPaletteNodes(palette).find(n => n.op === node?.op);
+      const nodeDef = getAllPaletteNodes(palette).find(
+        (n) => n.op === node?.op
+      );
       if (node?.app_data?.component_parameters?.filename) {
         commands.execute(commandIDs.openDocManager, {
           path: PipelineService.getWorkspaceRelativeNodePath(
@@ -662,7 +728,7 @@ const PipelineWrapper: React.FC<IProps> = ({
       // TODO: Parallelize this
       const runtimeTypes = await PipelineService.getRuntimeTypes();
       const runtimes = await PipelineService.getRuntimes()
-        .then(runtimeList => {
+        .then((runtimeList) => {
           return runtimeList.filter((runtime: any) => {
             return (
               !runtime.metadata.runtime_enabled &&
@@ -672,8 +738,8 @@ const PipelineWrapper: React.FC<IProps> = ({
             );
           });
         })
-        .catch(error => RequestErrors.serverError(error));
-      const schema = await PipelineService.getRuntimesSchema().catch(error =>
+        .catch((error) => RequestErrors.serverError(error));
+      const schema = await PipelineService.getRuntimesSchema().catch((error) =>
         RequestErrors.serverError(error)
       );
 
@@ -708,23 +774,24 @@ const PipelineWrapper: React.FC<IProps> = ({
 
       let dialogOptions: Partial<Dialog.IOptions<any>>;
 
-      pipelineJson.pipelines[0].app_data.properties.pipeline_parameters = pipelineJson.pipelines[0].app_data.properties.pipeline_parameters?.filter(
-        (param: any) => {
-          return !!pipelineJson.pipelines[0].nodes.find((node: any) => {
-            return (
-              param.name !== '' &&
-              (node.app_data.component_parameters?.pipeline_parameters?.includes(
-                param.name
-              ) ||
-                Object.values(node.app_data.component_parameters ?? {}).find(
-                  (property: any) =>
-                    property.widget === 'parameter' &&
-                    property.value === param.name
-                ))
-            );
-          });
-        }
-      );
+      pipelineJson.pipelines[0].app_data.properties.pipeline_parameters =
+        pipelineJson.pipelines[0].app_data.properties.pipeline_parameters?.filter(
+          (param: any) => {
+            return !!pipelineJson.pipelines[0].nodes.find((node: any) => {
+              return (
+                param.name !== '' &&
+                (node.app_data.component_parameters?.pipeline_parameters?.includes(
+                  param.name
+                ) ||
+                  Object.values(node.app_data.component_parameters ?? {}).find(
+                    (property: any) =>
+                      property.widget === 'parameter' &&
+                      property.value === param.name
+                  ))
+              );
+            });
+          }
+        );
 
       const parameters =
         pipelineJson?.pipelines[0].app_data.properties.pipeline_parameters;
@@ -848,7 +915,7 @@ const PipelineWrapper: React.FC<IProps> = ({
           PipelineService.submitPipeline(
             pipelineJson,
             configDetails?.platform.displayName ?? ''
-          ).catch(error => RequestErrors.serverError(error));
+          ).catch((error) => RequestErrors.serverError(error));
           break;
         case 'export':
           PipelineService.exportPipeline(
@@ -856,7 +923,7 @@ const PipelineWrapper: React.FC<IProps> = ({
             exportType,
             exportPath,
             dialogResult.value.overwrite
-          ).catch(error => RequestErrors.serverError(error));
+          ).catch((error) => RequestErrors.serverError(error));
           break;
       }
     },
@@ -872,7 +939,7 @@ const PipelineWrapper: React.FC<IProps> = ({
         Dialog.okButton({ label: 'Clear All' }),
         Dialog.okButton({ label: 'Clear Canvas' })
       ]
-    }).then(result => {
+    }).then((result) => {
       if (result.button.accept) {
         const newPipeline: any = contextRef.current.model.toJSON();
         if (newPipeline?.pipelines?.[0]?.nodes?.length > 0) {
@@ -1045,7 +1112,7 @@ const PipelineWrapper: React.FC<IProps> = ({
 
   const handleAddFileToPipeline = useCallback(
     (location?: { x: number; y: number }) => {
-      const fileBrowser = browserFactory.defaultBrowser;
+      const fileBrowser = browserFactory;
       // Only add file to pipeline if it is currently in focus
       if (shell.currentWidget?.id !== widgetId) {
         return;
@@ -1100,15 +1167,14 @@ const PipelineWrapper: React.FC<IProps> = ({
       if (failedAdd) {
         return showDialog({
           title: 'Unsupported File(s)',
-          body:
-            'Only supported files (Notebooks, Python scripts, and R scripts) can be added to a pipeline.',
+          body: 'Only supported files (Notebooks, Python scripts, and R scripts) can be added to a pipeline.',
           buttons: [Dialog.okButton()]
         });
       }
 
       return;
     },
-    [browserFactory.defaultBrowser, defaultPosition, shell, widgetId]
+    [browserFactory, defaultPosition, shell, widgetId]
   );
 
   const handleDrop = async (e: IDragEvent): Promise<void> => {
@@ -1138,7 +1204,8 @@ const PipelineWrapper: React.FC<IProps> = ({
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ExtendedThemeProvider theme={theme}>
+      z
       <ToastContainer
         position="bottom-center"
         autoClose={30000}
@@ -1176,17 +1243,18 @@ const PipelineWrapper: React.FC<IProps> = ({
           )}
         </PipelineEditor>
       </Dropzone>
-    </ThemeProvider>
+    </ExtendedThemeProvider>
   );
 };
 
 export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
-  browserFactory: IFileBrowserFactory;
+  browserFactory: IDefaultFileBrowser;
   shell: ILabShell;
   commands: any;
   addFileToPipelineSignal: Signal<this, any>;
   refreshPaletteSignal: Signal<this, any>;
   settings: ISettingRegistry.ISettings;
+  defaultRuntimeType: string;
 
   constructor(options: any) {
     super(options);
@@ -1196,6 +1264,7 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
     this.addFileToPipelineSignal = new Signal<this, any>(this);
     this.refreshPaletteSignal = new Signal<this, any>(this);
     this.settings = options.settings;
+    this.defaultRuntimeType = options.defaultRuntimeType;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DocumentWidget {
@@ -1207,7 +1276,8 @@ export class PipelineEditorFactory extends ABCWidgetFactory<DocumentWidget> {
       context: context,
       addFileToPipelineSignal: this.addFileToPipelineSignal,
       refreshPaletteSignal: this.refreshPaletteSignal,
-      settings: this.settings
+      settings: this.settings,
+      defaultRuntimeType: this.defaultRuntimeType
     };
     const content = new PipelineEditorWidget(props);
 

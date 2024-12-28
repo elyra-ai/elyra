@@ -58,8 +58,8 @@ export class RequestErrors {
     const traceback = response.issues
       ? this.formatIssues(response.issues)
       : response.traceback
-      ? response.traceback
-      : '';
+        ? response.traceback
+        : '';
     const defaultBody = response.timestamp
       ? 'Check the JupyterLab log for more details at ' + response.timestamp
       : 'Check the JupyterLab log for more details';

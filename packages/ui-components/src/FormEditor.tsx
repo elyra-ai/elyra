@@ -16,12 +16,15 @@
 
 import { IEditorServices } from '@jupyterlab/codeeditor';
 import { TranslationBundle } from '@jupyterlab/translation';
-import { IFormComponentRegistry } from '@jupyterlab/ui-components';
-import Form, {
+import { IFormRendererRegistry } from '@jupyterlab/ui-components';
+import Form from '@rjsf/core';
+import {
   ArrayFieldTemplateProps,
   FieldTemplateProps,
-  IChangeEvent
-} from '@rjsf/core';
+  RegistryFieldsType,
+  RegistryWidgetsType
+} from '@rjsf/utils';
+import validator from '@rjsf/validator-ajv8';
 import * as React from 'react';
 
 /**
@@ -51,7 +54,7 @@ interface IFormEditorProps {
   /**
    * Registry to retrieve custom renderers.
    */
-  componentRegistry?: IFormComponentRegistry;
+  componentRegistry?: IFormRendererRegistry;
 
   /**
    * Metadata that already exists (if there is any)
@@ -73,10 +76,10 @@ interface IFormEditorProps {
  * React component that allows for custom add / remove buttons in the array
  * field component.
  */
-const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
+const CustomArrayTemplate: React.FC<ArrayFieldTemplateProps> = (props) => {
   return (
     <div className={props.className}>
-      {props.items.map(item => {
+      {props.items.map((item) => {
         return (
           <div key={item.key} className={item.className}>
             {item.children}
@@ -102,7 +105,7 @@ const ArrayTemplate: React.FC<ArrayFieldTemplateProps> = props => {
   );
 };
 
-const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
+const CustomFieldTemplate: React.FC<FieldTemplateProps> = (props) => {
   return (
     <div className={props.classNames}>
       {props.schema.title !== undefined && props.schema.title !== ' ' ? (
@@ -123,9 +126,7 @@ const CustomFieldTemplate: React.FC<FieldTemplateProps> = props => {
             </div>
           )}
         </div>
-      ) : (
-        undefined
-      )}
+      ) : undefined}
       {props.children}
       {props.errors}
     </div>
@@ -164,6 +165,18 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
     }
   }
 
+  const fieldRenderers: RegistryFieldsType = Object.fromEntries(
+    Object.entries(componentRegistry?.renderers ?? {})
+      .filter(([_, value]) => value.fieldRenderer !== undefined)
+      .map(([key, value]) => [key, value.fieldRenderer!])
+  );
+
+  const widgetRenderers: RegistryWidgetsType = Object.fromEntries(
+    Object.entries(componentRegistry?.renderers ?? {})
+      .filter(([_, value]) => value.widgetRenderer !== undefined)
+      .map(([key, value]) => [key, value.widgetRenderer!])
+  );
+
   return (
     <Form
       schema={schema}
@@ -175,11 +188,15 @@ export const FormEditor: React.FC<IFormEditorProps> = ({
         languageOptions: languageOptions,
         trans: translator
       }}
-      fields={componentRegistry?.renderers}
-      ArrayFieldTemplate={ArrayTemplate}
-      FieldTemplate={CustomFieldTemplate}
+      validator={validator}
+      widgets={widgetRenderers}
+      fields={fieldRenderers}
+      templates={{
+        FieldTemplate: CustomFieldTemplate,
+        ArrayFieldTemplate: CustomArrayTemplate
+      }}
       uiSchema={uiSchema}
-      onChange={(e: IChangeEvent<any>): void => {
+      onChange={(e): void => {
         setFormData(e.formData);
         onChange(e.formData, e.errors.length > 0 || false);
       }}

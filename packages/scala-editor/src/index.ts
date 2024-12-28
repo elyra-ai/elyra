@@ -109,30 +109,30 @@ const extension: JupyterFrontEndPlugin<void> = {
       namespace: SCALA_EDITOR_NAMESPACE
     });
 
-    let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
+    //no default config so we set it to an empty object
+    let config: CodeEditor.IOptions['config'] = {};
 
     if (restorer) {
       // Handle state restoration
       void restorer.restore(tracker, {
         command: commandIDs.openDocManager,
-        args: widget => ({
+        args: (widget) => ({
           path: widget.context.path,
           factory: SCALA_FACTORY
         }),
-        name: widget => widget.context.path
+        name: (widget) => widget.context.path
       });
     }
 
     /**
      * Update the setting values. Adapted from fileeditor-extension.
      */
+
+    //replaced default Config
     const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
-        ...CodeEditor.defaultConfig,
         ...(settings.get('editorConfig').composite as JSONObject)
       };
-
-      // Trigger a refresh of the rendered commands
       app.commands.notifyCommandChanged();
     };
 
@@ -140,7 +140,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
      */
     const updateTracker = (): void => {
-      tracker.forEach(widget => {
+      tracker.forEach((widget) => {
         updateWidget(widget);
       });
     };
@@ -156,9 +156,13 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
 
       const editor = widget.content.editor;
-      Object.keys(config).forEach((keyStr: string) => {
-        const key = keyStr as keyof CodeEditor.IConfig;
-        editor.setOption(key, config[key]);
+      const editorConfigOptions = config || {};
+
+      Object.keys(editorConfigOptions).forEach((key) => {
+        const optionValue = editorConfigOptions[key];
+        if (optionValue !== undefined) {
+          editor.setOption(key, optionValue);
+        }
       });
     };
 
@@ -226,7 +230,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           type: 'file',
           ext: '.scala'
         })
-        .then(model => {
+        .then((model) => {
           return app.commands.execute(commandIDs.openDocManager, {
             path: model.path,
             factory: SCALA_FACTORY
@@ -236,12 +240,15 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Add a command to create new scala editor
     app.commands.addCommand(commandIDs.createNewScalaEditor, {
-      label: args => (args['isPalette'] ? 'New Scala Editor' : 'Scala Editor'),
+      label: (args) =>
+        args['isPalette'] ? 'New Scala Editor' : 'Scala Editor',
       caption: 'Create a new Scala Editor',
-      icon: args => (args['isPalette'] ? undefined : scalaIcon),
-      execute: args => {
-        const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
-        return createNew(cwd as string);
+      icon: (args) => (args['isPalette'] ? undefined : scalaIcon),
+      execute: (args) => {
+        //Use file browser's current path instead of defaultBrowser.model.path
+        const fileBrowser = browserFactory.createFileBrowser('myFileBrowser');
+        const cwd = args['cwd'] ? String(args['cwd']) : fileBrowser.model.path;
+        return createNew(cwd);
       }
     });
 

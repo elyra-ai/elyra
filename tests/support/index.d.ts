@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 declare namespace Cypress {
-  // eslint-disable-next-line @typescript-eslint/interface-name-prefix
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Chainable {
     installRuntimeConfig(options?: {
       type?: 'kfp' | 'airflow';

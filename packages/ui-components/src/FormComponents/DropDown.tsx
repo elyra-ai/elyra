@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { Field } from '@rjsf/core';
+import { FieldProps } from '@rjsf/utils';
 
 import * as React from 'react';
 
 const DROPDOWN_ITEM_CLASS = 'elyra-form-DropDown-item';
 
-export const DropDown: Field = props => {
+export const DropDown: React.FC<FieldProps> = (props: FieldProps) => {
   const {
     defaultValue,
     formContext,

@@ -22,13 +22,13 @@ import {
   ILayoutRestorer
 } from '@jupyterlab/application';
 import { WidgetTracker, ICommandPalette } from '@jupyterlab/apputils';
-import { CodeEditor, IEditorServices } from '@jupyterlab/codeeditor';
+import { /*CodeEditor,*/ IEditorServices } from '@jupyterlab/codeeditor';
 import {
   IDocumentWidget,
   DocumentRegistry,
   DocumentWidget
 } from '@jupyterlab/docregistry';
-import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 import { FileEditor, IEditorTracker } from '@jupyterlab/fileeditor';
 import { ILauncher } from '@jupyterlab/launcher';
 import { IMainMenu } from '@jupyterlab/mainmenu';
@@ -37,7 +37,10 @@ import { pythonIcon } from '@jupyterlab/ui-components';
 
 import { JSONObject } from '@lumino/coreutils';
 
+//import IDisposable from '@lumino/signaling';
+
 import { PythonEditor } from './PythonEditor';
+// import { default } from '../../../tests/plugins/index';
 
 const PYTHON_FACTORY = 'Python Editor';
 const PYTHON = 'python';
@@ -47,6 +50,40 @@ const commandIDs = {
   createNewPythonEditor: 'script-editor:create-new-python-editor',
   openDocManager: 'docmanager:open',
   newDocManager: 'docmanager:new-untitled'
+};
+
+interface IMyCodeEditorConfig {
+  autoClosingBrackets: boolean;
+  codeFolding: boolean;
+  fontFamily: string | null;
+  fontSize: number | null;
+  handlePaste: boolean;
+  insertSpaces: boolean;
+  lineHeight: number | null;
+  lineNumbers: boolean;
+  lineWrap: 'off' | 'on' | 'wordWrapColumn' | 'bounded';
+  matchBrackets: boolean;
+  readOnly: boolean;
+  rulers: Array<number>;
+  tabSize: number;
+  wordWrapColumn: number;
+}
+
+const defaultConfig: IMyCodeEditorConfig = {
+  fontFamily: null,
+  fontSize: null,
+  lineHeight: null,
+  lineNumbers: false,
+  lineWrap: 'on',
+  wordWrapColumn: 80,
+  readOnly: false,
+  tabSize: 4,
+  insertSpaces: true,
+  matchBrackets: true,
+  autoClosingBrackets: true,
+  handlePaste: true,
+  rulers: [],
+  codeFolding: false
 };
 
 /**
@@ -60,7 +97,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     IEditorTracker,
     ICommandPalette,
     ISettingRegistry,
-    IFileBrowserFactory
+    IDefaultFileBrowser
   ],
   optional: [ILayoutRestorer, IMainMenu, ILauncher],
   activate: (
@@ -69,7 +106,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     editorTracker: IEditorTracker,
     palette: ICommandPalette,
     settingRegistry: ISettingRegistry,
-    browserFactory: IFileBrowserFactory,
+    browserFactory: IDefaultFileBrowser,
     restorer: ILayoutRestorer | null,
     menu: IMainMenu | null,
     launcher: ILauncher | null
@@ -109,17 +146,17 @@ const extension: JupyterFrontEndPlugin<void> = {
       namespace: PYTHON_EDITOR_NAMESPACE
     });
 
-    let config: CodeEditor.IConfig = { ...CodeEditor.defaultConfig };
+    let config: IMyCodeEditorConfig = { ...defaultConfig };
 
     if (restorer) {
       // Handle state restoration
       void restorer.restore(tracker, {
         command: commandIDs.openDocManager,
-        args: widget => ({
+        args: (widget) => ({
           path: widget.context.path,
           factory: PYTHON_FACTORY
         }),
-        name: widget => widget.context.path
+        name: (widget) => widget.context.path
       });
     }
 
@@ -128,7 +165,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     const updateSettings = (settings: ISettingRegistry.ISettings): void => {
       config = {
-        ...CodeEditor.defaultConfig,
+        ...defaultConfig,
         ...(settings.get('editorConfig').composite as JSONObject)
       };
 
@@ -140,7 +177,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      * Update the settings of the current tracker instances. Adapted from fileeditor-extension.
      */
     const updateTracker = (): void => {
-      tracker.forEach(widget => {
+      tracker.forEach((widget) => {
         updateWidget(widget);
       });
     };
@@ -157,7 +194,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
       const editor = widget.content.editor;
       Object.keys(config).forEach((keyStr: string) => {
-        const key = keyStr as keyof CodeEditor.IConfig;
+        const key = keyStr as keyof IMyCodeEditorConfig;
         editor.setOption(key, config[key]);
       });
     };
@@ -182,7 +219,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     app.docRegistry.addWidgetFactory(factory);
 
-    factory.widgetCreated.connect((sender, widget) => {
+    factory.widgetCreated.connect((sender: any, widget: any) => {
       void tracker.add(widget);
 
       // Notify the widget tracker if restore data needs to update
@@ -226,7 +263,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           type: 'file',
           ext: '.py'
         })
-        .then(model => {
+        .then((model) => {
           return app.commands.execute(commandIDs.openDocManager, {
             path: model.path,
             factory: PYTHON_FACTORY
@@ -236,12 +273,14 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Add a command to create new Python editor
     app.commands.addCommand(commandIDs.createNewPythonEditor, {
-      label: args =>
-        args['isPalette'] ? 'New Python Editor' : 'Python Editor',
+      label: (args) =>
+        args['isPalette'] || args['isContextMenu']
+          ? 'New Python Editor'
+          : 'Python Editor',
       caption: 'Create a new Python Editor',
-      icon: args => (args['isPalette'] ? undefined : pythonIcon),
-      execute: args => {
-        const cwd = args['cwd'] || browserFactory.defaultBrowser.model.path;
+      icon: (args) => (args['isPalette'] ? undefined : pythonIcon),
+      execute: (args) => {
+        const cwd = args['cwd'] || browserFactory.model.path;
         return createNew(cwd as string);
       }
     });
@@ -250,6 +289,13 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: commandIDs.createNewPythonEditor,
       args: { isPalette: true },
       category: 'Elyra'
+    });
+
+    app.contextMenu.addItem({
+      command: commandIDs.createNewPythonEditor,
+      args: { isContextMenu: true },
+      selector: '.jp-DirListing-content',
+      rank: 200
     });
   }
 };

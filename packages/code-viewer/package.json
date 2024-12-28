@@ -1,6 +1,6 @@
 {
   "name": "@elyra/code-viewer-extension",
-  "version": "3.16.0-dev",
+  "version": "4.0.0-dev",
   "description": "JupyterLab extension - Display code without a file",
   "keywords": [
     "jupyter",
@@ -25,41 +25,50 @@
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "scripts": {
-    "build": "jlpm run build:lib && jlpm run build:labextension:dev",
-    "build:prod": "jlpm run build:lib && jlpm run build:labextension",
-    "build:lib": "tsc",
+    "build": "jlpm build:lib && jlpm build:labextension:dev",
+    "build:prod": "jlpm clean && jlpm build:lib:prod && jlpm build:labextension",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
-    "clean": "rimraf lib tsconfig.tsbuildinfo ../../build/labextensions/@elyra/code-viewer-extension",
-    "lab:dev": "jupyter labextension develop --overwrite ../../build/labextensions/@elyra/code-viewer-extension",
-    "dist": "npm pack .",
-    "prepare": "npm run build",
+    "build:lib": "tsc --sourceMap",
+    "build:lib:prod": "tsc",
+    "clean": "jlpm clean:lib",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean:lintcache": "rimraf .eslintcache .stylelintcache",
+    "clean:labextension": "rimraf ../../../../labextensions/elyra_code_viewer_extension/labextension ../../../../labextensions/elyra_code_viewer_extension/_version.py",
+    "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
+    "eslint": "jlpm eslint:check --fix",
+    "eslint:check": "eslint . --cache --ext .ts,.tsx",
+    "install:extension": "jlpm build",
+    "lint": "jlpm stylelint && jlpm prettier && jlpm eslint",
+    "lint:check": "jlpm stylelint:check && jlpm prettier:check && jlpm eslint:check",
+    "prettier": "jlpm prettier:base --write --list-different",
+    "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
+    "prettier:check": "jlpm prettier:base --check",
+    "stylelint": "jlpm stylelint:check --fix",
+    "stylelint:check": "stylelint --cache \"style/**/*.css\"",
+    "test": "jest --coverage --passWithNoTests",
     "watch": "run-p watch:src watch:labextension",
-    "watch:src": "tsc -w",
-    "watch:labextension": "jupyter labextension watch .",
-    "lab:install": "jupyter labextension install --no-build",
-    "lab:uninstall": "jupyter labextension uninstall --no-build",
-    "link:dev": "yarn link @jupyterlab/builder",
-    "unlink:dev": "yarn unlink @jupyterlab/builder"
+    "watch:src": "tsc -w --sourceMap",
+    "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
-    "@jupyterlab/application": "^3.4.6",
-    "@jupyterlab/apputils": "^3.4.6",
-    "@jupyterlab/builder": "^3.4.6",
-    "@jupyterlab/codeeditor": "^3.4.6",
-    "@jupyterlab/ui-components": "^3.4.6",
-    "@lumino/algorithm": "^1.9.1",
-    "@lumino/widgets": "^1.31.1"
+    "@jupyterlab/application": "^4.2.5",
+    "@jupyterlab/apputils": "^4.2.5",
+    "@jupyterlab/codeeditor": "^4.2.5",
+    "@jupyterlab/ui-components": "^4.2.5",
+    "@lumino/algorithm": "*",
+    "@lumino/widgets": "^2.3.1"
   },
   "devDependencies": {
-    "rimraf": "^3.0.2",
-    "typescript": "~4.1.3"
+    "@jupyterlab/builder": "^4.2.5",
+    "rimraf": "~5.0.5",
+    "typescript": "~5.1.6"
   },
   "publishConfig": {
     "access": "public"
   },
   "jupyterlab": {
     "extension": true,
-    "outputDir": "../../build/labextensions/@elyra/code-viewer-extension"
+    "outputDir": "../../labextensions/elyra_code_viewer_extension/labextension"
   }
 }

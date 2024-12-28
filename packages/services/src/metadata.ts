@@ -36,7 +36,7 @@ export class MetadataService {
   static async getMetadata(schemaspace: string): Promise<any> {
     return RequestHandler.makeGetRequest(
       ELYRA_METADATA_API_ENDPOINT + schemaspace
-    ).then(metadataResponse => metadataResponse[schemaspace]);
+    ).then((metadataResponse) => metadataResponse[schemaspace]);
   }
 
   /**
@@ -111,7 +111,7 @@ export class MetadataService {
 
     return RequestHandler.makeGetRequest(
       ELYRA_SCHEMA_API_ENDPOINT + schemaspace
-    ).then(schemaResponse => {
+    ).then((schemaResponse) => {
       if (schemaResponse[schemaspace]) {
         this.schemaCache[schemaspace] = schemaResponse[schemaspace];
       }

@@ -19,8 +19,8 @@ import {
   IMetadataWidgetProps,
   IMetadata,
   MetadataDisplay,
-  IMetadataDisplayProps,
-  IMetadataDisplayState
+  IMetadataDisplayProps
+  //IMetadataDisplayState,
 } from '@elyra/metadata-common';
 import { IDictionary } from '@elyra/services';
 
@@ -55,10 +55,7 @@ const getLinkFromImageName = (imageName: string): string => {
 /**
  * A React Component for displaying the runtime images list.
  */
-class RuntimeImagesDisplay extends MetadataDisplay<
-  IMetadataDisplayProps,
-  IMetadataDisplayState
-> {
+class RuntimeImagesDisplay extends MetadataDisplay<IMetadataDisplayProps> {
   renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
     return (
       <div>

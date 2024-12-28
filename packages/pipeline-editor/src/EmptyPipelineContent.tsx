@@ -63,10 +63,9 @@ export interface IEmptyPlatformSpecificPipelineProps {
   onOpenSettings: () => void;
 }
 
-export const EmptyPlatformSpecificPipeline: React.FC<IEmptyPlatformSpecificPipelineProps> = ({
-  onOpenCatalog,
-  onOpenSettings
-}) => {
+export const EmptyPlatformSpecificPipeline: React.FC<
+  IEmptyPlatformSpecificPipelineProps
+> = ({ onOpenCatalog, onOpenSettings }) => {
   // Note: the URL is rewritten by the release script by replacing `latest` with a
   // specific version number, e.g. https://.../en/v3.6.0/user_guide/pi...
   const customComponentsHelpTopicURL =

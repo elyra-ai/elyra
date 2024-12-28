@@ -1079,6 +1079,9 @@ def test_export_incompatible_runtime_config(kubeflow_pipelines_runtime_instance,
 
 
 @pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.skip(
+    reason="This test is not compatible with KFP v2: It relies on incompatible assets from elyra-examples-kfp-catalog lib. See https://github.com/elyra-ai/examples/issues/115 and https://github.com/opendatahub-io/elyra-examples/pull/1"  # noqa: E501
+)
 def test_export_kubeflow_output_option(
     jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance_no_server_process
 ):
@@ -1229,6 +1232,9 @@ def test_export_airflow_output_option(airflow_runtime_instance):
 
 
 @pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.skip(
+    reason="This test is not compatible with KFP v2: It relies on incompatible assets from elyra-examples-kfp-catalog lib. See https://github.com/elyra-ai/examples/issues/115 and https://github.com/opendatahub-io/elyra-examples/pull/1"  # noqa: E501
+)
 def test_export_kubeflow_overwrite_option(
     jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance_no_server_process
 ):
@@ -1322,6 +1328,9 @@ def test_export_airflow_format_option(airflow_runtime_instance):
 
 
 @pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
+@pytest.mark.skip(
+    reason="This test is not compatible with KFP v2: It relies on incompatible assets from elyra-examples-kfp-catalog lib. See https://github.com/elyra-ai/examples/issues/115 and https://github.com/opendatahub-io/elyra-examples/pull/1"  # noqa: E501
+)
 def test_export_kubeflow_format_option(
     jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance_no_server_process
 ):

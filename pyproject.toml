@@ -1,7 +1,9 @@
 [build-system]
 build-backend = "hatchling.build"
 requires = [
-    "hatchling>=1.2.0"
+    "hatchling>=1.5.0",
+    "jupyterlab~=4.2.5",
+    "hatch-nodejs-version>=0.3.2"
 ]
 
 [project]
@@ -25,20 +27,19 @@ dependencies = [
     "jupyter-events>=0.7.0",
     "jupyter-packaging>=0.12.3",
     "jupyter_server>=2.7.3",
-    "jupyterlab>=3.6.5,<4.0",  # comment out to use local jupyterlab
-    "jupyterlab-lsp<=4.3.0",  # comment out to use local jupyterlab, also less than 4.3.0 for Jupyterlab < 4 compatibility
-    "jupyterlab-git<=0.44.0",  # Jupyterlab < 4 compatibility
-    "jupyterlab_pygments<0.3.0", # Jupyterlab < 4 compatibility
-    "jupyter-resource-usage>=0.5.1,<1",
+    "jupyterlab>=4.0,<4.3",  # comment out to use local jupyterlab
+    "jupyterlab-lsp~=5.1.0",  # comment out to use local jupyterlab
+    "jupyterlab-git~=0.50.2",  # Avoid breaking 1.x changes
+    "jupyter-resource-usage~=1.1.0",
     "MarkupSafe>=2.1",
     "minio>=7.0.0,!=7.2.1",
-    "nbclient>=0.5.1",
-    "nbconvert==7.1.0",
-    "nbdime~=3.2.1",  # Cap from jupyterlab-git
+    "nbclient>=0.10.0",
+    "nbconvert>=6.5.1",
+    "nbdime~=4.0.1",  # Cap from jupyterlab-git
     "nbformat>=5.1.2",
     "networkx>=2.5.1",
     "papermill>=2.3.4",
-    "python-lsp-server[all]>=1.1.0",
+    "python-lsp-server[all]>=1.11.0",
     "pyyaml>=5.3.1",
     "requests>=2.31",
     "rfc3986-validator>=0.1.1",
@@ -163,12 +164,25 @@ path = "elyra/_version.py"
 [tool.hatch.build]
 include = [
     "elyra/*",
+    "labextensions/**/*",
 ]
 ignore-vcs = true
 
 # Include data files with dist
 [tool.hatch.build.targets.wheel.shared-data]
-"build/labextensions" = "share/jupyter/labextensions"
+"labextensions/elyra_code_snippet_extension/labextension" = "share/jupyter/labextensions/@elyra/code-snippet-extension"
+"labextensions/elyra_code_viewer_extension/labextension" = "share/jupyter/labextensions/@elyra/code-viewer-extension"
+"labextensions/elyra_metadata_common/labextension" = "share/jupyter/labextensions/@elyra/metadata-common"
+"labextensions/elyra_metadata_extension/labextension" = "share/jupyter/labextensions/@elyra/metadata-extension"
+"labextensions/elyra_pipeline_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/pipeline-editor-extension"
+"labextensions/elyra_python_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/python-editor-extension"
+"labextensions/elyra_r_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/r-editor-extension"
+"labextensions/elyra_scala_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/scala-editor-extension"
+"labextensions/elyra_script_debugger_extension/labextension" = "share/jupyter/labextensions/@elyra/script-debugger-extension"
+"labextensions/elyra_script_editor/labextension" = "share/jupyter/labextensions/@elyra/script-editor"
+"labextensions/elyra_services/labextension" = "share/jupyter/labextensions/@elyra/services"
+"labextensions/elyra_theme_extension/labextension" = "share/jupyter/labextensions/@elyra/theme-extension"
+"labextensions/elyra_ui_components/labextension" = "share/jupyter/labextensions/@elyra/ui-components"
 "etc/config/jupyter_notebook_config.d" = "etc/jupyter/jupyter_notebook_config.d"
 "etc/config/jupyter_server_config.d" = "etc/jupyter/jupyter_server_config.d"
 "etc/config/settings" = "etc/jupyter/labconfig"
@@ -180,8 +194,23 @@ ignore-vcs = true
 
 # Specify which files to include and exclude in source distribution
 [tool.hatch.build.targets.sdist]
+artifacts = [
+    "labextensions/elyra_code_snippet_extension/labextension",
+    "labextensions/elyra_code_viewer_extension/labextension",
+    "labextensions/elyra_metadata_common/labextension",
+    "labextensions/elyra_metadata_extension/labextension",
+    "labextensions/elyra_pipeline_editor_extension/labextension",
+    "labextensions/elyra_python_editor_extension/labextension",
+    "labextensions/elyra_r_editor_extension/labextension",
+    "labextensions/elyra_scala_editor_extension/labextension",
+    "labextensions/elyra_script_debugger_extension/labextension",
+    "labextensions/elyra_script_editor/labextension",
+    "labextensions/elyra_services/labextension",
+    "labextensions/elyra_theme_extension/labextension",
+    "labextensions/elyra_ui_components/labextension",
+]
 include = [
-    "build/labextensions",
+    "labextensions",
     "elyra",
     "etc/config/components/*.json",
     "etc/config/components/kfp*/.yaml",

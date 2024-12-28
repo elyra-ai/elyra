@@ -87,7 +87,7 @@
           "type": "string",
           "minLength": 1,
           "uihints": {
-            "ui:field": "password",
+            "ui:field": "@elyra/metadata-extension:plugin.password",
             "category": "Source credentials"
           }
         }
