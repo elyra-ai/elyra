@@ -213,6 +213,7 @@ test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
 
 test-integration: # Run frontend cypress integration tests
+	jupyter labextension disable "@jupyterlab/apputils-extension:announcements"
 	yarn test:integration
 
 test-integration-debug: # Open cypress integration test debugger
