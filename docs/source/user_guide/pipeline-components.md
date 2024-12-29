@@ -24,11 +24,11 @@ limitations under the License.
 
 ![A basic Kubeflow pipeline](../images/user_guide/pipeline-components/kubeflow-pipeline.png)
 
-The same pipeline could be implemented using a single component that performs all these tasks, but that component might not be as universally re-usable. Consider, for example, that for another project the data resides in a different kind of storage. With fine-granular components you'd only have to replace the load data component with one that supports the other storage type and could retain everything else. 
+The same pipeline could be implemented using a single component that performs all these tasks, but that component might not be as universally re-usable. Consider, for example, that for another project the data resides in a different kind of storage. With fine-granular components you'd only have to replace the load data component with one that supports the other storage type and could retain everything else.
 
 #### Generic components
 
-Elyra includes three _generic components_ that allow for the processing of Jupyter notebooks, Python scripts, and R scripts. These components are called generic because they can be included in pipelines for any supported runtime type: local/JupyterLab, Kubeflow Pipelines, and Apache Airflow. Components are exposed in the pipeline editor via the palette.
+Elyra includes three _generic components_ that allow for the processing of Jupyter notebooks, Python scripts, and R scripts. These components are called generic because they can be included in pipelines for any supported runtime type: local/JupyterLab, Kubeflow Pipelines, and Apache Airflow >= 2.7.0. Components are exposed in the pipeline editor via the palette.
 
 ![Generic components in the palette](../images/user_guide/pipeline-components/generic-components-in-palette.png)
 
@@ -36,7 +36,7 @@ Note: Refer to the [_Best practices_ topic in the _User Guide_](best-practices-f
 
 #### Custom components
 
-_Custom components_ are commonly only implemented for one runtime type, such as Kubeflow Pipelines or Apache Airflow. (The local runtime type does not support custom components.)
+_Custom components_ are commonly only implemented for one runtime type, such as Kubeflow Pipelines or Apache Airflow < 2. (The local runtime type does not support custom components). Custom components for Apache Airflow, due to their being supported only for Airflow 1.x, are only supported on Elyra < 4.
 
 ![Kubeflow components in the palette](../images/user_guide/pipeline-components/custom-kubeflow-components-in-palette.png)
 
@@ -63,9 +63,9 @@ Elyra includes connectors for the following component catalog types:
 
     Example: A URL component catalog that is configured using the `http://myserver:myport/mypath/my_component.yaml` URL makes the `my_component.yaml` component file available to Elyra.
 
- - [_Apache Airflow package catalogs_](#apache-airflow-package-catalog) provide access to Apache Airflow operators that are stored in Apache Airflow built distributions.
+ - [_Apache Airflow package catalogs_](#apache-airflow-package-catalog) provide access to Apache Airflow operators that are stored in Apache Airflow built distributions. This is currently only supported for Airflow < 2.
 
- - [_Apache Airflow provider package catalogs_](#apache-airflow-provider-package-catalog) provide access to Apache Airflow operators that are stored in Apache Airflow provider packages.  
+ - [_Apache Airflow provider package catalogs_](#apache-airflow-provider-package-catalog) provide access to Apache Airflow operators that are stored in Apache Airflow provider packages. This is currently only supported for Airflow < 2.  
 
 Refer to section [Built-in catalog connector reference](#built-in-catalog-connector-reference) for details about these connectors. 
 
@@ -438,6 +438,7 @@ Examples (CLI):
 
 The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/package_catalog_connector) provides access to operators that are stored in Apache Airflow [built distributions](https://packaging.python.org/en/latest/glossary/#term-built-distribution):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
+- Only Airflow < 2 is supported. Use of that functionality is not working in Elyra >=4, which is no longer supporting Airflow 1.x.
 - The specified URL must be retrievable using an HTTP `GET` request. `http`, `https`, and `file` [URI schemes](https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml) are supported.
 - In secured environments where SSL server authenticity can only be validated using certificates based on private public key infrastructure (PKI) with root and optionally intermediate certificate authorities (CAs) that are not publicly trusted, you must define environment variable `TRUSTED_CA_BUNDLE_PATH` in the environment where JupyterLab/Elyra is running. The variable value must identify an existing [Privacy-Enhanced Mail (PEM) file](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail).
 
@@ -454,6 +455,7 @@ Examples:
 #### Apache Airflow provider package catalog
 The [Apache Airflow provider package catalog connector](https://github.com/elyra-ai/elyra/tree/main/elyra/pipeline/airflow/provider_package_catalog_connector) provides access to operators that are stored in [Apache Airflow provider packages](https://airflow.apache.org/docs/apache-airflow-providers/):
 - Only the [wheel distribution format](https://packaging.python.org/en/latest/glossary/#term-Wheel) is supported.
+- Only Airflow < 2 and operators for Airflow < 2 are supported. Use of that functionality is not working in Elyra >=4, which is no longer supporting Airflow 1.x. 
 - The specified URL must be retrievable using an HTTP `GET` request. `http`, `https`, and `file` [URI schemes](https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml) are supported.
 - In secured environments where SSL server authenticity can only be validated using certificates based on private public key infrastructure (PKI) with root and optionally intermediate certificate authorities (CAs) that are not publicly trusted, you must define environment variable `TRUSTED_CA_BUNDLE_PATH` in the environment where JupyterLab/Elyra is running. The variable value must identify an existing [Privacy-Enhanced Mail (PEM) file](https://en.wikipedia.org/wiki/Privacy-Enhanced_Mail).
 
