@@ -17,7 +17,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from airflow.models import BaseOperator
+from airflow.models.baseoperator import BaseOperator
 from airflow.utils.decorators import apply_defaults
 
 

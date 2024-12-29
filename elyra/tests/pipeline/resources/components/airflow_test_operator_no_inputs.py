@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Any
 
-from airflow.models import BaseOperator
+from airflow.models.baseoperator import BaseOperator
+from airflow.utils.context import Context  # New context type in Airflow 2.x
 
 
 class TestOperatorNoInputs(BaseOperator):
@@ -27,5 +27,5 @@ class TestOperatorNoInputs(BaseOperator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def execute(self, context: Any):
+    def execute(self, context: Context):
         pass

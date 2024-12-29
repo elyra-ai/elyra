@@ -445,11 +445,11 @@ The [Apache Airflow package catalog connector](https://github.com/elyra-ai/elyra
 Examples:
  - [Apache Airflow](https://pypi.org/project/apache-airflow/) (v1.10.15): 
    ```
-   https://files.pythonhosted.org/packages/f0/3a/f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/apache_airflow-1.10.15-py2.py3-none-any.whl
+   https://archive.apache.org/dist/airflow/2.10.4/apache_airflow-2.10.4-py3-none-any.whl
    ```
  - Local copy of a downloaded Apache Airflow package
    ```
-   file:///absolute/path/to/apache_airflow-1.10.15-py2.py3-none-any.whl
+   file:///absolute/path/to/apache_airflow-2.10.4-py2.py3-none-any.whl
    ``` 
 
 #### Apache Airflow provider package catalog

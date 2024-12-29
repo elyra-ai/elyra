@@ -28,9 +28,9 @@ from elyra.pipeline.airflow.provider_package_catalog_connector.airflow_provider_
 from elyra.pipeline.catalog_connector import AirflowEntryData
 
 HTTP_PROVIDER_PKG_URL = (
-    "https://files.pythonhosted.org/packages/a1/08/"
-    "91653e9f394cbefe356ac07db809be7e69cc89b094379ad91d6cef3d2bc9/"
-    "apache_airflow_providers_http-2.0.2-py3-none-any.whl"
+    "https://files.pythonhosted.org/packages/bb/55/"
+    "9f38da212c29e1c429ddadef082f2bdaccebb0b0d9c88e72463ad25c786a/"
+    "apache_airflow_providers_http-5.0.0-py3-none-any.whl"
 )
 
 AIRFLOW_SUPPORTED_FILE_TYPES = [".py"]
@@ -134,7 +134,7 @@ def test_valid_url_http_provider_package():
     # each entry must contain three keys
     for entry in ces:
         # provider package file name
-        assert entry.get("provider_package") == "apache_airflow_providers_http-2.0.2-py3-none-any.whl"
+        assert entry.get("provider_package") == "apache_airflow_providers_http-5.0.0-py3-none-any.whl"
         # provider name
         assert entry.get("provider") == "apache_airflow_providers_http"
         # a Python script

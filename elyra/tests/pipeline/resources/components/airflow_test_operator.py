@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
 
-from airflow.models import BaseOperator
+from airflow.models.baseoperator import BaseOperator
+from airflow.utils.context import Context  # New context type in Airflow 2.x
 from airflow.operators.imported_operator import ImportedOperator  # noqa TODO
 
 
@@ -87,7 +87,7 @@ class TestOperator(BaseOperator):
     ):
         super().__init__(*args, **kwargs)
 
-    def execute(self, context: Any):
+    def execute(self, context: Context):
         pass
 
 
@@ -132,7 +132,7 @@ class DeriveFromTestOperator(TestOperator):
     ):
         super().__init__(**kwargs)
 
-    def execute(self, context: Any):
+    def execute(self, context: Context):
         pass
 
 
@@ -173,7 +173,7 @@ class DeriveFromImportedOperator(ImportedOperator):
     ):
         super().__init__(**kwargs)
 
-    def execute(self, context: Any):
+    def execute(self, context: Context):
         pass
 
 
