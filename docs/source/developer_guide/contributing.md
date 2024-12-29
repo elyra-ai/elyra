@@ -102,11 +102,13 @@ Then, in the `package.json`, add the following under `'scripts'`:
 ```
 And the following under `'dev_dependencies'`:
 ```
-"@jupyterlab/testutils": "3.4.0",
-"@types/jest": "^23.3.11",
-"jest": "^24.7.1",
+"@jupyterlab/testutils": "4.2.5",
+"@types/jest": "^29.2.0",
+"jest": "^29.2.0",
 "jest-raw-loader": "^1.0.1",
-"ts-jest": "^24.0.2",
+"ts-jest": "^29.2.5",
+"ts-loader": "^6.2.1",
+"typescript": "~5.1.6",
 ```
 Create a file `tsconfig.test.json` that contains:
 ```

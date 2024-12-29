@@ -86,11 +86,11 @@ Refer to the [installation documentation](https://elyra.readthedocs.io/en/stable
 For detailed information refer to the [installation documentation](https://elyra.readthedocs.io/en/stable/getting_started/installation.html).
 
 ### Prerequisites :
-* [Node.js 18+](https://nodejs.org/en/)
-* [Python 3.8+](https://www.python.org/downloads/)
-* [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (optional)
+* [Node.js 20+](https://nodejs.org/en/)
+* [Python 3.9+](https://www.python.org/downloads/)
+* [Miniconda](https://docs.conda.io/en/latest/miniconda.html) / [Micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) (optional)
 
-### Install current release (for JupyterLab 3.x)
+### Install current release (for JupyterLab 4.x)
 
 The current release version is displayed at the top of this page.
 
@@ -109,6 +109,38 @@ The current release version is displayed at the top of this page.
 ### Install older release
 
 Installation instructions and JupyterLab support vary by release. Note that a JupyterLab build is required. Installation instructions are located in the [release-specific documentation](https://elyra.readthedocs.io/en/stable/), which can be accessed by selecting a specific version. 
+
+<details>
+  <summary>Elyra 4.x (JupyterLab 4.2.5+)</summary>
+
+  - Install from PyPI
+
+    ```bash
+    pip3 install --upgrade "elyra[all]"
+    ```
+
+  - Install from conda-forge
+
+    ```bash
+    conda install -c conda-forge "elyra[all]"
+    ```
+</details>
+
+<details>
+  <summary>Elyra 3.7 < 4.0 (JupyterLab 3.x)</summary>
+
+  - Install from PyPI
+
+    ```bash
+    pip3 install --upgrade "elyra[all]<4.0.0"
+    ```
+
+  - Install from conda-forge
+
+    ```bash
+    conda install -c conda-forge "elyra[all]<4.0.0"
+    ```
+</details>
 
 <details>
   <summary>Elyra 3.1 < 3.7 (JupyterLab 3.x)</summary>
