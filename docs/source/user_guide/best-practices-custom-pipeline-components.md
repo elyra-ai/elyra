@@ -131,9 +131,9 @@ The [URL component catalog](pipeline-components.html#pipeline-components.html#ur
 The [Apache Airflow package catalog](pipeline-components.html#apache-airflow-package-catalog) provides access to Apache Airflow operators that are stored in built distributions. 
 
 1. Take note of the displayed `airflow_package`, which identifies the Apache Airflow built distribution that includes the missing operator.
-1. [Add a new Apache Airflow package catalog](pipeline-components.html#adding-a-component-catalog), providing the _download URL_ for the listed distribution as input. For example, if the value of `airflow_package` is `apache_airflow-1.10.15-py2.py3-none-any.whl`, specify as URL
+1. [Add a new Apache Airflow package catalog](pipeline-components.html#adding-a-component-catalog), providing the _download URL_ for the listed distribution as input. For example, if the value of `airflow_package` is `apache_airflow-2.10.4-py2.py3-none-any.whl`, specify as URL
    ```
-   https://files.pythonhosted.org/packages/f0/3a/f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/apache_airflow-1.10.15-py2.py3-none-any.whl
+   https://archive.apache.org/dist/airflow/2.10.4/apache_airflow-2.10.4-py3-none-any.whl
    ```
 
 #### Apache Airflow provider package catalog (type: `airflow-provider-package-catalog`)

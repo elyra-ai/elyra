@@ -19,7 +19,7 @@ If the Airflow package is stored on PyPI:
    1. Search for the Apache Airflow package on PyPI.
    1. Open the package's release history and choose the desired version.
    1. Open the `Download files` link.
-   1. Copy the download link for the package's wheel. ([Example download URL for Apache Airflow 1.10.15](https://files.pythonhosted.org/packages/f0/3a/f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/apache_airflow-1.10.15-py2.py3-none-any.whl))
+   1. Copy the download link for the package's wheel. ([Example download URL for Apache Airflow 2.10.4](https://archive.apache.org/dist/airflow/2.10.4/apache_airflow-2.10.4-py3-none-any.whl))
 1. Save the catalog entry.
 1. Open the Visual Pipeline Editor and expand the palette. The loaded Apache Airflow operators are displayed.
 

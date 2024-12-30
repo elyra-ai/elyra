@@ -23,11 +23,7 @@ from elyra.pipeline.airflow.package_catalog_connector.airflow_package_catalog_co
 )
 from elyra.pipeline.catalog_connector import AirflowEntryData
 
-AIRFLOW_1_10_15_PKG_URL = (
-    "https://files.pythonhosted.org/packages/f0/3a/"
-    "f5ce74b2bdbbe59c925bb3398ec0781b66a64b8a23e2f6adc7ab9f1005d9/"
-    "apache_airflow-1.10.15-py2.py3-none-any.whl"
-)
+AIRFLOW_2_10_4_PKG_URL = "https://archive.apache.org/dist/airflow/2.10.4/apache_airflow-2.10.4-py3-none-any.whl"
 
 AIRFLOW_SUPPORTED_FILE_TYPES = [".py"]
 
@@ -115,19 +111,19 @@ def test_invalid_get_entry_data():
 # ----------------------------------
 
 
-def test_1_10_15_distribution():
+def test_2_10_4_distribution():
     """
-    Test connector using Apache Airflow 1.10.15 built distribution.
+    Test connector using Apache Airflow 2.10.4 built distribution.
     """
     apc = AirflowPackageCatalogConnector(AIRFLOW_SUPPORTED_FILE_TYPES)
     # get catalog entries for the specified distribution
-    ces = apc.get_catalog_entries({"airflow_package_download_url": AIRFLOW_1_10_15_PKG_URL})
-    # this distribution should contain 37 Python scripts with operator definitions
-    assert len(ces) == 37
+    ces = apc.get_catalog_entries({"airflow_package_download_url": AIRFLOW_2_10_4_PKG_URL})
+    # this distribution should contain 12 Python scripts with operator definitions
+    assert len(ces) == 11
     # each entry must contain two keys
     for entry in ces:
         # built distribution package file name
-        assert entry.get("airflow_package") == "apache_airflow-1.10.15-py2.py3-none-any.whl"
+        assert entry.get("airflow_package") == "apache_airflow-2.10.4-py3-none-any.whl"
         # a Python script
         assert entry.get("file", "").endswith(".py")
 

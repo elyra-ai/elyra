@@ -61,9 +61,9 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
         # Read the user-supplied 'airflow_package_download_url', which is a required
         # input defined in the 'airflow-package-catalog-catalog.json' schema file.
-        # Example value: https://archive.apache.org/dist/airflow/1.10.15/apache_airflow-1.10.15-py2.py3-none-any.whl
+        # Example value: https://archive.apache.org/dist/airflow/2.10.4/apache_airflow-2.10.4-py3-none-any.whl
         airflow_package_download_url = catalog_metadata["airflow_package_download_url"]
-        # extract the package name, e.g. 'apache_airflow-1.10.15-py2.py3-none-any.whl'
+        # extract the package name, e.g. 'apache_airflow-2.10.4-py3-none-any.whl'
         airflow_package_name = Path(urlparse(airflow_package_download_url).path).name
 
         if not airflow_package_name:
@@ -161,7 +161,7 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
 
             #
             # Identify Python scripts that define classes that extend the
-            # airflow.models.BaseOperator class
+            # airflow.models.baseoperator.BaseOperator class
             #
             scripts_with_operator_class: List[str] = []  # Python scripts that contain operator definitions
             extends_baseoperator: List[str] = []  # Classes that extend BaseOperator
@@ -188,8 +188,11 @@ class AirflowPackageCatalogConnector(ComponentCatalogConnector):
                         elif isinstance(node, ast.ImportFrom):
                             node_module = node.module
                             for name in node.names:
-                                if "airflow.models" == node_module and name.name == "BaseOperator":
+                                if "airflow.models.baseoperator" == node_module and name.name == "BaseOperator":
                                     imported_operator_classes.append(name.name)
+                                # TODO: Support sensor operators
+                                # if "airflow.sensors.base" == node_module and name.name == "BaseSensorOperator":
+                                #     imported_operator_classes.append(name.name)
                         elif isinstance(node, ast.ClassDef):
                             # determine whether this class extends the BaseOperator class
                             self.log.debug(f"Analyzing class '{node.name}' in {script_id} ...")
