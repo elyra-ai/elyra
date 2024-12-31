@@ -161,6 +161,7 @@ async def test_get_component_properties_config(jp_fetch):
     assert payload == properties
 
 
+@pytest.mark.skip(reason="Exemple catalog is not supported after #3141")
 @pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 async def test_get_component_properties_definition(catalog_instance, jp_fetch, caplog):
     # Ensure the definition for a component can be found

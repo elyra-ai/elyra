@@ -885,6 +885,7 @@ def test_describe_custom_component_dependencies_json():
 # ------------------------------------------------------------------
 
 
+@pytest.mark.skip(reason="Exemple catalog is not supported after #3141")
 @pytest.mark.parametrize("catalog_instance_no_server_process", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_validate_with_kfp_components(
     jp_environ, kubeflow_pipelines_runtime_instance, catalog_instance_no_server_process

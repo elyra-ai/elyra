@@ -47,6 +47,7 @@ def _get_resource_path(filename):
     return resource_path
 
 
+@pytest.mark.skip(reason="Exemple catalog is not supported after #3141")
 @pytest.mark.parametrize("catalog_instance", [KFP_COMPONENT_CACHE_INSTANCE], indirect=True)
 def test_component_catalog_load(component_cache, catalog_instance):
     components = component_cache.get_all_components(RUNTIME_PROCESSOR)
