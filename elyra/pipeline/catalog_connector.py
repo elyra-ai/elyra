@@ -30,6 +30,7 @@ from typing import List
 from typing import Optional
 from urllib.parse import urlparse
 
+from deprecation import deprecated
 from jupyter_core.paths import ENV_JUPYTER_PATH
 from requests.auth import HTTPBasicAuth
 from requests.sessions import Session
@@ -37,6 +38,7 @@ from traitlets.config import LoggingConfigurable
 from traitlets.traitlets import default
 from traitlets.traitlets import Integer
 
+from elyra._version import __version__
 from elyra.metadata.metadata import Metadata
 from elyra.pipeline.component import Component
 from elyra.pipeline.properties import ComponentProperty
@@ -219,6 +221,39 @@ class ComponentCatalogConnector(LoggingConfigurable):
         """
         raise NotImplementedError("abstract method 'get_catalog_entries()' must be implemented")
 
+    @deprecated(
+        deprecated_in="3.7.0",
+        removed_in="4.0",
+        current_version=__version__,
+        details="Implement the get_entry_data function instead",
+    )
+    def read_catalog_entry(self, catalog_entry_data: Dict[str, Any], catalog_metadata: Dict[str, Any]) -> Optional[str]:
+        """
+        DEPRECATED. Will be removed in 4.0. get_entry_data() must be implemented instead.
+
+        Reads a component definition for a single catalog entry using the catalog_entry_data returned
+        from get_catalog_entries() and, if needed, the catalog metadata.
+
+        :param catalog_entry_data: a dictionary that contains the information needed to read the content
+                                   of the component definition; below is an example data structure returned
+                                   from get_catalog_entries()
+
+                example:
+                    {
+                        "directory_path": "/Users/path/to/directory",
+                        "relative_path": "subdir/file.py"
+                    }
+
+        :param catalog_metadata: the metadata associated with the catalog in which this catalog entry is
+                                 stored; this is the same dictionary that is passed into get_catalog_entries();
+                                 in addition to catalog_entry_data, catalog_metadata may also be
+                                 needed to read the component definition for certain types of catalogs
+
+        :returns: the content of the given catalog entry's definition in string form, if found, or None;
+                  if None is returned, this catalog entry is skipped and a warning message logged
+        """
+        raise NotImplementedError("abstract method 'read_catalog_entry()' must be implemented")
+
     def get_entry_data(
         self, catalog_entry_data: Dict[str, Any], catalog_metadata: Dict[str, Any]
     ) -> Optional[EntryData]:
@@ -372,18 +407,18 @@ class ComponentCatalogConnector(LoggingConfigurable):
                     )
 
                     try:
-                        # Attempt to get an EntryData object from get_entry_data
+                        # Attempt to get an EntryData object from get_entry_data first
                         entry_data: EntryData = self.get_entry_data(
                             catalog_entry_data=catalog_entry_data, catalog_metadata=catalog_metadata
                         )
                     except NotImplementedError:
-                        self.log.error(
-                            f"Component catalog connector {self.__class__.__name__} cannot process catalog entry "
-                            f"with identifying information {catalog_entry_data}. "
-                            f"The connector does not implement method 'get_entry_data'."
+                        # Connector class does not implement get_catalog_definition and we must
+                        # manually coerce this entry's returned values into a EntryData object
+                        definition = self.read_catalog_entry(
+                            catalog_entry_data=catalog_entry_data, catalog_metadata=catalog_metadata
                         )
-                        catalog_entry_q.task_done()
-                        continue
+
+                        entry_data: EntryData = EntryData(definition=definition)
 
                     # Ignore this entry if no definition content is returned
                     if not entry_data or not entry_data.definition:
