@@ -97,12 +97,14 @@ airflow-gitlab = [
 kfp = [
     "kfp>=1.7.0,<2.0,!=1.7.2",  # We cap the SDK to <2.0 due to possible breaking changes
     "typing-extensions>=3.10,<5",  # Cap from kfp
+    "mistune<3.1.0",
 ]
 kfp-tekton = [
-    "kfp-tekton>=1.5.2"  # requires kfp >= 1.8.19, which contains fix for Jupyterlab
+    "kfp-tekton>=1.5.2",  # requires kfp >= 1.8.19, which contains fix for Jupyterlab
+    "mistune<3.1.0",
 ]
 kfp-examples = [
-    "elyra-examples-kfp-catalog"
+    "elyra-examples-kfp-catalog",
 ]
 # The following is a collection of "non-test" extra dependencies from above.
 all = [
