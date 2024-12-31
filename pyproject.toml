@@ -176,7 +176,6 @@ core-metadata-version = "2.3"
 # Include data files with dist
 [tool.hatch.build.targets.wheel.shared-data]
 "labextensions/elyra_code_snippet_extension/labextension" = "share/jupyter/labextensions/@elyra/code-snippet-extension"
-"labextensions/elyra_code_viewer_extension/labextension" = "share/jupyter/labextensions/@elyra/code-viewer-extension"
 "labextensions/elyra_metadata_common/labextension" = "share/jupyter/labextensions/@elyra/metadata-common"
 "labextensions/elyra_metadata_extension/labextension" = "share/jupyter/labextensions/@elyra/metadata-extension"
 "labextensions/elyra_pipeline_editor_extension/labextension" = "share/jupyter/labextensions/@elyra/pipeline-editor-extension"

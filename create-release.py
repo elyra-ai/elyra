@@ -600,15 +600,8 @@ def prepare_extensions_release() -> None:
             f"making programming in JupyterLab more efficient by reducing repetitive work. "
             f"See https://elyra.readthedocs.io/en/v{config.new_version}/user_guide/code-snippets.html",
         ),
-        "elyra-code-viewer-extension": SimpleNamespace(
-            packages=["code-viewer-extension"],
-            description="The Code Viewer extension adds the ability to display a given chunk of code "
-            "(string) in a transient read-only 'editor' without needing to create a file."
-            "This extension will be available in JupyterLab core in a near future release and removed "
-            "from Elyra as a standalone extension.",
-        ),
         "elyra-pipeline-editor-extension": SimpleNamespace(
-            packages=["code-viewer-extension", "pipeline-editor-extension", "metadata-extension", "theme-extension"],
+            packages=["pipeline-editor-extension", "metadata-extension", "theme-extension"],
             description=f"The Visual Editor Pipeline extension is used to build AI pipelines from notebooks, "
             f"Python scripts and R scripts, simplifying the conversion of multiple notebooks "
             f"or script files into batch jobs or workflows."
@@ -772,8 +765,6 @@ def publish_release(working_dir) -> None:
         f"{config.work_dir}/kfp-notebook/dist/kfp-notebook-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-code-snippet-extension/dist/elyra_code_snippet_extension-{config.new_version}-py3-none-any.whl",
         f"{config.work_dir}/elyra-code-snippet-extension/dist/elyra-code-snippet-extension-{config.new_version}.tar.gz",
-        f"{config.work_dir}/elyra-code-viewer-extension/dist/elyra_code_viewer_extension-{config.new_version}-py3-none-any.whl",
-        f"{config.work_dir}/elyra-code-viewer-extension/dist/elyra-code-viewer-extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra_pipeline_editor_extension-{config.new_version}-py3-none-any.whl",
         f"{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra-pipeline-editor-extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-python-editor-extension/dist/elyra_python_editor_extension-{config.new_version}-py3-none-any.whl",

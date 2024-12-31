@@ -228,7 +228,6 @@ JupyterLab [version]
         @jupyter-server/resource-usage [version] enabled OK (python, jupyter-resource-usage)
         @krassowski/jupyterlab-lsp [version] enabled OK (python, jupyterlab_lsp)
         @elyra/code-snippet-extension [version] enabled OK
-        @elyra/code-viewer-extension [version] enabled OK
         @elyra/metadata-extension [version] enabled OK
         @elyra/pipeline-editor-extension [version] enabled OK
         @elyra/python-editor-extension [version] enabled OK

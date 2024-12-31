@@ -30,7 +30,6 @@ In order to perform a release, one will need to have publish access to
   - [elyra-python-editor-extension](https://pypi.org/manage/project/elyra-python-editor-extension/collaboration/)
   - [elyra-pipeline-editor-extension](https://pypi.org/manage/project/elyra-pipeline-editor-extension/collaboration/)
   - [elyra-code-snippet-extension](https://pypi.org/manage/project/elyra-code-snippet-extension/collaboration/)
-  - [elyra-code-viewer-extension](https://pypi.org/manage/project/elyra-code-viewer-extension/collaboration/)
   - [kfp-notebook](https://pypi.org/manage/project/kfp-notebook/collaboration/)
   - [airflow-notebook](https://pypi.org/manage/project/airflow-notebook/collaboration/)
 - npm
@@ -167,7 +166,6 @@ create-release.py prepare --version 2.3.0 --dev-version 2.4.0 [--rc 0][--beta 0]
 ```bash
 elyra
 elyra-code-snippet-extension
-elyra-code-viewer-extension
 elyra-pipeline-editor-extension
 elyra-python-editor-extension
 elyra-r-editor-extension
@@ -193,7 +191,6 @@ make container-images publish-container-images
   - https://github.com/conda-forge/elyra-feedstock/pulls
   - https://github.com/conda-forge/elyra-server-feedstock/pulls
   - https://github.com/conda-forge/elyra-code-snippet-extension-feedstock/pulls
-  - https://github.com/conda-forge/elyra-code-viewer-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-pipeline-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-python-editor-extension-feedstock/pulls
   - https://github.com/conda-forge/elyra-r-editor-extension-feedstock/pulls
