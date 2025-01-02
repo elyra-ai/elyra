@@ -34,7 +34,6 @@
               "filename": "producer.ipynb",
               "runtime_image": "continuumio/anaconda3:2024.02-1"
             },
-            "label": "",
             "ui_data": {
               "label": "producer.ipynb",
               "image": "/static/elyra/notebook.svg",
@@ -91,7 +90,6 @@
               "filename": "consumer.ipynb",
               "runtime_image": "continuumio/anaconda3:2024.02-1"
             },
-            "label": "",
             "ui_data": {
               "label": "consumer.ipynb",
               "image": "/static/elyra/notebook.svg",
@@ -150,7 +148,6 @@
               "filename": "../scripts/setup.py",
               "runtime_image": "continuumio/anaconda3:2024.02-1"
             },
-            "label": "",
             "ui_data": {
               "label": "setup.py",
               "image": "/static/elyra/python.svg",
@@ -210,7 +207,6 @@
               "filename": "create-source-files.py",
               "runtime_image": "continuumio/anaconda3:2024.02-1"
             },
-            "label": "",
             "ui_data": {
               "label": "create-source-files.py",
               "image": "/static/elyra/python.svg",
@@ -270,7 +266,6 @@
               "filename": "producer-script.py",
               "runtime_image": "continuumio/anaconda3:2024.02-1"
             },
-            "label": "",
             "ui_data": {
               "label": "producer-script.py",
               "image": "/static/elyra/python.svg",

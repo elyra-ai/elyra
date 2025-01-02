@@ -13,7 +13,6 @@
           "type": "execution_node",
           "op": "execute-notebook-node",
           "app_data": {
-            "label": "",
             "component_parameters": {
               "dependencies": [],
               "include_subdirectories": false,

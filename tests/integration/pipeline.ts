@@ -318,6 +318,109 @@ describe('Pipeline Editor tests', () => {
     cy.readFile('build/cypress-tests/simple.pipeline').matchesSnapshot();
   });
 
+  it('should fill up all properties in the Pipeline Properties tab', () => {
+    cy.createPipeline({
+      name: 'pipeline-properties.pipeline',
+      emptyPipeline
+    });
+
+    cy.get('#jp-main-dock-panel').within(() => {
+      cy.get('button[aria-label="Open Panel"]').click();
+      cy.get('form.elyra-formEditor').within(() => {
+        // Pipeline Description
+        cy.get('textarea#root_description').type('Test description');
+        // Object Storage path prefix
+        cy.get('input#root_pipeline_defaults_cos_object_prefix').type(
+          'foo/bar'
+        );
+        // Node Defaults > Kubernetes Pod Labels
+        cy.get('#root_pipeline_defaults_kubernetes_pod_labels')
+          .scrollIntoView()
+          .within(() => {
+            form_addItem();
+            form_typeTextOnInputByLabel('Key', 'KPD_key');
+            form_typeTextOnInputByLabel('Value', 'KPD_value');
+          });
+        // Node Defaults > Data Volumes
+        cy.get('#root_pipeline_defaults_mounted_volumes')
+          .scrollIntoView()
+          .within(() => {
+            form_addItem();
+            form_typeTextOnInputByLabel('Mount Path', '/mount/path');
+            form_typeTextOnInputByLabel(
+              'Persistent Volume Claim Name',
+              'pvc-name'
+            );
+            form_typeTextOnInputByLabel('Sub Path', 'sub/path');
+            cy.get(
+              'input#root_pipeline_defaults_mounted_volumes_0_read_only'
+            ).click({ force: true });
+          });
+        // Node Defaults > Shared Memory Size
+        cy.get('#root_pipeline_defaults_kubernetes_shared_mem_size_size')
+          .scrollIntoView()
+          .within(() => {
+            form_typeTextOnInputByLabel('Memory Size (GB)', '1');
+          });
+        // Node Defaults > Kubernetes Tolerations
+        cy.get('#root_pipeline_defaults_kubernetes_tolerations')
+          .scrollIntoView()
+          .within(() => {
+            form_addItem();
+            form_typeTextOnInputByLabel('Key', 'KT_key');
+            form_typeTextOnInputByLabel('Value', 'KT_value');
+            cy.get('#root_pipeline_defaults_kubernetes_tolerations_0_effect')
+              .scrollIntoView()
+              .find('select')
+              .should('be.visible')
+              .select('NoExecute', { force: true });
+            cy.get('#root_pipeline_defaults_kubernetes_tolerations_0_operator')
+              .scrollIntoView()
+              .find('select')
+              .should('be.visible')
+              .select('Exists', { force: true });
+          });
+        // Node Defaults > Kubernetes Pod Annotations
+        cy.get('#root_pipeline_defaults_kubernetes_pod_annotations')
+          .scrollIntoView()
+          .within(() => {
+            form_addItem();
+            form_typeTextOnInputByLabel('Key', 'KPA_key');
+            form_typeTextOnInputByLabel('Value', 'KPA_value');
+          });
+        // Generic Node Defaults > Runtime Image
+        cy.get('#root_pipeline_defaults_runtime_image')
+          .scrollIntoView()
+          .find('select')
+          .should('be.visible')
+          .select('continuumio/anaconda3:2024.02-1', { force: true });
+        // Generic Node Defaults > Kubernetes Secrets
+        cy.get('#root_pipeline_defaults_kubernetes_secrets')
+          .scrollIntoView()
+          .within(() => {
+            form_addItem();
+            form_typeTextOnInputByLabel('Environment Variable', 'KS_envvar');
+            form_typeTextOnInputByLabel('Secret Name', 'KS_name');
+            form_typeTextOnInputByLabel('Secret Key', 'KS_ket');
+          });
+        // Generic Node Defaults > Environment Variables
+        cy.get('#root_pipeline_defaults_env_vars')
+          .scrollIntoView()
+          .within(() => {
+            form_addItem();
+            form_typeTextOnInputByLabel('Environment Variable', 'EV_envvar');
+            form_typeTextOnInputByLabel('Value', 'EV_value');
+          });
+        // Custom Node Defaults > Disable node caching
+        cy.get('#root_pipeline_defaults_disable_node_caching')
+          .scrollIntoView()
+          .find('select')
+          .should('be.visible')
+          .select('True', { force: true });
+      });
+    });
+  });
+
   // Flaky test: Sometimes cannot create/open files
   it.skip('should open notebook on double-clicking the node', () => {
     // Open a pipeline in root directory
@@ -835,4 +938,18 @@ const checkDisabledToolbarButtons = (buttons: RegExp[]): void => {
   for (const button of buttons) {
     cy.findByRole('jp-button', { name: button }).should('be.disabled');
   }
+};
+
+const form_typeTextOnInputByLabel = (label: string, text: string): void => {
+  cy.get(`input[label="${label}"]`)
+    .should('be.visible')
+    .type(text)
+    .should('have.value', text);
+};
+
+const form_addItem = (): void => {
+  cy.get('button.jp-mod-styled.jp-mod-reject')
+    .contains('Add')
+    .should('be.visible')
+    .click({ force: true });
 };
