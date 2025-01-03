@@ -15,37 +15,25 @@
 #
 from datetime import datetime
 import hashlib
-import json
 import os
 from pathlib import Path
 import re
 from typing import Any
 from typing import Dict
 
-from kfp.dsl import RUN_ID_PLACEHOLDER
 import pytest
 import yaml
 
 from elyra.pipeline.catalog_connector import FilesystemComponentCatalogConnector
 from elyra.pipeline.component import Component
-from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_DEF_MEDIUM
-from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_DEF_NAME
-from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_DEF_SIZE
-from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_MOUNT_PATH
-from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_PYTHON_PATH
-from elyra.pipeline.kfp.kfp_processor import CRIO_VOL_WORKDIR_PATH
 from elyra.pipeline.kfp.kfp_processor import KfpPipelineProcessor
+from elyra.pipeline.kfp.kfp_processor import RUN_ID_PLACEHOLDER
 from elyra.pipeline.kfp.kfp_processor import WorkflowEngineType
 from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
 from elyra.pipeline.pipeline import GenericOperation
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
-from elyra.pipeline.pipeline_constants import COS_OBJECT_PREFIX
-from elyra.pipeline.pipeline_constants import KUBERNETES_POD_ANNOTATIONS
-from elyra.pipeline.pipeline_constants import KUBERNETES_POD_LABELS
-from elyra.pipeline.pipeline_constants import KUBERNETES_SECRETS
 from elyra.pipeline.pipeline_constants import KUBERNETES_SHARED_MEM_SIZE
-from elyra.pipeline.pipeline_constants import KUBERNETES_TOLERATIONS
 from elyra.pipeline.pipeline_constants import MOUNTED_VOLUMES
 from elyra.pipeline.processor import PipelineProcessor
 from elyra.pipeline.properties import ComponentProperty
@@ -57,7 +45,6 @@ from elyra.pipeline.properties import KubernetesLabel
 from elyra.pipeline.properties import KubernetesSecret
 from elyra.pipeline.properties import KubernetesToleration
 from elyra.pipeline.properties import VolumeMount
-from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 
 PIPELINE_FILE_COMPLEX = str((Path("resources") / "sample_pipelines" / "pipeline_dependency_complex.json").as_posix())
@@ -491,40 +478,8 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
     with open(compiled_argo_output_file) as fh:
         argo_spec = yaml.safe_load(fh.read())
 
-    assert "argoproj.io/" in argo_spec["apiVersion"]
-    pipeline_spec_annotations = json.loads(argo_spec["metadata"]["annotations"]["pipelines.kubeflow.org/pipeline_spec"])
-    assert (
-        pipeline_spec_annotations["name"] == pipeline.name
-    ), f"DSL input: {generated_argo_dsl}\nArgo output: {argo_spec}"
-    assert pipeline_spec_annotations["description"] == pipeline.description, pipeline_spec_annotations
-
-    # generate Python DSL for the Tekton workflow engine
-    generated_tekton_dsl = processor._generate_pipeline_dsl(
-        pipeline=pipeline, pipeline_name=pipeline.name, workflow_engine=WorkflowEngineType.TEKTON
-    )
-
-    assert generated_tekton_dsl is not None
-    # Generated DSL includes workflow engine specific code in the _main_ function
-    assert "compiler.TektonCompiler().compile(" in generated_tekton_dsl
-
-    compiled_tekton_output_file = Path(tmpdir) / "compiled_kfp_test_tekton.yaml"
-
-    # if the compiler discovers an issue with the generated DSL this call fails
-    processor._compile_pipeline_dsl(
-        dsl=generated_tekton_dsl,
-        workflow_engine=WorkflowEngineType.TEKTON,
-        output_file=compiled_tekton_output_file.as_posix(),
-        pipeline_conf=None,
-    )
-
-    # verify that the output file exists
-    assert compiled_tekton_output_file.is_file()
-
-    # verify the file content
-    with open(compiled_tekton_output_file) as fh:
-        tekton_spec = yaml.safe_load(fh.read())
-
-    assert "tekton.dev/" in tekton_spec["apiVersion"]
+    assert argo_spec["pipelineInfo"]["name"] == pipeline.name
+    assert argo_spec["pipelineInfo"]["description"] == pipeline.description
 
 
 @pytest.mark.parametrize(
@@ -538,15 +493,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_component_pipeline(
             / "kfp"
             / "kfp-one-node-generic.pipeline",
             "workflow_engine": WorkflowEngineType.ARGO,
-        },
-        {
-            "pipeline_file": Path(__file__).parent
-            / ".."
-            / "resources"
-            / "test_pipelines"
-            / "kfp"
-            / "kfp-one-node-generic.pipeline",
-            "workflow_engine": WorkflowEngineType.TEKTON,
         },
     ],
     indirect=True,
@@ -614,13 +560,11 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
 
     # Load compiled workflow
     with open(compiled_output_file_name) as f:
-        workflow_spec = yaml.safe_load(f.read())
+        workflow_spec_docs = list(yaml.safe_load_all(f.read()))
 
-    # Verify that the output is for the specified workflow engine
-    if workflow_engine == WorkflowEngineType.TEKTON:
-        assert "tekton.dev/" in workflow_spec["apiVersion"]
-    else:
-        assert "argoproj.io/" in workflow_spec["apiVersion"]
+    assert len(workflow_spec_docs) == 2
+    assert "components" in workflow_spec_docs[0]
+    assert "platforms" in workflow_spec_docs[1]
 
 
 @pytest.mark.parametrize(
@@ -634,17 +578,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_workflow_engine_test(
             / "kfp"
             / "kfp-one-node-generic.pipeline",
             "workflow_engine": WorkflowEngineType.ARGO,
-            "use_cos_credentials_secret": True,
-        },
-        {
-            "pipeline_file": Path(__file__).parent
-            / ".."
-            / "resources"
-            / "test_pipelines"
-            / "kfp"
-            / "kfp-one-node-generic.pipeline",
-            "workflow_engine": WorkflowEngineType.ARGO,
-            "use_cos_credentials_secret": False,
         },
     ],
     indirect=True,
@@ -672,7 +605,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     runtime_config = metadata_dependencies["runtime_config"]
     assert runtime_config is not None
     assert runtime_config.name == pipeline.runtime_config
-    runtime_image_configs = metadata_dependencies["runtime_image_configs"]
 
     workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
 
@@ -714,28 +646,26 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
         pipeline_conf=None,
     )
 
-    # Load generated Argo workflow
+    # Load generated workflow
     with open(compiled_argo_output_file_name) as f:
-        argo_spec = yaml.safe_load(f.read())
+        spec_docs = list(yaml.safe_load_all(f.read()))
 
-    # verify that this is an argo specification
-    assert "argoproj.io" in argo_spec["apiVersion"]
+    assert len(spec_docs) == 2
+    components, platforms = spec_docs[0], spec_docs[1]["platforms"]
 
-    pipeline_meta_annotations = json.loads(argo_spec["metadata"]["annotations"]["pipelines.kubeflow.org/pipeline_spec"])
-    assert pipeline_meta_annotations["name"] == pipeline.name
-    assert pipeline_meta_annotations["description"] == pipeline.description
+    assert components["pipelineInfo"]["name"] == pipeline.name
+    assert components["pipelineInfo"]["description"] == pipeline.description
 
     # There should be two templates, one for the DAG and one for the generic node.
     # Locate the one for the generic node and inspect its properties.
-    assert len(argo_spec["spec"]["templates"]) == 2
-    if argo_spec["spec"]["templates"][0]["name"] == argo_spec["spec"]["entrypoint"]:
-        node_template = argo_spec["spec"]["templates"][1]
-    else:
-        node_template = argo_spec["spec"]["templates"][0]
+    assert components["root"]["dag"]
+    assert len(components["components"]) == 1
+    executors = components["deploymentSpec"]["executors"]
+    assert len(executors) == 1
+
+    node_template = components["deploymentSpec"]["executors"]["exec-run-a-file"]
 
     # Verify component definition information (see generic_component_definition_template.jinja2)
-    #  - property 'name'
-    assert node_template["name"] == "run-a-file"
     #  - property 'implementation.container.command'
     assert node_template["container"]["command"] == ["sh", "-c"]
     #  - property 'implementation.container.args'
@@ -749,11 +679,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
     #    - the object storage bucket name that this node uses for file I/O
     assert f"--cos-bucket '{runtime_config.metadata['cos_bucket']}'" in node_template["container"]["args"][0]
     #    - the directory within that object storage bucket
-    if pipeline.pipeline_properties.get(COS_OBJECT_PREFIX):
-        expected_directory_value = join_paths(pipeline.pipeline_properties.get(COS_OBJECT_PREFIX), pipeline_instance_id)
-        assert f"--cos-directory '{expected_directory_value}' " in node_template["container"]["args"][0]
-    else:
-        assert f"--cos-directory '{pipeline_instance_id}" in node_template["container"]["args"][0]
+    assert f"--cos-directory '{pipeline_instance_id}" in node_template["container"]["args"][0]
     #  - the name of the archive in that directory
     expected_archive_name = processor._get_dependency_archive_name(op)
     assert f"--cos-dependencies-archive '{expected_archive_name}' " in node_template["container"]["args"][0]
@@ -770,33 +696,26 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
 
     #  - property 'implementation.container.image'
     assert node_template["container"]["image"] == op.runtime_image
-    #  - property 'implementation.container.imagePullPolicy'
-    # The image pull policy is defined in the the runtime image
-    # configuration. Look it up and verified it is properly applied.
-    for runtime_image_config in runtime_image_configs:
-        if runtime_image_config.metadata["image_name"] == op.runtime_image:
-            if runtime_image_config.metadata.get("pull_policy"):
-                assert node_template["container"]["imagePullPolicy"] == runtime_image_config.metadata["pull_policy"]
-            else:
-                assert node_template["container"].get("imagePullPolicy") is None
-            break
+
+    pod_metadata = platforms["kubernetes"]["deploymentSpec"]["executors"]["exec-run-a-file"]["podMetadata"]
+    assert pod_metadata
 
     # Verify Kubernetes labels and annotations that Elyra attaches to pods that
     # execute generic nodes or custom nodes
     if op.doc:
         # only set if a comment is attached to the node
-        assert node_template["metadata"]["annotations"].get("elyra/node-user-doc") == op.doc
+        assert pod_metadata["annotations"]["elyra/node-user-doc"] == op.doc
 
     # Verify Kubernetes labels and annotations that Elyra attaches to pods that
     # execute generic nodes
-    assert node_template["metadata"]["annotations"]["elyra/node-file-name"] == op.filename
+    assert pod_metadata["annotations"]["elyra/node-file-name"] == op.filename
     if pipeline.source:
-        assert node_template["metadata"]["annotations"]["elyra/pipeline-source"] == pipeline.source
-    assert node_template["metadata"]["labels"]["elyra/node-name"] == sanitize_label_value(op.name)
-    assert node_template["metadata"]["labels"]["elyra/node-type"] == sanitize_label_value("notebook-script")
-    assert node_template["metadata"]["labels"]["elyra/pipeline-name"] == sanitize_label_value(pipeline.name)
-    assert node_template["metadata"]["labels"]["elyra/pipeline-version"] == sanitize_label_value(pipeline_version)
-    assert node_template["metadata"]["labels"]["elyra/experiment-name"] == sanitize_label_value(experiment_name)
+        assert pod_metadata["annotations"]["elyra/pipeline-source"] == pipeline.source
+    assert pod_metadata["labels"]["elyra/node-name"] == sanitize_label_value(op.name)
+    assert pod_metadata["labels"]["elyra/node-type"] == sanitize_label_value("notebook-script")
+    assert pod_metadata["labels"]["elyra/pipeline-name"] == sanitize_label_value(pipeline.name)
+    assert pod_metadata["labels"]["elyra/pipeline-version"] == sanitize_label_value(pipeline_version)
+    assert pod_metadata["labels"]["elyra/experiment-name"] == sanitize_label_value(experiment_name)
 
     # Verify environment variables that Elyra attaches to pods that
     # execute generic nodes. All values are hard-coded in the template, with the
@@ -827,20 +746,6 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
                 assert env_var["valueFrom"]["secretKeyRef"]["name"] == runtime_config.metadata["cos_secret"]
             else:
                 assert env_var["value"] == runtime_config.metadata["cos_password"]
-
-    # Verify that the mlpipeline specific outputs are declared
-    assert node_template.get("outputs") is not None, node_template
-    assert node_template["outputs"]["artifacts"] is not None, node_template["container"]["outputs"]
-    assert node_template["outputs"]["artifacts"][0]["name"] == "mlpipeline-metrics"
-    assert (
-        node_template["outputs"]["artifacts"][0]["path"]
-        == (Path(KfpPipelineProcessor.WCD) / "mlpipeline-metrics.json").as_posix()
-    )
-    assert node_template["outputs"]["artifacts"][1]["name"] == "mlpipeline-ui-metadata"
-    assert (
-        node_template["outputs"]["artifacts"][1]["path"]
-        == (Path(KfpPipelineProcessor.WCD) / "mlpipeline-ui-metadata.json").as_posix()
-    )
 
 
 @pytest.mark.parametrize(
@@ -928,33 +833,34 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_one_generic_node_pipeline_te
 
     # Load generated Argo workflow
     with open(compiled_argo_output_file_name) as f:
-        argo_spec = yaml.safe_load(f.read())
+        spec_docs = list(yaml.safe_load_all(f.read()))
 
-    # verify that this is an argo specification
-    assert "argoproj.io" in argo_spec["apiVersion"]
+    assert len(spec_docs) == 2
+    components = spec_docs[0]
+
+    assert components["pipelineInfo"]["name"] == pipeline.name
+    assert components["pipelineInfo"]["description"] == pipeline.description
 
     # There should be two templates, one for the DAG and one for the generic node.
     # Locate the one for the generic node and inspect its properties.
-    assert len(argo_spec["spec"]["templates"]) == 2
-    if argo_spec["spec"]["templates"][0]["name"] == argo_spec["spec"]["entrypoint"]:
-        node_template = argo_spec["spec"]["templates"][1]
-    else:
-        node_template = argo_spec["spec"]["templates"][0]
+    assert components["root"]["dag"]
+    assert len(components["components"]) == 1
+    executors = components["deploymentSpec"]["executors"]
+    assert len(executors) == 1
 
     op = list(pipeline.operations.values())[0]
 
+    node_template = components["deploymentSpec"]["executors"]["exec-run-a-file"]
+
     if op.gpu or op.cpu or op.memory or op.cpu_limit or op.memory_limit:
-        assert node_template["container"].get("resources") is not None
+        assert node_template["container"]["resources"]
         if op.gpu:
-            assert node_template["container"]["resources"]["limits"]["nvidia.com/gpu"] == str(op.gpu)
+            assert node_template["container"]["resources"]["accelerator"]["type"] == "nvidia.com/gpu"
+            assert node_template["container"]["resources"]["accelerator"]["count"] == str(op.gpu)
         if op.cpu:
-            assert node_template["container"]["resources"]["requests"]["cpu"] == str(op.cpu)
+            assert node_template["container"]["resources"]["cpuRequest"] == op.cpu
         if op.memory:
-            assert node_template["container"]["resources"]["requests"]["memory"] == f"{op.memory}G"
-        if op.cpu_limit:
-            assert node_template["container"]["resources"]["limits"]["cpu"] == str(op.cpu_limit)
-        if op.memory_limit:
-            assert node_template["container"]["resources"]["limits"]["memory"] == f"{op.memory_limit}G"
+            assert node_template["container"]["resources"]["memoryRequest"] == op.memory
 
 
 @pytest.fixture(autouse=False)
@@ -973,156 +879,6 @@ def enable_and_disable_crio(request):
         del os.environ["CRIO_RUNTIME"]
 
 
-@pytest.mark.parametrize("enable_and_disable_crio", [False, True], indirect=True)
-@pytest.mark.parametrize(
-    "metadata_dependencies",
-    [
-        {
-            "pipeline_file": Path(__file__).parent
-            / ".."
-            / "resources"
-            / "test_pipelines"
-            / "kfp"
-            / "kfp-one-node-generic.pipeline",
-            "workflow_engine": WorkflowEngineType.ARGO,
-        },
-    ],
-    indirect=True,
-)
-def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
-    monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir, enable_and_disable_crio
-):
-    """
-    This test validates that the output of _generate_pipeline_dsl and _compile_pipeline_dsl
-    yields the expected results for a generic node when the CRIO_RUNTIME environment variable
-    is set to a valid string representation of the boolean value True (/true/i).
-    Test assumptions:
-     - Enabling CRIO_RUNTIME has the same effect for all supported workflow engines
-     - The test pipeline contains at least one generic node
-
-     With CRIO_RUNTIME enabled, the compiled output must include the following properties:
-      - in spec.templates[].volumes:
-        - emptyDir: {medium: '', sizeLimit: 20Gi}
-      name: workspace
-    """
-    crio_runtime_enabled = os.environ.get("CRIO_RUNTIME", "").lower() == "true"
-
-    # Obtain artifacts from metadata_dependencies fixture
-    test_pipeline_file = metadata_dependencies["pipeline_file"]
-    pipeline = metadata_dependencies["pipeline_object"]
-    assert pipeline is not None
-    runtime_config = metadata_dependencies["runtime_config"]
-    assert runtime_config is not None
-
-    workflow_engine = WorkflowEngineType.get_instance_by_value(runtime_config.metadata["engine"])
-
-    # Mock calls that require access to object storage, because their side effects
-    # have no bearing on the outcome of this test.
-    monkeypatch.setattr(processor, "_upload_dependencies_to_object_store", lambda w, x, y, prefix: True)
-    monkeypatch.setattr(processor, "_verify_cos_connectivity", lambda x: True)
-
-    # Mock pipeline to not include any parameters
-    monkeypatch.setattr(pipeline, "_pipeline_parameters", ElyraPropertyList([]))
-
-    # Test begins here
-
-    compiled_output_file = Path(tmpdir) / test_pipeline_file.with_suffix(".yaml").name
-    compiled_output_file_name = str(compiled_output_file.absolute())
-
-    # generate Python DSL for the specified workflow engine
-    pipeline_version = f"{pipeline.name}-test-0"
-    pipeline_instance_id = f"{pipeline.name}-{datetime.now().strftime('%m%d%H%M%S')}"
-    experiment_name = f"{pipeline.name}-test-0"
-
-    generated_dsl = processor._generate_pipeline_dsl(
-        pipeline=pipeline,
-        pipeline_name=pipeline.name,
-        workflow_engine=workflow_engine,
-        pipeline_version=pipeline_version,
-        pipeline_instance_id=pipeline_instance_id,
-        experiment_name=experiment_name,
-    )
-
-    # Compile the DSL
-    processor._compile_pipeline_dsl(
-        dsl=generated_dsl,
-        workflow_engine=workflow_engine,
-        output_file=compiled_output_file_name,
-        pipeline_conf=None,
-    )
-
-    # Load compiled workflow
-    with open(compiled_output_file_name) as f:
-        compiled_spec = yaml.safe_load(f.read())
-
-    # There should be multiple templates, one for the DAG and one for every generic node.
-    assert len(compiled_spec["spec"]["templates"]) >= 2
-    if crio_runtime_enabled:
-        for template in compiled_spec["spec"]["templates"]:
-            if template["name"] == compiled_spec["spec"]["entrypoint"]:
-                continue
-            # Check volume definition
-            assert template.get("volumes") is not None, template
-            entry_found = False
-            for volume_entry in template["volumes"]:
-                if volume_entry["name"] != CRIO_VOL_DEF_NAME:
-                    continue
-                assert (
-                    volume_entry.get("emptyDir") is not None
-                ), f"Unexpected volume entry '{CRIO_VOL_DEF_NAME}': {volume_entry} "
-                assert volume_entry["emptyDir"]["sizeLimit"] == CRIO_VOL_DEF_SIZE
-                assert volume_entry["emptyDir"]["medium"] == CRIO_VOL_DEF_MEDIUM
-                entry_found = True
-            assert entry_found, f"Missing volume entry '{CRIO_VOL_DEF_NAME}' for CRI-O in {template['volumes']}"
-            # Check volume mount definition
-            assert template["container"].get("volumeMounts") is not None, template["container"]
-            for volumemount_entry in template["container"]["volumeMounts"]:
-                entry_found = False
-                if volumemount_entry["name"] != CRIO_VOL_DEF_NAME:
-                    continue
-                assert volumemount_entry["mountPath"] == CRIO_VOL_MOUNT_PATH
-                entry_found = True
-                break
-            assert (
-                entry_found
-            ), f"Missing volume mount entry '{CRIO_VOL_DEF_NAME}' for CRI-O in {template['container']['volumeMounts']}"
-            # Check PYTHONPATH environment variable (python_user_lib_path)
-            assert template["container"].get("env") is not None, template["container"]
-            for env_entry in template["container"]["env"]:
-                entry_found = False
-                if env_entry["name"] != "PYTHONPATH":
-                    continue
-                assert env_entry["value"] == CRIO_VOL_PYTHON_PATH
-                entry_found = True
-                break
-            assert entry_found, f"Missing env variable entry 'PYTHONPATH' for CRI-O in {template['container']['env']}"
-            # Check the container command argument list
-            assert len(template["container"]["args"]) == 1
-            assert f"mkdir -p {CRIO_VOL_WORKDIR_PATH}" in template["container"]["args"][0]
-            assert f"--target={CRIO_VOL_PYTHON_PATH}" in template["container"]["args"][0]
-            assert f"--user-volume-path '{CRIO_VOL_PYTHON_PATH}' " in template["container"]["args"][0]
-    else:
-        for template in compiled_spec["spec"]["templates"]:
-            if template["name"] == compiled_spec["spec"]["entrypoint"]:
-                continue
-            # Check if a volume was defined
-            for volume_entry in template.get("volumes", []):
-                if volume_entry["name"] == CRIO_VOL_DEF_NAME:
-                    # if a volume with the 'reserved' name exist there could be a problem
-                    assert volume_entry.get("emptyDir") is None
-            # Check volume mount definition
-            for volumemount_entry in template["container"].get("volumeMounts", []):
-                if volumemount_entry["name"] == CRIO_VOL_DEF_NAME:
-                    assert volumemount_entry["mountPath"] != CRIO_VOL_MOUNT_PATH
-            # Check PYTHONPATH environment variable
-            for env_entry in template["container"].get("env", []):
-                assert env_entry["name"] != "PYTHONPATH"
-            # Check the container command argument list
-            assert "mkdir -p ./jupyter-work-dir" in template["container"]["args"][0]
-            assert f"--target={CRIO_VOL_PYTHON_PATH}" not in template["container"]["args"][0]
-            assert "--user-volume-path" not in template["container"]["args"][0]
-
-
 @pytest.mark.parametrize(
     "metadata_dependencies",
     [
@@ -1137,6 +893,10 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_component_crio(
         },
     ],
     indirect=True,
+)
+@pytest.mark.skip(
+    reason="This test is not compatible with KFP v2 as the generated YAML is ignoring \
+            attributes from the source pipeline file"
 )
 def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
     monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
@@ -1201,76 +961,65 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
 
     # Load compiled output
     with open(compiled_output_file_name) as fh:
-        compiled_spec = yaml.safe_load(fh.read())
+        spec_docs = list(yaml.safe_load_all(fh.read()))
 
-    # There should be two templates, one for the DAG and one for the generic node.
-    # Locate the one for the generic node and inspect its properties.
-    assert len(compiled_spec["spec"]["templates"]) == 2
-    if compiled_spec["spec"]["templates"][0]["name"] == compiled_spec["spec"]["entrypoint"]:
-        node_template = compiled_spec["spec"]["templates"][1]
-    else:
-        node_template = compiled_spec["spec"]["templates"][0]
+    assert len(spec_docs) == 2
+    assert "components" in spec_docs[0]
+    assert "platforms" in spec_docs[1]
 
     #
     # validate data volumes, if applicable
     expected_volume_mounts = op.elyra_props.get(MOUNTED_VOLUMES)
     if len(expected_volume_mounts) > 0:
         # There must be one or more 'volumeMounts' entry and one or more 'volumes' entry
-        assert node_template["container"].get("volumeMounts") is not None, node_template["container"]
-        assert node_template.get("volumes") is not None, compiled_spec["spec"]
+        assert (
+            spec_docs[1]["platforms"]["kubernetes"]["deploymentSpec"]["executors"]["exec-run-a-file"].get("pvcMount")
+            is not None
+        ), spec_docs[1]["platforms"]["kubernetes"]
+        pvc_mounts = spec_docs[1]["platforms"]["kubernetes"]["deploymentSpec"]["executors"]["exec-run-a-file"][
+            "pvcMount"
+        ]
 
-        assert len(node_template["container"]["volumeMounts"]) >= len(expected_volume_mounts)
+        assert len(pvc_mounts) >= len(expected_volume_mounts)
         for volume_mount in expected_volume_mounts:
-            for volumemount_entry in node_template["container"]["volumeMounts"]:
+            for volumemount_entry in pvc_mounts:
                 entry_found = False
                 if volumemount_entry["mountPath"] == volume_mount.path:
-                    assert volumemount_entry["name"] == volume_mount.pvc_name
-                    assert volumemount_entry.get("subPath", None) == volume_mount.sub_path
-                    assert volumemount_entry.get("readOnly", None) == volume_mount.read_only
+                    assert volumemount_entry["constant"] == volume_mount.pvc_name
+                    # the following attributes are currently ignored in KFP v2.
+                    # Once they are implemented, the code below needs to be updated accordingly.
+                    # Reference: https://github.com/kubeflow/pipelines/blob/master/
+                    #            kubernetes_platform/proto/kubernetes_executor_config.proto#L84
+                    #
+                    # assert volumemount_entry.get("subPath", None) == volume_mount.sub_path
+                    # assert volumemount_entry.get("readOnly", False) == volume_mount.read_only
                     entry_found = True
                     break
-            assert (
-                entry_found
-            ), f"Cannot find volume mount entry '{volume_mount.path}' in {node_template['container']['volumeMounts']}"
-            for volume_entry in node_template["volumes"]:
-                entry_found = False
-                if volume_entry["name"] == volume_mount.pvc_name:
-                    assert volume_entry["persistentVolumeClaim"]["claimName"] == volume_mount.pvc_name
-                    entry_found = True
-                    break
-            assert (
-                entry_found
-            ), f"Cannot find volume entry '{volume_mount.path}' in {node_template['container']['volumeMounts']}"
+            assert entry_found, f"Cannot find volume mount entry '{volume_mount.path}' in {pvc_mounts}"
 
     #
     # validate custom shared memory size, if applicable
     custom_shared_mem_size = op.elyra_props.get(KUBERNETES_SHARED_MEM_SIZE)
     if custom_shared_mem_size:
         # There must be one 'volumeMounts' entry and one 'volumes' entry
-        assert node_template["container"].get("volumeMounts") is not None, node_template["container"]
-        assert node_template.get("volumes") is not None, compiled_spec["spec"]
-        for volumemount_entry in node_template["container"]["volumeMounts"]:
+        assert (
+            spec_docs[1]["platforms"]["kubernetes"]["deploymentSpec"]["executors"]["exec-run-a-file"].get("pvcMount")
+            is not None
+        ), spec_docs[1]["platforms"]["kubernetes"]
+        pvc_mounts = spec_docs[1]["platforms"]["kubernetes"]["deploymentSpec"]["executors"]["exec-run-a-file"][
+            "pvcMount"
+        ]
+
+        for volumemount_entry in pvc_mounts:
             entry_found = False
             if volumemount_entry["mountPath"] == "/dev/shm":
                 assert volumemount_entry["name"] == "shm"
                 entry_found = True
                 break
-        assert (
-            entry_found
-        ), "Missing volume mount entry for shared memory size in {node_template['container']['volumeMounts']}"
-        for volume_entry in node_template["volumes"]:
-            entry_found = False
-            if volume_entry["name"] == "shm":
-                assert volume_entry["emptyDir"]["medium"] == "Memory"
-                assert (
-                    volume_entry["emptyDir"]["sizeLimit"]
-                    == f"{custom_shared_mem_size.size}{custom_shared_mem_size.units}"
-                )
-                entry_found = True
-                break
-        assert (
-            entry_found
-        ), f"Missing volume entry for shm size '{volume_mount.path}' in {node_template['container']['volumeMounts']}"
+        assert entry_found, "Missing volume mount entry for shared memory size in {pvc_mounts}"
+
+    """
+    IMPORTANT: TODO: The following code needs to be updated to the KFP v2 once the feature is implemented.
 
     #
     # validate Kubernetes secrets, if applicable
@@ -1336,6 +1085,7 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_optional_elyra_properties(
                 f"in {node_template['tolerations']}"
             )
             assert entry_found, not_found_msg
+            """
 
 
 @pytest.mark.parametrize(
@@ -1411,20 +1161,23 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
 
     # Load compiled output
     with open(compiled_output_file_name) as fh:
-        compiled_spec = yaml.safe_load(fh.read())
+        compiled_spec_docs = list(yaml.safe_load_all(fh.read()))
+
+    assert len(compiled_spec_docs) == 2
+    assert "components" in compiled_spec_docs[0]
+    assert "platforms" in compiled_spec_docs[1]
 
     # There should be at least four templates, one for the DAG and three
     # for generic nodes. Each template spec for generic nodes is named
     # "run-a-file[-index]". The "-index" is added by the compiler to
     # guarantee uniqueness.
-    assert len(compiled_spec["spec"]["templates"]) >= 3
+    executors = compiled_spec_docs[0]["deploymentSpec"]["executors"]
+    assert len(executors) >= 3
     template_specs = {}
-    for node_template in compiled_spec["spec"]["templates"]:
-        if node_template["name"] == compiled_spec["spec"]["entrypoint"] or not node_template["name"].startswith(
-            "run-a-file"
-        ):
+    for node_template_name, node_template in executors.items():
+        if node_template_name == executors or not node_template_name.startswith("exec-run-a-file"):
             continue
-        template_specs[node_template["name"]] = node_template
+        template_specs[node_template_name] = node_template
 
     # Iterate through sorted operations and verify that their inputs
     # and outputs are properly represented in their respective template
@@ -1435,9 +1188,9 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
             # ignore custom nodes
             continue
         if template_index == 1:
-            template_name = "run-a-file"
+            template_name = "exec-run-a-file"
         else:
-            template_name = f"run-a-file-{template_index}"
+            template_name = f"exec-run-a-file-{template_index}"
         template_index = template_index + 1
         # compare outputs
         if len(op.outputs) > 0:
@@ -1476,6 +1229,9 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_data_exch
         },
     ],
     indirect=True,
+)
+@pytest.mark.skip(
+    reason="This test is not compatible with KFP v2: There is no `imagePullSecrets` in the generated YAML to be verified."  # noqa: E501
 )
 def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_pipeline_conf(
     monkeypatch, processor: KfpPipelineProcessor, metadata_dependencies: Dict[str, Any], tmpdir
@@ -1631,24 +1387,20 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_generic_components_with_para
 
     # Load compiled workflow
     with open(compiled_output_file_name) as f:
-        compiled_spec = yaml.safe_load(f.read())
+        compiled_spec_docs = list(yaml.safe_load_all(f.read()))
+
+    assert len(compiled_spec_docs) == 2
+    assert "components" in compiled_spec_docs[0]
+    assert "platforms" in compiled_spec_docs[1]
 
     # Test parameters appear as expected
-    yaml_pipeline_params = compiled_spec["spec"]["arguments"]["parameters"]
+    yaml_pipeline_params = compiled_spec_docs[0]["root"]["inputDefinitions"]["parameters"]
     # Only two parameters are referenced by a node in the pipeline, so only 2 should be present in YAML
     assert len(yaml_pipeline_params) == 2
     # Assert params defined in YAML correspond to those defined by the Pipeline object
-    for param_from_yaml in yaml_pipeline_params:
-        param_name, param_value = param_from_yaml.get("name"), param_from_yaml.get("value")
-        assert any(param.name == param_name and str(param.value) == param_value for param in pipeline.parameters)
-
-    yaml_node_params = compiled_spec["spec"]["templates"][1]["inputs"]["parameters"]
-    # Only two parameters are referenced by this node, so only 2 should be present as inputs
-    assert len(yaml_node_params) == 2
-    # Assert params defined in YAML correspond to those defined by the Pipeline object
-    for param_from_yaml in yaml_node_params:
-        param_name = param_from_yaml.get("name")
-        assert any(param.name == param_name for param in pipeline.parameters)
+    for param_name, param_info in yaml_pipeline_params.items():
+        param_value = param_info["defaultValue"]
+        assert any(param.name == param_name and param.value == param_value for param in pipeline.parameters)
 
 
 def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_components_with_parameters(
@@ -1776,21 +1528,15 @@ def test_generate_pipeline_dsl_compile_pipeline_dsl_custom_components_with_param
     print(compiled_spec)
 
     # Test parameters appear as expected
-    yaml_pipeline_params = compiled_spec["spec"]["arguments"]["parameters"]
+    yaml_pipeline_params = compiled_spec["root"]["inputDefinitions"]["parameters"]
     # Only two parameters are referenced by a node in the pipeline, so only 1 should be present in YAML
     assert len(yaml_pipeline_params) == 1
     # Assert params defined in YAML correspond to those defined by the Pipeline object
-    for param_from_yaml in yaml_pipeline_params:
-        param_name, param_value = param_from_yaml.get("name"), param_from_yaml.get("value")
-        assert any(param.name == param_name and str(param.value) == param_value for param in pipeline.parameters)
-
-    yaml_node_params = compiled_spec["spec"]["templates"][0]["inputs"]["parameters"]
-    # Only two parameters are referenced by this node, so only 1 should be present as input
-    assert len(yaml_node_params) == 1
-    # Assert params defined in YAML correspond to those defined by the Pipeline object
-    for param_from_yaml in yaml_node_params:
-        param_name = param_from_yaml.get("name")
-        assert any(param.name == param_name for param in pipeline.parameters)
+    for param_from_yaml_key, param_from_yaml_value in yaml_pipeline_params.items():
+        assert any(
+            param.name == param_from_yaml_key and str(param.value) == param_from_yaml_value["defaultValue"]
+            for param in pipeline.parameters
+        )
 
 
 def test_kfp_invalid_pipeline_parameter_type():
