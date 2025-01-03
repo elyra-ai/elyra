@@ -54,7 +54,7 @@ class UpdateVersionException(Exception):
 
 def check_run(args, cwd=os.getcwd(), capture_output=True, env=None, shell=False) -> subprocess.CompletedProcess:
     try:
-        return subprocess.run(args, cwd=cwd, capture_output=capture_output, check=True)
+        return subprocess.run(args, cwd=cwd, capture_output=capture_output, check=True, env=env, shell=shell)
     except subprocess.CalledProcessError as ex:
         raise RuntimeError(f'Error executing process: {ex.stderr.decode("unicode_escape")}') from ex
 
@@ -81,6 +81,19 @@ def sed(file: str, pattern: str, replace: str) -> None:
             check_run(["sed", "-i", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
         elif sys.platform == "darwin":
             check_run(["sed", "-i", "", "-e", f"s#{pattern}#{replace}#g", file], capture_output=False)
+        else:  # windows, other
+            raise RuntimeError(f"Current operating system not supported for release publishing: {sys.platform}: ")
+    except Exception as ex:
+        raise RuntimeError(f"Error processing updated to file {file}: ") from ex
+
+
+def sed_remove(file: str, pattern: str) -> None:
+    """Perform regex substitution on a given file"""
+    try:
+        if sys.platform in ["linux", "linux2"]:
+            check_run(["sed", "-i", "-e", f"/{pattern}/d", file], capture_output=False)
+        elif sys.platform == "darwin":
+            check_run(["sed", "-i", "", "-e", f"/{pattern}/d", file], capture_output=False)
         else:  # windows, other
             raise RuntimeError(f"Current operating system not supported for release publishing: {sys.platform}: ")
     except Exception as ex:
@@ -232,27 +245,43 @@ def update_version_to_release() -> None:
             r"elyra-ai/elyra/main/etc/kfp/pip.conf",
             rf"elyra-ai/elyra/v{new_version}/etc/kfp/pip.conf",
         )
+
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/main/elyra/kfp/bootstrapper.py",
             rf"elyra-ai/elyra/v{new_version}/elyra/kfp/bootstrapper.py",
         )
+
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/main/elyra/airflow/bootstrapper.py",
             rf"elyra-ai/elyra/v{new_version}/elyra/airflow/bootstrapper.py",
         )
+
         sed(
             _source("docs/source/recipes/running-elyra-in-air-gapped-environment.md"),
             r"elyra-ai/elyra/main/etc/generic/requirements-elyra.txt",
             rf"elyra-ai/elyra/v{new_version}/etc/generic/requirements-elyra.txt",
         )
 
-        check_run(
-            ["lerna", "version", new_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"],
-            cwd=config.source_dir,
+        # UI packages
+        sed(
+            _source("lerna.json"),
+            fr"{old_npm_version}",
+            rf"{new_npm_version}",
         )
-        check_run(["yarn", "version", "--new-version", new_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
+        sed(
+            _source("package.json"),
+            fr"{old_npm_version}",
+            rf"{new_npm_version}",
+        )
+
+        packages_dir = os.path.join(config.source_dir, "packages")
+        for dir in os.listdir(packages_dir):
+            file_path = os.path.join(packages_dir, dir, "package.json")
+            sed(file_path,fr"{old_npm_version}",rf"{new_npm_version}")
+            file_path = os.path.join(packages_dir, dir, "install.json")
+            sed_remove(file_path, fr"packageManager")
 
     except Exception as ex:
         raise UpdateVersionException from ex
@@ -263,6 +292,7 @@ def update_version_to_dev() -> None:
 
     new_version = config.new_version
     dev_version = config.dev_version
+    new_npm_version = config.new_npm_version
     dev_npm_version = config.dev_npm_version
 
     try:
@@ -405,11 +435,24 @@ def update_version_to_dev() -> None:
             rf"https://elyra.readthedocs.io/en/latest/user_guide/",
         )
 
-        check_run(
-            ["lerna", "version", dev_npm_version, "--no-git-tag-version", "--no-push", "--yes", "--exact"],
-            cwd=config.source_dir,
+        sed(
+            _source("lerna.json"),
+            fr"{new_npm_version}",
+            rf"{dev_npm_version}",
         )
-        check_run(["yarn", "version", "--new-version", dev_npm_version, "--no-git-tag-version"], cwd=config.source_dir)
+
+        sed(
+            _source("package.json"),
+            fr"{new_npm_version}",
+            rf"{dev_npm_version}",
+        )
+
+        packages_dir = os.path.join(config.source_dir, "packages")
+        for dir in os.listdir(packages_dir):
+            file_path = os.path.join(packages_dir, dir, "package.json")
+            sed(file_path,fr"{new_npm_version}",rf"{dev_npm_version}")
+
+
 
     except Exception as ex:
         raise UpdateVersionException from ex
@@ -441,6 +484,17 @@ def checkout_code() -> None:
 
     print("")
 
+def build_all():
+    global config
+
+    print("-----------------------------------------------------------------")
+    print("----------------------- Building (Prod)  ------------------------")
+    print("-----------------------------------------------------------------")
+
+    # Build wheels and source packages
+    check_run(["make", "install-prod"], cwd=config.source_dir, capture_output=False)
+
+    print("")
 
 def build_release():
     global config
@@ -505,8 +559,9 @@ def show_release_artifacts():
 def copy_extension_dir(extension: str, work_dir: str) -> None:
     global config
 
-    extension_package_source_dir = os.path.join(config.source_dir, "build/labextensions/@elyra", extension)
-    extension_package_dest_dir = os.path.join(work_dir, "build/labextensions/@elyra", extension)
+    extension = extension.replace("-", "_")
+    extension_package_source_dir = os.path.join(config.source_dir, f"labextensions/elyra_{extension}" )
+    extension_package_dest_dir = os.path.join(work_dir, f"labextensions/elyra_{extension}")
     os.makedirs(os.path.dirname(extension_package_dest_dir), exist_ok=True)
     shutil.copytree(extension_package_source_dir, extension_package_dest_dir)
 
@@ -517,6 +572,7 @@ def generate_changelog() -> None:
     print("-----------------------------------------------------------------")
     print("--------------------- Preparing Changelog -----------------------")
     print("-----------------------------------------------------------------")
+    print("")
 
     changelog_path = os.path.join(config.source_dir, "docs/source/getting_started/changelog.md")
     changelog_backup_path = os.path.join(config.source_dir, "docs/source/getting_started/changelog.bak")
@@ -714,7 +770,7 @@ def prepare_changelog() -> None:
     generate_changelog()
     # commit
     check_run(
-        ["git", "commit", "-a", "-m", f"Update changelog for release {config.new_version}"], cwd=config.source_dir
+        ["git", "commit", "-s", "-a", "-m", f"Update changelog for release {config.new_version}"], cwd=config.source_dir
     )
 
 
@@ -728,12 +784,10 @@ def prepare_release() -> None:
 
     # clone repository
     checkout_code()
-    # generate changelog with new release list of commits
-    prepare_changelog()
     # Update to new release version
     update_version_to_release()
     # commit and tag
-    check_run(["git", "commit", "-a", "-m", f"Release v{config.new_version}"], cwd=config.source_dir)
+    check_run(["git", "commit", "-s", "-a", "-m", f"Release v{config.new_version}"], cwd=config.source_dir)
     check_run(["git", "tag", config.tag], cwd=config.source_dir)
     # server-only wheel
     build_server()
@@ -743,8 +797,10 @@ def prepare_release() -> None:
     show_release_artifacts()
     # back to development
     update_version_to_dev()
+    # build packages to update yarn.lock
+    build_all()
     # commit
-    check_run(["git", "commit", "-a", "-m", f"Prepare for next development iteration"], cwd=config.source_dir)
+    check_run(["git", "commit", "-s", "-a", "-m", f"Prepare for next development iteration"], cwd=config.source_dir)
     # prepare extensions
     prepare_extensions_release()
     # prepare runtime extsnsions
@@ -760,19 +816,19 @@ def publish_release(working_dir) -> None:
         f"{config.source_dir}/dist/elyra_server-{config.new_version}-py3-none-any.whl",
         f"{config.source_dir}/dist/elyra_server-{config.new_version}.tar.gz",
         f"{config.work_dir}/airflow-notebook/dist/airflow_notebook-{config.new_version}-py3-none-any.whl",
-        f"{config.work_dir}/airflow-notebook/dist/airflow-notebook-{config.new_version}.tar.gz",
+        f"{config.work_dir}/airflow-notebook/dist/airflow_notebook-{config.new_version}.tar.gz",
         f"{config.work_dir}/kfp-notebook/dist/kfp_notebook-{config.new_version}-py3-none-any.whl",
-        f"{config.work_dir}/kfp-notebook/dist/kfp-notebook-{config.new_version}.tar.gz",
+        f"{config.work_dir}/kfp-notebook/dist/kfp_notebook-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-code-snippet-extension/dist/elyra_code_snippet_extension-{config.new_version}-py3-none-any.whl",
-        f"{config.work_dir}/elyra-code-snippet-extension/dist/elyra-code-snippet-extension-{config.new_version}.tar.gz",
+        f"{config.work_dir}/elyra-code-snippet-extension/dist/elyra_code_snippet_extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra_pipeline_editor_extension-{config.new_version}-py3-none-any.whl",
-        f"{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra-pipeline-editor-extension-{config.new_version}.tar.gz",
+        f"{config.work_dir}/elyra-pipeline-editor-extension/dist/elyra_pipeline_editor_extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-python-editor-extension/dist/elyra_python_editor_extension-{config.new_version}-py3-none-any.whl",
-        f"{config.work_dir}/elyra-python-editor-extension/dist/elyra-python-editor-extension-{config.new_version}.tar.gz",
+        f"{config.work_dir}/elyra-python-editor-extension/dist/elyra_python_editor_extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-r-editor-extension/dist/elyra_r_editor_extension-{config.new_version}-py3-none-any.whl",
-        f"{config.work_dir}/elyra-r-editor-extension/dist/elyra-r-editor-extension-{config.new_version}.tar.gz",
+        f"{config.work_dir}/elyra-r-editor-extension/dist/elyra_r_editor_extension-{config.new_version}.tar.gz",
         f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra_scala_editor_extension-{config.new_version}-py3-none-any.whl",
-        f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra-scala-editor-extension-{config.new_version}.tar.gz",
+        f"{config.work_dir}/elyra-scala-editor-extension/dist/elyra_scala_editor_extension-{config.new_version}.tar.gz",
     ]
 
     print("-----------------------------------------------------------------")
@@ -810,17 +866,17 @@ def publish_release(working_dir) -> None:
     check_run(["git", "checkout", config.tag], cwd=config.source_dir)
     check_run(["git", "status"], cwd=config.source_dir)
 
-    print("-----------------------------------------------------------------")
-    print("-------------------- Pushing npm packages -----------------------")
-    print("-----------------------------------------------------------------")
+    # print("-----------------------------------------------------------------")
+    # print("-------------------- Pushing npm packages -----------------------")
+    # print("-----------------------------------------------------------------")
 
-    # publish npm packages
-    print()
-    print(f"publishing npm packages")
-    check_run(
-        ["lerna", "publish", "--yes", "from-package", "--no-git-tag-version", "--no-verify-access", "--no-push"],
-        cwd=config.source_dir,
-    )
+    # # publish npm packages
+    # print()
+    # print(f"publishing npm packages")
+    # check_run(
+    #     ["lerna", "publish", "--yes", "from-package", "--no-git-tag-version", "--no-verify-access", "--no-push"],
+    #     cwd=config.source_dir,
+    # )
 
     print("-----------------------------------------------------------------")
     print("-------------------- Pushing container images -------------------")
