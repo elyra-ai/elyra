@@ -69,7 +69,7 @@ export const EmptyPlatformSpecificPipeline: React.FC<
   // Note: the URL is rewritten by the release script by replacing `latest` with a
   // specific version number, e.g. https://.../en/v3.6.0/user_guide/pi...
   const customComponentsHelpTopicURL =
-    'https://elyra.readthedocs.io/en/latest/user_guide/pipeline-components.html';
+    'https://elyra.readthedocs.io/en/v4.0.0rc0/user_guide/pipeline-components.html';
 
   return (
     <div>
