@@ -2,13 +2,82 @@
 
 A summary of new feature highlights is located on the [GitHub release page](https://github.com/elyra-ai/elyra/releases).
 
-## Release 4.0.0
+## Release 4.0.0rc0 - 01/03/2025
 
-- Add support for JupyterLab 4.x - [#3201](https://github.com/elyra-ai/elyra/pull/3201)
-- Add functionality to select resource limits from the GUI - [#3202](https://github.com/elyra-ai/elyra/pull/3202)
-- Separate KFP and Airflow libraries during build step, making kfp dependency optional for non-KFP runtime users - [#3248](https://github.com/elyra-ai/elyra/pull/3248)
-- KFP and Airflow runtime generic components logging during execution and S3 file put for run log output file made configurable - [#3227](https://github.com/elyra-ai/elyra/pull/3227) 
-- Generic pipelines and generic components runtime support changed to Airflow >= 2.7.0. Airflow 1.x no longer supported - [#3167](https://github.com/elyra-ai/elyra/pull/3167)
+Our 4.0.0 release candidate 0 includes the following high-level changes
+
+- Add support for JupyterLab 4.2.5 and above - [#3201](https://github.com/elyra-ai/elyra/pull/3201)
+- Enable conditional install of runtime and it's dependencies (e.g: KFP, Airflow) - [#3248](https://github.com/elyra-ai/elyra/pull/3248)
+- Add Airflow 2.x support for generic pipelines and generic components - [#3167](https://github.com/elyra-ai/elyra/pull/3167)
+- Multiple dependency updates with security fixes
+
+See the full changelog below:
+
+- Force dist metadata-version to avoid pypi upload issues
+- Show validation warnings only after the first form submission - [#87](https://github.com/elyra-ai/elyra/pull/87)
+- Revert "Remove read_entry_data method from class ComponentCatalogConnector - [#3141](https://github.com/elyra-ai/elyra/pull/3141)
+- Remove obsolete read_entry_data method from class ComponentCatalogConnector - [#3141](https://github.com/elyra-ai/elyra/pull/3141)
+- Airflow 2 >= 2.7.0 generic pipeline/component support. See also #3166. - [#3167](https://github.com/elyra-ai/elyra/pull/3167)
+- Update copyright to 2025 - [#3256](https://github.com/elyra-ai/elyra/pull/3256)
+- Update repository readme and documentation with JupyterLab v4 information - [#3145](https://github.com/elyra-ai/elyra/pull/3145)
+- Bump jinja2 from 3.1.4 to 3.1.5 in /etc/generic - [#3261](https://github.com/elyra-ai/elyra/pull/3261)
+- Bump cross-spawn from 6.0.5 to 6.0.6 - [#3262](https://github.com/elyra-ai/elyra/pull/3262)
+- Refactor pipeline implementation to use common pattern for file naming - [#3160](https://github.com/elyra-ai/elyra/pull/3160)
+- Migrate Elyra extensions to support JupyterLab 4.x - [#3201](https://github.com/elyra-ai/elyra/pull/3201)
+- Fix Python formatting to get rid of linter errors from `make lint-server` - [#3260](https://github.com/elyra-ai/elyra/pull/3260)
+- Use Python instead of curl to download test file on validate-runtime-image target - [#3257](https://github.com/elyra-ai/elyra/pull/3257)
+- Update runtime images with latest component versions - [#3255](https://github.com/elyra-ai/elyra/pull/3255)
+- Bump follow-redirects from 1.15.2 to 1.15.9 - [#3252](https://github.com/elyra-ai/elyra/pull/3252)
+- Bump nanoid from 3.3.4 to 3.3.8 - [#3254](https://github.com/elyra-ai/elyra/pull/3254)
+- Bump tornado from 6.4.1 to 6.4.2 in /etc/generic - [#3253](https://github.com/elyra-ai/elyra/pull/3253)
+- Make KFP dependency optional in build and during runs - [#3248](https://github.com/elyra-ai/elyra/pull/3248)
+- Pin jupyterlab_pygments to fix build issues - [#3250](https://github.com/elyra-ai/elyra/pull/3250)
+- Update Sphinx support for Google Analytics - [#3251](https://github.com/elyra-ai/elyra/pull/3251)
+- Bump elliptic from 6.5.7 to 6.6.0 - [#3249](https://github.com/elyra-ai/elyra/pull/3249)
+- Add additional readthedocs configs - [#3247](https://github.com/elyra-ai/elyra/pull/3247)
+- Remove conda tools from readthedocs build - [#3246](https://github.com/elyra-ai/elyra/pull/3246)
+- Update readthedoc configuration to address build failures - [#3245](https://github.com/elyra-ai/elyra/pull/3245)
+- Document system-level environment variables configs - [#3243](https://github.com/elyra-ai/elyra/pull/3243)
+- Bump webpack from 5.76.0 to 5.94.0 - [#3244](https://github.com/elyra-ai/elyra/pull/3244)
+- Force operation output to S3 based on env var config - [#3227](https://github.com/elyra-ai/elyra/pull/3227)
+- Bump elliptic from 6.5.4 to 6.5.7 - [#3242](https://github.com/elyra-ai/elyra/pull/3242)
+- Dependency updates including nbconvert version without lxml - [#3240](https://github.com/elyra-ai/elyra/pull/3240)
+- Allow users to include ssl_sa_certs via env vars for kfp_tekton client - [#3150](https://github.com/elyra-ai/elyra/pull/3150)
+- Bump tornado from 6.3.3 to 6.4.1 in /etc/generic - [#3234](https://github.com/elyra-ai/elyra/pull/3234)
+- Bump urllib3 from 1.26.18 to 1.26.19 in /etc/generic - [#3236](https://github.com/elyra-ai/elyra/pull/3236)
+- Bump tar from 6.1.11 to 6.2.1 - [#3231](https://github.com/elyra-ai/elyra/pull/3231)
+- Bump ejs from 3.1.8 to 3.1.10 - [#3230](https://github.com/elyra-ai/elyra/pull/3230)
+- Bump jinja2 from 3.0.3 to 3.1.4 in /etc/generic - [#3229](https://github.com/elyra-ai/elyra/pull/3229)
+- Bump requests from 2.31.0 to 2.32.0 in /etc/generic - [#3232](https://github.com/elyra-ai/elyra/pull/3232)
+- Fixes validation when there are pipeline params and default properties - [#3195](https://github.com/elyra-ai/elyra/pull/3195)
+- Bump jinja2 from 3.0.3 to 3.1.3 in /etc/generic - [#3207](https://github.com/elyra-ai/elyra/pull/3207)
+- Bump es5-ext from 0.10.62 to 0.10.63 - [#3218](https://github.com/elyra-ai/elyra/pull/3218)
+- Bump ip from 1.1.8 to 1.1.9 - [#3216](https://github.com/elyra-ai/elyra/pull/3216)
+- Bump @babel/traverse from 7.19.1 to 7.23.6 - [#3200](https://github.com/elyra-ai/elyra/pull/3200)
+- Bump browserify-sign from 4.2.1 to 4.2.2 - [#3193](https://github.com/elyra-ai/elyra/pull/3193)
+- Enable supporting other docker clients such as podman via build config - [#3226](https://github.com/elyra-ai/elyra/pull/3226)
+- Fix broken code of conduct link - [#3213](https://github.com/elyra-ai/elyra/pull/3213)
+- Fix linting issues breaking CI - [#3215](https://github.com/elyra-ai/elyra/pull/3215)
+- Modify version range of wrapt to fix Python 3.11 build issue - [#3197](https://github.com/elyra-ai/elyra/pull/3197)
+- Remove deprecated install command from elyra-metadata - [#3143](https://github.com/elyra-ai/elyra/pull/3143)
+- Editing files to add resource requests and limits - [#3202](https://github.com/elyra-ai/elyra/pull/3202)
+- Skip minio-7.2.1 to avoid urllib version mismatch - [#3204](https://github.com/elyra-ai/elyra/pull/3204)
+- Fix CI Build by temporarily disabling Python 3.11 build - [#3198](https://github.com/elyra-ai/elyra/pull/3198)
+- Bump urllib3 from 1.26.17 to 1.26.18 in /etc/generic - [#3191](https://github.com/elyra-ai/elyra/pull/3191)
+- Update the broken link for deploying opendatahub - [#3188](https://github.com/elyra-ai/elyra/pull/3188)
+- Bump urllib3 from 1.26.9 to 1.26.17 in /etc/generic - [#3187](https://github.com/elyra-ai/elyra/pull/3187)
+- Bump tornado from 6.3.2 to 6.3.3 in /etc/generic - [#3178](https://github.com/elyra-ai/elyra/pull/3178)
+- Bump word-wrap from 1.2.3 to 1.2.5 - [#3185](https://github.com/elyra-ai/elyra/pull/3185)
+- Bump semver from 5.7.1 to 5.7.2 - [#3171](https://github.com/elyra-ai/elyra/pull/3171)
+- Cap jupyter-resource-usage to avoid Lab 4.0 dependencies - [#3184](https://github.com/elyra-ai/elyra/pull/3184)
+- Update copyright doc config - [#3163](https://github.com/elyra-ai/elyra/pull/3163)
+- Bump requests from 2.27.1 to 2.31.0 in /etc/generic - [#3156](https://github.com/elyra-ai/elyra/pull/3156)
+- Update Copyright year - [#3162](https://github.com/elyra-ai/elyra/pull/3162)
+- Bump tornado from 6.1 to 6.3.2 in /etc/generic - [#3158](https://github.com/elyra-ai/elyra/pull/3158)
+- Convert --valid-only to --include-invalid on list subcommand - [#3142](https://github.com/elyra-ai/elyra/pull/3142)
+- Update pytorch runtime to fix validate images check - [#3148](https://github.com/elyra-ai/elyra/pull/3148)
+- Update ODH install instructions - [#3146](https://github.com/elyra-ai/elyra/pull/3146)
+- Add link to 3.15.0 new feature highlight blog post - [#3121](https://github.com/elyra-ai/elyra/pull/3121)
 
 ## Release 3.15.0 - 03/28/2023
 
