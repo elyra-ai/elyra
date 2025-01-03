@@ -9,4 +9,3 @@ pytest-tornasync
 pytest_virtualenv
 requests-mock
 requests-unixsocket
-kfp-tekton
