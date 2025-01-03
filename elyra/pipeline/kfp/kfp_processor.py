@@ -43,7 +43,7 @@ from kubernetes import client as k8s_client
 from traitlets import default
 from traitlets import Unicode
 
-RUN_ID_PLACEHOLDER = "random-placeholder"
+RUN_ID_PLACEHOLDER = "{{workflow.uid}}"
 
 from elyra._version import __version__
 from elyra.metadata.schemaspaces import RuntimeImages
@@ -53,6 +53,7 @@ from elyra.pipeline.component_catalog import ComponentCache
 from elyra.pipeline.kfp.kfp_authentication import AuthenticationError
 from elyra.pipeline.kfp.kfp_authentication import KFPAuthenticator
 from elyra.pipeline.kfp.kfp_properties import KfpPipelineParameter
+from elyra.pipeline.kfp.PipelineConf import PipelineConf
 from elyra.pipeline.pipeline import Operation
 from elyra.pipeline.pipeline import Pipeline
 from elyra.pipeline.processor import PipelineProcessor
@@ -72,8 +73,6 @@ from elyra.pipeline.runtime_type import RuntimeProcessorType
 from elyra.util.cos import join_paths
 from elyra.util.kubernetes import sanitize_label_value
 from elyra.util.path import get_absolute_path
-
-from elyra.pipeline.kfp.PipelineConf import PipelineConf
 
 
 @unique
@@ -107,6 +106,8 @@ CRIO_VOL_DEF_MEDIUM = ""
 CRIO_VOL_MOUNT_PATH = "/opt/app-root/src"
 CRIO_VOL_WORKDIR_PATH = f"{CRIO_VOL_MOUNT_PATH}/jupyter-work-dir"
 CRIO_VOL_PYTHON_PATH = f"{CRIO_VOL_WORKDIR_PATH}/python3"
+
+
 class KfpPipelineProcessor(RuntimePipelineProcessor):
     _type = RuntimeProcessorType.KUBEFLOW_PIPELINES
     _name = "kfp"
@@ -199,6 +200,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 credentials=auth_info.get("credentials", None),
                 existing_token=auth_info.get("existing_token", None),
                 namespace=user_namespace,
+                ssl_ca_cert=auth_info.get("ssl_ca_cert", None),
             )
         except Exception as ex:
             # a common cause of these errors is forgetting to include `/pipeline` or including it with an 's'
@@ -398,7 +400,10 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
                 # create pipeline run (or specified pipeline version)
                 run = client.run_pipeline(
-                    experiment_id=experiment.experiment_id, job_name=job_name, pipeline_id=pipeline_id, version_id=version_id
+                    experiment_id=experiment.experiment_id,
+                    job_name=job_name,
+                    pipeline_id=pipeline_id,
+                    version_id=version_id,
                 )
 
             except Exception as ex:
@@ -417,7 +422,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
             self.log_pipeline_info(
                 pipeline_name,
-                f"pipeline submitted: {public_api_endpoint}/#/runs/details/{run.run_id}",
+                f"pipeline submitted: {public_api_endpoint}/{experiment.experiment_id}/runs/{run.run_id}",
                 duration=time.time() - t0,
             )
 
@@ -433,7 +438,7 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
 
         return KfpPipelineProcessorResponse(
             run_id=run.run_id,
-            run_url=f"{public_api_endpoint}/#/runs/details/{run.run_id}",
+            run_url=f"{public_api_endpoint}/{experiment.experiment_id}/runs/{run.run_id}",
             object_storage_url=object_storage_url,
             object_storage_path=object_storage_path,
         )
@@ -900,13 +905,13 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                 # Identify task inputs and outputs using the component spec
                 # If no data type was specified, string is assumed
                 factory_function = components.load_component_from_text(component.definition)
-                for input in factory_function.component_spec.inputs or []:
-                    sanitized_input_name = self._sanitize_param_name(input.name)
+                for input_key, input_value in (factory_function.component_spec.inputs or {}).items():
+                    sanitized_input_name = self._sanitize_param_name(input_key)
                     workflow_task["task_inputs"][sanitized_input_name] = {
                         "value": None,
                         "task_output_reference": None,
                         "pipeline_parameter_reference": None,
-                        "data_type": (input.type or "string").lower(),
+                        "data_type": (input_value.type or "string").lower(),
                     }
                     # Determine whether the value needs to be rendered in quotes
                     # in the generated DSL code. For example "my name" (string), and 34 (integer).
@@ -918,9 +923,9 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
                         "bool",
                     ]
 
-                for output in factory_function.component_spec.outputs or []:
-                    workflow_task["task_outputs"][self._sanitize_param_name(output.name)] = {
-                        "data_type": output.type,
+                for output_key, output_value in (factory_function.component_spec.outputs or {}).items():
+                    workflow_task["task_outputs"][self._sanitize_param_name(output_key)] = {
+                        "data_type": output_value.type,
                     }
 
                 # Iterate over component properties and assign values to

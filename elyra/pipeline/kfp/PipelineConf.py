@@ -1,7 +1,24 @@
+#
+# Copyright 2018-2025 Elyra Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 from typing import Union
+
 from kubernetes.client.models import V1PodDNSConfig
 
-class PipelineConf():
+
+class PipelineConf:
     """PipelineConf contains pipeline level settings."""
 
     def __init__(self):
@@ -18,7 +35,6 @@ class PipelineConf():
 
     def set_image_pull_secrets(self, image_pull_secrets):
         """Configures the pipeline level imagepullsecret.
-
         Args:
           image_pull_secrets: a list of Kubernetes V1LocalObjectReference For
             detailed description, check Kubernetes V1LocalObjectReference definition
@@ -29,7 +45,6 @@ class PipelineConf():
 
     def set_timeout(self, seconds: int):
         """Configures the pipeline level timeout.
-
         Args:
           seconds: number of seconds for timeout
         """
@@ -39,20 +54,17 @@ class PipelineConf():
     def set_parallelism(self, max_num_pods: int):
         """Configures the max number of total parallel pods that can execute at
         the same time in a workflow.
-
         Args:
           max_num_pods: max number of total parallel pods.
         """
         if max_num_pods < 1:
-            raise ValueError(
-                'Pipeline max_num_pods set to < 1, allowed values are > 0')
+            raise ValueError("Pipeline max_num_pods set to < 1, allowed values are > 0")
 
         self.parallelism = max_num_pods
         return self
 
     def set_ttl_seconds_after_finished(self, seconds: int):
         """Configures the ttl after the pipeline has finished.
-
         Args:
           seconds: number of seconds for the workflow to be garbage collected after
             it is finished.
@@ -63,7 +75,6 @@ class PipelineConf():
     def set_pod_disruption_budget(self, min_available: Union[int, str]):
         """PodDisruptionBudget holds the number of concurrent disruptions that
         you allow for pipeline Pods.
-
         Args:
           min_available (Union[int, str]):  An eviction is allowed if at least
             "minAvailable" pods selected by "selector" will still be available after
@@ -76,12 +87,9 @@ class PipelineConf():
 
     def set_default_pod_node_selector(self, label_name: str, value: str):
         """Add a constraint for nodeSelector for a pipeline.
-
         Each constraint is a key-value pair label.
-
         For the container to be eligible to run on a node, the node must have each
         of the constraints appeared as labels.
-
         Args:
           label_name: The name of the constraint label.
           value: The value of the constraint label.
@@ -91,7 +99,6 @@ class PipelineConf():
 
     def set_image_pull_policy(self, policy: str):
         """Configures the default image pull policy.
-
         Args:
           policy: the pull policy, has to be one of: Always, Never, IfNotPresent.
             For more info:
@@ -103,7 +110,6 @@ class PipelineConf():
     def add_op_transformer(self, transformer):
         """Configures the op_transformers which will be applied to all ops in
         the pipeline. The ops can be ResourceOp, VolumeOp, or ContainerOp.
-
         Args:
           transformer: A function that takes a kfp Op as input and returns a kfp Op
         """
@@ -111,15 +117,12 @@ class PipelineConf():
 
     def set_dns_config(self, dns_config: V1PodDNSConfig):
         """Set the dnsConfig to be given to each pod.
-
         Args:
           dns_config: Kubernetes V1PodDNSConfig For detailed description, check
             Kubernetes V1PodDNSConfig definition
             https://github.com/kubernetes-client/python/blob/master/kubernetes/docs/V1PodDNSConfig.md
-
         Example:
           ::
-
             import kfp
             from kubernetes.client.models import V1PodDNSConfig, V1PodDNSConfigOption
             pipeline_conf = kfp.dsl.PipelineConf()
@@ -138,10 +141,8 @@ class PipelineConf():
     def data_passing_method(self, value):
         """Sets the object representing the method used for intermediate data
         passing.
-
         Example:
           ::
-
             from kfp.dsl import PipelineConf, data_passing_methods
             from kubernetes.client.models import V1Volume, V1PersistentVolumeClaimVolumeSource
             pipeline_conf = PipelineConf()

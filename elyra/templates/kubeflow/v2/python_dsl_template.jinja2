@@ -18,40 +18,7 @@ from kfp.dsl import PipelineTask
 from kfp.kubernetes import common
 from kfp.kubernetes import kubernetes_executor_config_pb2 as pb
 
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
-
-
-def add_pod_label(
-    task: PipelineTask,
-    label_key: str,
-    label_value: str,
-) -> PipelineTask:
-
-    msg = common.get_existing_kubernetes_config_as_message(task)
-    msg.pod_metadata.labels.update({label_key: label_value})
-    task.platform_config['kubernetes'] = json_format.MessageToDict(msg)
-
-    return task
-
-
-def add_pod_annotation(
-    task: PipelineTask,
-    annotation_key: str,
-    annotation_value: str,
-) -> PipelineTask:
-
-    msg = common.get_existing_kubernetes_config_as_message(task)
-    msg.pod_metadata.annotations.update({annotation_key: annotation_value})
-    task.platform_config['kubernetes'] = json_format.MessageToDict(msg)
-
-    return task
-
-# ------------------------------------------------------------------
-# end of missing functions
-# ------------------------------------------------------------------
+from kfp.kubernetes import add_toleration, add_pod_label, add_pod_annotation
 
 {# Load statements for custom components                            -#}
 {# component_hash = """<TEXT>"""                                  -#}
@@ -113,7 +80,7 @@ def generated_pipeline(
     {{ task_name }}.set_memory_limit(memory="{{ workflow_task.task_modifiers.memory_limit.size }}{{ workflow_task.task_modifiers.memory_limit.units }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.gpu_limit and workflow_task.task_modifiers.gpu_limit.size %}
-    {{ task_name }}.set_gpu_limit("{{ workflow_task.task_modifiers.gpu_limit.size }}")
+    {{ task_name }}.set_accelerator_limit("{{ workflow_task.task_modifiers.gpu_limit.size }}").set_accelerator_type("{{ workflow_task.task_modifiers.gpu_limit.vendor }}")
 {%  endif %}
 {%  if workflow_task.task_modifiers.env_variables %}
 {%    for env_var_name, env_var_value in workflow_task.task_modifiers.env_variables.items() %}
@@ -147,6 +114,27 @@ def generated_pipeline(
 {%    endfor %}
 {%  endif %}
 {%  if workflow_task.task_modifiers.kubernetes_tolerations %}
+{% for toleration_dict in workflow_task.task_modifiers.kubernetes_tolerations.values() %}
+    add_toleration(
+        {{ task_name }},
+        {% if toleration_dict.key %}
+            key="{{ toleration_dict.key }}",
+        {% else %}
+            key=None,
+        {% endif %}
+        operator="{{ toleration_dict.operator }}",
+        {% if toleration_dict.value %}
+            value="{{ toleration_dict.value | string_delimiter_safe }}",
+        {% else %}
+            value=None,
+        {% endif %}
+        {% if toleration_dict.effect %}
+            effect="{{ toleration_dict.effect }}",
+        {% else %}
+            effect=None,
+        {% endif %}
+    )
+{% endfor %}
 {%  endif %}
 {#  declare upstream dependencies -#}
 {%  if workflow_task.upstream_workflow_task_ids %}
