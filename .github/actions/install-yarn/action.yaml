@@ -1,0 +1,27 @@
+name: "Install Yarn"
+description: "Install Yarn"
+
+inputs:
+  working_dir:
+    description: "Elyra path"
+    required: false
+    default: "."
+  version:
+    description: "Yarn version"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Go to working directory
+      shell: bash
+      run: |
+        echo "Step: Go to working directory"
+        cd ${{ inputs.working_dir }}
+    - name: Install
+      shell: bash
+      run: |
+        echo "Step: Install"
+        corepack prepare yarn@${{ inputs.version }} --activate
+        yarn set version ${{ inputs.version }}
+        echo "Yarn version: $(yarn --version)"
