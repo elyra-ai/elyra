@@ -170,6 +170,9 @@ include = [
 ]
 ignore-vcs = true
 
+[tool.hatch.build.targets.wheel]
+core-metadata-version = "2.3"
+
 # Include data files with dist
 [tool.hatch.build.targets.wheel.shared-data]
 "labextensions/elyra_code_snippet_extension/labextension" = "share/jupyter/labextensions/@elyra/code-snippet-extension"
@@ -196,6 +199,7 @@ ignore-vcs = true
 
 # Specify which files to include and exclude in source distribution
 [tool.hatch.build.targets.sdist]
+core-metadata-version = "2.3"
 artifacts = [
     "labextensions/elyra_code_snippet_extension/labextension",
     "labextensions/elyra_code_viewer_extension/labextension",
