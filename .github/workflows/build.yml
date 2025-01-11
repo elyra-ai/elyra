@@ -44,13 +44,11 @@ jobs:
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install Yarn ${{ env.YARN_VERSION }}
-        run: |
-          corepack prepare yarn@${{ env.YARN_VERSION }} --activate
-          yarn set version ${{ env.YARN_VERSION }}
-          yarn --version
-      - name: Install dependencies
-        run: |
-          yarn install
+        uses: ./.github/actions/install-yarn
+        with:
+          version: ${{ env.YARN_VERSION }}
+      - name: Install UI dependencies
+        uses: ./.github/actions/install-ui-dependencies
   lint-server:
     name: Lint Server
     runs-on: ubuntu-latest
@@ -75,13 +73,11 @@ jobs:
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install Yarn ${{ env.YARN_VERSION }}
-        run: |
-          corepack prepare yarn@${{ env.YARN_VERSION }} --activate
-          yarn set version ${{ env.YARN_VERSION }}
-          yarn --version
-      - name: Install dependencies
-        run: |
-          make yarn-install
+        uses: ./.github/actions/install-yarn
+        with:
+          version: ${{ env.YARN_VERSION }}
+      - name: Install UI dependencies
+        uses: ./.github/actions/install-ui-dependencies
       - name: Lint
         run: make eslint-check-ui
       - name: Check format
@@ -135,14 +131,14 @@ jobs:
             */*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install Yarn ${{ env.YARN_VERSION }}
-        run: |
-          corepack prepare yarn@${{ env.YARN_VERSION }} --activate
-          yarn set version ${{ env.YARN_VERSION }}
-          yarn --version
+        uses: ./.github/actions/install-yarn
+        with:
+          version: ${{ env.YARN_VERSION }}
+      - name: Install UI dependencies
+        uses: ./.github/actions/install-ui-dependencies
       - name: Build
         run: |
           make build-dependencies
-          make yarn-install
           make build-ui
       - name: Install
         run: make install-server
@@ -169,14 +165,14 @@ jobs:
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install Yarn ${{ env.YARN_VERSION }}
-        run: |
-          corepack prepare yarn@${{ env.YARN_VERSION }} --activate
-          yarn set version ${{ env.YARN_VERSION }}
-          yarn --version
+        uses: ./.github/actions/install-yarn
+        with:
+          version: ${{ env.YARN_VERSION }}
+      - name: Install UI dependencies
+        uses: ./.github/actions/install-ui-dependencies
       - name: Build
         run: |
           make build-dependencies
-          make yarn-install
           make build-ui
       - name: Install
         run: |
@@ -243,10 +239,11 @@ jobs:
             /home/runner/.cache/Cypress
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
       - name: Install Yarn ${{ env.YARN_VERSION }}
-        run: |
-          corepack prepare yarn@${{ env.YARN_VERSION }} --activate
-          yarn set version ${{ env.YARN_VERSION }}
-          yarn --version
+        uses: ./.github/actions/install-yarn
+        with:
+          version: ${{ env.YARN_VERSION }}
+      - name: Install UI dependencies
+        uses: ./.github/actions/install-ui-dependencies
       - name: Build
         run: |
           make clean install
