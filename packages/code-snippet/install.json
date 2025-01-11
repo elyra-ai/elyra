@@ -1,5 +1,4 @@
 {
-  "packageManager": "python",
   "packageName": "elyra_code_snippet_extension",
   "uninstallInstructions": "Use your Python package manager (pip, conda, etc.) to uninstall the package elyra_code_snippet_extension"
 }

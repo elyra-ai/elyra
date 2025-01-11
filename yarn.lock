@@ -3148,9 +3148,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/code-snippet-extension@workspace:packages/code-snippet"
   dependencies:
-    "@elyra/metadata-common": 4.0.0-dev
-    "@elyra/services": 4.0.0-dev
-    "@elyra/ui-components": 4.0.0-dev
+    "@elyra/metadata-common": 4.0.0-rc.0
+    "@elyra/services": 4.0.0-rc.0
+    "@elyra/ui-components": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
@@ -3195,12 +3195,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/metadata-common@4.0.0-dev, @elyra/metadata-common@workspace:packages/metadata-common":
+"@elyra/metadata-common@4.0.0-rc.0, @elyra/metadata-common@workspace:packages/metadata-common":
   version: 0.0.0-use.local
   resolution: "@elyra/metadata-common@workspace:packages/metadata-common"
   dependencies:
-    "@elyra/services": 4.0.0-dev
-    "@elyra/ui-components": 4.0.0-dev
+    "@elyra/services": 4.0.0-rc.0
+    "@elyra/ui-components": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
@@ -3222,8 +3222,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/metadata-extension@workspace:packages/metadata"
   dependencies:
-    "@elyra/metadata-common": 4.0.0-dev
-    "@elyra/services": 4.0.0-dev
+    "@elyra/metadata-common": 4.0.0-rc.0
+    "@elyra/services": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
@@ -3240,11 +3240,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/pipeline-editor-extension@workspace:packages/pipeline-editor"
   dependencies:
-    "@elyra/metadata-common": 4.0.0-dev
+    "@elyra/metadata-common": 4.0.0-rc.0
     "@elyra/pipeline-editor": 1.12.1
     "@elyra/pipeline-services": 1.12.1
-    "@elyra/services": 4.0.0-dev
-    "@elyra/ui-components": 4.0.0-dev
+    "@elyra/services": 4.0.0-rc.0
+    "@elyra/ui-components": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
@@ -3340,8 +3340,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/python-editor-extension@workspace:packages/python-editor"
   dependencies:
-    "@elyra/script-editor": 4.0.0-dev
-    "@elyra/ui-components": 4.0.0-dev
+    "@elyra/script-editor": 4.0.0-rc.0
+    "@elyra/ui-components": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
@@ -3363,8 +3363,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/r-editor-extension@workspace:packages/r-editor"
   dependencies:
-    "@elyra/script-editor": 4.0.0-dev
-    "@elyra/ui-components": 4.0.0-dev
+    "@elyra/script-editor": 4.0.0-rc.0
+    "@elyra/ui-components": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
@@ -3386,8 +3386,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/scala-editor-extension@workspace:packages/scala-editor"
   dependencies:
-    "@elyra/script-editor": 4.0.0-dev
-    "@elyra/ui-components": 4.0.0-dev
+    "@elyra/script-editor": 4.0.0-rc.0
+    "@elyra/ui-components": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
@@ -3409,7 +3409,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/script-debugger-extension@workspace:packages/script-debugger"
   dependencies:
-    "@elyra/script-editor": 4.0.0-dev
+    "@elyra/script-editor": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
     "@jupyterlab/debugger": ^4.2.5
@@ -3421,7 +3421,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/script-editor@4.0.0-dev, @elyra/script-editor@workspace:packages/script-editor":
+"@elyra/script-editor@4.0.0-rc.0, @elyra/script-editor@workspace:packages/script-editor":
   version: 0.0.0-use.local
   resolution: "@elyra/script-editor@workspace:packages/script-editor"
   dependencies:
@@ -3451,7 +3451,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/services@4.0.0-dev, @elyra/services@workspace:packages/services":
+"@elyra/services@4.0.0-rc.0, @elyra/services@workspace:packages/services":
   version: 0.0.0-use.local
   resolution: "@elyra/services@workspace:packages/services"
   dependencies:
@@ -3480,7 +3480,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@elyra/theme-extension@workspace:packages/theme"
   dependencies:
-    "@elyra/ui-components": 4.0.0-dev
+    "@elyra/ui-components": 4.0.0-rc.0
     "@jupyterlab/application": ^4.2.5
     "@jupyterlab/apputils": ^4.2.5
     "@jupyterlab/builder": ^4.2.5
@@ -3497,7 +3497,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@elyra/ui-components@4.0.0-dev, @elyra/ui-components@workspace:packages/ui-components":
+"@elyra/ui-components@4.0.0-rc.0, @elyra/ui-components@workspace:packages/ui-components":
   version: 0.0.0-use.local
   resolution: "@elyra/ui-components@workspace:packages/ui-components"
   dependencies:
@@ -27248,7 +27248,7 @@ __metadata:
 
 "typescript@patch:typescript@npm%3A>=3 < 6#~builtin<compat/typescript>":
   version: 5.5.4
-  resolution: "typescript@patch:typescript@npm%3A5.5.4#~builtin<compat/typescript>::version=5.5.4&hash=85af82"
+  resolution: "typescript@patch:typescript@npm%3A5.5.4#~builtin<compat/typescript>::version=5.5.4&hash=5da071"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
@@ -27258,11 +27258,11 @@ __metadata:
 
 "typescript@patch:typescript@~5.1.6#~builtin<compat/typescript>":
   version: 5.1.6
-  resolution: "typescript@patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=85af82"
+  resolution: "typescript@patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 21e88b0a0c0226f9cb9fd25b9626fb05b4c0f3fddac521844a13e1f30beb8f14e90bd409a9ac43c812c5946d714d6e0dee12d5d02dfc1c562c5aacfa1f49b606
+  checksum: f53bfe97f7c8b2b6d23cf572750d4e7d1e0c5fff1c36d859d0ec84556a827b8785077bc27676bf7e71fae538e517c3ecc0f37e7f593be913d884805d931bc8be
   languageName: node
   linkType: hard
 
