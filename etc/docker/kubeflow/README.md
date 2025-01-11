@@ -20,7 +20,7 @@ limitations under the License.
 
 This `Dockerfile` is used to build an Elyra notebook image that can be launched by [Kubeflow's Notebook Server](https://www.kubeflow.org/docs/components/notebooks/).
 
-Ready-to-use container images are published on [Docker Hub](https://hub.docker.com/r/elyra/kf-notebook) and [quay.io](https://quay.io/repository/elyra/kf-notebook). 
+Ready-to-use container images are published on [Docker Hub](https://hub.docker.com/r/elyra/kf-notebook) and [quay.io](https://quay.io/repository/elyra/kf-notebook).
 Refer to [the documentation](https://elyra.readthedocs.io/en/latest/recipes/using-elyra-with-kubeflow-notebook-server.html) for details.
 
 #### Building a custom container image
@@ -29,5 +29,5 @@ To build a custom version of this container image:
 1. Clone this repository
 2. Build the container image:
    - (Option 1) Build from official distributables: In the repository root directory run `make kf-notebook-image TAG=3.X.X` to create an image using the 3.X.X release from PyPI.
-   - (Option 2) Build from local source: In the repository root directory run `make kf-notebook-image TAG=dev` _after_ running `make install` to build Elyra locally. 
+   - (Option 2) Build from local source: In the repository root directory run `make kf-notebook-image TAG=dev` _after_ running `make install-prod` to build Elyra locally.
 3. The container image is automatically tagged with `elyra/kf-notebook:$TAG` and `quay.io/elyra/kf-notebook:$TAG`

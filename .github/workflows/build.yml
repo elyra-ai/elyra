@@ -139,7 +139,8 @@ jobs:
       - name: Build
         run: |
           make build-dependencies
-          make build-ui
+          make yarn-install
+          make build-ui-prod
       - name: Install
         run: make install-server
       - name: Test
@@ -173,7 +174,8 @@ jobs:
       - name: Build
         run: |
           make build-dependencies
-          make build-ui
+          make yarn-install
+          make build-ui-prod
       - name: Install
         run: |
           make install-server
@@ -246,7 +248,7 @@ jobs:
         uses: ./.github/actions/install-ui-dependencies
       - name: Build
         run: |
-          make clean install
+          make install-prod
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
