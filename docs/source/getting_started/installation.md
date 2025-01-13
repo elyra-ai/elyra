@@ -21,7 +21,7 @@ The Elyra [JupyterLab extensions](https://jupyterlab.readthedocs.io/en/stable/us
 
 ### Prerequisites
 
-* [Node.js 20+](https://nodejs.org/en/)
+* [Node.js 22](https://nodejs.org/en/)
 * [Python 3.9+](https://www.python.org/downloads/) (or later)
 
 JupyterLab dependencies:
@@ -76,7 +76,7 @@ If desired, you can install these Elyra extensions independently:
    ```bash
    pip3 install --upgrade elyra-r-editor-extension
    ```
-  
+
 - [Scala Editor](https://pypi.org/project/elyra-scala-editor-extension/)
 
    ```bash
@@ -198,7 +198,7 @@ Other labextensions (built into JupyterLab)
    app dir: /.../share/jupyter/lab
 ```
 
-### Docker 
+### Docker
 
 If you have Docker installed, you can use JupyterLab and Elyra by running one of the ready-to-run container images:
 
@@ -208,7 +208,7 @@ If you have Docker installed, you can use JupyterLab and Elyra by running one of
 
 #### Pulling Elyra container images
 
-Images can be pulled from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags) 
+Images can be pulled from [Docker Hub](https://hub.docker.com/r/elyra/elyra/tags)
 
 ```
 docker pull elyra/elyra:dev
@@ -239,7 +239,7 @@ docker run -it -p 8888:8888\
 
 Invocation example 3: Same as above. In addition a local directory named `${HOME}/jupyter-data-dir` is mounted as the Jupyter data directory in the Docker container, storing all user-defined Elyra metadata artifacts you might create, such as code snippets, runtime configurations, or runtime images.
 
-Note: To start with a clean environment `${HOME}/jupyter-data-dir` should refer to an empty directory. To re-use an existing Jupyter data directory from a local installation specify the output of `jupyter --data-dir` as directory name. 
+Note: To start with a clean environment `${HOME}/jupyter-data-dir` should refer to an empty directory. To re-use an existing Jupyter data directory from a local installation specify the output of `jupyter --data-dir` as directory name.
 
 ```
 docker run -it -p 8888:8888\
@@ -261,7 +261,7 @@ Open the displayed URL in your browser to start using JupyterLab and Elyra.
 
 ### Kubeflow Notebook Server
 
-The instructions in 
+The instructions in
 [this topic](/recipes/using-elyra-with-kubeflow-notebook-server.md) outline how to configure a [Kubeflow Notebook Server](https://www.kubeflow.org/docs/components/notebooks) for Elyra.
 
 ### Red Hat OpenShift

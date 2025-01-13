@@ -3267,7 +3267,7 @@ __metadata:
     "@lumino/signaling": ^2.1.2
     "@lumino/widgets": ^2.3.1
     "@types/jest": ^29.2.0
-    "@types/node": ^12.0.10
+    "@types/node": ^22.10.5
     "@types/react": 18.0.26
     "@types/react-dom": 18.0.9
     "@types/uuid": ^3.4.7
@@ -7113,17 +7113,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^12.0.10":
-  version: 12.20.55
-  resolution: "@types/node@npm:12.20.55"
-  checksum: e4f86785f4092706e0d3b0edff8dca5a13b45627e4b36700acd8dfe6ad53db71928c8dee914d4276c7fd3b6ccd829aa919811c9eb708a2c8e4c6eb3701178c37
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^15.0.1":
-  version: 15.14.9
-  resolution: "@types/node@npm:15.14.9"
-  checksum: 49f7f0522a3af4b8389aee660e88426490cd54b86356672a1fedb49919a8797c00d090ec2dcc4a5df34edc2099d57fc2203d796c4e7fbd382f2022ccd789eee7
+"@types/node@npm:^22.10.5":
+  version: 22.10.5
+  resolution: "@types/node@npm:22.10.5"
+  dependencies:
+    undici-types: ~6.20.0
+  checksum: 3b0e966df4e130edac3ad034f1cddbe134e70f11556062468c9fbd749a3b07a44445a3a75a7eec68a104930bf05d4899f1a418c4ae48493d2c8c1544d8594bcc
   languageName: node
   linkType: hard
 
@@ -12939,7 +12934,7 @@ __metadata:
     "@testing-library/cypress": ^7.0.4
     "@types/jest": ^29.2.0
     "@types/lodash": ^4.14.170
-    "@types/node": ^15.0.1
+    "@types/node": ^22.10.5
     "@types/react": ^18.0.26
     "@types/react-dom": ~18.0.9
     "@typescript-eslint/eslint-plugin": ~6.13.2
@@ -27301,6 +27296,13 @@ __metadata:
     has-symbols: "npm:^1.0.3"
     which-boxed-primitive: "npm:^1.0.2"
   checksum: b7a1cf5862b5e4b5deb091672ffa579aa274f648410009c81cca63fed3b62b610c4f3b773f912ce545bb4e31edc3138975b5bc777fc6e4817dca51affb6380e9
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.20.0":
+  version: 6.20.0
+  resolution: "undici-types@npm:6.20.0"
+  checksum: b7bc50f012dc6afbcce56c9fd62d7e86b20a62ff21f12b7b5cbf1973b9578d90f22a9c7fe50e638e96905d33893bf2f9f16d98929c4673c2480de05c6c96ea8b
   languageName: node
   linkType: hard
 

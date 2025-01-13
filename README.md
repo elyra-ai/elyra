@@ -54,7 +54,7 @@ You can also try Elyra by running one of the container images from [Docker Hub](
 - `elyra/elyra:latest` has the latest released version installed.
 - `elyra/elyra:x.y.z` has a specific version installed.
 
-Note: You can also [build a container image from the `main` branch ("dev build")](https://github.com/elyra-ai/elyra/tree/main/etc/docker/elyra) to try out features that have not been released yet.  
+Note: You can also [build a container image from the `main` branch ("dev build")](https://github.com/elyra-ai/elyra/tree/main/etc/docker/elyra) to try out features that have not been released yet.
 
 To run one of the container images, issue the following command, specifying a tag of your choice.
 
@@ -86,7 +86,7 @@ Refer to the [installation documentation](https://elyra.readthedocs.io/en/stable
 For detailed information refer to the [installation documentation](https://elyra.readthedocs.io/en/stable/getting_started/installation.html).
 
 ### Prerequisites :
-* [Node.js 20+](https://nodejs.org/en/)
+* [Node.js 22](https://nodejs.org/en/)
 * [Python 3.9+](https://www.python.org/downloads/)
 * [Miniconda](https://docs.conda.io/en/latest/miniconda.html) / [Micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) (optional)
 
@@ -108,7 +108,7 @@ The current release version is displayed at the top of this page.
 
 ### Install older release
 
-Installation instructions and JupyterLab support vary by release. Note that a JupyterLab build is required. Installation instructions are located in the [release-specific documentation](https://elyra.readthedocs.io/en/stable/), which can be accessed by selecting a specific version. 
+Installation instructions and JupyterLab support vary by release. Note that a JupyterLab build is required. Installation instructions are located in the [release-specific documentation](https://elyra.readthedocs.io/en/stable/), which can be accessed by selecting a specific version.
 
 <details>
   <summary>Elyra 4.x (JupyterLab 4.2.5+)</summary>
@@ -162,7 +162,7 @@ Installation instructions and JupyterLab support vary by release. Note that a Ju
   <summary>Elyra 2.0 < 3.1 (JupyterLab 3.x)</summary>
 
   - Install from PyPI
-  
+
     ```bash
     pip3 install --upgrade "elyra>=2.0.1" && jupyter lab build
     ```
@@ -174,7 +174,7 @@ Installation instructions and JupyterLab support vary by release. Note that a Ju
     ```
 </details>
 
-### Verify Installation 
+### Verify Installation
 
 Run the following commands to verify the installation. Note that in the example output below the `[version]` placeholder is displayed instead of an actual version identifier, which might change with every release.
 
@@ -221,7 +221,7 @@ it with `jupyter server extension enable elyra`
 jupyter labextension list
 ```
 Should output:
-```      
+```
 JupyterLab [version]
 /.../share/jupyter/labextensions
         nbdime-jupyterlab [version] enabled OK
@@ -252,8 +252,8 @@ jupyter lab
 We welcome your questions, ideas, and feedback. Check the [`Getting Help` section in the `Getting Started guide`](https://elyra.readthedocs.io/en/latest/getting_started/getting-help.html) to learn more about the channels you can use to get in touch with us.
 
 ## Contributing to Elyra
-If you are interested in helping make Elyra better, we encourage you to take a look at our 
-[Contributing](CONTRIBUTING.md) page,  
+If you are interested in helping make Elyra better, we encourage you to take a look at our
+[Contributing](CONTRIBUTING.md) page,
 [Development Workflow](https://elyra.readthedocs.io/en/latest/developer_guide/development-workflow.html)
 documentation, and invite you to attend our weekly dev community meetings.
 
