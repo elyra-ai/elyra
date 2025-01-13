@@ -26,6 +26,7 @@ env:
   NODE_VERSION: 22
   YARN_VERSION: 3.5.0
   PYTHON_VERSION: 3.11
+  NODE_OPTIONS: '--max_old_space_size=4096'
 
 jobs:
   prepare-yarn-cache:
@@ -188,10 +189,10 @@ jobs:
         with:
           name: elyra_test_artifacts
           path: |
-            ${{ github.workspace }}/build/cypress-tests/*.log
-            ${{ github.workspace }}/build/cypress-tests/pipelines//**/*
-            ${{ github.workspace }}/build/cypress-tests/screenshots//**/*
-            ${{ github.workspace }}/build/cypress-tests/videos//**/*
+            ${{ github.workspace }}/build/cypress/*.log
+            ${{ github.workspace }}/build/cypress/pipelines//**/*
+            ${{ github.workspace }}/build/cypress/screenshots//**/*
+            ${{ github.workspace }}/build/cypress/videos//**/*
             /home/runner/.npm/_logs/*.log
 
   test-documentation-build:

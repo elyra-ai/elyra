@@ -46,7 +46,7 @@ const getSnapshotPath = (test: any): string => {
 
   const index = snapshotIndexTracker[filename];
 
-  const snapshotsFolder = Cypress.config('snapshotsFolder');
+  const snapshotsFolder = Cypress.env('snapshotsFolder');
 
   return `${snapshotsFolder}/${filename}.${index}.snap`;
 };

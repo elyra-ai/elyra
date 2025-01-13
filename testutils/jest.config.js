@@ -39,7 +39,7 @@ module.exports = {
     '^.+\\.(j|t)sx?$': [
       'ts-jest',
       {
-        tsConfig: '../../tests/tsconfig.json'
+        tsConfig: '../../testutils/tsconfig.jest.json'
       }
     ],
     '\\.svg$': '@glen/jest-raw-loader'

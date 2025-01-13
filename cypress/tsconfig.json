@@ -2,12 +2,7 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "isolatedModules": false,
-    "types": [
-      "@types/jest",
-      "cypress",
-      "@testing-library/cypress",
-      "cypress-real-events"
-    ],
+    "types": ["cypress", "@testing-library/cypress", "cypress-real-events"],
     "sourceMap": false
   },
   "include": ["**/*.ts"]

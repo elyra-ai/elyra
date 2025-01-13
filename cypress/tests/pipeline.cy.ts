@@ -46,7 +46,7 @@ describe('Pipeline Editor tests', () => {
     cy.bootstrapFile('invalid.pipeline');
     cy.bootstrapFile('generic-test.pipeline');
     cy.bootstrapFile('helloworld.ipynb');
-    cy.exec('jupyter trust build/cypress-tests/helloworld.ipynb');
+    cy.exec('jupyter trust build/cypress/helloworld.ipynb');
     cy.bootstrapFile('helloworld.py');
     cy.bootstrapFile('helloworld.r');
     cy.bootstrapFile('invalid.txt');
@@ -161,10 +161,7 @@ describe('Pipeline Editor tests', () => {
 
     // Do this all manually because our command doesn't support directories yet
     cy.openDirectory('pipelines');
-    cy.writeFile(
-      'build/cypress-tests/pipelines/complex.pipeline',
-      emptyPipeline
-    );
+    cy.writeFile('build/cypress/pipelines/complex.pipeline', emptyPipeline);
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
     // wait an additional 300ms for the list of items to settle
@@ -284,9 +281,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.savePipeline();
 
-    cy.readFile(
-      'build/cypress-tests/pipelines/complex.pipeline'
-    ).matchesSnapshot();
+    cy.readFile('build/cypress/pipelines/complex.pipeline').matchesSnapshot();
   });
 
   it('matches empty pipeline snapshot', () => {
@@ -301,7 +296,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.savePipeline();
 
-    cy.readFile('build/cypress-tests/empty.pipeline').matchesSnapshot();
+    cy.readFile('build/cypress/empty.pipeline').matchesSnapshot();
   });
 
   it('matches simple pipeline snapshot', () => {
@@ -315,7 +310,7 @@ describe('Pipeline Editor tests', () => {
 
     cy.savePipeline();
 
-    cy.readFile('build/cypress-tests/simple.pipeline').matchesSnapshot();
+    cy.readFile('build/cypress/simple.pipeline').matchesSnapshot();
   });
 
   it('should fill up all properties in the Pipeline Properties tab', () => {
@@ -445,10 +440,7 @@ describe('Pipeline Editor tests', () => {
     // Open a pipeline in a subfolder
     cy.bootstrapFile('pipelines/producer.ipynb');
     cy.openDirectory('pipelines');
-    cy.writeFile(
-      'build/cypress-tests/pipelines/complex.pipeline',
-      emptyPipeline
-    );
+    cy.writeFile('build/cypress/pipelines/complex.pipeline', emptyPipeline);
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
     cy.wait(300);
@@ -488,10 +480,7 @@ describe('Pipeline Editor tests', () => {
     // Open a pipeline in a subfolder
     cy.bootstrapFile('pipelines/producer.ipynb');
     cy.openDirectory('pipelines');
-    cy.writeFile(
-      'build/cypress-tests/pipelines/complex.pipeline',
-      emptyPipeline
-    );
+    cy.writeFile('build/cypress/pipelines/complex.pipeline', emptyPipeline);
     cy.openFile('complex.pipeline');
     cy.get('.common-canvas-drop-div');
     cy.wait(300);
@@ -590,7 +579,7 @@ describe('Pipeline Editor tests', () => {
   //   // dismiss 'Job Succeeded' dialog
   //   cy.contains('OK').click();
 
-  //   cy.readFile('build/cypress-tests/output.txt').should(
+  //   cy.readFile('build/cypress/output.txt').should(
   //     'be.equal',
   //     'TEST_ENV_1=1\nTEST_ENV_2=2\n'
   //   );
@@ -637,7 +626,7 @@ describe('Pipeline Editor tests', () => {
       'be.visible'
     );
 
-    cy.readFile('build/cypress-tests/generic-test.yaml');
+    cy.readFile('build/cypress/generic-test.yaml');
   });
 
   it('should export KFP pipeline as Python DSL', () => {
@@ -671,7 +660,7 @@ describe('Pipeline Editor tests', () => {
       'be.visible'
     );
 
-    cy.readFile('build/cypress-tests/generic-test.py');
+    cy.readFile('build/cypress/generic-test.py');
   });
 
   it('should export Airflow pipeline as python dsl', () => {
@@ -709,7 +698,7 @@ describe('Pipeline Editor tests', () => {
       'be.visible'
     );
 
-    cy.readFile('build/cypress-tests/helloworld.py');
+    cy.readFile('build/cypress/helloworld.py');
   });
 
   it('should export pipeline with custom filename', () => {
@@ -746,7 +735,7 @@ describe('Pipeline Editor tests', () => {
       'be.visible'
     );
 
-    cy.readFile('build/cypress-tests/generic-test-custom.yaml');
+    cy.readFile('build/cypress/generic-test-custom.yaml');
   });
 
   it('should not leak properties when switching between nodes', () => {
