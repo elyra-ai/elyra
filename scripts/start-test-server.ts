@@ -18,7 +18,7 @@ import { exec, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-const config = path.join(__dirname, '..', 'tests', 'test-config.py');
+const config = path.join(__dirname, '..', 'cypress', 'test-config.py');
 const jupyter = exec(`jupyter lab --config ${config}`);
 
 const CONTAINER_NAME = 'minio_test';
@@ -35,7 +35,7 @@ const docker = spawn('docker', [
   '/data'
 ]);
 
-const logDir = path.join(__dirname, '..', 'build', 'cypress-tests');
+const logDir = path.join(__dirname, '..', 'build', 'cypress');
 
 const jupyterLog = fs.createWriteStream(path.join(logDir, 'jupyter.log'));
 jupyter.stderr?.pipe(jupyterLog);

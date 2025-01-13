@@ -17,7 +17,7 @@ limitations under the License.
 -->
 # Contributing to Elyra
 
-Elyra is an open-source project and welcomes contributions from the community be it as code, documentation, scenarios, etc. 
+Elyra is an open-source project and welcomes contributions from the community be it as code, documentation, scenarios, etc.
 
 Before you start, look at the project:
 - [Code of Conduct](https://github.com/elyra-ai/community/blob/main/code-of-conduct.md)
@@ -70,7 +70,7 @@ Sections are separated by a blank line. Each section is alphabetized by the name
 
 ### UI Tests
 Elyra uses two types of frontend tests: integration tests (which use [cypress](https://docs.cypress.io/))
-and unit tests (which use [jest](https://jestjs.io/docs/en/getting-started)). 
+and unit tests (which use [jest](https://jestjs.io/docs/en/getting-started)).
 
 #### UI Integration tests
 Before running integration tests, docker needs to be installed and running on your machine.
@@ -84,12 +84,12 @@ Elyra's integration tests automatically start JupyterLab and visit / interact wi
 The tests use the cypress API to check for the existence of various buttons and visual elements.
 Refer to the [cypress API](https://docs.cypress.io/api/api/table-of-contents.html) for more details.
 
-New integration tests can be added to `tests/integration`. 
+New integration tests can be added to `cypress/tests`.
 
 #### UI Unit tests
 To run all of the unit tests, use `make test-ui-unit` from the root directory. To run the unit tests for a specific Elyra package, simply run `jest` or `npm run test` from that package's directory (under `packages/`). To turn on the watch mode just run `jest --watch` or `npm run test --watch`.
 
-Elyra's unit tests test the various classes and objects used by Elyra extensions. Refer to the [jest API](https://jestjs.io/docs/en/getting-started) for more details. 
+Elyra's unit tests test the various classes and objects used by Elyra extensions. Refer to the [jest API](https://jestjs.io/docs/en/getting-started) for more details.
 
 To add unit tests for a package that doesn't have tests set up, some configuration files are required. In the directory for the package being tested, add a file titled `jest.config.js` that contains the following:
 ```
@@ -128,7 +128,7 @@ Elyra runs as extensions to the Jupyter ecosystem, thus it's backend is currentl
 and exposed as REST APIs to frontend clients.
 
 
-### Elyra backend services 
+### Elyra backend services
 
 The existing services are currently available as individual python modules inside the
 [elyra](https://github.com/elyra-ai/elyra/tree/main/elyra) folder.

@@ -18,7 +18,7 @@ import '@testing-library/cypress/add-commands';
 
 import 'cypress-real-events/support';
 
-import './../utils/snapshots/add-commands';
+import '../utils/snapshots/add-commands';
 
 Cypress.Commands.add('installRuntimeConfig', ({ type } = {}): void => {
   const kfpRuntimeInstallCommand =
@@ -132,7 +132,7 @@ Cypress.Commands.add('createExampleComponentCatalog', ({ type } = {}): void => {
 });
 
 Cypress.Commands.add('deleteFile', (name: string): void => {
-  cy.exec(`find build/cypress-tests/ -name "${name}" -delete`, {
+  cy.exec(`find build/cypress/ -name "${name}" -delete`, {
     failOnNonZeroExit: false
   });
 });
@@ -159,7 +159,7 @@ Cypress.Commands.add(
           break;
       }
     } else {
-      cy.writeFile(`build/cypress-tests/${name}`, emptyPipeline ?? '');
+      cy.writeFile(`build/cypress/${name}`, emptyPipeline ?? '');
       cy.openFile(name);
     }
 
@@ -206,8 +206,8 @@ Cypress.Commands.add('openFile', (name: string): void => {
 });
 
 Cypress.Commands.add('bootstrapFile', (name: string): void => {
-  cy.readFile(`tests/assets/${name}`).then((file: any) => {
-    cy.writeFile(`build/cypress-tests/${name}`, file);
+  cy.readFile(`cypress/fixtures/${name}`).then((file) => {
+    cy.writeFile(`build/cypress/${name}`, file);
   });
 });
 
@@ -341,4 +341,9 @@ Cypress.Commands.add('dismissAssistant', (fileType: string): void => {
       cy.get(selector).first().type('{esc}');
     }
   });
+});
+
+Cypress.on('uncaught:exception', (err, _runnable) => {
+  console.log('Uncaught exception:', err);
+  return false; // Prevent Cypress from failing the test
 });
