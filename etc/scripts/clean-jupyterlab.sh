@@ -86,13 +86,7 @@ fi
 echo " "
 
 echo "Installing Xeus kernel"
-XPYTHON_VERSION="$(python --version 2>&1)"
-if [[ "$XPYTHON_VERSION" == *"Python 3.6"* ]]
-then
-    conda install -y xeus-python">=0.8.0,<0.9.0" -c conda-forge
-else
-    conda install -y xeus-python">=0.9.3" -c conda-forge
-fi
+conda install -y xeus-python">=0.9.3" -c conda-forge
 echo " "
 
 echo "Installing R kernel and language server"
