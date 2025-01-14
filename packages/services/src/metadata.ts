@@ -16,6 +16,14 @@
 
 import { IDictionary } from './parsing';
 import { RequestHandler } from './requests';
+import {
+  IMetadataResource,
+  IMetadataResourceBody,
+  IMetadataSchemaspaceResource,
+  ISchemaResource,
+  ISchemaSchemaspaceResource,
+  ISchemaspacesResource
+} from './types';
 
 const ELYRA_METADATA_API_ENDPOINT = 'elyra/metadata/';
 const ELYRA_SCHEMA_API_ENDPOINT = 'elyra/schema/';
@@ -33,10 +41,12 @@ export class MetadataService {
    * @returns a promise that resolves with the requested metadata or
    * an error dialog result
    */
-  static async getMetadata(schemaspace: string): Promise<any> {
-    return RequestHandler.makeGetRequest(
+  static async getMetadata(
+    schemaspace: string
+  ): Promise<IMetadataResource[] | undefined> {
+    return RequestHandler.makeGetRequest<IMetadataSchemaspaceResource>(
       ELYRA_METADATA_API_ENDPOINT + schemaspace
-    ).then((metadataResponse) => metadataResponse[schemaspace]);
+    ).then((response) => response?.[schemaspace]);
   }
 
   /**
@@ -50,11 +60,11 @@ export class MetadataService {
    */
   static async postMetadata(
     schemaspace: string,
-    requestBody: any
-  ): Promise<any> {
-    return RequestHandler.makePostRequest(
+    requestBody: IMetadataResourceBody
+  ): Promise<IMetadataResource | undefined> {
+    return RequestHandler.makePostRequest<IMetadataResource>(
       ELYRA_METADATA_API_ENDPOINT + schemaspace,
-      requestBody
+      JSON.stringify(requestBody)
     );
   }
 
@@ -71,11 +81,11 @@ export class MetadataService {
   static async putMetadata(
     schemaspace: string,
     name: string,
-    requestBody: any
-  ): Promise<any> {
-    return RequestHandler.makePutRequest(
+    requestBody: IMetadataResourceBody
+  ): Promise<IMetadataResource | undefined> {
+    return RequestHandler.makePutRequest<IMetadataResource>(
       `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`,
-      requestBody
+      JSON.stringify(requestBody)
     );
   }
 
@@ -87,13 +97,16 @@ export class MetadataService {
    *
    * @returns void or an error dialog result
    */
-  static async deleteMetadata(schemaspace: string, name: string): Promise<any> {
-    return RequestHandler.makeDeleteRequest(
+  static async deleteMetadata(
+    schemaspace: string,
+    name: string
+  ): Promise<void> {
+    await RequestHandler.makeDeleteRequest(
       `${ELYRA_METADATA_API_ENDPOINT}${schemaspace}/${name}`
     );
   }
 
-  private static schemaCache: IDictionary<any> = {};
+  private static schemaCache: IDictionary<ISchemaResource[]> = {};
 
   /**
    * Service function for making GET calls to the elyra schema API.
@@ -103,20 +116,22 @@ export class MetadataService {
    * @returns a promise that resolves with the requested schemas or
    * an error dialog result
    */
-  static async getSchema(schemaspace: string): Promise<any> {
+  static async getSchema(
+    schemaspace: string
+  ): Promise<ISchemaResource[] | undefined> {
     if (this.schemaCache[schemaspace]) {
       // Deep copy cached schema to mimic request call
       return JSON.parse(JSON.stringify(this.schemaCache[schemaspace]));
     }
 
-    return RequestHandler.makeGetRequest(
+    return RequestHandler.makeGetRequest<ISchemaSchemaspaceResource>(
       ELYRA_SCHEMA_API_ENDPOINT + schemaspace
-    ).then((schemaResponse) => {
-      if (schemaResponse[schemaspace]) {
-        this.schemaCache[schemaspace] = schemaResponse[schemaspace];
+    ).then((response) => {
+      if (response?.[schemaspace]) {
+        this.schemaCache[schemaspace] = response[schemaspace];
       }
 
-      return schemaResponse[schemaspace];
+      return response?.[schemaspace];
     });
   }
 
@@ -126,16 +141,19 @@ export class MetadataService {
    * @returns a promise that resolves with the requested schemas or
    * an error dialog result
    */
-  static async getAllSchema(): Promise<any> {
+  static async getAllSchema(): Promise<ISchemaResource[] | undefined> {
     try {
-      const schemaspaces = await RequestHandler.makeGetRequest(
-        ELYRA_SCHEMASPACE_API_ENDPOINT
-      );
-      const schemas = [];
+      const response =
+        await RequestHandler.makeGetRequest<ISchemaspacesResource>(
+          ELYRA_SCHEMASPACE_API_ENDPOINT
+        );
+      const schemas: ISchemaResource[] = [];
 
-      for (const schemaspace of schemaspaces['schemaspaces']) {
+      for (const schemaspace of response?.schemaspaces ?? []) {
         const schema = await this.getSchema(schemaspace);
-        schemas.push(...schema);
+        if (schema) {
+          schemas.push(...schema);
+        }
       }
       return schemas;
     } catch (error) {

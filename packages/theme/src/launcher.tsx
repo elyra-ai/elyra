@@ -116,7 +116,7 @@ export class Launcher extends JupyterlabLauncher {
   /**
    * Render the launcher to virtual DOM nodes.
    */
-  protected render(): React.ReactElement<any> | null {
+  protected render(): React.ReactElement<React.JSX.Element> | null {
     // Bail if there is no model.
     if (!this.model) {
       return null;
@@ -128,7 +128,7 @@ export class Launcher extends JupyterlabLauncher {
     const launcherContent = launcherBody?.props.children;
     const launcherCategories = launcherContent.props.children;
 
-    const categories: React.ReactElement<any>[] = [];
+    const categories: React.ReactElement<string>[] = [];
 
     const knownCategories = [
       this._translator.__('Notebook'),
@@ -139,7 +139,7 @@ export class Launcher extends JupyterlabLauncher {
 
     // Assemble the final ordered list of categories
     // based on knownCategories.
-    each(knownCategories, (category, index) => {
+    each(knownCategories, (category) => {
       React.Children.forEach(launcherCategories, (cat) => {
         if (cat.key === category) {
           if (cat.key === ELYRA_CATEGORY) {

@@ -19,3 +19,4 @@ import '../style/index.css';
 export * from './parsing';
 export * from './metadata';
 export * from './requests';
+export * from './types';

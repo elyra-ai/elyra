@@ -18,6 +18,12 @@ import '../style/index.css';
 
 import { Dialog } from '@jupyterlab/apputils';
 import { Widget } from '@lumino/widgets';
+import { GenericObjectType } from '@rjsf/utils';
+
+type DialogBodyElement =
+  | HTMLSelectElement
+  | HTMLInputElement
+  | HTMLTextAreaElement;
 
 const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
 /*
@@ -33,22 +39,22 @@ const DEFAULT_BUTTON_CLASS = 'elyra-DialogDefaultButton';
  *
  * returns a call to dialog display
  */
-export const showFormDialog = async (
-  options: Partial<Dialog.IOptions<any>>,
-  formValidationFunction?: (dialog: Dialog<any>) => void
-): Promise<Dialog.IResult<any>> => {
+export const showFormDialog = async <T extends GenericObjectType>(
+  options: Partial<Dialog.IOptions<T>>,
+  formValidationFunction?: (dialog: Dialog<T>) => void
+): Promise<Dialog.IResult<T>> => {
   const dialogBody = options.body;
   const dialog = new Dialog(options);
 
   // Get dialog default action button
-  const defaultButton = getDefaultButton(options, dialog.node);
+  const defaultButton = getDefaultButton<T>(options, dialog.node);
   defaultButton.className += ' ' + DEFAULT_BUTTON_CLASS;
 
   if (formValidationFunction) {
     formValidationFunction(dialog);
   } else {
     if (dialogBody instanceof Widget) {
-      const fieldsToBeValidated = new Set();
+      const fieldsToBeValidated = new Set<DialogBodyElement>();
       const validateDialogButton = (): void =>
         isFormValid(fieldsToBeValidated)
           ? enableButton(defaultButton)
@@ -56,27 +62,26 @@ export const showFormDialog = async (
 
       // Get elements that require validation and add event listeners
       dialogBody.node
-        .querySelectorAll('select, input, textarea')
-        .forEach((element: any) => {
+        .querySelectorAll<DialogBodyElement>('select, input, textarea')
+        .forEach((element) => {
           if (element.hasAttribute('data-form-required')) {
             const elementTagName = element.tagName.toLowerCase();
 
-            if (elementTagName === 'select' || element.type === 'number') {
-              element.addEventListener('change', (event: Event) =>
-                validateDialogButton()
-              );
+            if (
+              elementTagName === 'select' ||
+              (element as HTMLInputElement).type === 'number'
+            ) {
+              element.addEventListener('change', () => validateDialogButton());
             }
             if (['input', 'textarea'].includes(elementTagName)) {
-              element.addEventListener('keyup', (event: Event) =>
-                validateDialogButton()
-              );
+              element.addEventListener('keyup', () => validateDialogButton());
             }
 
             fieldsToBeValidated.add(element);
           }
         });
 
-      preventDefaultDialogHandler(
+      preventDefaultDialogHandler<T>(
         () => isFormValid(fieldsToBeValidated),
         dialog
       );
@@ -94,8 +99,8 @@ export const enableButton = (button: HTMLButtonElement): void => {
   button.removeAttribute('disabled');
 };
 
-const getDefaultButton = (
-  options: Partial<Dialog.IOptions<any>>,
+const getDefaultButton = <T extends GenericObjectType>(
+  options: Partial<Dialog.IOptions<T>>,
   node: HTMLElement
 ): HTMLButtonElement => {
   const defaultButtonIndex =
@@ -107,9 +112,9 @@ const getDefaultButton = (
 };
 
 // Prevent user from bypassing validation upon pressing the 'Enter' key
-const preventDefaultDialogHandler = (
+const preventDefaultDialogHandler = <T extends GenericObjectType>(
   isFormValidFn: () => boolean,
-  dialog: Dialog<any>
+  dialog: Dialog<T>
 ): void => {
   const dialogHandleEvent = dialog.handleEvent;
   dialog.handleEvent = (event: Event): void => {
@@ -132,12 +137,12 @@ const preventDefaultDialogHandler = (
 };
 
 // Returns true if given element is valid
-const isFieldValid = (element: any): boolean => {
+const isFieldValid = (element: DialogBodyElement): boolean => {
   return element.value.trim() ? true : false;
 };
 
 // Returns true if form dialog has all fields validated
-const isFormValid = (fieldToBeValidated: Set<any>): boolean => {
+const isFormValid = (fieldToBeValidated: Set<DialogBodyElement>): boolean => {
   for (const field of fieldToBeValidated.values()) {
     if (!isFieldValid(field)) {
       return false;

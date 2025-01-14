@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import { MetadataService } from '@elyra/services';
-
-import { IMetadata } from './MetadataWidget';
+import { IMetadataResource, MetadataService } from '@elyra/services';
 
 export class MetadataCommonService {
   /**
@@ -31,9 +29,9 @@ export class MetadataCommonService {
    */
   static duplicateMetadataInstance(
     schemaSpace: string,
-    metadataInstance: IMetadata,
-    existingInstances: IMetadata[]
-  ): Promise<boolean> {
+    metadataInstance: IMetadataResource,
+    existingInstances: IMetadataResource[]
+  ): Promise<IMetadataResource | undefined> {
     // iterate through the list of currently defined
     // instance names and find the next available one
     // using '<source-instance-name>-Copy<N>'
@@ -56,9 +54,6 @@ export class MetadataCommonService {
     const duplicated_metadata = JSON.parse(JSON.stringify(metadataInstance));
     duplicated_metadata.display_name = `${base_name}-Copy${count}`;
     delete duplicated_metadata.name;
-    return MetadataService.postMetadata(
-      schemaSpace,
-      JSON.stringify(duplicated_metadata)
-    );
+    return MetadataService.postMetadata(schemaSpace, duplicated_metadata);
   }
 }

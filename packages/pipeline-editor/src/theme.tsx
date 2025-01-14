@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Theme } from '@elyra/pipeline-editor/dist/types';
 import { trashIcon } from '@elyra/ui-components';
 import {
   closeIcon,
@@ -24,6 +25,7 @@ import {
   paletteIcon
 } from '@jupyterlab/ui-components';
 import * as React from 'react';
+import { DeepPartial } from 'redux';
 
 interface ISvgIconProps {
   children: React.ReactNode;
@@ -43,7 +45,7 @@ const SvgIcon: React.FC<ISvgIconProps> = ({ children }) => {
   );
 };
 
-const theme: any = {
+const theme: DeepPartial<Theme> = {
   palette: {
     focus: 'var(--jp-brand-color0)',
     border: 'var(--jp-border-color0)',
@@ -68,10 +70,6 @@ const theme: any = {
       main: 'var(--jp-error-color1)',
       contrastText: 'rgba(255, 255, 255, 0.9)',
       errorBorder: 'var(--jp-error-color0)'
-    },
-    icon: {
-      primary: 'var(--jp-ui-font-color0)',
-      secondary: 'var(--jp-ui-font-color0)'
     },
     text: {
       primary: 'var(--jp-content-font-color0)',

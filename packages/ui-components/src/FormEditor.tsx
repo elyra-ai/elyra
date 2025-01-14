@@ -23,10 +23,18 @@ import {
   FieldTemplateProps,
   RegistryFieldsType,
   RegistryWidgetsType,
-  RJSFValidationError
+  RJSFValidationError,
+  UiSchema
 } from '@rjsf/utils';
 import validator from '@rjsf/validator-ajv8';
 import * as React from 'react';
+
+type ElyraSchema = GenericObjectType & {
+  uihints?: { title: string; icon: string; reference_url: string };
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- a record that holds any value
+export type GenericObjectType = Record<string, any>;
 
 /**
  * Props passed to the FormEditor.
@@ -35,12 +43,12 @@ interface IFormEditorProps {
   /**
    * Schema for form fields to be displayed.
    */
-  schema: any;
+  schema: GenericObjectType;
 
   /**
    * Handler to update form data in parent component.
    */
-  onChange: (formData: any) => void;
+  onChange: (formData: GenericObjectType) => void;
 
   /**
    * Editor services to create new editors in code fields.
@@ -60,7 +68,7 @@ interface IFormEditorProps {
   /**
    * Metadata that already exists (if there is any)
    */
-  originalData?: any;
+  originalData?: GenericObjectType;
 
   /**
    * All existing tags to give as options.
@@ -83,7 +91,7 @@ export type FormValidationState =
     };
 
 export interface IFormEditorRef {
-  validateForm: (data: any) => FormValidationState;
+  validateForm: (data: GenericObjectType) => FormValidationState;
 }
 
 /**
@@ -174,14 +182,15 @@ const RefForwardingFormEditor: React.ForwardRefRenderFunction<
   /**
    * Generate the rjsf uiSchema from uihints in the elyra metadata schema.
    */
-  const uiSchema: any = {
+  const uiSchema: UiSchema = {
     classNames: 'elyra-formEditor'
   };
   for (const category in schema?.properties) {
-    const properties = schema.properties[category];
+    const properties = schema.properties[category] as GenericObjectType;
     uiSchema[category] = {};
     for (const field in properties.properties) {
-      uiSchema[category][field] = properties.properties[field].uihints ?? {};
+      const fieldProperties = properties.properties[field] as ElyraSchema;
+      uiSchema[category][field] = fieldProperties.uihints ?? {};
       uiSchema[category][field].classNames = `elyra-formEditor-form-${field}`;
     }
   }

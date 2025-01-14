@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {
   IRuntimeComponent,
   GENERIC_CATEGORY_ID,
@@ -52,7 +53,12 @@ const createMockComponent = (name: string): Component => {
     type: 'execution_node',
     inputs: [],
     outputs: [],
-    app_data: {}
+    app_data: {
+      image: 'image',
+      ui_data: {
+        image: 'ui_data_image'
+      }
+    }
   };
 };
 

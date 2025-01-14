@@ -14,34 +14,41 @@
  * limitations under the License.
  */
 
-import { MetadataService, RequestHandler } from '@elyra/services';
+import {
+  IMetadataResource,
+  MetadataService,
+  RequestHandler
+} from '@elyra/services';
+import { GenericObjectType } from '@elyra/ui-components';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 import produce from 'immer';
-import useSWR from 'swr';
+import useSWR, { SWRResponse } from 'swr';
 
-import { PipelineService } from './PipelineService';
+import { IRuntimeSchema, PipelineService } from './PipelineService';
 
 export const GENERIC_CATEGORY_ID = 'Elyra';
 
 interface IReturn<T> {
   data?: T | undefined;
-  error?: any;
-  mutate?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SWR API
+  error?: SWRResponse<T, any>['error'];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SWR API
+  mutate?: SWRResponse<T, any>['mutate'];
 }
 
 type IRuntimeImagesResponse = IRuntimeImage[];
 
-interface IRuntimeImage {
-  name: string;
-  display_name: string;
+export interface IRuntimeImage extends IMetadataResource {
   metadata: {
     image_name: string;
   };
 }
 
-const metadataFetcher = async <T>(key: string): Promise<T> => {
-  return await MetadataService.getMetadata(key);
+const metadataFetcher = async <T extends IMetadataResource[]>(
+  key: string
+): Promise<T> => {
+  return (await MetadataService.getMetadata(key)) as T;
 };
 
 export const useRuntimeImages = (
@@ -99,21 +106,62 @@ export const useRuntimeImages = (
 };
 
 const schemaFetcher = async <T>(key: string): Promise<T> => {
-  return await MetadataService.getSchema(key);
+  return (await MetadataService.getSchema(key)) as T;
 };
 
-// TODO: type this
-export const useRuntimesSchema = (): IReturn<any> => {
-  const { data, error } = useSWR<any>('runtimes', schemaFetcher);
+export const useRuntimesSchema = (): IReturn<IRuntimeSchema[]> => {
+  const { data, error } = useSWR<IRuntimeSchema[]>('runtimes', schemaFetcher);
 
   return { data, error };
 };
 
-interface IRuntimeComponentsResponse {
+export interface IRuntimeComponentsResponse {
   version: string;
   categories: IRuntimeComponent[];
   properties: IComponentPropertiesResponse;
   parameters: IComponentPropertiesResponse;
+}
+
+// Types come from `elyra/templates/components/canvas_palette_template.jinja2`
+// Example: `elyra/tests/pipeline/resources/palette.json`
+
+export interface IRuntimeComponentInputOutputData {
+  id: string;
+  app_data: {
+    ui_data: {
+      label: string;
+      cardinality: {
+        min: number;
+        max: number;
+      };
+    };
+  };
+}
+
+export interface IRuntimeComponentParameter {
+  filename?: string;
+  env_vars?: { env_var: string }[];
+}
+
+export interface IRuntimeComponentNodeType {
+  op: string;
+  id: string;
+  label: string;
+  image: string;
+  runtime_type?: string;
+  type: 'execution_node';
+  inputs: { app_data: IRuntimeComponentInputOutputData }[];
+  outputs: { app_data: IRuntimeComponentInputOutputData }[];
+  app_data: {
+    parameter_refs?: {
+      filehandler: string;
+    };
+    properties?: IComponentPropertiesResponse;
+    image: string;
+    ui_data: {
+      image: string;
+    };
+  };
 }
 
 export interface IRuntimeComponent {
@@ -122,22 +170,13 @@ export interface IRuntimeComponent {
   id: string;
   description: string;
   runtime?: string;
-  node_types: {
-    op: string;
-    id: string;
-    label: string;
-    image: string;
-    runtime_type?: string;
-    type: 'execution_node';
-    inputs: { app_data: any }[];
-    outputs: { app_data: any }[];
-    app_data: any;
-  }[];
+  node_types: IRuntimeComponentNodeType[];
   extensions?: string[];
 }
 
 interface IComponentPropertiesResponse {
-  current_parameters: { [key: string]: any };
+  current_parameters: GenericObjectType;
+  properties: GenericObjectType;
   parameters: { id: string }[];
   uihints: {
     parameter_info: {
@@ -149,7 +188,7 @@ interface IComponentPropertiesResponse {
         default: string;
         placement: 'on_panel';
       };
-      data: any;
+      data: GenericObjectType;
     }[];
   };
   group_info: {
@@ -196,8 +235,9 @@ const NodeIcons: Map<string, string> = new Map([
 ]);
 
 // TODO: We should decouple components and properties to support lazy loading.
-// TODO: type this
-export const componentFetcher = async (type: string): Promise<any> => {
+export const componentFetcher = async (
+  type: string
+): Promise<IRuntimeComponentsResponse> => {
   const palettePromise =
     RequestHandler.makeGetRequest<IRuntimeComponentsResponse>(
       `elyra/pipeline/components/${type}`
@@ -223,8 +263,15 @@ export const componentFetcher = async (type: string): Promise<any> => {
       typesPromise
     ]);
 
+  if (!palette || !pipelineProperties || !types) {
+    throw new Error('Failed to fetch palette data');
+  }
+
   palette.properties = pipelineProperties;
-  palette.parameters = pipelineParameters;
+
+  if (pipelineParameters) {
+    palette.parameters = pipelineParameters;
+  }
 
   // Gather list of component IDs to fetch properties for.
   const componentList: string[] = [];
@@ -256,7 +303,7 @@ export const componentFetcher = async (type: string): Promise<any> => {
     const category_runtime_type =
       category.node_types?.[0]?.runtime_type ?? 'LOCAL';
 
-    const type = types.find((t: any) => t.id === category_runtime_type);
+    const type = types.find((t) => t.id === category_runtime_type);
     const baseUrl = ServerConnection.makeSettings().baseUrl;
     const defaultIcon = URLExt.parse(
       URLExt.join(baseUrl, type?.icon || '')
@@ -287,7 +334,7 @@ export const componentFetcher = async (type: string): Promise<any> => {
 };
 
 const updateRuntimeImages = (
-  properties: any,
+  properties: IComponentPropertiesResponse | undefined,
   runtimeImages: IRuntimeImage[] | undefined
 ): void => {
   const runtimeImageProperties =
@@ -313,7 +360,7 @@ const updateRuntimeImages = (
 export const usePalette = (
   type = 'local',
   additionalRuntimeImages?: IRuntimeImage[]
-): IReturn<any> => {
+): IReturn<IRuntimeComponentsResponse> => {
   const { data: runtimeImages, error: runtimeError } = useRuntimeImages(
     additionalRuntimeImages
   );
@@ -326,7 +373,7 @@ export const usePalette = (
 
   let updatedPalette;
   if (palette !== undefined) {
-    updatedPalette = produce(palette, (draft: any) => {
+    updatedPalette = produce(palette, (draft: IRuntimeComponentsResponse) => {
       for (const category of draft.categories) {
         for (const node of category.node_types) {
           // update runtime images

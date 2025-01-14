@@ -18,6 +18,8 @@ import { Dialog } from '@jupyterlab/apputils';
 import { URLExt } from '@jupyterlab/coreutils';
 import { ServerConnection } from '@jupyterlab/services';
 
+import { IElyraResource } from './types';
+
 /**
  * A service class for making requests to the jupyter lab server.
  */
@@ -39,10 +41,10 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makeGetRequest<T = any>(
+  static async makeGetRequest<T = IElyraResource>(
     requestPath: string,
-    longRequestDialog?: Dialog<any>
-  ): Promise<T> {
+    longRequestDialog?: Dialog<void>
+  ): Promise<T | undefined> {
     return this.makeServerRequest(
       requestPath,
       { method: 'GET' },
@@ -70,11 +72,11 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makePostRequest<T = any>(
+  static async makePostRequest<T = IElyraResource>(
     requestPath: string,
-    requestBody: any,
-    longRequestDialog?: Dialog<any>
-  ): Promise<T> {
+    requestBody: RequestInit['body'],
+    longRequestDialog?: Dialog<void>
+  ): Promise<T | undefined> {
     return this.makeServerRequest(
       requestPath,
       { method: 'POST', body: requestBody },
@@ -102,11 +104,11 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makePutRequest<T = any>(
+  static async makePutRequest<T = IElyraResource>(
     requestPath: string,
-    requestBody: any,
-    longRequestDialog?: Dialog<any>
-  ): Promise<T> {
+    requestBody: RequestInit['body'],
+    longRequestDialog?: Dialog<void>
+  ): Promise<T | undefined> {
     return this.makeServerRequest(
       requestPath,
       { method: 'PUT', body: requestBody },
@@ -131,10 +133,10 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makeDeleteRequest<T = any>(
+  static async makeDeleteRequest<T = IElyraResource>(
     requestPath: string,
-    longRequestDialog?: Dialog<any>
-  ): Promise<T> {
+    longRequestDialog?: Dialog<void>
+  ): Promise<T | undefined> {
     return this.makeServerRequest(
       requestPath,
       { method: 'DELETE' },
@@ -167,11 +169,11 @@ export class RequestHandler {
    * @returns a promise that resolves with the server response on success or
    * an error dialog result in cases of failure.
    */
-  static async makeServerRequest<T = any>(
+  static async makeServerRequest<T = IElyraResource>(
     requestPath: string,
     options: RequestInit & { type?: 'blob' | 'json' | 'text' },
-    longRequestDialog?: Dialog<any>
-  ): Promise<T> {
+    longRequestDialog?: Dialog<void>
+  ): Promise<T | undefined> {
     // use ServerConnection utility to make calls to Jupyter Based services
     // which in this case are in the extension installed by this package
     const settings = ServerConnection.makeSettings();
@@ -185,18 +187,18 @@ export class RequestHandler {
       longRequestDialog.launch();
     }
 
-    const getServerResponse: Promise<any> = new Promise((resolve, reject) => {
+    const getServerResponse = new Promise<T | undefined>((resolve, reject) => {
       ServerConnection.makeRequest(requestUrl, requestInit, settings).then(
-        (response: any) => {
+        (response: Response) => {
           if (longRequestDialog) {
             longRequestDialog.resolve();
           }
 
           response[type]().then(
             // handle cases where the server returns a valid response
-            (result: any) => {
+            (result) => {
               if (response.status === 405) {
-                resolve(null);
+                resolve(undefined);
               }
               if (response.status < 200 || response.status >= 300) {
                 return reject(result);
@@ -205,12 +207,11 @@ export class RequestHandler {
               resolve(result);
             },
             // handle 404 if the server is not found
-            (reason: any) => {
+            (reason) => {
               if (response.status === 404 || response.status === 409) {
-                response['requestPath'] = requestPath;
-                return reject(response);
+                return reject({ ...response, requestPath: requestPath });
               } else if (response.status === 204) {
-                resolve({});
+                resolve(undefined);
               } else {
                 return reject(reason);
               }
@@ -218,14 +219,14 @@ export class RequestHandler {
           );
         },
         // something unexpected went wrong with the request
-        (reason: any) => {
+        (reason) => {
           console.error(reason);
           return reject(reason);
         }
       );
     });
 
-    const serverResponse: any = await getServerResponse;
+    const serverResponse = await getServerResponse;
     return serverResponse;
   }
 }

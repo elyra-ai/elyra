@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-import { IDictionary, MetadataService } from '@elyra/services';
+import {
+  IMetadataResource,
+  ISchemaResource,
+  MetadataService
+} from '@elyra/services';
 import {
   ExpandableComponent,
+  GenericObjectType,
+  IErrorResponse,
   JSONComponent,
   RequestErrors,
   trashIcon
@@ -36,6 +42,10 @@ import {
   LabIcon,
   refreshIcon
 } from '@jupyterlab/ui-components';
+import {
+  ReadonlyJSONObject,
+  ReadonlyPartialJSONObject
+} from '@lumino/coreutils';
 import { Message } from '@lumino/messaging';
 import { Signal } from '@lumino/signaling';
 
@@ -57,13 +67,6 @@ const commands = {
   OPEN_METADATA_EDITOR: 'elyra-metadata-editor:open'
 };
 
-export interface IMetadata {
-  name: string;
-  display_name: string;
-  metadata: IDictionary<any>;
-  schema_name: string;
-}
-
 export interface IMetadataActionButton {
   title: string;
   icon: LabIcon;
@@ -71,18 +74,27 @@ export interface IMetadataActionButton {
   onClick: () => void;
 }
 
+export interface IOpenMetadataEditorArgs {
+  titleContext?: string;
+  schema: string;
+  schemaspace: string;
+  name?: string;
+  onSave: () => void;
+  code?: string[];
+}
+
 /**
  * MetadataDisplay props.
  */
 export interface IMetadataDisplayProps {
-  metadata: IMetadata[];
-  openMetadataEditor: (args: any) => void;
+  metadata: IMetadataResource[];
+  openMetadataEditor: (args: IOpenMetadataEditorArgs) => void;
   updateMetadata: () => void;
   schemaspace: string;
   sortMetadata: boolean;
   className: string;
   titleContext?: string;
-  labelName?: (args: any) => string;
+  labelName?: (args: IMetadataResource) => string;
   omitTags?: boolean;
 }
 
@@ -90,11 +102,14 @@ export interface IMetadataDisplayProps {
  * MetadataDisplay state.
  */
 export interface IMetadataDisplayState {
-  metadata: IMetadata[];
+  metadata: IMetadataResource[];
   searchValue: string;
   filterTags: string[];
-  matchesSearch: (searchValue: string, metadata: IMetadata) => boolean;
-  matchesTags: (filterTags: Set<string>, metadata: IMetadata) => boolean;
+  matchesSearch: (searchValue: string, metadata: IMetadataResource) => boolean;
+  matchesTags: (
+    filterTags: Set<string>,
+    metadata: IMetadataResource
+  ) => boolean;
 }
 
 /**
@@ -115,24 +130,26 @@ export class MetadataDisplay<
     };
   }
 
-  deleteMetadata = (metadata: IMetadata): Promise<void> => {
+  deleteMetadata = (metadata: IMetadataResource): Promise<void> => {
     return showDialog({
       title: `Delete ${
         this.props.labelName ? this.props.labelName(metadata) : ''
       } ${this.props.titleContext || ''} '${metadata.display_name}'?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    }).then((result: any) => {
+    }).then((result) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
         MetadataService.deleteMetadata(
           this.props.schemaspace,
           metadata.name
-        ).catch((error) => RequestErrors.serverError(error));
+        ).catch(async (error) => {
+          await RequestErrors.serverError(error);
+        });
       }
     });
   };
 
-  actionButtons(metadata: IMetadata): IMetadataActionButton[] {
+  actionButtons(metadata: IMetadataResource): IMetadataActionButton[] {
     return [
       {
         title: 'Edit',
@@ -155,17 +172,19 @@ export class MetadataDisplay<
             metadata,
             this.props.metadata
           )
-            .then((response: any): void => {
+            .then((): void => {
               this.props.updateMetadata();
             })
-            .catch((error) => RequestErrors.serverError(error));
+            .catch(async (error) => {
+              await RequestErrors.serverError(error);
+            });
         }
       },
       {
         title: 'Delete',
         icon: trashIcon,
         onClick: (): void => {
-          this.deleteMetadata(metadata).then((response: any): void => {
+          this.deleteMetadata(metadata).then((): void => {
             this.props.updateMetadata();
           });
         }
@@ -176,7 +195,7 @@ export class MetadataDisplay<
   /**
    * Classes that extend MetadataWidget should override this
    */
-  renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
+  renderExpandableContent(metadata: IMetadataResource): JSX.Element {
     const metadataWithoutTags = metadata.metadata;
     delete metadataWithoutTags.tags;
     return (
@@ -187,7 +206,7 @@ export class MetadataDisplay<
   }
 
   // Render display of metadata list
-  renderMetadata = (metadata: IMetadata): JSX.Element => {
+  renderMetadata = (metadata: IMetadataResource): JSX.Element => {
     return (
       <div
         key={metadata.name}
@@ -198,7 +217,7 @@ export class MetadataDisplay<
       >
         <ExpandableComponent
           displayName={metadata.display_name}
-          tooltip={metadata.metadata.description}
+          tooltip={metadata.metadata.description as string}
           actionButtons={this.actionButtons(metadata)}
         >
           <div id={metadata.name}>{this.renderExpandableContent(metadata)}</div>
@@ -221,7 +240,7 @@ export class MetadataDisplay<
   filteredMetadata = (searchValue: string, filterTags: string[]): void => {
     // filter with search
     let filteredMetadata = this.props.metadata.filter(
-      (metadata: IMetadata, index: number, array: IMetadata[]): boolean => {
+      (metadata: IMetadataResource): boolean => {
         return (
           metadata.name.toLowerCase().includes(searchValue.toLowerCase()) ||
           metadata.display_name
@@ -235,8 +254,9 @@ export class MetadataDisplay<
     if (filterTags.length !== 0) {
       filteredMetadata = filteredMetadata.filter((metadata) => {
         return filterTags.some((tag) => {
-          if (metadata.metadata.tags) {
-            return metadata.metadata.tags.includes(tag);
+          const tags = metadata.metadata.tags as string[] | undefined;
+          if (tags) {
+            return tags.includes(tag);
           }
           return false;
         });
@@ -251,30 +271,30 @@ export class MetadataDisplay<
   };
 
   getActiveTags(): string[] {
-    const tags: string[] = [];
+    const activeTags: string[] = [];
     for (const metadata of this.props.metadata) {
-      if (metadata.metadata.tags) {
-        for (const tag of metadata.metadata.tags) {
-          if (!tags.includes(tag)) {
-            tags.push(tag);
+      const metadataTags = metadata.metadata.tags as string[] | undefined;
+      if (metadataTags) {
+        for (const tag of metadataTags) {
+          if (!activeTags.includes(tag)) {
+            activeTags.push(tag);
           }
         }
       }
     }
-    return tags;
+    return activeTags;
   }
 
-  matchesTags(filterTags: Set<string>, metadata: IMetadata): boolean {
+  matchesTags(filterTags: Set<string>, metadata: IMetadataResource): boolean {
     // True if there are no tags selected or if there are tags that match
     // tags of metadata
+    const tags = metadata.metadata.tags as string[];
     return (
-      filterTags.size === 0 ||
-      (metadata.metadata.tags &&
-        metadata.metadata.tags.some((tag: string) => filterTags.has(tag)))
+      filterTags.size === 0 || tags?.some((tag: string) => filterTags.has(tag))
     );
   }
 
-  matchesSearch(searchValue: string, metadata: IMetadata): boolean {
+  matchesSearch(searchValue: string, metadata: IMetadataResource): boolean {
     searchValue = searchValue.toLowerCase();
     // True if search string is in name or display_name,
     // or if the search string is empty
@@ -353,9 +373,9 @@ export interface IMetadataWidgetProps {
  * A abstract widget for viewing metadata.
  */
 export class MetadataWidget extends ReactWidget {
-  renderSignal: Signal<this, any>;
+  renderSignal: Signal<this, IMetadataResource[]>;
   props: IMetadataWidgetProps;
-  schemas?: IDictionary<any>[];
+  schemas?: ISchemaResource[];
   titleContext?: string;
   addLabel?: string;
   refreshButtonTooltip?: string;
@@ -365,7 +385,7 @@ export class MetadataWidget extends ReactWidget {
     this.addClass('elyra-metadata');
 
     this.props = props;
-    this.renderSignal = new Signal<this, any>(this);
+    this.renderSignal = new Signal<this, IMetadataResource[]>(this);
     this.titleContext = props.titleContext;
     this.addLabel = props.addLabel;
     this.fetchMetadata = this.fetchMetadata.bind(this);
@@ -383,7 +403,9 @@ export class MetadataWidget extends ReactWidget {
     try {
       this.schemas = await MetadataService.getSchema(this.props.schemaspace);
       const sortedSchema =
-        this.schemas?.sort((a, b) => a.title.localeCompare(b.title)) ?? [];
+        this.schemas?.sort((a, b) =>
+          (a.title ?? '').localeCompare(b.title ?? '')
+        ) ?? [];
       if (sortedSchema.length > 1) {
         for (const schema of sortedSchema) {
           this.props.app.contextMenu.addItem({
@@ -397,13 +419,13 @@ export class MetadataWidget extends ReactWidget {
               titleContext: this.props.titleContext,
               addLabel: this.props.addLabel,
               appendToTitle: this.props.appendToTitle
-            } as any
+            } as unknown as ReadonlyJSONObject
           });
         }
       }
       this.update();
     } catch (error) {
-      RequestErrors.serverError(error);
+      await RequestErrors.serverError(error as IErrorResponse);
     }
   }
 
@@ -424,16 +446,20 @@ export class MetadataWidget extends ReactWidget {
    *
    * @returns metadata in the format expected by `renderDisplay`
    */
-  async fetchMetadata(): Promise<any> {
+  async fetchMetadata(): Promise<IMetadataResource[] | undefined> {
     try {
       return await MetadataService.getMetadata(this.props.schemaspace);
     } catch (error) {
-      return RequestErrors.serverError(error);
+      await RequestErrors.serverError(error as IErrorResponse);
+      return;
     }
   }
 
   updateMetadata(): void {
-    this.fetchMetadata().then((metadata: any[]) => {
+    this.fetchMetadata().then((metadata) => {
+      if (!metadata) {
+        return;
+      }
       this.renderSignal.emit(metadata);
     });
   }
@@ -443,17 +469,23 @@ export class MetadataWidget extends ReactWidget {
   }
 
   // Triggered when the widget button on side panel is clicked
-  onAfterShow(msg: Message): void {
+  onAfterShow(_msg: Message): void {
     this.updateMetadata();
   }
 
-  openMetadataEditor = (args: any): void => {
-    this.props.app.commands.execute(commands.OPEN_METADATA_EDITOR, args);
+  openMetadataEditor = (args: IOpenMetadataEditorArgs): void => {
+    this.props.app.commands.execute(
+      commands.OPEN_METADATA_EDITOR,
+      args as unknown as ReadonlyPartialJSONObject
+    );
   };
 
   omitTags(): boolean {
     for (const schema of this.schemas ?? []) {
-      if (schema.properties?.metadata?.properties?.tags) {
+      const metadata = schema.properties?.metadata as
+        | GenericObjectType
+        | undefined;
+      if (metadata?.properties?.tags) {
         return false;
       }
     }
@@ -465,7 +497,7 @@ export class MetadataWidget extends ReactWidget {
    *
    * @returns a rendered instance of `MetadataDisplay`
    */
-  renderDisplay(metadata: IMetadata[]): React.ReactElement {
+  renderDisplay(metadata: IMetadataResource[]): React.ReactElement {
     if (Array.isArray(metadata) && !metadata.length) {
       // Empty metadata
       return (
@@ -528,10 +560,11 @@ export class MetadataWidget extends ReactWidget {
                 singleSchema
                   ? (): void =>
                       this.addMetadata(
-                        this.schemas?.[0].name,
+                        this.schemas?.[0].name ?? '',
                         this.titleContext
                       )
-                  : (event: any): void => {
+                  : // eslint-disable-next-line @typescript-eslint/no-explicit-any -- types mismatch
+                    (event: any): void => {
                       this.props.app.contextMenu.open(event);
                     }
               }
@@ -542,7 +575,9 @@ export class MetadataWidget extends ReactWidget {
           </div>
         </header>
         <UseSignal signal={this.renderSignal} initialArgs={[]}>
-          {(_, metadata): React.ReactElement => this.renderDisplay(metadata)}
+          {(_, metadata): React.ReactElement =>
+            this.renderDisplay(metadata ?? [])
+          }
         </UseSignal>
       </div>
     );

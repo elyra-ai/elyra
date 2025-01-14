@@ -45,7 +45,7 @@ import React, { RefObject } from 'react';
 
 import { ISelect, KernelDropdown } from './KernelDropdown';
 import { ScriptEditorController } from './ScriptEditorController';
-import { ScriptRunner } from './ScriptRunner';
+import { IMessageOutput, ScriptRunner } from './ScriptRunner';
 
 /**
  * ScriptEditor widget CSS classes.
@@ -255,7 +255,7 @@ export abstract class ScriptEditor extends DocumentWidget<
   /**
    * Function: Call back function passed to runner, that handles messages coming from the kernel.
    */
-  private handleKernelMsg = async (msg: any): Promise<void> => {
+  private handleKernelMsg = (msg: IMessageOutput): void => {
     let output = '';
 
     if (msg.status) {
@@ -432,19 +432,19 @@ export abstract class ScriptEditor extends DocumentWidget<
   /**
    * Function: Saves file editor content.
    */
-  private saveFile = async (): Promise<any> => {
+  private saveFile = async (): Promise<void> => {
     if (this.context.model.readOnly) {
-      return showDialog({
+      await showDialog({
         title: 'Cannot Save',
         body: 'Document is read-only',
         buttons: [Dialog.okButton()]
       });
-    }
-    void this.context.save().then(() => {
-      if (!this.isDisposed) {
-        return this.context.createCheckpoint();
-      }
       return;
+    }
+    this.context.save().then(async () => {
+      if (!this.isDisposed) {
+        await this.context.createCheckpoint();
+      }
     });
   };
 }

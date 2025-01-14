@@ -84,8 +84,8 @@ export class ScriptEditorController {
 
     const empty = '';
     if (specsByLang && Object.keys(specsByLang.kernelspecs).length !== 0) {
-      const [key, value]: any = Object.entries(specsByLang.kernelspecs)[0];
-      return value.name ?? key;
+      const [key, value] = Object.entries(specsByLang.kernelspecs)[0];
+      return value?.name ?? key;
     }
     return empty;
   };

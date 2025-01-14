@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-import { MetadataService } from '@elyra/services';
-import { RequestErrors } from '@elyra/ui-components';
+import {
+  IMetadataResource,
+  ISchemaResource,
+  MetadataService
+} from '@elyra/services';
+import {
+  GenericObjectType,
+  IErrorResponse,
+  RequestErrors
+} from '@elyra/ui-components';
 
 import { ILabStatus } from '@jupyterlab/application';
 import { ReactWidget, showDialog, Dialog } from '@jupyterlab/apputils';
@@ -23,6 +31,7 @@ import { IEditorServices } from '@jupyterlab/codeeditor';
 import { TranslationBundle } from '@jupyterlab/translation';
 import { IFormRendererRegistry } from '@jupyterlab/ui-components';
 import { find } from '@lumino/algorithm';
+import { IDisposable } from '@lumino/disposable';
 import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
@@ -93,13 +102,13 @@ export interface IMetadataEditorProps {
 export class MetadataEditorWidget extends ReactWidget {
   props: IMetadataEditorProps;
   widgetClass: string;
-  schema: any = {};
-  metadata: any = {};
+  schema: ISchemaResource | undefined;
+  metadata: GenericObjectType | undefined;
   loading = true;
   dirty = false;
-  clearDirty: any;
+  clearDirty: IDisposable | null = null;
   allTags: string[] = [];
-  allMetadata: any;
+  allMetadata: IMetadataResource[] | undefined;
 
   constructor(props: IMetadataEditorProps) {
     super();
@@ -120,30 +129,54 @@ export class MetadataEditorWidget extends ReactWidget {
     try {
       // Load all schema and all metadata in schemaspace.
       const allSchema = await MetadataService.getSchema(this.props.schemaspace);
-      const allMetadata = (this.allMetadata = await MetadataService.getMetadata(
+      this.allMetadata = await MetadataService.getMetadata(
         this.props.schemaspace
-      ));
+      );
+
+      if (!this.allMetadata) {
+        throw new Error(
+          `No metadata found for schemaspace ${this.props.schemaspace}`
+        );
+      }
 
       // Loads all tags to display as options in the editor.
-      this.allTags = allMetadata.reduce((acc: string[], metadata: any) => {
-        if (metadata.metadata.tags) {
-          acc.push(
-            ...metadata.metadata.tags.filter((tag: string) => {
-              return !acc.includes(tag);
-            })
-          );
-        }
-        return acc;
-      }, []);
+      this.allTags = this.allMetadata.reduce(
+        (acc: string[], metadata: IMetadataResource) => {
+          const tags = metadata.metadata.tags as string[] | undefined;
+          if (tags) {
+            acc.push(
+              ...tags.filter((tag: string) => {
+                return !acc.includes(tag);
+              })
+            );
+          }
+          return acc;
+        },
+        []
+      );
 
       // Finds schema based on schemaName.
-      const schema =
-        allSchema.find((s: any) => {
-          return s.name === this.props.schemaName;
-        }) ?? {};
+      const schema = allSchema?.find((s) => {
+        return s.name === this.props.schemaName;
+      });
 
+      if (!schema) {
+        throw new Error(`Schema not found for ${this.props.schemaName}`);
+      }
+
+      if (!schema.properties?.metadata) {
+        throw new Error('Metadata not found in schema');
+      }
       // Sets const fields to readonly.
-      const properties = schema.properties.metadata.properties;
+      const schemaMetadata = schema.properties?.metadata as
+        | GenericObjectType
+        | undefined;
+      const properties = schemaMetadata?.properties;
+
+      if (!properties) {
+        throw new Error('Metadata properties not found in schema');
+      }
+
       for (const prop in properties) {
         if (properties[prop].uihints?.hidden) {
           delete properties[prop];
@@ -157,11 +190,11 @@ export class MetadataEditorWidget extends ReactWidget {
         }
       }
 
-      const metadata = allMetadata.find((m: any) => m.name === this.props.name);
+      const metadata = this.allMetadata.find((m) => m.name === this.props.name);
 
       // Adds categories as wrapper objects in the schema.
-      const metadataWithCategories: { [id: string]: any } = {};
-      const schemaPropertiesByCategory: { [id: string]: any } = {
+      const metadataWithCategories: GenericObjectType = {};
+      const schemaPropertiesByCategory: GenericObjectType = {
         _noCategory: {
           type: 'object',
           title: ' ',
@@ -180,9 +213,8 @@ export class MetadataEditorWidget extends ReactWidget {
 
       // Adds required fields to the wrapper required fields.
       const requiredCategories: string[] = [];
-      for (const schemaProperty in schema.properties.metadata.properties) {
-        const properties =
-          schema.properties.metadata.properties[schemaProperty];
+      for (const schemaProperty in schemaMetadata.properties) {
+        const properties = schemaMetadata.properties[schemaProperty];
         const category =
           (properties.uihints && properties.uihints.category) ?? '_noCategory';
 
@@ -201,7 +233,8 @@ export class MetadataEditorWidget extends ReactWidget {
             required: []
           };
         }
-        if (schema.properties.metadata.required?.includes(schemaProperty)) {
+
+        if (schemaMetadata.required?.includes(schemaProperty)) {
           schemaPropertiesByCategory[category].required.push(schemaProperty);
           if (!requiredCategories.includes(category)) {
             requiredCategories.push(category);
@@ -215,14 +248,16 @@ export class MetadataEditorWidget extends ReactWidget {
           metadata?.['display_name'];
       }
       this.schema = schema;
-      this.schema.properties.metadata.properties = schemaPropertiesByCategory;
-      this.schema.properties.metadata.required = requiredCategories;
+      (this.schema.properties?.metadata as GenericObjectType).properties =
+        schemaPropertiesByCategory;
+      (this.schema.properties?.metadata as GenericObjectType).required =
+        requiredCategories;
       this.metadata = metadataWithCategories;
       this.title.label = metadata?.display_name ?? `New ${this.schema.title}`;
       this.loading = false;
       this.update();
     } catch (error) {
-      RequestErrors.serverError(error);
+      await RequestErrors.serverError(error as IErrorResponse);
     }
   }
 
@@ -245,7 +280,7 @@ export class MetadataEditorWidget extends ReactWidget {
     }
   }
 
-  onAfterShow(msg: Message): void {
+  onAfterShow(_msg: Message): void {
     this.setFormFocus();
   }
 
@@ -279,7 +314,7 @@ export class MetadataEditorWidget extends ReactWidget {
         title: this.props.translator.__('Close without saving?'),
         body: <p>Metadata has unsaved changes, close without saving?</p>,
         buttons: [Dialog.cancelButton(), Dialog.okButton()]
-      }).then((response: any): void => {
+      }).then((response): void => {
         if (response.button.accept) {
           this.dispose();
           super.onCloseRequest(msg);
@@ -291,8 +326,11 @@ export class MetadataEditorWidget extends ReactWidget {
     }
   }
 
-  getDefaultChoices(fieldName: string): any[] {
-    const schema = this.schema.properties.metadata;
+  getDefaultChoices(fieldName: string): string[] {
+    if (!this.schema || !this.allMetadata) {
+      return [];
+    }
+    const schema = this.schema.properties?.metadata as GenericObjectType;
     for (const category in schema.properties) {
       const properties = schema.properties[category].properties[fieldName];
       if (!properties) {
@@ -309,7 +347,7 @@ export class MetadataEditorWidget extends ReactWidget {
           !find(defaultChoices, (choice: string) => {
             return (
               choice.toLowerCase() ===
-              otherMetadata.metadata[fieldName].toLowerCase()
+              (otherMetadata.metadata[fieldName] as string).toLowerCase()
             );
           })
         ) {
@@ -325,6 +363,11 @@ export class MetadataEditorWidget extends ReactWidget {
     if (this.loading) {
       return <p>Loading...</p>;
     }
+
+    if (!this.schema || !this.metadata) {
+      return <p>Error loading metadata</p>;
+    }
+
     return (
       <MetadataEditor
         {...this.props}

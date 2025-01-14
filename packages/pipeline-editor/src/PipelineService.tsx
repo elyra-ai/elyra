@@ -14,31 +14,55 @@
  * limitations under the License.
  */
 
-import { MetadataService, IDictionary, RequestHandler } from '@elyra/services';
-import { RequestErrors } from '@elyra/ui-components';
+import {
+  IDictionary,
+  IElyraResource,
+  IMetadataResource,
+  ISchemaResource,
+  MetadataService,
+  RequestHandler
+} from '@elyra/services';
+import { GenericObjectType, RequestErrors } from '@elyra/ui-components';
 
-import { showDialog, Dialog } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
 
 import * as React from 'react';
+
+import { IRuntimeComponentNodeType } from './pipeline-hooks';
 
 export const KFP_SCHEMA = 'kfp';
 export const RUNTIMES_SCHEMASPACE = 'runtimes';
 export const RUNTIME_IMAGES_SCHEMASPACE = 'runtime-images';
 export const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 
-export interface IRuntime {
-  name: string;
-  display_name: string;
-  schema_name: string;
-  metadata: {
-    runtime_type: string;
-  };
+export interface IPipelineExportBody {
+  pipeline: IPipelineResource;
+  export_format: string;
+  export_path: string;
+  overwrite: boolean;
 }
 
-export interface ISchema {
-  name: string;
-  title: string;
+export interface IPipelineResource extends IElyraResource {
+  primary_pipeline: string;
+  pipelines: Array<{
+    id: string;
+    name?: string;
+    nodes?: Array<IDictionary<unknown>>;
+    runtime?: string;
+    runtime_config?: IDictionary<unknown>;
+  }>;
+}
+
+export interface IPipelineScheduleResponse {
+  run_url: string;
+  git_url: string;
+  platform: string;
+  object_storage_url: string;
+  object_storage_path: string;
+}
+
+export interface IRuntimeSchema extends ISchemaResource {
   runtime_type: string;
 }
 
@@ -60,7 +84,7 @@ const CONTENT_TYPE_MAPPER: Map<string, ContentType> = new Map([
   ['.r', ContentType.r]
 ]);
 
-export interface IRuntimeType {
+export interface IRuntimeType extends IElyraResource {
   runtime_enabled: boolean;
   id: string;
   display_name: string;
@@ -68,15 +92,22 @@ export interface IRuntimeType {
   export_file_types: { id: string; display_name: string }[];
 }
 
+export interface IRuntimesTypesResponse extends IElyraResource {
+  runtime_types: IRuntimeType[];
+}
+
 export class PipelineService {
   /**
    * Returns a list of resources corresponding to each active runtime-type.
    */
   static async getRuntimeTypes(): Promise<IRuntimeType[]> {
-    const res = await RequestHandler.makeGetRequest(
+    const res = await RequestHandler.makeGetRequest<IRuntimesTypesResponse>(
       'elyra/pipeline/runtimes/types'
     );
-    return res.runtime_types.sort((a: any, b: any) => a.id.localeCompare(b.id));
+    if (!res) {
+      return [];
+    }
+    return res.runtime_types.sort((a, b) => a.id.localeCompare(b.id));
   }
 
   /**
@@ -84,20 +115,20 @@ export class PipelineService {
    * `runtimes metadata`. This is used to submit the pipeline to be
    * executed on these runtimes.
    */
-  static async getRuntimes(): Promise<any> {
+  static async getRuntimes(): Promise<IMetadataResource[] | undefined> {
     return MetadataService.getMetadata(RUNTIMES_SCHEMASPACE);
   }
 
   /**
    * Returns a list of runtime schema
    */
-  static async getRuntimesSchema(showError = true): Promise<any> {
+  static async getRuntimesSchema(): Promise<IRuntimeSchema[] | undefined> {
     return MetadataService.getSchema(RUNTIMES_SCHEMASPACE).then((schema) => {
-      if (showError && Object.keys(schema).length === 0) {
-        return RequestErrors.noMetadataError('schema');
+      if (!schema) {
+        return;
       }
 
-      return schema;
+      return schema as IRuntimeSchema[];
     });
   }
 
@@ -105,34 +136,37 @@ export class PipelineService {
    * Return a list of configured container images that are used as runtimes environments
    * to run the pipeline nodes.
    */
-  static async getRuntimeImages(): Promise<any> {
+  static async getRuntimeImages(): Promise<IDictionary<string> | undefined> {
     try {
       let runtimeImages = await MetadataService.getMetadata('runtime-images');
 
-      runtimeImages = runtimeImages.sort(
-        (a: any, b: any) => 0 - (a.name > b.name ? -1 : 1)
-      );
-
-      if (Object.keys(runtimeImages).length === 0) {
-        return RequestErrors.noMetadataError('runtime image');
+      if (!runtimeImages?.length) {
+        await RequestErrors.noMetadataError('runtime image');
+        return;
       }
+
+      runtimeImages = runtimeImages?.sort(
+        (a, b) => 0 - (a.name > b.name ? -1 : 1)
+      );
 
       const images: IDictionary<string> = {};
       for (const image in runtimeImages) {
-        const imageName: string =
-          runtimeImages[image]['metadata']['image_name'];
-        images[imageName] = runtimeImages[image]['display_name'];
+        const imageName = (
+          runtimeImages[image].metadata as { image_name: string }
+        ).image_name;
+        images[imageName] = runtimeImages[image].display_name;
       }
       return images;
     } catch (error) {
       Promise.reject(error);
+      return;
     }
   }
 
   static async getComponentDef(
     type = 'local',
     componentID: string
-  ): Promise<IComponentDef> {
+  ): Promise<IComponentDef | undefined> {
     return await RequestHandler.makeGetRequest<IComponentDef>(
       `elyra/pipeline/components/${type}/${componentID}`
     );
@@ -157,7 +191,7 @@ export class PipelineService {
   static getWaitDialog(
     title = 'Making server request...',
     body = 'This may take some time'
-  ): Dialog<any> {
+  ): Dialog<void> {
     return new Dialog({
       title: title,
       body: body,
@@ -172,14 +206,17 @@ export class PipelineService {
    * @param runtimeName
    */
   static async submitPipeline(
-    pipeline: any,
+    pipeline: GenericObjectType,
     runtimeName: string
-  ): Promise<any> {
-    return RequestHandler.makePostRequest(
+  ): Promise<void> {
+    return RequestHandler.makePostRequest<IPipelineScheduleResponse>(
       'elyra/pipeline/schedule',
       JSON.stringify(pipeline),
       this.getWaitDialog('Packaging and submitting pipeline ...')
-    ).then((response) => {
+    ).then(async (response) => {
+      if (!response) {
+        return;
+      }
       let dialogTitle;
       let dialogBody;
       if (response['run_url']) {
@@ -233,7 +270,7 @@ export class PipelineService {
         );
       }
 
-      return showDialog({
+      await showDialog({
         title: dialogTitle,
         body: dialogBody,
         buttons: [Dialog.okButton()]
@@ -251,11 +288,11 @@ export class PipelineService {
    * @param overwrite
    */
   static async exportPipeline(
-    pipeline: any,
+    pipeline: GenericObjectType,
     pipeline_export_format: string,
     pipeline_export_path: string,
     overwrite: boolean
-  ): Promise<any> {
+  ): Promise<void> {
     console.log(
       'Exporting pipeline to [' + pipeline_export_format + '] format'
     );
@@ -269,14 +306,17 @@ export class PipelineService {
       overwrite: overwrite
     };
 
-    return RequestHandler.makePostRequest(
+    return RequestHandler.makePostRequest<IPipelineExportBody>(
       'elyra/pipeline/export',
       JSON.stringify(body),
       this.getWaitDialog('Generating pipeline artifacts ...')
-    ).then((response) => {
-      return showDialog({
+    ).then(async (response) => {
+      if (!response) {
+        return;
+      }
+      await showDialog({
         title: 'Pipeline export succeeded',
-        body: <p>Exported file: {response['export_path']} </p>,
+        body: <p>Exported file: {response.export_path} </p>,
         buttons: [Dialog.okButton()]
       });
     });
@@ -294,7 +334,7 @@ export class PipelineService {
    * Check if a given file is allowed to be added to the pipeline
    * @param item
    */
-  static isSupportedNode(file: any): boolean {
+  static isSupportedNode(file: { path: string }): boolean {
     if (PipelineService.getNodeType(file.path)) {
       return true;
     } else {
@@ -326,16 +366,17 @@ export class PipelineService {
   }
 
   static setNodePathsRelativeToWorkspace(
-    pipeline: any,
-    paletteNodes: any[],
+    pipeline: GenericObjectType,
+    paletteNodes: IRuntimeComponentNodeType[],
     pipelinePath: string
-  ): any {
+  ): GenericObjectType {
     for (const node of pipeline.nodes) {
       const nodeDef = paletteNodes.find((n) => {
         return n.op === node.op;
       });
       const parameters =
-        nodeDef.app_data.properties.properties.component_parameters.properties;
+        nodeDef?.app_data.properties?.properties.component_parameters
+          .properties;
       for (const param in parameters) {
         if (parameters[param].uihints?.['ui:widget'] === 'file') {
           node.app_data.component_parameters[param] =

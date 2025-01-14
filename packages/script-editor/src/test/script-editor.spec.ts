@@ -17,7 +17,7 @@
 import { JupyterServer } from '@jupyterlab/testutils';
 
 import { ScriptEditorController } from '../ScriptEditorController';
-import { ScriptRunner } from '../ScriptRunner';
+import { IMessageOutput, ScriptRunner } from '../ScriptRunner';
 
 jest.setTimeout(3 * 60 * 1000);
 
@@ -93,8 +93,9 @@ describe('@elyra/script-editor', () => {
 
       it('should run script', async () => {
         const code = 'print("Test")';
-        const testCallback = async (kernelMsg: any): Promise<void> =>
+        const testCallback = (kernelMsg: IMessageOutput): void => {
           kernelMsg.output && expect(kernelMsg.output).toMatch(/test/i);
+        };
         expect(kernelName).not.toBe('');
         await runner.runScript(kernelName, testPath, code, testCallback);
         await runner.shutdownSession();
@@ -102,8 +103,9 @@ describe('@elyra/script-editor', () => {
 
       it('should receive error message when running a broken script', async () => {
         const code = 'print(Broken Test)';
-        const testCallback = async (kernelMsg: any): Promise<void> =>
+        const testCallback = (kernelMsg: IMessageOutput): void => {
           kernelMsg.error && expect(kernelMsg.error.type).toMatch(/error/i);
+        };
         expect(kernelName).not.toBe('');
         await runner.runScript(kernelName, testPath, code, testCallback);
         await runner.shutdownSession();

@@ -26,6 +26,7 @@ beforeEach(() => {
   snapshotIndexTracker = {};
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- workaround for snapshot plugin
 const getSnapshotPath = (test: any): string => {
   const names = [];
   for (let k = test; k; k = k.parent) {
@@ -52,6 +53,7 @@ const getSnapshotPath = (test: any): string => {
 };
 
 Cypress.Commands.add('matchesSnapshot', { prevSubject: true }, (value) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- workaround for snapshot plugin
   const test = (Cypress as any).mocha.getRunner().suite.ctx.test;
 
   const path = getSnapshotPath(test);
