@@ -29,17 +29,19 @@ in Apache Airflow
 INOUT_SEPARATOR = ";"
 
 ELYRA_GITHUB_ORG = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
+ELYRA_GITHUB_REPO = os.getenv("ELYRA_GITHUB_REPO", "elyra")
 ELYRA_GITHUB_BRANCH = os.getenv("ELYRA_GITHUB_BRANCH", "main" if "dev" in __version__ else "v" + __version__)
 
 ELYRA_BOOTSCRIPT_URL = os.getenv(
     "ELYRA_BOOTSTRAP_SCRIPT_URL",
-    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/elyra/{ELYRA_GITHUB_BRANCH}/elyra/airflow/bootstrapper.py",
+    f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/"
+    f"{ELYRA_GITHUB_REPO}/{ELYRA_GITHUB_BRANCH}/elyra/airflow/bootstrapper.py",
 )
 
 ELYRA_REQUIREMENTS_URL = os.getenv(
     "ELYRA_REQUIREMENTS_URL",
     f"https://raw.githubusercontent.com/{ELYRA_GITHUB_ORG}/"
-    f"elyra/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra.txt",
+    f"{ELYRA_GITHUB_REPO}/{ELYRA_GITHUB_BRANCH}/etc/generic/requirements-elyra.txt",
 )
 
 
