@@ -1079,15 +1079,17 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
         account whether the container will run in a CRI-O environment.
         """
         elyra_github_org = os.getenv("ELYRA_GITHUB_ORG", "elyra-ai")
+        elyra_github_repo = os.getenv("ELYRA_GITHUB_REPO", "elyra")
         elyra_github_branch = os.getenv("ELYRA_GITHUB_BRANCH", "main" if "dev" in __version__ else "v" + __version__)
         elyra_bootstrap_script_url = os.getenv(
             "ELYRA_BOOTSTRAP_SCRIPT_URL",
-            f"https://raw.githubusercontent.com/{elyra_github_org}/elyra/{elyra_github_branch}/elyra/kfp/bootstrapper.py",  # noqa E501
+            f"https://raw.githubusercontent.com/{elyra_github_org}/"
+            f"{elyra_github_repo}/{elyra_github_branch}/elyra/kfp/bootstrapper.py",
         )
         elyra_requirements_url = os.getenv(
             "ELYRA_REQUIREMENTS_URL",
             f"https://raw.githubusercontent.com/{elyra_github_org}/"
-            f"elyra/{elyra_github_branch}/etc/generic/requirements-elyra.txt",
+            f"{elyra_github_repo}/{elyra_github_branch}/etc/generic/requirements-elyra.txt",
         )
 
         if is_crio_runtime:
@@ -1095,7 +1097,8 @@ class KfpPipelineProcessor(RuntimePipelineProcessor):
             container_python_path = CRIO_VOL_PYTHON_PATH
             python_pip_config_url = os.getenv(
                 "ELYRA_PIP_CONFIG_URL",
-                f"https://raw.githubusercontent.com/{elyra_github_org}/elyra/{elyra_github_branch}/etc/kfp/pip.conf",
+                f"https://raw.githubusercontent.com/{elyra_github_org}/"
+                f"{elyra_github_repo}/{elyra_github_branch}/etc/kfp/pip.conf",
             )
             python_user_lib_path_target = f"--target={CRIO_VOL_PYTHON_PATH}"
         else:
