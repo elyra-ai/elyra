@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import { IRuntime, ISchema } from './PipelineService';
+import { IMetadataResource } from '@elyra/services';
+
+import { IRuntimeSchema } from './PipelineService';
 
 export interface IRuntimeData {
   platforms: {
@@ -36,8 +38,8 @@ export const createRuntimeData = ({
   schema,
   allowLocal
 }: {
-  runtimes: IRuntime[];
-  schema: ISchema[];
+  runtimes: IMetadataResource[];
+  schema: IRuntimeSchema[];
   allowLocal?: boolean;
 }): IRuntimeData => {
   const platforms: IRuntimeData['platforms'] = [];
@@ -48,7 +50,7 @@ export const createRuntimeData = ({
     }
     platforms.push({
       id: s.runtime_type,
-      displayName: s.title,
+      displayName: s.title ?? '',
       configs: runtimes
         .filter((r) => r.metadata.runtime_type === s.runtime_type)
         .map((r) => ({

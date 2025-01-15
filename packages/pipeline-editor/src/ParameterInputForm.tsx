@@ -20,10 +20,12 @@ const DIALOG_WIDTH = 27;
 export interface IParameterProps {
   parameters?: {
     name: string;
-    default_value?: {
-      type: 'String' | 'Integer' | 'Float' | 'Bool';
-      value: any;
-    };
+    default_value?:
+      | { type: 'String'; value: string }
+      | { type: 'Integer'; value: number }
+      | { type: 'Float'; value: number }
+      | { type: 'Bool'; value: boolean };
+
     type?: string;
     required?: boolean;
     description?: string;
@@ -67,7 +69,7 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
               <input
                 id={`${param.name}-paramInput`}
                 name={`${param.name}-paramInput`}
-                defaultChecked={param.default_value?.value}
+                defaultChecked={param.default_value?.value as boolean}
                 type="checkbox"
               />
               <label htmlFor={`${param.name}-paramInput`}>{`${param.name}${
@@ -109,7 +111,7 @@ export const ParameterInputForm: React.FC<IParameterProps> = ({
               id={`${param.name}-paramInput`}
               name={`${param.name}-paramInput`}
               type={type}
-              placeholder={param.default_value?.value}
+              placeholder={param.default_value?.value as string | undefined}
               data-form-required={required}
             />
             <br />

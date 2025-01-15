@@ -22,7 +22,8 @@ import {
   PasswordField,
   CodeBlock,
   TagsField,
-  DropDown
+  DropDown,
+  IErrorResponse
 } from '@elyra/ui-components';
 import {
   JupyterFrontEnd,
@@ -49,6 +50,21 @@ const commandIDs = {
   openMetadata: 'elyra-metadata:open',
   closeTabCommand: 'elyra-metadata:close'
 };
+
+interface IOpenMetadataWidgetArgs {
+  display_name: string;
+  schemaspace: string;
+  icon: string;
+  addLabel?: string;
+}
+
+interface IOpenMetadataEditorArgs {
+  schema: string;
+  schemaspace: string;
+  name?: string;
+  onSave: () => void;
+  titleContext?: string;
+}
 
 /**
  * Initialization data for the metadata-extension extension.
@@ -94,13 +110,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     });
 
-    const openMetadataEditor = (args: {
-      schema: string;
-      schemaspace: string;
-      name?: string;
-      onSave: () => void;
-      titleContext?: string;
-    }): void => {
+    const openMetadataEditor = (args: IOpenMetadataEditorArgs): void => {
       let widgetLabel: string;
       if (args.name) {
         widgetLabel = args.name;
@@ -110,12 +120,9 @@ const extension: JupyterFrontEndPlugin<void> = {
       const widgetId = `${METADATA_EDITOR_ID}:${args.schemaspace}:${
         args.schema
       }:${args.name ? args.name : 'new'}`;
-      const openWidget = find(
-        app.shell.widgets('main'),
-        (widget: Widget, index: number) => {
-          return widget.id === widgetId;
-        }
-      );
+      const openWidget = find(app.shell.widgets('main'), (widget: Widget) => {
+        return widget.id === widgetId;
+      });
       if (openWidget) {
         app.shell.activateById(widgetId);
         return;
@@ -139,22 +146,17 @@ const extension: JupyterFrontEndPlugin<void> = {
     };
 
     app.commands.addCommand(`${METADATA_EDITOR_ID}:open`, {
-      label: (args: any) => {
+      label: (args) => {
         return `New ${args.title} ${
           args.appendToTitle ? args.titleContext : ''
         }`;
       },
-      execute: (args: any) => {
-        openMetadataEditor(args);
+      execute: (args) => {
+        openMetadataEditor(args as unknown as IOpenMetadataEditorArgs);
       }
     });
 
-    const openMetadataWidget = (args: {
-      display_name: string;
-      schemaspace: string;
-      icon: string;
-      addLabel?: string;
-    }): void => {
+    const openMetadataWidget = (args: IOpenMetadataWidgetArgs): void => {
       const labIcon = LabIcon.resolve({ icon: args.icon });
       const widgetId = `${METADATA_WIDGET_ID}:${args.schemaspace}`;
       const metadataWidget = new MetadataWidget({
@@ -179,11 +181,11 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     const openMetadataCommand: string = commandIDs.openMetadata;
     app.commands.addCommand(openMetadataCommand, {
-      label: (args: any) => args['label'],
-      execute: (args: any) => {
+      label: (args) => args.label as string,
+      execute: (args) => {
         // Rank has been chosen somewhat arbitrarily to give priority
         // to the running sessions widget in the sidebar.
-        openMetadataWidget(args);
+        openMetadataWidget(args as unknown as IOpenMetadataWidgetArgs);
       }
     });
 
@@ -191,7 +193,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     const closeTabCommand: string = commandIDs.closeTabCommand;
     app.commands.addCommand(closeTabCommand, {
       label: 'Close Tab',
-      execute: (args) => {
+      execute: (_args) => {
         const contextNode: HTMLElement | undefined = app.contextMenuHitTest(
           (node) => !!node.dataset.id
         );
@@ -199,7 +201,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           const id = contextNode.dataset['id']!;
           const widget = find(
             app.shell.widgets('left'),
-            (widget: Widget, index: number) => {
+            (widget: Widget, _index: number) => {
               return widget.id === id;
             }
           );
@@ -217,6 +219,11 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     try {
       const schemas = await MetadataService.getAllSchema();
+
+      if (!schemas) {
+        throw new Error('Failed to retrieve metadata schemas');
+      }
+
       for (const schema of schemas) {
         let icon = 'ui-components:text-editor';
         let title = schema.title;
@@ -232,7 +239,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           command: commandIDs.openMetadata,
           args: {
             label: `Manage ${title}`,
-            display_name: schema.uihints.title,
+            display_name: schema.uihints?.title ?? '',
             schemaspace: schema.schemaspace,
             icon: icon
           },
@@ -240,7 +247,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         });
       }
     } catch (error) {
-      RequestErrors.serverError(error);
+      await RequestErrors.serverError(error as IErrorResponse);
     }
   }
 };

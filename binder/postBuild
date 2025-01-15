@@ -42,19 +42,19 @@ set -x
 
 # repo2docker clones the Elyra repository before the Docker image is built
 # and uses the cloned directory as "root". The git extension recognizes that
-# the directory is git-enabled and therefore prevents the user from 
+# the directory is git-enabled and therefore prevents the user from
 # cloning other repositories using the UI. Remove the git artifacts in the
-# root directory to work around this issue. 
+# root directory to work around this issue.
 rm -rf ~/.git*
 
 # Add getting started assets to Docker image
 # (1) Clone the examples repository.
-git clone https://github.com/elyra-ai/examples.git 
+git clone https://github.com/elyra-ai/examples.git
 
 EXAMPLES_BASE_DIR=examples
 
 # (2) Copy all getting started assets to the working directory,
-#     which is referenced when binder is invoked, e.g. 
+#     which is referenced when binder is invoked, e.g.
 #     https://mybinder.org/v2/gh/elyra-ai/elyra/main?urlpath=lab/tree/binder-demo
 cp -r $EXAMPLES_BASE_DIR/binder/getting-started/* binder-demo/
 

@@ -17,14 +17,16 @@
 import {
   MetadataWidget,
   IMetadataWidgetProps,
-  IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps,
-  //IMetadataDisplayState,
   IMetadataActionButton
 } from '@elyra/metadata-common';
-import { IDictionary, MetadataService } from '@elyra/services';
-import { RequestErrors } from '@elyra/ui-components';
+import { IMetadataResource, MetadataService } from '@elyra/services';
+import {
+  GenericObjectType,
+  IErrorResponse,
+  RequestErrors
+} from '@elyra/ui-components';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { LabIcon, refreshIcon } from '@jupyterlab/ui-components';
 
@@ -36,25 +38,18 @@ export const COMPONENT_CATALOGS_SCHEMASPACE = 'component-catalogs';
 
 const COMPONENT_CATALOGS_CLASS = 'elyra-metadata-component-catalogs';
 
-const handleError = (error: any): void => {
-  // silently eat a 409, the server will log in in the console
-  if (error.status !== 409) {
-    RequestErrors.serverError(error);
-  }
-};
-
 /**
  * A React Component for displaying the component catalogs list.
  */
 class ComponentCatalogsDisplay extends MetadataDisplay<IMetadataDisplayProps> {
-  actionButtons(metadata: IMetadata): IMetadataActionButton[] {
+  actionButtons(metadata: IMetadataResource): IMetadataActionButton[] {
     return [
       {
         title: 'Reload components from catalog',
         icon: refreshIcon,
         onClick: (): void => {
           PipelineService.refreshComponentsCache(metadata.name)
-            .then((response: any): void => {
+            .then((): void => {
               this.props.updateMetadata();
             })
             .catch((error) =>
@@ -70,22 +65,22 @@ class ComponentCatalogsDisplay extends MetadataDisplay<IMetadataDisplayProps> {
   }
 
   //render catalog entries
-  renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
-    let category_output = <li key="No category">No category</li>;
+  renderExpandableContent(metadata: IMetadataResource): JSX.Element {
+    let category_output = [<li key="No category">No category</li>];
     if (metadata.metadata.categories) {
-      category_output = metadata.metadata.categories.map((category: string) => (
-        <li key={category}>{category}</li>
-      ));
+      category_output = (metadata.metadata.categories as string[]).map(
+        (category) => <li key={category}>{category}</li>
+      );
     }
 
     return (
       <div>
         <h6>Runtime Type</h6>
-        {metadata.metadata.runtime_type}
+        {metadata.metadata.runtime_type as string}
         <br />
         <br />
         <h6>Description</h6>
-        {metadata.metadata.description ?? 'No description'}
+        {(metadata.metadata.description as string) ?? 'No description'}
         <br />
         <br />
         <h6>Categories</h6>
@@ -95,11 +90,13 @@ class ComponentCatalogsDisplay extends MetadataDisplay<IMetadataDisplayProps> {
   }
 
   // Allow for filtering by display_name, name, and description
-  matchesSearch(searchValue: string, metadata: IMetadata): boolean {
+  matchesSearch(searchValue: string, metadata: IMetadataResource): boolean {
     searchValue = searchValue.toLowerCase();
     // True if search string is in name or display_name,
     // or if the search string is empty
-    const description = (metadata.metadata.description || '').toLowerCase();
+    const description = (
+      (metadata.metadata.description as string) || ''
+    ).toLowerCase();
     return (
       metadata.name.toLowerCase().includes(searchValue) ||
       metadata.display_name.toLowerCase().includes(searchValue) ||
@@ -139,17 +136,21 @@ export class ComponentCatalogsWidget extends MetadataWidget {
   async getSchemas(): Promise<void> {
     try {
       const schemas = await MetadataService.getSchema(this.props.schemaspace);
+      if (!schemas) {
+        return;
+      }
       this.runtimeTypes = await PipelineService.getRuntimeTypes();
-      const sortedSchema = schemas.sort((a: any, b: any) =>
-        a.title.localeCompare(b.title)
+      const sortedSchema = schemas.sort((a, b) =>
+        (a.title ?? '').localeCompare(b.title ?? '')
       );
-      this.schemas = sortedSchema.filter((schema: any) => {
-        return !!this.runtimeTypes.find(
-          (r) =>
-            schema.properties?.metadata?.properties?.runtime_type?.enum?.includes(
-              r.id
-            ) && r.runtime_enabled
-        );
+      this.schemas = sortedSchema.filter((schema) => {
+        return !!this.runtimeTypes.find((r) => {
+          const metadata = schema.properties?.metadata as GenericObjectType;
+          return (
+            metadata?.properties.runtime_type?.enum?.includes(r.id) &&
+            r.runtime_enabled
+          );
+        });
       });
       if (this.schemas?.length ?? 0 > 1) {
         for (const schema of this.schemas ?? []) {
@@ -163,13 +164,13 @@ export class ComponentCatalogsWidget extends MetadataWidget {
               title: schema.title,
               titleContext: this.props.titleContext,
               appendToTitle: this.props.appendToTitle
-            } as any
+            } as GenericObjectType
           });
         }
       }
       this.update();
     } catch (error) {
-      RequestErrors.serverError(error);
+      await RequestErrors.serverError(error as IErrorResponse);
     }
   }
 
@@ -183,13 +184,18 @@ export class ComponentCatalogsWidget extends MetadataWidget {
 
   refreshMetadata(): void {
     PipelineService.refreshComponentsCache()
-      .then((response: any): void => {
+      .then((): void => {
         this.updateMetadataAndRefresh();
       })
-      .catch((error) => handleError(error));
+      .catch(async (error) => {
+        // silently eat a 409, the server will log in in the console
+        if (error.status !== 409) {
+          await RequestErrors.serverError(error);
+        }
+      });
   }
 
-  renderDisplay(metadata: IMetadata[]): React.ReactElement {
+  renderDisplay(metadata: IMetadataResource[]): React.ReactElement {
     if (Array.isArray(metadata) && !metadata.length) {
       // Empty metadata
       return (

@@ -28,6 +28,14 @@ import { CodeViewerWidget } from './CodeViewerWidget';
 
 const ELYRA_CODE_VIEWER_NAMESPACE = 'elyra-code-viewer-extension';
 
+interface IOpenCodeViewerArgs {
+  content: string;
+  label?: string;
+  mimeType?: string;
+  extension?: string;
+  widgetId?: string;
+}
+
 /**
  * The command IDs used by the code-viewer plugin.
  */
@@ -68,13 +76,9 @@ const extension: JupyterFrontEndPlugin<void> = {
       });
     }
 
-    const openCodeViewer = async (args: {
-      content: string;
-      label?: string;
-      mimeType?: string;
-      extension?: string;
-      widgetId?: string;
-    }): Promise<CodeViewerWidget> => {
+    const openCodeViewer = async (
+      args: IOpenCodeViewerArgs
+    ): Promise<CodeViewerWidget> => {
       const func = editorServices.factoryService.newDocumentEditor;
       const factory: CodeEditor.Factory = (options) => {
         return func(options);
@@ -112,8 +116,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     };
 
     app.commands.addCommand(CommandIDs.openViewer, {
-      execute: (args: any) => {
-        return openCodeViewer(args);
+      execute: (args) => {
+        return openCodeViewer(args as unknown as IOpenCodeViewerArgs);
       }
     });
   }

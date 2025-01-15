@@ -149,7 +149,7 @@ const scriptEditorDebuggerExtension: JupyterFrontEndPlugin<void> = {
         type: 'file',
         name: path
       };
-      let sessionConnection = null;
+      let sessionConnection: Session.ISessionConnection | null = null;
       try {
         if (kernelSelection) {
           sessionConnection = await sessionManager.startNew(options);

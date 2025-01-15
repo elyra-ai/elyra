@@ -42,12 +42,18 @@ import {
   refreshIcon
 } from '@jupyterlab/ui-components';
 
+import { ReadonlyJSONValue } from '@lumino/coreutils';
+
 import {
   COMPONENT_CATALOGS_SCHEMASPACE,
   ComponentCatalogsWidget
 } from './ComponentCatalogsWidget';
 import { PipelineEditorFactory, commandIDs } from './PipelineEditorWidget';
-import { PipelineService, RUNTIMES_SCHEMASPACE } from './PipelineService';
+import {
+  IRuntimeType,
+  PipelineService,
+  RUNTIMES_SCHEMASPACE
+} from './PipelineService';
 import {
   RUNTIME_IMAGES_SCHEMASPACE,
   RuntimeImagesWidget
@@ -73,8 +79,20 @@ const createRemoteIcon = async ({
     method: 'GET',
     type: 'text'
   });
+  if (!svgstr) {
+    throw new Error(`Failed to fetch icon from ${url}`);
+  }
   return new LabIcon({ name, svgstr });
 };
+
+export type ResolvedRuntimeType = IRuntimeType & { icon: LabIcon };
+
+interface ICommandArgs {
+  isMenu?: string;
+  isPalette?: string;
+  isContextMenu?: string;
+  runtimeType?: ResolvedRuntimeType;
+}
 
 export const getEmptyPipelineJson = (runtime_type: string | undefined) => {
   return {
@@ -128,9 +146,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     console.log('Elyra - pipeline-editor extension is activated!');
 
     // Fetch the initial state of the settings.
-    const settings = await registry
-      .load(PLUGIN_ID)
-      .catch((error) => console.log(error));
+    const settings = await registry.load(PLUGIN_ID).catch((error) => {
+      console.log(error);
+      return undefined;
+    });
 
     PipelineService.getRuntimeTypes()
       .then(async (types) => {
@@ -145,7 +164,9 @@ const extension: JupyterFrontEndPlugin<void> = {
           };
         });
 
-        const resolvedTypes = await Promise.all(promises);
+        const resolvedTypes = (await Promise.all(
+          promises
+        )) as ResolvedRuntimeType[];
 
         // Set up new widget Factory for .pipeline files
         const pipelineEditorFactory = new PipelineEditorFactory({
@@ -176,7 +197,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           namespace: PIPELINE_EDITOR_NAMESPACE
         });
 
-        pipelineEditorFactory.widgetCreated.connect((sender, widget) => {
+        pipelineEditorFactory.widgetCreated.connect((_sender, widget) => {
           void tracker.add(widget);
 
           // Notify the widget tracker if restore data needs to update
@@ -201,7 +222,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           label: 'Add File to Pipeline',
           icon: addIcon,
           execute: (args) => {
-            pipelineEditorFactory.addFileToPipelineSignal.emit(args);
+            pipelineEditorFactory.addFileToPipelineSignal?.emit(args);
           }
         });
         const refreshPaletteCommand: string = commandIDs.refreshPalette;
@@ -209,7 +230,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           label: 'Refresh Pipeline Palette',
           icon: refreshIcon,
           execute: (args) => {
-            pipelineEditorFactory.refreshPaletteSignal.emit(args);
+            pipelineEditorFactory.refreshPaletteSignal?.emit(args);
           }
         });
         app.contextMenu.addItem({
@@ -228,44 +249,49 @@ const extension: JupyterFrontEndPlugin<void> = {
         // Add an application command
         const openPipelineEditorCommand: string = commandIDs.openPipelineEditor;
         app.commands.addCommand(openPipelineEditorCommand, {
-          label: (args: any) => {
-            if (args.isPalette) {
+          label: (args) => {
+            const commandArgs = args as ICommandArgs;
+            if (commandArgs.isPalette) {
               return `New ${PIPELINE_EDITOR}`;
             }
-            if (args.runtimeType?.id === 'LOCAL') {
-              const contextMenuPrefix = args.isContextMenu ? 'New ' : '';
+            if (commandArgs.runtimeType?.id === 'LOCAL') {
+              const contextMenuPrefix = commandArgs.isContextMenu ? 'New ' : '';
               return `${contextMenuPrefix}Generic ${PIPELINE_EDITOR}`;
             }
-            if (args.isMenu) {
-              return `${args.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
+            if (commandArgs.isMenu) {
+              return `${commandArgs.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
             }
-            if (args.isContextMenu) {
-              return `New ${args.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
+            if (commandArgs.isContextMenu) {
+              return `New ${commandArgs.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
             }
             return PIPELINE_EDITOR;
           },
-          caption: (args: any) => {
-            if (args.runtimeType?.id === 'LOCAL') {
+          caption: (args) => {
+            const commandArgs = args as ICommandArgs;
+            if (commandArgs.runtimeType?.id === 'LOCAL') {
               return `Generic ${PIPELINE_EDITOR}`;
             }
-            return `${args.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
+            return `${commandArgs.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
           },
-          iconLabel: (args: any) => {
-            if (args.isPalette) {
+          iconLabel: (args) => {
+            const commandArgs = args as ICommandArgs;
+            if (commandArgs.isPalette) {
               return '';
             }
-            if (args.runtimeType?.id === 'LOCAL') {
+            if (commandArgs.runtimeType?.id === 'LOCAL') {
               return `Generic ${PIPELINE_EDITOR}`;
             }
-            return `${args.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
+            return `${commandArgs.runtimeType?.display_name} ${PIPELINE_EDITOR}`;
           },
-          icon: (args: any) => {
-            if (args.isPalette) {
+          icon: (args) => {
+            const commandArgs = args as ICommandArgs;
+            if (commandArgs.isPalette) {
               return undefined;
             }
-            return args.runtimeType?.icon;
+            return commandArgs.runtimeType?.icon;
           },
-          execute: (args: any) => {
+          execute: (args) => {
+            const commandArgs = args as ICommandArgs;
             // Creates blank file, then opens it in a new window
             app.commands
               .execute(commandIDs.newDocManager, {
@@ -274,7 +300,7 @@ const extension: JupyterFrontEndPlugin<void> = {
                 ext: '.pipeline'
               })
               .then(async (model) => {
-                const platformId = args.runtimeType?.id;
+                const platformId = commandArgs.runtimeType?.id;
                 const runtime_type =
                   platformId === 'LOCAL' ? undefined : platformId;
 
@@ -315,23 +341,29 @@ const extension: JupyterFrontEndPlugin<void> = {
             rank: ++contextMenuRank
           });
 
-          for (const t of resolvedTypes as any) {
+          for (const t of resolvedTypes) {
             launcher.add({
               command: openPipelineEditorCommand,
               category: 'Elyra',
-              args: { runtimeType: t },
+              args: { runtimeType: t as unknown as ReadonlyJSONValue },
               rank: t.id === 'LOCAL' ? 1 : 2
             });
 
             fileMenuItems.push({
               command: openPipelineEditorCommand,
-              args: { runtimeType: t, isMenu: true },
+              args: {
+                runtimeType: t as unknown as ReadonlyJSONValue,
+                isMenu: true
+              },
               rank: t.id === 'LOCAL' ? 90 : 91
             });
 
             app.contextMenu.addItem({
               command: openPipelineEditorCommand,
-              args: { runtimeType: t, isContextMenu: true },
+              args: {
+                runtimeType: t as unknown as ReadonlyJSONValue,
+                isContextMenu: true
+              },
               selector: '.jp-DirListing-content',
               rank: ++contextMenuRank
             });
@@ -347,7 +379,9 @@ const extension: JupyterFrontEndPlugin<void> = {
           menu.fileMenu.newMenu.addGroup(fileMenuItems);
         }
       })
-      .catch((error) => RequestErrors.serverError(error));
+      .catch(async (error) => {
+        await RequestErrors.serverError(error);
+      });
 
     // SubmitNotebookButtonExtension initialization code
     const notebookButtonExtension = new SubmitFileButtonExtension();

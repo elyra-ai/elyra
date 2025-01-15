@@ -15,6 +15,7 @@
  */
 
 import { RequestHandler } from './requests';
+import { IContentsPropertiesResource } from './types';
 
 const ELYRA_FILE_PARSER_API_ENDPOINT = 'elyra/contents/properties/';
 
@@ -34,13 +35,14 @@ export class ContentParser {
    * @param file_path - relative path to file
    * @returns A string array of the env vars accessed in the given file
    */
-  static async getEnvVars(file_path: string): Promise<any> {
+  static async getEnvVars(file_path: string): Promise<string[]> {
     try {
-      const response = await RequestHandler.makeGetRequest(
-        ELYRA_FILE_PARSER_API_ENDPOINT + file_path
-      );
+      const response =
+        await RequestHandler.makeGetRequest<IContentsPropertiesResource>(
+          ELYRA_FILE_PARSER_API_ENDPOINT + file_path
+        );
       // Only return environment var names (not values)
-      return Object.keys(response.env_vars);
+      return Object.keys(response?.env_vars ?? {});
     } catch (error) {
       return Promise.reject(error);
     }

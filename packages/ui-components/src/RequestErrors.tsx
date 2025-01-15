@@ -20,6 +20,16 @@ import * as React from 'react';
 
 import { ExpandableErrorDialog } from './ExpandableErrorDialog';
 
+export interface IErrorResponse {
+  status?: number;
+  message?: string;
+  requestPath?: string;
+  reason?: string;
+  timestamp?: string;
+  traceback?: string;
+  issues: object[];
+}
+
 /**
  * A class for handling errors when making requests to the jupyter lab server.
  */
@@ -32,7 +42,7 @@ export class RequestErrors {
    *
    * @returns A human readable multiline string for displaying the issues
    */
-  private static formatIssues(issues: any): string {
+  private static formatIssues(issues: object[]): string {
     let formatted = '';
     for (const issue of issues) {
       formatted += JSON.stringify(issue, null, 2) + '\n';
@@ -47,7 +57,7 @@ export class RequestErrors {
    *
    * @returns A promise that resolves with whether the dialog was accepted.
    */
-  static serverError(response: any): Promise<Dialog.IResult<any>> {
+  static serverError(response: IErrorResponse): Promise<Dialog.IResult<void>> {
     if (response.status === 404) {
       return this.server404(response.requestPath);
     }
@@ -87,7 +97,9 @@ export class RequestErrors {
    *
    * @returns A promise that resolves with whether the dialog was accepted.
    */
-  private static server404(endpoint: string): Promise<Dialog.IResult<any>> {
+  private static server404(
+    endpoint: string = 'unknown'
+  ): Promise<Dialog.IResult<void>> {
     return showDialog({
       title: 'Error contacting server',
       body: (
@@ -115,7 +127,7 @@ export class RequestErrors {
     schemaspace: string,
     action?: string,
     schemaName?: string
-  ): Promise<Dialog.IResult<any>> {
+  ): Promise<Dialog.IResult<void>> {
     return showDialog({
       title: action ? `Cannot ${action}` : 'Error retrieving metadata',
       body: (

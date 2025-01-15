@@ -18,6 +18,7 @@ import fs from 'fs';
 
 import { diffStringsUnified } from 'jest-diff';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- workaround for snapshot plugin
 const createSnapshot = (value: any): string => {
   let obj = value;
 
@@ -35,6 +36,7 @@ const createSnapshot = (value: any): string => {
 
 interface ISnapshotOptions {
   path: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- workaround for snapshot plugin
   value: any;
 }
 
@@ -57,6 +59,7 @@ interface INewSnapshotResults {
   status: 'new';
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- workaround for snapshot plugin
 export const register = (on: any, _config: any): void => {
   on('task', {
     matchesSnapshot({ path, value }: ISnapshotOptions): ISnapshotResults {

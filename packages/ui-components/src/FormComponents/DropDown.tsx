@@ -48,7 +48,7 @@ export const DropDown: React.FC<FieldProps> = (props: FieldProps) => {
     <div>
       <input
         required={required}
-        onChange={(event: any): void => {
+        onChange={(event): void => {
           handleChange(event.target.value);
         }}
         value={current ?? ''}

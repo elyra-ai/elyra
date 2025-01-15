@@ -31,10 +31,10 @@ interface IRootProps {
 }
 
 interface IProps {
-  onDragEnter?: (e: Drag.Event) => any;
-  onDragLeave?: (e: Drag.Event) => any;
-  onDragOver?: (e: Drag.Event) => any;
-  onDrop?: (e: Drag.Event) => any;
+  onDragEnter?: (e: Drag.Event) => void;
+  onDragLeave?: (e: Drag.Event) => void;
+  onDragOver?: (e: Drag.Event) => void;
+  onDrop?: (e: Drag.Event) => void;
   children?: React.ReactNode;
 }
 

@@ -16,8 +16,11 @@
 
 import { PIPELINE_CURRENT_VERSION } from '@elyra/pipeline-editor';
 
+import { GenericObjectType } from '@elyra/ui-components';
+
 import { LabShell } from '@jupyterlab/application';
 import { PathExt } from '@jupyterlab/coreutils';
+import { Widget } from '@lumino/widgets';
 
 import uuid4 from 'uuid/v4';
 
@@ -41,7 +44,7 @@ export default class Utils {
     gpu?: number,
     memory?: number,
     memory_limit?: number
-  ): any {
+  ): GenericObjectType {
     const generated_uuid = uuid4();
 
     const artifactName = PathExt.basename(filename, PathExt.extname(filename));
@@ -119,7 +122,7 @@ export default class Utils {
   /**
    * From a given widget, find the application shell and return it
    */
-  static getLabShell = (widget: any): LabShell => {
+  static getLabShell = (widget: Widget | null): LabShell | null => {
     while (widget !== null && !(widget instanceof LabShell)) {
       widget = widget.parent;
     }

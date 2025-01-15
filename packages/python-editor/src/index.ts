@@ -219,7 +219,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     app.docRegistry.addWidgetFactory(factory);
 
-    factory.widgetCreated.connect((sender: any, widget: any) => {
+    factory.widgetCreated.connect((_sender, widget) => {
       void tracker.add(widget);
 
       // Notify the widget tracker if restore data needs to update
@@ -230,7 +230,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     // Handle the settings of new widgets. Adapted from fileeditor-extension.
-    tracker.widgetAdded.connect((sender, widget) => {
+    tracker.widgetAdded.connect((_sender, widget) => {
       updateWidget(widget);
     });
 
@@ -256,6 +256,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     // Function to create a new untitled python file, given the current working directory
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- `app.commands.execute` returns a Promise<any>
     const createNew = (cwd: string): Promise<any> => {
       return app.commands
         .execute(commandIDs.newDocManager, {

@@ -15,24 +15,28 @@
  */
 
 import { Dialog } from '@jupyterlab/apputils';
-import { IDocumentManager } from '@jupyterlab/docmanager';
 import {
   BreadCrumbs,
   DirListing,
+  FileBrowserModel,
   FilterFileBrowserModel
 } from '@jupyterlab/filebrowser';
+import { Contents } from '@jupyterlab/services';
+import { IScore } from '@jupyterlab/ui-components';
+import { Message } from '@lumino/messaging';
 import { Widget, PanelLayout } from '@lumino/widgets';
 
 const BROWSE_FILE_CLASS = 'elyra-browseFileDialog';
 const BROWSE_FILE_OPEN_CLASS = 'elyra-browseFileDialog-open';
 
-export interface IBrowseFileDialogOptions {
-  filter?: (model: any) => boolean;
+export interface IBrowseFileDialogArgs {
+  startPath?: string;
+  rootPath?: string;
+  acceptFileOnDblClick?: boolean;
   multiselect?: boolean;
   includeDir?: boolean;
-  acceptFileOnDblClick?: boolean;
-  rootPath?: string;
-  startPath?: string;
+  manager: FileBrowserModel['manager'];
+  filter: (value: Contents.IModel) => Partial<IScore> | null;
 }
 
 interface IBrowseFileBreadCrumbsOptions extends BreadCrumbs.IOptions {
@@ -43,7 +47,7 @@ interface IBrowseFileBreadCrumbsOptions extends BreadCrumbs.IOptions {
  * Breadcrumbs widget for browse file dialog body.
  */
 class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
-  model: any;
+  model: FileBrowserModel;
   rootPath?: string;
 
   constructor(options: IBrowseFileBreadCrumbsOptions) {
@@ -52,7 +56,7 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
     this.rootPath = options.rootPath;
   }
 
-  protected onUpdateRequest(msg: any): void {
+  protected onUpdateRequest(msg: Message): void {
     super.onUpdateRequest(msg);
     const contents = this.model.manager.services.contents;
     const localPath = contents.localPath(this.model.path);
@@ -83,10 +87,7 @@ class BrowseFileDialogBreadcrumbs extends BreadCrumbs {
 /**
  * Browse file widget for dialog body
  */
-class BrowseFileDialog
-  extends Widget
-  implements Dialog.IBodyWidget<IBrowseFileDialogOptions>
-{
+class BrowseFileDialog extends Widget implements Dialog.IBodyWidget<string[]> {
   directoryListing: DirListing;
   breadCrumbs: BreadCrumbs;
   dirListingHandleEvent: (event: Event) => void;
@@ -95,12 +96,12 @@ class BrowseFileDialog
   acceptFileOnDblClick: boolean;
   model: FilterFileBrowserModel;
 
-  constructor(props: any) {
-    super(props);
+  constructor(args: IBrowseFileDialogArgs) {
+    super({});
 
     this.model = new FilterFileBrowserModel({
-      manager: props.manager,
-      filter: props.filter
+      manager: args.manager,
+      filter: args.filter
     });
 
     const layout = (this.layout = new PanelLayout());
@@ -109,9 +110,9 @@ class BrowseFileDialog
       model: this.model
     });
 
-    this.acceptFileOnDblClick = props.acceptFileOnDblClick;
-    this.multiselect = props.multiselect;
-    this.includeDir = props.includeDir;
+    this.acceptFileOnDblClick = !!args.acceptFileOnDblClick;
+    this.multiselect = !!args.multiselect;
+    this.includeDir = !!args.includeDir;
     this.dirListingHandleEvent = this.directoryListing.handleEvent;
     this.directoryListing.handleEvent = (event: Event): void => {
       this.handleEvent(event);
@@ -119,31 +120,28 @@ class BrowseFileDialog
 
     this.breadCrumbs = new BrowseFileDialogBreadcrumbs({
       model: this.model,
-      rootPath: props.rootPath
+      rootPath: args.rootPath
     });
 
     layout.addWidget(this.breadCrumbs);
     layout.addWidget(this.directoryListing);
   }
 
-  static async init(options: any): Promise<BrowseFileDialog> {
-    const browseFileDialog = new BrowseFileDialog(options);
-    if (options.startPath) {
-      if (
-        !options.rootPath ||
-        options.startPath.indexOf(options.rootPath) === 0
-      ) {
-        await browseFileDialog.model.cd(options.startPath);
+  static async init(args: IBrowseFileDialogArgs): Promise<BrowseFileDialog> {
+    const browseFileDialog = new BrowseFileDialog(args);
+    if (args.startPath) {
+      if (!args.rootPath || args.startPath.indexOf(args.rootPath) === 0) {
+        await browseFileDialog.model.cd(args.startPath);
       }
-    } else if (options.rootPath) {
-      await browseFileDialog.model.cd(options.rootPath);
+    } else if (args.rootPath) {
+      await browseFileDialog.model.cd(args.rootPath);
     }
 
     return browseFileDialog;
   }
 
-  getValue(): any {
-    const selected = [];
+  getValue(): string[] {
+    const selected: string[] = [];
 
     for (const item of this.directoryListing.selectedItems()) {
       if (this.includeDir || item.type !== 'directory') {
@@ -202,21 +200,15 @@ class BrowseFileDialog
 }
 
 export const showBrowseFileDialog = async (
-  manager: IDocumentManager,
-  options: IBrowseFileDialogOptions
-): Promise<Dialog.IResult<any>> => {
+  args: IBrowseFileDialogArgs
+): Promise<Dialog.IResult<string[]>> => {
   const browseFileDialogBody = await BrowseFileDialog.init({
-    manager: manager,
-    filter: options.filter,
-    multiselect: options.multiselect,
-    includeDir: options.includeDir,
-    rootPath: options.rootPath,
-    startPath: options.startPath,
+    ...args,
     acceptFileOnDblClick: Object.prototype.hasOwnProperty.call(
-      options,
+      args,
       'acceptFileOnDblClick'
     )
-      ? options.acceptFileOnDblClick
+      ? args.acceptFileOnDblClick
       : true
   });
 
@@ -233,10 +225,10 @@ export const showBrowseFileDialog = async (
     document.body.className = document.body.className
       .replace(BROWSE_FILE_OPEN_CLASS, '')
       .trim();
-    if (options.rootPath && result.button.accept && result.value?.length) {
-      const relativeToPath = options.rootPath.endsWith('/')
-        ? options.rootPath
-        : options.rootPath + '/';
+    if (args.rootPath && result.button.accept && result.value?.length) {
+      const relativeToPath = args.rootPath.endsWith('/')
+        ? args.rootPath
+        : args.rootPath + '/';
       result.value = result.value.map((val: string) => {
         return val.replace(relativeToPath, '');
       });

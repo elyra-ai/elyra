@@ -17,7 +17,7 @@
 import { Dialog } from '@jupyterlab/apputils';
 import React from 'react';
 
-export const unknownError = (message: string): any => ({
+export const unknownError = (message: string) => ({
   title: 'Load pipeline failed!',
   body: message,
   buttons: [Dialog.okButton()]

@@ -220,6 +220,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     // Function to create a new untitled r file, given the current working directory
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- `app.commands.execute` returns a Promise<any>
     const createNew = (cwd: string): Promise<any> => {
       return app.commands
         .execute(commandIDs.newDocManager, {

@@ -17,12 +17,10 @@
 import {
   MetadataWidget,
   IMetadataWidgetProps,
-  IMetadata,
   MetadataDisplay,
   IMetadataDisplayProps
-  //IMetadataDisplayState,
 } from '@elyra/metadata-common';
-import { IDictionary } from '@elyra/services';
+import { IMetadataResource } from '@elyra/services';
 
 import React from 'react';
 
@@ -56,16 +54,17 @@ const getLinkFromImageName = (imageName: string): string => {
  * A React Component for displaying the runtime images list.
  */
 class RuntimeImagesDisplay extends MetadataDisplay<IMetadataDisplayProps> {
-  renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
+  renderExpandableContent(metadata: IMetadataResource): JSX.Element {
+    const imageName = metadata.metadata.image_name as string;
     return (
       <div>
         <h6>Container Image</h6>
         <a
-          href={getLinkFromImageName(metadata.metadata.image_name)}
+          href={getLinkFromImageName(imageName)}
           target="_blank"
           rel="noreferrer noopener"
         >
-          {metadata.metadata.image_name}
+          {imageName}
         </a>
       </div>
     );
@@ -80,7 +79,7 @@ export class RuntimeImagesWidget extends MetadataWidget {
     super(props);
   }
 
-  renderDisplay(metadata: IMetadata[]): React.ReactElement {
+  renderDisplay(metadata: IMetadataResource[]): React.ReactElement {
     if (Array.isArray(metadata) && !metadata.length) {
       // Empty metadata
       return (

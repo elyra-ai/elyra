@@ -40,7 +40,7 @@ const theme = {
 };
 
 interface IProps {
-  json: any;
+  json: Record<string, unknown> | Array<unknown>;
 }
 
 /**
@@ -64,7 +64,7 @@ export const JSONComponent: React.FC<IProps> = ({ json }) => (
       data: string,
       itemType: string,
       itemString: string
-    ): any =>
+    ): React.ReactNode =>
       Array.isArray(data) ? (
         // Always display array type and the number of items i.e. "[] 2 items".
         <span>
@@ -77,10 +77,13 @@ export const JSONComponent: React.FC<IProps> = ({ json }) => (
         null! // Upstream typings don't accept null, but it should be ok
       )
     }
-    labelRenderer={([label, type]: [string, any]): any => {
+    labelRenderer={([label, _type]: [
+      string,
+      string | number | boolean | null | undefined
+    ]): JSX.Element => {
       return <span className="cm-keyword">{`${label}: `}</span>;
     }}
-    valueRenderer={(raw: any): any => {
+    valueRenderer={(raw: string | number): JSX.Element => {
       let className = 'cm-string';
       if (typeof raw === 'number') {
         className = 'cm-number';

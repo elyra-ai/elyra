@@ -16,13 +16,20 @@
 import {
   MetadataWidget,
   IMetadataWidgetProps,
-  IMetadata,
   MetadataDisplay,
-  IMetadataDisplayProps
-  //IMetadataDisplayState,
+  IMetadataDisplayProps,
+  IOpenMetadataEditorArgs
 } from '@elyra/metadata-common';
-import { IDictionary, MetadataService } from '@elyra/services';
-import { RequestErrors } from '@elyra/ui-components';
+import {
+  IMetadataResource,
+  ISchemaResource,
+  MetadataService
+} from '@elyra/services';
+import {
+  GenericObjectType,
+  IErrorResponse,
+  RequestErrors
+} from '@elyra/ui-components';
 import React from 'react';
 
 import {
@@ -32,6 +39,10 @@ import {
 } from './PipelineService';
 
 const RUNTIMES_METADATA_CLASS = 'elyra-metadata-runtimes';
+
+interface IRuntimeSchema extends ISchemaResource {
+  runtime_type: string;
+}
 
 const addTrailingSlash = (url: string): string => {
   return url.endsWith('/') ? url : url + '/';
@@ -48,13 +59,13 @@ const getGithubURLFromAPI = (apiEndpoint: string): string => {
 };
 
 export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
-  metadata: IMetadata[];
-  openMetadataEditor: (args: any) => void;
+  metadata: IMetadataResource[];
+  openMetadataEditor: (args: IOpenMetadataEditorArgs) => void;
   updateMetadata: () => void;
   schemaspace: string;
   sortMetadata: boolean;
   className: string;
-  schemas?: IDictionary<any>[];
+  schemas?: ISchemaResource[];
   titleContext?: string;
   appendToTitle?: boolean;
 }
@@ -64,22 +75,29 @@ export interface IRuntimesDisplayProps extends IMetadataDisplayProps {
  */
 
 class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
-  renderExpandableContent(metadata: IDictionary<any>): JSX.Element {
-    let apiEndpoint = addTrailingSlash(metadata.metadata.api_endpoint);
-    let cosEndpoint = addTrailingSlash(metadata.metadata.cos_endpoint);
+  renderExpandableContent(metadata: IMetadataResource): JSX.Element {
+    let apiEndpoint = addTrailingSlash(
+      metadata.metadata.api_endpoint as string
+    );
+    let cosEndpoint = addTrailingSlash(
+      metadata.metadata.cos_endpoint as string
+    );
 
-    let githubRepoElement = null;
-    let metadata_props = null;
+    let githubRepoElement: JSX.Element | null = null;
+    let metadata_props: GenericObjectType | null = null;
 
     for (const schema of this.props.schemas ?? []) {
       if (schema.name === metadata.schema_name) {
-        metadata_props = schema.properties.metadata.properties;
+        const metadata = schema.properties?.metadata as
+          | GenericObjectType
+          | undefined;
+        metadata_props = metadata?.properties;
       }
     }
 
     if (metadata.schema_name === 'airflow' && metadata_props) {
       const githubRepoUrl =
-        getGithubURLFromAPI(metadata.metadata.github_api_endpoint) +
+        getGithubURLFromAPI(metadata.metadata.github_api_endpoint as string) +
         metadata.metadata.github_repo +
         '/tree/' +
         metadata.metadata.github_branch +
@@ -98,13 +116,17 @@ class RuntimesDisplay extends MetadataDisplay<IRuntimesDisplayProps> {
     if (metadata.schema_name === 'kfp') {
       if (metadata.metadata.public_api_endpoint) {
         // user specified a public API endpoint. use it instead of the API endpoint
-        apiEndpoint = addTrailingSlash(metadata.metadata.public_api_endpoint);
+        apiEndpoint = addTrailingSlash(
+          metadata.metadata.public_api_endpoint as string
+        );
       }
     }
 
     if (metadata.metadata.public_cos_endpoint) {
       // user specified a public COS endpoint. use it instead of the API endpoint
-      cosEndpoint = addTrailingSlash(metadata.metadata.public_cos_endpoint);
+      cosEndpoint = addTrailingSlash(
+        metadata.metadata.public_cos_endpoint as string
+      );
     }
 
     return (
@@ -141,22 +163,27 @@ export class RuntimesWidget extends MetadataWidget {
     super(props);
   }
 
-  async fetchMetadata(): Promise<any> {
-    return await PipelineService.getRuntimes().catch((error) =>
-      RequestErrors.serverError(error)
-    );
+  async fetchMetadata(): Promise<IMetadataResource[] | undefined> {
+    return await PipelineService.getRuntimes().catch(async (error) => {
+      await RequestErrors.serverError(error);
+      return [];
+    });
   }
 
   async getSchemas(): Promise<void> {
     try {
       const schemas = await MetadataService.getSchema(this.props.schemaspace);
+      if (!schemas) {
+        return;
+      }
       this.runtimeTypes = await PipelineService.getRuntimeTypes();
-      const sortedSchema = schemas.sort((a: any, b: any) =>
-        a.title.localeCompare(b.title)
+      const sortedSchema = schemas.sort((a, b) =>
+        (a.title ?? '').localeCompare(b.title ?? '')
       );
-      this.schemas = sortedSchema.filter((schema: any) => {
+      this.schemas = sortedSchema.filter((schema) => {
+        const runtimeSchema = schema as IRuntimeSchema;
         return !!this.runtimeTypes.find(
-          (r) => r.id === schema.runtime_type && r.runtime_enabled
+          (r) => r.id === runtimeSchema.runtime_type && r.runtime_enabled
         );
       });
       if (this.schemas?.length ?? 0 > 1) {
@@ -171,21 +198,21 @@ export class RuntimesWidget extends MetadataWidget {
               title: schema.title,
               titleContext: this.props.titleContext,
               appendToTitle: this.props.appendToTitle
-            } as any
+            } as GenericObjectType
           });
         }
       }
       this.update();
     } catch (error) {
-      RequestErrors.serverError(error);
+      await RequestErrors.serverError(error as IErrorResponse);
     }
   }
 
-  private getSchemaTitle = (metadata: IMetadata): string => {
+  private getSchemaTitle = (metadata: IMetadataResource): string => {
     if (this.schemas) {
       for (const schema of this.schemas) {
         if (schema.name === metadata.schema_name) {
-          return schema.title;
+          return schema.title ?? '';
         }
       }
     }
@@ -202,7 +229,7 @@ export class RuntimesWidget extends MetadataWidget {
     });
   }
 
-  renderDisplay(metadata: IMetadata[]): React.ReactElement {
+  renderDisplay(metadata: IMetadataResource[]): React.ReactElement {
     if (Array.isArray(metadata) && !metadata.length) {
       // Empty metadata
       return (

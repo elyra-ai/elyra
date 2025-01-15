@@ -65,7 +65,7 @@ const DropDown = forwardRef<ISelect, IProps>(
       ))
     );
 
-    const handleSelection = (e: any): void => {
+    const handleSelection = (e: { target: HTMLSelectElement }): void => {
       const selection = e.target.value;
       setSelection(selection);
       callback(selection);

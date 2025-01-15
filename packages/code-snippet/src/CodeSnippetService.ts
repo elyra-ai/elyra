@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { IMetadata } from '@elyra/metadata-common';
-import { MetadataService } from '@elyra/services';
+import { IMetadataResource, MetadataService } from '@elyra/services';
 
 import { Dialog, showDialog } from '@jupyterlab/apputils';
 
@@ -23,15 +22,15 @@ export const CODE_SNIPPET_SCHEMASPACE = 'code-snippets';
 export const CODE_SNIPPET_SCHEMA = 'code-snippet';
 
 export class CodeSnippetService {
-  static async findAll(): Promise<IMetadata[]> {
-    return MetadataService.getMetadata(CODE_SNIPPET_SCHEMASPACE);
+  static async findAll(): Promise<IMetadataResource[]> {
+    return (await MetadataService.getMetadata(CODE_SNIPPET_SCHEMASPACE)) ?? [];
   }
 
   // TODO: Test this function
-  static async findByLanguage(language: string): Promise<IMetadata[]> {
+  static async findByLanguage(language: string): Promise<IMetadataResource[]> {
     try {
-      const allCodeSnippets: IMetadata[] = await this.findAll();
-      const codeSnippetsByLanguage: IMetadata[] = [];
+      const allCodeSnippets = await this.findAll();
+      const codeSnippetsByLanguage: IMetadataResource[] = [];
 
       for (const codeSnippet of allCodeSnippets) {
         if (codeSnippet.metadata.language === language) {
@@ -54,11 +53,11 @@ export class CodeSnippetService {
    * @returns A boolean promise that is true if the dialog confirmed
    * the deletion, and false if the deletion was cancelled.
    */
-  static deleteCodeSnippet(codeSnippet: IMetadata): Promise<boolean> {
+  static deleteCodeSnippet(codeSnippet: IMetadataResource): Promise<boolean> {
     return showDialog({
       title: `Delete snippet '${codeSnippet.display_name}'?`,
       buttons: [Dialog.cancelButton(), Dialog.okButton()]
-    }).then((result: any) => {
+    }).then((result) => {
       // Do nothing if the cancel button is pressed
       if (result.button.accept) {
         return MetadataService.deleteMetadata(

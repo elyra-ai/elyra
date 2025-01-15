@@ -18,11 +18,12 @@ import { JupyterServer } from '@jupyterlab/testutils';
 
 import { MetadataService } from '../metadata';
 import { RequestHandler } from '../requests';
+import { IMetadataResource, ISchemaSchemaspaceResource } from '../types';
 jest.setTimeout(3 * 60 * 1000);
 
 const server = new JupyterServer();
 
-const codeSnippetMetadata = {
+const codeSnippetMetadata: IMetadataResource = {
   schema_name: 'code-snippet',
   display_name: 'tester',
   name: 'tester',
@@ -45,7 +46,7 @@ describe('@elyra/services', () => {
     describe('#getSchema', () => {
       it('should get schema', async () => {
         const schemaResponse = await MetadataService.getSchema('code-snippets');
-        expect(schemaResponse[0]).toHaveProperty(
+        expect(schemaResponse?.[0]).toHaveProperty(
           'properties.schema_name.description',
           'The schema associated with this instance'
         );
@@ -54,14 +55,14 @@ describe('@elyra/services', () => {
     describe('#getAllSchema', () => {
       it('should get all schema', async () => {
         const schemas = await MetadataService.getAllSchema();
-        const schemaNames = schemas.map((schema: any) => {
+        const schemaNames = schemas?.map((schema) => {
           return schema.name;
         });
         const knownSchemaNames = ['code-snippet', 'runtime-image'];
         for (const schemaName of knownSchemaNames) {
           expect(schemaNames).toContain(schemaName);
         }
-        expect(schemas.length).toBeGreaterThanOrEqual(knownSchemaNames.length);
+        expect(schemas?.length).toBeGreaterThanOrEqual(knownSchemaNames.length);
       });
     });
     describe('metadata requests', () => {
@@ -69,7 +70,7 @@ describe('@elyra/services', () => {
         const existingSnippets =
           await MetadataService.getMetadata('code-snippets');
         if (
-          existingSnippets.find((snippet: any) => {
+          existingSnippets?.find((snippet) => {
             return snippet.name === 'tester';
           })
         ) {
@@ -81,7 +82,7 @@ describe('@elyra/services', () => {
         expect(
           await MetadataService.postMetadata(
             'code-snippets',
-            JSON.stringify(codeSnippetMetadata)
+            codeSnippetMetadata
           )
         ).toMatchObject(codeSnippetMetadata);
       });
@@ -93,12 +94,12 @@ describe('@elyra/services', () => {
       });
 
       it('should update the metadata instance', async () => {
-        codeSnippetMetadata.metadata.code = ['testing'];
+        (codeSnippetMetadata.metadata as { code: string[] }).code = ['testing'];
         expect(
           await MetadataService.putMetadata(
             'code-snippets',
             'tester',
-            JSON.stringify(codeSnippetMetadata)
+            codeSnippetMetadata
           )
         ).toHaveProperty('metadata.code', ['testing']);
       });
@@ -114,14 +115,15 @@ describe('@elyra/services', () => {
   describe('RequestHandler', () => {
     describe('#makeGetRequest', () => {
       it('should make get request', async () => {
-        const schemaResponse = await RequestHandler.makeGetRequest(
-          '/elyra/schema/code-snippets'
-        );
+        const schemaResponse =
+          await RequestHandler.makeGetRequest<ISchemaSchemaspaceResource>(
+            '/elyra/schema/code-snippets'
+          );
         expect(schemaResponse).toHaveProperty('code-snippets');
-        expect(schemaResponse['code-snippets'].length).toBeGreaterThanOrEqual(
+        expect(schemaResponse?.['code-snippets'].length).toBeGreaterThanOrEqual(
           1
         );
-        expect(schemaResponse['code-snippets'][0]).toHaveProperty(
+        expect(schemaResponse?.['code-snippets'][0]).toHaveProperty(
           'properties.schema_name.description',
           'The schema associated with this instance'
         );
@@ -138,7 +140,7 @@ describe('@elyra/services', () => {
       });
     });
     describe('#makePutRequest', () => {
-      codeSnippetMetadata.metadata.language = 'R';
+      (codeSnippetMetadata.metadata as { language: string }).language = 'R';
       it('should make put request', async () => {
         expect(
           await RequestHandler.makePutRequest(
@@ -154,7 +156,9 @@ describe('@elyra/services', () => {
           '/elyra/metadata/code-snippets/tester'
         );
         expect(
-          await RequestHandler.makeGetRequest('elyra/metadata/code-snippets')
+          await RequestHandler.makeGetRequest<ISchemaSchemaspaceResource>(
+            'elyra/metadata/code-snippets'
+          )
         ).toMatchObject({ 'code-snippets': [] });
       });
     });

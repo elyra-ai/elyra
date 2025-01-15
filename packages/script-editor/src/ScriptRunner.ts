@@ -35,9 +35,13 @@ const KERNEL_ERROR_MSG =
   'Could not run script because no supporting kernel is defined.';
 const SESSION_ERROR_MSG = 'Could not start session to execute script.';
 
-export interface IScriptOutput {
-  readonly type: string;
-  readonly output: string;
+export interface IMessageOutput {
+  output?: string;
+  status?: string;
+  error?: {
+    type: string;
+    output: string;
+  };
 }
 
 /**
@@ -80,30 +84,33 @@ export class ScriptRunner {
     kernelName: string | null,
     contextPath: string,
     code: string,
-    handleKernelMsg: (msgOutput: any) => void
-  ): Promise<any> => {
-    if (!kernelName) {
-      this.disableButton(true);
-      return this.errorDialog(KERNEL_ERROR_MSG);
-    }
+    handleKernelMsg: (msgOutput: IMessageOutput) => void
+  ): Promise<void> => {
     this.disableButton(true);
+
+    if (!kernelName) {
+      await this.errorDialog(KERNEL_ERROR_MSG);
+      return;
+    }
 
     try {
       await this.startSession(kernelName, contextPath);
     } catch (e) {
-      return this.errorDialog(SESSION_ERROR_MSG);
+      await this.errorDialog(SESSION_ERROR_MSG);
+      return;
     }
 
     if (!this.sessionConnection?.kernel) {
       // session didn't get started
-      return this.errorDialog(SESSION_ERROR_MSG);
+      await this.errorDialog(SESSION_ERROR_MSG);
+      return;
     }
 
     const future = this.sessionConnection.kernel.requestExecute({ code });
 
     future.onIOPub = (msg: IIOPubMessage): void => {
       const msgType = msg.header.msg_type;
-      const msgOutput: any = {};
+      const msgOutput: IMessageOutput = {};
 
       if (msgType === 'error') {
         const errorMsg = msg as IErrorMsg;
@@ -114,7 +121,7 @@ export class ScriptRunner {
       } else if (msgType === 'execute_result' || msgType === 'display_data') {
         const resultMsg = msg as IExecuteResultMsg | IDisplayDataMsg;
         if ('text/plain' in resultMsg.content.data) {
-          msgOutput.output = resultMsg.content.data['text/plain'];
+          msgOutput.output = resultMsg.content.data['text/plain'] as string;
         } else {
           console.log('Ignoring received message ' + JSON.stringify(msg));
         }
