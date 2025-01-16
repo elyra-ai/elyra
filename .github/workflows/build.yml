@@ -115,8 +115,6 @@ jobs:
       - name: Upload coverage reports to Codecov
         if: ${{ matrix.python-version == env.PYTHON_VERSION }}
         uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-ui:
     name: Test UI
@@ -153,8 +151,6 @@ jobs:
         run: make test-ui-unit
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-integration:
     name: Run Integration Tests
