@@ -35,6 +35,7 @@
     "clean:lintcache": "rimraf .eslintcache .stylelintcache",
     "clean:labextension": "rimraf ../../../../labextensions/elyra_ui_components/labextension ../../../../labextensions/elyra_ui_components/_version.py",
     "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
+    "cy:instrument": "npx nyc instrument --compact=false --in-place src/ src/",
     "eslint": "jlpm eslint:check --fix",
     "eslint:check": "eslint . --cache --ext .ts,.tsx",
     "install:extension": "jlpm build",

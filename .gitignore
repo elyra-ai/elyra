@@ -63,6 +63,7 @@ nosetests.xml
 coverage.xml
 *,cover
 **/coverage/
+.nyc_output/
 
 # Translations
 *.mo

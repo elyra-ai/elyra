@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import coverage from '@cypress/code-coverage/task';
+
 import { defineConfig } from 'cypress';
 
 import { register } from './cypress/utils/snapshots/plugin';
@@ -33,6 +35,7 @@ export default defineConfig({
     testIsolation: false,
     setupNodeEvents(on, config) {
       register(on, config);
+      coverage(on, config);
       return config;
     },
     retries: {
