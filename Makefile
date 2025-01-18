@@ -210,12 +210,15 @@ test-dependencies:
 	@$(PYTHON_PIP) install -q -r test_requirements.txt
 
 pytest:
-	$(PYTHON) -m pytest -v --durations=0 --durations-min=60 elyra
+	$(PYTHON) -m pytest -v --durations=0 --durations-min=60 elyra --cov --cov-report=xml
 
 test-server: test-dependencies pytest # Run python unit tests
 
 test-ui-unit: # Run frontend jest unit tests
 	yarn test:unit
+
+test-instrument: # Prepare code coverage instrumentation
+	yarn lerna run cy:instrument --stream
 
 test-integration: # Run frontend cypress integration tests
 	jupyter labextension disable "@jupyterlab/apputils-extension:announcements"

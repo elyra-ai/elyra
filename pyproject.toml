@@ -79,6 +79,7 @@ test = [
     "git-python",
     "importlib-resources",
     "pytest>=5.4.1",
+    "pytest-cov",
     "pytest-console-scripts",
     "pytest_jupyter",
     "pytest-tornasync",
