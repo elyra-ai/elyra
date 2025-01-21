@@ -21,11 +21,11 @@ import {
   RequestErrors,
   showFormDialog
 } from '@elyra/ui-components';
-import { Dialog, showDialog, ToolbarButton } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
+import { ToolbarButton } from '@jupyterlab/ui-components';
 import { IDisposable } from '@lumino/disposable';
-
 import * as React from 'react';
 
 import { FileSubmissionDialog } from './FileSubmissionDialog';
