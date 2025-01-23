@@ -115,7 +115,8 @@ jobs:
       - name: Upload coverage reports to Codecov
         if: ${{ matrix.python-version == env.PYTHON_VERSION }}
         uses: codecov/codecov-action@v5
-
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
   test-ui:
     name: Test UI
     needs: prepare-yarn-cache
