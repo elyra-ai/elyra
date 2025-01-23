@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Dialog, ToolbarButton, showDialog } from '@jupyterlab/apputils';
+import { Dialog, showDialog } from '@jupyterlab/apputils';
 import { CodeEditor } from '@jupyterlab/codeeditor';
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 import { FileEditor } from '@jupyterlab/fileeditor';
@@ -28,6 +28,7 @@ import {
   RenderMimeRegistry,
   standardRendererFactories as initialFactories
 } from '@jupyterlab/rendermime';
+import { ToolbarButton } from '@jupyterlab/ui-components';
 import {
   DockPanelSvg,
   LabIcon,
