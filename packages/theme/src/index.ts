@@ -65,35 +65,31 @@ const extension: JupyterFrontEndPlugin<ILauncher> = {
   ): ILauncher => {
     console.log('Elyra - theme extension is activated!');
 
-    // Find the MainLogo widget in the shell and replace it with the Elyra Logo
-    const widgets = app.shell.widgets('top');
-    let next = widgets.next();
-
-    while (!next.done) {
-      const widget = next.value;
-      if (widget.id === 'jp-MainLogo') {
-        // Object literal may only specify known properties, and 'justify' does not exist in type 'IProps'.ts(2353)
-
-        const propsWithJustify: {
-          container: HTMLElement;
-          justify?: string;
-          margin: string;
-          height: string;
-          width: string;
-        } = {
-          container: widget.node,
-          justify: 'center',
-          margin: '2px 5px 2px 5px',
-          height: 'auto',
-          width: '20px'
-        };
-
-        elyraIcon.element(propsWithJustify);
-
-        break;
+    // Find the MainLogo element and replace it with the Elyra Logo
+    app.restored.then(() => {
+      const logoElement = document.getElementById('jp-MainLogo');
+      if (!logoElement) {
+        return;
       }
-      next = widgets.next();
-    }
+
+      logoElement.innerHTML = '';
+
+      const propsWithJustify: {
+        container: HTMLElement;
+        justify?: string;
+        margin: string;
+        height: string;
+        width: string;
+      } = {
+        container: logoElement,
+        justify: 'center',
+        margin: '2px 5px 2px 5px',
+        height: 'auto',
+        width: '20px'
+      };
+
+      elyraIcon.element(propsWithJustify);
+    });
 
     // Use custom Elyra launcher
     const { commands, shell } = app;
